@@ -1,0 +1,17 @@
+{
+  "name": "erp",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "elysia": "latest"
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

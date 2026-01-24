@@ -1,0 +1,15 @@
+{
+  "name": "api",
+  "version": "1.0.50",
+  "module": "src/index.js",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts"
+  },
+  "dependencies": {
+    "elysia": "catalog:"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
