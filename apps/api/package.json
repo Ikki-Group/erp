@@ -1,15 +1,35 @@
 {
   "name": "api",
   "version": "1.0.50",
-  "module": "src/index.js",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts"
+    "test": "bun run test:unit && bun run coverage",
+    "test:unit": "bun test",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "seed": "bun run scripts/seed.ts"
   },
   "dependencies": {
-    "elysia": "catalog:"
+    "@axiomhq/pino": "^1.3.1",
+    "@elysiajs/cors": "^1.4.1",
+    "@elysiajs/openapi": "^1.4.14",
+    "@elysiajs/opentelemetry": "^1.4.10",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.211.0",
+    "@opentelemetry/instrumentation-pino": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^2.5.0",
+    "@opentelemetry/sdk-trace-node": "^2.5.0",
+    "drizzle-orm": "^0.44.0",
+    "elysia": "catalog:",
+    "pino": "^10.3.0",
+    "pino-pretty": "^13.1.3",
+    "postgres": "^3.4.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.8"
   }
 }

@@ -12,10 +12,15 @@
       "DOM.Iterable"
     ],
     "moduleDetection": "force",
-    "noUncheckedIndexedAccess": false,
+    "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -23,6 +28,23 @@
     "emitDeclarationOnly": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/core/*": [
+        "./src/core/*"
+      ],
+      "@/common/*": [
+        "./src/common/*"
+      ],
+      "@/modules/*": [
+        "./src/modules/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ]
+    }
   },
   "include": [
     "src",
