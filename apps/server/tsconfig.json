@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "incremental": false,
+    "incremental": true,
     "isolatedModules": true,
     "lib": [
       "ESNext",
@@ -28,6 +27,7 @@
     "emitDeclarationOnly": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "composite": true,
     "paths": {
       "@/*": [
         "./src/*"
@@ -43,6 +43,9 @@
       ],
       "@/utils/*": [
         "./src/utils/*"
+      ],
+      "@api/*": [
+        "../../apps/api/src/*"
       ]
     }
   },

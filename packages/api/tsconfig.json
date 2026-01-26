@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "lib": [
+      "ESNext"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@api/*": [
+        "../../apps/server/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+  ],
+  "references": [
+    {
+      "path": "../../apps/server"
+    }
+  ]
+}

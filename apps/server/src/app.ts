@@ -14,6 +14,7 @@ import { otel } from "@/utils/otel"
 import { authController } from "@/modules"
 
 export const app = new Elysia({ name: "App" })
+
   // Core plugins
   .use(cors())
   .use(otel)
@@ -66,3 +67,5 @@ export const app = new Elysia({ name: "App" })
 
   // API modules
   .group("/api/v1", (api) => api.use(authController))
+
+export type App = typeof app
