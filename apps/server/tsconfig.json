@@ -26,7 +26,6 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "outDir": "dist",
-    "baseUrl": ".",
     "composite": true,
     "paths": {
       "@/*": [
