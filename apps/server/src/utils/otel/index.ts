@@ -1,11 +1,7 @@
 import { opentelemetry } from "@elysiajs/opentelemetry"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-node"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto"
-import {
-  AlwaysOnSampler,
-  ConsoleSpanExporter,
-  SimpleSpanProcessor,
-} from "@opentelemetry/sdk-trace-base"
+import { AlwaysOnSampler } from "@opentelemetry/sdk-trace-base"
 
 export const otel = opentelemetry({
   spanProcessors: [
@@ -18,7 +14,6 @@ export const otel = opentelemetry({
         },
       }),
     ),
-    // new SimpleSpanProcessor(new ConsoleSpanExporter()),
   ],
   serviceName: "ikki-erp",
   sampler: new AlwaysOnSampler(),

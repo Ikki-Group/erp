@@ -1,9 +1,5 @@
 import { envSchema, type Env } from "./env.schema"
 
-/**
- * Validated environment configuration
- * Throws at startup if required env vars are missing
- */
 function loadConfig(): Env {
   const result = envSchema.safeParse(Bun.env)
 
@@ -17,6 +13,4 @@ function loadConfig(): Env {
 }
 
 export const config = loadConfig()
-
-// Re-export types
 export type { Env }

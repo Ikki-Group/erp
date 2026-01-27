@@ -31,20 +31,8 @@
       "@/*": [
         "./src/*"
       ],
-      "@/core/*": [
-        "./src/core/*"
-      ],
-      "@/common/*": [
-        "./src/common/*"
-      ],
-      "@/modules/*": [
-        "./src/modules/*"
-      ],
-      "@/utils/*": [
-        "./src/utils/*"
-      ],
-      "@api/*": [
-        "../../apps/api/src/*"
+      "@/db/*": [
+        "./src/db/*"
       ]
     }
   },
