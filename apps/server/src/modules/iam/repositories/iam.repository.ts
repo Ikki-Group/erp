@@ -19,11 +19,13 @@ import type {
 import type { PaginationParams, SortParams } from "@/shared/types"
 import { PermissionChecker } from "@/core/rbac"
 
+export class IamRepository {}
+
 /**
  * IAM Repository
  * Handles all database operations for IAM module
  */
-export class IamRepository {
+export class IamRepositoryImpl implements IamRepository {
   // ==========================================================================
   // User Queries
   // ==========================================================================
@@ -91,7 +93,7 @@ export class IamRepository {
       .where(eq(userRoleAssignments.userId, id))
 
     // Merge all permissions from all roles
-    const allPermissions = assignments.map((a) => a.permissions)
+    const allPermissions = assignments.map((a) => a.permissions).flat()
     const userPermissions = PermissionChecker.mergePermissions(allPermissions)
 
     return {
