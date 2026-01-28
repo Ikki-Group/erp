@@ -22,5 +22,6 @@ export const roles = dbSchema.table("roles", {
 
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .notNull()
-    .defaultNow(),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })

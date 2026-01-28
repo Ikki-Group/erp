@@ -13,6 +13,10 @@ export const users = dbSchema.table("users", {
   displayName: varchar("displayName", { length: 255 }),
 
   isActive: boolean("isActive").notNull().default(true),
+  isDeleted: boolean("isDeleted").notNull().default(false),
+
+  lastLoginAt: timestamp("lastLoginAt", { withTimezone: true }),
+  deletedAt: timestamp("deletedAt", { withTimezone: true }),
 
   createdAt: timestamp("createdAt", { withTimezone: true })
     .notNull()
@@ -20,5 +24,6 @@ export const users = dbSchema.table("users", {
 
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .notNull()
-    .defaultNow(),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
