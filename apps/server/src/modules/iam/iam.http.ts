@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia"
 import { iamService } from "./iam.service"
 import { IamDto } from "./iam.dto"
-import { successResponse, paginatedResponse } from "@/shared/dto"
+import { successResponse, paginatedResponse } from "@/core/shared/dto"
 
 const authHttp = new Elysia({ prefix: "/auth", detail: { tags: ["Auth"] } })
   /**

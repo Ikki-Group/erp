@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt"
-import { PASSWORD_REQUIREMENTS } from "@/shared/constants"
+import { PASSWORD_REQUIREMENTS } from "@/core/shared/constants"
 
 /**
  * Password hashing and validation utilities

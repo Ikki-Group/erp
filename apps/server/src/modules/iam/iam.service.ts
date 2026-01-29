@@ -1,8 +1,8 @@
 import { db } from "@/db"
 import { users, roles, userRoleAssignments } from "@/db/schema"
 import { eq, or, ilike, and, count, desc } from "drizzle-orm"
-import { hashPassword, verifyPassword } from "@/utils/password.util"
-import { generateToken } from "@/utils/jwt.util"
+import { hashPassword, verifyPassword } from "@/core/utils/password.util"
+import { generateToken } from "@/core/utils/jwt.util"
 import {
   HttpError,
   NotFoundError,
@@ -10,7 +10,7 @@ import {
   UnauthorizedError,
 } from "@/core/errors/http.error"
 import { IamDto } from "./iam.dto"
-import { calculatePaginationMeta } from "@/shared/dto"
+import { calculatePaginationMeta } from "@/core/shared/dto"
 
 export class IamService {
   /**

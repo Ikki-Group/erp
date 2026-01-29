@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
 import { config } from "@/core/config"
-import { JWT_CONFIG } from "@/shared/constants"
+import { JWT_CONFIG } from "@/core/shared/constants"
 import { UnauthorizedError } from "@/core/errors/http.error"
 
 /**

@@ -1,6 +1,6 @@
 import { config } from "@/core/config"
 import { closeDatabase } from "@/db"
-import { logger } from "@/utils/logger"
+import { logger } from "@/core/utils/logger"
 import { app } from "./app"
 export type { App } from "./app"
 

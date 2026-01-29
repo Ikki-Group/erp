@@ -5,7 +5,7 @@ import {
   usernameSchema,
   passwordSchema,
   uuidSchema,
-} from "@/shared/validators"
+} from "@/core/shared/validators"
 
 export namespace IamDto {
   /**

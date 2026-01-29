@@ -1,4 +1,4 @@
-import { zh } from "@/utils/zod"
+import { zh } from "@/core/utils/zod"
 import z from "zod"
 
 export const UserEntity = z.object({

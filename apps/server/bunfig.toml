@@ -1,1 +1,1 @@
-preload = ["./src/core/otel/index.ts"]
+preload = ["./src/core/infra/otel/index.ts"]

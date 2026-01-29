@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/bun-sql"
 import { config } from "@/core/config"
-import { logger } from "@/utils/logger"
+import { logger } from "@/core/utils/logger"
 import { SQL } from "bun"
 import * as schema from "./schema"
 

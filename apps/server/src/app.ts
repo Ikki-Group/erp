@@ -3,11 +3,11 @@ import { Elysia } from "elysia"
 
 import { config } from "@/core/config"
 import { HttpError } from "@/core/errors/http.error"
-import { errorResponse } from "@/shared/dto"
+import { errorResponse } from "@/core/shared/dto"
 
-import { otel } from "@/core/otel"
-import { logger } from "@/utils/logger"
-import { openapiConfig } from "@/core/openapi"
+import { otel } from "@/core/infra/otel"
+import { logger } from "@/core/utils/logger"
+import { openapiConfig } from "@/core/infra/openapi"
 
 // Import modules
 import { iamController } from "@/modules/iam"
