@@ -1,14 +1,13 @@
 import { cors } from "@elysiajs/cors"
-import { fromTypes, openapi } from "@elysiajs/openapi"
 import { Elysia } from "elysia"
-import { z } from "zod"
 
 import { config } from "@/core/config"
 import { HttpError } from "@/core/errors/http.error"
 import { errorResponse } from "@/shared/dto"
 
-import { otel } from "@/utils/otel"
+import { otel } from "@/core/otel"
 import { logger } from "@/utils/logger"
+import { openapiConfig } from "@/core/openapi"
 
 // Import modules
 import { iamController } from "@/modules/iam"
@@ -18,25 +17,7 @@ export const app = new Elysia({ name: "App" })
   .use(otel)
 
   // OpenAPI documentation
-  .use(
-    openapi({
-      mapJsonSchema: {
-        zod: z.toJSONSchema,
-      },
-      // references: fromTypes(
-      //   config.NODE_ENV === "production"
-      //     ? "dist/src/index.d.ts"
-      //     : "src/index.ts",
-      // ),
-      documentation: {
-        info: {
-          title: "Ikki ERP API",
-          version: "0.0.1",
-          description: "Enterprise Resource Planning API",
-        },
-      },
-    }),
-  )
+  .use(openapiConfig)
 
   // Register modules
   .use(iamController)

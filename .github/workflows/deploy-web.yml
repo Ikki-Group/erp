@@ -1,0 +1,46 @@
+name: Deploy web to Cloudflare Pages
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "apps/web/**"
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Build
+        working-directory: apps/web
+        run: npm run build --if-present
+
+      - name: Determine Cloudflare project
+        id: cf
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "project=${CLOUDFLARE_PROJECT_MAIN}" >> $GITHUB_OUTPUT
+          else
+            echo "project=${CLOUDFLARE_PROJECT_DEV}" >> $GITHUB_OUTPUT
+          fi
+        env:
+          CLOUDFLARE_PROJECT_MAIN: ${{ secrets.CLOUDFLARE_PROJECT_MAIN }}
+          CLOUDFLARE_PROJECT_DEV: ${{ secrets.CLOUDFLARE_PROJECT_DEV }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ steps.cf.outputs.project }}
+          directory: apps/web/dist
