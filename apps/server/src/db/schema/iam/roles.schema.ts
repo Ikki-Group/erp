@@ -1,12 +1,12 @@
-import { uuid, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core"
+import { varchar, text, timestamp, jsonb, uuid } from "drizzle-orm/pg-core"
 import { dbSchema } from "../db-schema"
 
 export const roles = dbSchema.table("roles", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid().primaryKey().defaultRandom(),
 
-  code: varchar("code", { length: 100 }).notNull().unique(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
+  code: varchar({ length: 100 }).notNull().unique(),
+  name: varchar({ length: 255 }).notNull(),
+  description: text(),
 
   /**
    * permissionCodes di-validate di runtime
@@ -14,13 +14,10 @@ export const roles = dbSchema.table("roles", {
    * ['inventory.read', 'sales.create']
    * ['*'] → SUPERADMIN
    */
-  permissionCodes: jsonb("permissionCodes").$type<string[]>().notNull(),
+  permissionCodes: jsonb().$type<string[]>().notNull(),
 
-  createdAt: timestamp("createdAt", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),

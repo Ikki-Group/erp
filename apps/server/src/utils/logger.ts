@@ -22,13 +22,13 @@ export const logger = pino({
           ignore: "pid,hostname",
         },
       },
-      {
-        target: "@axiomhq/pino",
-        options: {
-          dataset: Bun.env.AXIOM_DATASET,
-          token: Bun.env.AXIOM_TOKEN,
-        },
-      },
+      // {
+      //   target: "@axiomhq/pino",
+      //   options: {
+      //     dataset: Bun.env.AXIOM_DATASET,
+      //     token: Bun.env.AXIOM_TOKEN,
+      //   },
+      // },
     ],
   },
 })

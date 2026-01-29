@@ -1,28 +1,24 @@
-import { uuid, varchar, boolean, timestamp } from "drizzle-orm/pg-core"
+import { varchar, boolean, timestamp, uuid } from "drizzle-orm/pg-core"
 import { dbSchema } from "../db-schema"
 
 export const users = dbSchema.table("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid().primaryKey().defaultRandom(),
 
-  username: varchar("username", { length: 50 }).notNull().unique(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
+  username: varchar({ length: 50 }).notNull().unique(),
+  email: varchar({ length: 255 }).notNull().unique(),
 
-  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  passwordHash: varchar({ length: 255 }).notNull(),
 
-  fullName: varchar("fullName", { length: 255 }).notNull(),
-  displayName: varchar("displayName", { length: 255 }),
+  fullName: varchar({ length: 255 }).notNull(),
+  displayName: varchar({ length: 255 }),
 
-  isActive: boolean("isActive").notNull().default(true),
-  isDeleted: boolean("isDeleted").notNull().default(false),
+  isActive: boolean().notNull().default(true),
+  isDeleted: boolean().notNull().default(false),
+  lastLoginAt: timestamp({ withTimezone: true }),
 
-  lastLoginAt: timestamp("lastLoginAt", { withTimezone: true }),
-  deletedAt: timestamp("deletedAt", { withTimezone: true }),
-
-  createdAt: timestamp("createdAt", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
+  deletedAt: timestamp({ withTimezone: true }),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),

@@ -9,60 +9,158 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AuthIndexRouteImport } from './routes/_auth.index'
+import { Route as AuthProductsIndexRouteImport } from './routes/_auth.products.index'
+import { Route as AuthProductsUpsertRouteImport } from './routes/_auth.products.upsert'
+import { Route as AuthProductsProductIdRouteImport } from './routes/_auth.products.$productId'
 
-const IndexRoute = IndexRouteImport.update({
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsUpsertRoute = AuthProductsUpsertRouteImport.update({
+  id: '/products/upsert',
+  path: '/products/upsert',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsProductIdRoute = AuthProductsProductIdRouteImport.update({
+  id: '/products/$productId',
+  path: '/products/$productId',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthIndexRoute
+  '/login': typeof LoginRoute
+  '/products/$productId': typeof AuthProductsProductIdRoute
+  '/products/upsert': typeof AuthProductsUpsertRoute
+  '/products/': typeof AuthProductsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/': typeof AuthIndexRoute
+  '/products/$productId': typeof AuthProductsProductIdRoute
+  '/products/upsert': typeof AuthProductsUpsertRoute
+  '/products': typeof AuthProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_auth/': typeof AuthIndexRoute
+  '/_auth/products/$productId': typeof AuthProductsProductIdRoute
+  '/_auth/products/upsert': typeof AuthProductsUpsertRoute
+  '/_auth/products/': typeof AuthProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/products/$productId'
+    | '/products/upsert'
+    | '/products/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/login' | '/' | '/products/$productId' | '/products/upsert' | '/products'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/login'
+    | '/_auth/'
+    | '/_auth/products/$productId'
+    | '/_auth/products/upsert'
+    | '/_auth/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/': {
+      id: '/_auth/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/': {
+      id: '/_auth/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof AuthProductsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/upsert': {
+      id: '/_auth/products/upsert'
+      path: '/products/upsert'
+      fullPath: '/products/upsert'
+      preLoaderRoute: typeof AuthProductsUpsertRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/$productId': {
+      id: '/_auth/products/$productId'
+      path: '/products/$productId'
+      fullPath: '/products/$productId'
+      preLoaderRoute: typeof AuthProductsProductIdRouteImport
+      parentRoute: typeof AuthRoute
     }
   }
 }
 
+interface AuthRouteChildren {
+  AuthIndexRoute: typeof AuthIndexRoute
+  AuthProductsProductIdRoute: typeof AuthProductsProductIdRoute
+  AuthProductsUpsertRoute: typeof AuthProductsUpsertRoute
+  AuthProductsIndexRoute: typeof AuthProductsIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthIndexRoute: AuthIndexRoute,
+  AuthProductsProductIdRoute: AuthProductsProductIdRoute,
+  AuthProductsUpsertRoute: AuthProductsUpsertRoute,
+  AuthProductsIndexRoute: AuthProductsIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

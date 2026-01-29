@@ -23,11 +23,11 @@ export const app = new Elysia({ name: "App" })
       mapJsonSchema: {
         zod: z.toJSONSchema,
       },
-      references: fromTypes(
-        config.NODE_ENV === "production"
-          ? "dist/src/index.d.ts"
-          : "src/index.ts",
-      ),
+      // references: fromTypes(
+      //   config.NODE_ENV === "production"
+      //     ? "dist/src/index.d.ts"
+      //     : "src/index.ts",
+      // ),
       documentation: {
         info: {
           title: "Ikki ERP API",

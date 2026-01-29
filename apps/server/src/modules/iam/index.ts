@@ -3,6 +3,7 @@
  * Identity and Access Management
  */
 
-export { iamController } from "./controllers/iam.controller"
-export * from "./dto/iam.dto"
-export * from "./types/iam.types"
+export { iamHttp as iamController } from "./iam.http"
+export * from "./iam.dto"
+export * from "./iam.service"
+export * from "./iam.entity"
