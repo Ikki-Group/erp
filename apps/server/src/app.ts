@@ -1,66 +1,58 @@
-import { cors } from "@elysiajs/cors"
-import { Elysia } from "elysia"
+import { cors } from '@elysiajs/cors'
+import { Elysia } from 'elysia'
 
-import { config } from "@/core/config"
-import { HttpError } from "@/core/errors/http.error"
-import { errorResponse } from "@/core/shared/dto"
+import { iamController } from '@/features/iam'
 
-import { otel } from "@/core/infra/otel"
-import { logger } from "@/core/utils/logger"
-import { openapiConfig } from "@/core/infra/openapi"
+import { HttpError } from '@/shared/errors/http.error'
+import { otel } from '@/shared/otel'
+import { errorResponse } from '@/shared/responses'
+import { openapiPlugin } from '@/shared/server/openapi-plugin'
 
-// Import modules
-import { iamController } from "@/modules/iam"
-
-export const app = new Elysia({ name: "App" })
+/**
+ * Main Elysia application
+ * Combines all controllers and middleware
+ */
+export const app = new Elysia({
+  name: 'App',
+  precompile: true,
+})
   .use(cors())
   .use(otel)
-
-  // OpenAPI documentation
-  .use(openapiConfig)
-
-  // Register modules
-  .use(iamController)
-
-  // Global error handler
+  .use(openapiPlugin)
   .onError(({ code, error, set }) => {
-    // Type guards for error properties
     const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorStack = error instanceof Error ? error.stack : undefined
+    const errorStack =
+      error instanceof Error ? (process.env.NODE_ENV === 'development' ? error.stack : undefined) : undefined
 
-    logger.error(
-      { code, error: errorMessage, stack: errorStack },
-      "Error occurred",
-    )
-
+    // Handle custom HTTP errors
     if (error instanceof HttpError) {
       set.status = error.statusCode
       return error.toJSON()
     }
 
     // Handle validation errors
-    if (code === "VALIDATION") {
+    if (code === 'VALIDATION') {
       set.status = 422
-      return errorResponse("VALIDATION_ERROR", "Validation failed", 422, {
-        validation: errorMessage,
+      return errorResponse('VALIDATION_ERROR', 'Validation failed', {
+        errors: error.all,
       })
     }
 
-    // Handle  not found errors
-    if (code === "NOT_FOUND") {
+    // Handle not found errors
+    if (code === 'NOT_FOUND') {
       set.status = 404
-      return errorResponse("NOT_FOUND", "Route not found", 404)
+      return errorResponse('NOT_FOUND', 'Route not found')
     }
 
-    // Generic error
+    // Handle internal server errors
     set.status = 500
     return errorResponse(
-      "INTERNAL_ERROR",
-      config.NODE_ENV === "development"
-        ? errorMessage
-        : "Internal server error",
-      500,
+      'INTERNAL_ERROR',
+      process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error',
+      undefined,
+      errorStack
     )
   })
+  .use(iamController)
 
 export type App = typeof app

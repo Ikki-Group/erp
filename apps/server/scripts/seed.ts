@@ -1,5 +1,5 @@
-import { runAllSeeds } from "../src/db/seeds"
-import { closeDatabase } from "../src/db"
+import { closeDatabase } from '../src/database'
+import { runAllSeeds } from '../src/database/seeds'
 
 async function main() {
   try {
@@ -7,7 +7,7 @@ async function main() {
     await closeDatabase()
     process.exit(0)
   } catch (error) {
-    console.error("Seeding failed:")
+    console.error('Seeding failed:')
     console.error(error)
     await closeDatabase()
     process.exit(1)

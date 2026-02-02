@@ -31,8 +31,23 @@
       "@/*": [
         "./src/*"
       ],
-      "@/db/*": [
-        "./src/db/*"
+      "@/config": [
+        "./src/config"
+      ],
+      "@/common/*": [
+        "./src/common/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/database": [
+        "./src/database"
+      ],
+      "@/database/*": [
+        "./src/database/*"
+      ],
+      "@/features/*": [
+        "./src/features/*"
       ]
     }
   },
@@ -40,6 +55,7 @@
     "src",
     "test",
     "scripts",
+    "*.config.*",
     "eslint.config.mjs"
   ],
   "exclude": [

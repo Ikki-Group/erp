@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/index.ts", "newrelic.cjs", "prettier.config.cjs"],
+  "ignore": ["dist/**"],
+  "ignoreDependencies": ["pino-pretty", "@total-typescript/ts-reset"],
+}

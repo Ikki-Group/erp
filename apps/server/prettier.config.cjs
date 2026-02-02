@@ -1,0 +1,28 @@
+/** @type {import("prettier").Config} */
+const config = {
+  trailingComma: 'es5',
+  tabWidth: 2,
+  semi: false,
+  singleQuote: true,
+  printWidth: 120,
+  plugins: [
+    require.resolve('prettier-plugin-organize-imports'),
+    require.resolve('@ianvs/prettier-plugin-sort-imports'),
+  ],
+  importOrder: [
+    '^(bun|node):',
+    '<THIRD_PARTY_MODULES>',
+    '',
+    '^@/config$',
+    '^@/common/(.*)$',
+    '^@/lib/(.*)$',
+    '^@/database/(.*)$',
+    '^@/features/(.*)$',
+    '^@/(.*)$',
+    '',
+    '^[./]',
+  ],
+  importOrderParserPlugins: ['typescript'],
+}
+
+module.exports = config
