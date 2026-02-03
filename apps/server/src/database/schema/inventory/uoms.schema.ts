@@ -2,19 +2,14 @@ import { boolean, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 
 import { dbSchema } from '../db-schema'
 
-export const users = dbSchema.table('users', {
+export const uoms = dbSchema.table('uoms', {
   id: uuid().primaryKey().defaultRandom(),
 
-  fullName: varchar({ length: 255 }).notNull(),
-  username: varchar({ length: 50 }).notNull().unique(),
-  email: varchar({ length: 255 }).notNull().unique(),
-
-  passwordHash: varchar({ length: 255 }).notNull(),
+  code: varchar({ length: 20 }).notNull().unique(),
+  name: varchar({ length: 100 }).notNull(),
+  symbol: varchar({ length: 10 }),
 
   isActive: boolean().notNull().default(true),
-  lastLoginAt: timestamp({ withTimezone: true }),
-
-  deletedAt: timestamp({ withTimezone: true }),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()

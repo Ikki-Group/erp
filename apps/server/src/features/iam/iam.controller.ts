@@ -1,70 +1,29 @@
 import { Elysia, t } from 'elysia'
 
-import { ErrorResponseSchema } from '@/shared/errors/http.error'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  paginatedResponse,
-  successResponse,
-} from '@/shared/responses'
+import { paginatedResponse, successResponse } from '@/shared/responses'
 
 import { IamDto } from './iam.dto'
-import { RoleEntity, UserEntity } from './iam.schema'
 import { iamService } from './iam.service'
 
-/**
- * Authentication Controller
- * Handles user authentication and registration
- */
 const authController = new Elysia({
   prefix: '/auth',
-  detail: { tags: ['IAM - Authentication'] },
+  detail: { tags: ['iam.auth'] },
 })
-  /**
-   * Login by email and password
-   */
   .post(
     '/login',
     async ({ body }) => {
       const result = await iamService.login(body)
       return successResponse(result, 'Login successful')
     },
-    {
-      body: IamDto.Login,
-      response: {
-        200: createSuccessResponseSchema(IamDto.AuthResponse),
-        400: ErrorResponseSchema,
-        401: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'User login',
-        description: 'Authenticate user with email and password, returns JWT token and user information',
-      },
-    }
+    { body: IamDto.Login }
   )
-  /**
-   * Register new user
-   */
   .post(
     '/register',
     async ({ body }) => {
       const user = await iamService.register(body)
       return successResponse(user, 'User registered successfully')
     },
-    {
-      body: IamDto.Register,
-      response: {
-        200: createSuccessResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        409: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Register new user',
-        description: 'Create a new user account with email and password',
-      },
-    }
+    { body: IamDto.Register }
   )
 
 /**
@@ -84,18 +43,7 @@ const userController = new Elysia({
       const result = await iamService.getUsers(query)
       return paginatedResponse(result.data, result.meta)
     },
-    {
-      query: IamDto.UserQuery,
-      response: {
-        200: createPaginatedResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Get all users',
-        description: 'Fetch paginated list of users with optional search and filter parameters',
-      },
-    }
+    { query: IamDto.UserQuery }
   )
 
   /**
@@ -111,16 +59,6 @@ const userController = new Elysia({
       params: t.Object({
         id: t.String({ format: 'uuid', description: 'User ID' }),
       }),
-      response: {
-        200: createSuccessResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Get user by ID',
-        description: 'Retrieve detailed information about a specific user',
-      },
     }
   )
 
@@ -133,19 +71,7 @@ const userController = new Elysia({
       const user = await iamService.createUser(body)
       return successResponse(user, 'User created successfully')
     },
-    {
-      body: IamDto.UserCreate,
-      response: {
-        200: createSuccessResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        409: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Create new user',
-        description: 'Create a new user with role assignment',
-      },
-    }
+    { body: IamDto.UserCreate }
   )
 
   /**
@@ -162,17 +88,6 @@ const userController = new Elysia({
         id: t.String({ format: 'uuid', description: 'User ID' }),
       }),
       body: IamDto.UserUpdate,
-      response: {
-        200: createSuccessResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        409: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Update user by ID',
-        description: 'Update user information and role assignments',
-      },
     }
   )
 
@@ -189,16 +104,6 @@ const userController = new Elysia({
       params: t.Object({
         id: t.String({ format: 'uuid', description: 'User ID' }),
       }),
-      response: {
-        200: createSuccessResponseSchema(UserEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Delete user by ID',
-        description: 'Permanently delete a user from the system',
-      },
     }
   )
 
@@ -219,18 +124,7 @@ const roleController = new Elysia({
       const result = await iamService.getRoles(query)
       return paginatedResponse(result.data, result.meta)
     },
-    {
-      query: IamDto.RoleQuery,
-      response: {
-        200: createPaginatedResponseSchema(RoleEntity),
-        400: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Get all roles',
-        description: 'Fetch paginated list of roles with optional search',
-      },
-    }
+    { query: IamDto.RoleQuery }
   )
 
   /**
@@ -246,16 +140,6 @@ const roleController = new Elysia({
       params: t.Object({
         id: t.String({ format: 'uuid', description: 'Role ID' }),
       }),
-      response: {
-        200: createSuccessResponseSchema(RoleEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Get role by ID',
-        description: 'Retrieve detailed information about a specific role',
-      },
     }
   )
 
@@ -268,19 +152,7 @@ const roleController = new Elysia({
       const role = await iamService.createRole(body)
       return successResponse(role, 'Role created successfully')
     },
-    {
-      body: IamDto.RoleCreate,
-      response: {
-        200: createSuccessResponseSchema(RoleEntity),
-        400: ErrorResponseSchema,
-        409: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Create new role',
-        description: 'Create a new role with permissions',
-      },
-    }
+    { body: IamDto.RoleCreate }
   )
 
   /**
@@ -297,17 +169,6 @@ const roleController = new Elysia({
         id: t.String({ format: 'uuid', description: 'Role ID' }),
       }),
       body: IamDto.RoleUpdate,
-      response: {
-        200: createSuccessResponseSchema(RoleEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        409: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Update role by ID',
-        description: 'Update role information and permissions',
-      },
     }
   )
 
@@ -324,16 +185,6 @@ const roleController = new Elysia({
       params: t.Object({
         id: t.String({ format: 'uuid', description: 'Role ID' }),
       }),
-      response: {
-        200: createSuccessResponseSchema(RoleEntity),
-        400: ErrorResponseSchema,
-        404: ErrorResponseSchema,
-        500: ErrorResponseSchema,
-      },
-      detail: {
-        summary: 'Delete role by ID',
-        description: 'Permanently delete a role from the system',
-      },
     }
   )
 
@@ -341,4 +192,8 @@ const roleController = new Elysia({
  * IAM Controller
  * Main controller that combines all IAM-related endpoints
  */
-export const iamController = new Elysia({ prefix: '/iam' }).use(authController).use(userController).use(roleController)
+export const iamController = new Elysia({ prefix: '/iam' })
+  //
+  .use(authController)
+  .use(userController)
+  .use(roleController)

@@ -10,7 +10,7 @@ import type {
 /**
  * Permission checking utility for RBAC
  */
-export class PermissionChecker {
+export namespace PermissionChecker {
   /**
    * Check if user has permission(s)
    *
@@ -19,7 +19,7 @@ export class PermissionChecker {
    * @param mode - Check mode: AND (all required) or OR (at least one required)
    * @returns Permission check result
    */
-  static check(
+  export function check(
     userPermissions: UserPermissions,
     requiredPermissions: Permission | Permission[],
     mode: PermissionCheckMode = 'AND'
@@ -32,17 +32,15 @@ export class PermissionChecker {
     const required = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions]
 
     return mode === 'AND'
-      ? PermissionChecker.checkAll(userPermissions.permissions, required)
-      : PermissionChecker.checkAny(userPermissions.permissions, required)
+      ? checkAll(userPermissions.permissions, required)
+      : checkAny(userPermissions.permissions, required)
   }
 
   /**
    * Check if user has ALL required permissions (AND logic)
    */
-  private static checkAll(userPermissions: PermissionArray, requiredPermissions: Permission[]): PermissionCheckResult {
-    const missing = requiredPermissions.filter(
-      (required) => !PermissionChecker.hasPermission(userPermissions, required)
-    )
+  function checkAll(userPermissions: PermissionArray, requiredPermissions: Permission[]): PermissionCheckResult {
+    const missing = requiredPermissions.filter((required) => !hasPermission(userPermissions, required))
 
     return {
       allowed: missing.length === 0,
@@ -53,8 +51,8 @@ export class PermissionChecker {
   /**
    * Check if user has ANY of the required permissions (OR logic)
    */
-  private static checkAny(userPermissions: PermissionArray, requiredPermissions: Permission[]): PermissionCheckResult {
-    const hasAny = requiredPermissions.some((required) => PermissionChecker.hasPermission(userPermissions, required))
+  function checkAny(userPermissions: PermissionArray, requiredPermissions: Permission[]): PermissionCheckResult {
+    const hasAny = requiredPermissions.some((required) => hasPermission(userPermissions, required))
 
     return {
       allowed: hasAny,
@@ -65,14 +63,14 @@ export class PermissionChecker {
   /**
    * Check if a specific permission exists in user's permission array
    */
-  private static hasPermission(userPermissions: PermissionArray, permission: Permission): boolean {
+  function hasPermission(userPermissions: PermissionArray, permission: Permission): boolean {
     return userPermissions.includes(SUPERADMIN_PERMISSION) || userPermissions.includes(permission)
   }
 
   /**
    * Get unique permissions from multiple role assignments
    */
-  static mergePermissions(rolePermissions: PermissionArray[]): UserPermissions {
+  export function mergePermissions(rolePermissions: PermissionArray[]): UserPermissions {
     const allPermissions = rolePermissions.flat()
     const uniquePermissions = [...new Set(allPermissions)]
     const isSuperAdmin = uniquePermissions.includes(SUPERADMIN_PERMISSION)
@@ -86,7 +84,7 @@ export class PermissionChecker {
   /**
    * Check if permissions array contains superadmin wildcard
    */
-  static isSuperAdmin(permissions: PermissionArray): boolean {
+  export function isSuperAdmin(permissions: PermissionArray): boolean {
     return permissions.includes(SUPERADMIN_PERMISSION)
   }
 }

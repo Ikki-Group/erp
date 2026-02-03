@@ -2,7 +2,9 @@ import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { iamController } from '@/features/iam'
-
+import { materialsController, uomsController } from '@/features/inventory'
+import { locationController } from '@/features/location'
+import { locationMaterialsController } from '@/features/warehouse'
 import { HttpError } from '@/shared/errors/http.error'
 import { otel } from '@/shared/otel'
 import { errorResponse } from '@/shared/responses'
@@ -54,5 +56,9 @@ export const app = new Elysia({
     )
   })
   .use(iamController)
+  .use(locationController)
+  .use(uomsController)
+  .use(materialsController)
+  .use(locationMaterialsController)
 
 export type App = typeof app

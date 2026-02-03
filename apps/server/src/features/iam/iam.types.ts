@@ -7,7 +7,6 @@ export const UserEntity = z.object({
   username: zh.str,
   email: zh.email,
   fullName: zh.str,
-  displayName: zh.str.nullable(),
   isActive: zh.bool,
   createdAt: zh.date,
   updatedAt: zh.date,

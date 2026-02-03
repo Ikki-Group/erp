@@ -1,11 +1,11 @@
 {
-  "id": "ba0ed101-ac24-47c0-af5e-3d4a0a5e6b16",
-  "prevId": "49e139a9-8343-4801-a284-fd6cb6916e92",
+  "id": "b68093b0-3da8-4a83-8d01-e8c4e5196a36",
+  "prevId": "82453400-69f8-4ff2-a1d6-fccf6b35605e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "ikki-dev.locationMaterials": {
-      "name": "locationMaterials",
+    "ikki-dev.location_materials": {
+      "name": "location_materials",
       "schema": "ikki-dev",
       "columns": {
         "id": {
@@ -66,9 +66,9 @@
         }
       },
       "foreignKeys": {
-        "locationMaterials_locationId_locations_id_fk": {
-          "name": "locationMaterials_locationId_locations_id_fk",
-          "tableFrom": "locationMaterials",
+        "location_materials_locationId_locations_id_fk": {
+          "name": "location_materials_locationId_locations_id_fk",
+          "tableFrom": "location_materials",
           "tableTo": "locations",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -80,9 +80,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "locationMaterials_materialId_materials_id_fk": {
-          "name": "locationMaterials_materialId_materials_id_fk",
-          "tableFrom": "locationMaterials",
+        "location_materials_materialId_materials_id_fk": {
+          "name": "location_materials_materialId_materials_id_fk",
+          "tableFrom": "location_materials",
           "tableTo": "materials",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -126,7 +126,8 @@
         },
         "type": {
           "name": "type",
-          "type": "varchar(50)",
+          "type": "location_type",
+          "typeSchema": "ikki-dev",
           "primaryKey": false,
           "notNull": true
         },
@@ -210,8 +211,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "ikki-dev.materialUoms": {
-      "name": "materialUoms",
+    "ikki-dev.material_uoms": {
+      "name": "material_uoms",
       "schema": "ikki-dev",
       "columns": {
         "id": {
@@ -278,9 +279,9 @@
         }
       },
       "foreignKeys": {
-        "materialUoms_materialId_materials_id_fk": {
-          "name": "materialUoms_materialId_materials_id_fk",
-          "tableFrom": "materialUoms",
+        "material_uoms_materialId_materials_id_fk": {
+          "name": "material_uoms_materialId_materials_id_fk",
+          "tableFrom": "material_uoms",
           "tableTo": "materials",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -292,9 +293,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "materialUoms_uomId_uoms_id_fk": {
-          "name": "materialUoms_uomId_uoms_id_fk",
-          "tableFrom": "materialUoms",
+        "material_uoms_uomId_uoms_id_fk": {
+          "name": "material_uoms_uomId_uoms_id_fk",
+          "tableFrom": "material_uoms",
           "tableTo": "uoms",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -338,7 +339,8 @@
         },
         "type": {
           "name": "type",
-          "type": "varchar(20)",
+          "type": "material_type",
+          "typeSchema": "ikki-dev",
           "primaryKey": false,
           "notNull": true
         },
@@ -540,8 +542,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "ikki-dev.userRoleAssignments": {
-      "name": "userRoleAssignments",
+    "ikki-dev.user_role_assignments": {
+      "name": "user_role_assignments",
       "schema": "ikki-dev",
       "columns": {
         "id": {
@@ -607,9 +609,9 @@
         }
       },
       "foreignKeys": {
-        "userRoleAssignments_userId_users_id_fk": {
-          "name": "userRoleAssignments_userId_users_id_fk",
-          "tableFrom": "userRoleAssignments",
+        "user_role_assignments_userId_users_id_fk": {
+          "name": "user_role_assignments_userId_users_id_fk",
+          "tableFrom": "user_role_assignments",
           "tableTo": "users",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -621,9 +623,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "userRoleAssignments_roleId_roles_id_fk": {
-          "name": "userRoleAssignments_roleId_roles_id_fk",
-          "tableFrom": "userRoleAssignments",
+        "user_role_assignments_roleId_roles_id_fk": {
+          "name": "user_role_assignments_roleId_roles_id_fk",
+          "tableFrom": "user_role_assignments",
           "tableTo": "roles",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -635,9 +637,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "userRoleAssignments_locationId_locations_id_fk": {
-          "name": "userRoleAssignments_locationId_locations_id_fk",
-          "tableFrom": "userRoleAssignments",
+        "user_role_assignments_locationId_locations_id_fk": {
+          "name": "user_role_assignments_locationId_locations_id_fk",
+          "tableFrom": "user_role_assignments",
           "tableTo": "locations",
           "schemaTo": "ikki-dev",
           "columnsFrom": [
@@ -749,7 +751,26 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "ikki-dev.location_type": {
+      "name": "location_type",
+      "schema": "ikki-dev",
+      "values": [
+        "OFFICE",
+        "WAREHOUSE",
+        "STORE",
+        "FACTORY"
+      ]
+    },
+    "ikki-dev.material_type": {
+      "name": "material_type",
+      "schema": "ikki-dev",
+      "values": [
+        "raw",
+        "semi"
+      ]
+    }
+  },
   "schemas": {
     "ikki-dev": "ikki-dev"
   },

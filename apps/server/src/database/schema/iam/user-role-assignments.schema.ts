@@ -5,8 +5,22 @@ import { locations } from '../location/locations.schema'
 import { roles } from './roles.schema'
 import { users } from './users.schema'
 
+/**
+ * User Role Assignments Table
+ *
+ * Manages the assignment of roles to users, optionally scoped to specific locations.
+ *
+ * Features:
+ * - Many-to-many relationship between users and roles
+ * - Location-based role scoping (optional)
+ * - Supports multi-location access control
+ *
+ * Examples:
+ * - User A has role "Warehouse Manager" at Location "Warehouse Jakarta"
+ * - User B has role "Admin" (no location = global access)
+ */
 export const userRoleAssignments = dbSchema.table(
-  'userRoleAssignments',
+  'user_role_assignments',
   {
     id: uuid().primaryKey().defaultRandom(),
 
@@ -18,9 +32,7 @@ export const userRoleAssignments = dbSchema.table(
       .notNull()
       .references(() => roles.id, { onDelete: 'cascade' }),
 
-    /**
-     * locationId NULL = GLOBAL ROLE
-     */
+    /** locationId NULL = GLOBAL ROLE*/
     locationId: uuid().references(() => locations.id, {
       onDelete: 'cascade',
     }),

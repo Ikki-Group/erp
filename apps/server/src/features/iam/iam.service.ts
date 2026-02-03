@@ -45,7 +45,6 @@ export class IamService {
         username: user.username,
         email: user.email,
         fullName: user.fullName,
-        displayName: user.displayName,
         isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -64,7 +63,6 @@ export class IamService {
           email: data.email,
           fullName: data.fullName,
           passwordHash,
-          displayName: null,
           isActive: true,
         })
         .returning()
@@ -107,7 +105,6 @@ export class IamService {
         username: users.username,
         email: users.email,
         fullName: users.fullName,
-        displayName: users.displayName,
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
@@ -131,7 +128,6 @@ export class IamService {
         username: users.username,
         email: users.email,
         fullName: users.fullName,
-        displayName: users.displayName,
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
@@ -158,7 +154,6 @@ export class IamService {
           username: data.username,
           email: data.email,
           fullName: data.fullName,
-          displayName: data.displayName ?? null,
           passwordHash,
         })
         .returning()

@@ -1,21 +1,20 @@
 import { boolean, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 
 import { dbSchema } from '../db-schema'
-import { locationTypeEnum } from '../shared-enums'
+import { materialTypeEnum } from '../shared-enums'
+import { uoms } from './uoms.schema'
 
-export const locations = dbSchema.table('locations', {
+export const materials = dbSchema.table('materials', {
   id: uuid().primaryKey().defaultRandom(),
 
   code: varchar({ length: 50 }).notNull().unique(),
   name: varchar({ length: 255 }).notNull(),
-  type: locationTypeEnum().notNull(),
+  type: materialTypeEnum().notNull(), // 'raw' or 'semi'
+  description: text(),
 
-  address: text().default(''),
-  city: varchar({ length: 100 }).default(''),
-  province: varchar({ length: 100 }).default(''),
-  postalCode: varchar({ length: 20 }).default(''),
-  phone: varchar({ length: 50 }).default(''),
-  email: varchar({ length: 255 }).default(''),
+  baseUomId: uuid()
+    .notNull()
+    .references(() => uoms.id, { onDelete: 'restrict' }),
 
   isActive: boolean().notNull().default(true),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

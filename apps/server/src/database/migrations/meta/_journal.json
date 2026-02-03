@@ -5,15 +5,29 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1769534785862,
-      "tag": "0000_premium_matthew_murdock",
+      "when": 1770028678791,
+      "tag": "0000_living_thena",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1769609840757,
-      "tag": "0001_optimal_demogoblin",
+      "when": 1770034526136,
+      "tag": "0001_red_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770044908481,
+      "tag": "0002_blushing_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770047503718,
+      "tag": "0003_boring_ghost_rider",
       "breakpoints": true
     }
   ]

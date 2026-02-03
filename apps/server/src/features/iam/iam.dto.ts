@@ -1,45 +1,45 @@
 import { z } from 'zod'
 
-import { emailSchema, paginationSchema, passwordSchema, usernameSchema, uuidSchema } from '@/shared/validators'
+import { zh } from '@/shared/zod'
 
-import { UserEntity } from './iam.schema'
+import { UserEntity } from './iam.types'
 
 export namespace IamDto {
   /**
    * AUTH
    */
   export const Login = z.object({
-    email: emailSchema,
-    password: z.string().min(1, 'Password is required'),
+    email: zh.email,
+    password: zh.password,
   })
   export type Login = z.infer<typeof Login>
 
   export const Register = z.object({
     fullName: z.string().min(1, 'Full name is required').max(255),
-    email: emailSchema,
-    password: passwordSchema,
+    email: zh.email,
+    password: zh.password,
   })
   export type Register = z.infer<typeof Register>
 
   /**
    * USER
    */
-  export const UserQuery = paginationSchema.extend({
+  export const UserQuery = zh.pagination.extend({
     search: z.string().optional(),
-    roleId: uuidSchema.optional(),
-    locationId: uuidSchema.optional(),
+    roleId: zh.uuid.optional(),
+    locationId: zh.uuid.optional(),
     isActive: z.coerce.boolean().optional(),
   })
   export type UserQuery = z.infer<typeof UserQuery>
 
   export const UserCreate = z.object({
-    username: usernameSchema,
-    email: emailSchema,
-    password: passwordSchema,
+    username: zh.username,
+    email: zh.email,
+    password: zh.password,
     fullName: z.string().min(1).max(255),
     displayName: z.string().max(255).optional(),
-    roleId: uuidSchema.optional(),
-    locationId: uuidSchema.optional(),
+    roleId: zh.uuid.optional(),
+    locationId: zh.uuid.optional(),
   })
   export type UserCreate = z.infer<typeof UserCreate>
 
@@ -51,7 +51,7 @@ export namespace IamDto {
   /**
    * ROLE
    */
-  export const RoleQuery = paginationSchema.extend({
+  export const RoleQuery = zh.pagination.extend({
     search: z.string().optional(),
   })
   export type RoleQuery = z.infer<typeof RoleQuery>

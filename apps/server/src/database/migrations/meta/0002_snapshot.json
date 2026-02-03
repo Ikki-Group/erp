@@ -1,6 +1,6 @@
 {
-  "id": "ba0ed101-ac24-47c0-af5e-3d4a0a5e6b16",
-  "prevId": "49e139a9-8343-4801-a284-fd6cb6916e92",
+  "id": "82453400-69f8-4ff2-a1d6-fccf6b35605e",
+  "prevId": "ba0ed101-ac24-47c0-af5e-3d4a0a5e6b16",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -126,7 +126,8 @@
         },
         "type": {
           "name": "type",
-          "type": "varchar(50)",
+          "type": "location_type",
+          "typeSchema": "ikki-dev",
           "primaryKey": false,
           "notNull": true
         },
@@ -338,7 +339,8 @@
         },
         "type": {
           "name": "type",
-          "type": "varchar(20)",
+          "type": "material_type",
+          "typeSchema": "ikki-dev",
           "primaryKey": false,
           "notNull": true
         },
@@ -749,7 +751,26 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "ikki-dev.location_type": {
+      "name": "location_type",
+      "schema": "ikki-dev",
+      "values": [
+        "OFFICE",
+        "WAREHOUSE",
+        "STORE",
+        "FACTORY"
+      ]
+    },
+    "ikki-dev.material_type": {
+      "name": "material_type",
+      "schema": "ikki-dev",
+      "values": [
+        "raw",
+        "semi"
+      ]
+    }
+  },
   "schemas": {
     "ikki-dev": "ikki-dev"
   },

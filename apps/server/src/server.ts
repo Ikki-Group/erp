@@ -25,7 +25,7 @@ async function shutdown() {
   await closeDatabase()
 
   logger.info('Shutdown complete')
-  process.exit(0)
+  throw new Error('Server shutdown')
 }
 
 process.on('SIGINT', shutdown)

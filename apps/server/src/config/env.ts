@@ -26,6 +26,7 @@ const _env = Env.safeParse(Bun.env)
 
 if (!_env.success) {
   console.error('Invalid environment variables:', z.treeifyError(_env.error))
+  // eslint-disable-next-line unicorn/no-process-exit
   process.exit(1)
 }
 
