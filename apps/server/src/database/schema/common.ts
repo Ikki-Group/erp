@@ -1,0 +1,15 @@
+import { integer, timestamp } from 'drizzle-orm/pg-core'
+
+export const metafields = {
+  createdAt: timestamp().defaultNow().notNull(),
+  createdBy: integer().notNull(),
+  updatedAt: timestamp()
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+  updatedBy: integer().notNull(),
+}
+
+export const softDeleteMetafields = {
+  deletedAt: timestamp(),
+}

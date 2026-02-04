@@ -22,6 +22,13 @@ const pagination = z.object({
   limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit must not exceed 100').default(10),
 })
 
+const meta = z.object({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  createdBy: z.number(),
+  updatedBy: z.number(),
+})
+
 export const zh = {
   str,
   email,
@@ -33,4 +40,5 @@ export const zh = {
   password,
   username,
   pagination,
+  meta,
 }
