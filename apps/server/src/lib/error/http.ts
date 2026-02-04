@@ -1,46 +1,78 @@
-import z from 'zod'
+export class HttpError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    message: string,
+    public readonly code?: string,
+    public readonly details?: Record<string, unknown>
+  ) {
+    super(message)
+    this.name = 'HttpError'
+  }
 
-export namespace zh {
-  const str = z.string().trim()
-  const email = z.email()
-  const num = z.number()
-  const bool = z.boolean()
-  const date = z.date()
-  const uuid = z.uuid()
+  toJSON() {
+    return {
+      code: this.code ?? this.name,
+      message: this.message ?? this.name,
+      error: {
+        details: this.details,
+        stack: this.stack,
+      },
+    }
+  }
+}
 
-  const password = z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must not exceed 100 characters')
+export class BadRequestError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(400, message, code, details)
+    this.name = 'BadRequestError'
+  }
+}
 
-  const username = z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(50, 'Username must not exceed 50 characters')
+export class UnauthorizedError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(401, message, code, details)
+    this.name = 'UnauthorizedError'
+  }
+}
 
-  const pagination = z.object({
-    page: z.coerce.number().int().min(1, 'Page must be at least 1').default(1),
-    limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit must not exceed 100').default(10),
-  })
+export class ForbiddenError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(403, message, code, details)
+    this.name = 'ForbiddenError'
+  }
+}
 
-  const meta = z.object({
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    createdBy: z.number(),
-    updatedBy: z.number(),
-  })
+export class NotFoundError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(404, message, code, details)
+    this.name = 'NotFoundError'
+  }
+}
 
-  export const zh = {
-    str,
-    email,
-    num,
-    bool,
-    date,
-    uuid,
+export class ConflictError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(409, message, code, details)
+    this.name = 'ConflictError'
+  }
+}
 
-    password,
-    username,
-    pagination,
-    meta,
+export class TooManyRequestsError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(429, message, code, details)
+    this.name = 'TooManyRequestsError'
+  }
+}
+
+export class InternalServerError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(500, message, code, details)
+    this.name = 'InternalServerError'
+  }
+}
+
+export class ServiceUnavailableError extends HttpError {
+  constructor(message: string, code?: string, details?: Record<string, unknown>) {
+    super(503, message, code, details)
+    this.name = 'ServiceUnavailableError'
   }
 }

@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "name": "erp",
+      "path": "./"
+    },
+    {
+      "name": "server",
+      "path": "apps/server"
+    },
+    {
+      "name": "web",
+      "path": "apps/web"
+    },
+  ],
+  "settings": {}
+}

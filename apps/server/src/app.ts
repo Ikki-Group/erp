@@ -1,19 +1,16 @@
 import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
-import { iamController } from '@/features/iam'
-import { materialsController, uomsController } from '@/features/inventory'
-import { locationController } from '@/features/location'
-import { locationMaterialsController } from '@/features/warehouse'
-import { HttpError } from '@/shared/errors/http.error'
-import { otel } from '@/shared/otel'
-import { errorResponse } from '@/shared/responses'
-import { openapiPlugin } from '@/shared/server/openapi-plugin'
+import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
+import { otel } from '@/lib/otel'
+import { IamService, initIamRoute } from '@/modules/iam'
 
-/**
- * Main Elysia application
- * Combines all controllers and middleware
- */
+// Services
+const iamService = new IamService()
+
+// Routes
+const iamRoute = initIamRoute(iamService)
+
 export const app = new Elysia({
   name: 'App',
   precompile: true,
@@ -21,44 +18,45 @@ export const app = new Elysia({
   .use(cors())
   .use(otel)
   .use(openapiPlugin)
-  .onError(({ code, error, set }) => {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorStack =
-      error instanceof Error ? (process.env.NODE_ENV === 'development' ? error.stack : undefined) : undefined
+  .use(iamRoute)
+// .onError(({ code, error, set }) => {
+//   const errorMessage = error instanceof Error ? error.message : String(error)
+//   const errorStack =
+//     error instanceof Error ? (process.env.NODE_ENV === 'development' ? error.stack : undefined) : undefined
 
-    // Handle custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode
-      return error.toJSON()
-    }
+//   // Handle custom HTTP errors
+//   if (error instanceof HttpError) {
+//     set.status = error.statusCode
+//     return error.toJSON()
+//   }
 
-    // Handle validation errors
-    if (code === 'VALIDATION') {
-      set.status = 422
-      return errorResponse('VALIDATION_ERROR', 'Validation failed', {
-        errors: error.all,
-      })
-    }
+//   // Handle validation errors
+//   if (code === 'VALIDATION') {
+//     set.status = 422
+//     return errorResponse('VALIDATION_ERROR', 'Validation failed', {
+//       errors: error.all,
+//     })
+//   }
 
-    // Handle not found errors
-    if (code === 'NOT_FOUND') {
-      set.status = 404
-      return errorResponse('NOT_FOUND', 'Route not found')
-    }
+//   // Handle not found errors
+//   if (code === 'NOT_FOUND') {
+//     set.status = 404
+//     return errorResponse('NOT_FOUND', 'Route not found')
+//   }
 
-    // Handle internal server errors
-    set.status = 500
-    return errorResponse(
-      'INTERNAL_ERROR',
-      process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error',
-      undefined,
-      errorStack
-    )
-  })
-  .use(iamController)
-  .use(locationController)
-  .use(uomsController)
-  .use(materialsController)
-  .use(locationMaterialsController)
+//   // Handle internal server errors
+//   set.status = 500
+//   return errorResponse(
+//     'INTERNAL_ERROR',
+//     process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error',
+//     undefined,
+//     errorStack
+//   )
+// })
+// .use(iamController)
+// .use(locationController)
+// .use(uomsController)
+// .use(materialsController)
+// .use(locationMaterialsController)
 
 export type App = typeof app

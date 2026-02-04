@@ -1,1 +1,1 @@
-preload = ["./src/shared/otel.ts"]
+preload = ["./src/lib/otel.ts"]

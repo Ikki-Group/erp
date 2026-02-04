@@ -1,15 +1,7 @@
 import z from 'zod'
 
-import { zh } from '@/shared/zod'
+import { zh } from '@/lib/zod'
 
-/**
- * IAM Schemas for API validation and type inference
- *
- * These schemas are used for:
- * - Request/response validation
- * - OpenAPI documentation
- * - Type inference for service layer
- */
 export namespace IamSchema {
   export const User = z.object({
     id: z.number(),
