@@ -24,5 +24,8 @@
   "[markdown]": {
     "editor.formatOnSave": false
   },
-  "markdown.styles": []
+  "markdown.styles": [],
+  "material-icon-theme.files.associations": {
+    "**/controller/**": "typescript",
+  },
 }

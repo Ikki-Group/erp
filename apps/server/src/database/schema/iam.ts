@@ -45,3 +45,16 @@ export const userRoleAssignments = pgTable(
   },
   (t) => [unique().on(t.userId, t.locationId)]
 )
+
+// Type exports
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
+export type UserUpdate = Partial<NewUser>
+
+export type Role = typeof roles.$inferSelect
+export type NewRole = typeof roles.$inferInsert
+export type RoleUpdate = Partial<NewRole>
+
+export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect
+export type NewUserRoleAssignment = typeof userRoleAssignments.$inferInsert
+export type UserRoleAssignmentUpdate = Partial<NewUserRoleAssignment>

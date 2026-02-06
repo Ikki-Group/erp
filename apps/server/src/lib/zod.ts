@@ -1,38 +1,79 @@
 import z from 'zod'
 
-export namespace zh {
-  export const str = z.string().trim()
-  export const email = z.email()
-  export const num = z.number()
-  export const bool = z.boolean()
-  export const date = z.coerce.date()
-  export const uuid = z.uuid()
+/**
+ * Common Zod Schemas & Helpersa
+ */
 
-  export const password = str
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must not exceed 100 characters')
+const str = z.string().trim()
+const num = z.number()
+const date = z.coerce.date()
 
-  export const username = str
-    .min(3, 'Username must be at least 3 characters')
-    .max(50, 'Username must not exceed 50 characters')
+/**
+ * Validation Schemas
+ * Reusable Zod schemas for input validation
+ */
+export const zSchema = {
+  str,
+  num,
+  bool: z.boolean(),
+  date,
+  email: z.string().email(),
+  uuid: z.string().uuid(),
 
-  export const pagination = z.object({
-    page: z.coerce.number().int().min(1, 'Page must be at least 1').default(1),
-    limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit must not exceed 100').default(10),
-  })
+  password: str.min(8, 'Password must be at least 8 characters').max(100, 'Password must not exceed 100 characters'),
 
-  export const meta = z.object({
+  username: str.min(3, 'Username must be at least 3 characters').max(50, 'Username must not exceed 50 characters'),
+
+  pagination: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+  }),
+
+  meta: z.object({
     createdAt: date,
     updatedAt: date,
     createdBy: num,
     updatedBy: num,
-  })
+  }),
+}
 
-  export function buildResOk<T extends z.ZodTypeAny>(data: T) {
-    return z.object({
-      code: z.string().default('OK'),
+/**
+ * Response Schemas for OpenAPI
+ * Helpers to generate Zod schemas for API documentation
+ */
+export const zResponse = {
+  /**
+   * Success response schema
+   */
+  ok: <T extends z.ZodTypeAny>(data: T) =>
+    z.object({
       success: z.literal(true),
+      code: z.string(),
       data,
-    })
-  }
+    }),
+
+  /**
+   * Paginated response schema
+   */
+  paginated: <T extends z.ZodTypeAny>(data: T) =>
+    z.object({
+      success: z.literal(true),
+      code: z.string(),
+      data,
+      meta: z.object({
+        page: z.number(),
+        limit: z.number(),
+        total: z.number(),
+        totalPages: z.number(),
+      }),
+    }),
+}
+
+// Deprecated: Alias for backward compatibility during refactor, will be removed
+export const zh = {
+  ...zSchema,
+  ...zResponse,
+  // remap for compatibility if needed
+  resOk: zResponse.ok,
+  resPaginated: zResponse.paginated,
 }

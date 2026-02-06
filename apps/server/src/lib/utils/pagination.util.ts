@@ -1,4 +1,4 @@
-import type { PaginationMeta } from '@/shared/responses'
+import type { PaginationMeta } from '@/lib/types'
 
 /**
  * Calculate pagination metadata

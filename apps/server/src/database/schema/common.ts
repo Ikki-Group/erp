@@ -13,3 +13,15 @@ export const metafields = {
 export const softDeleteMetafields = {
   deletedAt: timestamp(),
 }
+
+// Type exports
+export interface MetaFields {
+  createdAt: Date
+  createdBy: number
+  updatedAt: Date
+  updatedBy: number
+}
+
+export interface SoftDeleteFields {
+  deletedAt: Date | null
+}

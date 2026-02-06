@@ -20,3 +20,8 @@ export const locations = pgTable(
   },
   (table) => [unique().on(table.code)]
 )
+
+// Type exports
+export type Location = typeof locations.$inferSelect
+export type NewLocation = typeof locations.$inferInsert
+export type LocationUpdate = Partial<NewLocation>
