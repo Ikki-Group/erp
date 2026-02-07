@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from '@/lib/types'
+import type { WithPaginationResult } from './pagination.util'
 
 /**
  * Response Helpers
@@ -24,7 +24,7 @@ export const res = {
   /**
    * Paginated success response
    */
-  paginated: <T>(result: PaginatedResponse<T>, code = 'OK') => ({
+  paginated: <T>(result: WithPaginationResult<T>, code = 'OK') => ({
     success: true as const,
     code,
     data: result.data,

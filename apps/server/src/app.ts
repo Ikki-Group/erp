@@ -1,16 +1,16 @@
 import { cors } from '@elysiajs/cors'
-import { Elysia } from 'elysia'
+import { Elysia, redirect } from 'elysia'
 
 import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
 import { HttpError } from '@/lib/error/http'
 import { otel } from '@/lib/otel'
-import { IamService, initIamRoute } from '@/modules/iam'
+import { buildIamRoute, IamService } from '@/modules/iam'
 
 // Services
 const iamService = new IamService()
 
 // Routes
-const iamRoute = initIamRoute(iamService)
+const iamRoute = buildIamRoute(iamService)
 
 export const app = new Elysia({
   name: 'App',
@@ -26,6 +26,9 @@ export const app = new Elysia({
   })
   .use(otel)
   .use(openapiPlugin)
+  .get('/', redirect('/openapi'), {
+    detail: { hide: true },
+  })
   .use(iamRoute)
 
 export type App = typeof app

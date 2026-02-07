@@ -1,7 +1,12 @@
 import { and, count, eq, ilike, or } from 'drizzle-orm'
 
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import { calculatePaginationMeta, type PaginationQuery, type WithPaginationResult } from '@/lib/utils/pagination.util'
+import {
+  calculatePaginationMeta,
+  withPagination,
+  type PaginationQuery,
+  type WithPaginationResult,
+} from '@/lib/utils/pagination.util'
 import { roles, type NewRole, type Role } from '@/database/schema'
 import { db } from '@/database'
 
@@ -77,10 +82,9 @@ export class IamRolesService {
    */
   async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<Role>> {
     const { page, limit } = pq
-    const offset = (page - 1) * limit
 
     const [data, total] = await Promise.all([
-      this.buildFilteredQuery(filter).orderBy(roles.id).limit(limit).offset(offset),
+      withPagination(this.buildFilteredQuery(filter).orderBy(roles.id).$dynamic(), pq).execute(),
       this.count(filter),
     ])
 

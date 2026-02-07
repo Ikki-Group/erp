@@ -1,18 +1,20 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
+import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
 import { IamSchema } from '../iam.types'
 import type { IamRolesService } from '../service/roles.service'
 
-export function roleRoute(s: IamRolesService) {
+export function buildIamRoleRoute(s: IamRolesService) {
   return new Elysia()
     .get(
       '/list',
       async function getRoles({ query }) {
-        const result = await s.list(query)
+        const result = await s.listPaginated(query, query)
+        logger.withMetadata(result).debug('Res')
         return res.paginated(result)
       },
       {

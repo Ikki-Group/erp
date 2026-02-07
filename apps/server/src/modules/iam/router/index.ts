@@ -1,16 +1,16 @@
 import Elysia from 'elysia'
 
 import type { IamService } from '../service'
-import { roleRoute } from './role.route'
+import { buildIamRoleRoute } from './role.route'
 import { userRoleAssignmentRoute } from './user-role-assignment.route'
 import { userRoute } from './user.route'
 
-export function initIamRoute(s: IamService) {
+export function buildIamRoute(s: IamService) {
   const userRouter = userRoute(s.users)
-  const roleRouter = roleRoute(s.roles)
+  const roleRouter = buildIamRoleRoute(s.roles)
   const userRoleAssignmentRouter = userRoleAssignmentRoute(s.userRoleAssignments)
 
-  return new Elysia({ prefix: '/iam', tags: ['IAM'] })
+  return new Elysia({ prefix: '/iam', tags: ['iam'] })
     .group('/users', (g) => g.use(userRouter))
     .group('/roles', (g) => g.use(roleRouter))
     .group('/user-role-assignments', (g) => g.use(userRoleAssignmentRouter))
