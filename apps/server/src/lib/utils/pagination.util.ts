@@ -1,11 +1,24 @@
-import type { PaginationMeta } from '@/lib/types'
+import type { PgSelect } from 'drizzle-orm/pg-core'
+
+export interface PaginationQuery {
+  page: number
+  limit: number
+}
+
+export interface PaginationMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+export interface WithPaginationResult<T> {
+  data: T[]
+  meta: PaginationMeta
+}
 
 /**
- * Calculate pagination metadata
- * @param page - Current page number (1-indexed)
- * @param limit - Number of items per page
- * @param total - Total number of items
- * @returns Pagination metadata object
+ * Calculates pagination metadata based on current page, limit, and total records
  */
 export function calculatePaginationMeta(page: number, limit: number, total: number): PaginationMeta {
   const totalPages = Math.ceil(total / limit)
@@ -16,4 +29,16 @@ export function calculatePaginationMeta(page: number, limit: number, total: numb
     limit,
     totalPages,
   }
+}
+
+/**
+ * Applies pagination to a Drizzle query builder
+ * Ensures page and limit are at least 1 to prevent invalid queries
+ */
+export function withPagination<T extends PgSelect>(qb: T, pq: PaginationQuery) {
+  const page = Math.max(1, pq.page)
+  const limit = Math.max(1, pq.limit)
+  const offset = (page - 1) * limit
+
+  return qb.limit(limit).offset(offset)
 }

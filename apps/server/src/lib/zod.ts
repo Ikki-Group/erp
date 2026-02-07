@@ -1,11 +1,12 @@
 import z from 'zod'
 
 /**
- * Common Zod Schemas & Helpersa
+ * Common Zod Schemas & Helpers
  */
 
 const str = z.string().trim()
 const num = z.number()
+const numCoerce = z.coerce.number()
 const date = z.coerce.date()
 
 /**
@@ -15,10 +16,11 @@ const date = z.coerce.date()
 export const zSchema = {
   str,
   num,
+  numCoerce,
   bool: z.boolean(),
   date,
-  email: z.string().email(),
-  uuid: z.string().uuid(),
+  email: str.email(),
+  uuid: str.uuid(),
 
   password: str.min(8, 'Password must be at least 8 characters').max(100, 'Password must not exceed 100 characters'),
 
@@ -35,6 +37,29 @@ export const zSchema = {
     createdBy: num,
     updatedBy: num,
   }),
+
+  /**
+   * Query parameter helpers for HTTP requests
+   */
+  query: {
+    /**
+     * Converts string 'true'/'false' to boolean
+     */
+    boolean: z
+      .enum(['true', 'false'])
+      .transform((val) => val === 'true')
+      .optional(),
+
+    /**
+     * Optional search string with trimming
+     */
+    search: str.optional(),
+
+    /**
+     * Optional positive integer ID
+     */
+    id: numCoerce.int().positive().optional(),
+  },
 }
 
 /**
@@ -43,7 +68,7 @@ export const zSchema = {
  */
 export const zResponse = {
   /**
-   * Success response schema
+   * Creates a standard success response schema
    */
   ok: <T extends z.ZodTypeAny>(data: T) =>
     z.object({
@@ -53,7 +78,7 @@ export const zResponse = {
     }),
 
   /**
-   * Paginated response schema
+   * Creates a paginated response schema with metadata
    */
   paginated: <T extends z.ZodTypeAny>(data: T) =>
     z.object({
@@ -69,11 +94,13 @@ export const zResponse = {
     }),
 }
 
-// Deprecated: Alias for backward compatibility during refactor, will be removed
+/**
+ * @deprecated Use zSchema and zResponse instead
+ * Alias for backward compatibility during refactor, will be removed
+ */
 export const zh = {
   ...zSchema,
   ...zResponse,
-  // remap for compatibility if needed
   resOk: zResponse.ok,
   resPaginated: zResponse.paginated,
 }

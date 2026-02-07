@@ -39,20 +39,6 @@ export const openapiPlugin = openapi({
         description: env.NODE_ENV === 'dev' ? 'Development Server' : 'Production Server',
       },
     ],
-    tags: [
-      {
-        name: 'IAM - Authentication',
-        description: 'User authentication and registration endpoints',
-      },
-      {
-        name: 'IAM - User Management',
-        description: 'User CRUD operations and management',
-      },
-      {
-        name: 'IAM - Role Management',
-        description: 'Role and permission management',
-      },
-    ],
     components: {
       securitySchemes: {
         BearerAuth: {
