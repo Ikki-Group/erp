@@ -7,7 +7,7 @@ import {
   type PaginationQuery,
   type WithPaginationResult,
 } from '@/lib/utils/pagination.util'
-import { roles, type NewRole, type Role } from '@/database/schema'
+import { roles } from '@/database/schema'
 import { db } from '@/database'
 
 interface IFilter {
@@ -80,7 +80,7 @@ export class IamRolesService {
    * Lists roles with pagination
    * Executes data fetch and count in parallel for better performance
    */
-  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<Role>> {
+  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<typeof roles.$inferSelect>> {
     const { page, limit } = pq
 
     const [data, total] = await Promise.all([
@@ -98,7 +98,7 @@ export class IamRolesService {
    * Retrieves a role by its ID
    * Throws NotFoundError if role doesn't exist
    */
-  async getById(id: number): Promise<Role> {
+  async getById(id: number): Promise<typeof roles.$inferSelect> {
     const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
 
     if (!role) {
@@ -112,7 +112,7 @@ export class IamRolesService {
    * Retrieves a role by its code
    * Returns null if not found
    */
-  async getByCode(code: string): Promise<Role | null> {
+  async getByCode(code: string): Promise<typeof roles.$inferSelect | null> {
     const [role] = await db.select().from(roles).where(eq(roles.code, code)).limit(1)
     return role ?? null
   }
@@ -128,7 +128,7 @@ export class IamRolesService {
       isSystem?: boolean
     },
     createdBy = 1
-  ): Promise<Role> {
+  ): Promise<typeof roles.$inferSelect> {
     // Check for existing code or name in a single query
     const existing = await db
       .select({ code: roles.code, name: roles.name })
@@ -161,7 +161,7 @@ export class IamRolesService {
 
     // Create role in a transaction
     const [role] = await db.transaction(async (tx) => {
-      const newRole: NewRole = {
+      const newRole: typeof roles.$inferInsert = {
         code: dto.code.toUpperCase().trim(),
         name: dto.name.trim(),
         isSystem: dto.isSystem ?? false,
@@ -186,7 +186,7 @@ export class IamRolesService {
       name?: string
     },
     updatedBy = 1
-  ): Promise<Role> {
+  ): Promise<typeof roles.$inferSelect> {
     // Check if role exists
     const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
 
@@ -236,7 +236,7 @@ export class IamRolesService {
 
     // Update role in a transaction
     const [updatedRole] = await db.transaction(async (tx) => {
-      const updateData: Partial<NewRole> = {
+      const updateData: Partial<typeof roles.$inferInsert> = {
         updatedBy,
       }
 

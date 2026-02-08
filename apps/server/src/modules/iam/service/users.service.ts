@@ -1,30 +1,41 @@
 import { and, count, eq, ilike, ne, or } from 'drizzle-orm'
 
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginatedResponse } from '@/lib/types'
-import { calculatePaginationMeta } from '@/lib/utils/pagination.util'
+import {
+  calculatePaginationMeta,
+  withPagination,
+  type PaginationQuery,
+  type WithPaginationResult,
+} from '@/lib/utils/pagination.util'
 import { hashPassword } from '@/lib/utils/password.util'
-import { users, type NewUser, type User } from '@/database/schema'
+import { users } from '@/database/schema'
 import { db } from '@/database'
 
-import type { IamDto } from '../iam.dto'
+interface IFilter {
+  search?: string
+  isActive?: boolean
+}
 
 /**
- * IAM Users Service
  * Handles all user-related business logic including CRUD operations
  */
 export class IamUsersService {
-  /**
-   * List users with pagination and filtering
-   */
-  async list(params: IamDto.ListUsers): Promise<PaginatedResponse<User>> {
-    const { page, limit, search, isActive } = params
-    const offset = (page - 1) * limit
+  err = {
+    NOT_FOUND: 'USER_NOT_FOUND',
+    EMAIL_EXISTS: 'USER_EMAIL_EXISTS',
+    USERNAME_EXISTS: 'USER_USERNAME_EXISTS',
+    EMAIL_USERNAME_EXISTS: 'USER_EMAIL_USERNAME_EXISTS',
+    ROOT_USER_DELETE_FORBIDDEN: 'ROOT_USER_DELETE_FORBIDDEN',
+  }
 
-    // Build query conditions
+  /**
+   * Builds a dynamic query with filters
+   * Returns a query builder that can be further modified
+   */
+  private buildFilteredQuery(filter: IFilter) {
+    const { search, isActive } = filter
     const conditions = []
 
-    // Search filter - search in email, username, or fullname
     if (search) {
       conditions.push(
         or(
@@ -35,61 +46,106 @@ export class IamUsersService {
       )
     }
 
-    // Active status filter
     if (isActive !== undefined) {
       conditions.push(eq(users.isActive, isActive))
     }
 
-    // Combine all conditions with AND
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    return db.select().from(users).where(whereClause).$dynamic()
+  }
 
-    // Execute queries in parallel for better performance
-    const [results, totalResult] = await Promise.all([
-      db.select().from(users).where(whereClause).limit(limit).offset(offset).orderBy(users.id),
-      db.select({ total: count() }).from(users).where(whereClause),
+  /**
+   * Lists all users matching the filter criteria
+   */
+  list(filter: IFilter) {
+    return this.buildFilteredQuery(filter).orderBy(users.id)
+  }
+
+  /**
+   * Counts total users matching the filter criteria
+   */
+  async count(filter: IFilter): Promise<number> {
+    const { search, isActive } = filter
+    const conditions = []
+
+    if (search) {
+      conditions.push(
+        or(
+          ilike(users.email, `%${search}%`),
+          ilike(users.username, `%${search}%`),
+          ilike(users.fullname, `%${search}%`)
+        )
+      )
+    }
+
+    if (isActive !== undefined) {
+      conditions.push(eq(users.isActive, isActive))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    const [result] = await db.select({ total: count() }).from(users).where(whereClause)
+
+    return result?.total ?? 0
+  }
+
+  /**
+   * Lists users with pagination
+   * Executes data fetch and count in parallel for better performance
+   */
+  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<typeof users.$inferSelect>> {
+    const { page, limit } = pq
+
+    const [data, total] = await Promise.all([
+      withPagination(this.buildFilteredQuery(filter).orderBy(users.id).$dynamic(), pq).execute(),
+      this.count(filter),
     ])
 
-    const total = totalResult[0]?.total ?? 0
-
     return {
-      data: results,
+      data,
       meta: calculatePaginationMeta(page, limit, total),
     }
   }
 
   /**
-   * Get user by ID
+   * Retrieves a user by its ID
+   * Throws NotFoundError if user doesn't exist
    */
-  async getById(id: number): Promise<User> {
+  async getById(id: number): Promise<typeof users.$inferSelect> {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND')
+      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
     }
 
     return user
   }
 
   /**
-   * Get user by email
+   * Retrieves a user by its email
+   * Returns null if not found
    */
-  async getByEmail(email: string): Promise<User | null> {
+  async getByEmail(email: string): Promise<typeof users.$inferSelect | null> {
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
     return user ?? null
   }
 
   /**
-   * Get user by username
+   * Retrieves a user by its username
+   * Returns null if not found
    */
-  async getByUsername(username: string): Promise<User | null> {
+  async getByUsername(username: string): Promise<typeof users.$inferSelect | null> {
     const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1)
     return user ?? null
   }
 
   /**
-   * Create a new user
+   * Creates a new user with validation
+   * Checks for email and username uniqueness before creation
    */
-  async create(dto: IamDto.CreateUser, createdBy = 1): Promise<User> {
+  async create(
+    dto: { email: string; username: string; fullname: string; password: string },
+    createdBy = 1
+  ): Promise<typeof users.$inferSelect> {
     // Check for existing email or username in a single query
     const existing = await db
       .select({ email: users.email, username: users.username })
@@ -102,20 +158,20 @@ export class IamUsersService {
     const usernameExists = existing.some((u) => u.username === dto.username)
 
     if (emailExists && usernameExists) {
-      throw new ConflictError('Email and username already exist', 'EMAIL_USERNAME_EXISTS', {
+      throw new ConflictError('Email and username already exist', this.err.EMAIL_USERNAME_EXISTS, {
         email: dto.email,
         username: dto.username,
       })
     }
 
     if (emailExists) {
-      throw new ConflictError('User with this email already exists', 'EMAIL_EXISTS', {
+      throw new ConflictError('User with this email already exists', this.err.EMAIL_EXISTS, {
         email: dto.email,
       })
     }
 
     if (usernameExists) {
-      throw new ConflictError('User with this username already exists', 'USERNAME_EXISTS', {
+      throw new ConflictError('User with this username already exists', this.err.USERNAME_EXISTS, {
         username: dto.username,
       })
     }
@@ -125,7 +181,7 @@ export class IamUsersService {
 
     // Create user in a transaction
     const [user] = await db.transaction(async (tx) => {
-      const newUser: NewUser = {
+      const newUser: typeof users.$inferInsert = {
         email: dto.email.toLowerCase().trim(),
         username: dto.username.toLowerCase().trim(),
         fullname: dto.fullname.trim(),
@@ -143,14 +199,19 @@ export class IamUsersService {
   }
 
   /**
-   * Update an existing user
+   * Updates an existing user
+   * Validates uniqueness and updates fields
    */
-  async update(id: number, dto: IamDto.UpdateUser, updatedBy = 1): Promise<User> {
+  async update(
+    id: number,
+    dto: { email?: string; username?: string; fullname?: string; password?: string; isActive?: boolean },
+    updatedBy = 1
+  ): Promise<typeof users.$inferSelect> {
     // Check if user exists
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND')
+      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
     }
 
     // Check for uniqueness conflicts if email or username is being updated
@@ -173,25 +234,25 @@ export class IamUsersService {
       const usernameConflict = dto.username && existing.some((u) => u.username === dto.username)
 
       if (emailConflict && usernameConflict) {
-        throw new ConflictError('Email and username already in use', 'EMAIL_USERNAME_EXISTS', {
+        throw new ConflictError('Email and username already in use', this.err.EMAIL_USERNAME_EXISTS, {
           email: dto.email,
           username: dto.username,
         })
       }
 
       if (emailConflict) {
-        throw new ConflictError('Email already in use', 'EMAIL_EXISTS', { email: dto.email })
+        throw new ConflictError('Email already in use', this.err.EMAIL_EXISTS, { email: dto.email })
       }
 
       if (usernameConflict) {
-        throw new ConflictError('Username already in use', 'USERNAME_EXISTS', { username: dto.username })
+        throw new ConflictError('Username already in use', this.err.USERNAME_EXISTS, { username: dto.username })
       }
     }
 
     // Update user in a transaction
     const [updatedUser] = await db.transaction(async (tx) => {
       // Prepare update data
-      const updateData: Partial<NewUser> = {
+      const updateData: Partial<typeof users.$inferInsert> = {
         updatedBy,
       }
 
@@ -210,28 +271,28 @@ export class IamUsersService {
   }
 
   /**
-   * Delete a user (hard delete)
-   * Note: Consider implementing soft delete for audit purposes
+   * Deletes a user permanently
+   * Prevents deletion of root users
    */
   async delete(id: number): Promise<void> {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
 
     if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND')
+      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
     }
 
     // Prevent deletion of root users
     if (user.isRoot) {
-      throw new ConflictError('Cannot delete root user', 'ROOT_USER_DELETE_FORBIDDEN', { userId: id })
+      throw new ConflictError('Cannot delete root user', this.err.ROOT_USER_DELETE_FORBIDDEN, { userId: id })
     }
 
     await db.delete(users).where(eq(users.id, id))
   }
 
   /**
-   * Toggle user active status
+   * Toggles user active status
    */
-  async toggleActive(id: number, updatedBy = 1): Promise<User> {
+  async toggleActive(id: number, updatedBy = 1): Promise<typeof users.$inferSelect> {
     const user = await this.getById(id)
 
     const [updatedUser] = await db

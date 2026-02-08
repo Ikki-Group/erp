@@ -10,24 +10,27 @@ export async function seedRoles() {
     return
   }
 
-  const defaultRoles = [
+  const defaultRoles: (typeof roles.$inferInsert)[] = [
     {
       code: 'SUPERADMIN',
       name: 'Super Administrator',
-      description: 'Full access to all modules and settings',
-      permissionCodes: ['*'],
+      isSystem: true,
+      createdBy: 1,
+      updatedBy: 1,
     },
     {
       code: 'ADMIN',
       name: 'Administrator',
-      description: 'Can manage most system features',
-      permissionCodes: ['dashboard.*', 'inventory.*', 'sales.*', 'iam.*'],
+      isSystem: true,
+      createdBy: 1,
+      updatedBy: 1,
     },
     {
       code: 'STAFF',
       name: 'Staff',
-      description: 'Regular staff access',
-      permissionCodes: ['dashboard.read', 'inventory.read', 'sales.read'],
+      isSystem: true,
+      createdBy: 1,
+      updatedBy: 1,
     },
   ]
 

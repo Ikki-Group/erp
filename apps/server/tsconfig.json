@@ -26,6 +26,8 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "outDir": "./dist",
+    "baseUrl": ".",
+    "rootDir": "./",
     "composite": true,
     "paths": {
       "@/*": [
@@ -61,6 +63,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
+    "dist"
   ]
 }

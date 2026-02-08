@@ -1,6 +1,7 @@
 import { boolean, integer, pgTable, serial, timestamp, unique, varchar } from 'drizzle-orm/pg-core'
 
 import { metafields } from './common'
+import { locations } from './locations'
 
 export const users = pgTable(
   'users',
@@ -39,22 +40,11 @@ export const userRoleAssignments = pgTable(
     roleId: integer()
       .notNull()
       .references(() => roles.id, { onDelete: 'restrict' }),
-    locationId: integer().notNull(),
+    locationId: integer()
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
     assignedAt: timestamp().defaultNow().notNull(),
     assignedBy: integer().notNull(),
   },
   (t) => [unique().on(t.userId, t.locationId)]
 )
-
-// Type exports
-export type User = typeof users.$inferSelect
-export type NewUser = typeof users.$inferInsert
-export type UserUpdate = Partial<NewUser>
-
-export type Role = typeof roles.$inferSelect
-export type NewRole = typeof roles.$inferInsert
-export type RoleUpdate = Partial<NewRole>
-
-export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect
-export type NewUserRoleAssignment = typeof userRoleAssignments.$inferInsert
-export type UserRoleAssignmentUpdate = Partial<NewUserRoleAssignment>

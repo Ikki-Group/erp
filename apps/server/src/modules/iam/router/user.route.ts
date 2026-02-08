@@ -1,84 +1,142 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
+import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { IamDto } from '../iam.dto'
-import { UserSchema } from '../iam.types'
+import { IamSchema, UserRoleAssignmentDetailSchema } from '../iam.types'
+import type { IamUserRoleAssignmentsService } from '../service/user-role-assignments.service'
 import type { IamUsersService } from '../service/users.service'
 
-export function userRoute(s: IamUsersService) {
+/**
+ * IAM User Route
+ */
+export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUserRoleAssignmentsService) {
   return new Elysia()
     .get(
-      '',
+      '/list',
       async function getUsers({ query }) {
-        const result = await s.list(query)
+        const { isActive, search, page, limit } = query
+        const result = await s.listPaginated({ isActive, search }, { page, limit })
+        logger.withMetadata(result).debug('Users List Response')
         return res.paginated(result)
       },
       {
-        query: IamDto.ListUsers,
-        response: zResponse.paginated(UserSchema.array()),
+        query: z.object({
+          ...zSchema.pagination.shape,
+          search: z.string().optional(),
+          isActive: z
+            .enum(['true', 'false'])
+            .transform((val) => val === 'true')
+            .optional(),
+        }),
+        isAuth: true,
+        hasPermission: 'iam.users.read',
+        response: zResponse.paginated(IamSchema.User.array()),
       }
     )
     .get(
-      '/:id',
-      async function getUserById({ params }) {
-        const user = await s.getById(params.id)
+      '/detail',
+      async function getUserById({ query }) {
+        const user = await s.getById(query.id)
         return res.ok(user)
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(UserSchema),
+        query: IamSchema.User.pick({ id: true }),
+        response: zResponse.ok(IamSchema.User),
+      }
+    )
+    .get(
+      '/access',
+      async function getUserAccess({ query }) {
+        const user = await s.getById(query.id)
+
+        // If root user, they have access to everything (not implemented in assignments table)
+        // For the dashboard, we might want to return assignments or a special flag
+        const assignments = await assignmentsService.listPaginatedWithDetails(
+          { userId: query.id },
+          { page: 1, limit: 100 } // Assume 100 is enough for a summary
+        )
+
+        return res.ok({
+          isRoot: user.isRoot,
+          assignments: assignments.data,
+        })
+      },
+      {
+        query: IamSchema.User.pick({ id: true }),
+        response: zResponse.ok(
+          z.object({
+            isRoot: zSchema.bool,
+            assignments: UserRoleAssignmentDetailSchema.array(),
+          })
+        ),
       }
     )
     .post(
-      '',
+      '/create',
       async function createUser({ body }) {
         const user = await s.create(body)
         return res.created(user, 'USER_CREATED')
       },
       {
-        body: IamDto.CreateUser,
-        response: zResponse.ok(UserSchema),
+        body: IamSchema.User.pick({
+          email: true,
+          username: true,
+          fullname: true,
+        }).extend({
+          password: zSchema.password,
+        }),
+        response: zResponse.ok(IamSchema.User),
       }
     )
     .put(
-      '/:id',
-      async function updateUser({ params, body }) {
-        const user = await s.update(params.id, body)
+      '/update',
+      async function updateUser({ body }) {
+        const user = await s.update(body.id, body)
         return res.ok(user, 'USER_UPDATED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        body: IamDto.UpdateUser,
-        response: zResponse.ok(UserSchema),
+        body: IamSchema.User.pick({
+          id: true,
+          email: true,
+          username: true,
+          fullname: true,
+          isActive: true,
+        })
+          .partial({
+            email: true,
+            username: true,
+            fullname: true,
+            isActive: true,
+          })
+          .extend({
+            password: zSchema.password.optional(),
+          }),
+        response: zResponse.ok(IamSchema.User),
       }
     )
     .delete(
-      '/:id',
-      async function deleteUser({ params }) {
-        await s.delete(params.id)
-        return res.ok({ id: params.id }, 'USER_DELETED')
+      '/delete',
+      async function deleteUser({ body }) {
+        await s.delete(body.id)
+        return res.ok({ id: body.id }, 'USER_DELETED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(
-          z.object({
-            id: zSchema.num,
-          })
-        ),
+        body: IamSchema.User.pick({ id: true }),
+        response: zResponse.ok(IamSchema.User.pick({ id: true })),
       }
     )
     .patch(
-      '/:id/toggle-active',
-      async function toggleUserActive({ params }) {
-        const user = await s.toggleActive(params.id)
+      '/toggle-active',
+      async function toggleUserActive({ body }) {
+        const user = await s.toggleActive(body.id)
         return res.ok(user, 'USER_STATUS_TOGGLED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(UserSchema),
+        body: IamSchema.User.pick({ id: true }),
+        response: zResponse.ok(IamSchema.User),
       }
     )
 }

@@ -1,30 +1,37 @@
 import { and, count, eq } from 'drizzle-orm'
 
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginatedResponse } from '@/lib/types'
-import { calculatePaginationMeta } from '@/lib/utils/pagination.util'
-import { userRoleAssignments, type NewUserRoleAssignment, type UserRoleAssignment } from '@/database/schema'
+import {
+  calculatePaginationMeta,
+  withPagination,
+  type PaginationQuery,
+  type WithPaginationResult,
+} from '@/lib/utils/pagination.util'
+import { locations, roles, userRoleAssignments } from '@/database/schema'
 import { db } from '@/database'
 
+import type { IamSchema } from '../iam.types'
+
+interface IFilter {
+  userId?: number
+  roleId?: number
+  locationId?: number
+}
+
 /**
- * IAM User Role Assignments Service
  * Handles user-role-location assignment business logic
  */
 export class IamUserRoleAssignmentsService {
-  /**
-   * List user role assignments with pagination and filtering
-   */
-  async list(params: {
-    page: number
-    limit: number
-    userId?: number
-    roleId?: number
-    locationId?: number
-  }): Promise<PaginatedResponse<UserRoleAssignment>> {
-    const { page, limit, userId, roleId, locationId } = params
-    const offset = (page - 1) * limit
+  err = {
+    NOT_FOUND: 'ASSIGNMENT_NOT_FOUND',
+    EXISTS: 'ASSIGNMENT_EXISTS',
+  }
 
-    // Build query conditions
+  /**
+   * Builds a dynamic query with filters
+   */
+  private buildFilteredQuery(filter: IFilter) {
+    const { userId, roleId, locationId } = filter
     const conditions = []
 
     if (userId !== undefined) {
@@ -39,64 +46,129 @@ export class IamUserRoleAssignmentsService {
       conditions.push(eq(userRoleAssignments.locationId, locationId))
     }
 
-    // Combine all conditions with AND
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    return db.select().from(userRoleAssignments).where(whereClause).$dynamic()
+  }
 
-    // Execute queries in parallel for better performance
-    const [results, totalResult] = await Promise.all([
-      db
-        .select()
-        .from(userRoleAssignments)
-        .where(whereClause)
-        .limit(limit)
-        .offset(offset)
-        .orderBy(userRoleAssignments.id),
-      db.select({ total: count() }).from(userRoleAssignments).where(whereClause),
+  /**
+   * Counts total assignments matching the filter criteria
+   */
+  async count(filter: IFilter): Promise<number> {
+    const { userId, roleId, locationId } = filter
+    const conditions = []
+
+    if (userId !== undefined) {
+      conditions.push(eq(userRoleAssignments.userId, userId))
+    }
+
+    if (roleId !== undefined) {
+      conditions.push(eq(userRoleAssignments.roleId, roleId))
+    }
+
+    if (locationId !== undefined) {
+      conditions.push(eq(userRoleAssignments.locationId, locationId))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    const [result] = await db.select({ total: count() }).from(userRoleAssignments).where(whereClause)
+
+    return result?.total ?? 0
+  }
+
+  /**
+   * Lists assignments with pagination
+   */
+  async listPaginated(
+    filter: IFilter,
+    pq: PaginationQuery
+  ): Promise<WithPaginationResult<typeof userRoleAssignments.$inferSelect>> {
+    const { page, limit } = pq
+
+    const [data, total] = await Promise.all([
+      withPagination(this.buildFilteredQuery(filter).orderBy(userRoleAssignments.id).$dynamic(), pq).execute(),
+      this.count(filter),
     ])
 
-    const total = totalResult[0]?.total ?? 0
-
     return {
-      data: results,
+      data,
       meta: calculatePaginationMeta(page, limit, total),
     }
   }
 
   /**
-   * Get user role assignment by ID
+   * Lists assignments with role and location details
    */
-  async getById(id: number): Promise<UserRoleAssignment> {
+  async listPaginatedWithDetails(
+    filter: IFilter,
+    pq: PaginationQuery
+  ): Promise<WithPaginationResult<IamSchema.UserRoleAssignmentDetail>> {
+    const { page, limit } = pq
+    const { userId, roleId, locationId } = filter
+    const conditions = []
+
+    if (userId !== undefined) {
+      conditions.push(eq(userRoleAssignments.userId, userId))
+    }
+
+    if (roleId !== undefined) {
+      conditions.push(eq(userRoleAssignments.roleId, roleId))
+    }
+
+    if (locationId !== undefined) {
+      conditions.push(eq(userRoleAssignments.locationId, locationId))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const [data, total] = await Promise.all([
+      withPagination(
+        db
+          .select({
+            id: userRoleAssignments.id,
+            userId: userRoleAssignments.userId,
+            roleId: userRoleAssignments.roleId,
+            locationId: userRoleAssignments.locationId,
+            assignedAt: userRoleAssignments.assignedAt,
+            assignedBy: userRoleAssignments.assignedBy,
+            role: roles,
+            location: {
+              id: locations.id,
+              code: locations.code,
+              name: locations.name,
+            },
+          })
+          .from(userRoleAssignments)
+          .leftJoin(roles, eq(userRoleAssignments.roleId, roles.id))
+          .leftJoin(locations, eq(userRoleAssignments.locationId, locations.id))
+          .where(whereClause)
+          .orderBy(userRoleAssignments.id)
+          .$dynamic(),
+        pq
+      ).execute(),
+      this.count(filter),
+    ])
+
+    return {
+      data,
+      meta: calculatePaginationMeta(page, limit, total),
+    }
+  }
+
+  /**
+   * Retrieves an assignment by its ID
+   */
+  async getById(id: number): Promise<typeof userRoleAssignments.$inferSelect> {
     const [assignment] = await db.select().from(userRoleAssignments).where(eq(userRoleAssignments.id, id)).limit(1)
 
     if (!assignment) {
-      throw new NotFoundError(`User role assignment with ID ${id} not found`, 'ASSIGNMENT_NOT_FOUND')
+      throw new NotFoundError(`Assignment with ID ${id} not found`, this.err.NOT_FOUND)
     }
 
     return assignment
   }
 
   /**
-   * Get all roles for a user at a specific location
-   */
-  async getUserRolesAtLocation(userId: number, locationId: number): Promise<UserRoleAssignment[]> {
-    return db
-      .select()
-      .from(userRoleAssignments)
-      .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.locationId, locationId)))
-  }
-
-  /**
-   * Get all locations where a user has a specific role
-   */
-  async getUserLocationsForRole(userId: number, roleId: number): Promise<UserRoleAssignment[]> {
-    return db
-      .select()
-      .from(userRoleAssignments)
-      .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.roleId, roleId)))
-  }
-
-  /**
-   * Assign a role to a user at a location
+   * Assigns a role to a user at a location
    */
   async assign(
     dto: {
@@ -105,31 +177,24 @@ export class IamUserRoleAssignmentsService {
       locationId: number
     },
     assignedBy = 1
-  ): Promise<UserRoleAssignment> {
+  ): Promise<typeof userRoleAssignments.$inferSelect> {
     // Check if assignment already exists
     const [existing] = await db
       .select()
       .from(userRoleAssignments)
-      .where(
-        and(
-          eq(userRoleAssignments.userId, dto.userId),
-          eq(userRoleAssignments.roleId, dto.roleId),
-          eq(userRoleAssignments.locationId, dto.locationId)
-        )
-      )
+      .where(and(eq(userRoleAssignments.userId, dto.userId), eq(userRoleAssignments.locationId, dto.locationId)))
       .limit(1)
 
     if (existing) {
-      throw new ConflictError('User already has this role at this location', 'ASSIGNMENT_EXISTS', {
+      throw new ConflictError('User already has a role at this location', this.err.EXISTS, {
         userId: dto.userId,
-        roleId: dto.roleId,
         locationId: dto.locationId,
       })
     }
 
     // Create assignment in a transaction
     const [assignment] = await db.transaction(async (tx) => {
-      const newAssignment: NewUserRoleAssignment = {
+      const newAssignment: typeof userRoleAssignments.$inferInsert = {
         userId: dto.userId,
         roleId: dto.roleId,
         locationId: dto.locationId,
@@ -143,52 +208,19 @@ export class IamUserRoleAssignmentsService {
   }
 
   /**
-   * Revoke a role from a user at a location
+   * Revokes a role from a user at a location
    */
   async revoke(id: number): Promise<void> {
-    const [assignment] = await db.select().from(userRoleAssignments).where(eq(userRoleAssignments.id, id)).limit(1)
-
-    if (!assignment) {
-      throw new NotFoundError(`User role assignment with ID ${id} not found`, 'ASSIGNMENT_NOT_FOUND')
-    }
-
+    await this.getById(id)
     await db.delete(userRoleAssignments).where(eq(userRoleAssignments.id, id))
   }
 
   /**
-   * Revoke all roles from a user at a specific location
+   * Revokes all roles from a user at a specific location
    */
   async revokeAllAtLocation(userId: number, locationId: number): Promise<void> {
     await db
       .delete(userRoleAssignments)
       .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.locationId, locationId)))
-  }
-
-  /**
-   * Revoke a specific role from a user across all locations
-   */
-  async revokeRoleFromUser(userId: number, roleId: number): Promise<void> {
-    await db
-      .delete(userRoleAssignments)
-      .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.roleId, roleId)))
-  }
-
-  /**
-   * Check if a user has a specific role at a location
-   */
-  async hasRole(userId: number, roleId: number, locationId: number): Promise<boolean> {
-    const [assignment] = await db
-      .select()
-      .from(userRoleAssignments)
-      .where(
-        and(
-          eq(userRoleAssignments.userId, userId),
-          eq(userRoleAssignments.roleId, roleId),
-          eq(userRoleAssignments.locationId, locationId)
-        )
-      )
-      .limit(1)
-
-    return !!assignment
   }
 }

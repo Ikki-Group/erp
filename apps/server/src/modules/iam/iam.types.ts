@@ -39,8 +39,48 @@ export namespace IamSchema {
   })
 
   export type UserRoleAssignment = z.infer<typeof UserRoleAssignment>
+
+  export const UserRoleAssignmentDetail = UserRoleAssignment.extend({
+    role: Role.nullable(),
+    location: z
+      .object({
+        id: zSchema.num,
+        code: zSchema.str,
+        name: zSchema.str,
+      })
+      .nullable(),
+  })
+
+  export type UserRoleAssignmentDetail = z.infer<typeof UserRoleAssignmentDetail>
+  export const LoginRequest = z.object({
+    identifier: z.string().describe('Email or Username'),
+    password: z.string(),
+  })
+
+  export type LoginRequest = z.infer<typeof LoginRequest>
+
+  export const UserWithAccess = User.extend({
+    locations: z.array(
+      z.object({
+        id: zSchema.num,
+        code: zSchema.str,
+        name: zSchema.str,
+        role: z.string(),
+      })
+    ),
+  })
+
+  export type UserWithAccess = z.infer<typeof UserWithAccess>
+
+  export const AuthResponse = z.object({
+    user: UserWithAccess,
+    token: z.string(),
+  })
+
+  export type AuthResponse = z.infer<typeof AuthResponse>
 }
 
 // Export schemas for use in controllers
 export const UserSchema = IamSchema.User
 export const UserRoleAssignmentSchema = IamSchema.UserRoleAssignment
+export const UserRoleAssignmentDetailSchema = IamSchema.UserRoleAssignmentDetail

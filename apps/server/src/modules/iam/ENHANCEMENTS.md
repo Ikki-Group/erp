@@ -43,8 +43,16 @@ This document summarizes all enhancements made to the IAM (Identity and Access M
 - ✅ Duplicate assignment prevention
 - ✅ Transaction support
 
+#### `/src/modules/iam/service/auth.service.ts` ✅ NEW
+**Features:**
+- ✅ JWT token generation and verification
+- ✅ Email/Username login with password validation
+- ✅ User permission retrieval (location-aware)
+- ✅ Identity finder helper
+
 #### `/src/modules/iam/service/index.ts` ✅
 **Changes:**
+- ✅ Added auth service
 - ✅ Added roles service
 - ✅ Added user role assignments service
 - ✅ Proper export...from syntax for re-exports
@@ -88,8 +96,15 @@ This document summarizes all enhancements made to the IAM (Identity and Access M
 - ✅ OpenAPI documentation
 - ✅ Validation schemas
 
+#### `/src/modules/iam/router/auth.route.ts` ✅ NEW
+**Features:**
+- ✅ Login endpoint (`/iam/auth/login`)
+- ✅ Current user endpoint (`/iam/auth/me`)
+- ✅ Proper response wrapping and validation
+
 #### `/src/modules/iam/router/index.ts` ✅
 **Changes:**
+- ✅ Added auth routes
 - ✅ Added role routes
 - ✅ Added user role assignment routes
 - ✅ Updated prefix to `/iam`
@@ -210,15 +225,16 @@ This document summarizes all enhancements made to the IAM (Identity and Access M
 ## Future Enhancements
 
 ### High Priority
-1. **Authentication System**
-   - JWT token generation
-   - Refresh tokens
-   - Login/logout endpoints
+1. **Authentication System** ✅
+   - ✅ JWT token generation
+   - ❌ Refresh tokens (Future)
+   - ✅ Login endpoint
+   - ❌ Logout endpoint (Client side clearing)
 
-2. **Authorization Middleware**
-   - Route protection
-   - Permission checking
-   - Role-based access control
+2. **Authorization Middleware** ✅
+   - ✅ Route protection (`isAuth`)
+   - ✅ Permission checking (`hasPermission`)
+   - ✅ Role-based access control
 
 3. **Password Management**
    - Password reset

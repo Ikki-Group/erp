@@ -13,12 +13,14 @@ export function buildIamRoleRoute(s: IamRolesService) {
     .get(
       '/list',
       async function getRoles({ query }) {
-        const result = await s.listPaginated(query, query)
+        const { isSystem, search, page, limit } = query
+        const result = await s.listPaginated({ isSystem, search }, { page, limit })
         logger.withMetadata(result).debug('Res')
         return res.paginated(result)
       },
       {
-        query: zSchema.pagination.extend({
+        query: z.object({
+          ...zSchema.pagination.shape,
           search: z.string().optional(),
           isSystem: z
             .enum(['true', 'false'])
@@ -35,9 +37,7 @@ export function buildIamRoleRoute(s: IamRolesService) {
         return res.ok(role)
       },
       {
-        query: z.object({
-          id: zSchema.numCoerce,
-        }),
+        query: IamSchema.Role.pick({ id: true }),
         response: zResponse.ok(IamSchema.Role),
       }
     )
@@ -48,12 +48,10 @@ export function buildIamRoleRoute(s: IamRolesService) {
         return res.created(role, 'ROLE_CREATED')
       },
       {
-        body: z.object({
-          ...IamSchema.Role.pick({
-            code: true,
-            name: true,
-            isSystem: true,
-          }).shape,
+        body: IamSchema.Role.pick({
+          code: true,
+          name: true,
+          isSystem: true,
         }),
         response: zResponse.ok(IamSchema.Role),
       }
@@ -65,13 +63,11 @@ export function buildIamRoleRoute(s: IamRolesService) {
         return res.ok(role, 'ROLE_UPDATED')
       },
       {
-        body: z.object({
-          id: zSchema.num,
-          ...IamSchema.Role.pick({
-            code: true,
-            name: true,
-            isSystem: true,
-          }).shape,
+        body: IamSchema.Role.pick({
+          id: true,
+          code: true,
+          name: true,
+          isSystem: true,
         }),
         response: zResponse.ok(IamSchema.Role),
       }
@@ -83,12 +79,8 @@ export function buildIamRoleRoute(s: IamRolesService) {
         return res.ok({ id: body.id }, 'ROLE_DELETED')
       },
       {
-        body: z.object({ id: zSchema.num }),
-        response: zResponse.ok(
-          z.object({
-            id: zSchema.num,
-          })
-        ),
+        body: IamSchema.Role.pick({ id: true }),
+        response: zResponse.ok(IamSchema.Role.pick({ id: true })),
       }
     )
 }

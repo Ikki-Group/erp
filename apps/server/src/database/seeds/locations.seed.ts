@@ -10,24 +10,24 @@ export async function seedLocations() {
     return
   }
 
-  const defaultLocations = [
+  const defaultLocations: (typeof locations.$inferInsert)[] = [
     {
       code: 'HO',
       name: 'Head Office',
-      type: 'OFFICE',
-      address: 'Jl. Sudirman No. 1',
-      city: 'Jakarta',
-      province: 'DKI Jakarta',
+      type: 'central_warehouse',
+      description: 'Head Office Jakarta',
       isActive: true,
+      createdBy: 1,
+      updatedBy: 1,
     },
     {
       code: 'WH-01',
       name: 'Main Warehouse',
-      type: 'WAREHOUSE',
-      address: 'Jl. Industri No. 5',
-      city: 'Bekasi',
-      province: 'Jawa Barat',
+      type: 'warehouse',
+      description: 'Main Distribution Center Bekasi',
       isActive: true,
+      createdBy: 1,
+      updatedBy: 1,
     },
   ]
 

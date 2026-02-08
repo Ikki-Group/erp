@@ -8,6 +8,9 @@ import { env } from '@/config/env'
  * Provides comprehensive API documentation with Swagger UI
  */
 export const openapiPlugin = openapi({
+  enabled: true,
+  provider: 'swagger-ui',
+  // references: fromTypes('src/app.ts'),
   mapJsonSchema: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     zod: (registry: any) => {
@@ -18,6 +21,7 @@ export const openapiPlugin = openapi({
           if (def.type === 'date') {
             ctx.jsonSchema.type = 'string'
             ctx.jsonSchema.format = 'date-time'
+            ctx.jsonSchema.example = '2022-01-01T00:00:00.000Z'
           }
         },
       })
