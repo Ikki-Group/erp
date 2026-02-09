@@ -26,12 +26,17 @@ export function FormTemplate<TData extends Record<string, any>>({
 }: FormTemplateProps<TData>) {
   const form = useForm({
     defaultValues,
+    // @ts-ignore
+    validatorAdapter: zodValidator(),
+    validators: {
+      onChange: schema as any,
+    },
     onSubmit: async ({ value }) => {
       await onSubmit(value)
     },
   })
 
-  const formErrors = useStore(form.store, (state) => state.errors)
+  const formErrors = useStore(form.store, (state: any) => state.errors)
 
   return (
     <form
@@ -46,14 +51,14 @@ export function FormTemplate<TData extends Record<string, any>>({
 
       {formErrors.length > 0 && (
         <div className="text-sm font-medium text-destructive">
-          {formErrors.map((error) => (
+          {formErrors.map((error: any) => (
             <p key={error as unknown as string}>{error as unknown as string}</p>
           ))}
         </div>
       )}
 
       <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting]}
+        selector={(state: any) => [state.canSubmit, state.isSubmitting]}
         children={([canSubmit, isSubmitting]) => (
           <Button type="submit" disabled={!canSubmit} className="w-full">
             {isSubmitting ? 'Submitting...' : submitLabel}

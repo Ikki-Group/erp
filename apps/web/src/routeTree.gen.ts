@@ -12,9 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthIndexRouteImport } from './routes/_auth.index'
+import { Route as AuthPlaygroundRouteImport } from './routes/_auth.playground'
 import { Route as AuthProductsIndexRouteImport } from './routes/_auth.products.index'
+import { Route as AuthLocationsIndexRouteImport } from './routes/_auth.locations.index'
 import { Route as AuthProductsUpsertRouteImport } from './routes/_auth.products.upsert'
 import { Route as AuthProductsProductIdRouteImport } from './routes/_auth.products.$productId'
+import { Route as AuthLocationsUpsertRouteImport } from './routes/_auth.locations.upsert'
+import { Route as AuthIamUsersIndexRouteImport } from './routes/_auth.iam.users.index'
+import { Route as AuthIamUsersUpsertRouteImport } from './routes/_auth.iam.users.upsert'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -30,9 +35,19 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthPlaygroundRoute = AuthPlaygroundRouteImport.update({
+  id: '/playground',
+  path: '/playground',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLocationsIndexRoute = AuthLocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthProductsUpsertRoute = AuthProductsUpsertRouteImport.update({
@@ -45,48 +60,98 @@ const AuthProductsProductIdRoute = AuthProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthLocationsUpsertRoute = AuthLocationsUpsertRouteImport.update({
+  id: '/locations/upsert',
+  path: '/locations/upsert',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthIamUsersIndexRoute = AuthIamUsersIndexRouteImport.update({
+  id: '/iam/users/',
+  path: '/iam/users/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthIamUsersUpsertRoute = AuthIamUsersUpsertRouteImport.update({
+  id: '/iam/users/upsert',
+  path: '/iam/users/upsert',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
   '/login': typeof LoginRoute
+  '/playground': typeof AuthPlaygroundRoute
+  '/locations/upsert': typeof AuthLocationsUpsertRoute
   '/products/$productId': typeof AuthProductsProductIdRoute
   '/products/upsert': typeof AuthProductsUpsertRoute
+  '/locations/': typeof AuthLocationsIndexRoute
   '/products/': typeof AuthProductsIndexRoute
+  '/iam/users/upsert': typeof AuthIamUsersUpsertRoute
+  '/iam/users/': typeof AuthIamUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/playground': typeof AuthPlaygroundRoute
   '/': typeof AuthIndexRoute
+  '/locations/upsert': typeof AuthLocationsUpsertRoute
   '/products/$productId': typeof AuthProductsProductIdRoute
   '/products/upsert': typeof AuthProductsUpsertRoute
+  '/locations': typeof AuthLocationsIndexRoute
   '/products': typeof AuthProductsIndexRoute
+  '/iam/users/upsert': typeof AuthIamUsersUpsertRoute
+  '/iam/users': typeof AuthIamUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
+  '/_auth/playground': typeof AuthPlaygroundRoute
   '/_auth/': typeof AuthIndexRoute
+  '/_auth/locations/upsert': typeof AuthLocationsUpsertRoute
   '/_auth/products/$productId': typeof AuthProductsProductIdRoute
   '/_auth/products/upsert': typeof AuthProductsUpsertRoute
+  '/_auth/locations/': typeof AuthLocationsIndexRoute
   '/_auth/products/': typeof AuthProductsIndexRoute
+  '/_auth/iam/users/upsert': typeof AuthIamUsersUpsertRoute
+  '/_auth/iam/users/': typeof AuthIamUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/playground'
+    | '/locations/upsert'
     | '/products/$productId'
     | '/products/upsert'
+    | '/locations/'
     | '/products/'
+    | '/iam/users/upsert'
+    | '/iam/users/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/products/$productId' | '/products/upsert' | '/products'
+  to:
+    | '/login'
+    | '/playground'
+    | '/'
+    | '/locations/upsert'
+    | '/products/$productId'
+    | '/products/upsert'
+    | '/locations'
+    | '/products'
+    | '/iam/users/upsert'
+    | '/iam/users'
   id:
     | '__root__'
     | '/_auth'
     | '/login'
+    | '/_auth/playground'
     | '/_auth/'
+    | '/_auth/locations/upsert'
     | '/_auth/products/$productId'
     | '/_auth/products/upsert'
+    | '/_auth/locations/'
     | '/_auth/products/'
+    | '/_auth/iam/users/upsert'
+    | '/_auth/iam/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,11 +182,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/playground': {
+      id: '/_auth/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof AuthPlaygroundRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/products/': {
       id: '/_auth/products/'
       path: '/products'
       fullPath: '/products/'
       preLoaderRoute: typeof AuthProductsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/locations/': {
+      id: '/_auth/locations/'
+      path: '/locations'
+      fullPath: '/locations/'
+      preLoaderRoute: typeof AuthLocationsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/products/upsert': {
@@ -138,21 +217,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProductsProductIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/locations/upsert': {
+      id: '/_auth/locations/upsert'
+      path: '/locations/upsert'
+      fullPath: '/locations/upsert'
+      preLoaderRoute: typeof AuthLocationsUpsertRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/iam/users/': {
+      id: '/_auth/iam/users/'
+      path: '/iam/users'
+      fullPath: '/iam/users/'
+      preLoaderRoute: typeof AuthIamUsersIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/iam/users/upsert': {
+      id: '/_auth/iam/users/upsert'
+      path: '/iam/users/upsert'
+      fullPath: '/iam/users/upsert'
+      preLoaderRoute: typeof AuthIamUsersUpsertRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
 interface AuthRouteChildren {
+  AuthPlaygroundRoute: typeof AuthPlaygroundRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  AuthLocationsUpsertRoute: typeof AuthLocationsUpsertRoute
   AuthProductsProductIdRoute: typeof AuthProductsProductIdRoute
   AuthProductsUpsertRoute: typeof AuthProductsUpsertRoute
+  AuthLocationsIndexRoute: typeof AuthLocationsIndexRoute
   AuthProductsIndexRoute: typeof AuthProductsIndexRoute
+  AuthIamUsersUpsertRoute: typeof AuthIamUsersUpsertRoute
+  AuthIamUsersIndexRoute: typeof AuthIamUsersIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthPlaygroundRoute: AuthPlaygroundRoute,
   AuthIndexRoute: AuthIndexRoute,
+  AuthLocationsUpsertRoute: AuthLocationsUpsertRoute,
   AuthProductsProductIdRoute: AuthProductsProductIdRoute,
   AuthProductsUpsertRoute: AuthProductsUpsertRoute,
+  AuthLocationsIndexRoute: AuthLocationsIndexRoute,
   AuthProductsIndexRoute: AuthProductsIndexRoute,
+  AuthIamUsersUpsertRoute: AuthIamUsersUpsertRoute,
+  AuthIamUsersIndexRoute: AuthIamUsersIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

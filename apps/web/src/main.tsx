@@ -7,6 +7,8 @@ import { getRouter } from './router'
 import './styles.css'
 
 import { ThemeProvider } from './providers/ThemeProvider'
+import { ConfirmProvider } from './providers/ConfirmProvider'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 
 const router = getRouter()
 
@@ -17,9 +19,13 @@ if (!rootElement.innerHTML) {
   root.render(
     <React.StrictMode>
       <ThemeProvider defaultTheme="system" storageKey="ikki-erp-theme">
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <ConfirmProvider>
+              <RouterProvider router={router} />
+            </ConfirmProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </ThemeProvider>
     </React.StrictMode>,
   )

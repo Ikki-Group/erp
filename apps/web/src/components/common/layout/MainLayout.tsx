@@ -4,7 +4,9 @@ import type { ReactNode } from 'react'
 import {
   LayoutDashboard,
   Package,
+  MapPin,
   Users,
+  Shield,
   Settings,
   Bell,
   Search,
@@ -17,7 +19,7 @@ import {
   Moon,
 } from 'lucide-react'
 import { useTheme } from '@/providers/ThemeProvider'
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
+import { Breadcrumbs } from '@/components/common/navigation/Breadcrumbs'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +36,8 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: Package, label: 'Products', href: '/products' },
+  { icon: MapPin, label: 'Locations', href: '/locations' },
+  { icon: Shield, label: 'Users', href: '/users' },
   { icon: Users, label: 'Customers', href: '/customers' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ]

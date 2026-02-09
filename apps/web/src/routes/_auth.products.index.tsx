@@ -1,9 +1,8 @@
-import * as React from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, ArrowUpDown, Plus, FileDown } from 'lucide-react'
 
-import { DataTable } from '@/components/templates/DataTable'
+import { DataTable } from '@/components/common/templates/DataTable'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'

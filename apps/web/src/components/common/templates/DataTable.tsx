@@ -37,12 +37,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { Spinner } from '@/components/ui/spinner'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   searchKey?: string
   searchPlaceholder?: string
+  manualPagination?: boolean
+  manualSorting?: boolean
+  manualFiltering?: boolean
+  pageCount?: number
+  rowCount?: number
+  state?: Partial<import('@tanstack/react-table').TableState>
+  onStateChange?: (state: import('@tanstack/react-table').TableState) => void
+  isLoading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +59,14 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder = 'Search...',
+  manualPagination,
+  manualSorting,
+  manualFiltering,
+  pageCount,
+  rowCount,
+  state: externalState,
+  onStateChange,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -58,28 +75,65 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    manualPagination,
+    manualSorting,
+    manualFiltering,
+    pageCount,
+    rowCount,
+    onSortingChange: onStateChange
+      ? (updater) => {
+          const next =
+            typeof updater === 'function'
+              ? updater(table.getState().sorting)
+              : updater
+          onStateChange({ ...table.getState(), sorting: next })
+        }
+      : setSorting,
+    onColumnFiltersChange: onStateChange
+      ? (updater) => {
+          const next =
+            typeof updater === 'function'
+              ? updater(table.getState().columnFilters)
+              : updater
+          onStateChange({ ...table.getState(), columnFilters: next })
+        }
+      : setColumnFilters,
+    onPaginationChange: onStateChange
+      ? (updater) => {
+          const next =
+            typeof updater === 'function'
+              ? updater(table.getState().pagination)
+              : updater
+          onStateChange({ ...table.getState(), pagination: next })
+        }
+      : setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: manualPagination
+      ? undefined
+      : getPaginationRowModel(),
+    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
+    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
-      sorting,
-      columnFilters,
+      sorting: externalState?.sorting ?? sorting,
+      columnFilters: externalState?.columnFilters ?? columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: externalState?.pagination ?? pagination,
     },
   })
 
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', isLoading && 'pointer-events-none')}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-1 items-center gap-2">
           {searchKey && (
@@ -129,7 +183,17 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border bg-card">
+      <div className="relative rounded-md border bg-card">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+            <div className="flex flex-col items-center gap-2">
+              <Spinner className="size-6" />
+              <span className="text-xs font-medium text-muted-foreground">
+                Loading...
+              </span>
+            </div>
+          </div>
+        )}
         <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">
             <thead className="[&_tr]:border-b">
