@@ -27,7 +27,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute('/_auth/login')({
   component: LoginPage,
 })
 

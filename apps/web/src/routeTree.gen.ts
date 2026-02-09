@@ -9,10 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthIndexRouteImport } from './routes/_auth.index'
 import { Route as AuthPlaygroundRouteImport } from './routes/_auth.playground'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
 import { Route as AuthProductsIndexRouteImport } from './routes/_auth.products.index'
 import { Route as AuthLocationsIndexRouteImport } from './routes/_auth.locations.index'
 import { Route as AuthProductsUpsertRouteImport } from './routes/_auth.products.upsert'
@@ -21,11 +22,6 @@ import { Route as AuthLocationsUpsertRouteImport } from './routes/_auth.location
 import { Route as AuthIamUsersIndexRouteImport } from './routes/_auth.iam.users.index'
 import { Route as AuthIamUsersUpsertRouteImport } from './routes/_auth.iam.users.upsert'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -39,6 +35,16 @@ const AuthPlaygroundRoute = AuthPlaygroundRouteImport.update({
   id: '/playground',
   path: '/playground',
   getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
+  id: '/_app/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
   id: '/products/',
@@ -78,7 +84,8 @@ const AuthIamUsersUpsertRoute = AuthIamUsersUpsertRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
-  '/login': typeof LoginRoute
+  '/settings': typeof AppSettingsRouteRoute
+  '/login': typeof AuthLoginRoute
   '/playground': typeof AuthPlaygroundRoute
   '/locations/upsert': typeof AuthLocationsUpsertRoute
   '/products/$productId': typeof AuthProductsProductIdRoute
@@ -89,7 +96,8 @@ export interface FileRoutesByFullPath {
   '/iam/users/': typeof AuthIamUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
+  '/settings': typeof AppSettingsRouteRoute
+  '/login': typeof AuthLoginRoute
   '/playground': typeof AuthPlaygroundRoute
   '/': typeof AuthIndexRoute
   '/locations/upsert': typeof AuthLocationsUpsertRoute
@@ -103,7 +111,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
+  '/_app/settings': typeof AppSettingsRouteRoute
+  '/_auth/login': typeof AuthLoginRoute
   '/_auth/playground': typeof AuthPlaygroundRoute
   '/_auth/': typeof AuthIndexRoute
   '/_auth/locations/upsert': typeof AuthLocationsUpsertRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/login'
     | '/playground'
     | '/locations/upsert'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/iam/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/settings'
     | '/login'
     | '/playground'
     | '/'
@@ -142,7 +153,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_auth'
-    | '/login'
+    | '/_app/settings'
+    | '/_auth/login'
     | '/_auth/playground'
     | '/_auth/'
     | '/_auth/locations/upsert'
@@ -156,18 +168,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  AppSettingsRouteRoute: typeof AppSettingsRouteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -188,6 +193,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/playground'
       preLoaderRoute: typeof AuthPlaygroundRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_auth/products/': {
       id: '/_auth/products/'
@@ -242,6 +261,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
   AuthPlaygroundRoute: typeof AuthPlaygroundRoute
   AuthIndexRoute: typeof AuthIndexRoute
   AuthLocationsUpsertRoute: typeof AuthLocationsUpsertRoute
@@ -254,6 +274,7 @@ interface AuthRouteChildren {
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
   AuthPlaygroundRoute: AuthPlaygroundRoute,
   AuthIndexRoute: AuthIndexRoute,
   AuthLocationsUpsertRoute: AuthLocationsUpsertRoute,
@@ -269,7 +290,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
-  LoginRoute: LoginRoute,
+  AppSettingsRouteRoute: AppSettingsRouteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
