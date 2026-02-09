@@ -60,13 +60,13 @@ function ProductDetailPage() {
               <Stack gap="md" align="center">
                 <AlertTriangleIcon className="h-12 w-12 text-muted-foreground" />
                 <div className="text-center">
-                  <h3 className="font-medium">Product Not Found</h3>
+                  <h3 className="font-medium">Produk Tidak Ditemukan</h3>
                   <p className="text-sm text-muted-foreground">
-                    The product you're looking for doesn't exist.
+                    Produk yang Anda cari tidak ditemukan.
                   </p>
                 </div>
                 <Button onClick={() => navigate({ to: '/products' })}>
-                  Back to Products
+                  Kembali ke Produk
                 </Button>
               </Stack>
             </CardContent>
@@ -84,7 +84,7 @@ function ProductDetailPage() {
 
   const basicInfo: DescriptionItem[] = [
     {
-      term: 'Product Code',
+      term: 'Kode Produk',
       description: (
         <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
           {product.code}
@@ -92,11 +92,11 @@ function ProductDetailPage() {
       ),
     },
     {
-      term: 'Product Name',
+      term: 'Nama Produk',
       description: <span className="font-medium">{product.name}</span>,
     },
     {
-      term: 'Category',
+      term: 'Kategori',
       description: (
         <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>
       ),
@@ -117,7 +117,7 @@ function ProductDetailPage() {
       ),
     },
     {
-      term: 'Description',
+      term: 'Deskripsi',
       description: product.description || '-',
       className: 'md:col-span-2',
     },
@@ -125,7 +125,7 @@ function ProductDetailPage() {
 
   const inventoryInfo: DescriptionItem[] = [
     {
-      term: 'Current Stock',
+      term: 'Stok Saat Ini',
       description: (
         <div className="flex items-center gap-2">
           <span
@@ -151,30 +151,30 @@ function ProductDetailPage() {
                   : 'border-orange-500 text-orange-700'
               }
             >
-              {stockStatus === 'critical' ? 'Critical' : 'Low Stock'}
+              {stockStatus === 'critical' ? 'Mendesak' : 'Stok Rendah'}
             </Badge>
           )}
         </div>
       ),
     },
     {
-      term: 'Unit',
+      term: 'Satuan',
       description: getUnitLabel(product.unit),
     },
     {
-      term: 'Minimum Stock',
+      term: 'Stok Minimum',
       description: `${product.minStock} ${product.unit}`,
     },
     {
-      term: 'Maximum Stock',
+      term: 'Stok Maksimum',
       description: `${product.maxStock} ${product.unit}`,
     },
     {
-      term: 'Reorder Point',
+      term: 'Titik Pemesanan Ulang',
       description: `${product.reorderPoint} ${product.unit}`,
     },
     {
-      term: 'Stock Value',
+      term: 'Nilai Stok',
       description: (
         <span className="font-bold text-lg">
           {formatCurrency(product.stock * product.price)}
@@ -185,7 +185,7 @@ function ProductDetailPage() {
 
   const pricingInfo: DescriptionItem[] = [
     {
-      term: 'Selling Price',
+      term: 'Harga Jual',
       description: (
         <span className="text-lg font-bold">
           {formatCurrency(product.price)}
@@ -193,11 +193,11 @@ function ProductDetailPage() {
       ),
     },
     {
-      term: 'Cost Price',
+      term: 'Harga Pokok',
       description: formatCurrency(product.cost),
     },
     {
-      term: 'Profit Margin',
+      term: 'Margin Keuntungan',
       description: (
         <div className="flex items-center gap-2">
           <span className="font-medium text-green-600">
@@ -211,7 +211,7 @@ function ProductDetailPage() {
       ),
     },
     {
-      term: 'Profit per Unit',
+      term: 'Keuntungan per Unit',
       description: (
         <span className="font-medium">
           {formatCurrency(product.price - product.cost)}
@@ -224,7 +224,7 @@ function ProductDetailPage() {
     ...(product.supplier
       ? [
           {
-            term: 'Supplier',
+            term: 'Pemasok',
             description: product.supplier,
           },
         ]
@@ -256,7 +256,7 @@ function ProductDetailPage() {
     ...(product.weight
       ? [
           {
-            term: 'Weight',
+            term: 'Berat',
             description: `${product.weight} kg`,
           },
         ]
@@ -264,7 +264,7 @@ function ProductDetailPage() {
     ...(product.dimensions
       ? [
           {
-            term: 'Dimensions (L×W×H)',
+            term: 'Dimensi (P×L×T)',
             description: `${product.dimensions.length} × ${product.dimensions.width} × ${product.dimensions.height} cm`,
           },
         ]
@@ -273,23 +273,23 @@ function ProductDetailPage() {
 
   const systemInfo: DescriptionItem[] = [
     {
-      term: 'Created At',
+      term: 'Dibuat Pada',
       description: product.createdAt.toLocaleDateString('id-ID', {
         dateStyle: 'long',
       }),
     },
     {
-      term: 'Created By',
+      term: 'Dibuat Oleh',
       description: product.createdBy,
     },
     {
-      term: 'Last Updated',
+      term: 'Terakhir Diperbarui',
       description: product.updatedAt.toLocaleDateString('id-ID', {
         dateStyle: 'long',
       }),
     },
     {
-      term: 'Updated By',
+      term: 'Diperbarui Oleh',
       description: product.updatedBy,
     },
   ]
@@ -311,7 +311,7 @@ function ProductDetailPage() {
                 to="/products"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Products
+                Produk
               </Link>
               <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
               <span className="font-medium">{product.code}</span>
@@ -334,12 +334,12 @@ function ProductDetailPage() {
             <Link to="/products/$id" params={{ id: product.id }}>
               <Button variant="outline" size="sm">
                 <EditIcon className="h-4 w-4" />
-                Edit
+                Ubah
               </Button>
             </Link>
             <Button variant="outline" size="sm" className="text-red-600">
               <TrashIcon className="h-4 w-4" />
-              Delete
+              Hapus
             </Button>
           </PageActions>
         </PageHeaderContent>
@@ -374,8 +374,8 @@ function ProductDetailPage() {
                       }`}
                     >
                       {stockStatus === 'critical'
-                        ? 'Critical Stock Level'
-                        : 'Low Stock Warning'}
+                        ? 'Level Stok Kritis'
+                        : 'Peringatan Stok Rendah'}
                     </p>
                     <p
                       className={`text-sm ${
@@ -384,11 +384,11 @@ function ProductDetailPage() {
                           : 'text-orange-700'
                       }`}
                     >
-                      Current stock ({product.stock} {product.unit}) is{' '}
+                      Stok saat ini ({product.stock} {product.unit}) berada di{' '}
                       {stockStatus === 'critical'
-                        ? 'below minimum'
-                        : 'below reorder point'}
-                      . Consider restocking soon.
+                        ? 'bawah minimum'
+                        : 'bawah titik pemesanan ulang'}
+                      . Pertimbangkan untuk melakukan restok segera.
                     </p>
                   </div>
                   <Button
@@ -396,7 +396,7 @@ function ProductDetailPage() {
                     variant={stockStatus === 'critical' ? 'default' : 'outline'}
                     className="ml-auto"
                   >
-                    Create Purchase Order
+                    Buat Purchase Order
                   </Button>
                 </Inline>
               </CardContent>
@@ -407,10 +407,8 @@ function ProductDetailPage() {
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Product details and classification
-                </CardDescription>
+                <CardTitle>Informasi Dasar</CardTitle>
+                <CardDescription>Detail dan klasifikasi produk</CardDescription>
               </CardHeader>
               <CardContent>
                 <DescriptionList
@@ -424,10 +422,8 @@ function ProductDetailPage() {
             {/* Pricing Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
-                <CardDescription>
-                  Cost and selling price details
-                </CardDescription>
+                <CardTitle>Harga</CardTitle>
+                <CardDescription>Detail harga jual dan biaya</CardDescription>
               </CardHeader>
               <CardContent>
                 <DescriptionList items={pricingInfo} variant="bordered" />
@@ -438,8 +434,8 @@ function ProductDetailPage() {
           {/* Inventory Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Inventory Management</CardTitle>
-              <CardDescription>Stock levels and thresholds</CardDescription>
+              <CardTitle>Manajemen Inventori</CardTitle>
+              <CardDescription>Level stok dan ambang batas</CardDescription>
             </CardHeader>
             <CardContent>
               <DescriptionList
@@ -454,9 +450,9 @@ function ProductDetailPage() {
           {additionalInfo.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Additional Details</CardTitle>
+                <CardTitle>Detail Tambahan</CardTitle>
                 <CardDescription>
-                  Supplier, identifiers, and physical specifications
+                  Supplier, identifikasi, dan spesifikasi fisik
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -473,7 +469,7 @@ function ProductDetailPage() {
           {product.tags && product.tags.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Tags</CardTitle>
+                <CardTitle>Tag</CardTitle>
               </CardHeader>
               <CardContent>
                 <Inline gap="sm" wrap>
@@ -490,8 +486,8 @@ function ProductDetailPage() {
           {/* System Information */}
           <Card>
             <CardHeader>
-              <CardTitle>System Information</CardTitle>
-              <CardDescription>Audit trail and metadata</CardDescription>
+              <CardTitle>Informasi Sistem</CardTitle>
+              <CardDescription>Jejak audit dan metadata</CardDescription>
             </CardHeader>
             <CardContent>
               <DescriptionList

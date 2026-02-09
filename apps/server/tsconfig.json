@@ -30,25 +30,25 @@
     "rootDir": "./",
     "composite": true,
     "paths": {
-      "@/*": [
+      "@server/*": [
         "./src/*"
       ],
-      "@/config": [
+      "@server/config": [
         "./src/config"
       ],
-      "@/common/*": [
+      "@server/common/*": [
         "./src/common/*"
       ],
-      "@/lib/*": [
+      "@server/lib/*": [
         "./src/lib/*"
       ],
-      "@/database": [
+      "@server/database": [
         "./src/database"
       ],
-      "@/database/*": [
+      "@server/database/*": [
         "./src/database/*"
       ],
-      "@/features/*": [
+      "@server/features/*": [
         "./src/features/*"
       ]
     }

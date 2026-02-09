@@ -1,14 +1,14 @@
 import { and, count, eq, ilike, or } from 'drizzle-orm'
 
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { ConflictError, NotFoundError } from '@server/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
-} from '@/lib/utils/pagination.util'
-import { roles } from '@/database/schema'
-import { db } from '@/database'
+} from '@server/lib/utils/pagination.util'
+import { roles } from '@server/database/schema'
+import { db } from '@server/database'
 
 interface IFilter {
   search?: string

@@ -1,6 +1,6 @@
-import { logger } from '@/lib/logger'
-import { env } from '@/config/env'
-import { closeDatabase } from '@/database'
+import { logger } from '@server/lib/logger'
+import { env } from '@server/config/env'
+import { closeDatabase } from '@server/database'
 
 import { app } from './app'
 

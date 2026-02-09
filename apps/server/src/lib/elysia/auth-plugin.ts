@@ -1,8 +1,8 @@
 import { Elysia } from 'elysia'
 
-import { ForbiddenError, UnauthorizedError } from '@/lib/error/http'
-import type { users } from '@/database/schema'
-import { IamService } from '@/modules/iam'
+import { ForbiddenError, UnauthorizedError } from '@server/lib/error/http'
+import type { users } from '@server/database/schema'
+import { IamService } from '@server/modules/iam'
 
 const iamService = new IamService()
 

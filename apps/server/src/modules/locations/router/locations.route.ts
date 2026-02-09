@@ -1,9 +1,9 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { logger } from '@/lib/logger'
-import { res } from '@/lib/utils/response.util'
-import { zResponse, zSchema } from '@/lib/zod'
+import { logger } from '@server/lib/logger'
+import { res } from '@server/lib/utils/response.util'
+import { zResponse, zSchema } from '@server/lib/zod'
 
 import { LocationSchema } from '../locations.types'
 import type { LocationsService } from '../service/locations.service'

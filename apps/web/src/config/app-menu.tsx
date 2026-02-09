@@ -25,26 +25,26 @@ export function getAppMenu(pathname: string): AppMenu[] {
       isHide: false,
     },
     {
-      title: 'Products',
+      title: 'Produk',
       href: '/products',
       icon: PackageIcon,
       isActive: pathname.startsWith('/products'),
       isHide: false,
     },
     {
-      title: 'Settings',
+      title: 'Pengaturan',
       href: '/settings',
       icon: Settings2Icon,
       isActive: pathname.startsWith('/settings'),
       isHide: false,
       children: [
         {
-          title: 'Users',
+          title: 'Pengguna',
           href: '/settings/users',
           isActive: pathname.startsWith('/settings/users'),
         },
         {
-          title: 'Roles',
+          title: 'Peran',
           href: '/settings/roles',
           isActive: pathname.startsWith('/settings/roles'),
         },

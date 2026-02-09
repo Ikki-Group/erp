@@ -323,19 +323,19 @@ export const getProductByCode = (code: string): Product | undefined => {
 
 export const getCategoryLabel = (category: Product['category']): string => {
   const labels = {
-    'raw-material': 'Raw Material',
-    'semi-finished': 'Semi Finished',
-    'finished-goods': 'Finished Goods',
-    consumable: 'Consumable',
+    'raw-material': 'Bahan Baku',
+    'semi-finished': 'Setengah Jadi',
+    'finished-goods': 'Barang Jadi',
+    consumable: 'Habis Pakai',
   }
   return labels[category]
 }
 
 export const getStatusLabel = (status: Product['status']): string => {
   const labels = {
-    active: 'Active',
-    inactive: 'Inactive',
-    discontinued: 'Discontinued',
+    active: 'Aktif',
+    inactive: 'Tidak Aktif',
+    discontinued: 'Dihentikan',
   }
   return labels[status]
 }
@@ -344,7 +344,7 @@ export const getUnitLabel = (unit: Product['unit']): string => {
   const labels = {
     kg: 'Kilogram',
     liter: 'Liter',
-    pcs: 'Pieces',
+    pcs: 'Pcs',
     box: 'Box',
     meter: 'Meter',
     roll: 'Roll',

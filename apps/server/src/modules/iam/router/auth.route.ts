@@ -1,8 +1,8 @@
 import { Elysia } from 'elysia'
 
-import { authPlugin } from '@/lib/elysia/auth-plugin'
-import { res } from '@/lib/utils/response.util'
-import { zResponse } from '@/lib/zod'
+import { authPlugin } from '@server/lib/elysia/auth-plugin'
+import { res } from '@server/lib/utils/response.util'
+import { zResponse } from '@server/lib/zod'
 
 import { IamSchema } from '../iam.types'
 import type { IamService } from '../service'

@@ -157,24 +157,24 @@ function ProductsPage() {
           <PageTitleContainer>
             <Inline gap="sm" align="center">
               <PackageIcon className="h-8 w-8 text-primary" />
-              <PageTitle>Products</PageTitle>
+              <PageTitle>Produk</PageTitle>
             </Inline>
             <PageDescription maxWidth>
-              Manage your product catalog, inventory, and pricing
+              Kelola katalog produk, inventori, dan harga Anda
             </PageDescription>
           </PageTitleContainer>
 
           <PageActions>
             <Button variant="outline" size="sm">
-              Import
+              Impor
             </Button>
             <Button variant="outline" size="sm">
-              Export
+              Ekspor
             </Button>
             <Link to="/products">
               <Button size="sm">
                 <PlusIcon className="h-4 w-4" />
-                Add Product
+                Tambah Produk
               </Button>
             </Link>
           </PageActions>
@@ -189,12 +189,12 @@ function ProductsPage() {
               <CardContent>
                 <Stack gap="sm">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Total Products
+                    Total Produk
                   </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">{stats.total}</p>
                     <Badge variant="outline" className="text-xs">
-                      {stats.active} active
+                      {stats.active} aktif
                     </Badge>
                   </div>
                 </Stack>
@@ -205,7 +205,7 @@ function ProductsPage() {
               <CardContent>
                 <Stack gap="sm">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Inventory Value
+                    Nilai Inventori
                   </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">
@@ -226,7 +226,7 @@ function ProductsPage() {
               <CardContent>
                 <Stack gap="sm">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Low Stock Items
+                    Stok Rendah
                   </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold text-orange-600">
@@ -236,7 +236,7 @@ function ProductsPage() {
                       variant="outline"
                       className="text-xs border-orange-500 text-orange-700"
                     >
-                      Needs attention
+                      Perlu perhatian
                     </Badge>
                   </div>
                 </Stack>
@@ -247,7 +247,7 @@ function ProductsPage() {
               <CardContent>
                 <Stack gap="sm">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Critical Stock
+                    Stok Kritis
                   </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold text-red-600">
@@ -256,7 +256,7 @@ function ProductsPage() {
                     <Inline gap="sm" align="center">
                       <AlertTriangleIcon className="h-4 w-4 text-red-500" />
                       <span className="text-xs text-red-600 font-medium">
-                        Urgent
+                        Mendesak
                       </span>
                     </Inline>
                   </div>
@@ -270,9 +270,9 @@ function ProductsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Filters</CardTitle>
+                  <CardTitle>Filter</CardTitle>
                   <CardDescription>
-                    Search and filter products by various criteria
+                    Cari dan filter produk berdasarkan kriteria tertentu
                   </CardDescription>
                 </div>
                 {hasActiveFilters && (
@@ -283,7 +283,7 @@ function ProductsPage() {
                     className="text-muted-foreground"
                   >
                     <XIcon className="h-4 w-4" />
-                    Clear Filters
+                    Hapus Filter
                   </Button>
                 )}
               </div>
@@ -292,11 +292,11 @@ function ProductsPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Search */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Search</label>
+                  <label className="text-sm font-medium">Cari</label>
                   <div className="relative">
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search products..."
+                      placeholder="Cari produk..."
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value)
@@ -309,7 +309,7 @@ function ProductsPage() {
 
                 {/* Category Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
+                  <label className="text-sm font-medium">Kategori</label>
                   <Select
                     value={categoryFilter}
                     onValueChange={(value) => {
@@ -318,18 +318,18 @@ function ProductsPage() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
+                      <SelectValue placeholder="Semua Kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="raw-material">Raw Material</SelectItem>
+                      <SelectItem value="all">Semua Kategori</SelectItem>
+                      <SelectItem value="raw-material">Bahan Baku</SelectItem>
                       <SelectItem value="semi-finished">
-                        Semi Finished
+                        Setengah Jadi
                       </SelectItem>
                       <SelectItem value="finished-goods">
-                        Finished Goods
+                        Barang Jadi
                       </SelectItem>
-                      <SelectItem value="consumable">Consumable</SelectItem>
+                      <SelectItem value="consumable">Habis Pakai</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -345,20 +345,20 @@ function ProductsPage() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All Status" />
+                      <SelectValue placeholder="Semua Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="discontinued">Discontinued</SelectItem>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="active">Aktif</SelectItem>
+                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                      <SelectItem value="discontinued">Dihentikan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Stock Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Stock Level</label>
+                  <label className="text-sm font-medium">Level Stok</label>
                   <Select
                     value={stockFilter}
                     onValueChange={(value) => {
@@ -367,12 +367,12 @@ function ProductsPage() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All Levels" />
+                      <SelectValue placeholder="Semua Level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="low">Low Stock</SelectItem>
-                      <SelectItem value="critical">Critical Stock</SelectItem>
+                      <SelectItem value="all">Semua Level</SelectItem>
+                      <SelectItem value="low">Stok Rendah</SelectItem>
+                      <SelectItem value="critical">Stok Kritis</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -381,14 +381,14 @@ function ProductsPage() {
               {/* Results count */}
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Showing{' '}
+                  Menampilkan{' '}
                   <span className="font-medium">
                     {paginatedProducts.length}
                   </span>{' '}
-                  of{' '}
+                  dari{' '}
                   <span className="font-medium">{filteredProducts.length}</span>{' '}
-                  products
-                  {hasActiveFilters && ' (filtered)'}
+                  produk
+                  {hasActiveFilters && ' (terfilter)'}
                 </p>
               </div>
             </CardContent>
@@ -402,25 +402,25 @@ function ProductsPage() {
                   <thead className="bg-muted/50 border-b">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                        Code
+                        Kode
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                        Product Name
+                        Nama Produk
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                        Category
+                        Kategori
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                        Stock
+                        Stok
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
-                        Price
+                        Harga
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                         Status
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
-                        Actions
+                        Aksi
                       </th>
                     </tr>
                   </thead>
@@ -431,9 +431,11 @@ function ProductsPage() {
                           <Stack gap="md" align="center">
                             <PackageIcon className="h-12 w-12 text-muted-foreground" />
                             <div>
-                              <p className="font-medium">No products found</p>
+                              <p className="font-medium">
+                                Produk tidak ditemukan
+                              </p>
                               <p className="text-sm text-muted-foreground">
-                                Try adjusting your filters
+                                Coba sesuaikan filter Anda
                               </p>
                             </div>
                           </Stack>
@@ -541,7 +543,7 @@ function ProductsPage() {
                                     size="sm"
                                     className="h-7 text-xs"
                                   >
-                                    View
+                                    Lihat
                                   </Button>
                                 </Link>
                                 <Link
@@ -553,7 +555,7 @@ function ProductsPage() {
                                     size="sm"
                                     className="h-7 text-xs"
                                   >
-                                    Edit
+                                    Ubah
                                   </Button>
                                 </Link>
                               </Inline>
@@ -576,9 +578,9 @@ function ProductsPage() {
                   <Stack gap="md" align="center">
                     <PackageIcon className="h-12 w-12 text-muted-foreground" />
                     <div className="text-center">
-                      <p className="font-medium">No products found</p>
+                      <p className="font-medium">Produk tidak ditemukan</p>
                       <p className="text-sm text-muted-foreground">
-                        Try adjusting your filters
+                        Coba sesuaikan filter Anda
                       </p>
                     </div>
                   </Stack>
@@ -632,7 +634,7 @@ function ProductsPage() {
                       <Stack gap="sm">
                         <Inline justify="between" align="center">
                           <span className="text-sm text-muted-foreground">
-                            Category
+                            Kategori
                           </span>
                           <Badge variant="outline" className="text-xs">
                             {getCategoryLabel(product.category)}
@@ -641,7 +643,7 @@ function ProductsPage() {
 
                         <Inline justify="between" align="center">
                           <span className="text-sm text-muted-foreground">
-                            Stock
+                            Stok
                           </span>
                           <div className="flex items-center gap-2">
                             <span
@@ -669,7 +671,7 @@ function ProductsPage() {
 
                         <Inline justify="between" align="center">
                           <span className="text-sm text-muted-foreground">
-                            Price
+                            Harga
                           </span>
                           <span className="text-sm font-bold">
                             {formatCurrency(product.price)}
@@ -690,7 +692,7 @@ function ProductsPage() {
                                 size="sm"
                                 className="flex-1"
                               >
-                                View Details
+                                Lihat Detail
                               </Button>
                             </Link>
                           </Inline>
@@ -709,8 +711,8 @@ function ProductsPage() {
               <CardContent>
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
-                    Page <span className="font-medium">{currentPage}</span> of{' '}
-                    <span className="font-medium">{totalPages}</span>
+                    Halaman <span className="font-medium">{currentPage}</span>{' '}
+                    dari <span className="font-medium">{totalPages}</span>
                   </p>
 
                   <Inline gap="sm">
@@ -720,7 +722,7 @@ function ProductsPage() {
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
                     >
-                      First
+                      Pertama
                     </Button>
                     <Button
                       variant="outline"
@@ -729,7 +731,7 @@ function ProductsPage() {
                       disabled={currentPage === 1}
                     >
                       <ChevronLeftIcon className="h-4 w-4" />
-                      Previous
+                      Sebelumnya
                     </Button>
 
                     {/* Page numbers */}

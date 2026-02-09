@@ -1,7 +1,7 @@
 import type { Secret } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 
-import { env } from '@/config/env'
+import { env } from '@server/config/env'
 
 /**
  * JWT token payload interface

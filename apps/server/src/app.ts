@@ -1,12 +1,11 @@
 import { cors } from '@elysiajs/cors'
+import { authPlugin } from '@server/lib/elysia/auth-plugin'
+import { openapiPlugin } from '@server/lib/elysia/openapi-plugin'
+import { HttpError } from '@server/lib/error/http'
+import { otel } from '@server/lib/otel'
+import { buildIamRoute, IamService } from '@server/modules/iam'
+import { buildLocationsRoute, LocationsModuleService } from '@server/modules/locations'
 import { Elysia, redirect } from 'elysia'
-
-import { authPlugin } from '@/lib/elysia/auth-plugin'
-import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
-import { HttpError } from '@/lib/error/http'
-import { otel } from '@/lib/otel'
-import { buildIamRoute, IamService } from '@/modules/iam'
-import { buildLocationsRoute, LocationsModuleService } from '@/modules/locations'
 
 // Services
 const iamService = new IamService()

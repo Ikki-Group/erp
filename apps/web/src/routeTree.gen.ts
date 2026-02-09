@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
@@ -28,6 +29,11 @@ import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/exa
 import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
 
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -124,6 +130,7 @@ const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/$': typeof SplatRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/products/$id': typeof AppProductsIdRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/examples/table/': typeof AppExamplesTableIndexRoute
 }
 export interface FileRoutesByTo {
+  '/$': typeof SplatRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/_app/settings': typeof AppSettingsRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/settings'
     | '/login'
     | '/products/$id'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/examples/table/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$'
     | '/settings'
     | '/login'
     | '/'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/$'
     | '/_app/settings'
     | '/_auth/login'
     | '/_app/'
@@ -244,11 +256,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
+  SplatRoute: typeof SplatRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -422,6 +442,7 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
+  SplatRoute: SplatRoute,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport

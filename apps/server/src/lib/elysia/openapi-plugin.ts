@@ -1,7 +1,7 @@
 import { openapi } from '@elysiajs/openapi'
 import z from 'zod'
 
-import { env } from '@/config/env'
+import { env } from '@server/config/env'
 
 /**
  * OpenAPI Plugin Configuration
