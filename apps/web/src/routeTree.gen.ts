@@ -9,288 +9,111 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as AuthIndexRouteImport } from './routes/_auth.index'
-import { Route as AuthPlaygroundRouteImport } from './routes/_auth.playground'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
-import { Route as AuthProductsIndexRouteImport } from './routes/_auth.products.index'
-import { Route as AuthLocationsIndexRouteImport } from './routes/_auth.locations.index'
-import { Route as AuthProductsUpsertRouteImport } from './routes/_auth.products.upsert'
-import { Route as AuthProductsProductIdRouteImport } from './routes/_auth.products.$productId'
-import { Route as AuthLocationsUpsertRouteImport } from './routes/_auth.locations.upsert'
-import { Route as AuthIamUsersIndexRouteImport } from './routes/_auth.iam.users.index'
-import { Route as AuthIamUsersUpsertRouteImport } from './routes/_auth.iam.users.upsert'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthIndexRoute = AuthIndexRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthPlaygroundRoute = AuthPlaygroundRouteImport.update({
-  id: '/playground',
-  path: '/playground',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
+  id: '/_auth/login',
   path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
-  id: '/_app/settings',
-  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
-  id: '/products/',
-  path: '/products/',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLocationsIndexRoute = AuthLocationsIndexRouteImport.update({
-  id: '/locations/',
-  path: '/locations/',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthProductsUpsertRoute = AuthProductsUpsertRouteImport.update({
-  id: '/products/upsert',
-  path: '/products/upsert',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthProductsProductIdRoute = AuthProductsProductIdRouteImport.update({
-  id: '/products/$productId',
-  path: '/products/$productId',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLocationsUpsertRoute = AuthLocationsUpsertRouteImport.update({
-  id: '/locations/upsert',
-  path: '/locations/upsert',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthIamUsersIndexRoute = AuthIamUsersIndexRouteImport.update({
-  id: '/iam/users/',
-  path: '/iam/users/',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthIamUsersUpsertRoute = AuthIamUsersUpsertRouteImport.update({
-  id: '/iam/users/upsert',
-  path: '/iam/users/upsert',
-  getParentRoute: () => AuthRoute,
+const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthIndexRoute
+  '/': typeof AppIndexRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
-  '/playground': typeof AuthPlaygroundRoute
-  '/locations/upsert': typeof AuthLocationsUpsertRoute
-  '/products/$productId': typeof AuthProductsProductIdRoute
-  '/products/upsert': typeof AuthProductsUpsertRoute
-  '/locations/': typeof AuthLocationsIndexRoute
-  '/products/': typeof AuthProductsIndexRoute
-  '/iam/users/upsert': typeof AuthIamUsersUpsertRoute
-  '/iam/users/': typeof AuthIamUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
-  '/playground': typeof AuthPlaygroundRoute
-  '/': typeof AuthIndexRoute
-  '/locations/upsert': typeof AuthLocationsUpsertRoute
-  '/products/$productId': typeof AuthProductsProductIdRoute
-  '/products/upsert': typeof AuthProductsUpsertRoute
-  '/locations': typeof AuthLocationsIndexRoute
-  '/products': typeof AuthProductsIndexRoute
-  '/iam/users/upsert': typeof AuthIamUsersUpsertRoute
-  '/iam/users': typeof AuthIamUsersIndexRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_auth': typeof AuthRouteWithChildren
+  '/_app': typeof AppRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRoute
   '/_auth/login': typeof AuthLoginRoute
-  '/_auth/playground': typeof AuthPlaygroundRoute
-  '/_auth/': typeof AuthIndexRoute
-  '/_auth/locations/upsert': typeof AuthLocationsUpsertRoute
-  '/_auth/products/$productId': typeof AuthProductsProductIdRoute
-  '/_auth/products/upsert': typeof AuthProductsUpsertRoute
-  '/_auth/locations/': typeof AuthLocationsIndexRoute
-  '/_auth/products/': typeof AuthProductsIndexRoute
-  '/_auth/iam/users/upsert': typeof AuthIamUsersUpsertRoute
-  '/_auth/iam/users/': typeof AuthIamUsersIndexRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/settings'
-    | '/login'
-    | '/playground'
-    | '/locations/upsert'
-    | '/products/$productId'
-    | '/products/upsert'
-    | '/locations/'
-    | '/products/'
-    | '/iam/users/upsert'
-    | '/iam/users/'
+  fullPaths: '/' | '/settings' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/settings'
-    | '/login'
-    | '/playground'
-    | '/'
-    | '/locations/upsert'
-    | '/products/$productId'
-    | '/products/upsert'
-    | '/locations'
-    | '/products'
-    | '/iam/users/upsert'
-    | '/iam/users'
-  id:
-    | '__root__'
-    | '/_auth'
-    | '/_app/settings'
-    | '/_auth/login'
-    | '/_auth/playground'
-    | '/_auth/'
-    | '/_auth/locations/upsert'
-    | '/_auth/products/$productId'
-    | '/_auth/products/upsert'
-    | '/_auth/locations/'
-    | '/_auth/products/'
-    | '/_auth/iam/users/upsert'
-    | '/_auth/iam/users/'
+  to: '/settings' | '/login' | '/'
+  id: '__root__' | '/_app' | '/_app/settings' | '/_auth/login' | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthRoute: typeof AuthRouteWithChildren
-  AppSettingsRouteRoute: typeof AppSettingsRouteRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_auth': {
-      id: '/_auth'
+    '/_app': {
+      id: '/_app'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth/': {
-      id: '/_auth/'
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/playground': {
-      id: '/_auth/playground'
-      path: '/playground'
-      fullPath: '/playground'
-      preLoaderRoute: typeof AuthPlaygroundRouteImport
-      parentRoute: typeof AuthRoute
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_auth/login': {
       id: '/_auth/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth/products/': {
-      id: '/_auth/products/'
-      path: '/products'
-      fullPath: '/products/'
-      preLoaderRoute: typeof AuthProductsIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/locations/': {
-      id: '/_auth/locations/'
-      path: '/locations'
-      fullPath: '/locations/'
-      preLoaderRoute: typeof AuthLocationsIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/products/upsert': {
-      id: '/_auth/products/upsert'
-      path: '/products/upsert'
-      fullPath: '/products/upsert'
-      preLoaderRoute: typeof AuthProductsUpsertRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/products/$productId': {
-      id: '/_auth/products/$productId'
-      path: '/products/$productId'
-      fullPath: '/products/$productId'
-      preLoaderRoute: typeof AuthProductsProductIdRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/locations/upsert': {
-      id: '/_auth/locations/upsert'
-      path: '/locations/upsert'
-      fullPath: '/locations/upsert'
-      preLoaderRoute: typeof AuthLocationsUpsertRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/iam/users/': {
-      id: '/_auth/iam/users/'
-      path: '/iam/users'
-      fullPath: '/iam/users/'
-      preLoaderRoute: typeof AuthIamUsersIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/iam/users/upsert': {
-      id: '/_auth/iam/users/upsert'
-      path: '/iam/users/upsert'
-      fullPath: '/iam/users/upsert'
-      preLoaderRoute: typeof AuthIamUsersUpsertRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof AppRouteRoute
     }
   }
 }
 
-interface AuthRouteChildren {
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthPlaygroundRoute: typeof AuthPlaygroundRoute
-  AuthIndexRoute: typeof AuthIndexRoute
-  AuthLocationsUpsertRoute: typeof AuthLocationsUpsertRoute
-  AuthProductsProductIdRoute: typeof AuthProductsProductIdRoute
-  AuthProductsUpsertRoute: typeof AuthProductsUpsertRoute
-  AuthLocationsIndexRoute: typeof AuthLocationsIndexRoute
-  AuthProductsIndexRoute: typeof AuthProductsIndexRoute
-  AuthIamUsersUpsertRoute: typeof AuthIamUsersUpsertRoute
-  AuthIamUsersIndexRoute: typeof AuthIamUsersIndexRoute
+interface AppRouteRouteChildren {
+  AppSettingsRouteRoute: typeof AppSettingsRouteRoute
+  AppIndexRoute: typeof AppIndexRoute
 }
 
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthLoginRoute: AuthLoginRoute,
-  AuthPlaygroundRoute: AuthPlaygroundRoute,
-  AuthIndexRoute: AuthIndexRoute,
-  AuthLocationsUpsertRoute: AuthLocationsUpsertRoute,
-  AuthProductsProductIdRoute: AuthProductsProductIdRoute,
-  AuthProductsUpsertRoute: AuthProductsUpsertRoute,
-  AuthLocationsIndexRoute: AuthLocationsIndexRoute,
-  AuthProductsIndexRoute: AuthProductsIndexRoute,
-  AuthIamUsersUpsertRoute: AuthIamUsersUpsertRoute,
-  AuthIamUsersIndexRoute: AuthIamUsersIndexRoute,
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppSettingsRouteRoute: AppSettingsRouteRoute,
+  AppIndexRoute: AppIndexRoute,
 }
 
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthRoute: AuthRouteWithChildren,
-  AppSettingsRouteRoute: AppSettingsRouteRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

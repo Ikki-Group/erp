@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { tanstackRouter } from '@tanstack/router-vite-plugin'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
@@ -8,12 +8,14 @@ import tailwindcss from '@tailwindcss/vite'
 const config = defineConfig({
   plugins: [
     devtools(),
-    TanStackRouterVite(),
-    // this is the plugin that enables path aliases
-    viteTsConfigPaths({
-      projects: ['./tsconfig.json'],
+    tanstackRouter({
+      routesDirectory: './src/routes',
+      generatedRouteTree: './src/routeTree.gen.ts',
+      autoCodeSplitting: true,
+      routeFileIgnorePrefix: '-',
     }),
-    tailwindcss(),
+    viteTsConfigPaths(),
+    tailwindcss({ optimize: true }),
     viteReact(),
   ],
 })
