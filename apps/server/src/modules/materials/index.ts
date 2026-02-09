@@ -1,0 +1,1 @@
+export { buildMaterialsRouter } from './router'

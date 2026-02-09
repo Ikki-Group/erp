@@ -3,17 +3,19 @@ import { authPlugin } from '@server/lib/elysia/auth-plugin'
 import { openapiPlugin } from '@server/lib/elysia/openapi-plugin'
 import { HttpError } from '@server/lib/error/http'
 import { otel } from '@server/lib/otel'
-import { buildIamRoute, IamService } from '@server/modules/iam'
+import { buildIamRoute, IamModuleService } from '@server/modules/iam'
 import { buildLocationsRoute, LocationsModuleService } from '@server/modules/locations'
+import { buildMaterialsRouter } from '@server/modules/materials'
 import { Elysia, redirect } from 'elysia'
 
 // Services
-const iamService = new IamService()
-const locationsService = new LocationsModuleService()
+const iamModuleService = new IamModuleService()
+const locationsModuleService = new LocationsModuleService()
 
 // Routes
-const iamRoute = buildIamRoute(iamService)
-const locationsRoute = buildLocationsRoute(locationsService)
+const iamRoute = buildIamRoute(iamModuleService)
+const locationsRoute = buildLocationsRoute(locationsModuleService)
+const materialsRoute = buildMaterialsRouter()
 
 export const app = new Elysia({
   name: 'App',
@@ -35,5 +37,6 @@ export const app = new Elysia({
   })
   .use(iamRoute)
   .use(locationsRoute)
+  .use(materialsRoute)
 
 export type App = typeof app
