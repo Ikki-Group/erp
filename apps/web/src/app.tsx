@@ -5,7 +5,10 @@ import { createRouter } from '@/lib/tanstack-router'
 import { ThemeListener } from './components/common/theme'
 import { queryClient } from '@/lib/tanstack-query'
 
+import { initSentry } from '@/lib/sentry'
+
 const router = createRouter()
+initSentry(router)
 
 export function App() {
   return (
