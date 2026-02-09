@@ -30,28 +30,26 @@ export function LocationSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-[200px] h-9 justify-between px-2"
-        >
-          <div className="flex items-center gap-2 text-left">
-            <div className="flex size-5 items-center justify-center rounded-sm border">
-              {selectedLocationId ? (
-                <MapPinIcon className="size-3" />
-              ) : (
-                <GalleryVerticalEndIcon className="size-3" />
-              )}
-            </div>
-            <div className="grid flex-1 text-left text-xs leading-tight">
-              <span className="truncate font-medium">
-                {activeLocation.name}
-              </span>
-            </div>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" className="w-[200px] px-1" size="lg" />
+        }
+      >
+        <div className="flex items-center gap-1 text-left">
+          <div className="flex size-6 items-center justify-center">
+            {selectedLocationId ? (
+              <MapPinIcon className="size-3" />
+            ) : (
+              <GalleryVerticalEndIcon className="size-3" />
+            )}
           </div>
-          <ChevronsUpDownIcon className="ml-auto size-4 opacity-50" />
-        </Button>
+          <div className="flex-1 grid text-left">
+            <span className="truncate font-semibold">
+              {activeLocation.name}
+            </span>
+          </div>
+        </div>
+        <ChevronsUpDownIcon className="ml-auto size-4 opacity-50" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[200px] rounded-lg"
