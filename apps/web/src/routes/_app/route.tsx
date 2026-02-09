@@ -5,6 +5,12 @@ export const Route = createFileRoute('/_app')({
   component: RouteComponent,
 })
 
+import { ConfirmProvider } from '@/providers/confirm-provider'
+
 function RouteComponent() {
-  return <AppLayout />
+  return (
+    <ConfirmProvider>
+      <AppLayout />
+    </ConfirmProvider>
+  )
 }

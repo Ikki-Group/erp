@@ -51,9 +51,9 @@ export function AppLayout() {
         </SidebarContent>
         <SidebarFooter>{/* <UserSection /> */}</SidebarFooter>
       </Sidebar>
-      <div className="flex flex-1 flex-col transition-all duration-300 ease-in-out">
+      <div className="flex flex-1 flex-col h-svh overflow-hidden transition-all duration-300 ease-in-out">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <main className="flex flex-1 flex-col h-full overflow-hidden">
           <Outlet />
         </main>
       </div>

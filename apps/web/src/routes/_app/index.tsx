@@ -1,4 +1,13 @@
 import {
+  Page,
+  PageActions,
+  PageContent,
+  PageDescription,
+  PageHeader,
+  PageTitle,
+  PageTitleContainer,
+} from '@/components/layout/page'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -23,93 +32,105 @@ function Dashboard() {
   const inventory = selectedLocationId ? 50000 : 250000
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
+    <Page>
+      <PageHeader>
+        <PageTitleContainer>
+          <PageTitle>Dashboard</PageTitle>
+          <PageDescription>
+            Overview of your organization performance across locations.
+          </PageDescription>
+        </PageTitleContainer>
+        <PageActions>
           <span className="text-sm text-muted-foreground">
             Viewing:{' '}
             <span className="font-semibold text-foreground">
               {activeLocation ? activeLocation.name : 'All Locations'}
             </span>
           </span>
+        </PageActions>
+      </PageHeader>
+      <PageContent>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Revenue
+              </CardTitle>
+              <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${sales.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                +20.1% from last month
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Orders
+              </CardTitle>
+              <ShoppingCartIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+{orders}</div>
+              <p className="text-xs text-muted-foreground">
+                +180.1% from last month
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Inventory Val.
+              </CardTitle>
+              <PackageIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${inventory.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                +19% from last month
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${sales.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Orders</CardTitle>
-            <ShoppingCartIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{orders}</div>
-            <p className="text-xs text-muted-foreground">
-              +180.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Inventory Val.
-            </CardTitle>
-            <PackageIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${inventory.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              +19% from last month
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>
-              {activeLocation
-                ? `Recent sales for ${activeLocation.name}`
-                : `Consolidated sales across all locations`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No recent sales data available for mock.
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Top Products</CardTitle>
-            <CardDescription>Best selling items this month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Product A - 500 units
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Product B - 300 units
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-4">
+            <CardHeader>
+              <CardTitle>Recent Sales</CardTitle>
+              <CardDescription>
+                {activeLocation
+                  ? `Recent sales for ${activeLocation.name}`
+                  : `Consolidated sales across all locations`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                No recent sales data available for mock.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Top Products</CardTitle>
+              <CardDescription>Best selling items this month</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Product A - 500 units
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Product B - 300 units
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </PageContent>
+    </Page>
   )
 }

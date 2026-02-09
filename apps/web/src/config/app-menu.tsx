@@ -1,5 +1,6 @@
 import {
   LayoutDashboardIcon,
+  LayoutTemplateIcon,
   LucideIcon,
   PackageIcon,
   Settings2Icon,
@@ -46,6 +47,74 @@ export function getAppMenu(pathname: string): AppMenu[] {
           title: 'Roles',
           href: '/settings/roles',
           isActive: pathname.startsWith('/settings/roles'),
+        },
+      ],
+    },
+    {
+      title: 'Examples',
+      href: '/examples',
+      icon: LayoutTemplateIcon,
+      isActive: pathname.startsWith('/examples'),
+      children: [
+        {
+          title: 'Table Layout',
+          href: '/examples/table',
+          isActive: pathname.startsWith('/examples/table'),
+        },
+        {
+          title: 'Form Layout',
+          href: '/examples/form',
+          isActive: pathname.startsWith('/examples/form'),
+        },
+        {
+          title: 'Detail Layout',
+          href: '/examples/detail',
+          isActive: pathname.startsWith('/examples/detail'),
+        },
+        {
+          title: 'Responsive Dashboard',
+          href: '/examples/dashboard',
+          isActive: pathname.startsWith('/examples/dashboard'),
+        },
+        {
+          title: 'Complex Form',
+          href: '/examples/complex-form',
+          isActive: pathname.startsWith('/examples/complex-form'),
+        },
+        {
+          title: 'Dialog',
+          href: '/examples/dialog',
+          isActive: pathname.startsWith('/examples/dialog'),
+        },
+        {
+          title: 'Dialog Form',
+          href: '/examples/dialog-form',
+          isActive: pathname.startsWith('/examples/dialog-form'),
+        },
+        {
+          title: 'Search Dialog',
+          href: '/examples/search',
+          isActive: pathname.startsWith('/examples/search'),
+        },
+        {
+          title: 'Details Display',
+          href: '/examples/details',
+          isActive: pathname.startsWith('/examples/details'),
+        },
+        {
+          title: 'Recharts',
+          href: '/examples/charts',
+          isActive: pathname.startsWith('/examples/charts'),
+        },
+        {
+          title: 'Layout Primitives',
+          href: '/examples/layouts',
+          isActive: pathname.startsWith('/examples/layouts'),
+        },
+        {
+          title: 'Page Layouts',
+          href: '/examples/page-layouts',
+          isActive: pathname.startsWith('/examples/page-layouts'),
         },
       ],
     },

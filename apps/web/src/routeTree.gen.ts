@@ -13,6 +13,20 @@ import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
+import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
+import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppExamplesTableIndexRouteImport } from './routes/_app/examples/table/index'
+import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
+import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
+import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
+import { Route as AppExamplesFormIndexRouteImport } from './routes/_app/examples/form/index'
+import { Route as AppExamplesDialogIndexRouteImport } from './routes/_app/examples/dialog/index'
+import { Route as AppExamplesDialogFormIndexRouteImport } from './routes/_app/examples/dialog-form/index'
+import { Route as AppExamplesDetailsIndexRouteImport } from './routes/_app/examples/details/index'
+import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/examples/detail/index'
+import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
+import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
+import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
 
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
@@ -33,16 +47,118 @@ const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProductsIdRoute = AppProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesTableIndexRoute = AppExamplesTableIndexRouteImport.update({
+  id: '/examples/table/',
+  path: '/examples/table/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesSearchIndexRoute = AppExamplesSearchIndexRouteImport.update({
+  id: '/examples/search/',
+  path: '/examples/search/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesPageLayoutsIndexRoute =
+  AppExamplesPageLayoutsIndexRouteImport.update({
+    id: '/examples/page-layouts/',
+    path: '/examples/page-layouts/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppExamplesLayoutsIndexRoute = AppExamplesLayoutsIndexRouteImport.update({
+  id: '/examples/layouts/',
+  path: '/examples/layouts/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesFormIndexRoute = AppExamplesFormIndexRouteImport.update({
+  id: '/examples/form/',
+  path: '/examples/form/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesDialogIndexRoute = AppExamplesDialogIndexRouteImport.update({
+  id: '/examples/dialog/',
+  path: '/examples/dialog/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesDialogFormIndexRoute =
+  AppExamplesDialogFormIndexRouteImport.update({
+    id: '/examples/dialog-form/',
+    path: '/examples/dialog-form/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppExamplesDetailsIndexRoute = AppExamplesDetailsIndexRouteImport.update({
+  id: '/examples/details/',
+  path: '/examples/details/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesDetailIndexRoute = AppExamplesDetailIndexRouteImport.update({
+  id: '/examples/detail/',
+  path: '/examples/detail/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesDashboardIndexRoute =
+  AppExamplesDashboardIndexRouteImport.update({
+    id: '/examples/dashboard/',
+    path: '/examples/dashboard/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppExamplesComplexFormIndexRoute =
+  AppExamplesComplexFormIndexRouteImport.update({
+    id: '/examples/complex-form/',
+    path: '/examples/complex-form/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
+  id: '/examples/charts/',
+  path: '/examples/charts/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
+  '/products/$id': typeof AppProductsIdRoute
+  '/products/': typeof AppProductsIndexRoute
+  '/examples/charts/': typeof AppExamplesChartsIndexRoute
+  '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
+  '/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
+  '/examples/detail/': typeof AppExamplesDetailIndexRoute
+  '/examples/details/': typeof AppExamplesDetailsIndexRoute
+  '/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
+  '/examples/dialog/': typeof AppExamplesDialogIndexRoute
+  '/examples/form/': typeof AppExamplesFormIndexRoute
+  '/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
+  '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
+  '/examples/search/': typeof AppExamplesSearchIndexRoute
+  '/examples/table/': typeof AppExamplesTableIndexRoute
 }
 export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
+  '/products/$id': typeof AppProductsIdRoute
+  '/products': typeof AppProductsIndexRoute
+  '/examples/charts': typeof AppExamplesChartsIndexRoute
+  '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
+  '/examples/dashboard': typeof AppExamplesDashboardIndexRoute
+  '/examples/detail': typeof AppExamplesDetailIndexRoute
+  '/examples/details': typeof AppExamplesDetailsIndexRoute
+  '/examples/dialog-form': typeof AppExamplesDialogFormIndexRoute
+  '/examples/dialog': typeof AppExamplesDialogIndexRoute
+  '/examples/form': typeof AppExamplesFormIndexRoute
+  '/examples/layouts': typeof AppExamplesLayoutsIndexRoute
+  '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
+  '/examples/search': typeof AppExamplesSearchIndexRoute
+  '/examples/table': typeof AppExamplesTableIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +166,80 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/products/$id': typeof AppProductsIdRoute
+  '/_app/products/': typeof AppProductsIndexRoute
+  '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
+  '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
+  '/_app/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
+  '/_app/examples/detail/': typeof AppExamplesDetailIndexRoute
+  '/_app/examples/details/': typeof AppExamplesDetailsIndexRoute
+  '/_app/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
+  '/_app/examples/dialog/': typeof AppExamplesDialogIndexRoute
+  '/_app/examples/form/': typeof AppExamplesFormIndexRoute
+  '/_app/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
+  '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
+  '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
+  '/_app/examples/table/': typeof AppExamplesTableIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/login'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/login'
+    | '/products/$id'
+    | '/products/'
+    | '/examples/charts/'
+    | '/examples/complex-form/'
+    | '/examples/dashboard/'
+    | '/examples/detail/'
+    | '/examples/details/'
+    | '/examples/dialog-form/'
+    | '/examples/dialog/'
+    | '/examples/form/'
+    | '/examples/layouts/'
+    | '/examples/page-layouts/'
+    | '/examples/search/'
+    | '/examples/table/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/settings' | '/login' | '/'
-  id: '__root__' | '/_app' | '/_app/settings' | '/_auth/login' | '/_app/'
+  to:
+    | '/settings'
+    | '/login'
+    | '/'
+    | '/products/$id'
+    | '/products'
+    | '/examples/charts'
+    | '/examples/complex-form'
+    | '/examples/dashboard'
+    | '/examples/detail'
+    | '/examples/details'
+    | '/examples/dialog-form'
+    | '/examples/dialog'
+    | '/examples/form'
+    | '/examples/layouts'
+    | '/examples/page-layouts'
+    | '/examples/search'
+    | '/examples/table'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/settings'
+    | '/_auth/login'
+    | '/_app/'
+    | '/_app/products/$id'
+    | '/_app/products/'
+    | '/_app/examples/charts/'
+    | '/_app/examples/complex-form/'
+    | '/_app/examples/dashboard/'
+    | '/_app/examples/detail/'
+    | '/_app/examples/details/'
+    | '/_app/examples/dialog-form/'
+    | '/_app/examples/dialog/'
+    | '/_app/examples/form/'
+    | '/_app/examples/layouts/'
+    | '/_app/examples/page-layouts/'
+    | '/_app/examples/search/'
+    | '/_app/examples/table/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,17 +277,143 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/products/': {
+      id: '/_app/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof AppProductsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/products/$id': {
+      id: '/_app/products/$id'
+      path: '/products/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof AppProductsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/table/': {
+      id: '/_app/examples/table/'
+      path: '/examples/table'
+      fullPath: '/examples/table/'
+      preLoaderRoute: typeof AppExamplesTableIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/search/': {
+      id: '/_app/examples/search/'
+      path: '/examples/search'
+      fullPath: '/examples/search/'
+      preLoaderRoute: typeof AppExamplesSearchIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/page-layouts/': {
+      id: '/_app/examples/page-layouts/'
+      path: '/examples/page-layouts'
+      fullPath: '/examples/page-layouts/'
+      preLoaderRoute: typeof AppExamplesPageLayoutsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/layouts/': {
+      id: '/_app/examples/layouts/'
+      path: '/examples/layouts'
+      fullPath: '/examples/layouts/'
+      preLoaderRoute: typeof AppExamplesLayoutsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/form/': {
+      id: '/_app/examples/form/'
+      path: '/examples/form'
+      fullPath: '/examples/form/'
+      preLoaderRoute: typeof AppExamplesFormIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/dialog/': {
+      id: '/_app/examples/dialog/'
+      path: '/examples/dialog'
+      fullPath: '/examples/dialog/'
+      preLoaderRoute: typeof AppExamplesDialogIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/dialog-form/': {
+      id: '/_app/examples/dialog-form/'
+      path: '/examples/dialog-form'
+      fullPath: '/examples/dialog-form/'
+      preLoaderRoute: typeof AppExamplesDialogFormIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/details/': {
+      id: '/_app/examples/details/'
+      path: '/examples/details'
+      fullPath: '/examples/details/'
+      preLoaderRoute: typeof AppExamplesDetailsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/detail/': {
+      id: '/_app/examples/detail/'
+      path: '/examples/detail'
+      fullPath: '/examples/detail/'
+      preLoaderRoute: typeof AppExamplesDetailIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/dashboard/': {
+      id: '/_app/examples/dashboard/'
+      path: '/examples/dashboard'
+      fullPath: '/examples/dashboard/'
+      preLoaderRoute: typeof AppExamplesDashboardIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/complex-form/': {
+      id: '/_app/examples/complex-form/'
+      path: '/examples/complex-form'
+      fullPath: '/examples/complex-form/'
+      preLoaderRoute: typeof AppExamplesComplexFormIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/charts/': {
+      id: '/_app/examples/charts/'
+      path: '/examples/charts'
+      fullPath: '/examples/charts/'
+      preLoaderRoute: typeof AppExamplesChartsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
 interface AppRouteRouteChildren {
   AppSettingsRouteRoute: typeof AppSettingsRouteRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppProductsIdRoute: typeof AppProductsIdRoute
+  AppProductsIndexRoute: typeof AppProductsIndexRoute
+  AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
+  AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
+  AppExamplesDashboardIndexRoute: typeof AppExamplesDashboardIndexRoute
+  AppExamplesDetailIndexRoute: typeof AppExamplesDetailIndexRoute
+  AppExamplesDetailsIndexRoute: typeof AppExamplesDetailsIndexRoute
+  AppExamplesDialogFormIndexRoute: typeof AppExamplesDialogFormIndexRoute
+  AppExamplesDialogIndexRoute: typeof AppExamplesDialogIndexRoute
+  AppExamplesFormIndexRoute: typeof AppExamplesFormIndexRoute
+  AppExamplesLayoutsIndexRoute: typeof AppExamplesLayoutsIndexRoute
+  AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
+  AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
+  AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSettingsRouteRoute: AppSettingsRouteRoute,
   AppIndexRoute: AppIndexRoute,
+  AppProductsIdRoute: AppProductsIdRoute,
+  AppProductsIndexRoute: AppProductsIndexRoute,
+  AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
+  AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,
+  AppExamplesDashboardIndexRoute: AppExamplesDashboardIndexRoute,
+  AppExamplesDetailIndexRoute: AppExamplesDetailIndexRoute,
+  AppExamplesDetailsIndexRoute: AppExamplesDetailsIndexRoute,
+  AppExamplesDialogFormIndexRoute: AppExamplesDialogFormIndexRoute,
+  AppExamplesDialogIndexRoute: AppExamplesDialogIndexRoute,
+  AppExamplesFormIndexRoute: AppExamplesFormIndexRoute,
+  AppExamplesLayoutsIndexRoute: AppExamplesLayoutsIndexRoute,
+  AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
+  AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
+  AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
