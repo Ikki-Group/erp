@@ -1,6 +1,6 @@
 import { LocationsService } from './locations.service'
 
-export class LocationsModuleService {
+export class LocationServiceModule {
   constructor(public readonly locations: LocationsService = new LocationsService()) {}
 }
 

@@ -1,10 +1,10 @@
 import Elysia from 'elysia'
 
-import type { LocationsModuleService } from '../service'
-import { buildLocationRoute } from './locations.route'
+import type { LocationServiceModule } from '../service'
+import { initLocationRoute } from './locations.route'
 
-export function buildLocationsRoute(s: LocationsModuleService) {
-  const locationRouter = buildLocationRoute(s.locations)
+export function initLocationsRouteModule(s: LocationServiceModule) {
+  const locationRouter = initLocationRoute(s.locations)
 
   return new Elysia({ prefix: '/locations', tags: ['locations'] }).group('', (g) => g.use(locationRouter))
 }

@@ -3,7 +3,7 @@ import { IamRolesService } from './iam-roles.service'
 import { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
 import { IamUsersService } from './iam-users.service'
 
-export class IamService {
+export class IamServiceModule {
   public readonly auth: IamAuthService
 
   constructor(

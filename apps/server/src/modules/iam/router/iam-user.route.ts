@@ -6,9 +6,9 @@ import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
 import { IamSchema } from '../iam.types'
-import type { IamService } from '../service'
+import type { IamServiceModule } from '../service'
 
-export function buildIamUserRoute(s: IamService) {
+export function initIamUserRoute(s: IamServiceModule) {
   return new Elysia()
     .get(
       '/list',

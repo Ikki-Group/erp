@@ -5,16 +5,16 @@ import { authPlugin } from '@/lib/elysia/auth-plugin'
 import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
 import { HttpError } from '@/lib/error/http'
 import { otel } from '@/lib/otel'
-import { buildIamRoute, IamService } from '@/modules/iam'
-import { buildLocationsRoute, LocationsModuleService } from '@/modules/locations'
+import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
+import { initLocationsRouteModule, LocationServiceModule } from '@/modules/locations'
 
 // Services
-const iamService = new IamService()
-const locationsModuleService = new LocationsModuleService()
+const iamService = new IamServiceModule()
+const locationService = new LocationServiceModule()
 
 // Routes
-const iamRoute = buildIamRoute(iamService)
-const locationsRoute = buildLocationsRoute(locationsModuleService)
+const iamRoute = initIamRouteModule(iamService)
+const locationsRoute = initLocationsRouteModule(locationService)
 const materialsRoute = buildMaterialsRouter()
 
 export const app = new Elysia({

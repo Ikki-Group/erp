@@ -11,7 +11,7 @@ import type { LocationsService } from '../service/locations.service'
 /**
  * Location Routes
  */
-export function buildLocationRoute(s: LocationsService) {
+export function initLocationRoute(s: LocationsService) {
   return new Elysia()
     .get(
       '/list',

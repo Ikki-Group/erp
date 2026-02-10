@@ -5,10 +5,10 @@ import { res } from '@/lib/utils/response.util'
 import { zResponse } from '@/lib/zod'
 
 import { IamSchema } from '../iam.types'
-import type { IamService } from '../service'
+import type { IamServiceModule } from '../service'
 
-export function buildIamAuthRoute(service: IamService) {
-  return new Elysia({ prefix: '/auth', tags: ['IAM'] })
+export function initIamAuthRoute(service: IamServiceModule) {
+  return new Elysia()
     .post(
       '/login',
       async ({ body }) => {
