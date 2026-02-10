@@ -1,5 +1,6 @@
-import { uoms } from '@server/database/schema/master'
 import { boolean, decimal, integer, pgTable, serial, text, unique, varchar } from 'drizzle-orm/pg-core'
+
+import { uoms } from '@/database/schema/master'
 
 import { metafields } from './common'
 import { materialType } from './enum'

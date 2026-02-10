@@ -1,8 +1,8 @@
 import { SQL } from 'bun'
 import { drizzle } from 'drizzle-orm/bun-sql'
 
-import { logger } from '@server/lib/logger'
-import { env } from '@server/config/env'
+import { logger } from '@/lib/logger'
+import { env } from '@/config/env'
 
 import * as schema from './schema'
 

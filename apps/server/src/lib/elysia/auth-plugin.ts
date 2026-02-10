@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia'
 
-import { ForbiddenError, UnauthorizedError } from '@server/lib/error/http'
-import type { users } from '@server/database/schema'
-import { IamService } from '@server/modules/iam'
+import { ForbiddenError, UnauthorizedError } from '@/lib/error/http'
+import type { users } from '@/database/schema'
+import { IamServiceModule } from '@/modules/iam'
 
-const iamService = new IamService()
+const iamService = new IamServiceModule()
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' })
   .derive({ as: 'global' }, async ({ request: { headers } }) => {
@@ -31,6 +31,7 @@ export const authPlugin = new Elysia({ name: 'auth-plugin' })
     return {
       isAuth(enabled: boolean) {
         if (!enabled) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onBeforeHandle(({ user }: any) => {
           if (!user) {
             throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
@@ -38,6 +39,7 @@ export const authPlugin = new Elysia({ name: 'auth-plugin' })
         })
       },
       hasPermission(permission: string | { permission: string; locationId?: number }) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onBeforeHandle(async ({ user, query }: any) => {
           if (!user) {
             throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')

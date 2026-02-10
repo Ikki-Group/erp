@@ -7,15 +7,17 @@ import { HttpError } from '@/lib/error/http'
 import { otel } from '@/lib/otel'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initLocationsRouteModule, LocationServiceModule } from '@/modules/locations'
+import { initMasterRouteModule, MasterServiceModule } from '@/modules/master'
 
 // Services
 const iamService = new IamServiceModule()
 const locationService = new LocationServiceModule()
+const masterService = new MasterServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
 const locationsRoute = initLocationsRouteModule(locationService)
-const materialsRoute = buildMaterialsRouter()
+const masterRoute = initMasterRouteModule(masterService)
 
 export const app = new Elysia({
   name: 'App',
@@ -37,6 +39,6 @@ export const app = new Elysia({
   })
   .use(iamRoute)
   .use(locationsRoute)
-  .use(materialsRoute)
+  .use(masterRoute)
 
 export type App = typeof app

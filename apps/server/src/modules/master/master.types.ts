@@ -1,5 +1,6 @@
-import { zSchema } from '@server/lib/zod'
 import z from 'zod'
+
+import { zSchema } from '@/lib/zod'
 
 export namespace MasterSchema {
   export const Uom = z.object({
