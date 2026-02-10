@@ -44,9 +44,7 @@ export function LocationSwitcher() {
             )}
           </div>
           <div className="flex-1 grid text-left">
-            <span className="truncate font-semibold">
-              {activeLocation.name}
-            </span>
+            <span className="truncate">{activeLocation.name}</span>
           </div>
         </div>
         <ChevronsUpDownIcon className="ml-auto size-4 opacity-50" />

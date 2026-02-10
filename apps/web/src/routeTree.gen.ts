@@ -16,6 +16,7 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesTableIndexRouteImport } from './routes/_app/examples/table/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
 import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
@@ -63,6 +64,12 @@ const AppProductsIdRoute = AppProductsIdRouteImport.update({
   path: '/products/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppExamplesFormComponentsRoute =
+  AppExamplesFormComponentsRouteImport.update({
+    id: '/examples/form-components',
+    path: '/examples/form-components',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppExamplesTableIndexRoute = AppExamplesTableIndexRouteImport.update({
   id: '/examples/table/',
   path: '/examples/table/',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
+  '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products/': typeof AppProductsIndexRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
@@ -153,6 +161,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
+  '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products': typeof AppProductsIndexRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
@@ -175,6 +184,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/products/': typeof AppProductsIndexRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/settings'
     | '/login'
+    | '/examples/form-components'
     | '/products/$id'
     | '/products/'
     | '/examples/charts/'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/login'
     | '/'
+    | '/examples/form-components'
     | '/products/$id'
     | '/products'
     | '/examples/charts'
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_auth/login'
     | '/_app/'
+    | '/_app/examples/form-components'
     | '/_app/products/$id'
     | '/_app/products/'
     | '/_app/examples/charts/'
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$id'
       fullPath: '/products/$id'
       preLoaderRoute: typeof AppProductsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/form-components': {
+      id: '/_app/examples/form-components'
+      path: '/examples/form-components'
+      fullPath: '/examples/form-components'
+      preLoaderRoute: typeof AppExamplesFormComponentsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/table/': {
@@ -401,6 +421,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteRouteChildren {
   AppSettingsRouteRoute: typeof AppSettingsRouteRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
@@ -420,6 +441,7 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSettingsRouteRoute: AppSettingsRouteRoute,
   AppIndexRoute: AppIndexRoute,
+  AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,

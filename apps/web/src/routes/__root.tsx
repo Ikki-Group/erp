@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/react'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from 'sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -10,7 +11,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <>
+    <TooltipProvider>
       <Sentry.ErrorBoundary
         fallback={({ error }: { error: any }) => (
           <div>Error: {error?.message || 'Unknown error'}</div>
@@ -21,6 +22,6 @@ function RootComponent() {
       <ReactQueryDevtools buttonPosition="bottom-left" />
       <TanStackRouterDevtools position="bottom-right" />
       <Toaster position="top-right" richColors />
-    </>
+    </TooltipProvider>
   )
 }

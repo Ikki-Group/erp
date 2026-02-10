@@ -1,31 +1,27 @@
-import * as React from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useNavigate, createFileRoute } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import {
-  Lock,
-  Mail,
-  Eye,
-  EyeOff,
-  Loader2,
-  ArrowRight,
-  Sun,
-  Moon,
+  Loader2Icon,
+  MailIcon,
+  LockIcon,
+  EyeIcon,
+  EyeOffIcon,
+  ArrowRightIcon,
+  CheckCircle2Icon,
+  CommandIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useTheme } from '@/providers/ThemeProvider'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+} from '@/components/ui/input-group'
+import { Label } from '@/components/ui/label'
 
 export const Route = createFileRoute('/_auth/login')({
   component: LoginPage,
@@ -33,8 +29,8 @@ export const Route = createFileRoute('/_auth/login')({
 
 function LoginPage() {
   const navigate = useNavigate()
-  const { theme, setTheme } = useTheme()
-  const [showPassword, setShowPassword] = React.useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm({
     defaultValues: {
@@ -42,221 +38,240 @@ function LoginPage() {
       password: '',
     },
     onSubmit: async ({ value }) => {
-      // Simulate auth delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      setIsLoading(true)
+      try {
+        // Simulate auth delay
+        await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      console.log('Login attempt:', value)
+        console.log('Login attempt:', value)
 
-      toast.success('Welcome back!', {
-        description: 'Successfully signed in to IKKI ERP.',
-      })
+        toast.success('Login Berhasil', {
+          description: 'Selamat datang kembali di IKKI ERP.',
+          icon: <CheckCircle2Icon className="h-5 w-5 text-green-600" />,
+        })
 
-      navigate({ to: '/' })
+        navigate({ to: '/' })
+      } catch (error) {
+        toast.error('Login Gagal', {
+          description: 'Silakan periksa kembali email dan password Anda.',
+        })
+      } finally {
+        setIsLoading(false)
+      }
     },
   })
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-background font-sans transition-colors duration-500">
-      {/* Theme Toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full bg-background/50 backdrop-blur-sm border-border/50 hover:bg-accent transition-all duration-300"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 text-primary" />
-          ) : (
-            <Moon className="h-4 w-4 text-primary" />
-          )}
-        </Button>
+    <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-background">
+      {/* Abstract Background / Branding Section */}
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
+        <div className="absolute inset-0 bg-zinc-900" />
+        <div className="absolute inset-0 bg-linear-to-br from-zinc-900 via-zinc-800 to-black" />
+
+        {/* Abstract Shapes */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+          <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-primary blur-[100px] animate-pulse" />
+          <div className="absolute bottom-[10%] right-[10%] w-[50%] h-[50%] rounded-full bg-blue-600 blur-[120px]" />
+        </div>
+
+        <div className="relative z-20 flex items-center text-lg font-medium">
+          <div className="rounded-lg bg-white/10 p-2 mr-2 backdrop-blur-sm border border-white/10">
+            <CommandIcon className="h-6 w-6" />
+          </div>
+          IKKI ERP
+        </div>
+
+        <div className="relative z-20 mt-auto">
+          <blockquote className="space-y-2">
+            <p className="text-lg">
+              &ldquo;Platform manajemen enterprise yang mengintegrasikan seluruh
+              operasional bisnis Anda dalam satu dashboard yang intuitif dan
+              efisien.&rdquo;
+            </p>
+            <footer className="text-sm text-zinc-400">
+              Department IT & Operasional
+            </footer>
+          </blockquote>
+        </div>
       </div>
 
-      {/* Premium Mesh Gradient Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[60%] h-[60%] rounded-full bg-primary/10 dark:bg-primary/5 blur-[130px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[60%] rounded-full bg-secondary/10 dark:bg-secondary/5 blur-[130px] animate-pulse delay-1000" />
-        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/5 dark:bg-blue-500/5 blur-[100px] animate-bounce-slow" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.1] mix-blend-overlay pointer-events-none" />
-      </div>
+      {/* Login Form Section */}
+      <div className="lg:p-8 p-4 relative">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[380px]">
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Selamat Datang
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Masukkan email dan password Anda untuk masuk
+            </p>
+          </div>
 
-      <div className="z-10 w-full max-w-[420px] p-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        <div className="flex flex-col items-center mb-10 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-2xl shadow-primary/20 dark:shadow-primary/30 ring-1 ring-primary/20 dark:ring-white/10">
-              <span className="text-primary-foreground font-black text-2xl tracking-tighter">
-                IK
-              </span>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              form.handleSubmit()
+            }}
+            className="space-y-4"
+          >
+            <form.Field
+              name="email"
+              validators={{
+                onChange: ({ value }) => {
+                  const res = z.email('Email tidak valid').safeParse(value)
+                  return res.success ? undefined : res.error.issues[0].message
+                },
+              }}
+              children={(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor={field.name}>Email</Label>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <MailIcon />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id={field.name}
+                      placeholder="nama@perusahaan.com"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                  </InputGroup>
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
+                      {field.state.meta.errors.join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            />
+
+            <form.Field
+              name="password"
+              validators={{
+                onChange: ({ value }) => {
+                  const res = z
+                    .string()
+                    .min(1, 'Password diperlukan')
+                    .safeParse(value)
+                  return res.success ? undefined : res.error.issues[0].message
+                },
+              }}
+              children={(field) => (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={field.name}>Password</Label>
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-xs font-normal text-muted-foreground hover:text-primary"
+                      type="button"
+                      onClick={() =>
+                        toast.info('Info', {
+                          description:
+                            'Silakan hubungi administrator untuk reset password.',
+                        })
+                      }
+                    >
+                      Lupa password?
+                    </Button>
+                  </div>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <LockIcon />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id={field.name}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        size="icon-xs"
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
+                      {field.state.meta.errors.join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            />
+
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit]) => (
+                <Button
+                  type="submit"
+                  disabled={!canSubmit || isLoading}
+                  className="w-full h-10 font-medium"
+                >
+                  {isLoading ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <ArrowRightIcon className="h-4 w-4 mr-2" />
+                  )}
+                  {isLoading ? 'Memproses...' : 'Masuk'}
+                </Button>
+              )}
+            />
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tight text-foreground leading-none uppercase">
-                IKKI ERP
-              </span>
-              <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase mt-1 opacity-80">
-                Enterprise Logic
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Atau
               </span>
             </div>
           </div>
-        </div>
 
-        <Card className="border-border/50 bg-card/30 dark:bg-white/[0.02] backdrop-blur-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-all duration-500">
-          <CardHeader className="space-y-1.5 pb-6 text-center">
-            <CardTitle className="text-2xl font-bold text-foreground tracking-tight">
-              Welcome Experience
-            </CardTitle>
-            <CardDescription className="text-muted-foreground text-sm font-medium">
-              Access your centralized ERP management suite
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                form.handleSubmit()
-              }}
-              className="space-y-5"
-            >
-              <form.Field
-                name="email"
-                validators={{
-                  onChange: ({ value }) => {
-                    const res = z
-                      .string()
-                      .email('Invalid business email')
-                      .safeParse(value)
-                    return res.success ? undefined : res.error.issues[0].message
-                  },
-                }}
-                children={(field) => (
-                  <div className="space-y-2.5">
-                    <Label
-                      htmlFor={field.name}
-                      className="text-foreground/80 text-[13px] font-semibold ml-1"
-                    >
-                      Email Address
-                    </Label>
-                    <div className="relative group/input">
-                      <Mail className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground/60 group-focus-within/input:text-primary transition-all duration-300" />
-                      <Input
-                        id={field.name}
-                        type="email"
-                        placeholder="your@company.com"
-                        className="h-11 pl-11 bg-background/50 dark:bg-white/[0.02] border-border/50 text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all duration-300 rounded-xl"
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                    </div>
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-[10px] text-destructive font-bold uppercase tracking-wider ml-1 mt-1.5 animate-in slide-in-from-left-1">
-                        {field.state.meta.errors.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-
-              <form.Field
-                name="password"
-                validators={{
-                  onChange: ({ value }) => {
-                    const res = z
-                      .string()
-                      .min(1, 'Security credential required')
-                      .safeParse(value)
-                    return res.success ? undefined : res.error.issues[0].message
-                  },
-                }}
-                children={(field) => (
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between ml-1">
-                      <Label
-                        htmlFor={field.name}
-                        className="text-foreground/80 text-[13px] font-semibold"
-                      >
-                        Security Credential
-                      </Label>
-                    </div>
-                    <div className="relative group/input">
-                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground/60 group-focus-within/input:text-primary transition-all duration-300" />
-                      <Input
-                        id={field.name}
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        className="h-11 pl-11 pr-11 bg-background/50 dark:bg-white/[0.02] border-border/50 text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all duration-300 rounded-xl"
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-3 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded-md hover:bg-accent/50"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-[10px] text-destructive font-bold uppercase tracking-wider ml-1 mt-1.5 animate-in slide-in-from-left-1">
-                        {field.state.meta.errors.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-
-              <div className="flex items-center justify-between px-1">
-                <Button
-                  variant="link"
-                  className="px-0 font-medium text-xs text-muted-foreground hover:text-foreground transition-colors h-auto"
-                >
-                  Forgot Access Key?
-                </Button>
-                <div className="h-0.5 w-0.5 rounded-full bg-border" />
-                <Button
-                  variant="link"
-                  className="px-0 font-medium text-xs text-primary hover:text-primary/80 transition-colors h-auto"
-                >
-                  Help Center
-                </Button>
-              </div>
-
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting]}
-                children={([canSubmit, isSubmitting]) => (
-                  <Button
-                    type="submit"
-                    disabled={!canSubmit || isSubmitting}
-                    className="w-full mt-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-[0_12px_24px_-8px_rgba(var(--primary),0.3)] dark:shadow-[0_12px_24px_-8px_rgba(var(--primary),0.5)] h-12 rounded-xl text-sm font-bold tracking-tight transition-all active:scale-[0.98]"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center gap-2 text-primary-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Verifying Identity...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        <span>Continue to Dashboard</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </div>
-                    )}
-                  </Button>
-                )}
-              />
-            </form>
-          </CardContent>
-          <CardFooter className="pb-8 pt-2 flex justify-center border-t border-border/10">
-            <p className="text-[10px] text-muted-foreground/60 font-bold text-center uppercase tracking-[0.2em]">
-              Authorized Personnel Only • Session encrypted
+          <div className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
+            <p>
+              Belum punya akun?{' '}
+              <Button
+                variant="link"
+                className="underline underline-offset-4 hover:text-primary p-0 h-auto"
+                onClick={() =>
+                  toast.info('Info', {
+                    description:
+                      'Hubungi administrator sistem untuk pembuatan akun baru.',
+                  })
+                }
+              >
+                Hubungi Admin
+              </Button>
             </p>
-          </CardFooter>
-        </Card>
+          </div>
+
+          <p className="px-8 text-center text-xs text-muted-foreground">
+            Dengan mengklik tombol masuk, Anda menyetujui{' '}
+            <a
+              href="#"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Syarat & Ketentuan
+            </a>{' '}
+            dan{' '}
+            <a
+              href="#"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Kebijakan Privasi
+            </a>{' '}
+            kami.
+          </p>
+        </div>
       </div>
     </div>
   )
