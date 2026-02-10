@@ -1,24 +1,19 @@
-import Elysia from 'elysia'
-import z from 'zod'
-
 import { logger } from '@server/lib/logger'
 import { res } from '@server/lib/utils/response.util'
 import { zResponse, zSchema } from '@server/lib/zod'
+import Elysia from 'elysia'
+import z from 'zod'
 
 import { IamSchema, UserRoleAssignmentDetailSchema } from '../iam.types'
-import type { IamUserRoleAssignmentsService } from '../service/user-role-assignments.service'
-import type { IamUsersService } from '../service/users.service'
+import type { IamService } from '../service'
 
-/**
- * IAM User Route
- */
-export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUserRoleAssignmentsService) {
+export function buildIamUserRoute(s: IamService) {
   return new Elysia()
     .get(
       '/list',
       async function getUsers({ query }) {
         const { isActive, search, page, limit } = query
-        const result = await s.listPaginated({ isActive, search }, { page, limit })
+        const result = await s.users.listPaginated({ isActive, search }, { page, limit })
         logger.withMetadata(result).debug('Users List Response')
         return res.paginated(result)
       },
@@ -39,7 +34,7 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .get(
       '/detail',
       async function getUserById({ query }) {
-        const user = await s.getById(query.id)
+        const user = await s.users.getById(query.id)
         return res.ok(user)
       },
       {
@@ -50,11 +45,11 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .get(
       '/access',
       async function getUserAccess({ query }) {
-        const user = await s.getById(query.id)
+        const user = await s.users.getById(query.id)
 
         // If root user, they have access to everything (not implemented in assignments table)
         // For the dashboard, we might want to return assignments or a special flag
-        const assignments = await assignmentsService.listPaginatedWithDetails(
+        const assignments = await s.userRoleAssignments.listPaginatedWithDetails(
           { userId: query.id },
           { page: 1, limit: 100 } // Assume 100 is enough for a summary
         )
@@ -77,7 +72,7 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .post(
       '/create',
       async function createUser({ body }) {
-        const user = await s.create(body)
+        const user = await s.users.create(body)
         return res.created(user, 'USER_CREATED')
       },
       {
@@ -94,7 +89,7 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .put(
       '/update',
       async function updateUser({ body }) {
-        const user = await s.update(body.id, body)
+        const user = await s.users.update(body.id, body)
         return res.ok(user, 'USER_UPDATED')
       },
       {
@@ -120,7 +115,7 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .delete(
       '/delete',
       async function deleteUser({ body }) {
-        await s.delete(body.id)
+        await s.users.delete(body.id)
         return res.ok({ id: body.id }, 'USER_DELETED')
       },
       {
@@ -131,7 +126,7 @@ export function buildIamUserRoute(s: IamUsersService, assignmentsService: IamUse
     .patch(
       '/toggle-active',
       async function toggleUserActive({ body }) {
-        const user = await s.toggleActive(body.id)
+        const user = await s.users.toggleActive(body.id)
         return res.ok(user, 'USER_STATUS_TOGGLED')
       },
       {

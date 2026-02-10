@@ -1,7 +1,7 @@
-import { IamAuthService } from './auth.service'
-import { IamRolesService } from './roles.service'
-import { IamUserRoleAssignmentsService } from './user-role-assignments.service'
-import { IamUsersService } from './users.service'
+import { IamAuthService } from './iam-auth.service'
+import { IamRolesService } from './iam-roles.service'
+import { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
+import { IamUsersService } from './iam-users.service'
 
 export class IamModuleService {
   public readonly auth: IamAuthService
@@ -18,7 +18,7 @@ export class IamModuleService {
 // Alias for backward compatibility
 export { IamModuleService as IamService }
 
-export { IamAuthService } from './auth.service'
-export { IamRolesService } from './roles.service'
-export { IamUserRoleAssignmentsService } from './user-role-assignments.service'
-export { IamUsersService } from './users.service'
+export { IamAuthService } from './iam-auth.service'
+export { IamRolesService } from './iam-roles.service'
+export { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
+export { IamUsersService } from './iam-users.service'

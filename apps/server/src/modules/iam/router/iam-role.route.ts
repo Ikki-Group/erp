@@ -1,20 +1,19 @@
-import Elysia from 'elysia'
-import z from 'zod'
-
 import { logger } from '@server/lib/logger'
 import { res } from '@server/lib/utils/response.util'
 import { zResponse, zSchema } from '@server/lib/zod'
+import Elysia from 'elysia'
+import z from 'zod'
 
 import { IamSchema } from '../iam.types'
-import type { IamRolesService } from '../service/roles.service'
+import type { IamService } from '../service'
 
-export function buildIamRoleRoute(s: IamRolesService) {
+export function buildIamRoleRoute(s: IamService) {
   return new Elysia()
     .get(
       '/list',
       async function getRoles({ query }) {
         const { isSystem, search, page, limit } = query
-        const result = await s.listPaginated({ isSystem, search }, { page, limit })
+        const result = await s.roles.listPaginated({ isSystem, search }, { page, limit })
         logger.withMetadata(result).debug('Res')
         return res.paginated(result)
       },
@@ -33,7 +32,7 @@ export function buildIamRoleRoute(s: IamRolesService) {
     .get(
       '/detail',
       async function getRoleById({ query }) {
-        const role = await s.getById(query.id)
+        const role = await s.roles.getById(query.id)
         return res.ok(role)
       },
       {
@@ -44,7 +43,7 @@ export function buildIamRoleRoute(s: IamRolesService) {
     .post(
       '/create',
       async function createRole({ body }) {
-        const role = await s.create(body)
+        const role = await s.roles.create(body)
         return res.created(role, 'ROLE_CREATED')
       },
       {
@@ -59,7 +58,7 @@ export function buildIamRoleRoute(s: IamRolesService) {
     .put(
       '/update',
       async function updateRole({ body }) {
-        const role = await s.update(body.id, body)
+        const role = await s.roles.update(body.id, body)
         return res.ok(role, 'ROLE_UPDATED')
       },
       {
@@ -75,7 +74,7 @@ export function buildIamRoleRoute(s: IamRolesService) {
     .delete(
       '/delete',
       async function deleteRole({ body }) {
-        await s.delete(body.id)
+        await s.roles.delete(body.id)
         return res.ok({ id: body.id }, 'ROLE_DELETED')
       },
       {

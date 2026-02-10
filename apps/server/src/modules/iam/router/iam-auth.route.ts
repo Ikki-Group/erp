@@ -1,13 +1,12 @@
-import { Elysia } from 'elysia'
-
 import { authPlugin } from '@server/lib/elysia/auth-plugin'
 import { res } from '@server/lib/utils/response.util'
 import { zResponse } from '@server/lib/zod'
+import { Elysia } from 'elysia'
 
 import { IamSchema } from '../iam.types'
 import type { IamService } from '../service'
 
-export const buildAuthRoute = (service: IamService) => {
+export function buildIamAuthRoute(service: IamService) {
   return new Elysia({ prefix: '/auth', tags: ['IAM'] })
     .post(
       '/login',

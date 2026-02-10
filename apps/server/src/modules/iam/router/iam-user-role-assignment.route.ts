@@ -1,17 +1,13 @@
-import Elysia from 'elysia'
-import z from 'zod'
-
 import { logger } from '@server/lib/logger'
 import { res } from '@server/lib/utils/response.util'
 import { zResponse, zSchema } from '@server/lib/zod'
+import Elysia from 'elysia'
+import z from 'zod'
 
 import { UserRoleAssignmentDetailSchema, UserRoleAssignmentSchema } from '../iam.types'
-import type { IamUserRoleAssignmentsService } from '../service/user-role-assignments.service'
+import type { IamService } from '../service'
 
-/**
- * IAM User Role Assignment Routes
- */
-export function buildIamUserRoleAssignmentRoute(s: IamUserRoleAssignmentsService) {
+export function buildIamUserRoleAssignmentRoute(s: IamService) {
   return new Elysia()
     .get(
       '/list',
@@ -20,7 +16,9 @@ export function buildIamUserRoleAssignmentRoute(s: IamUserRoleAssignmentsService
         const filter = { userId, roleId, locationId }
         const pq = { page, limit }
 
-        const result = withDetails ? await s.listPaginatedWithDetails(filter, pq) : await s.listPaginated(filter, pq)
+        const result = withDetails
+          ? await s.userRoleAssignments.listPaginatedWithDetails(filter, pq)
+          : await s.userRoleAssignments.listPaginated(filter, pq)
 
         logger.withMetadata(result).debug('Assignments List Response')
         return res.paginated(result)
@@ -43,7 +41,7 @@ export function buildIamUserRoleAssignmentRoute(s: IamUserRoleAssignmentsService
     .get(
       '/detail',
       async function getAssignmentById({ query }) {
-        const assignment = await s.getById(query.id)
+        const assignment = await s.userRoleAssignments.getById(query.id)
         return res.ok(assignment)
       },
       {
@@ -54,7 +52,7 @@ export function buildIamUserRoleAssignmentRoute(s: IamUserRoleAssignmentsService
     .post(
       '/assign',
       async function assignRole({ body }) {
-        const assignment = await s.assign(body)
+        const assignment = await s.userRoleAssignments.assign(body)
         return res.created(assignment, 'ROLE_ASSIGNED')
       },
       {
@@ -69,7 +67,7 @@ export function buildIamUserRoleAssignmentRoute(s: IamUserRoleAssignmentsService
     .delete(
       '/revoke',
       async function revokeRole({ body }) {
-        await s.revoke(body.id)
+        await s.userRoleAssignments.revoke(body.id)
         return res.ok({ id: body.id }, 'ROLE_REVOKED')
       },
       {

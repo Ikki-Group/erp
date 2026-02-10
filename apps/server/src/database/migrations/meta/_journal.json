@@ -15,6 +15,13 @@
       "when": 1770666844543,
       "tag": "0001_real_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770696439715,
+      "tag": "0002_wonderful_agent_zero",
+      "breakpoints": true
     }
   ]
 }
