@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { UserRoleAssignmentDetailSchema, UserRoleAssignmentSchema } from '../iam.types'
+import { IamSchema } from '../iam.types'
 import type { IamService } from '../service'
 
 export function buildIamUserRoleAssignmentRoute(s: IamService) {
@@ -36,7 +36,9 @@ export function buildIamUserRoleAssignmentRoute(s: IamService) {
             .optional()
             .default(false),
         }),
-        response: zResponse.paginated(z.union([UserRoleAssignmentSchema, UserRoleAssignmentDetailSchema]).array()),
+        response: zResponse.paginated(
+          z.union([IamSchema.UserRoleAssignment, IamSchema.UserRoleAssignmentDetail]).array()
+        ),
       }
     )
     .get(
@@ -46,8 +48,8 @@ export function buildIamUserRoleAssignmentRoute(s: IamService) {
         return res.ok(assignment)
       },
       {
-        query: UserRoleAssignmentSchema.pick({ id: true }),
-        response: zResponse.ok(UserRoleAssignmentSchema),
+        query: IamSchema.UserRoleAssignment.pick({ id: true }),
+        response: zResponse.ok(IamSchema.UserRoleAssignment),
       }
     )
     .post(
@@ -57,12 +59,12 @@ export function buildIamUserRoleAssignmentRoute(s: IamService) {
         return res.created(assignment, 'ROLE_ASSIGNED')
       },
       {
-        body: UserRoleAssignmentSchema.pick({
+        body: IamSchema.UserRoleAssignment.pick({
           userId: true,
           roleId: true,
           locationId: true,
         }),
-        response: zResponse.ok(UserRoleAssignmentSchema),
+        response: zResponse.ok(IamSchema.UserRoleAssignment),
       }
     )
     .delete(
@@ -72,8 +74,8 @@ export function buildIamUserRoleAssignmentRoute(s: IamService) {
         return res.ok({ id: body.id }, 'ROLE_REVOKED')
       },
       {
-        body: UserRoleAssignmentSchema.pick({ id: true }),
-        response: zResponse.ok(UserRoleAssignmentSchema.pick({ id: true })),
+        body: IamSchema.UserRoleAssignment.pick({ id: true }),
+        response: zResponse.ok(IamSchema.UserRoleAssignment.pick({ id: true })),
       }
     )
 }

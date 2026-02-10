@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { IamSchema, UserRoleAssignmentDetailSchema } from '../iam.types'
+import { IamSchema } from '../iam.types'
 import type { IamService } from '../service'
 
 export function buildIamUserRoute(s: IamService) {
@@ -65,7 +65,7 @@ export function buildIamUserRoute(s: IamService) {
         response: zResponse.ok(
           z.object({
             isRoot: zSchema.bool,
-            assignments: UserRoleAssignmentDetailSchema.array(),
+            assignments: IamSchema.UserRoleAssignmentDetail.array(),
           })
         ),
       }

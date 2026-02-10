@@ -79,8 +79,3 @@ export namespace IamSchema {
 
   export type AuthResponse = z.infer<typeof AuthResponse>
 }
-
-// Export schemas for use in controllers
-export const UserSchema = IamSchema.User
-export const UserRoleAssignmentSchema = IamSchema.UserRoleAssignment
-export const UserRoleAssignmentDetailSchema = IamSchema.UserRoleAssignmentDetail
