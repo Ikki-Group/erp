@@ -1,15 +1,15 @@
 import { and, count, eq, ilike, ne, or } from 'drizzle-orm'
 
-import { ConflictError, NotFoundError } from '@server/lib/error/http'
+import { ConflictError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
-} from '@server/lib/utils/pagination.util'
-import { hashPassword } from '@server/lib/utils/password.util'
-import { users } from '@server/database/schema'
-import { db } from '@server/database'
+} from '@/lib/utils/pagination.util'
+import { hashPassword } from '@/lib/utils/password.util'
+import { users } from '@/database/schema'
+import { db } from '@/database'
 
 interface IFilter {
   search?: string

@@ -1,19 +1,19 @@
 import { cors } from '@elysiajs/cors'
-import { authPlugin } from '@server/lib/elysia/auth-plugin'
-import { openapiPlugin } from '@server/lib/elysia/openapi-plugin'
-import { HttpError } from '@server/lib/error/http'
-import { otel } from '@server/lib/otel'
-import { buildIamRoute, IamModuleService } from '@server/modules/iam'
-import { buildLocationsRoute, LocationsModuleService } from '@server/modules/locations'
-import { buildMaterialsRouter } from '@server/modules/materials'
 import { Elysia, redirect } from 'elysia'
 
+import { authPlugin } from '@/lib/elysia/auth-plugin'
+import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
+import { HttpError } from '@/lib/error/http'
+import { otel } from '@/lib/otel'
+import { buildIamRoute, IamService } from '@/modules/iam'
+import { buildLocationsRoute, LocationsModuleService } from '@/modules/locations'
+
 // Services
-const iamModuleService = new IamModuleService()
+const iamService = new IamService()
 const locationsModuleService = new LocationsModuleService()
 
 // Routes
-const iamRoute = buildIamRoute(iamModuleService)
+const iamRoute = buildIamRoute(iamService)
 const locationsRoute = buildLocationsRoute(locationsModuleService)
 const materialsRoute = buildMaterialsRouter()
 

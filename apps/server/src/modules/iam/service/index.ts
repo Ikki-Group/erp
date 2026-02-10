@@ -3,7 +3,7 @@ import { IamRolesService } from './iam-roles.service'
 import { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
 import { IamUsersService } from './iam-users.service'
 
-export class IamModuleService {
+export class IamService {
   public readonly auth: IamAuthService
 
   constructor(
@@ -14,9 +14,6 @@ export class IamModuleService {
     this.auth = new IamAuthService(this.users)
   }
 }
-
-// Alias for backward compatibility
-export { IamModuleService as IamService }
 
 export { IamAuthService } from './iam-auth.service'
 export { IamRolesService } from './iam-roles.service'

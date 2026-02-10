@@ -9,8 +9,8 @@ import { buildIamUserRoute } from './iam-user.route'
 export function buildIamRoute(s: IamService) {
   const authRouter = buildIamAuthRoute(s)
   const userRouter = buildIamUserRoute(s)
-  const roleRouter = buildIamRoleRoute(s.roles)
-  const userRoleAssignmentRouter = buildIamUserRoleAssignmentRoute(s.userRoleAssignments)
+  const roleRouter = buildIamRoleRoute(s)
+  const userRoleAssignmentRouter = buildIamUserRoleAssignmentRoute(s)
 
   return new Elysia({ prefix: '/iam', tags: ['IAM'] })
     .use(authRouter)

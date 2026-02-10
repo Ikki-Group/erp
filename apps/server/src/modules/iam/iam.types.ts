@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zSchema } from '@server/lib/zod'
+import { zSchema } from '@/lib/zod'
 
 /**
  * IAM Schema Definitions

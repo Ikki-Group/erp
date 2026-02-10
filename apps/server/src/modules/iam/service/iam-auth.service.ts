@@ -1,11 +1,12 @@
-import { env } from '@server/config/env'
-import { db } from '@server/database'
-import { locations, roles, userRoleAssignments, users } from '@server/database/schema'
-import { UnauthorizedError } from '@server/lib/error/http'
-import { verifyPassword } from '@server/lib/utils/password.util'
 import { and, eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import ms from 'ms'
+
+import { UnauthorizedError } from '@/lib/error/http'
+import { verifyPassword } from '@/lib/utils/password.util'
+import { locations, roles, userRoleAssignments, users } from '@/database/schema'
+import { env } from '@/config/env'
+import { db } from '@/database'
 
 import type { IamSchema } from '../iam.types'
 import type { IamUsersService } from './iam-users.service'

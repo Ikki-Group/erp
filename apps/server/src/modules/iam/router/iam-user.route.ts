@@ -1,8 +1,9 @@
-import { logger } from '@server/lib/logger'
-import { res } from '@server/lib/utils/response.util'
-import { zResponse, zSchema } from '@server/lib/zod'
 import Elysia from 'elysia'
 import z from 'zod'
+
+import { logger } from '@/lib/logger'
+import { res } from '@/lib/utils/response.util'
+import { zResponse, zSchema } from '@/lib/zod'
 
 import { IamSchema, UserRoleAssignmentDetailSchema } from '../iam.types'
 import type { IamService } from '../service'
