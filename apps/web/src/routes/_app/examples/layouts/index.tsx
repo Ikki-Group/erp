@@ -5,7 +5,7 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page'
+} from '@/components/layout/page-old'
 import {
   Section,
   SectionHeader,

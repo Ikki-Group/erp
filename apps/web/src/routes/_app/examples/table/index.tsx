@@ -6,7 +6,7 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page'
+} from '@/components/layout/page-old'
 import { DataTable } from '@/components/common/templates/DataTable'
 import { Button } from '@/components/ui/button'
 import { createFileRoute } from '@tanstack/react-router'

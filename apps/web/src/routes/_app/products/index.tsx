@@ -7,7 +7,7 @@ import {
   PageDescription,
   PageActions,
   PageContent,
-} from '@/components/layout/page'
+} from '@/components/layout/page-old'
 import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

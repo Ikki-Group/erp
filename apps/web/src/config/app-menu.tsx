@@ -37,18 +37,6 @@ export function getAppMenu(pathname: string): AppMenu[] {
       icon: Settings2Icon,
       isActive: pathname.startsWith('/settings'),
       isHide: false,
-      children: [
-        {
-          title: 'Pengguna',
-          href: '/settings/users',
-          isActive: pathname.startsWith('/settings/users'),
-        },
-        {
-          title: 'Peran',
-          href: '/settings/roles',
-          isActive: pathname.startsWith('/settings/roles'),
-        },
-      ],
     },
     {
       title: 'Examples',
@@ -115,6 +103,11 @@ export function getAppMenu(pathname: string): AppMenu[] {
           title: 'Page Layouts',
           href: '/examples/page-layouts',
           isActive: pathname.startsWith('/examples/page-layouts'),
+        },
+        {
+          title: 'New Page',
+          href: '/examples/page-new',
+          isActive: pathname.startsWith('/examples/page-new'),
         },
       ],
     },

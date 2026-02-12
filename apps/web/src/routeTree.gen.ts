@@ -14,8 +14,10 @@ import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
+import { Route as AppSettingsNewIndexRouteImport } from './routes/_app/settings-new/index'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesTableIndexRouteImport } from './routes/_app/examples/table/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
@@ -54,6 +56,11 @@ const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsNewIndexRoute = AppSettingsNewIndexRouteImport.update({
+  id: '/settings-new/',
+  path: '/settings-new/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -62,6 +69,11 @@ const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
 const AppProductsIdRoute = AppProductsIdRouteImport.update({
   id: '/products/$id',
   path: '/products/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
+  id: '/examples/page-new',
+  path: '/examples/page-new',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesFormComponentsRoute =
@@ -141,8 +153,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
+  '/examples/page-new': typeof AppExamplesPageNewRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products/': typeof AppProductsIndexRoute
+  '/settings-new/': typeof AppSettingsNewIndexRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -162,8 +176,10 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
+  '/examples/page-new': typeof AppExamplesPageNewRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products': typeof AppProductsIndexRoute
+  '/settings-new': typeof AppSettingsNewIndexRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard': typeof AppExamplesDashboardIndexRoute
@@ -185,8 +201,10 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
+  '/_app/examples/page-new': typeof AppExamplesPageNewRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/products/': typeof AppProductsIndexRoute
+  '/_app/settings-new/': typeof AppSettingsNewIndexRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/_app/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -208,8 +226,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/login'
     | '/examples/form-components'
+    | '/examples/page-new'
     | '/products/$id'
     | '/products/'
+    | '/settings-new/'
     | '/examples/charts/'
     | '/examples/complex-form/'
     | '/examples/dashboard/'
@@ -229,8 +249,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/examples/form-components'
+    | '/examples/page-new'
     | '/products/$id'
     | '/products'
+    | '/settings-new'
     | '/examples/charts'
     | '/examples/complex-form'
     | '/examples/dashboard'
@@ -251,8 +273,10 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_app/'
     | '/_app/examples/form-components'
+    | '/_app/examples/page-new'
     | '/_app/products/$id'
     | '/_app/products/'
+    | '/_app/settings-new/'
     | '/_app/examples/charts/'
     | '/_app/examples/complex-form/'
     | '/_app/examples/dashboard/'
@@ -310,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/settings-new/': {
+      id: '/_app/settings-new/'
+      path: '/settings-new'
+      fullPath: '/settings-new/'
+      preLoaderRoute: typeof AppSettingsNewIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/products/': {
       id: '/_app/products/'
       path: '/products'
@@ -322,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$id'
       fullPath: '/products/$id'
       preLoaderRoute: typeof AppProductsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/page-new': {
+      id: '/_app/examples/page-new'
+      path: '/examples/page-new'
+      fullPath: '/examples/page-new'
+      preLoaderRoute: typeof AppExamplesPageNewRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/form-components': {
@@ -422,8 +460,10 @@ interface AppRouteRouteChildren {
   AppSettingsRouteRoute: typeof AppSettingsRouteRoute
   AppIndexRoute: typeof AppIndexRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
+  AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
+  AppSettingsNewIndexRoute: typeof AppSettingsNewIndexRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
   AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
   AppExamplesDashboardIndexRoute: typeof AppExamplesDashboardIndexRoute
@@ -442,8 +482,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSettingsRouteRoute: AppSettingsRouteRoute,
   AppIndexRoute: AppIndexRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
+  AppExamplesPageNewRoute: AppExamplesPageNewRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
+  AppSettingsNewIndexRoute: AppSettingsNewIndexRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
   AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,
   AppExamplesDashboardIndexRoute: AppExamplesDashboardIndexRoute,

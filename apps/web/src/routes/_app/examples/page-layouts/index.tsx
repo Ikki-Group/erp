@@ -8,7 +8,7 @@ import {
   PageActions,
   PageContent,
   PageBreadcrumb,
-} from '@/components/layout/page'
+} from '@/components/layout/page-old'
 import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
 import {
   Card,

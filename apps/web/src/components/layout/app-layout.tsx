@@ -9,6 +9,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -51,12 +52,12 @@ export function AppLayout() {
         </SidebarContent>
         <SidebarFooter>{/* <UserSection /> */}</SidebarFooter>
       </Sidebar>
-      <div className="flex flex-1 flex-col h-svh overflow-hidden transition-all duration-300 ease-in-out">
+      <SidebarInset>
         <Header />
         <main className="flex flex-1 flex-col h-full overflow-hidden">
           <Outlet />
         </main>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
@@ -68,7 +69,7 @@ function SidebarMenus() {
 
   return (
     <SidebarGroup className="py-3">
-      <SidebarMenu>
+      <SidebarMenu className="gap-1.5">
         {menus.map((menu) => {
           if (menu.children?.length) {
             return (
@@ -81,7 +82,7 @@ function SidebarMenus() {
                 <SidebarMenuButton render={<CollapsibleTrigger />}>
                   {menu.icon && <menu.icon />}
                   <span>{menu.title}</span>
-                  <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                 </SidebarMenuButton>
                 <CollapsibleContent>
                   <SidebarMenuSub>
@@ -120,7 +121,7 @@ function SidebarMenus() {
 
 function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 transition-[width,height] ease-linear">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 transition-[width,height] ease-linear top-0 sticky inset-0">
       <div className="flex items-center gap-2">
         <SidebarTrigger variant="outline" size="icon-lg" />
         <Separator orientation="vertical" />
