@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table } from '@/components/ui/table'
 import { Tabs } from '@/components/ui/tabs'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   MapPinIcon,
   MoreHorizontalIcon,
@@ -32,7 +32,7 @@ function RouteComponent() {
       </Page.Content>
       <Page.Content>
         <Tabs>
-          <Tabs.List className="w-full md:w-min border">
+          <Tabs.List className="w-full md:w-min h-10!" variant="line">
             <Tabs.Trigger className="py-2 px-4" value="users">
               Pengguna
             </Tabs.Trigger>
@@ -107,7 +107,7 @@ function UserCard() {
         <Card.Title>Data Pengguna</Card.Title>
         <Card.Description>Kelola data pengguna sistem.</Card.Description>
         <Card.Action>
-          <Button>
+          <Button render={<Link to="/settings-new/users/create" />}>
             <PlusIcon />
             Tambah Pengguna
           </Button>

@@ -31,6 +31,9 @@ import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/exampl
 import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
 import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
+import { Route as AppSettingsNewUsersCreateRouteImport } from './routes/_app/settings-new/users.create'
+import { Route as AppSettingsNewUsersIdIndexRouteImport } from './routes/_app/settings-new/users.$id.index'
+import { Route as AppSettingsNewUsersIdUpdateRouteImport } from './routes/_app/settings-new/users.$id.update'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -146,6 +149,24 @@ const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
   path: '/examples/charts/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsNewUsersCreateRoute =
+  AppSettingsNewUsersCreateRouteImport.update({
+    id: '/settings-new/users/create',
+    path: '/settings-new/users/create',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsNewUsersIdIndexRoute =
+  AppSettingsNewUsersIdIndexRouteImport.update({
+    id: '/settings-new/users/$id/',
+    path: '/settings-new/users/$id/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsNewUsersIdUpdateRoute =
+  AppSettingsNewUsersIdUpdateRouteImport.update({
+    id: '/settings-new/users/$id/update',
+    path: '/settings-new/users/$id/update',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -157,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof AppProductsIdRoute
   '/products/': typeof AppProductsIndexRoute
   '/settings-new/': typeof AppSettingsNewIndexRoute
+  '/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -169,6 +191,8 @@ export interface FileRoutesByFullPath {
   '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search/': typeof AppExamplesSearchIndexRoute
   '/examples/table/': typeof AppExamplesTableIndexRoute
+  '/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
+  '/settings-new/users/$id/': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
@@ -180,6 +204,7 @@ export interface FileRoutesByTo {
   '/products/$id': typeof AppProductsIdRoute
   '/products': typeof AppProductsIndexRoute
   '/settings-new': typeof AppSettingsNewIndexRoute
+  '/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard': typeof AppExamplesDashboardIndexRoute
@@ -192,6 +217,8 @@ export interface FileRoutesByTo {
   '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search': typeof AppExamplesSearchIndexRoute
   '/examples/table': typeof AppExamplesTableIndexRoute
+  '/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
+  '/settings-new/users/$id': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,6 +232,7 @@ export interface FileRoutesById {
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/products/': typeof AppProductsIndexRoute
   '/_app/settings-new/': typeof AppSettingsNewIndexRoute
+  '/_app/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/_app/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -217,6 +245,8 @@ export interface FileRoutesById {
   '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
   '/_app/examples/table/': typeof AppExamplesTableIndexRoute
+  '/_app/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
+  '/_app/settings-new/users/$id/': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -230,6 +260,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/'
     | '/settings-new/'
+    | '/settings-new/users/create'
     | '/examples/charts/'
     | '/examples/complex-form/'
     | '/examples/dashboard/'
@@ -242,6 +273,8 @@ export interface FileRouteTypes {
     | '/examples/page-layouts/'
     | '/examples/search/'
     | '/examples/table/'
+    | '/settings-new/users/$id/update'
+    | '/settings-new/users/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/$'
@@ -253,6 +286,7 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products'
     | '/settings-new'
+    | '/settings-new/users/create'
     | '/examples/charts'
     | '/examples/complex-form'
     | '/examples/dashboard'
@@ -265,6 +299,8 @@ export interface FileRouteTypes {
     | '/examples/page-layouts'
     | '/examples/search'
     | '/examples/table'
+    | '/settings-new/users/$id/update'
+    | '/settings-new/users/$id'
   id:
     | '__root__'
     | '/_app'
@@ -277,6 +313,7 @@ export interface FileRouteTypes {
     | '/_app/products/$id'
     | '/_app/products/'
     | '/_app/settings-new/'
+    | '/_app/settings-new/users/create'
     | '/_app/examples/charts/'
     | '/_app/examples/complex-form/'
     | '/_app/examples/dashboard/'
@@ -289,6 +326,8 @@ export interface FileRouteTypes {
     | '/_app/examples/page-layouts/'
     | '/_app/examples/search/'
     | '/_app/examples/table/'
+    | '/_app/settings-new/users/$id/update'
+    | '/_app/settings-new/users/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -453,6 +492,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExamplesChartsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/settings-new/users/create': {
+      id: '/_app/settings-new/users/create'
+      path: '/settings-new/users/create'
+      fullPath: '/settings-new/users/create'
+      preLoaderRoute: typeof AppSettingsNewUsersCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings-new/users/$id/': {
+      id: '/_app/settings-new/users/$id/'
+      path: '/settings-new/users/$id'
+      fullPath: '/settings-new/users/$id/'
+      preLoaderRoute: typeof AppSettingsNewUsersIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings-new/users/$id/update': {
+      id: '/_app/settings-new/users/$id/update'
+      path: '/settings-new/users/$id/update'
+      fullPath: '/settings-new/users/$id/update'
+      preLoaderRoute: typeof AppSettingsNewUsersIdUpdateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -464,6 +524,7 @@ interface AppRouteRouteChildren {
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
   AppSettingsNewIndexRoute: typeof AppSettingsNewIndexRoute
+  AppSettingsNewUsersCreateRoute: typeof AppSettingsNewUsersCreateRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
   AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
   AppExamplesDashboardIndexRoute: typeof AppExamplesDashboardIndexRoute
@@ -476,6 +537,8 @@ interface AppRouteRouteChildren {
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
   AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
   AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
+  AppSettingsNewUsersIdUpdateRoute: typeof AppSettingsNewUsersIdUpdateRoute
+  AppSettingsNewUsersIdIndexRoute: typeof AppSettingsNewUsersIdIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -486,6 +549,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductsIdRoute: AppProductsIdRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
   AppSettingsNewIndexRoute: AppSettingsNewIndexRoute,
+  AppSettingsNewUsersCreateRoute: AppSettingsNewUsersCreateRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
   AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,
   AppExamplesDashboardIndexRoute: AppExamplesDashboardIndexRoute,
@@ -498,6 +562,8 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
   AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
   AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
+  AppSettingsNewUsersIdUpdateRoute: AppSettingsNewUsersIdUpdateRoute,
+  AppSettingsNewUsersIdIndexRoute: AppSettingsNewUsersIdIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

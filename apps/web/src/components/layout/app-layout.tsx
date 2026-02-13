@@ -54,7 +54,7 @@ export function AppLayout() {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <main className="flex flex-1 flex-col h-full overflow-hidden">
+        <main className="flex flex-1 flex-col h-full overflow-hidden @container">
           <Outlet />
         </main>
       </SidebarInset>

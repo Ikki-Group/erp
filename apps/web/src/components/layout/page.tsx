@@ -1,5 +1,8 @@
 import { cn } from '@/lib/utils'
+import { Link, LinkOptions } from '@tanstack/react-router'
+import { ArrowLeftIcon } from 'lucide-react'
 import { ComponentProps } from 'react'
+import { Button } from '../ui/button'
 
 interface PageProps extends ComponentProps<'div'> {
   /**
@@ -18,7 +21,7 @@ function Page({ size = 'xl', className, ...props }: PageProps) {
     <div
       {...props}
       className={cn(
-        'w-full mx-auto py-4 flex-1 flex flex-col gap-6 md:pt-6',
+        'w-full mx-auto py-4 flex-1 flex flex-col gap-6 @xl:pt-6',
         size === 'sm' && 'max-w-4xl',
         size === 'md' && 'max-w-5xl',
         size === 'lg' && 'max-w-6xl',
@@ -29,33 +32,98 @@ function Page({ size = 'xl', className, ...props }: PageProps) {
   )
 }
 
-interface SimpleHeaderProps {
-  title: string
-  description?: string
-}
-
-function SimpleHeader({ title, description }: SimpleHeaderProps) {
+function Header({ className, ...props }: ComponentProps<'div'>) {
   return (
-    <div className="flex flex-col gap-1 border-b pb-4 px-4">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground truncate">
-        {title}
-      </h1>
-      {description && (
-        <p className="text-muted-foreground text-sm truncate leading-relaxed">
-          {description}
-        </p>
-      )}
-    </div>
+    <div
+      {...props}
+      className={cn('flex items-start gap-2.5 px-4 pb-4 border-b', className)}
+    />
   )
 }
 
-interface ContentProps extends ComponentProps<'div'> {}
+function Title({ className, ...props }: ComponentProps<'h1'>) {
+  return (
+    <h1
+      {...props}
+      className={cn(
+        'text-2xl font-semibold tracking-tight text-foreground truncate',
+        className,
+      )}
+    />
+  )
+}
 
-function Content({ className, ...props }: ContentProps) {
+function Description({ className, ...props }: ComponentProps<'p'>) {
+  return (
+    <p
+      {...props}
+      className={cn(
+        'text-muted-foreground text-sm truncate leading-relaxed mt-1',
+        className,
+      )}
+    />
+  )
+}
+
+function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
+  return (
+    <Button
+      variant="outline"
+      size="icon-sm"
+      className={cn('mt-0.5 shrink-0', className)}
+      nativeButton={false}
+      {...props}
+    >
+      <ArrowLeftIcon />
+    </Button>
+  )
+}
+
+function Actions({ className, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      {...props}
+      className={cn(
+        'w-max flex flex-1 gap-2 items-center self-center',
+        className,
+      )}
+    />
+  )
+}
+
+function Content({ className, ...props }: ComponentProps<'div'>) {
   return <div {...props} className={cn('px-4', className)} />
 }
 
-Page.SimpleHeader = SimpleHeader
+interface SimpleHeaderProps {
+  title: string
+  description?: string
+  back?: LinkOptions
+  action?: React.ReactNode
+}
+
+function SimpleHeader({ title, description, back, action }: SimpleHeaderProps) {
+  return (
+    <Header className="flex-wrap gap-y-4">
+      {back && <BackButton render={<Link {...back} />} />}
+      <div className="flex-1">
+        <Title>{title}</Title>
+        {description && <Description>{description}</Description>}
+      </div>
+      {action && <Actions>{action}</Actions>}
+    </Header>
+  )
+}
+
+// Primitive
 Page.Content = Content
+Page.Header = Header
+Page.Title = Title
+Page.Description = Description
+Page.BackButton = BackButton
+Page.Actions = Actions
+
+// Template
+Page.SimpleHeader = SimpleHeader
 
 export { Page }
