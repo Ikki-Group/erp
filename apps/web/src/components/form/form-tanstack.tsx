@@ -8,45 +8,22 @@ import { useStore } from '@tanstack/react-form'
 
 function useFormField() {
   const itemContext = React.useContext(FormItemContext)
-  const field = useFieldContext()
+  const fieldContext = useFieldContext()
+
+  if (!fieldContext) {
+    throw new Error('useFormField should be used within <field.Container>')
+  }
 
   const { id } = itemContext
 
-  const errors = useStore(field.store, (state) => state.meta.errors)
-  const isTouched = useStore(field.store, (state) => state.meta.isTouched)
-  const submissionAttempts = useStore(
-    field.form.store,
-    (state) => state.submissionAttempts,
-  )
-
-  const fieldComponent = React.useMemo(() => {
-    const showError = isTouched || submissionAttempts > 0
-
-    let errorMessage: string | null = null
-    if (showError && errors.length > 0) {
-      const error = errors[0]
-
-      if (typeof error === 'string') {
-        errorMessage = error
-      } else if (typeof error === 'object' && error !== null) {
-        if ('message' in error && typeof error.message === 'string') {
-          errorMessage = error.message
-        }
-      } else if (error !== null && error !== undefined) {
-        errorMessage = String(error)
-      }
-    }
-
-    return {
-      formControlId: `${id}-form-item`,
-      formDescriptionId: `${id}-form-item-description`,
-      formMessageId: `${id}-form-item-message`,
-      error: errorMessage,
-      hasError: showError && errorMessage !== null,
-    }
-  }, [id, isTouched, submissionAttempts, errors])
-
-  return fieldComponent
+  return {
+    id,
+    name: fieldContext.name,
+    formItemId: `${id}-form-item`,
+    formDescriptionId: `${id}-form-item-description`,
+    formMessageId: `${id}-form-item-message`,
+    ...fieldContext.state.meta,
+  }
 }
 
 type FormItemContextValue = {
@@ -88,12 +65,12 @@ function FieldLabel({
 }: React.ComponentProps<typeof scn.FieldLabel> & {
   required?: boolean
 }) {
-  const { formControlId, hasError } = useFormField()
+  const { formItemId, isValid } = useFormField()
 
   return (
     <scn.FieldLabel
-      data-error={hasError ? 'true' : undefined}
-      htmlFor={formControlId}
+      data-error={!isValid}
+      htmlFor={formItemId}
       aria-required={required}
       className={cn(
         'data-[error=true]:text-destructive',
@@ -111,19 +88,18 @@ function FieldControl({
 }: {
   children?: useRender.RenderProp
 }) {
-  const { formControlId, formDescriptionId, formMessageId, hasError } =
+  const { formItemId, isValid, formDescriptionId, formMessageId } =
     useFormField()
-  const describedBy = [formDescriptionId, hasError ? formMessageId : null]
-    .filter(Boolean)
-    .join(' ')
 
   return useRender({
     render: children,
     props: {
       'data-slot': 'field-control',
-      id: formControlId,
-      'aria-describedby': describedBy || undefined,
-      'aria-invalid': hasError,
+      id: formItemId,
+      'aria-describedby': isValid
+        ? `${formDescriptionId}`
+        : `${formDescriptionId} ${formMessageId}`,
+      'aria-invalid': !isValid,
     },
   })
 }
@@ -145,12 +121,15 @@ function FieldError({
   className,
   ...props
 }: React.ComponentProps<typeof scn.FieldError>) {
-  const { error, formMessageId } = useFormField()
-  const body = error ?? props.children
+  const { formMessageId, isValid, errors } = useFormField()
 
-  if (!body) {
-    return null
-  }
+  if (props.children) return props.children
+
+  const body = isValid
+    ? props.children
+    : String(errors.map((error) => error.message).join(', ') ?? '')
+
+  if (!body) return null
 
   return (
     <scn.FieldError
