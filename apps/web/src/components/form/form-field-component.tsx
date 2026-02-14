@@ -1,17 +1,31 @@
 import { ComponentProps } from 'react'
 import { Input } from '../ui/input'
 import { useFieldContext } from './form-hook-context'
-import { FieldControl } from './form-tanstack'
+import {
+  FieldControl,
+  FieldDescription,
+  Field,
+  FieldLabel,
+  FieldError,
+} from './form-tanstack'
 
-interface ItemTemplateProps {
+interface FieldBaseProps extends Omit<
+  ComponentProps<typeof Field>,
+  'label' | 'description'
+> {
   label: string
+  required?: boolean
+  description?: string
 }
 
-function ItemTemplate() {
+function FieldBase({ label, required, description, children }: FieldBaseProps) {
   return (
-    <FieldControl>
-      <Input />
-    </FieldControl>
+    <Field>
+      <FieldLabel required={required}>{label}</FieldLabel>
+      {children}
+      {description && <FieldDescription>{description}</FieldDescription>}
+      <FieldError />
+    </Field>
   )
 }
 
@@ -31,4 +45,4 @@ function FieldInput({ ...props }: ComponentProps<typeof Input>) {
   )
 }
 
-export { FieldInput }
+export { FieldBase, FieldInput }

@@ -2,10 +2,8 @@ import { useAppForm } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { formOptions, defaultValidationLogic } from '@tanstack/react-form'
+import { formOptions } from '@tanstack/react-form'
 import { createFileRoute, linkOptions } from '@tanstack/react-router'
-import { PlusIcon, SaveIcon } from 'lucide-react'
 import z from 'zod'
 
 export const Route = createFileRoute('/_app/settings-new/users/create')({
@@ -45,23 +43,15 @@ function Form() {
   const form = useAppForm({
     ...fopts,
     defaultValues: {
-      name: 'sadsa',
+      name: '',
       email: '',
       role: '',
-    },
-    onSubmit: async (data) => {
-      alert('ok')
     },
   })
 
   return (
     <form.AppForm>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
+      <form.Form>
         <Page.Content>
           <Card size="sm">
             <Card.Header className="border-b">
@@ -73,7 +63,7 @@ function Form() {
                   <form.Item>
                     <field.Label required>Nama</field.Label>
                     <field.Input />
-                    <field.Message />
+                    <field.Error />
                   </form.Item>
                 )}
               </form.AppField>
@@ -84,7 +74,7 @@ function Form() {
             </Card.Footer>
           </Card>
         </Page.Content>
-      </form>
+      </form.Form>
     </form.AppForm>
   )
 }

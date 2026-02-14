@@ -1,28 +1,52 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as React from 'react'
+import * as scn from '@/components/ui/field'
 
 import { cn } from '@/lib/utils'
-import { Label } from '@/components/ui/label'
 import { useFieldContext } from './form-hook-context'
+import { useStore } from '@tanstack/react-form'
 
-export function useFormField() {
+function useFormField() {
   const itemContext = React.useContext(FormItemContext)
-  const fieldContext = useFieldContext()
-
-  if (!fieldContext) {
-    throw new Error('useFormField should be used within <field.Container>')
-  }
+  const field = useFieldContext()
 
   const { id } = itemContext
 
-  return {
-    id,
-    name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
-    ...fieldContext.state.meta,
-  }
+  const errors = useStore(field.store, (state) => state.meta.errors)
+  const isTouched = useStore(field.store, (state) => state.meta.isTouched)
+  const submissionAttempts = useStore(
+    field.form.store,
+    (state) => state.submissionAttempts,
+  )
+
+  const fieldComponent = React.useMemo(() => {
+    const showError = isTouched || submissionAttempts > 0
+
+    let errorMessage: string | null = null
+    if (showError && errors.length > 0) {
+      const error = errors[0]
+
+      if (typeof error === 'string') {
+        errorMessage = error
+      } else if (typeof error === 'object' && error !== null) {
+        if ('message' in error && typeof error.message === 'string') {
+          errorMessage = error.message
+        }
+      } else if (error !== null && error !== undefined) {
+        errorMessage = String(error)
+      }
+    }
+
+    return {
+      formControlId: `${id}-form-item`,
+      formDescriptionId: `${id}-form-item-description`,
+      formMessageId: `${id}-form-item-message`,
+      error: errorMessage,
+      hasError: showError && errorMessage !== null,
+    }
+  }, [id, isTouched, submissionAttempts, errors])
+
+  return fieldComponent
 }
 
 type FormItemContextValue = {
@@ -33,105 +57,120 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 )
 
-export function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
+function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   const id = React.useId()
+  const field = useFieldContext()
+  const errors = useStore(field.store, (state) => state.meta.errors)
+  const isTouched = useStore(field.store, (state) => state.meta.isTouched)
+  const submissionAttempts = useStore(
+    field.form.store,
+    (state) => state.submissionAttempts,
+  )
+  const showError = isTouched || submissionAttempts > 0
+  const hasError = showError && errors.length > 0
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div
+      <scn.Field
         data-slot="form-item"
-        className={cn('grid gap-2', className)}
+        data-invalid={hasError ? 'true' : undefined}
+        className={className}
         {...props}
       />
     </FormItemContext.Provider>
   )
 }
 
-export function FieldLabel({
+function FieldLabel({
   className,
   required,
   ...props
-}: React.ComponentProps<typeof Label> & {
+}: React.ComponentProps<typeof scn.FieldLabel> & {
   required?: boolean
 }) {
-  const { formItemId, isValid } = useFormField()
+  const { formControlId, hasError } = useFormField()
 
   return (
-    <Label
-      data-slot="field-label"
-      data-error={!isValid}
+    <scn.FieldLabel
+      data-error={hasError ? 'true' : undefined}
+      htmlFor={formControlId}
+      aria-required={required}
       className={cn(
         'data-[error=true]:text-destructive',
         required &&
           "after:text-destructive after:content-['*'] after:-ml-1 after:font-bold",
         className,
       )}
-      htmlFor={formItemId}
-      aria-required={required}
       {...props}
     />
   )
 }
 
-export function FieldControl({
+function FieldControl({
   children = <div />,
 }: {
   children?: useRender.RenderProp
 }) {
-  const { formItemId, isValid, formDescriptionId, formMessageId } =
+  const { formControlId, formDescriptionId, formMessageId, hasError } =
     useFormField()
+  const describedBy = [formDescriptionId, hasError ? formMessageId : null]
+    .filter(Boolean)
+    .join(' ')
 
   return useRender({
     render: children,
     props: {
       'data-slot': 'field-control',
-      id: formItemId,
-      'aria-describedby': isValid
-        ? `${formDescriptionId}`
-        : `${formDescriptionId} ${formMessageId}`,
-      'aria-invalid': !isValid,
+      id: formControlId,
+      'aria-describedby': describedBy || undefined,
+      'aria-invalid': hasError,
     },
   })
 }
 
-export function FieldDescription({
-  className,
-  ...props
-}: React.ComponentProps<'p'>) {
+function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
   const { formDescriptionId } = useFormField()
 
   return (
-    <p
-      data-slot="field-description"
+    <scn.FieldDescription
+      data-slot="form-description"
       id={formDescriptionId}
-      className={cn('text-muted-foreground text-sm', className)}
+      className={className}
       {...props}
     />
   )
 }
 
-export function FieldMessage({
+function FieldError({
   className,
   ...props
-}: React.ComponentProps<'p'>) {
-  const { formMessageId, isValid, errors } = useFormField()
+}: React.ComponentProps<typeof scn.FieldError>) {
+  const { error, formMessageId } = useFormField()
+  const body = error ?? props.children
 
-  if (props.children) return props.children
-
-  const body = isValid
-    ? props.children
-    : String(errors.map((error) => error.message).join(', ') ?? '')
-
-  if (!body) return null
+  if (!body) {
+    return null
+  }
 
   return (
-    <p
-      data-slot="field-message"
+    <scn.FieldError
+      data-slot="form-message"
       id={formMessageId}
-      className={cn('text-destructive text-sm', className)}
+      className={className}
       {...props}
     >
       {body}
-    </p>
+    </scn.FieldError>
   )
+}
+
+export {
+  useFieldContext,
+  FormItem,
+  FormItem as Field,
+  FieldLabel,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  useFormField,
 }
