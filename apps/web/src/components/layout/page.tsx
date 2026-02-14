@@ -16,7 +16,7 @@ interface PageProps extends ComponentProps<'div'> {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
 }
 
-function Page({ size = 'xl', className, ...props }: PageProps) {
+function Page({ size = 'lg', className, ...props }: PageProps) {
   return (
     <div
       {...props}
