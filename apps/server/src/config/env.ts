@@ -2,7 +2,7 @@ import z from 'zod'
 
 const Env = z.object({
   // Server
-  NODE_ENV: z.enum(['dev', 'prod']).default('dev'),
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
   PORT: z.coerce.number().default(3001),
   HOST: z.string().default('0.0.0.0'),
 
