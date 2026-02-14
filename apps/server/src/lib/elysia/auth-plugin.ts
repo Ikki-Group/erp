@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 
 import { ForbiddenError, UnauthorizedError } from '@/lib/error/http'
 import type { users } from '@/database/schema'
+
 import { IamServiceModule } from '@/modules/iam'
 
 const iamService = new IamServiceModule()

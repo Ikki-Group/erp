@@ -5,6 +5,7 @@ import { authPlugin } from '@/lib/elysia/auth-plugin'
 import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
 import { HttpError } from '@/lib/error/http'
 import { otel } from '@/lib/otel'
+
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initLocationsRouteModule, LocationServiceModule } from '@/modules/locations'
 import { initMasterRouteModule, MasterServiceModule } from '@/modules/master'
@@ -32,7 +33,6 @@ export const app = new Elysia({
     return ctx.error
   })
   .use(otel)
-  .use(openapiPlugin)
   .use(authPlugin)
   .get('/', redirect('/openapi'), {
     detail: { hide: true },
@@ -40,5 +40,7 @@ export const app = new Elysia({
   .use(iamRoute)
   .use(locationsRoute)
   .use(masterRoute)
+  // Must be last
+  .use(openapiPlugin)
 
 export type App = typeof app

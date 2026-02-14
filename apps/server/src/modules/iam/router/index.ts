@@ -12,9 +12,9 @@ export function initIamRouteModule(s: IamServiceModule) {
   const roleRouter = initIamRoleRoute(s)
   const userRoleAssignmentRouter = initIamUserRoleAssignmentRoute(s)
 
-  return new Elysia({ prefix: '/iam', tags: ['IAM'] })
-    .group('/auth', (g) => g.use(authRouter))
-    .group('/users', (g) => g.use(userRouter))
-    .group('/roles', (g) => g.use(roleRouter))
-    .group('/user-role-assignments', (g) => g.use(userRoleAssignmentRouter))
+  return new Elysia({ prefix: '/iam' })
+    .group('/auth', { tags: ['auth'] }, (g) => g.use(authRouter))
+    .group('/users', { tags: ['users'] }, (g) => g.use(userRouter))
+    .group('/roles', { tags: ['roles'] }, (g) => g.use(roleRouter))
+    .group('/user-role-assignments', { tags: ['user-role-assignments'] }, (g) => g.use(userRoleAssignmentRouter))
 }

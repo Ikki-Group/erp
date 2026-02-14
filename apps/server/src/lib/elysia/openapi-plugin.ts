@@ -9,7 +9,7 @@ import { env } from '@/config/env'
  */
 export const openapiPlugin = openapi({
   enabled: true,
-  provider: 'swagger-ui',
+  provider: 'scalar',
   // references: fromTypes('src/app.ts'),
   mapJsonSchema: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +28,15 @@ export const openapiPlugin = openapi({
     },
   },
   documentation: {
+    openapi: '3.2.0',
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    'x-tagGroups': [
+      {
+        name: 'IAM',
+        tags: ['auth', 'users', 'roles', 'user-role-assignments'],
+      },
+    ],
     info: {
       title: 'Ikki ERP API',
       version: '1.0.0',
@@ -40,7 +49,7 @@ export const openapiPlugin = openapi({
     servers: [
       {
         url: `http://${env.HOST}:${env.PORT}`,
-        description: env.NODE_ENV === 'dev' ? 'Development Server' : 'Production Server',
+        description: env.NODE_ENV === 'development' ? 'Development Server' : 'Production Server',
       },
     ],
     components: {

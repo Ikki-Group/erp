@@ -34,7 +34,10 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 )
 
-function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
+function FormItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof scn.Field>) {
   const id = React.useId()
   const field = useFieldContext()
   const errors = useStore(field.store, (state) => state.meta.errors)

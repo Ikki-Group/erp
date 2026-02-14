@@ -8,6 +8,7 @@ import {
   type WithPaginationResult,
 } from '@/lib/utils/pagination.util'
 import { locations, roles, userRoleAssignments } from '@/database/schema'
+
 import { db } from '@/database'
 
 import type { IamSchema } from '../iam.types'
@@ -222,5 +223,40 @@ export class IamUserRoleAssignmentsService {
     await db
       .delete(userRoleAssignments)
       .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.locationId, locationId)))
+  }
+
+  /**
+   * Revokes all roles from a user
+   */
+  async revokeAllForUser(userId: number): Promise<void> {
+    await db.delete(userRoleAssignments).where(eq(userRoleAssignments.userId, userId))
+  }
+
+  /**
+   * Syncs user role assignments
+   * Replaces all existing assignments with the new ones
+   * Used during user create/update operations
+   */
+  async syncUserRoles(
+    userId: number,
+    roles: { locationId: number | null; roleId: number }[],
+    assignedBy = 1
+  ): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Delete all existing assignments for this user
+      await tx.delete(userRoleAssignments).where(eq(userRoleAssignments.userId, userId))
+
+      // Insert new assignments if any
+      if (roles.length > 0) {
+        const assignments = roles.map((role) => ({
+          userId,
+          roleId: role.roleId,
+          locationId: role.locationId!,
+          assignedBy,
+        }))
+
+        await tx.insert(userRoleAssignments).values(assignments)
+      }
+    })
   }
 }

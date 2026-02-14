@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Ikki ERP Project Rules for Antigravity
 
 This document outlines the coding standards, architectural patterns, and development practices for the Ikki ERP server. Antigravity should adhere to these rules when assisting in development.
@@ -58,8 +62,3 @@ This document outlines the coding standards, architectural patterns, and develop
 - **Imports**: Use absolute paths with the `@/` alias.
 - **Types**: Use Zod for runtime validation and infer TypeScript types from those schemas.
 - **Durations**: Use `ms` library for time-related strings (e.g., `ms('7d')`).
-
-## 5. Documentation
-- Update `ENHANCEMENTS.md` in the relevant module after implementing significant features.
-- Ensure all routes are documented via the Elysia `detail` property for OpenAPI.
-- Keep `README.md` updated with architecture and API changes.

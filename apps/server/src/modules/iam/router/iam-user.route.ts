@@ -73,43 +73,22 @@ export function initIamUserRoute(s: IamServiceModule) {
     .post(
       '/create',
       async function createUser({ body }) {
-        const user = await s.users.create(body)
+        const user = await s.users.createWithRoles(body)
         return res.created(user, 'USER_CREATED')
       },
       {
-        body: IamSchema.User.pick({
-          email: true,
-          username: true,
-          fullname: true,
-        }).extend({
-          password: zSchema.password,
-        }),
+        body: IamSchema.UserCreateDto,
         response: zResponse.ok(IamSchema.User),
       }
     )
     .put(
       '/update',
       async function updateUser({ body }) {
-        const user = await s.users.update(body.id, body)
+        const user = await s.users.updateWithRoles(body.id, body)
         return res.ok(user, 'USER_UPDATED')
       },
       {
-        body: IamSchema.User.pick({
-          id: true,
-          email: true,
-          username: true,
-          fullname: true,
-          isActive: true,
-        })
-          .partial({
-            email: true,
-            username: true,
-            fullname: true,
-            isActive: true,
-          })
-          .extend({
-            password: zSchema.password.optional(),
-          }),
+        body: IamSchema.UserUpdateDto,
         response: zResponse.ok(IamSchema.User),
       }
     )

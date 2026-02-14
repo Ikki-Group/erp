@@ -9,7 +9,10 @@ import {
 } from '@/lib/utils/pagination.util'
 import { hashPassword } from '@/lib/utils/password.util'
 import { users } from '@/database/schema'
+
 import { db } from '@/database'
+
+import type { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
 
 interface IFilter {
   search?: string
@@ -27,6 +30,8 @@ export class IamUsersService {
     EMAIL_USERNAME_EXISTS: 'USER_EMAIL_USERNAME_EXISTS',
     ROOT_USER_DELETE_FORBIDDEN: 'ROOT_USER_DELETE_FORBIDDEN',
   }
+
+  constructor(private userRoleAssignments?: IamUserRoleAssignmentsService) {}
 
   /**
    * Builds a dynamic query with filters
@@ -305,5 +310,139 @@ export class IamUsersService {
       .returning()
 
     return updatedUser!
+  }
+
+  /**
+   * Creates a new user with role assignments
+   * Handles both user creation and role assignment in a coordinated manner
+   */
+  async createWithRoles(
+    dto: {
+      email: string
+      username: string
+      fullname: string
+      password: string
+      isRoot: boolean
+      isActive: boolean
+      roles: { locationId: number | null; roleId: number }[]
+    },
+    createdBy = 1
+  ): Promise<typeof users.$inferSelect> {
+    if (!this.userRoleAssignments) {
+      throw new Error('UserRoleAssignments service not initialized')
+    }
+
+    // Validate and filter roles (remove null locationIds)
+    const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
+      locationId: number
+      roleId: number
+    }[]
+
+    // Create user first
+    const user = await this.create(
+      {
+        email: dto.email,
+        username: dto.username,
+        fullname: dto.fullname,
+        password: dto.password,
+      },
+      createdBy
+    )
+
+    // Update isRoot and isActive if needed
+    if (dto.isRoot !== false || dto.isActive !== true) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          isRoot: dto.isRoot,
+          isActive: dto.isActive,
+          updatedBy: createdBy,
+        })
+        .where(eq(users.id, user.id))
+        .returning()
+
+      // Sync role assignments
+      if (validRoles.length > 0) {
+        await this.userRoleAssignments.syncUserRoles(updatedUser!.id, validRoles, createdBy)
+      }
+
+      return updatedUser!
+    }
+
+    // Sync role assignments
+    if (validRoles.length > 0) {
+      await this.userRoleAssignments.syncUserRoles(user.id, validRoles, createdBy)
+    }
+
+    return user
+  }
+
+  /**
+   * Updates an existing user with role assignments
+   * Handles both user update and role assignment sync
+   */
+  async updateWithRoles(
+    id: number,
+    dto: {
+      email?: string
+      username?: string
+      fullname?: string
+      password?: string
+      isRoot?: boolean
+      isActive?: boolean
+      roles?: { locationId: number | null; roleId: number }[]
+    },
+    updatedBy = 1
+  ): Promise<typeof users.$inferSelect> {
+    if (!this.userRoleAssignments) {
+      throw new Error('UserRoleAssignments service not initialized')
+    }
+
+    // Update user basic info
+    const user = await this.update(
+      id,
+      {
+        email: dto.email,
+        username: dto.username,
+        fullname: dto.fullname,
+        password: dto.password,
+        isActive: dto.isActive,
+      },
+      updatedBy
+    )
+
+    // Update isRoot if provided
+    if (dto.isRoot !== undefined) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          isRoot: dto.isRoot,
+          updatedBy,
+        })
+        .where(eq(users.id, id))
+        .returning()
+
+      // Sync role assignments if provided
+      if (dto.roles !== undefined) {
+        const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
+          locationId: number
+          roleId: number
+        }[]
+        await this.userRoleAssignments.syncUserRoles(id, validRoles, updatedBy)
+      }
+
+      return updatedUser!
+    }
+
+    // Sync role assignments if provided
+    if (dto.roles !== undefined) {
+      const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
+        locationId: number
+        roleId: number
+      }[]
+      await this.userRoleAssignments.syncUserRoles(id, validRoles, updatedBy)
+    }
+
+    return user
   }
 }

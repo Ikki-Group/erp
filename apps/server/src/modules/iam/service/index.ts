@@ -5,12 +5,14 @@ import { IamUsersService } from './iam-users.service'
 
 export class IamServiceModule {
   public readonly auth: IamAuthService
+  public readonly users: IamUsersService
+  public readonly roles: IamRolesService
+  public readonly userRoleAssignments: IamUserRoleAssignmentsService
 
-  constructor(
-    public readonly users: IamUsersService = new IamUsersService(),
-    public readonly roles: IamRolesService = new IamRolesService(),
-    public readonly userRoleAssignments: IamUserRoleAssignmentsService = new IamUserRoleAssignmentsService()
-  ) {
+  constructor() {
+    this.userRoleAssignments = new IamUserRoleAssignmentsService()
+    this.users = new IamUsersService(this.userRoleAssignments)
+    this.roles = new IamRolesService()
     this.auth = new IamAuthService(this.users)
   }
 }

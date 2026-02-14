@@ -14,13 +14,21 @@ import {
   FieldCheckbox,
   FieldSwitch,
   FieldSelect,
+  FieldTextarea,
 } from './form-field-component'
 import { Form } from './form-component'
+import { FieldSet, FieldLegend, FieldGroup } from '../ui/field'
 
 export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
   createFormHook({
     fieldComponents: {
-      Field: Field,
+      // Primitive
+      FieldSet,
+      FieldLegend,
+      FieldGroup,
+
+      // Enhanced
+      Field,
       Label: FieldLabel,
       Control: FieldControl,
       Description: FieldDescription,
@@ -31,6 +39,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
       Checkbox: FieldCheckbox,
       Switch: FieldSwitch,
       Select: FieldSelect,
+      Textarea: FieldTextarea,
 
       // Templates
       FieldBase: FieldBase,

@@ -78,4 +78,41 @@ export namespace IamSchema {
   })
 
   export type AuthResponse = z.infer<typeof AuthResponse>
+
+  export const UserCreateDto = z.object({
+    email: zSchema.email,
+    fullname: zSchema.str.min(3, 'Nama minimal 3 karakter'),
+    username: zSchema.username.min(3, 'Username minimal 3 karakter'),
+    password: zSchema.password.min(3, 'Password minimal 3 karakter'),
+    isRoot: zSchema.bool,
+    isActive: zSchema.bool,
+    roles: z.array(
+      z.object({
+        locationId: zSchema.num.nullable(),
+        roleId: zSchema.num,
+      })
+    ),
+  })
+
+  export type UserCreateDto = z.infer<typeof UserCreateDto>
+
+  export const UserUpdateDto = z.object({
+    id: zSchema.num,
+    email: zSchema.email.optional(),
+    fullname: zSchema.str.min(3, 'Nama minimal 3 karakter').optional(),
+    username: zSchema.username.min(3, 'Username minimal 3 karakter').optional(),
+    password: zSchema.password.min(3, 'Password minimal 3 karakter').optional(),
+    isRoot: zSchema.bool.optional(),
+    isActive: zSchema.bool.optional(),
+    roles: z
+      .array(
+        z.object({
+          locationId: zSchema.num.nullable(),
+          roleId: zSchema.num,
+        })
+      )
+      .optional(),
+  })
+
+  export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 }
