@@ -1,4 +1,8 @@
-import { useAppForm, useTypedAppFormContext } from '@/components/form'
+import {
+  FormConfig,
+  useAppForm,
+  useTypedAppFormContext,
+} from '@/components/form'
 import { FormLayout } from '@/components/layout/form-layout'
 import { Page } from '@/components/layout/page'
 import { Alert } from '@/components/ui/alert'
@@ -71,29 +75,31 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   })
 
   return (
-    <Page>
-      <Page.SimpleHeader
-        title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
-        description={
-          mode === 'create' ? 'Tambah pengguna baru' : 'Edit pengguna'
-        }
-        back={backTo}
-      />
-      <form.AppForm>
-        <form.Form>
-          <Page.Content>
-            <FormLayout>
-              <div className="grid @3xl:grid-cols-[auto_350px] gap-6 grid-cols-1">
-                <UserInformationCard />
-                <StatusAndRoleCard />
-              </div>
-              <RoleAndLocationCard />
-              <form.SimpleActions />
-            </FormLayout>
-          </Page.Content>
-        </form.Form>
-      </form.AppForm>
-    </Page>
+    <FormConfig mode={mode} id={id} backTo={backTo}>
+      <Page>
+        <Page.SimpleHeader
+          title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
+          description={
+            mode === 'create' ? 'Tambah pengguna baru' : 'Edit pengguna'
+          }
+          back={backTo}
+        />
+        <form.AppForm>
+          <form.Form>
+            <Page.Content>
+              <FormLayout>
+                <div className="grid @3xl:grid-cols-[auto_350px] gap-6 grid-cols-1">
+                  <UserInformationCard />
+                  <StatusAndRoleCard />
+                </div>
+                <RoleAndLocationCard />
+                <form.SimpleActions />
+              </FormLayout>
+            </Page.Content>
+          </form.Form>
+        </form.AppForm>
+      </Page>
+    </FormConfig>
   )
 }
 

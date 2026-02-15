@@ -69,14 +69,14 @@ function FieldInput({
       required={required}
       className={className}
     >
-      <FieldControl>
-        {startContent || endContent ? (
-          <InputGroup className="w-full">
-            {startContent && (
-              <InputGroupAddon align="inline-start">
-                {startContent}
-              </InputGroupAddon>
-            )}
+      {startContent || endContent ? (
+        <InputGroup className="w-full">
+          {startContent && (
+            <InputGroupAddon align="inline-start">
+              {startContent}
+            </InputGroupAddon>
+          )}
+          <FieldControl>
             <InputGroupInput
               name={field.name}
               value={field.state.value}
@@ -84,11 +84,13 @@ function FieldInput({
               onChange={(e) => field.handleChange(e.target.value)}
               {...props}
             />
-            {endContent && (
-              <InputGroupAddon align="inline-end">{endContent}</InputGroupAddon>
-            )}
-          </InputGroup>
-        ) : (
+          </FieldControl>
+          {endContent && (
+            <InputGroupAddon align="inline-end">{endContent}</InputGroupAddon>
+          )}
+        </InputGroup>
+      ) : (
+        <FieldControl>
           <Input
             name={field.name}
             value={field.state.value}
@@ -96,8 +98,8 @@ function FieldInput({
             onChange={(e) => field.handleChange(e.target.value)}
             {...props}
           />
-        )}
-      </FieldControl>
+        </FieldControl>
+      )}
     </FieldBase>
   )
 }
