@@ -1,7 +1,8 @@
-import { ComponentProps } from 'react'
+import { ComponentProps, ReactNode } from 'react'
 import { Checkbox } from '../ui/checkbox'
 import { FieldContent } from '../ui/field'
 import { Input } from '../ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
 import { Select } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
@@ -45,14 +46,18 @@ function FieldBase({
   )
 }
 
-interface FieldInputProps
-  extends ComponentProps<typeof Input>, BaseFieldProps {}
+interface FieldInputProps extends ComponentProps<typeof Input>, BaseFieldProps {
+  startContent?: ReactNode
+  endContent?: ReactNode
+}
 
 function FieldInput({
   label,
   description,
   required,
   className,
+  startContent,
+  endContent,
   ...props
 }: FieldInputProps) {
   const field = useFieldContext<string>()
@@ -65,13 +70,33 @@ function FieldInput({
       className={className}
     >
       <FieldControl>
-        <Input
-          name={field.name}
-          value={field.state.value}
-          onBlur={field.handleBlur}
-          onChange={(e) => field.handleChange(e.target.value)}
-          {...props}
-        />
+        {startContent || endContent ? (
+          <InputGroup className="w-full">
+            {startContent && (
+              <InputGroupAddon align="inline-start">
+                {startContent}
+              </InputGroupAddon>
+            )}
+            <InputGroupInput
+              name={field.name}
+              value={field.state.value}
+              onBlur={field.handleBlur}
+              onChange={(e) => field.handleChange(e.target.value)}
+              {...props}
+            />
+            {endContent && (
+              <InputGroupAddon align="inline-end">{endContent}</InputGroupAddon>
+            )}
+          </InputGroup>
+        ) : (
+          <Input
+            name={field.name}
+            value={field.state.value}
+            onBlur={field.handleBlur}
+            onChange={(e) => field.handleChange(e.target.value)}
+            {...props}
+          />
+        )}
       </FieldControl>
     </FieldBase>
   )

@@ -16,7 +16,7 @@ import {
   FieldSelect,
   FieldTextarea,
 } from './form-field-component'
-import { Form } from './form-component'
+import { Form, FormSimpleActions } from './form-component'
 import { FieldSet, FieldLegend, FieldGroup } from '../ui/field'
 
 export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
@@ -47,6 +47,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
     formComponents: {
       Form: Form,
       Item: FormItem,
+      SimpleActions: FormSimpleActions,
     },
     fieldContext,
     formContext,
