@@ -14,7 +14,7 @@ type UseDataTableProps<TData> = Omit<
   'getCoreRowModel' | 'state'
 > & {
   isLoading?: boolean
-  state: DataTableState
+  state?: DataTableState
 }
 
 export function useDataTable<TData>({
@@ -24,10 +24,13 @@ export function useDataTable<TData>({
 }: UseDataTableProps<TData>): UseDataTableReturn<TData> {
   // Normalize pagination to 0-based index
   const pagination = useMemo(
-    () => ({
-      pageIndex: Math.max(state.page - 1, 0),
-      pageSize: Math.max(state.limit, 1),
-    }),
+    () =>
+      state
+        ? {
+            pageIndex: Math.max(state.page - 1, 0),
+            pageSize: Math.max(state.limit, 1),
+          }
+        : undefined,
     [state],
   )
 
@@ -35,12 +38,9 @@ export function useDataTable<TData>({
     ...props,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    // manualFiltering: true,
-    // manualPagination: true,
-    // manualSorting: true,
-    // state: {
-    //   pagination,
-    // },
+    state: {
+      ...(pagination && { pagination }),
+    },
     debugAll: true,
   })
 

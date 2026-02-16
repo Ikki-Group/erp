@@ -9,28 +9,25 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { useDataTableContext } from './data-table-root'
-import { useMemo } from 'react'
+import { useDataTableContext } from './data-table-context'
 import { Skeleton } from '../ui/skeleton'
+import { DEFAULT_PAGE_SIZE_OPTIONS } from './data-table-config'
+import { ComponentProps } from 'react'
 
-interface DataTablePaginationProps extends React.ComponentProps<'div'> {
+interface DataTablePaginationProps extends ComponentProps<'div'> {
   pageSizeOptions?: number[]
 }
 
 export function DataTablePagination({
-  pageSizeOptions = [10, 20, 30, 40, 50],
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   className,
   ...props
 }: DataTablePaginationProps) {
   const { table, rowCount, pageIndex, pageSize, isLoading, pageCount } =
     useDataTableContext()
 
-  const { from, to } = useMemo(() => {
-    const from = rowCount === 0 ? rowCount : pageIndex * pageSize + 1
-    const to = Math.min(rowCount, (pageIndex + 1) * pageSize)
-
-    return { from, to }
-  }, [rowCount, pageIndex, pageSize])
+  const from = rowCount === 0 ? rowCount : pageIndex * pageSize + 1
+  const to = Math.min(rowCount, (pageIndex + 1) * pageSize)
 
   return (
     <div
@@ -42,18 +39,18 @@ export function DataTablePagination({
     >
       <div className="inline-flex items-center">
         <Select
-          value={`${table.getState().pagination.pageSize}`}
+          value={String(pageSize)}
           onValueChange={(value) => {
             table.setPageSize(Number(value))
           }}
         >
           <SelectTrigger className="mr-2">
-            <SelectValue placeholder={table.getState().pagination.pageSize} />
+            <SelectValue placeholder={pageSize} />
           </SelectTrigger>
           <SelectContent side="top">
-            {pageSizeOptions.map((pageSize) => (
-              <SelectItem key={pageSize} value={`${pageSize}`}>
-                {pageSize}
+            {pageSizeOptions.map((size) => (
+              <SelectItem key={size} value={String(size)}>
+                {size}
               </SelectItem>
             ))}
           </SelectContent>

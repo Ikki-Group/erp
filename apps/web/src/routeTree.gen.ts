@@ -17,9 +17,9 @@ import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/rou
 import { Route as AppSettingsNewIndexRouteImport } from './routes/_app/settings-new/index'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
-import { Route as AppExamplesTableRouteImport } from './routes/_app/examples/table'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
+import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
 import { Route as AppExamplesTableIndexRouteImport } from './routes/_app/examples/table/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
 import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
@@ -75,11 +75,6 @@ const AppProductsIdRoute = AppProductsIdRouteImport.update({
   path: '/products/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesTableRoute = AppExamplesTableRouteImport.update({
-  id: '/examples/table',
-  path: '/examples/table',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
   id: '/examples/page-new',
   path: '/examples/page-new',
@@ -91,10 +86,15 @@ const AppExamplesFormComponentsRoute =
     path: '/examples/form-components',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
+  id: '/examples/data-table',
+  path: '/examples/data-table',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesTableIndexRoute = AppExamplesTableIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppExamplesTableRoute,
+  id: '/examples/table/',
+  path: '/examples/table/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesSearchIndexRoute = AppExamplesSearchIndexRouteImport.update({
   id: '/examples/search/',
@@ -179,9 +179,9 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
+  '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
-  '/examples/table': typeof AppExamplesTableRouteWithChildren
   '/products/$id': typeof AppProductsIdRoute
   '/products/': typeof AppProductsIndexRoute
   '/settings-new/': typeof AppSettingsNewIndexRoute
@@ -206,6 +206,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRouteRoute
   '/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
+  '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/products/$id': typeof AppProductsIdRoute
@@ -234,9 +235,9 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
-  '/_app/examples/table': typeof AppExamplesTableRouteWithChildren
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/products/': typeof AppProductsIndexRoute
   '/_app/settings-new/': typeof AppSettingsNewIndexRoute
@@ -263,9 +264,9 @@ export interface FileRouteTypes {
     | '/$'
     | '/settings'
     | '/login'
+    | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
-    | '/examples/table'
     | '/products/$id'
     | '/products/'
     | '/settings-new/'
@@ -290,6 +291,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/login'
     | '/'
+    | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
     | '/products/$id'
@@ -317,9 +319,9 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_auth/login'
     | '/_app/'
+    | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
-    | '/_app/examples/table'
     | '/_app/products/$id'
     | '/_app/products/'
     | '/_app/settings-new/'
@@ -404,13 +406,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/examples/table': {
-      id: '/_app/examples/table'
-      path: '/examples/table'
-      fullPath: '/examples/table'
-      preLoaderRoute: typeof AppExamplesTableRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/examples/page-new': {
       id: '/_app/examples/page-new'
       path: '/examples/page-new'
@@ -425,12 +420,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExamplesFormComponentsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/examples/data-table': {
+      id: '/_app/examples/data-table'
+      path: '/examples/data-table'
+      fullPath: '/examples/data-table'
+      preLoaderRoute: typeof AppExamplesDataTableRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/examples/table/': {
       id: '/_app/examples/table/'
-      path: '/'
+      path: '/examples/table'
       fullPath: '/examples/table/'
       preLoaderRoute: typeof AppExamplesTableIndexRouteImport
-      parentRoute: typeof AppExamplesTableRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/search/': {
       id: '/_app/examples/search/'
@@ -533,23 +535,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppExamplesTableRouteChildren {
-  AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
-}
-
-const AppExamplesTableRouteChildren: AppExamplesTableRouteChildren = {
-  AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
-}
-
-const AppExamplesTableRouteWithChildren =
-  AppExamplesTableRoute._addFileChildren(AppExamplesTableRouteChildren)
-
 interface AppRouteRouteChildren {
   AppSettingsRouteRoute: typeof AppSettingsRouteRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
-  AppExamplesTableRoute: typeof AppExamplesTableRouteWithChildren
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
   AppSettingsNewIndexRoute: typeof AppSettingsNewIndexRoute
@@ -565,6 +556,7 @@ interface AppRouteRouteChildren {
   AppExamplesLayoutsIndexRoute: typeof AppExamplesLayoutsIndexRoute
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
   AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
+  AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
   AppSettingsNewUsersIdUpdateRoute: typeof AppSettingsNewUsersIdUpdateRoute
   AppSettingsNewUsersIdIndexRoute: typeof AppSettingsNewUsersIdIndexRoute
 }
@@ -572,9 +564,9 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSettingsRouteRoute: AppSettingsRouteRoute,
   AppIndexRoute: AppIndexRoute,
+  AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
-  AppExamplesTableRoute: AppExamplesTableRouteWithChildren,
   AppProductsIdRoute: AppProductsIdRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
   AppSettingsNewIndexRoute: AppSettingsNewIndexRoute,
@@ -590,6 +582,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesLayoutsIndexRoute: AppExamplesLayoutsIndexRoute,
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
   AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
+  AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
   AppSettingsNewUsersIdUpdateRoute: AppSettingsNewUsersIdUpdateRoute,
   AppSettingsNewUsersIdIndexRoute: AppSettingsNewUsersIdIndexRoute,
 }

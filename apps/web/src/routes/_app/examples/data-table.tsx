@@ -1,11 +1,11 @@
 import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRoot } from '@/components/data-table/data-table-root'
 import { useDataTable } from '@/components/data-table/use-data-table'
 import { Page } from '@/components/layout/page'
+import { Card } from '@/components/ui/card'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
-export const Route = createFileRoute('/_app/examples/table')({
+export const Route = createFileRoute('/_app/examples/data-table')({
   component: RouteComponent,
 })
 
@@ -32,16 +32,19 @@ function ExampleTable() {
     isLoading: false,
     columns,
     data: MOCK_USERS,
-    // @ts-expect-error
-    state: {},
   })
 
   return (
     <Page>
       <Page.Content>
-        <DataTableRoot table={table}>
-          <DataTable />
-        </DataTableRoot>
+        <Card>
+          <DataTable table={table}>
+            <DataTable.Table />
+            <Card.Footer>
+              <DataTable.Pagination />
+            </Card.Footer>
+          </DataTable>
+        </Card>
       </Page.Content>
     </Page>
   )
