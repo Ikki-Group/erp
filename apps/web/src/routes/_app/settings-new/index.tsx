@@ -13,8 +13,19 @@ import {
   ShieldEllipsisIcon,
   UsersIcon,
 } from 'lucide-react'
+import z from 'zod'
+import { zodValidator } from '@tanstack/zod-adapter'
 
 export const Route = createFileRoute('/_app/settings-new/')({
+  validateSearch: zodValidator(
+    z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().default(10),
+      search: z.string().optional(),
+      filters: z.string().optional(),
+      joinOperator: z.string().optional(),
+    }),
+  ),
   component: RouteComponent,
 })
 

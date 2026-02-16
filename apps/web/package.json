@@ -31,6 +31,7 @@
     "@tanstack/react-router-devtools": "^1.159.10",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/router-plugin": "^1.159.12",
+    "@tanstack/zod-adapter": "^1.160.0",
     "@tanstack/zod-form-adapter": "^0.42.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
