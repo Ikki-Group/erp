@@ -5,11 +5,7 @@
     "esModuleInterop": true,
     "incremental": true,
     "isolatedModules": true,
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "moduleDetection": "force",
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
@@ -26,25 +22,12 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "outDir": "./dist",
-    "baseUrl": ".",
     "rootDir": "./",
     "composite": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "test",
-    "scripts",
-    "*.config.*",
-    "eslint.config.mjs",
-    "drizzle.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src", "test", "scripts", "*.config.*", "eslint.config.mjs", "drizzle.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -5,10 +5,11 @@ import ms from 'ms'
 import { UnauthorizedError } from '@/lib/error/http'
 import { verifyPassword } from '@/lib/utils/password.util'
 import { locations, roles, userRoleAssignments, users } from '@/database/schema'
+
 import { env } from '@/config/env'
 import { db } from '@/database'
 
-import type { IamSchema } from '../iam.types'
+import type { IamSchema } from '../iam.schema'
 import type { IamUsersService } from './iam-users.service'
 
 export interface JWTPayload {

@@ -52,17 +52,11 @@ export namespace IamSchema {
   })
 
   export type UserRoleAssignmentDetail = z.infer<typeof UserRoleAssignmentDetail>
-  export const LoginRequest = z.object({
-    identifier: z.string().describe('Email or Username'),
-    password: z.string(),
-  })
-
-  export type LoginRequest = z.infer<typeof LoginRequest>
 
   export const UserWithAccess = User.extend({
     locations: z.array(
       z.object({
-        id: zSchema.num,
+        id: zSchema.num.meta({}),
         code: zSchema.str,
         name: zSchema.str,
         role: z.string(),

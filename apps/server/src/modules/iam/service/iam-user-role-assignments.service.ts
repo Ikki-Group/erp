@@ -11,7 +11,7 @@ import { locations, roles, userRoleAssignments } from '@/database/schema'
 
 import { db } from '@/database'
 
-import type { IamSchema } from '../iam.types'
+import type { IamSchema } from '../iam.schema'
 
 interface IFilter {
   userId?: number

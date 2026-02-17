@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { IamSchema } from '../iam.types'
+import { IamSchema } from '../iam.schema'
 import type { IamServiceModule } from '../service'
 
 export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {

@@ -1,4 +1,7 @@
 import { logger } from '@/lib/logger'
+
+import 'zod-openapi'
+
 import { env } from '@/config/env'
 import { closeDatabase } from '@/database'
 

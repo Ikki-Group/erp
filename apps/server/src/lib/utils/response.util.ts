@@ -1,11 +1,6 @@
 import type { WithPaginationResult } from './pagination.util'
 
 /**
- * Response Helpers
- * Utility functions for creating standardized API responses
- */
-
-/**
  * Standard success response
  * @example
  * return res.ok(user)
