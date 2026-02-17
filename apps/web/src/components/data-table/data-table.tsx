@@ -7,7 +7,7 @@ import type { UseDataTableReturn } from './data-table-types'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableTable } from './data-table-table'
 
-type DataTableProps = PropsWithChildren<{ table: UseDataTableReturn }>
+type DataTableProps = PropsWithChildren<{ table: UseDataTableReturn<any> }>
 
 function DataTable({ table, children }: DataTableProps) {
   return (

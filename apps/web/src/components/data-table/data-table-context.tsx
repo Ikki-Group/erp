@@ -1,7 +1,9 @@
 import { createContext, useContext } from 'react'
 import { UseDataTableReturn } from './data-table-types'
 
-export const DataTableContext = createContext<UseDataTableReturn | null>(null)
+export const DataTableContext = createContext<UseDataTableReturn<any> | null>(
+  null,
+)
 
 export function useDataTableContext() {
   const context = useContext(DataTableContext)
