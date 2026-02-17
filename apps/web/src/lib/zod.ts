@@ -6,7 +6,7 @@ export const zSchema = {
   str: z.string(),
   bool: z.boolean(),
   date: z.date(),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   username: z
     .string()

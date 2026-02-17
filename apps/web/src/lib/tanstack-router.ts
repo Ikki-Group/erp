@@ -7,6 +7,7 @@ import {
 import * as JSURL2 from 'jsurl2'
 
 import { routeTree } from '@/routeTree.gen'
+import { queryClient } from './query-client'
 
 export interface RouteContext {
   qc: QueryClient
@@ -23,7 +24,7 @@ export function createRouter() {
     defaultStaleTime: 0,
     defaultGcTime: 0,
     context: {
-      // qc: queryClient,
+      qc: queryClient,
     },
     parseSearch: parseSearchWith(JSURL2.parse),
     stringifySearch: stringifySearchWith(JSURL2.stringify, JSURL2.parse),

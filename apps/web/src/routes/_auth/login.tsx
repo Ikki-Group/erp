@@ -22,6 +22,8 @@ import {
   InputGroupButton,
 } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import { useMutation } from '@tanstack/react-query'
+import { iamApi } from '@/features/iam'
 
 export const Route = createFileRoute('/_auth/login')({
   component: LoginPage,
@@ -32,6 +34,10 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  const loginMutation = useMutation({
+    mutationFn: iamApi.auth.login.fn,
+  })
+
   const form = useForm({
     defaultValues: {
       email: '',
@@ -40,8 +46,10 @@ function LoginPage() {
     onSubmit: async ({ value }) => {
       setIsLoading(true)
       try {
-        // Simulate auth delay
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        await loginMutation.mutateAsync({
+          identifier: value.email,
+          password: value.password,
+        })
 
         console.log('Login attempt:', value)
 

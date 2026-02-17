@@ -42,7 +42,7 @@ export class LocationMaterialsService {
       createdBy: number
       updatedAt: Date
       updatedBy: number
-      material: { id: number; sku: string; name: string; type: 'raw' | 'semi' } | null
+      material: { id: number; sku: string; name: string; type: 'raw' | 'semi'; baseUom: string } | null
     }>
   > {
     const { page, limit } = pq
@@ -83,6 +83,7 @@ export class LocationMaterialsService {
             sku: materials.sku,
             name: materials.name,
             type: materials.type,
+            baseUom: materials.baseUom,
           },
         })
         .from(locationMaterials)

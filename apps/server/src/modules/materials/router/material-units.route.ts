@@ -23,20 +23,20 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
       }
     )
     .get(
-      '/:id',
-      async function getMaterialUnitById({ params }) {
-        const unit = await service.getById(params.id)
+      '/material/:materialId/uom/:uom',
+      async function getMaterialUnitByKey({ params }) {
+        const unit = await service.getByKey(params.materialId, params.uom)
         return res.ok(unit)
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ materialId: zSchema.numCoerce, uom: zSchema.str }),
         response: zResponse.ok(MaterialsSchema.MaterialUnit),
       }
     )
     .post(
       '/material/:materialId',
       async function assignUomToMaterial({ params, body }) {
-        const unit = await service.assignUom(params.materialId, body.uomId, body.isBaseUnit)
+        const unit = await service.assignUom(params.materialId, body.uom, body.isBase)
         return res.created(unit, 'MATERIAL_UOM_ASSIGNED')
       },
       {
@@ -46,28 +46,28 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
       }
     )
     .patch(
-      '/material/:materialId/set-base/:uomId',
+      '/material/:materialId/set-base/:uom',
       async function setBaseUnit({ params }) {
-        const unit = await service.setBaseUnit(params.materialId, params.uomId)
+        const unit = await service.setBaseUnit(params.materialId, params.uom)
         return res.ok(unit, 'BASE_UNIT_SET')
       },
       {
         params: z.object({
           materialId: zSchema.numCoerce,
-          uomId: zSchema.numCoerce,
+          uom: zSchema.str,
         }),
         response: zResponse.ok(MaterialsSchema.MaterialUnit),
       }
     )
     .delete(
-      '/:id',
+      '/material/:materialId/uom/:uom',
       async function removeUomFromMaterial({ params }) {
-        await service.removeUom(params.id)
-        return res.ok({ id: params.id }, 'MATERIAL_UOM_REMOVED')
+        await service.removeUom(params.materialId, params.uom)
+        return res.ok({ materialId: params.materialId, uom: params.uom }, 'MATERIAL_UOM_REMOVED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(z.object({ id: zSchema.num })),
+        params: z.object({ materialId: zSchema.numCoerce, uom: zSchema.str }),
+        response: zResponse.ok(z.object({ materialId: zSchema.num, uom: zSchema.str })),
       }
     )
 }

@@ -59,6 +59,11 @@ export const zSchema = {
      * Optional positive integer ID
      */
     id: numCoerce.int().positive().optional(),
+
+    /**
+     * Required positive integer ID
+     */
+    idRequired: numCoerce.int().positive(),
   },
 }
 

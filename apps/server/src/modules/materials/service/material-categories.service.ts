@@ -20,7 +20,7 @@ interface IFilter {
 export class MaterialCategoriesService {
   err = {
     NOT_FOUND: 'MATERIAL_CATEGORY_NOT_FOUND',
-    CODE_EXISTS: 'MATERIAL_CATEGORY_CODE_EXISTS',
+    NAME_EXISTS: 'MATERIAL_CATEGORY_NAME_EXISTS',
   }
 
   /**
@@ -33,7 +33,6 @@ export class MaterialCategoriesService {
     if (search) {
       conditions.push(
         or(
-          ilike(materialCategories.code, `%${search}%`),
           ilike(materialCategories.name, `%${search}%`),
           ilike(materialCategories.description, `%${search}%`)
         )
@@ -65,7 +64,6 @@ export class MaterialCategoriesService {
     if (search) {
       conditions.push(
         or(
-          ilike(materialCategories.code, `%${search}%`),
           ilike(materialCategories.name, `%${search}%`),
           ilike(materialCategories.description, `%${search}%`)
         )
@@ -118,31 +116,31 @@ export class MaterialCategoriesService {
   /**
    * Retrieves a material category by its code
    */
-  async getByCode(code: string): Promise<typeof materialCategories.$inferSelect | null> {
-    const [category] = await db.select().from(materialCategories).where(eq(materialCategories.code, code)).limit(1)
+  async getByName(name: string): Promise<typeof materialCategories.$inferSelect | null> {
+    const [category] = await db
+      .select()
+      .from(materialCategories)
+      .where(ilike(materialCategories.name, name))
+      .limit(1)
     return category ?? null
   }
 
   /**
    * Creates a new material category with validation
    */
-  async create(
-    dto: { code: string; name: string; description?: string },
-    createdBy = 1
-  ): Promise<typeof materialCategories.$inferSelect> {
-    // Check for existing code
-    const existing = await this.getByCode(dto.code)
+  async create(dto: { name: string; description?: string }, createdBy = 1): Promise<typeof materialCategories.$inferSelect> {
+    // Check for existing name
+    const existing = await this.getByName(dto.name.trim())
 
     if (existing) {
-      throw new ConflictError('Material category with this code already exists', this.err.CODE_EXISTS, {
-        code: dto.code,
+      throw new ConflictError('Material category with this name already exists', this.err.NAME_EXISTS, {
+        name: dto.name,
       })
     }
 
     // Create category in a transaction
     const [category] = await db.transaction(async (tx) => {
       const newCategory: typeof materialCategories.$inferInsert = {
-        code: dto.code.toUpperCase().trim(),
         name: dto.name.trim(),
         description: dto.description?.trim() ?? null,
         isActive: true,
@@ -161,17 +159,17 @@ export class MaterialCategoriesService {
    */
   async update(
     id: number,
-    dto: { code?: string; name?: string; description?: string; isActive?: boolean },
+    dto: { name?: string; description?: string; isActive?: boolean },
     updatedBy = 1
   ): Promise<typeof materialCategories.$inferSelect> {
     // Check if category exists
     const category = await this.getById(id)
 
-    // Check for code uniqueness if code is being updated
-    if (dto.code && dto.code !== category.code) {
-      const existing = await this.getByCode(dto.code)
+    // Check for name uniqueness if name is being updated
+    if (dto.name && dto.name.trim() !== category.name) {
+      const existing = await this.getByName(dto.name.trim())
       if (existing) {
-        throw new ConflictError('Material category code already in use', this.err.CODE_EXISTS, { code: dto.code })
+        throw new ConflictError('Material category name already in use', this.err.NAME_EXISTS, { name: dto.name })
       }
     }
 
@@ -181,7 +179,6 @@ export class MaterialCategoriesService {
         updatedBy,
       }
 
-      if (dto.code) updateData.code = dto.code.toUpperCase().trim()
       if (dto.name) updateData.name = dto.name.trim()
       if (dto.description !== undefined) updateData.description = dto.description?.trim() ?? null
       if (dto.isActive !== undefined) updateData.isActive = dto.isActive

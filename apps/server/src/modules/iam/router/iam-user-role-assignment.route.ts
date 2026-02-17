@@ -8,7 +8,7 @@ import { zResponse, zSchema } from '@/lib/zod'
 import { IamSchema } from '../iam.schema'
 import type { IamServiceModule } from '../service'
 
-export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {
+export function initIamUserRoleAssignmentRoute(service: IamServiceModule) {
   return new Elysia()
     .get(
       '/list',
@@ -18,8 +18,8 @@ export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {
         const pq = { page, limit }
 
         const result = withDetails
-          ? await s.userRoleAssignments.listPaginatedWithDetails(filter, pq)
-          : await s.userRoleAssignments.listPaginated(filter, pq)
+          ? await service.userRoleAssignments.listPaginatedWithDetails(filter, pq)
+          : await service.userRoleAssignments.listPaginated(filter, pq)
 
         logger.withMetadata(result).debug('Assignments List Response')
         return res.paginated(result)
@@ -27,14 +27,10 @@ export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {
       {
         query: z.object({
           ...zSchema.pagination.shape,
-          userId: zSchema.numCoerce.optional(),
-          roleId: zSchema.numCoerce.optional(),
-          locationId: zSchema.numCoerce.optional(),
-          withDetails: z
-            .enum(['true', 'false'])
-            .transform((val) => val === 'true')
-            .optional()
-            .default(false),
+          userId: zSchema.query.id,
+          roleId: zSchema.query.id,
+          locationId: zSchema.query.id,
+          withDetails: zSchema.query.boolean.default(false),
         }),
         response: zResponse.paginated(
           z.union([IamSchema.UserRoleAssignment, IamSchema.UserRoleAssignmentDetail]).array()
@@ -44,18 +40,18 @@ export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {
     .get(
       '/detail',
       async function getAssignmentById({ query }) {
-        const assignment = await s.userRoleAssignments.getById(query.id)
+        const assignment = await service.userRoleAssignments.getById(query.id)
         return res.ok(assignment)
       },
       {
-        query: IamSchema.UserRoleAssignment.pick({ id: true }),
+        query: z.object({ id: zSchema.query.idRequired }),
         response: zResponse.ok(IamSchema.UserRoleAssignment),
       }
     )
     .post(
       '/assign',
       async function assignRole({ body }) {
-        const assignment = await s.userRoleAssignments.assign(body)
+        const assignment = await service.userRoleAssignments.assign(body)
         return res.created(assignment, 'ROLE_ASSIGNED')
       },
       {
@@ -70,7 +66,7 @@ export function initIamUserRoleAssignmentRoute(s: IamServiceModule) {
     .delete(
       '/revoke',
       async function revokeRole({ body }) {
-        await s.userRoleAssignments.revoke(body.id)
+        await service.userRoleAssignments.revoke(body.id)
         return res.ok({ id: body.id }, 'ROLE_REVOKED')
       },
       {

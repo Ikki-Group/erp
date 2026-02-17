@@ -25,7 +25,8 @@
     "rootDir": "./",
     "composite": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@server/*": ["./src/*"]
     }
   },
   "include": ["src", "test", "scripts", "*.config.*", "eslint.config.mjs", "drizzle.config.ts"],

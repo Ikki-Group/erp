@@ -1,7 +1,6 @@
 import { cors } from '@elysiajs/cors'
 import { Elysia, redirect } from 'elysia'
 
-import { authPlugin } from '@/lib/elysia/auth-plugin'
 import { openapiPlugin } from '@/lib/elysia/openapi-plugin'
 import { HttpError } from '@/lib/error/http'
 import { otel } from '@/lib/otel'
@@ -33,7 +32,6 @@ export const app = new Elysia({
     return ctx.error
   })
   .use(otel)
-  .use(authPlugin)
   .get('/', redirect('/openapi'), {
     detail: { hide: true },
   })

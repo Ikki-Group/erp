@@ -8,24 +8,21 @@ import { zResponse, zSchema } from '@/lib/zod'
 import { IamSchema } from '../iam.schema'
 import type { IamServiceModule } from '../service'
 
-export function initIamRoleRoute(s: IamServiceModule) {
+export function initIamRoleRoute(service: IamServiceModule) {
   return new Elysia()
     .get(
       '/list',
       async function getRoles({ query }) {
         const { isSystem, search, page, limit } = query
-        const result = await s.roles.listPaginated({ isSystem, search }, { page, limit })
+        const result = await service.roles.listPaginated({ isSystem, search }, { page, limit })
         logger.withMetadata(result).debug('Res')
         return res.paginated(result)
       },
       {
         query: z.object({
           ...zSchema.pagination.shape,
-          search: z.string().optional(),
-          isSystem: z
-            .enum(['true', 'false'])
-            .transform((val) => val === 'true')
-            .optional(),
+          search: zSchema.query.search,
+          isSystem: zSchema.query.boolean,
         }),
         response: zResponse.paginated(IamSchema.Role.array()),
       }
@@ -33,18 +30,18 @@ export function initIamRoleRoute(s: IamServiceModule) {
     .get(
       '/detail',
       async function getRoleById({ query }) {
-        const role = await s.roles.getById(query.id)
+        const role = await service.roles.getById(query.id)
         return res.ok(role)
       },
       {
-        query: IamSchema.Role.pick({ id: true }),
+        query: z.object({ id: zSchema.query.idRequired }),
         response: zResponse.ok(IamSchema.Role),
       }
     )
     .post(
       '/create',
       async function createRole({ body }) {
-        const role = await s.roles.create(body)
+        const role = await service.roles.create(body)
         return res.created(role, 'ROLE_CREATED')
       },
       {
@@ -59,7 +56,7 @@ export function initIamRoleRoute(s: IamServiceModule) {
     .put(
       '/update',
       async function updateRole({ body }) {
-        const role = await s.roles.update(body.id, body)
+        const role = await service.roles.update(body.id, body)
         return res.ok(role, 'ROLE_UPDATED')
       },
       {
@@ -75,7 +72,7 @@ export function initIamRoleRoute(s: IamServiceModule) {
     .delete(
       '/delete',
       async function deleteRole({ body }) {
-        await s.roles.delete(body.id)
+        await service.roles.delete(body.id)
         return res.ok({ id: body.id }, 'ROLE_DELETED')
       },
       {

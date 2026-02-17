@@ -11,7 +11,6 @@ export namespace MaterialsSchema {
    */
   export const MaterialCategory = z.object({
     id: zSchema.num,
-    code: zSchema.str,
     name: zSchema.str,
     description: z.string().nullable(),
     isActive: zSchema.bool,
@@ -25,7 +24,6 @@ export namespace MaterialsSchema {
    */
   export const MaterialCategoryInfo = z.object({
     id: zSchema.num,
-    code: zSchema.str,
     name: zSchema.str,
   })
 
@@ -35,10 +33,7 @@ export namespace MaterialsSchema {
    * Unit of Measure (UOM)
    */
   export const Uom = z.object({
-    id: zSchema.num,
     code: zSchema.str,
-    name: zSchema.str,
-    symbol: zSchema.str,
     isActive: zSchema.bool,
     ...zSchema.meta.shape,
   })
@@ -49,36 +44,11 @@ export namespace MaterialsSchema {
    * UOM Info (Subset)
    */
   export const UomInfo = z.object({
-    id: zSchema.num,
     code: zSchema.str,
-    name: zSchema.str,
-    symbol: zSchema.str,
+    isActive: zSchema.bool,
   })
 
   export type UomInfo = z.infer<typeof UomInfo>
-
-  /**
-   * UOM Conversion
-   */
-  export const UomConversion = z.object({
-    id: zSchema.num,
-    fromUomId: zSchema.num,
-    toUomId: zSchema.num,
-    conversionFactor: zSchema.str, // decimal as string
-    ...zSchema.meta.shape,
-  })
-
-  export type UomConversion = z.infer<typeof UomConversion>
-
-  /**
-   * UOM Conversion with related UOM details
-   */
-  export const UomConversionDetail = UomConversion.extend({
-    fromUom: Uom.nullable(),
-    toUom: Uom.nullable(),
-  })
-
-  export type UomConversionDetail = z.infer<typeof UomConversionDetail>
 
   /**
    * Material
@@ -90,6 +60,7 @@ export namespace MaterialsSchema {
     description: z.string().nullable(),
     type: z.enum(['raw', 'semi']),
     categoryId: zSchema.num.nullable(),
+    baseUom: zSchema.str,
     isActive: zSchema.bool,
     ...zSchema.meta.shape,
   })
@@ -104,6 +75,7 @@ export namespace MaterialsSchema {
     sku: zSchema.str,
     name: zSchema.str,
     type: z.enum(['raw', 'semi']),
+    baseUom: zSchema.str,
   })
 
   export type MaterialInfo = z.infer<typeof MaterialInfo>
@@ -121,10 +93,9 @@ export namespace MaterialsSchema {
    * Material Unit
    */
   export const MaterialUnit = z.object({
-    id: zSchema.num,
     materialId: zSchema.num,
-    uomId: zSchema.num,
-    isBaseUnit: zSchema.bool,
+    uom: zSchema.str,
+    isBase: zSchema.bool,
     ...zSchema.meta.shape,
   })
 
@@ -181,7 +152,6 @@ export namespace MaterialsRequest {
    * Create Material Category
    */
   export const CreateMaterialCategory = z.object({
-    code: zSchema.str,
     name: zSchema.str,
     description: zSchema.str.optional(),
   })
@@ -192,7 +162,6 @@ export namespace MaterialsRequest {
    * Update Material Category
    */
   export const UpdateMaterialCategory = z.object({
-    code: zSchema.str.optional(),
     name: zSchema.str.optional(),
     description: zSchema.str.optional(),
     isActive: zSchema.bool.optional(),
@@ -205,8 +174,7 @@ export namespace MaterialsRequest {
    */
   export const CreateUom = z.object({
     code: zSchema.str,
-    name: zSchema.str,
-    symbol: zSchema.str,
+    isActive: zSchema.bool.optional(),
   })
 
   export type CreateUom = z.infer<typeof CreateUom>
@@ -215,33 +183,10 @@ export namespace MaterialsRequest {
    * Update UOM
    */
   export const UpdateUom = z.object({
-    code: zSchema.str.optional(),
-    name: zSchema.str.optional(),
-    symbol: zSchema.str.optional(),
     isActive: zSchema.bool.optional(),
   })
 
   export type UpdateUom = z.infer<typeof UpdateUom>
-
-  /**
-   * Create UOM Conversion
-   */
-  export const CreateUomConversion = z.object({
-    fromUomId: zSchema.num,
-    toUomId: zSchema.num,
-    conversionFactor: zSchema.str, // decimal as string
-  })
-
-  export type CreateUomConversion = z.infer<typeof CreateUomConversion>
-
-  /**
-   * Update UOM Conversion
-   */
-  export const UpdateUomConversion = z.object({
-    conversionFactor: zSchema.str, // decimal as string
-  })
-
-  export type UpdateUomConversion = z.infer<typeof UpdateUomConversion>
 
   /**
    * Create Material
@@ -252,6 +197,7 @@ export namespace MaterialsRequest {
     description: zSchema.str.optional(),
     type: z.enum(['raw', 'semi']),
     categoryId: zSchema.num.optional(),
+    baseUom: zSchema.str,
   })
 
   export type CreateMaterial = z.infer<typeof CreateMaterial>
@@ -265,6 +211,7 @@ export namespace MaterialsRequest {
     description: zSchema.str.optional(),
     type: z.enum(['raw', 'semi']).optional(),
     categoryId: zSchema.num.nullable().optional(),
+    baseUom: zSchema.str.optional(),
     isActive: zSchema.bool.optional(),
   })
 
@@ -274,8 +221,8 @@ export namespace MaterialsRequest {
    * Assign UOM to Material
    */
   export const AssignMaterialUom = z.object({
-    uomId: zSchema.num,
-    isBaseUnit: zSchema.bool.default(false),
+    uom: zSchema.str,
+    isBase: zSchema.bool.default(false),
   })
 
   export type AssignMaterialUom = z.infer<typeof AssignMaterialUom>
@@ -305,7 +252,6 @@ export namespace MaterialsRequest {
 // Export commonly used schemas
 export const MaterialCategorySchema = MaterialsSchema.MaterialCategory
 export const UomSchema = MaterialsSchema.Uom
-export const UomConversionSchema = MaterialsSchema.UomConversion
 export const MaterialSchema = MaterialsSchema.Material
 export const MaterialUnitSchema = MaterialsSchema.MaterialUnit
 export const LocationMaterialSchema = MaterialsSchema.LocationMaterial

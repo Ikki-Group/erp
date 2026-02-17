@@ -1,6 +1,6 @@
-import { treaty } from "@elysiajs/eden"
-import type { App } from "../../../apps/server/src/app"
+import { treaty, type Treaty } from "@elysiajs/eden"
+import type { App } from "@api/src/app"
 
-export const createTreaty = (url: string) => treaty<App>(url)
+export const createTreaty = (url: string): Treaty<App> => treaty<App>(url)
 
 export type { App }

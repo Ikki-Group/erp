@@ -1,5 +1,5 @@
 import { db } from '@server/database'
-import { materialUnits, unitsOfMeasure } from '@server/database/schema'
+import { materialUoms, materials, uoms } from '@server/database/schema'
 import { ConflictError, NotFoundError } from '@server/lib/error/http'
 import { and, eq } from 'drizzle-orm'
 
@@ -19,50 +19,51 @@ export class MaterialUnitsService {
    */
   async listByMaterial(materialId: number): Promise<
     {
-      id: number
       materialId: number
-      uomId: number
-      isBaseUnit: boolean
+      isBase: boolean
       createdAt: Date
       createdBy: number
       updatedAt: Date
       updatedBy: number
-      uom: { id: number; code: string; name: string; symbol: string } | null
+      uom: { code: string; isActive: boolean } | null
     }[]
   > {
     const data = await db
       .select({
-        id: materialUnits.id,
-        materialId: materialUnits.materialId,
-        uomId: materialUnits.uomId,
-        isBaseUnit: materialUnits.isBaseUnit,
-        createdAt: materialUnits.createdAt,
-        createdBy: materialUnits.createdBy,
-        updatedAt: materialUnits.updatedAt,
-        updatedBy: materialUnits.updatedBy,
+        materialId: materialUoms.materialId,
+        isBase: materialUoms.isBase,
+        createdAt: materialUoms.createdAt,
+        createdBy: materialUoms.createdBy,
+        updatedAt: materialUoms.updatedAt,
+        updatedBy: materialUoms.updatedBy,
         uom: {
-          id: unitsOfMeasure.id,
-          code: unitsOfMeasure.code,
-          name: unitsOfMeasure.name,
-          symbol: unitsOfMeasure.symbol,
+          code: materialUoms.uom,
+          isActive: uoms.isActive,
         },
       })
-      .from(materialUnits)
-      .leftJoin(unitsOfMeasure, eq(materialUnits.uomId, unitsOfMeasure.id))
-      .where(eq(materialUnits.materialId, materialId))
-      .orderBy(materialUnits.isBaseUnit) // Base unit first
+      .from(materialUoms)
+      .innerJoin(uoms, eq(materialUoms.uom, uoms.code))
+      .where(eq(materialUoms.materialId, materialId))
+      .orderBy(materialUoms.isBase) // Base unit first
 
     return data
   }
 
   /**
-   * Retrieves a material unit by its ID
+   * Retrieves a material UOM by its composite key
    */
-  async getById(id: number): Promise<typeof materialUnits.$inferSelect> {
-    const [materialUnit] = await db.select().from(materialUnits).where(eq(materialUnits.id, id)).limit(1)
+  async getByKey(materialId: number, uom: string): Promise<typeof materialUoms.$inferSelect> {
+    const [materialUnit] = await db
+      .select()
+      .from(materialUoms)
+      .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uom)))
+      .limit(1)
 
     if (!materialUnit) {
-      throw new NotFoundError(`Material unit with ID ${id} not found`, this.err.NOT_FOUND)
+      throw new NotFoundError(
+        `Material UOM ${uom} for material ${materialId} not found`,
+        this.err.NOT_FOUND
+      )
     }
 
     return materialUnit
@@ -73,30 +74,41 @@ export class MaterialUnitsService {
    */
   async assignUom(
     materialId: number,
-    uomId: number,
-    isBaseUnit: boolean,
+    uom: string,
+    isBase: boolean,
     createdBy = 1
-  ): Promise<typeof materialUnits.$inferSelect> {
+  ): Promise<typeof materialUoms.$inferSelect> {
+    const uomCode = uom.toUpperCase().trim()
+    const [material] = await db.select().from(materials).where(eq(materials.id, materialId)).limit(1)
+    if (!material) {
+      throw new NotFoundError(`Material with ID ${materialId} not found`, this.err.NOT_FOUND)
+    }
+
+    const [uomExists] = await db.select().from(uoms).where(eq(uoms.code, uomCode)).limit(1)
+    if (!uomExists) {
+      throw new NotFoundError(`UOM ${uomCode} not found`, this.err.NOT_FOUND)
+    }
+
     // Check if UOM is already assigned to this material
     const [existing] = await db
       .select()
-      .from(materialUnits)
-      .where(and(eq(materialUnits.materialId, materialId), eq(materialUnits.uomId, uomId)))
+      .from(materialUoms)
+      .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
       .limit(1)
 
     if (existing) {
       throw new ConflictError('UOM already assigned to this material', this.err.UOM_ALREADY_ASSIGNED, {
         materialId,
-        uomId,
+        uom: uomCode,
       })
     }
 
     // If setting as base unit, check if base unit already exists
-    if (isBaseUnit) {
+    if (isBase) {
       const [existingBase] = await db
         .select()
-        .from(materialUnits)
-        .where(and(eq(materialUnits.materialId, materialId), eq(materialUnits.isBaseUnit, true)))
+        .from(materialUoms)
+        .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.isBase, true)))
         .limit(1)
 
       if (existingBase) {
@@ -105,7 +117,7 @@ export class MaterialUnitsService {
           this.err.BASE_UNIT_EXISTS,
           {
             materialId,
-            existingBaseUnitId: existingBase.id,
+            existingBaseUom: existingBase.uom,
           }
         )
       }
@@ -113,15 +125,15 @@ export class MaterialUnitsService {
 
     // Create material unit in a transaction
     const [materialUnit] = await db.transaction(async (tx) => {
-      const newMaterialUnit: typeof materialUnits.$inferInsert = {
+      const newMaterialUnit: typeof materialUoms.$inferInsert = {
         materialId,
-        uomId,
-        isBaseUnit,
+        uom: uomCode,
+        isBase,
         createdBy,
         updatedBy: createdBy,
       }
 
-      return tx.insert(materialUnits).values(newMaterialUnit).returning()
+      return tx.insert(materialUoms).values(newMaterialUnit).returning()
     })
 
     return materialUnit!
@@ -131,12 +143,13 @@ export class MaterialUnitsService {
    * Sets a UOM as the base unit for a material
    * Unsets the previous base unit if exists
    */
-  async setBaseUnit(materialId: number, uomId: number, updatedBy = 1): Promise<typeof materialUnits.$inferSelect> {
+  async setBaseUnit(materialId: number, uom: string, updatedBy = 1): Promise<typeof materialUoms.$inferSelect> {
+    const uomCode = uom.toUpperCase().trim()
     // Check if the UOM is assigned to this material
     const [materialUnit] = await db
       .select()
-      .from(materialUnits)
-      .where(and(eq(materialUnits.materialId, materialId), eq(materialUnits.uomId, uomId)))
+      .from(materialUoms)
+      .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
       .limit(1)
 
     if (!materialUnit) {
@@ -150,15 +163,15 @@ export class MaterialUnitsService {
     const [updatedMaterialUnit] = await db.transaction(async (tx) => {
       // Unset all base units for this material
       await tx
-        .update(materialUnits)
-        .set({ isBaseUnit: false, updatedBy })
-        .where(and(eq(materialUnits.materialId, materialId), eq(materialUnits.isBaseUnit, true)))
+        .update(materialUoms)
+        .set({ isBase: false, updatedBy })
+        .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.isBase, true)))
 
       // Set the new base unit
       return tx
-        .update(materialUnits)
-        .set({ isBaseUnit: true, updatedBy })
-        .where(eq(materialUnits.id, materialUnit.id))
+        .update(materialUoms)
+        .set({ isBase: true, updatedBy })
+        .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
         .returning()
     })
 
@@ -169,19 +182,23 @@ export class MaterialUnitsService {
    * Removes a UOM from a material
    * Prevents removal if it's the base unit
    */
-  async removeUom(id: number): Promise<void> {
-    const materialUnit = await this.getById(id)
+  async removeUom(materialId: number, uom: string): Promise<void> {
+    const uomCode = uom.toUpperCase().trim()
+    const materialUnit = await this.getByKey(materialId, uomCode)
 
-    if (materialUnit.isBaseUnit) {
+    if (materialUnit.isBase) {
       throw new ConflictError(
         'Cannot remove base unit. Set another UOM as base unit first.',
         this.err.CANNOT_REMOVE_BASE_UNIT,
         {
-          materialUnitId: id,
+          materialId,
+          uom: uomCode,
         }
       )
     }
 
-    await db.delete(materialUnits).where(eq(materialUnits.id, id))
+    await db
+      .delete(materialUoms)
+      .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
   }
 }

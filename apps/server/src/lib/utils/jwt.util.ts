@@ -1,4 +1,4 @@
-import type { Secret } from 'jsonwebtoken'
+import type { Secret, SignOptions } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 
 import { env } from '@server/config/env'
@@ -18,11 +18,12 @@ export interface TokenPayload {
  * @returns Signed JWT token string
  */
 export function generateToken(payload: TokenPayload): string {
-  // @ts-expect-error - jsonwebtoken types have known issues with expiresIn string type
-  return jwt.sign(payload, env.JWT_SECRET as Secret, {
-    expiresIn: env.JWT_EXPIRES_IN,
+  const options: SignOptions = {
+    expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
     issuer: env.APP_NAME,
-  })
+  }
+
+  return jwt.sign(payload, env.JWT_SECRET as Secret, options)
 }
 
 /**

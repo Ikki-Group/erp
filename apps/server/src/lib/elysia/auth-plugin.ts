@@ -3,11 +3,11 @@ import { Elysia } from 'elysia'
 import { ForbiddenError, UnauthorizedError } from '@/lib/error/http'
 import type { users } from '@/database/schema'
 
-import { IamServiceModule } from '@/modules/iam'
+import type { IamServiceModule } from '@/modules/iam'
 
-const iamService = new IamServiceModule()
-
-export const authPlugin = new Elysia({ name: 'auth-plugin' })
+export const createAuthPlugin = (iamService: IamServiceModule) =>
+  new Elysia({ name: 'auth-plugin' })
+    .decorate('user', null as typeof users.$inferSelect | null)
   .derive({ as: 'global' }, async ({ request: { headers } }) => {
     const authorization = headers.get('authorization')
     if (!authorization) {

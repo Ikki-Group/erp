@@ -8,24 +8,21 @@ import { zResponse, zSchema } from '@/lib/zod'
 import { IamSchema } from '../iam.schema'
 import type { IamServiceModule } from '../service'
 
-export function initIamUserRoute(s: IamServiceModule) {
+export function initIamUserRoute(service: IamServiceModule) {
   return new Elysia()
     .get(
       '/list',
       async function getUsers({ query }) {
         const { isActive, search, page, limit } = query
-        const result = await s.users.listPaginated({ isActive, search }, { page, limit })
+        const result = await service.users.listPaginated({ isActive, search }, { page, limit })
         logger.withMetadata(result).debug('Users List Response')
         return res.paginated(result)
       },
       {
         query: z.object({
           ...zSchema.pagination.shape,
-          search: z.string().optional(),
-          isActive: z
-            .enum(['true', 'false'])
-            .transform((val) => val === 'true')
-            .optional(),
+          search: zSchema.query.search,
+          isActive: zSchema.query.boolean,
         }),
         isAuth: true,
         hasPermission: 'iam.users.read',
@@ -35,22 +32,22 @@ export function initIamUserRoute(s: IamServiceModule) {
     .get(
       '/detail',
       async function getUserById({ query }) {
-        const user = await s.users.getById(query.id)
+        const user = await service.users.getById(query.id)
         return res.ok(user)
       },
       {
-        query: IamSchema.User.pick({ id: true }),
+        query: z.object({ id: zSchema.query.idRequired }),
         response: zResponse.ok(IamSchema.User),
       }
     )
     .get(
       '/access',
       async function getUserAccess({ query }) {
-        const user = await s.users.getById(query.id)
+        const user = await service.users.getById(query.id)
 
         // If root user, they have access to everything (not implemented in assignments table)
         // For the dashboard, we might want to return assignments or a special flag
-        const assignments = await s.userRoleAssignments.listPaginatedWithDetails(
+        const assignments = await service.userRoleAssignments.listPaginatedWithDetails(
           { userId: query.id },
           { page: 1, limit: 100 } // Assume 100 is enough for a summary
         )
@@ -61,7 +58,7 @@ export function initIamUserRoute(s: IamServiceModule) {
         })
       },
       {
-        query: IamSchema.User.pick({ id: true }),
+        query: z.object({ id: zSchema.query.idRequired }),
         response: zResponse.ok(
           z.object({
             isRoot: zSchema.bool,
@@ -73,7 +70,7 @@ export function initIamUserRoute(s: IamServiceModule) {
     .post(
       '/create',
       async function createUser({ body }) {
-        const user = await s.users.createWithRoles(body)
+        const user = await service.users.createWithRoles(body)
         return res.created(user, 'USER_CREATED')
       },
       {
@@ -84,7 +81,7 @@ export function initIamUserRoute(s: IamServiceModule) {
     .put(
       '/update',
       async function updateUser({ body }) {
-        const user = await s.users.updateWithRoles(body.id, body)
+        const user = await service.users.updateWithRoles(body.id, body)
         return res.ok(user, 'USER_UPDATED')
       },
       {
@@ -95,7 +92,7 @@ export function initIamUserRoute(s: IamServiceModule) {
     .delete(
       '/delete',
       async function deleteUser({ body }) {
-        await s.users.delete(body.id)
+        await service.users.delete(body.id)
         return res.ok({ id: body.id }, 'USER_DELETED')
       },
       {
@@ -106,7 +103,7 @@ export function initIamUserRoute(s: IamServiceModule) {
     .patch(
       '/toggle-active',
       async function toggleUserActive({ body }) {
-        const user = await s.users.toggleActive(body.id)
+        const user = await service.users.toggleActive(body.id)
         return res.ok(user, 'USER_STATUS_TOGGLED')
       },
       {

@@ -11,25 +11,22 @@ import type { LocationsService } from '../service/locations.service'
 /**
  * Location Routes
  */
-export function initLocationRoute(s: LocationsService) {
+export function initLocationRoute(service: LocationsService) {
   return new Elysia()
     .get(
       '/list',
       async function getLocations({ query }) {
         const { isActive, search, type, page, limit } = query
-        const result = await s.listPaginated({ isActive, search, type }, { page, limit })
+        const result = await service.listPaginated({ isActive, search, type }, { page, limit })
         logger.withMetadata(result).debug('Locations List Response')
         return res.paginated(result)
       },
       {
         query: z.object({
           ...zSchema.pagination.shape,
-          search: z.string().optional(),
+          search: zSchema.query.search,
           type: z.enum(['store', 'warehouse', 'central_warehouse']).optional(),
-          isActive: z
-            .enum(['true', 'false'])
-            .transform((val) => val === 'true')
-            .optional(),
+          isActive: zSchema.query.boolean,
         }),
         response: zResponse.paginated(LocationSchema.Location.array()),
       }
@@ -37,18 +34,18 @@ export function initLocationRoute(s: LocationsService) {
     .get(
       '/detail',
       async function getLocationById({ query }) {
-        const location = await s.getById(query.id)
+        const location = await service.getById(query.id)
         return res.ok(location)
       },
       {
-        query: LocationSchema.Location.pick({ id: true }),
+        query: z.object({ id: zSchema.query.idRequired }),
         response: zResponse.ok(LocationSchema.Location),
       }
     )
     .post(
       '/create',
       async function createLocation({ body }) {
-        const location = await s.create(body)
+        const location = await service.create(body)
         return res.created(location, 'LOCATION_CREATED')
       },
       {
@@ -64,7 +61,7 @@ export function initLocationRoute(s: LocationsService) {
     .put(
       '/update',
       async function updateLocation({ body }) {
-        const location = await s.update(body.id, body)
+        const location = await service.update(body.id, body)
         return res.ok(location, 'LOCATION_UPDATED')
       },
       {
@@ -88,7 +85,7 @@ export function initLocationRoute(s: LocationsService) {
     .delete(
       '/delete',
       async function deleteLocation({ body }) {
-        await s.delete(body.id)
+        await service.delete(body.id)
         return res.ok({ id: body.id }, 'LOCATION_DELETED')
       },
       {
@@ -99,7 +96,7 @@ export function initLocationRoute(s: LocationsService) {
     .patch(
       '/toggle-active',
       async function toggleLocationActive({ body }) {
-        const location = await s.toggleActive(body.id)
+        const location = await service.toggleActive(body.id)
         return res.ok(location, 'LOCATION_STATUS_TOGGLED')
       },
       {

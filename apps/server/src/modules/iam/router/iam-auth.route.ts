@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import z from 'zod'
 
-import { authPlugin } from '@/lib/elysia/auth-plugin'
+import type { users } from '@/database/schema'
 import { res } from '@/lib/utils/response.util'
 import { zResponse } from '@/lib/zod'
 
@@ -22,7 +22,7 @@ const LoginReq = z
 
 export function initIamAuthRoute(service: IamServiceModule) {
   return new Elysia()
-    .use(authPlugin)
+    .decorate('user', null as typeof users.$inferSelect | null)
     .post(
       '/login',
       async ({ body }) => {

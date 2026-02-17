@@ -1,5 +1,5 @@
 import { db } from '@server/database'
-import { locationMaterials, locations, materialCategories, materials } from '@server/database/schema'
+import { locationMaterials, locations, materialCategories, materialUoms, materials, uoms } from '@server/database/schema'
 import { ConflictError, NotFoundError } from '@server/lib/error/http'
 import {
   calculatePaginationMeta,
@@ -147,7 +147,8 @@ export class MaterialsService {
       createdBy: number
       updatedAt: Date
       updatedBy: number
-      category: { id: number; code: string; name: string } | null
+      baseUom: string
+      category: { id: number; name: string } | null
     }>
   > {
     const { page, limit } = pq
@@ -188,6 +189,7 @@ export class MaterialsService {
           description: materials.description,
           type: materials.type,
           categoryId: materials.categoryId,
+          baseUom: materials.baseUom,
           isActive: materials.isActive,
           createdAt: materials.createdAt,
           createdBy: materials.createdBy,
@@ -195,7 +197,6 @@ export class MaterialsService {
           updatedBy: materials.updatedBy,
           category: {
             id: materialCategories.id,
-            code: materialCategories.code,
             name: materialCategories.name,
           },
         })
@@ -239,7 +240,14 @@ export class MaterialsService {
    * Creates a new material with validation and auto-assignment to warehouses
    */
   async create(
-    dto: { sku?: string; name: string; description?: string; type: 'raw' | 'semi'; categoryId?: number },
+    dto: {
+      sku?: string
+      name: string
+      description?: string
+      type: 'raw' | 'semi'
+      categoryId?: number
+      baseUom: string
+    },
     createdBy = 1
   ): Promise<typeof materials.$inferSelect> {
     // Generate SKU if not provided
@@ -252,6 +260,13 @@ export class MaterialsService {
       throw new ConflictError('Material with this SKU already exists', this.err.SKU_EXISTS, { sku })
     }
 
+    const baseUom = dto.baseUom.toUpperCase().trim()
+
+    const [uom] = await db.select().from(uoms).where(eq(uoms.code, baseUom)).limit(1)
+    if (!uom) {
+      throw new NotFoundError(`UOM ${baseUom} not found`, 'UOM_NOT_FOUND')
+    }
+
     // Create material and auto-assign to warehouses in a transaction
     const [material] = await db.transaction(async (tx) => {
       // Create material
@@ -261,12 +276,21 @@ export class MaterialsService {
         description: dto.description?.trim() ?? null,
         type: dto.type,
         categoryId: dto.categoryId ?? null,
+        baseUom,
         isActive: true,
         createdBy,
         updatedBy: createdBy,
       }
 
       const [createdMaterial] = await tx.insert(materials).values(newMaterial).returning()
+
+      await tx.insert(materialUoms).values({
+        materialId: createdMaterial!.id,
+        uom: baseUom,
+        isBase: true,
+        createdBy,
+        updatedBy: createdBy,
+      })
 
       // Auto-assign to all warehouse and central_warehouse locations
       const warehouseLocations = await tx
@@ -305,6 +329,7 @@ export class MaterialsService {
       description?: string
       type?: 'raw' | 'semi'
       categoryId?: number | null
+      baseUom?: string
       isActive?: boolean
     },
     updatedBy = 1
@@ -331,9 +356,46 @@ export class MaterialsService {
       if (dto.description !== undefined) updateData.description = dto.description?.trim() ?? null
       if (dto.type) updateData.type = dto.type
       if (dto.categoryId !== undefined) updateData.categoryId = dto.categoryId
+      if (dto.baseUom) updateData.baseUom = dto.baseUom.toUpperCase().trim()
       if (dto.isActive !== undefined) updateData.isActive = dto.isActive
 
-      return tx.update(materials).set(updateData).where(eq(materials.id, id)).returning()
+      const [saved] = await tx.update(materials).set(updateData).where(eq(materials.id, id)).returning()
+
+      if (dto.baseUom) {
+        const nextBase = dto.baseUom.toUpperCase().trim()
+        const [uom] = await tx.select().from(uoms).where(eq(uoms.code, nextBase)).limit(1)
+        if (!uom) {
+          throw new NotFoundError(`UOM ${nextBase} not found`, 'UOM_NOT_FOUND')
+        }
+
+        await tx
+          .update(materialUoms)
+          .set({ isBase: false, updatedBy })
+          .where(eq(materialUoms.materialId, id))
+
+        const [existing] = await tx
+          .select()
+          .from(materialUoms)
+          .where(and(eq(materialUoms.materialId, id), eq(materialUoms.uom, nextBase)))
+          .limit(1)
+
+        if (existing) {
+          await tx
+            .update(materialUoms)
+            .set({ isBase: true, updatedBy })
+            .where(and(eq(materialUoms.materialId, id), eq(materialUoms.uom, nextBase)))
+        } else {
+          await tx.insert(materialUoms).values({
+            materialId: id,
+            uom: nextBase,
+            isBase: true,
+            createdBy: updatedBy,
+            updatedBy,
+          })
+        }
+      }
+
+      return [saved]
     })
 
     return updatedMaterial!
