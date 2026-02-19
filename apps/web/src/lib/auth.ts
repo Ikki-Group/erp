@@ -1,16 +1,27 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-interface State {
+interface UseAuth {
   token: string
-  setToken: (token: string) => void
+  setToken(token: string): void
+  clear(): void
+  isAuthenticated(): boolean
 }
 
-export const useAuth = create<State>()(
+export const useAuth = create<UseAuth>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: '',
-      setToken: (token: string) => set({ token }),
+      setToken(token) {
+        if (!token) throw new Error("Token can't be empty")
+        set({ token })
+      },
+      clear() {
+        set({ token: '' })
+      },
+      isAuthenticated() {
+        return !!get().token
+      },
     }),
     {
       name: 'auth',
