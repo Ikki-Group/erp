@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia'
 import z from 'zod'
 
-import type { users } from '@/database/schema'
 import { res } from '@/lib/utils/response.util'
 import { zResponse } from '@/lib/zod'
+import type { users } from '@/database/schema'
 
 import { IamSchema } from '../iam.schema'
 import type { IamServiceModule } from '../service'
@@ -15,8 +15,8 @@ const LoginReq = z
   })
   .meta({
     example: {
-      identifier: 'test@test.com',
-      password: '123456',
+      identifier: 'admin@ikki.dev',
+      password: 'admin123',
     },
   })
 

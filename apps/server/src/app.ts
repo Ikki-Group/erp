@@ -26,13 +26,14 @@ export const app = new Elysia({
   .use(cors())
   .onError((ctx) => {
     if (ctx.error instanceof HttpError) {
+      ctx.set.status = ctx.error.statusCode
       return ctx.error.toJSON()
     }
 
     return ctx.error
   })
   .use(otel)
-  .get('/', redirect('/openapi'), {
+  .get('/', () => redirect('/openapi'), {
     detail: { hide: true },
   })
   .use(iamRoute)
