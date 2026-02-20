@@ -2,10 +2,6 @@ import z from 'zod'
 
 import { zSchema } from '@/lib/zod'
 
-/**
- * IAM Schema Definitions
- * Zod schemas for IAM entities used in API responses
- */
 export namespace IamSchema {
   export const User = z.object({
     id: zSchema.num,

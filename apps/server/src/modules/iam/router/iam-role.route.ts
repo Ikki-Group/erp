@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { logger } from '@/lib/logger'
+import { PaginationQuery } from '@/lib/pagination'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
@@ -12,15 +12,14 @@ export function initIamRoleRoute(service: IamServiceModule) {
   return new Elysia()
     .get(
       '/list',
-      async function getRoles({ query }) {
+      async function listPaginated({ query }) {
         const { isSystem, search, page, limit } = query
         const result = await service.roles.listPaginated({ isSystem, search }, { page, limit })
-        logger.withMetadata(result).debug('Res')
         return res.paginated(result)
       },
       {
         query: z.object({
-          ...zSchema.pagination.shape,
+          ...PaginationQuery.shape,
           search: zSchema.query.search,
           isSystem: zSchema.query.boolean,
         }),

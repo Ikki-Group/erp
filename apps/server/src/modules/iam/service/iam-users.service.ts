@@ -1,4 +1,4 @@
-import { and, count, eq, ilike, ne, or } from 'drizzle-orm'
+import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import {
@@ -6,102 +6,111 @@ import {
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
-} from '@/lib/utils/pagination.util'
+} from '@/lib/pagination'
 import { hashPassword } from '@/lib/utils/password.util'
-import { users } from '@/database/schema'
 
 import { db } from '@/database'
+import { users } from '@/database/schema'
+
+import type { IamSchema } from '@/modules/iam/iam.schema'
 
 import type { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
+
+/* ---------------------------------- TYPES --------------------------------- */
 
 interface IFilter {
   search?: string
   isActive?: boolean
 }
 
-/**
- * Handles all user-related business logic including CRUD operations
- */
-export class IamUsersService {
-  err = {
-    NOT_FOUND: 'USER_NOT_FOUND',
-    EMAIL_EXISTS: 'USER_EMAIL_EXISTS',
-    USERNAME_EXISTS: 'USER_USERNAME_EXISTS',
-    EMAIL_USERNAME_EXISTS: 'USER_EMAIL_USERNAME_EXISTS',
-    ROOT_USER_DELETE_FORBIDDEN: 'ROOT_USER_DELETE_FORBIDDEN',
+/* -------------------------------- CONSTANT -------------------------------- */
+
+const err = {
+  notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`),
+  emailExist: (email: string) => new ConflictError(`Email ${email} already exist`, 'USER_EMAIL_ALREADY_EXISTS'),
+  usernameExist: (username: string) =>
+    new ConflictError(`Username ${username} already exist`, 'USER_USERNAME_ALREADY_EXISTS'),
+}
+
+/* --------------------------------- HELPER --------------------------------- */
+
+function buildWhereClause(filter: IFilter) {
+  const { search, isActive } = filter
+  const conditions = []
+
+  if (search) {
+    conditions.push(
+      or(ilike(users.email, `%${search}%`), ilike(users.username, `%${search}%`), ilike(users.fullname, `%${search}%`))
+    )
   }
 
+  if (isActive !== undefined) {
+    conditions.push(eq(users.isActive, isActive))
+  }
+
+  return conditions.length > 0 ? and(...conditions) : undefined
+}
+
+/* ----------------------------- IMPLEMENTATION ----------------------------- */
+
+export class IamUsersService {
   constructor(private userRoleAssignments?: IamUserRoleAssignmentsService) {}
 
   /**
-   * Builds a dynamic query with filters
-   * Returns a query builder that can be further modified
+   * Helper to ensure a user is not a root user
    */
-  private buildFilteredQuery(filter: IFilter) {
-    const { search, isActive } = filter
+  private ensureNotRoot(user: IamSchema.User, action: 'update' | 'delete'): void {
+    if (user.isRoot) {
+      throw new ConflictError(`Cannot ${action} root user`, `ROOT_USER_${action.toUpperCase()}_FORBIDDEN`, {
+        userId: user.id,
+      })
+    }
+  }
+
+  /**
+   * Helper to check for email or username conflicts
+   */
+  private async checkConflict(input: { email?: string; username?: string }, excludeId?: number): Promise<void> {
     const conditions = []
+    if (input.email) conditions.push(eq(users.email, input.email.toLowerCase().trim()))
+    if (input.username) conditions.push(eq(users.username, input.username.toLowerCase().trim()))
 
-    if (search) {
-      conditions.push(
-        or(
-          ilike(users.email, `%${search}%`),
-          ilike(users.username, `%${search}%`),
-          ilike(users.fullname, `%${search}%`)
-        )
-      )
-    }
+    if (conditions.length === 0) return
 
-    if (isActive !== undefined) {
-      conditions.push(eq(users.isActive, isActive))
-    }
+    const whereClause = excludeId ? and(or(...conditions), not(eq(users.id, excludeId))) : or(...conditions)
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
-    return db.select().from(users).where(whereClause).$dynamic()
+    const existing = await db
+      .select({ id: users.id, email: users.email, username: users.username })
+      .from(users)
+      .where(whereClause)
+      .limit(2)
+
+    if (existing.length === 0) return
+
+    const emailConflict = input.email && existing.some((u) => u.email === input.email?.toLowerCase().trim())
+    const usernameConflict = input.username && existing.some((u) => u.username === input.username?.toLowerCase().trim())
+
+    if (emailConflict) throw err.emailExist(input.email!)
+    if (usernameConflict) throw err.usernameExist(input.username!)
   }
 
-  /**
-   * Lists all users matching the filter criteria
-   */
-  list(filter: IFilter) {
-    return this.buildFilteredQuery(filter).orderBy(users.id)
+  async find(filter: IFilter): Promise<IamSchema.User[]> {
+    const whereClause = buildWhereClause(filter)
+    return db.select().from(users).where(whereClause).orderBy(users.id)
   }
 
-  /**
-   * Counts total users matching the filter criteria
-   */
   async count(filter: IFilter): Promise<number> {
-    const { search, isActive } = filter
-    const conditions = []
-
-    if (search) {
-      conditions.push(
-        or(
-          ilike(users.email, `%${search}%`),
-          ilike(users.username, `%${search}%`),
-          ilike(users.fullname, `%${search}%`)
-        )
-      )
-    }
-
-    if (isActive !== undefined) {
-      conditions.push(eq(users.isActive, isActive))
-    }
-
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    const whereClause = buildWhereClause(filter)
     const [result] = await db.select({ total: count() }).from(users).where(whereClause)
-
     return result?.total ?? 0
   }
 
-  /**
-   * Lists users with pagination
-   * Executes data fetch and count in parallel for better performance
-   */
-  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<typeof users.$inferSelect>> {
+  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<IamSchema.User>> {
     const { page, limit } = pq
+    const whereClause = buildWhereClause(filter)
 
     const [data, total] = await Promise.all([
-      withPagination(this.buildFilteredQuery(filter).orderBy(users.id).$dynamic(), pq).execute(),
+      withPagination(db.select().from(users).where(whereClause).orderBy(users.id).$dynamic(), pq).execute(),
       this.count(filter),
     ])
 
@@ -111,193 +120,87 @@ export class IamUsersService {
     }
   }
 
-  /**
-   * Retrieves a user by its ID
-   * Throws NotFoundError if user doesn't exist
-   */
-  async getById(id: number): Promise<typeof users.$inferSelect> {
+  async getById(id: number): Promise<IamSchema.User> {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
 
-    if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
-    }
-
+    if (!user) throw err.notFound(id)
     return user
   }
 
-  /**
-   * Retrieves a user by its email
-   * Returns null if not found
-   */
-  async getByEmail(email: string): Promise<typeof users.$inferSelect | null> {
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  async getByEmail(email: string): Promise<IamSchema.User | null> {
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1)
     return user ?? null
   }
 
-  /**
-   * Retrieves a user by its username
-   * Returns null if not found
-   */
-  async getByUsername(username: string): Promise<typeof users.$inferSelect | null> {
-    const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1)
+  async getByUsername(username: string): Promise<IamSchema.User | null> {
+    const [user] = await db.select().from(users).where(eq(users.username, username.toLowerCase().trim())).limit(1)
     return user ?? null
   }
 
-  /**
-   * Creates a new user with validation
-   * Checks for email and username uniqueness before creation
-   */
   async create(
-    dto: { email: string; username: string; fullname: string; password: string },
+    input: Pick<IamSchema.User, 'email' | 'username' | 'fullname'> & { password: string },
     createdBy = 1
-  ): Promise<typeof users.$inferSelect> {
-    // Check for existing email or username in a single query
-    const existing = await db
-      .select({ email: users.email, username: users.username })
-      .from(users)
-      .where(or(eq(users.email, dto.email), eq(users.username, dto.username)))
-      .limit(2)
+  ): Promise<IamSchema.User> {
+    await this.checkConflict(input)
 
-    // Check for conflicts
-    const emailExists = existing.some((u) => u.email === dto.email)
-    const usernameExists = existing.some((u) => u.username === dto.username)
+    const passwordHash = await hashPassword(input.password)
 
-    if (emailExists && usernameExists) {
-      throw new ConflictError('Email and username already exist', this.err.EMAIL_USERNAME_EXISTS, {
-        email: dto.email,
-        username: dto.username,
-      })
-    }
-
-    if (emailExists) {
-      throw new ConflictError('User with this email already exists', this.err.EMAIL_EXISTS, {
-        email: dto.email,
-      })
-    }
-
-    if (usernameExists) {
-      throw new ConflictError('User with this username already exists', this.err.USERNAME_EXISTS, {
-        username: dto.username,
-      })
-    }
-
-    // Hash password
-    const passwordHash = await hashPassword(dto.password)
-
-    // Create user in a transaction
-    const [user] = await db.transaction(async (tx) => {
-      const newUser: typeof users.$inferInsert = {
-        email: dto.email.toLowerCase().trim(),
-        username: dto.username.toLowerCase().trim(),
-        fullname: dto.fullname.trim(),
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: input.email.toLowerCase().trim(),
+        username: input.username.toLowerCase().trim(),
+        fullname: input.fullname.trim(),
         passwordHash,
         isRoot: false,
         isActive: true,
         createdBy,
         updatedBy: createdBy,
-      }
+      })
+      .returning()
 
-      return tx.insert(users).values(newUser).returning()
-    })
-
-    return user!
+    if (!user) throw new Error('Failed to create user')
+    return user
   }
 
-  /**
-   * Updates an existing user
-   * Validates uniqueness and updates fields
-   */
   async update(
     id: number,
-    dto: { email?: string; username?: string; fullname?: string; password?: string; isActive?: boolean },
+    input: Partial<Pick<IamSchema.User, 'email' | 'username' | 'fullname' | 'isActive'>> & { password?: string },
     updatedBy = 1
-  ): Promise<typeof users.$inferSelect> {
-    // Check if user exists
-    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
+  ): Promise<IamSchema.User> {
+    const user = await this.getById(id)
 
-    if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
+    this.ensureNotRoot(user, 'update')
+    // For now matching roles pattern: check conflict
+    await this.checkConflict(input, id)
+
+    const updateData: Partial<typeof users.$inferInsert> = {
+      updatedBy,
+      updatedAt: new Date(),
     }
 
-    // Check for uniqueness conflicts if email or username is being updated
-    const conditions = []
-    if (dto.email && dto.email !== user.email) {
-      conditions.push(eq(users.email, dto.email))
-    }
-    if (dto.username && dto.username !== user.username) {
-      conditions.push(eq(users.username, dto.username))
-    }
-
-    if (conditions.length > 0) {
-      const existing = await db
-        .select({ email: users.email, username: users.username })
-        .from(users)
-        .where(and(ne(users.id, id), or(...conditions)))
-        .limit(2)
-
-      const emailConflict = dto.email && existing.some((u) => u.email === dto.email)
-      const usernameConflict = dto.username && existing.some((u) => u.username === dto.username)
-
-      if (emailConflict && usernameConflict) {
-        throw new ConflictError('Email and username already in use', this.err.EMAIL_USERNAME_EXISTS, {
-          email: dto.email,
-          username: dto.username,
-        })
-      }
-
-      if (emailConflict) {
-        throw new ConflictError('Email already in use', this.err.EMAIL_EXISTS, { email: dto.email })
-      }
-
-      if (usernameConflict) {
-        throw new ConflictError('Username already in use', this.err.USERNAME_EXISTS, { username: dto.username })
-      }
+    if (input.email) updateData.email = input.email.toLowerCase().trim()
+    if (input.username) updateData.username = input.username.toLowerCase().trim()
+    if (input.fullname) updateData.fullname = input.fullname.trim()
+    if (input.isActive !== undefined) updateData.isActive = input.isActive
+    if (input.password) {
+      updateData.passwordHash = await hashPassword(input.password)
     }
 
-    // Update user in a transaction
-    const [updatedUser] = await db.transaction(async (tx) => {
-      // Prepare update data
-      const updateData: Partial<typeof users.$inferInsert> = {
-        updatedBy,
-      }
+    const [updatedUser] = await db.update(users).set(updateData).where(eq(users.id, id)).returning()
 
-      if (dto.email) updateData.email = dto.email.toLowerCase().trim()
-      if (dto.username) updateData.username = dto.username.toLowerCase().trim()
-      if (dto.fullname) updateData.fullname = dto.fullname.trim()
-      if (dto.isActive !== undefined) updateData.isActive = dto.isActive
-      if (dto.password) {
-        updateData.passwordHash = await hashPassword(dto.password)
-      }
-
-      return tx.update(users).set(updateData).where(eq(users.id, id)).returning()
-    })
-
-    return updatedUser!
+    if (!updatedUser) throw err.notFound(id)
+    return updatedUser
   }
 
-  /**
-   * Deletes a user permanently
-   * Prevents deletion of root users
-   */
   async delete(id: number): Promise<void> {
-    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
-
-    if (!user) {
-      throw new NotFoundError(`User with ID ${id} not found`, this.err.NOT_FOUND)
-    }
-
-    // Prevent deletion of root users
-    if (user.isRoot) {
-      throw new ConflictError('Cannot delete root user', this.err.ROOT_USER_DELETE_FORBIDDEN, { userId: id })
-    }
+    const user = await this.getById(id)
+    this.ensureNotRoot(user, 'delete')
 
     await db.delete(users).where(eq(users.id, id))
   }
 
-  /**
-   * Toggles user active status
-   */
-  async toggleActive(id: number, updatedBy = 1): Promise<typeof users.$inferSelect> {
+  async toggleActive(id: number, updatedBy = 1): Promise<IamSchema.User> {
     const user = await this.getById(id)
 
     const [updatedUser] = await db
@@ -305,144 +208,102 @@ export class IamUsersService {
       .set({
         isActive: !user.isActive,
         updatedBy,
+        updatedAt: new Date(),
       })
       .where(eq(users.id, id))
       .returning()
 
-    return updatedUser!
+    if (!updatedUser) throw err.notFound(id)
+    return updatedUser
   }
 
   /**
-   * Creates a new user with role assignments
-   * Handles both user creation and role assignment in a coordinated manner
+   * Complex operation: Create user and assign roles
    */
-  async createWithRoles(
-    dto: {
-      email: string
-      username: string
-      fullname: string
-      password: string
-      isRoot: boolean
-      isActive: boolean
-      roles: { locationId: number | null; roleId: number }[]
-    },
-    createdBy = 1
-  ): Promise<typeof users.$inferSelect> {
+  async createWithRoles(input: IamSchema.UserCreateDto, createdBy = 1): Promise<IamSchema.User> {
     if (!this.userRoleAssignments) {
       throw new Error('UserRoleAssignments service not initialized')
     }
 
-    // Validate and filter roles (remove null locationIds)
-    const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
-      locationId: number
-      roleId: number
-    }[]
+    const userRoleAssignments = this.userRoleAssignments
 
-    // Create user first
-    const user = await this.create(
-      {
-        email: dto.email,
-        username: dto.username,
-        fullname: dto.fullname,
-        password: dto.password,
-      },
-      createdBy
-    )
+    return await db.transaction(async (tx) => {
+      // 1. Create User
+      await this.checkConflict(input)
+      const passwordHash = await hashPassword(input.password)
 
-    // Update isRoot and isActive if needed
-    if (dto.isRoot !== false || dto.isActive !== true) {
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          isRoot: dto.isRoot,
-          isActive: dto.isActive,
+      const [user] = await tx
+        .insert(users)
+        .values({
+          email: input.email.toLowerCase().trim(),
+          username: input.username.toLowerCase().trim(),
+          fullname: input.fullname.trim(),
+          passwordHash,
+          isRoot: input.isRoot ?? false,
+          isActive: input.isActive ?? true,
+          createdBy,
           updatedBy: createdBy,
         })
-        .where(eq(users.id, user.id))
         .returning()
 
-      // Sync role assignments
-      if (validRoles.length > 0) {
-        await this.userRoleAssignments.syncUserRoles(updatedUser!.id, validRoles, createdBy)
-      }
+      if (!user) throw new Error('Failed to create user')
 
-      return updatedUser!
-    }
-
-    // Sync role assignments
-    if (validRoles.length > 0) {
-      await this.userRoleAssignments.syncUserRoles(user.id, validRoles, createdBy)
-    }
-
-    return user
-  }
-
-  /**
-   * Updates an existing user with role assignments
-   * Handles both user update and role assignment sync
-   */
-  async updateWithRoles(
-    id: number,
-    dto: {
-      email?: string
-      username?: string
-      fullname?: string
-      password?: string
-      isRoot?: boolean
-      isActive?: boolean
-      roles?: { locationId: number | null; roleId: number }[]
-    },
-    updatedBy = 1
-  ): Promise<typeof users.$inferSelect> {
-    if (!this.userRoleAssignments) {
-      throw new Error('UserRoleAssignments service not initialized')
-    }
-
-    // Update user basic info
-    const user = await this.update(
-      id,
-      {
-        email: dto.email,
-        username: dto.username,
-        fullname: dto.fullname,
-        password: dto.password,
-        isActive: dto.isActive,
-      },
-      updatedBy
-    )
-
-    // Update isRoot if provided
-    if (dto.isRoot !== undefined) {
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          isRoot: dto.isRoot,
-          updatedBy,
-        })
-        .where(eq(users.id, id))
-        .returning()
-
-      // Sync role assignments if provided
-      if (dto.roles !== undefined) {
-        const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
-          locationId: number
-          roleId: number
-        }[]
-        await this.userRoleAssignments.syncUserRoles(id, validRoles, updatedBy)
-      }
-
-      return updatedUser!
-    }
-
-    // Sync role assignments if provided
-    if (dto.roles !== undefined) {
-      const validRoles = dto.roles.filter((r) => r.locationId !== null) as {
+      // 2. Assign Roles
+      const validRoles = input.roles.filter((r) => r.locationId !== null) as {
         locationId: number
         roleId: number
       }[]
-      await this.userRoleAssignments.syncUserRoles(id, validRoles, updatedBy)
+
+      if (validRoles.length > 0) {
+        await userRoleAssignments.syncUserRoles(user.id, validRoles, createdBy, tx)
+      }
+
+      return user
+    })
+  }
+
+  /**
+   * Complex operation: Update user and sync roles
+   */
+  async updateWithRoles(id: number, input: IamSchema.UserUpdateDto, updatedBy = 1): Promise<IamSchema.User> {
+    if (!this.userRoleAssignments) {
+      throw new Error('UserRoleAssignments service not initialized')
     }
 
-    return user
+    const userRoleAssignments = this.userRoleAssignments
+
+    return await db.transaction(async (tx) => {
+      // 1. Update User Basic Info
+      await this.checkConflict(input, id)
+
+      const updateData: Partial<typeof users.$inferInsert> = {
+        updatedBy,
+        updatedAt: new Date(),
+      }
+
+      if (input.email) updateData.email = input.email.toLowerCase().trim()
+      if (input.username) updateData.username = input.username.toLowerCase().trim()
+      if (input.fullname) updateData.fullname = input.fullname.trim()
+      if (input.isActive !== undefined) updateData.isActive = input.isActive
+      if (input.isRoot !== undefined) updateData.isRoot = input.isRoot
+      if (input.password) {
+        updateData.passwordHash = await hashPassword(input.password)
+      }
+
+      const [user] = await tx.update(users).set(updateData).where(eq(users.id, id)).returning()
+
+      if (!user) throw err.notFound(id)
+
+      // 2. Sync Roles if provided
+      if (input.roles !== undefined) {
+        const validRoles = input.roles.filter((r) => r.locationId !== null) as {
+          locationId: number
+          roleId: number
+        }[]
+        await userRoleAssignments.syncUserRoles(user.id, validRoles, updatedBy, tx)
+      }
+
+      return user
+    })
   }
 }
