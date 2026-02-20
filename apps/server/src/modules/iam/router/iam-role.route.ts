@@ -5,7 +5,7 @@ import { PaginationQuery } from '@/lib/pagination'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { IamSchema } from '../iam.schema'
+import { RoleDto, RoleMutationDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initIamRoleRoute(service: IamServiceModule) {
@@ -23,7 +23,7 @@ export function initIamRoleRoute(service: IamServiceModule) {
           search: zSchema.query.search,
           isSystem: zSchema.query.boolean,
         }),
-        response: zResponse.paginated(IamSchema.Role.array()),
+        response: zResponse.paginated(RoleDto.array()),
       }
     )
     .get(
@@ -34,7 +34,7 @@ export function initIamRoleRoute(service: IamServiceModule) {
       },
       {
         query: z.object({ id: zSchema.query.idRequired }),
-        response: zResponse.ok(IamSchema.Role),
+        response: zResponse.ok(RoleDto),
       }
     )
     .post(
@@ -44,12 +44,8 @@ export function initIamRoleRoute(service: IamServiceModule) {
         return res.created(role, 'ROLE_CREATED')
       },
       {
-        body: IamSchema.Role.pick({
-          code: true,
-          name: true,
-          isSystem: true,
-        }),
-        response: zResponse.ok(IamSchema.Role),
+        body: RoleMutationDto,
+        response: zResponse.ok(RoleDto),
       }
     )
     .put(
@@ -59,13 +55,11 @@ export function initIamRoleRoute(service: IamServiceModule) {
         return res.ok(role, 'ROLE_UPDATED')
       },
       {
-        body: IamSchema.Role.pick({
-          id: true,
-          code: true,
-          name: true,
-          isSystem: true,
+        body: z.object({
+          id: zSchema.query.idRequired,
+          ...RoleMutationDto.shape,
         }),
-        response: zResponse.ok(IamSchema.Role),
+        response: zResponse.ok(RoleDto),
       }
     )
     .delete(
@@ -75,8 +69,8 @@ export function initIamRoleRoute(service: IamServiceModule) {
         return res.ok({ id: body.id }, 'ROLE_DELETED')
       },
       {
-        body: IamSchema.Role.pick({ id: true }),
-        response: zResponse.ok(IamSchema.Role.pick({ id: true })),
+        body: z.object({ id: zSchema.query.idRequired }),
+        response: zResponse.ok(z.object({ id: zSchema.query.idRequired })),
       }
     )
 }

@@ -1,6 +1,6 @@
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { BadRequestError, ConflictError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -11,7 +11,7 @@ import {
 import { db } from '@/database'
 import { roles } from '@/database/schema'
 
-import type { IamSchema } from '../iam.schema'
+import type { RoleDto, RoleMutationDto } from '../dto'
 
 /* ---------------------------------- TYPES --------------------------------- */
 
@@ -29,39 +29,24 @@ const err = {
   nameExist: (name: string) => new ConflictError(`Name ${name} exist`, 'ROLE_NAME_ALREADY_EXISTS'),
 }
 
-/* --------------------------------- HELPER --------------------------------- */
-
-function buildWhereClause(filter: IFilter) {
-  const { search, isSystem } = filter
-  const conditions = []
-
-  if (search) {
-    conditions.push(or(ilike(roles.code, `%${search}%`), ilike(roles.name, `%${search}%`)))
-  }
-
-  if (isSystem !== undefined) {
-    conditions.push(eq(roles.isSystem, isSystem))
-  }
-
-  return conditions.length > 0 ? and(...conditions) : undefined
-}
-
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class IamRolesService {
-  /**
-   * Helper to ensure a role is not a system role
-   */
-  private ensureNotSystem(role: typeof roles.$inferSelect, action: 'update' | 'delete'): void {
-    if (role.isSystem) {
-      const code = action === 'update' ? 'SYSTEM_ROLE_UPDATE_FORBIDDEN' : 'SYSTEM_ROLE_DELETE_FORBIDDEN'
-      throw new ConflictError(`Cannot ${action} system role`, code, { roleId: role.id })
+  buildWhereClause(filter: IFilter) {
+    const { search, isSystem } = filter
+    const conditions = []
+
+    if (search) {
+      conditions.push(or(ilike(roles.code, `%${search}%`), ilike(roles.name, `%${search}%`)))
     }
+
+    if (isSystem !== undefined) {
+      conditions.push(eq(roles.isSystem, isSystem))
+    }
+
+    return conditions.length > 0 ? and(...conditions) : undefined
   }
 
-  /**
-   * Helper to check for code or name conflicts
-   */
   private async checkConflict(input: { code: string; name: string }, excludeId?: number): Promise<void> {
     const conditions = [eq(roles.code, input.code), eq(roles.name, input.name)]
     const whereClause = excludeId ? and(or(...conditions), not(eq(roles.id, excludeId))) : or(...conditions)
@@ -81,20 +66,20 @@ export class IamRolesService {
     if (nameExists) throw err.nameExist(input.name)
   }
 
-  async find(filter: IFilter): Promise<IamSchema.Role[]> {
-    const whereClause = buildWhereClause(filter)
+  async find(filter: IFilter): Promise<RoleDto[]> {
+    const whereClause = this.buildWhereClause(filter)
     return db.select().from(roles).where(whereClause).orderBy(roles.id)
   }
 
   async count(filter: IFilter): Promise<number> {
-    const whereClause = buildWhereClause(filter)
+    const whereClause = this.buildWhereClause(filter)
     const [result] = await db.select({ total: count() }).from(roles).where(whereClause)
     return result?.total ?? 0
   }
 
-  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<IamSchema.Role>> {
+  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
     const { page, limit } = pq
-    const whereClause = buildWhereClause(filter)
+    const whereClause = this.buildWhereClause(filter)
 
     const [data, total] = await Promise.all([
       withPagination(db.select().from(roles).where(whereClause).orderBy(roles.id).$dynamic(), pq).execute(),
@@ -107,14 +92,14 @@ export class IamRolesService {
     }
   }
 
-  async getById(id: number): Promise<IamSchema.Role> {
+  async getById(id: number): Promise<RoleDto> {
     const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
 
     if (!role) throw err.idNotFound(id)
     return role
   }
 
-  async create(input: Pick<IamSchema.Role, 'code' | 'name' | 'isSystem'>, createdBy = 1): Promise<IamSchema.Role> {
+  async create(input: RoleMutationDto, createdBy = 1): Promise<RoleDto> {
     await this.checkConflict(input)
 
     const [role] = await db
@@ -132,10 +117,7 @@ export class IamRolesService {
     return role
   }
 
-  async update(id: number, input: Pick<IamSchema.Role, 'code' | 'name'>, updatedBy = 1): Promise<IamSchema.Role> {
-    const role = await this.getById(id)
-
-    this.ensureNotSystem(role, 'update')
+  async update(id: number, input: RoleMutationDto, updatedBy = 1): Promise<RoleDto> {
     await this.checkConflict(input, id)
 
     const [updatedRole] = await db
@@ -144,7 +126,6 @@ export class IamRolesService {
         code: input.code,
         name: input.name,
         updatedBy,
-        updatedAt: new Date(),
       })
       .where(eq(roles.id, id))
       .returning()
@@ -155,7 +136,7 @@ export class IamRolesService {
 
   async delete(id: number): Promise<void> {
     const role = await this.getById(id)
-    this.ensureNotSystem(role, 'delete')
+    if (role.isSystem) throw new BadRequestError("Can't delete system role")
 
     await db.delete(roles).where(eq(roles.id, id))
   }
