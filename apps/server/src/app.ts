@@ -5,7 +5,7 @@ import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/htt
 import { otel } from '@/lib/otel'
 
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
-import { initLocationsRouteModule, LocationServiceModule } from '@/modules/locations'
+import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 import { initMasterRouteModule, MasterServiceModule } from '@/modules/master'
 
 // Services
@@ -15,7 +15,7 @@ const masterService = new MasterServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
-const locationsRoute = initLocationsRouteModule(locationService)
+const locationsRoute = initLocationRouteModule(locationService)
 const masterRoute = initMasterRouteModule(masterService)
 
 export const app = new Elysia({

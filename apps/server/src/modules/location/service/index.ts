@@ -1,7 +1,7 @@
-import { LocationsService } from './locations.service'
+import { LocationsService } from './location.service'
 
 export class LocationServiceModule {
   constructor(public readonly locations: LocationsService = new LocationsService()) {}
 }
 
-export { LocationsService } from './locations.service'
+export { LocationsService } from './location.service'

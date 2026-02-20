@@ -5,8 +5,8 @@ import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
 import { zResponse, zSchema } from '@/lib/zod'
 
-import { LocationSchema } from '../locations.types'
-import type { LocationsService } from '../service/locations.service'
+import { LocationSchema } from '../location.schema'
+import type { LocationsService } from '../service/location.service'
 
 /**
  * Location Routes
