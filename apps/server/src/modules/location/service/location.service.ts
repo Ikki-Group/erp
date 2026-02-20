@@ -11,11 +11,11 @@ import {
 import { db } from '@/database'
 import { locations } from '@/database/schema'
 
-import type { LocationSchema, LocationType } from '../location.schema'
+import type { LocationSchema, LocationType } from '@/modules/location/location.schema'
 
 /* ---------------------------------- TYPES --------------------------------- */
 
-interface IFilter {
+interface LocationFilter {
   search?: string
   type?: LocationType
   isActive?: boolean
@@ -25,13 +25,13 @@ interface IFilter {
 const err = {
   idNotFound: (id: number) => new NotFoundError(`Location id ${id} not found`),
   codeExist: (code: string) => new ConflictError(`Location code ${code} exist`, 'LOCATION_CODE_ALREADY_EXISTS'),
-  nameExist: (name: string) => new ConflictError(`Location name ${name} exist`),
+  nameExist: (name: string) => new ConflictError(`Location name ${name} exist`, 'LOCATION_NAME_ALREADY_EXISTS'),
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class LocationService {
-  buildWhereClause(filter: IFilter) {
+  protected buildWhereClause(filter: LocationFilter) {
     const { search, type, isActive } = filter
     const conditions = []
 
@@ -62,25 +62,25 @@ export class LocationService {
 
     if (existing.length === 0) return
 
-    const codeExists = existing.some((r) => r.code === input.code)
-    const nameExists = existing.some((r) => r.name === input.name)
+    const codeExists = existing.some((r) => r.code.toUpperCase() === input.code.toUpperCase())
+    const nameExists = existing.some((r) => r.name.toLowerCase() === input.name.toLowerCase())
 
     if (codeExists) throw err.codeExist(input.code)
     if (nameExists) throw err.nameExist(input.name)
   }
 
-  async find(filter: IFilter): Promise<LocationSchema[]> {
+  async find(filter: LocationFilter): Promise<LocationSchema[]> {
     const whereClause = this.buildWhereClause(filter)
     return db.select().from(locations).where(whereClause).execute()
   }
 
-  async count(filter: IFilter): Promise<number> {
+  async count(filter: LocationFilter): Promise<number> {
     const whereClause = this.buildWhereClause(filter)
     const [result] = await db.select({ total: count() }).from(locations).where(whereClause)
     return result?.total || 0
   }
 
-  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<LocationSchema>> {
+  async listPaginated(filter: LocationFilter, pq: PaginationQuery): Promise<WithPaginationResult<LocationSchema>> {
     const { page, limit } = pq
 
     const whereClause = this.buildWhereClause(filter)
@@ -102,7 +102,7 @@ export class LocationService {
   }
 
   async create(input: Pick<LocationSchema, 'code' | 'name' | 'type' | 'description' | 'isActive'>, createdBy = 1) {
-    this.checkConflict(input)
+    await this.checkConflict(input)
 
     const [location] = await db
       .insert(locations)
@@ -140,6 +140,8 @@ export class LocationService {
       .where(eq(locations.id, id))
       .returning()
 
-    return updatedLocation!
+    if (!updatedLocation) throw err.idNotFound(id)
+
+    return updatedLocation
   }
 }
