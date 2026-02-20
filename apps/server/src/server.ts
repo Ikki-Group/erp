@@ -2,14 +2,11 @@ import { logger } from '@/lib/logger'
 
 import 'zod-openapi'
 
+import { app } from '@/app'
 import { env } from '@/config/env'
-import { closeDatabase } from '@/database'
 
-import { app } from './app'
-
-const server = app.listen({
+app.listen({
   port: env.PORT,
-  hostname: env.HOST,
 })
 
 logger
@@ -20,16 +17,16 @@ logger
   })
   .info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`)
 
-async function shutdown() {
-  logger.info('Shutting down')
+// async function shutdown() {
+//   logger.info('Shutting down')
 
-  await server.stop()
-  await closeDatabase()
-  logger.info('Shutdown complete')
+//   await server.stop()
+//   await closeDatabase()
+//   logger.info('Shutdown complete')
 
-  // eslint-disable-next-line unicorn/no-process-exit
-  process.exit(0)
-}
+//   // eslint-disable-next-line unicorn/no-process-exit
+//   process.exit(0)
+// }
 
-process.on('SIGINT', shutdown)
-process.on('SIGTERM', shutdown)
+// process.on('SIGINT', shutdown)
+// process.on('SIGTERM', shutdown)

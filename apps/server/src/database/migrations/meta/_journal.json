@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1770346322844,
-      "tag": "0000_dashing_marvel_zombies",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1770666844543,
-      "tag": "0001_real_clint_barton",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1770696439715,
-      "tag": "0002_wonderful_agent_zero",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1771587365830,
-      "tag": "0003_worried_patriot",
+      "when": 1771591978248,
+      "tag": "0000_long_machine_man",
       "breakpoints": true
     }
   ]

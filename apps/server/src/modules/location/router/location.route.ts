@@ -4,12 +4,9 @@ import z from 'zod'
 import { res } from '@/lib/utils/response.util'
 import { zSchema } from '@/lib/zod'
 
-import { LocationSchema, LocationType } from '../location.schema'
+import { LocationMutationDto, LocationType } from '../dto'
 import type { LocationService } from '../service/location.service'
 
-/**
- * Location Routes
- */
 export function initLocationRoute(service: LocationService) {
   return new Elysia()
     .get(
@@ -45,13 +42,7 @@ export function initLocationRoute(service: LocationService) {
         return res.created(location, 'LOCATION_CREATED')
       },
       {
-        body: LocationSchema.pick({
-          code: true,
-          name: true,
-          type: true,
-          description: true,
-          isActive: true,
-        }),
+        body: LocationMutationDto,
       }
     )
     .put(
@@ -61,13 +52,15 @@ export function initLocationRoute(service: LocationService) {
         return res.ok(location, 'LOCATION_UPDATED')
       },
       {
-        body: LocationSchema.pick({
-          id: true,
-          code: true,
-          name: true,
-          type: true,
-          description: true,
-          isActive: true,
+        body: z.object({
+          id: zSchema.query.idRequired,
+          ...LocationMutationDto.pick({
+            code: true,
+            name: true,
+            type: true,
+            description: true,
+            isActive: true,
+          }).shape,
         }),
       }
     )

@@ -11,7 +11,7 @@ import {
 import { db } from '@/database'
 import { locations } from '@/database/schema'
 
-import type { LocationSchema, LocationType } from '@/modules/location/location.schema'
+import type { LocationDto, LocationMutationDto, LocationType } from '../dto'
 
 /* ---------------------------------- TYPES --------------------------------- */
 
@@ -23,9 +23,11 @@ interface LocationFilter {
 
 /* -------------------------------- CONSTANT -------------------------------- */
 const err = {
-  idNotFound: (id: number) => new NotFoundError(`Location id ${id} not found`),
-  codeExist: (code: string) => new ConflictError(`Location code ${code} exist`, 'LOCATION_CODE_ALREADY_EXISTS'),
-  nameExist: (name: string) => new ConflictError(`Location name ${name} exist`, 'LOCATION_NAME_ALREADY_EXISTS'),
+  idNotFound: (id: number) => new NotFoundError(`Location ID ${id} not found`),
+  codeExist: (code: string) =>
+    new ConflictError(`Location code ${code} already exists`, 'LOCATION_CODE_ALREADY_EXISTS'),
+  nameExist: (name: string) =>
+    new ConflictError(`Location name ${name} already exists`, 'LOCATION_NAME_ALREADY_EXISTS'),
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -50,8 +52,15 @@ export class LocationService {
     return conditions.length > 0 ? and(...conditions) : undefined
   }
 
-  async checkConflict(input: { code: string; name: string }, excludeId?: number): Promise<void> {
-    const conditions = [eq(locations.code, input.code), eq(locations.name, input.name)]
+  async checkConflict(input: { code?: string; name?: string }, excludeId?: number): Promise<void> {
+    const { code, name } = input
+
+    const conditions = []
+    if (code) conditions.push(eq(locations.code, code))
+    if (name) conditions.push(eq(locations.name, name))
+
+    if (conditions.length === 0) return
+
     const whereClause = excludeId ? and(or(...conditions), not(eq(locations.id, excludeId))) : or(...conditions)
 
     const existing = await db
@@ -61,15 +70,14 @@ export class LocationService {
       .limit(2)
 
     if (existing.length === 0) return
+    const codeConflict = code && existing.some((r) => r.code === code)
+    const nameConflict = name && existing.some((r) => r.name === name)
 
-    const codeExists = existing.some((r) => r.code.toUpperCase() === input.code.toUpperCase())
-    const nameExists = existing.some((r) => r.name.toLowerCase() === input.name.toLowerCase())
-
-    if (codeExists) throw err.codeExist(input.code)
-    if (nameExists) throw err.nameExist(input.name)
+    if (codeConflict) throw err.codeExist(code)
+    if (nameConflict) throw err.nameExist(name)
   }
 
-  async find(filter: LocationFilter): Promise<LocationSchema[]> {
+  async find(filter: LocationFilter): Promise<LocationDto[]> {
     const whereClause = this.buildWhereClause(filter)
     return db.select().from(locations).where(whereClause).execute()
   }
@@ -80,7 +88,7 @@ export class LocationService {
     return result?.total || 0
   }
 
-  async listPaginated(filter: LocationFilter, pq: PaginationQuery): Promise<WithPaginationResult<LocationSchema>> {
+  async listPaginated(filter: LocationFilter, pq: PaginationQuery): Promise<WithPaginationResult<LocationDto>> {
     const { page, limit } = pq
 
     const whereClause = this.buildWhereClause(filter)
@@ -101,16 +109,13 @@ export class LocationService {
     return location
   }
 
-  async create(input: Pick<LocationSchema, 'code' | 'name' | 'type' | 'description' | 'isActive'>, createdBy = 1) {
+  async create(input: LocationMutationDto, createdBy = 1) {
     await this.checkConflict(input)
 
     const [location] = await db
       .insert(locations)
       .values({
-        code: input.code.toUpperCase().trim(),
-        name: input.name.trim(),
-        type: input.type,
-        description: input.description?.trim() ?? null,
+        ...input,
         isActive: input.isActive ?? true,
         createdBy,
         updatedBy: createdBy,
@@ -120,28 +125,19 @@ export class LocationService {
     return location!
   }
 
-  async update(
-    id: number,
-    input: Pick<LocationSchema, 'code' | 'name' | 'type' | 'description' | 'isActive'>,
-    updatedBy = 1
-  ) {
-    await this.checkConflict(input, id)
+  async update(id: number, input: LocationMutationDto, updatedBy = 1) {
+    await this.checkConflict({ code: input.code, name: input.name }, id)
 
     const [updatedLocation] = await db
       .update(locations)
       .set({
-        code: input.code?.toUpperCase().trim(),
-        name: input.name?.trim(),
-        type: input.type,
-        description: input.description?.trim(),
-        isActive: input.isActive,
+        ...input,
         updatedBy,
       })
       .where(eq(locations.id, id))
       .returning()
 
     if (!updatedLocation) throw err.idNotFound(id)
-
     return updatedLocation
   }
 }

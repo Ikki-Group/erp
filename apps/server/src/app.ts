@@ -36,6 +36,7 @@ export const app = new Elysia({
       error = new InternalServerError('Internal server error', 'INTERNAL_SERVER_ERROR', ctx.error)
     }
 
+    ctx.set.status = error.statusCode
     return error.toJSON()
   })
   .use(otel)

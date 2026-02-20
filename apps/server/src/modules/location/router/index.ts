@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 
 import type { LocationServiceModule } from '../service'
-import { initLocationRoute } from './locations.route'
+import { initLocationRoute } from './location.route'
 
 export function initLocationRouteModule(service: LocationServiceModule) {
   const locationRouter = initLocationRoute(service.location)
