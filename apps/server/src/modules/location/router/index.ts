@@ -4,7 +4,7 @@ import type { LocationServiceModule } from '../service'
 import { initLocationRoute } from './locations.route'
 
 export function initLocationRouteModule(service: LocationServiceModule) {
-  const locationRouter = initLocationRoute(service.locations)
+  const locationRouter = initLocationRoute(service.location)
 
-  return new Elysia({ prefix: '/locations', tags: ['locations'] }).group('', (g) => g.use(locationRouter))
+  return new Elysia({ prefix: '/location', tags: ['locations'] }).group('', (g) => g.use(locationRouter))
 }

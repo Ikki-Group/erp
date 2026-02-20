@@ -23,7 +23,7 @@ export function initLocationRoute(service: LocationService) {
         query: z.object({
           ...zSchema.pagination.shape,
           search: zSchema.query.search,
-          type: LocationType,
+          type: LocationType.optional(),
           isActive: zSchema.query.boolean,
         }),
       }
