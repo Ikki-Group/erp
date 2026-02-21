@@ -2,16 +2,16 @@ import Elysia from 'elysia'
 import z from 'zod'
 
 import { res } from '@/lib/utils/response.util'
-import { zHttp } from '@/lib/validation'
+import { zHttp, zResponse, zSchema } from '@/lib/validation'
 
-import { LocationMutationDto, LocationType } from '../dto'
+import { LocationCreateDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 import type { LocationService } from '../service/location.service'
 
 export function initLocationRoute(service: LocationService) {
   return new Elysia()
     .get(
       '/list',
-      async function getLocations({ query }) {
+      async function list({ query }) {
         const { isActive, search, type, page, limit } = query
         const result = await service.listPaginated({ isActive, search, type }, { page, limit })
         return res.paginated(result)
@@ -19,9 +19,7 @@ export function initLocationRoute(service: LocationService) {
       {
         query: z.object({
           ...zHttp.pagination.shape,
-          search: zHttp.query.search,
-          type: LocationType.optional(),
-          isActive: zHttp.query.boolean,
+          ...LocationFilterDto.shape,
         }),
       }
     )
@@ -37,31 +35,24 @@ export function initLocationRoute(service: LocationService) {
     )
     .post(
       '/create',
-      async function createLocation({ body }) {
-        const location = await service.create(body)
-        return res.created(location, 'LOCATION_CREATED')
+      async function create({ body }) {
+        const { id } = await service.create(body)
+        return res.created({ id }, 'LOCATION_CREATED')
       },
       {
-        body: LocationMutationDto,
+        body: LocationCreateDto,
+        response: zResponse.ok(zSchema.recordId),
       }
     )
     .put(
       '/update',
-      async function updateLocation({ body }) {
-        const location = await service.update(body.id, body)
-        return res.ok(location, 'LOCATION_UPDATED')
+      async function update({ body }) {
+        const { id } = await service.update(body.id, body)
+        return res.ok({ id }, 'LOCATION_UPDATED')
       },
       {
-        body: z.object({
-          id: zHttp.query.idRequired,
-          ...LocationMutationDto.pick({
-            code: true,
-            name: true,
-            type: true,
-            description: true,
-            isActive: true,
-          }).shape,
-        }),
+        body: LocationUpdateDto,
+        response: zResponse.ok(zSchema.recordId),
       }
     )
 }

@@ -2,6 +2,7 @@ import { cors } from '@elysiajs/cors'
 import { Elysia, ValidationError } from 'elysia'
 
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
+import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
@@ -37,6 +38,7 @@ export const app = new Elysia({
     }
 
     ctx.set.status = error.statusCode
+    logger.withError(ctx.error).error(error.message)
     return error.toJSON()
   })
   .use(otel)

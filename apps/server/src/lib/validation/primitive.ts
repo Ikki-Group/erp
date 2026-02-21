@@ -2,6 +2,11 @@ import z from 'zod'
 
 // Base types
 const str = z.string().trim()
+const strNullable = z
+  .string()
+  .trim()
+  .nullable()
+  .transform((val) => val?.trim() || null)
 const num = z.number()
 const numCoerce = z.coerce.number()
 const date = z.coerce.date()
@@ -24,6 +29,7 @@ const username = z
 
 export const zPrimitive = {
   str,
+  strNullable,
   num,
   numCoerce,
   date,

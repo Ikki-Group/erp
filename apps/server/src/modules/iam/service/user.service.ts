@@ -105,7 +105,7 @@ export class UserService {
   async #buildRootUser(user: UserDto): Promise<UserDetailDto> {
     const [superAdminRole, allLocations] = await Promise.all([
       db.query.roles.findFirst({
-        where: (r, { eq }) => eq(r.code, 'SUPER_ADMIN'),
+        where: (r, { eq }) => eq(r.code, 'SUPERADMIN'),
       }),
       db.select().from(locations),
     ])
