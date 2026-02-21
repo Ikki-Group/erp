@@ -1,7 +1,9 @@
-import { db } from '@server/database'
-import { materialUoms, materials, uoms } from '@server/database/schema'
-import { ConflictError, NotFoundError } from '@server/lib/error/http'
 import { and, eq } from 'drizzle-orm'
+
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+
+import { db } from '@/database'
+import { materials, materialUoms, uoms } from '@/database/schema'
 
 /**
  * Handles all material unit-related business logic
@@ -21,6 +23,7 @@ export class MaterialUnitsService {
     {
       materialId: number
       isBase: boolean
+      conversionFactor: string
       createdAt: Date
       createdBy: number
       updatedAt: Date
@@ -32,6 +35,7 @@ export class MaterialUnitsService {
       .select({
         materialId: materialUoms.materialId,
         isBase: materialUoms.isBase,
+        conversionFactor: materialUoms.conversionFactor,
         createdAt: materialUoms.createdAt,
         createdBy: materialUoms.createdBy,
         updatedAt: materialUoms.updatedAt,
@@ -60,10 +64,7 @@ export class MaterialUnitsService {
       .limit(1)
 
     if (!materialUnit) {
-      throw new NotFoundError(
-        `Material UOM ${uom} for material ${materialId} not found`,
-        this.err.NOT_FOUND
-      )
+      throw new NotFoundError(`Material UOM ${uom} for material ${materialId} not found`, this.err.NOT_FOUND)
     }
 
     return materialUnit
@@ -75,6 +76,7 @@ export class MaterialUnitsService {
   async assignUom(
     materialId: number,
     uom: string,
+    conversionFactor: string,
     isBase: boolean,
     createdBy = 1
   ): Promise<typeof materialUoms.$inferSelect> {
@@ -129,6 +131,7 @@ export class MaterialUnitsService {
         materialId,
         uom: uomCode,
         isBase,
+        conversionFactor,
         createdBy,
         updatedBy: createdBy,
       }
@@ -197,8 +200,6 @@ export class MaterialUnitsService {
       )
     }
 
-    await db
-      .delete(materialUoms)
-      .where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
+    await db.delete(materialUoms).where(and(eq(materialUoms.materialId, materialId), eq(materialUoms.uom, uomCode)))
   }
 }

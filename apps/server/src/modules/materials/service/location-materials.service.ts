@@ -1,13 +1,11 @@
-import { db } from '@server/database'
-import { locationMaterials, locations, materials } from '@server/database/schema'
-import { ConflictError, NotFoundError } from '@server/lib/error/http'
-import {
-  calculatePaginationMeta,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@server/lib/utils/pagination.util'
 import type { SQL } from 'drizzle-orm'
 import { and, count, eq, ilike, or } from 'drizzle-orm'
+
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { calculatePaginationMeta, type PaginationQuery, type WithPaginationResult } from '@/lib/utils/pagination.util'
+
+import { db } from '@/database'
+import { locationMaterials, locations, materials } from '@/database/schema'
 
 interface IFilter {
   search?: string
@@ -37,6 +35,7 @@ export class LocationMaterialsService {
       materialId: number
       stockAlertThreshold: string | null
       weightedAvgCost: string | null
+      totalValue: string | null
       isActive: boolean
       createdAt: Date
       createdBy: number
@@ -73,6 +72,7 @@ export class LocationMaterialsService {
           materialId: locationMaterials.materialId,
           stockAlertThreshold: locationMaterials.stockAlertThreshold,
           weightedAvgCost: locationMaterials.weightedAvgCost,
+          totalValue: locationMaterials.totalValue,
           isActive: locationMaterials.isActive,
           createdAt: locationMaterials.createdAt,
           createdBy: locationMaterials.createdBy,
@@ -116,6 +116,7 @@ export class LocationMaterialsService {
       materialId: number
       stockAlertThreshold: string | null
       weightedAvgCost: string | null
+      totalValue: string | null
       isActive: boolean
       createdAt: Date
       createdBy: number
@@ -131,6 +132,7 @@ export class LocationMaterialsService {
         materialId: locationMaterials.materialId,
         stockAlertThreshold: locationMaterials.stockAlertThreshold,
         weightedAvgCost: locationMaterials.weightedAvgCost,
+        totalValue: locationMaterials.totalValue,
         isActive: locationMaterials.isActive,
         createdAt: locationMaterials.createdAt,
         createdBy: locationMaterials.createdBy,

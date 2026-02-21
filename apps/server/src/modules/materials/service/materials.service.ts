@@ -1,12 +1,10 @@
-import { db } from '@server/database'
-import { locationMaterials, locations, materialCategories, materialUoms, materials, uoms } from '@server/database/schema'
-import { ConflictError, NotFoundError } from '@server/lib/error/http'
-import {
-  calculatePaginationMeta,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@server/lib/utils/pagination.util'
 import { and, count, eq, ilike, or, sql } from 'drizzle-orm'
+
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { calculatePaginationMeta, type PaginationQuery, type WithPaginationResult } from '@/lib/utils/pagination.util'
+
+import { db } from '@/database'
+import { locationMaterials, locations, materialCategories, materials, materialUoms, uoms } from '@/database/schema'
 
 interface IFilter {
   search?: string
@@ -288,15 +286,13 @@ export class MaterialsService {
         materialId: createdMaterial!.id,
         uom: baseUom,
         isBase: true,
+        conversionFactor: '1',
         createdBy,
         updatedBy: createdBy,
       })
 
       // Auto-assign to all warehouse and central_warehouse locations
-      const warehouseLocations = await tx
-        .select()
-        .from(locations)
-        .where(or(eq(locations.type, 'warehouse'), eq(locations.type, 'central_warehouse')))
+      const warehouseLocations = await tx.select().from(locations).where(eq(locations.type, 'warehouse'))
 
       if (warehouseLocations.length > 0) {
         const locationMaterialValues = warehouseLocations.map((location) => ({
@@ -304,6 +300,7 @@ export class MaterialsService {
           materialId: createdMaterial!.id,
           stockAlertThreshold: '0',
           weightedAvgCost: '0',
+          totalValue: '0',
           isActive: true,
           createdBy,
           updatedBy: createdBy,
@@ -368,10 +365,7 @@ export class MaterialsService {
           throw new NotFoundError(`UOM ${nextBase} not found`, 'UOM_NOT_FOUND')
         }
 
-        await tx
-          .update(materialUoms)
-          .set({ isBase: false, updatedBy })
-          .where(eq(materialUoms.materialId, id))
+        await tx.update(materialUoms).set({ isBase: false, updatedBy }).where(eq(materialUoms.materialId, id))
 
         const [existing] = await tx
           .select()
@@ -379,20 +373,19 @@ export class MaterialsService {
           .where(and(eq(materialUoms.materialId, id), eq(materialUoms.uom, nextBase)))
           .limit(1)
 
-        if (existing) {
-          await tx
-            .update(materialUoms)
-            .set({ isBase: true, updatedBy })
-            .where(and(eq(materialUoms.materialId, id), eq(materialUoms.uom, nextBase)))
-        } else {
-          await tx.insert(materialUoms).values({
-            materialId: id,
-            uom: nextBase,
-            isBase: true,
-            createdBy: updatedBy,
-            updatedBy,
-          })
-        }
+        await (existing
+          ? tx
+              .update(materialUoms)
+              .set({ isBase: true, updatedBy })
+              .where(and(eq(materialUoms.materialId, id), eq(materialUoms.uom, nextBase)))
+          : tx.insert(materialUoms).values({
+              materialId: id,
+              uom: nextBase,
+              isBase: true,
+              conversionFactor: '1',
+              createdBy: updatedBy,
+              updatedBy,
+            }))
       }
 
       return [saved]

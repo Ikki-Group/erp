@@ -31,6 +31,7 @@ export const materialUoms = pgTable('material_uoms', {
     .notNull()
     .references(() => uoms.code, { onDelete: 'restrict' }),
   isBase: boolean().default(false).notNull(),
+  conversionFactor: decimal({ precision: 20, scale: 6 }).notNull(),
   ...metafields,
 })
 
@@ -77,6 +78,7 @@ export const locationMaterials = pgTable(
       .references(() => materials.id, { onDelete: 'cascade' }),
     stockAlertThreshold: decimal({ precision: 20, scale: 6 }).default('0'),
     weightedAvgCost: decimal({ precision: 20, scale: 6 }).default('0'),
+    totalValue: decimal({ precision: 20, scale: 6 }).default('0'),
     isActive: boolean().default(true).notNull(),
     ...metafields,
   },

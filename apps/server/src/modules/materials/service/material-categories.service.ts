@@ -1,12 +1,12 @@
-import { db } from '@server/database'
-import { materialCategories } from '@server/database/schema'
-import { ConflictError, NotFoundError } from '@server/lib/error/http'
+import { db } from '@/database'
+import { materialCategories } from '@/database/schema'
+import { ConflictError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
-} from '@server/lib/utils/pagination.util'
+} from '@/lib/utils/pagination.util'
 import { and, count, eq, ilike, or } from 'drizzle-orm'
 
 interface IFilter {

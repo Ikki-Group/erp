@@ -1,4 +1,4 @@
-import { zSchema } from '@server/lib/zod'
+import { zSchema } from '@/lib/zod'
 import z from 'zod'
 
 /**
@@ -96,6 +96,7 @@ export namespace MaterialsSchema {
     materialId: zSchema.num,
     uom: zSchema.str,
     isBase: zSchema.bool,
+    conversionFactor: zSchema.str,
     ...zSchema.meta.shape,
   })
 
@@ -119,6 +120,7 @@ export namespace MaterialsSchema {
     materialId: zSchema.num,
     stockAlertThreshold: zSchema.str.nullable(), // decimal as string
     weightedAvgCost: zSchema.str.nullable(), // decimal as string
+    totalValue: zSchema.str.nullable(), // decimal as string
     isActive: zSchema.bool,
     ...zSchema.meta.shape,
   })
@@ -223,6 +225,7 @@ export namespace MaterialsRequest {
   export const AssignMaterialUom = z.object({
     uom: zSchema.str,
     isBase: zSchema.bool.default(false),
+    conversionFactor: zSchema.str,
   })
 
   export type AssignMaterialUom = z.infer<typeof AssignMaterialUom>
@@ -243,6 +246,7 @@ export namespace MaterialsRequest {
   export const UpdateLocationMaterial = z.object({
     stockAlertThreshold: zSchema.str.optional(), // decimal as string
     weightedAvgCost: zSchema.str.optional(), // decimal as string
+    totalValue: zSchema.str.optional(), // decimal as string
     isActive: zSchema.bool.optional(),
   })
 

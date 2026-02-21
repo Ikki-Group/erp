@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../index'
-import { locations, roles, userRoleAssignments, users } from '../schema'
+import { locations, roles, userAssignments, users } from '../schema'
 
 export async function seedUsers() {
   console.log('Seeding users...')
@@ -37,11 +37,11 @@ export async function seedUsers() {
 
   if (adminUser && superAdminRole && hoLocation) {
     // 3. Assign Role to User at HO Location
-    await db.insert(userRoleAssignments).values({
+    await db.insert(userAssignments).values({
       userId: adminUser.id,
       roleId: superAdminRole.id,
       locationId: hoLocation.id,
-      assignedBy: 1,
+      isDefault: false,
     })
     console.log('Superadmin user created and role assigned.')
   }

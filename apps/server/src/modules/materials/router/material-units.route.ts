@@ -1,7 +1,8 @@
-import { res } from '@server/lib/utils/response.util'
-import { zPrimitive, zResponse } from '@server/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
+
+import { res } from '@/lib/utils/response.util'
+import { zPrimitive, zResponse } from '@/lib/validation'
 
 import { MaterialsRequest, MaterialsSchema } from '../materials.types'
 import type { MaterialUnitsService } from '../service/material-units.service'
@@ -36,7 +37,7 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
     .post(
       '/material/:materialId',
       async function assignUomToMaterial({ params, body }) {
-        const unit = await service.assignUom(params.materialId, body.uom, body.isBase)
+        const unit = await service.assignUom(params.materialId, body.uom, body.conversionFactor, body.isBase)
         return res.created(unit, 'MATERIAL_UOM_ASSIGNED')
       },
       {

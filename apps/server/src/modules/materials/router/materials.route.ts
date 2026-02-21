@@ -1,5 +1,5 @@
-import { res } from '@server/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse } from '@server/lib/validation'
+import { res } from '@/lib/utils/response.util'
+import { zHttp, zPrimitive, zResponse } from '@/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
 
