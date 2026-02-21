@@ -1,5 +1,5 @@
-import { MasterUomService } from './master-uom.service'
+import { UomService } from './uom.service'
 
 export class MasterServiceModule {
-  constructor(public readonly uom = new MasterUomService()) {}
+  constructor(public readonly uom = new UomService()) {}
 }
