@@ -1,3 +1,4 @@
+import ms from 'ms'
 import z from 'zod'
 
 const Env = z.object({
@@ -11,7 +12,10 @@ const Env = z.object({
 
   // Auth
   JWT_SECRET: z.string().min(32).describe('JWT signing secret'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z
+    .string()
+    .default('7d')
+    .transform((value) => ms(value as ms.StringValue)),
 
   // Observability
   AXIOM_TOKEN: z.string().optional(),

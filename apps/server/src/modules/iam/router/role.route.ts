@@ -13,7 +13,7 @@ export function initRoleRoute(service: IamServiceModule) {
       '/list',
       async function list({ query }) {
         const { isSystem, search, page, limit } = query
-        const result = await service.roles.findPaginated({ isSystem, search }, { page, limit })
+        const result = await service.role.findPaginated({ isSystem, search }, { page, limit })
         return res.paginated(result)
       },
       {
@@ -27,7 +27,7 @@ export function initRoleRoute(service: IamServiceModule) {
     .get(
       '/detail',
       async function detail({ query }) {
-        const role = await service.roles.findById(query.id)
+        const role = await service.role.findById(query.id)
         return res.ok(role)
       },
       {
@@ -38,7 +38,7 @@ export function initRoleRoute(service: IamServiceModule) {
     .post(
       '/create',
       async function create({ body }) {
-        const { id } = await service.roles.create(body)
+        const { id } = await service.role.create(body)
         return res.created({ id }, 'ROLE_CREATED')
       },
       {
@@ -49,7 +49,7 @@ export function initRoleRoute(service: IamServiceModule) {
     .put(
       '/update',
       async function update({ body }) {
-        const { id } = await service.roles.update(body.id, body)
+        const { id } = await service.role.update(body.id, body)
         return res.ok({ id }, 'ROLE_UPDATED')
       },
       {
@@ -60,7 +60,7 @@ export function initRoleRoute(service: IamServiceModule) {
     .delete(
       '/remove',
       async function remove({ body }) {
-        await service.roles.delete(body.id)
+        await service.role.delete(body.id)
         return res.ok({ id: body.id }, 'ROLE_REMOVED')
       },
       {

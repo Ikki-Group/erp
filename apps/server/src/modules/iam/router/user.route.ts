@@ -10,6 +10,17 @@ import type { IamServiceModule } from '../service'
 export function initUserRoute(s: IamServiceModule) {
   return new Elysia()
     .get(
+      '/me/detail',
+      // TODO: add auth guard
+      async function meDetail() {
+        const userDetail = await s.user.findDetailById(1)
+        return res.ok(userDetail)
+      },
+      {
+        response: zResponse.ok(UserDetailDto),
+      }
+    )
+    .get(
       '/list',
       async function list({ query }) {
         const { isActive, search, page, limit } = query
