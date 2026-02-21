@@ -2,7 +2,7 @@ import Elysia from 'elysia'
 import z from 'zod'
 
 import { res } from '@/lib/utils/response.util'
-import { zSchema } from '@/lib/zod'
+import { zHttp } from '@/lib/validation'
 
 import { LocationMutationDto, LocationType } from '../dto'
 import type { LocationService } from '../service/location.service'
@@ -18,10 +18,10 @@ export function initLocationRoute(service: LocationService) {
       },
       {
         query: z.object({
-          ...zSchema.pagination.shape,
-          search: zSchema.query.search,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
           type: LocationType.optional(),
-          isActive: zSchema.query.boolean,
+          isActive: zHttp.query.boolean,
         }),
       }
     )
@@ -32,7 +32,7 @@ export function initLocationRoute(service: LocationService) {
         return res.ok(location)
       },
       {
-        query: z.object({ id: zSchema.query.idRequired }),
+        query: z.object({ id: zHttp.query.idRequired }),
       }
     )
     .post(
@@ -53,7 +53,7 @@ export function initLocationRoute(service: LocationService) {
       },
       {
         body: z.object({
-          id: zSchema.query.idRequired,
+          id: zHttp.query.idRequired,
           ...LocationMutationDto.pick({
             code: true,
             name: true,

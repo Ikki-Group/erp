@@ -1,9 +1,8 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { PaginationQuery } from '@/lib/pagination'
 import { res } from '@/lib/utils/response.util'
-import { zResponse, zSchema } from '@/lib/zod'
+import { zHttp, zResponse } from '@/lib/validation'
 
 import { RoleDto, RoleMutationDto } from '../dto'
 import type { IamServiceModule } from '../service'
@@ -19,9 +18,9 @@ export function initIamRoleRoute(service: IamServiceModule) {
       },
       {
         query: z.object({
-          ...PaginationQuery.shape,
-          search: zSchema.query.search,
-          isSystem: zSchema.query.boolean,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
+          isSystem: zHttp.query.boolean,
         }),
         response: zResponse.paginated(RoleDto.array()),
       }
@@ -33,7 +32,7 @@ export function initIamRoleRoute(service: IamServiceModule) {
         return res.ok(role)
       },
       {
-        query: z.object({ id: zSchema.query.idRequired }),
+        query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(RoleDto),
       }
     )
@@ -56,7 +55,7 @@ export function initIamRoleRoute(service: IamServiceModule) {
       },
       {
         body: z.object({
-          id: zSchema.query.idRequired,
+          id: zHttp.query.idRequired,
           ...RoleMutationDto.shape,
         }),
         response: zResponse.ok(RoleDto),
@@ -69,8 +68,8 @@ export function initIamRoleRoute(service: IamServiceModule) {
         return res.ok({ id: body.id }, 'ROLE_DELETED')
       },
       {
-        body: z.object({ id: zSchema.query.idRequired }),
-        response: zResponse.ok(z.object({ id: zSchema.query.idRequired })),
+        body: z.object({ id: zHttp.query.idRequired }),
+        response: zResponse.ok(z.object({ id: zHttp.query.idRequired })),
       }
     )
 }

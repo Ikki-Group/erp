@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zSchema } from '@/lib/zod'
+import { zPrimitive, zSchema } from '@/lib/validation'
 
 export const RoleDto = z.object({
   id: z.number(),
@@ -25,12 +25,12 @@ export const RoleMutationDto = z.object({
 export type RoleMutationDto = z.infer<typeof RoleMutationDto>
 
 export const UserDto = z.object({
-  id: zSchema.num,
-  email: zSchema.email,
-  username: zSchema.username,
-  fullname: zSchema.str,
-  isRoot: zSchema.bool,
-  isActive: zSchema.bool,
+  id: zPrimitive.num,
+  email: zPrimitive.email,
+  username: zPrimitive.username,
+  fullname: zPrimitive.str,
+  isRoot: zPrimitive.bool,
+  isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
 })
 
@@ -44,12 +44,12 @@ export const UserCreateDto = z.object({
     isActive: true,
     isRoot: true,
   }).shape,
-  password: zSchema.password,
+  password: zPrimitive.password,
   access: z
     .array(
       z.object({
-        locationId: zSchema.num,
-        roleId: zSchema.num,
+        locationId: zPrimitive.num,
+        roleId: zPrimitive.num,
       })
     )
     .optional()
@@ -59,8 +59,15 @@ export const UserCreateDto = z.object({
 export type UserCreateDto = z.infer<typeof UserCreateDto>
 
 export const UserUpdateDto = z.object({
-  id: zSchema.num,
+  id: zPrimitive.num,
   ...UserCreateDto.omit({ password: true }).shape,
 })
 
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+
+export const RoleFilterInputDto = z.object({
+  search: z.string().optional(),
+  isSystem: z.boolean().optional(),
+})
+
+export type RoleFilterInputDto = z.infer<typeof RoleFilterInputDto>

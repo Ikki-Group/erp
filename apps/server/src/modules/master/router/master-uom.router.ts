@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { zSchema } from '@/lib/zod'
+import { zHttp } from '@/lib/validation'
 
 import type { MasterServiceModule } from '../service'
 
@@ -15,8 +15,8 @@ export function initMasterUomRouter(svc: MasterServiceModule) {
     },
     {
       query: z.object({
-        ...zSchema.pagination.shape,
-        code: zSchema.query.search,
+        ...zHttp.pagination.shape,
+        code: zHttp.query.search,
       }),
     }
   )

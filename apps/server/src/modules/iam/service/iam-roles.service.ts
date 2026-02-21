@@ -11,14 +11,7 @@ import {
 import { db } from '@/database'
 import { roles } from '@/database/schema'
 
-import type { RoleDto, RoleMutationDto } from '../dto'
-
-/* ---------------------------------- TYPES --------------------------------- */
-
-interface RoleFilter {
-  search?: string
-  isSystem?: boolean
-}
+import type { RoleFilterInputDto, RoleMutationDto } from '../dto'
 
 /* -------------------------------- CONSTANT -------------------------------- */
 
@@ -31,7 +24,7 @@ const err = {
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class IamRolesService {
-  #buildWhere(filter: RoleFilter) {
+  #buildWhere(filter: RoleFilterInputDto) {
     const { search, isSystem } = filter
     const conditions = []
 
@@ -77,18 +70,18 @@ export class IamRolesService {
     if (nameConflict) throw err.nameConflict(input.name)
   }
 
-  async find(filter: RoleFilter): Promise<RoleDto[]> {
+  async find(filter: RoleFilterInputDto): Promise<RoleDto[]> {
     const where = this.#buildWhere(filter)
     return db.select().from(roles).where(where).orderBy(roles.id)
   }
 
-  async count(filter: RoleFilter): Promise<number> {
+  async count(filter: RoleFilterInputDto): Promise<number> {
     const where = this.#buildWhere(filter)
     const [result] = await db.select({ total: count() }).from(roles).where(where)
     return result?.total ?? 0
   }
 
-  async listPaginated(filter: RoleFilter, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
+  async listPaginated(filter: RoleFilterInputDto, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
     const { page, limit } = pagination
     const where = this.#buildWhere(filter)
 

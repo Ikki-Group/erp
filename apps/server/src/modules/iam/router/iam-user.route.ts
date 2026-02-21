@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { logger } from '@/lib/logger'
 import { res } from '@/lib/utils/response.util'
-import { zResponse, zSchema } from '@/lib/zod'
+import { zHttp, zResponse } from '@/lib/validation'
 
 import { UserCreateDto, UserDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
@@ -20,9 +20,9 @@ export function initIamUserRoute(service: IamServiceModule) {
       },
       {
         query: z.object({
-          ...zSchema.pagination.shape,
-          search: zSchema.query.search,
-          isActive: zSchema.query.boolean,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
+          isActive: zHttp.query.boolean,
         }),
         response: zResponse.paginated(UserDto.array()),
       }
@@ -34,7 +34,7 @@ export function initIamUserRoute(service: IamServiceModule) {
         return res.ok(user)
       },
       {
-        query: z.object({ id: zSchema.query.idRequired }),
+        query: z.object({ id: zHttp.query.idRequired }),
       }
     )
     .post(
@@ -65,7 +65,7 @@ export function initIamUserRoute(service: IamServiceModule) {
         return res.ok({ id: body.id }, 'USER_DELETED')
       },
       {
-        body: z.object({ id: zSchema.query.idRequired }),
+        body: z.object({ id: zHttp.query.idRequired }),
       }
     )
 }

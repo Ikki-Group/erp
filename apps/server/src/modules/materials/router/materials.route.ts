@@ -1,5 +1,5 @@
 import { res } from '@server/lib/utils/response.util'
-import { zResponse, zSchema } from '@server/lib/zod'
+import { zHttp, zPrimitive, zResponse } from '@server/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
 
@@ -20,11 +20,11 @@ export function buildMaterialsRoute(service: MaterialsService) {
       },
       {
         query: z.object({
-          ...zSchema.pagination.shape,
-          search: zSchema.query.search,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
           type: z.enum(['raw', 'semi']).optional(),
-          categoryId: zSchema.query.id,
-          isActive: zSchema.query.boolean,
+          categoryId: zHttp.query.id,
+          isActive: zHttp.query.boolean,
         }),
         response: zResponse.paginated(MaterialsSchema.MaterialDetail.array()),
       }
@@ -36,7 +36,7 @@ export function buildMaterialsRoute(service: MaterialsService) {
         return res.ok(material)
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.Material),
       }
     )
@@ -58,7 +58,7 @@ export function buildMaterialsRoute(service: MaterialsService) {
         return res.ok(material, 'MATERIAL_UPDATED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         body: MaterialsRequest.UpdateMaterial,
         response: zResponse.ok(MaterialsSchema.Material),
       }
@@ -70,8 +70,8 @@ export function buildMaterialsRoute(service: MaterialsService) {
         return res.ok({ id: params.id }, 'MATERIAL_DELETED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(z.object({ id: zSchema.num })),
+        params: z.object({ id: zPrimitive.numCoerce }),
+        response: zResponse.ok(z.object({ id: zPrimitive.num })),
       }
     )
     .patch(
@@ -81,7 +81,7 @@ export function buildMaterialsRoute(service: MaterialsService) {
         return res.ok(material, 'MATERIAL_STATUS_TOGGLED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.Material),
       }
     )

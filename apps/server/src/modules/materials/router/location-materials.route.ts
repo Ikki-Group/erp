@@ -1,5 +1,5 @@
 import { res } from '@server/lib/utils/response.util'
-import { zResponse, zSchema } from '@server/lib/zod'
+import { zHttp, zPrimitive, zResponse } from '@server/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
 
@@ -19,11 +19,11 @@ export function buildLocationMaterialsRoute(service: LocationMaterialsService) {
         return res.paginated(result)
       },
       {
-        params: z.object({ locationId: zSchema.numCoerce }),
+        params: z.object({ locationId: zPrimitive.numCoerce }),
         query: z.object({
-          ...zSchema.pagination.shape,
-          search: zSchema.query.search,
-          isActive: zSchema.query.boolean,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
+          isActive: zHttp.query.boolean,
         }),
         response: zResponse.paginated(MaterialsSchema.LocationMaterialDetail.array()),
       }
@@ -35,7 +35,7 @@ export function buildLocationMaterialsRoute(service: LocationMaterialsService) {
         return res.ok(locations)
       },
       {
-        params: z.object({ materialId: zSchema.numCoerce }),
+        params: z.object({ materialId: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.LocationMaterialDetail.array()),
       }
     )
@@ -46,7 +46,7 @@ export function buildLocationMaterialsRoute(service: LocationMaterialsService) {
         return res.ok(locationMaterial)
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.LocationMaterial),
       }
     )
@@ -68,7 +68,7 @@ export function buildLocationMaterialsRoute(service: LocationMaterialsService) {
         return res.ok(locationMaterial, 'LOCATION_MATERIAL_UPDATED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         body: MaterialsRequest.UpdateLocationMaterial,
         response: zResponse.ok(MaterialsSchema.LocationMaterial),
       }
@@ -80,8 +80,8 @@ export function buildLocationMaterialsRoute(service: LocationMaterialsService) {
         return res.ok({ id: params.id }, 'LOCATION_MATERIAL_REMOVED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(z.object({ id: zSchema.num })),
+        params: z.object({ id: zPrimitive.numCoerce }),
+        response: zResponse.ok(z.object({ id: zPrimitive.num })),
       }
     )
 }

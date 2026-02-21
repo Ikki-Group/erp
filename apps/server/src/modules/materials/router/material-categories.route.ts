@@ -1,5 +1,5 @@
 import { res } from '@server/lib/utils/response.util'
-import { zResponse, zSchema } from '@server/lib/zod'
+import { zHttp, zPrimitive, zResponse } from '@server/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
 
@@ -20,9 +20,9 @@ export function buildMaterialCategoriesRoute(service: MaterialCategoriesService)
       },
       {
         query: z.object({
-          ...zSchema.pagination.shape,
-          search: zSchema.query.search,
-          isActive: zSchema.query.boolean,
+          ...zHttp.pagination.shape,
+          search: zHttp.query.search,
+          isActive: zHttp.query.boolean,
         }),
         response: zResponse.paginated(MaterialsSchema.MaterialCategory.array()),
       }
@@ -34,7 +34,7 @@ export function buildMaterialCategoriesRoute(service: MaterialCategoriesService)
         return res.ok(category)
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.MaterialCategory),
       }
     )
@@ -56,7 +56,7 @@ export function buildMaterialCategoriesRoute(service: MaterialCategoriesService)
         return res.ok(category, 'MATERIAL_CATEGORY_UPDATED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         body: MaterialsRequest.UpdateMaterialCategory,
         response: zResponse.ok(MaterialsSchema.MaterialCategory),
       }
@@ -68,8 +68,8 @@ export function buildMaterialCategoriesRoute(service: MaterialCategoriesService)
         return res.ok({ id: params.id }, 'MATERIAL_CATEGORY_DELETED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
-        response: zResponse.ok(z.object({ id: zSchema.num })),
+        params: z.object({ id: zPrimitive.numCoerce }),
+        response: zResponse.ok(z.object({ id: zPrimitive.num })),
       }
     )
     .patch(
@@ -79,7 +79,7 @@ export function buildMaterialCategoriesRoute(service: MaterialCategoriesService)
         return res.ok(category, 'MATERIAL_CATEGORY_STATUS_TOGGLED')
       },
       {
-        params: z.object({ id: zSchema.numCoerce }),
+        params: z.object({ id: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.MaterialCategory),
       }
     )

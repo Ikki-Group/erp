@@ -2,7 +2,8 @@ import { Elysia } from 'elysia'
 import z from 'zod'
 
 import { res } from '@/lib/utils/response.util'
-import { zResponse } from '@/lib/zod'
+import { zResponse } from '@/lib/validation'
+
 import type { users } from '@/database/schema'
 
 import { IamSchema } from '../iam.schema'

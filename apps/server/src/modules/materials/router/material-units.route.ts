@@ -1,5 +1,5 @@
 import { res } from '@server/lib/utils/response.util'
-import { zResponse, zSchema } from '@server/lib/zod'
+import { zPrimitive, zResponse } from '@server/lib/validation'
 import Elysia from 'elysia'
 import z from 'zod'
 
@@ -18,7 +18,7 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
         return res.ok(units)
       },
       {
-        params: z.object({ materialId: zSchema.numCoerce }),
+        params: z.object({ materialId: zPrimitive.numCoerce }),
         response: zResponse.ok(MaterialsSchema.MaterialUnitDetail.array()),
       }
     )
@@ -29,7 +29,7 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
         return res.ok(unit)
       },
       {
-        params: z.object({ materialId: zSchema.numCoerce, uom: zSchema.str }),
+        params: z.object({ materialId: zPrimitive.numCoerce, uom: zPrimitive.str }),
         response: zResponse.ok(MaterialsSchema.MaterialUnit),
       }
     )
@@ -40,7 +40,7 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
         return res.created(unit, 'MATERIAL_UOM_ASSIGNED')
       },
       {
-        params: z.object({ materialId: zSchema.numCoerce }),
+        params: z.object({ materialId: zPrimitive.numCoerce }),
         body: MaterialsRequest.AssignMaterialUom,
         response: zResponse.ok(MaterialsSchema.MaterialUnit),
       }
@@ -53,8 +53,8 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
       },
       {
         params: z.object({
-          materialId: zSchema.numCoerce,
-          uom: zSchema.str,
+          materialId: zPrimitive.numCoerce,
+          uom: zPrimitive.str,
         }),
         response: zResponse.ok(MaterialsSchema.MaterialUnit),
       }
@@ -66,8 +66,8 @@ export function buildMaterialUnitsRoute(service: MaterialUnitsService) {
         return res.ok({ materialId: params.materialId, uom: params.uom }, 'MATERIAL_UOM_REMOVED')
       },
       {
-        params: z.object({ materialId: zSchema.numCoerce, uom: zSchema.str }),
-        response: zResponse.ok(z.object({ materialId: zSchema.num, uom: zSchema.str })),
+        params: z.object({ materialId: zPrimitive.numCoerce, uom: zPrimitive.str }),
+        response: zResponse.ok(z.object({ materialId: zPrimitive.num, uom: zPrimitive.str })),
       }
     )
 }
