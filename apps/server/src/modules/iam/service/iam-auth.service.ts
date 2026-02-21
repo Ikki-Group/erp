@@ -10,8 +10,7 @@ import { users } from '@/database/schema'
 
 import { env } from '@/config/env'
 
-import type { IamSchema } from '../iam.schema'
-import type { IamUsersService } from './iam-users.service'
+import type { IamUsersService } from './user.service'
 
 export interface JWTPayload {
   sub: number
@@ -46,7 +45,7 @@ export class IamAuthService {
   /**
    * Authenticates a user by email/username and password
    */
-  async login(identifier: string, password: string): Promise<{ user: IamSchema.UserWithAccess; token: string }> {
+  async login(identifier: string, password: string): Promise<{ user: UserWithAccessDto; token: string }> {
     const targetUser = await this.findUserByIdentifier(identifier)
 
     if (!targetUser || !targetUser.isActive) {
@@ -70,7 +69,7 @@ export class IamAuthService {
   /**
    * Retrieves user detailed information with locations and roles
    */
-  async getUserDetails(userId: number): Promise<IamSchema.UserWithAccess> {
+  async getUserDetails(userId: number): Promise<UserWithAccessDto> {
     const user = await this.usersService.getById(userId)
     const userLocations: { id: number; code: string; name: string; role: string; isDefault: boolean }[] = []
 

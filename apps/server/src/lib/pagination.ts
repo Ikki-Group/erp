@@ -1,28 +1,24 @@
 import type { PgSelect } from 'drizzle-orm/pg-core'
-import z from 'zod'
 
-export const PaginationQuery = z.object({
-  page: z.coerce.number<number>().min(1).default(1),
-  limit: z.coerce.number<number>().min(1).max(100).default(10),
-})
+export interface PaginationQuery {
+  page: number
+  limit: number
+}
 
-export type PaginationQuery = z.infer<typeof PaginationQuery>
-
-export const PaginationMeta = z.object({
-  total: z.number().min(0),
-  page: z.number().min(1),
-  limit: z.number().min(1),
-  totalPages: z.number().min(1),
-})
-
-export type PaginationMeta = z.infer<typeof PaginationMeta>
+export interface PaginationMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
 
 export interface WithPaginationResult<T> {
   data: T[]
   meta: PaginationMeta
 }
 
-export function calculatePaginationMeta(page: number, limit: number, total: number): PaginationMeta {
+export function calculatePaginationMeta(pq: PaginationQuery, total: number): PaginationMeta {
+  const { page, limit } = pq
   const totalPages = Math.ceil(total / limit)
 
   return {

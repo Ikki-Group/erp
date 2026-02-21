@@ -11,7 +11,7 @@ import {
 import { db } from '@/database'
 import { roles } from '@/database/schema'
 
-import type { RoleFilterInputDto, RoleMutationDto } from '../dto'
+import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../schema'
 
 /* -------------------------------- CONSTANT -------------------------------- */
 
@@ -23,8 +23,8 @@ const err = {
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
-export class IamRolesService {
-  #buildWhere(filter: RoleFilterInputDto) {
+export class RoleService {
+  #buildWhere(filter: RoleFilterDto) {
     const { search, isSystem } = filter
     const conditions = []
 
@@ -39,7 +39,7 @@ export class IamRolesService {
     return conditions.length > 0 ? and(...conditions) : undefined
   }
 
-  async #checkConflict(input: Pick<RoleMutationDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
+  async #checkConflict(input: Pick<RoleDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
     const excludeId = existing?.id
     const conditions = []
 
@@ -70,40 +70,37 @@ export class IamRolesService {
     if (nameConflict) throw err.nameConflict(input.name)
   }
 
-  async find(filter: RoleFilterInputDto): Promise<RoleDto[]> {
-    const where = this.#buildWhere(filter)
-    return db.select().from(roles).where(where).orderBy(roles.id)
-  }
-
-  async count(filter: RoleFilterInputDto): Promise<number> {
+  async count(filter: RoleFilterDto): Promise<number> {
     const where = this.#buildWhere(filter)
     const [result] = await db.select({ total: count() }).from(roles).where(where)
     return result?.total ?? 0
   }
 
-  async listPaginated(filter: RoleFilterInputDto, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
-    const { page, limit } = pagination
+  async find(filter: RoleFilterDto): Promise<RoleDto[]> {
+    const where = this.#buildWhere(filter)
+    return db.select().from(roles).where(where).orderBy(roles.id)
+  }
+
+  async findPaginated(filter: RoleFilterDto, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
     const where = this.#buildWhere(filter)
 
-    const [data, total] = await Promise.all([
-      withPagination(db.select().from(roles).where(where).orderBy(roles.id).$dynamic(), pagination).execute(),
-      this.count(filter),
-    ])
+    const query = db.select().from(roles).where(where).orderBy(roles.id).$dynamic()
+    const [data, total] = await Promise.all([withPagination(query, pagination).execute(), this.count(filter)])
 
     return {
       data,
-      meta: calculatePaginationMeta(page, limit, total),
+      meta: calculatePaginationMeta(pagination, total),
     }
   }
 
-  async getById(id: number): Promise<RoleDto> {
+  async findById(id: number): Promise<RoleDto> {
     const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
 
     if (!role) throw err.notFound(id)
     return role
   }
 
-  async create(input: RoleMutationDto, createdBy = 1): Promise<RoleDto> {
+  async create(input: RoleCreateDto, createdBy = 1): Promise<RoleDto> {
     await this.#checkConflict(input)
 
     const [role] = await db
@@ -120,8 +117,8 @@ export class IamRolesService {
     return role
   }
 
-  async update(id: number, input: RoleMutationDto, updatedBy = 1): Promise<RoleDto> {
-    const role = await this.getById(id)
+  async update(id: number, input: RoleUpdateDto, updatedBy = 1): Promise<RoleDto> {
+    const role = await this.findById(id)
     if (role.isSystem) throw new BadRequestError("Can't update system role")
 
     await this.#checkConflict(input, role)
@@ -140,7 +137,7 @@ export class IamRolesService {
   }
 
   async delete(id: number): Promise<void> {
-    const role = await this.getById(id)
+    const role = await this.findById(id)
     if (role.isSystem) throw new BadRequestError("Can't delete system role")
 
     await db.delete(roles).where(eq(roles.id, id))

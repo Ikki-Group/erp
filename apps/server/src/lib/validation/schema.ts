@@ -14,6 +14,14 @@ const meta = z.object({
   updatedBy: zPrimitive.num,
 })
 
+/**
+ * Common Record Schemas
+ */
+const recordId = z.object({
+  id: zPrimitive.num,
+})
+
 export const zSchema = {
   meta,
+  recordId,
 }
