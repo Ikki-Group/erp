@@ -3,12 +3,13 @@ import { Elysia } from 'elysia'
 import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 
 import type { IamServiceModule } from '../service'
-import { initIamAuthRoute } from './iam-auth.route'
+
+import { initAuthRoute } from './auth.route'
 import { initRoleRoute } from './role.route'
 import { initUserRoute } from './user.route'
 
 export function initIamRouteModule(s: IamServiceModule) {
-  const authRouter = initIamAuthRoute(s)
+  const authRouter = initAuthRoute(s)
   const userRouter = initUserRoute(s)
   const roleRouter = initRoleRoute(s)
 
