@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import ms from 'ms'
 
@@ -6,7 +6,7 @@ import { UnauthorizedError } from '@/lib/error/http'
 import { verifyPassword } from '@/lib/utils/password.util'
 
 import { db } from '@/database'
-import { locations, roles, userRoleAssignments, users } from '@/database/schema'
+import { users } from '@/database/schema'
 
 import { env } from '@/config/env'
 
@@ -72,39 +72,39 @@ export class IamAuthService {
    */
   async getUserDetails(userId: number): Promise<IamSchema.UserWithAccess> {
     const user = await this.usersService.getById(userId)
-    let userLocations: { id: number; code: string; name: string; role: string }[] = []
+    const userLocations: { id: number; code: string; name: string; role: string; isDefault: boolean }[] = []
 
-    if (user.isRoot) {
-      // Get all active locations
-      const allLocations = await db
-        .select({
-          id: locations.id,
-          code: locations.code,
-          name: locations.name,
-        })
-        .from(locations)
-        .where(eq(locations.isActive, true))
+    // if (user.isRoot) {
+    //   // Get all active locations
+    //   const allLocations = await db
+    //     .select({
+    //       id: locations.id,
+    //       code: locations.code,
+    //       name: locations.name,
+    //     })
+    //     .from(locations)
+    //     .where(eq(locations.isActive, true))
 
-      userLocations = allLocations.map((loc) => ({
-        ...loc,
-        role: 'superadmin',
-      }))
-    } else {
-      // Get assigned locations and roles
-      const assignments = await db
-        .select({
-          id: locations.id,
-          code: locations.code,
-          name: locations.name,
-          role: roles.code,
-        })
-        .from(userRoleAssignments)
-        .innerJoin(locations, eq(userRoleAssignments.locationId, locations.id))
-        .innerJoin(roles, eq(userRoleAssignments.roleId, roles.id))
-        .where(eq(userRoleAssignments.userId, userId))
+    //   userLocations = allLocations.map((loc) => ({
+    //     ...loc,
+    //     role: 'superadmin',
+    //   }))
+    // } else {
+    //   // Get assigned locations and roles
+    //   const assignments = await db
+    //     .select({
+    //       id: locations.id,
+    //       code: locations.code,
+    //       name: locations.name,
+    //       role: roles.code,
+    //     })
+    //     .from(userRoleAssignments)
+    //     .innerJoin(locations, eq(userRoleAssignments.locationId, locations.id))
+    //     .innerJoin(roles, eq(userRoleAssignments.roleId, roles.id))
+    //     .where(eq(userRoleAssignments.userId, userId))
 
-      userLocations = assignments
-    }
+    //   userLocations = assignments
+    // }
 
     return {
       ...user,
@@ -123,13 +123,14 @@ export class IamAuthService {
 
     if (!locationId) return []
 
-    const userRoles = await db
-      .select({ code: roles.code })
-      .from(userRoleAssignments)
-      .innerJoin(roles, eq(userRoleAssignments.roleId, roles.id))
-      .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.locationId, locationId)))
+    // const userRoles = await db
+    //   .select({ code: roles.code })
+    //   .from(userRoleAssignments)
+    //   .innerJoin(roles, eq(userRoleAssignments.roleId, roles.id))
+    //   .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.locationId, locationId)))
 
-    return userRoles.map((r) => r.code)
+    // return userRoles.map((r) => r.code)
+    return []
   }
 
   /**

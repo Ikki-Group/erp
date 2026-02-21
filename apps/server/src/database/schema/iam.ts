@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, serial, timestamp, unique, varchar } from 'drizzle-orm/pg-core'
+import { boolean, integer, pgTable, primaryKey, serial, timestamp, unique, varchar } from 'drizzle-orm/pg-core'
 
 import { metafields } from './common'
 import { locations } from './locations'
@@ -30,10 +30,9 @@ export const roles = pgTable(
   (t) => [unique().on(t.code), unique().on(t.name)]
 )
 
-export const userRoleAssignments = pgTable(
-  'user_role_assignments',
+export const userAssignments = pgTable(
+  'user_assignments',
   {
-    id: serial().primaryKey(),
     userId: integer()
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -43,8 +42,20 @@ export const userRoleAssignments = pgTable(
     locationId: integer()
       .notNull()
       .references(() => locations.id, { onDelete: 'cascade' }),
-    assignedAt: timestamp().defaultNow().notNull(),
-    assignedBy: integer().notNull(),
+    isDefault: boolean().default(false).notNull(),
   },
-  (t) => [unique().on(t.userId, t.locationId)]
+  (t) => [primaryKey({ columns: [t.userId, t.roleId, t.locationId] })]
+)
+
+export const userSessions = pgTable(
+  'user_sessions',
+  {
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    token: varchar({ length: 255 }).notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+    expiresAt: timestamp().notNull(),
+  },
+  (t) => [unique().on(t.token)]
 )

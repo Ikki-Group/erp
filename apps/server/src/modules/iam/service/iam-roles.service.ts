@@ -15,7 +15,7 @@ import type { RoleDto, RoleMutationDto } from '../dto'
 
 /* ---------------------------------- TYPES --------------------------------- */
 
-interface IFilter {
+interface RoleFilter {
   search?: string
   isSystem?: boolean
 }
@@ -23,16 +23,15 @@ interface IFilter {
 /* -------------------------------- CONSTANT -------------------------------- */
 
 const err = {
-  idNotFound: (id: number) => new NotFoundError(`Role not found ${id}`),
-  codeNotFound: (code: string) => new NotFoundError(`Role code ${code} not found`),
-  codeExist: (code: string) => new ConflictError(`Code ${code} exist`, 'ROLE_CODE_ALREADY_EXISTS'),
-  nameExist: (name: string) => new ConflictError(`Name ${name} exist`, 'ROLE_NAME_ALREADY_EXISTS'),
+  notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`),
+  codeConflict: (code: string) => new ConflictError(`Role code ${code} already exists`, 'ROLE_CODE_ALREADY_EXISTS'),
+  nameConflict: (name: string) => new ConflictError(`Role name ${name} already exists`, 'ROLE_NAME_ALREADY_EXISTS'),
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class IamRolesService {
-  buildWhereClause(filter: IFilter) {
+  #buildWhere(filter: RoleFilter) {
     const { search, isSystem } = filter
     const conditions = []
 
@@ -47,42 +46,54 @@ export class IamRolesService {
     return conditions.length > 0 ? and(...conditions) : undefined
   }
 
-  private async checkConflict(input: { code: string; name: string }, excludeId?: number): Promise<void> {
-    const conditions = [eq(roles.code, input.code), eq(roles.name, input.name)]
-    const whereClause = excludeId ? and(or(...conditions), not(eq(roles.id, excludeId))) : or(...conditions)
+  async #checkConflict(input: Pick<RoleMutationDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
+    const excludeId = existing?.id
+    const conditions = []
 
-    const existing = await db
+    if (!existing || existing.code !== input.code) {
+      conditions.push(eq(roles.code, input.code))
+    }
+
+    if (!existing || existing.name !== input.name) {
+      conditions.push(eq(roles.name, input.name))
+    }
+
+    if (conditions.length === 0) return
+
+    const where = excludeId ? and(or(...conditions), not(eq(roles.id, excludeId))) : or(...conditions)
+
+    const found = await db
       .select({ id: roles.id, code: roles.code, name: roles.name })
       .from(roles)
-      .where(whereClause)
+      .where(where)
       .limit(2)
 
-    if (existing.length === 0) return
+    if (found.length === 0) return
 
-    const codeExists = existing.some((r) => r.code === input.code)
-    const nameExists = existing.some((r) => r.name === input.name)
+    const codeConflict = found.some((r) => r.code === input.code)
+    const nameConflict = found.some((r) => r.name === input.name)
 
-    if (codeExists) throw err.codeExist(input.code)
-    if (nameExists) throw err.nameExist(input.name)
+    if (codeConflict) throw err.codeConflict(input.code)
+    if (nameConflict) throw err.nameConflict(input.name)
   }
 
-  async find(filter: IFilter): Promise<RoleDto[]> {
-    const whereClause = this.buildWhereClause(filter)
-    return db.select().from(roles).where(whereClause).orderBy(roles.id)
+  async find(filter: RoleFilter): Promise<RoleDto[]> {
+    const where = this.#buildWhere(filter)
+    return db.select().from(roles).where(where).orderBy(roles.id)
   }
 
-  async count(filter: IFilter): Promise<number> {
-    const whereClause = this.buildWhereClause(filter)
-    const [result] = await db.select({ total: count() }).from(roles).where(whereClause)
+  async count(filter: RoleFilter): Promise<number> {
+    const where = this.#buildWhere(filter)
+    const [result] = await db.select({ total: count() }).from(roles).where(where)
     return result?.total ?? 0
   }
 
-  async listPaginated(filter: IFilter, pq: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
-    const { page, limit } = pq
-    const whereClause = this.buildWhereClause(filter)
+  async listPaginated(filter: RoleFilter, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
+    const { page, limit } = pagination
+    const where = this.#buildWhere(filter)
 
     const [data, total] = await Promise.all([
-      withPagination(db.select().from(roles).where(whereClause).orderBy(roles.id).$dynamic(), pq).execute(),
+      withPagination(db.select().from(roles).where(where).orderBy(roles.id).$dynamic(), pagination).execute(),
       this.count(filter),
     ])
 
@@ -95,18 +106,17 @@ export class IamRolesService {
   async getById(id: number): Promise<RoleDto> {
     const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
 
-    if (!role) throw err.idNotFound(id)
+    if (!role) throw err.notFound(id)
     return role
   }
 
   async create(input: RoleMutationDto, createdBy = 1): Promise<RoleDto> {
-    await this.checkConflict(input)
+    await this.#checkConflict(input)
 
     const [role] = await db
       .insert(roles)
       .values({
-        code: input.code,
-        name: input.name,
+        ...input,
         isSystem: input.isSystem ?? false,
         createdBy,
         updatedBy: createdBy,
@@ -118,19 +128,21 @@ export class IamRolesService {
   }
 
   async update(id: number, input: RoleMutationDto, updatedBy = 1): Promise<RoleDto> {
-    await this.checkConflict(input, id)
+    const role = await this.getById(id)
+    if (role.isSystem) throw new BadRequestError("Can't update system role")
+
+    await this.#checkConflict(input, role)
 
     const [updatedRole] = await db
       .update(roles)
       .set({
-        code: input.code,
-        name: input.name,
+        ...input,
         updatedBy,
       })
       .where(eq(roles.id, id))
       .returning()
 
-    if (!updatedRole) throw err.idNotFound(id)
+    if (!updatedRole) throw err.notFound(id)
     return updatedRole
   }
 

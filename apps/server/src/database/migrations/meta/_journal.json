@@ -8,6 +8,13 @@
       "when": 1771591978248,
       "tag": "0000_long_machine_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771685648745,
+      "tag": "0001_silly_robin_chapel",
+      "breakpoints": true
     }
   ]
 }

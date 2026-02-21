@@ -42,12 +42,13 @@ export const UserCreateDto = z.object({
     username: true,
     fullname: true,
     isActive: true,
+    isRoot: true,
   }).shape,
   password: zSchema.password,
   access: z
     .array(
       z.object({
-        locationId: zSchema.num.nullable(),
+        locationId: zSchema.num,
         roleId: zSchema.num,
       })
     )

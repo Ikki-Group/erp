@@ -40,17 +40,18 @@ export function initIamUserRoute(service: IamServiceModule) {
     .post(
       '/create',
       async function createUser({ body }) {
-        const user = await service.users.createWithRoles(body)
+        const user = await service.users.create(body)
         return res.created(user, 'USER_CREATED')
       },
       {
         body: UserCreateDto,
+        response: zResponse.ok(UserDto),
       }
     )
     .put(
       '/update',
       async function updateUser({ body }) {
-        const user = await service.users.updateWithRoles(body.id, body)
+        const user = await service.users.update(body.id, body)
         return res.ok(user, 'USER_UPDATED')
       },
       {
