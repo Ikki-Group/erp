@@ -6,16 +6,19 @@ import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
+import { initInventoryRouteModule, InventoryServiceModule } from '@/modules/inventory'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 import { initMasterRouteModule, MasterServiceModule } from '@/modules/master'
 
 // Services
 const iamService = new IamServiceModule()
+const inventoryService = new InventoryServiceModule()
 const locationService = new LocationServiceModule()
 const masterService = new MasterServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
+const inventoryRoute = initInventoryRouteModule(inventoryService)
 const locationsRoute = initLocationRouteModule(locationService)
 const masterRoute = initMasterRouteModule(masterService)
 
@@ -43,6 +46,7 @@ export const app = new Elysia({
   })
   .use(otel)
   .use(iamRoute)
+  .use(inventoryRoute)
   .use(locationsRoute)
   .use(masterRoute)
 // Must be last

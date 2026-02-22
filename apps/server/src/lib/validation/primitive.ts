@@ -14,6 +14,9 @@ const bool = z.boolean()
 const email = z.email()
 const uuid = z.uuidv7()
 
+const idNum = z.number().int().positive()
+const idNumCoerce = z.coerce.number().int().positive()
+
 // Domain-specific
 const codeUpper = z.string().trim().toUpperCase()
 const password = z
@@ -32,6 +35,8 @@ export const zPrimitive = {
   strNullable,
   num,
   numCoerce,
+  idNum,
+  idNumCoerce,
   date,
   bool,
   email,

@@ -21,6 +21,8 @@ const query = {
 
   /** Required positive integer ID (for query/body params) */
   idRequired: zPrimitive.numCoerce.int().positive(),
+
+  num: zPrimitive.numCoerce,
 }
 
 /**
