@@ -16,3 +16,8 @@ export class InventoryServiceModule {
     this.location = new ItemLocationsService()
   }
 }
+
+export { ItemCategoryService } from './item-category.service'
+export { ItemLocationsService } from './item-locations.service'
+export { ItemUnitConversionsService } from './item-unit-conversions.service'
+export { ItemService } from './item.service'
