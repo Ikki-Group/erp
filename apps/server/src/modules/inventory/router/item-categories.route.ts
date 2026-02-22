@@ -11,7 +11,7 @@ import type { ItemCategoryService } from '../service/item-category.service'
 /**
  * Item Categories Router
  */
-export function buildItemCategoriesRoute(service: ItemCategoryService) {
+export function buildItemCategoryRoute(service: ItemCategoryService) {
   return new Elysia({ prefix: '/item-category' })
     .get(
       '/list',
