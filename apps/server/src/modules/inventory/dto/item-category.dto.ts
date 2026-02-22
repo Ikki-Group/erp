@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -16,7 +16,7 @@ export type ItemCategoryDto = z.infer<typeof ItemCategoryDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const ItemCategoryFilterDto = z.object({
-  name: zPrimitive.strNullable,
+  name: zHttp.query.search,
 })
 
 export type ItemCategoryFilterDto = z.infer<typeof ItemCategoryFilterDto>

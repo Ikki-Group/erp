@@ -23,6 +23,8 @@ const query = {
   idRequired: zPrimitive.numCoerce.int().positive(),
 
   num: zPrimitive.numCoerce,
+
+  schemaId: z.object({ id: zPrimitive.idNum }),
 }
 
 /**

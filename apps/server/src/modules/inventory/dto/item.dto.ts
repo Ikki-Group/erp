@@ -3,6 +3,7 @@ import z from 'zod'
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { ItemType } from './item-common.dto'
+import { ItemUnitConversionDto } from './item-unit-convertion.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -30,12 +31,20 @@ export type ItemFilterDto = z.infer<typeof ItemFilterDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 
+export const ItemUnitConversionMutationDto = z.object({
+  ...ItemUnitConversionDto.pick({
+    toUnit: true,
+    multiplier: true,
+  }).shape,
+})
+
 export const ItemCreateDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   type: ItemType,
   baseUnit: zPrimitive.str,
   categoryId: zPrimitive.idNum,
+  conversions: ItemUnitConversionMutationDto.array(),
 })
 
 export type ItemCreateDto = z.infer<typeof ItemCreateDto>
@@ -46,3 +55,5 @@ export const ItemUpdateDto = z.object({
 })
 
 export type ItemUpdateDto = z.infer<typeof ItemUpdateDto>
+
+/* -------------------------------- COMPOSED -------------------------------- */

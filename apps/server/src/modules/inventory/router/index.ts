@@ -9,8 +9,8 @@ import { buildItemsRoute } from './items.route'
 
 export function initInventoryRouteModule(serviceModule: InventoryServiceModule) {
   return new Elysia({ prefix: '/inventory' })
-    .use(buildItemCategoriesRoute(serviceModule.categories))
-    .use(buildItemsRoute(serviceModule.items))
-    .use(buildItemUnitConversionsRoute(serviceModule.unitConversions))
-    .use(buildItemLocationsRoute(serviceModule.locations))
+    .use(buildItemCategoriesRoute(serviceModule.category))
+    .use(buildItemsRoute(serviceModule.item))
+    .use(buildItemUnitConversionsRoute(serviceModule.unitConversion))
+    .use(buildItemLocationsRoute(serviceModule.location))
 }

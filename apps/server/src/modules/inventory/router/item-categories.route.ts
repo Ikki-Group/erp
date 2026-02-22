@@ -2,83 +2,73 @@ import Elysia from 'elysia'
 import z from 'zod'
 
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse } from '@/lib/validation'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { InventoryRequest, InventorySchema } from '../inventory.types'
-import type { ItemCategoriesService } from '../service/item-category.service'
+import { ItemCategoryCreateDto, ItemCategoryFilterDto, ItemCategoryUpdateDto } from '../dto'
+import { InventorySchema } from '../inventory.types'
+import type { ItemCategoryService } from '../service/item-category.service'
 
 /**
  * Item Categories Router
  */
-export function buildItemCategoriesRoute(service: ItemCategoriesService) {
-  return new Elysia({ prefix: '/item-categories' })
+export function buildItemCategoriesRoute(service: ItemCategoryService) {
+  return new Elysia({ prefix: '/item-category' })
     .get(
-      '/',
-      async function listItemCategories({ query }) {
-        const { search, page, limit } = query
-        if (page && limit) {
-          const result = await service.listPaginated({ search }, { page, limit })
-          return res.paginated(result)
-        }
-        const categories = await service.list()
-        return res.ok(categories)
+      '/list',
+      async function list({ query }) {
+        const result = await service.findPaginated(query, query)
+        return res.paginated(result)
       },
       {
         query: z.object({
           ...zHttp.pagination.shape,
-          search: zHttp.query.search,
+          ...ItemCategoryFilterDto.shape,
         }),
-        response: {
-          200: zResponse.ok(InventorySchema.ItemCategory.array()),
-        },
-      } as any
+        response: zResponse.paginated(InventorySchema.ItemCategory.array()),
+      }
     )
     .get(
-      '/:id',
-      async function getItemCategoryById({ params }) {
-        const category = await service.getById(params.id)
+      '/detail',
+      async function detail({ params }) {
+        const category = await service.findById(params.id)
         return res.ok(category)
       },
       {
-        params: z.object({ id: zPrimitive.numCoerce }),
+        params: zHttp.query.schemaId,
         response: zResponse.ok(InventorySchema.ItemCategory),
-      } as any
+      }
     )
     .post(
-      '/',
-      async function createItemCategory({ body, user }) {
-        const category = await service.create(body, user?.id)
+      '/create',
+      async function create({ body }) {
+        const category = await service.create(body)
         return res.created(category, 'ITEM_CATEGORY_CREATED')
       },
       {
-        isAuth: true,
-        body: InventoryRequest.CreateItemCategory,
+        body: ItemCategoryCreateDto,
         response: zResponse.ok(InventorySchema.ItemCategory),
-      } as any
+      }
     )
-    .patch(
-      '/:id',
-      async function updateItemCategory({ params, body, user }) {
-        const category = await service.update(params.id, body, user?.id)
+    .put(
+      '/update',
+      async function update({ body }) {
+        const category = await service.update(body.id, body)
         return res.ok(category, 'ITEM_CATEGORY_UPDATED')
       },
       {
-        isAuth: true,
-        params: z.object({ id: zPrimitive.numCoerce }),
-        body: InventoryRequest.UpdateItemCategory,
+        body: ItemCategoryUpdateDto,
         response: zResponse.ok(InventorySchema.ItemCategory),
-      } as any
+      }
     )
     .delete(
-      '/:id',
-      async function deleteItemCategory({ params }) {
-        await service.delete(params.id)
-        return res.ok({ id: params.id }, 'ITEM_CATEGORY_DELETED')
+      '/remove',
+      async function remove({ body }) {
+        await service.remove(body.id)
+        return res.ok({ id: body.id }, 'ITEM_CATEGORY_DELETED')
       },
       {
-        isAuth: true,
-        params: z.object({ id: zPrimitive.numCoerce }),
+        body: zSchema.recordId,
         response: zResponse.ok(z.object({ id: zPrimitive.numCoerce })),
-      } as any
+      }
     )
 }
