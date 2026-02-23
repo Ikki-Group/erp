@@ -66,7 +66,7 @@ export function DataTablePagination({
         )}
       </div>
       <div className="flex items-center gap-x-2">
-        <div className="inline-flex items-center gap-x-1 px-3 py-[5px]">
+        <div className="inline-flex items-center gap-x-1 px-3 py-1.25">
           {isLoading ? (
             <Skeleton className="h-4 w-full" />
           ) : (

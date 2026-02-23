@@ -1,79 +1,98 @@
+import type { KyInstance } from 'ky'
 import { queryOptions } from '@tanstack/react-query'
-import { ApiError } from './api-error'
+import { z, ZodType } from 'zod'
+import { apiClient } from './api-client'
+
+type HttpMethod = 'get' | 'post' | 'put' | 'delete'
+
+interface ApiFactoryConfig<
+  TParams extends ZodType | undefined,
+  TBody extends ZodType | undefined,
+  TResult extends ZodType,
+> {
+  method: HttpMethod
+  url: string
+  keys?: readonly string[]
+  params?: TParams
+  body?: TBody
+  result: TResult
+  client?: KyInstance
+}
+/* ----------------------------------------
+ * Type Utilities
+ * --------------------------------------*/
+type IsDefined<T> = T extends undefined ? false : true
+type Input<T> = T extends ZodType ? z.input<T> : never
+type Output<T> = T extends ZodType ? z.output<T> : never
+
+type FetchArgs<P, B> =
+  IsDefined<P> extends true
+    ? IsDefined<B> extends true
+      ? { params: Input<P>; body: Input<B> }
+      : { params: Input<P> }
+    : IsDefined<B> extends true
+      ? { body: Input<B> }
+      : undefined
 
 export function apiFactory<
-  TParams extends Record<string, unknown> | void,
-  TResponse,
+  TParams extends ZodType | undefined,
+  TBody extends ZodType | undefined,
+  TResult extends ZodType,
 >({
-  keys,
-  fn,
-}: {
-  keys: readonly string[]
-  fn: (params: TParams) => Promise<TResponse>
-}) {
-  const executedFn = (params: TParams) => fetchWrapper(fn(params))
+  client = apiClient,
+  keys = [],
+  ...config
+}: ApiFactoryConfig<TParams, TBody, TResult>) {
+  type Args = FetchArgs<TParams, TBody>
+  type Result = Output<TResult>
+  type Params = Input<TParams>
+
+  /* ----------------------------------------
+   * fetch
+   * --------------------------------------*/
+  const fetch = async (args: Args): Promise<Result> => {
+    let params = (args as any)?.params
+    let body = (args as any)?.body
+
+    if (config.params) params = config.params.parse(params)
+    if (config.body) body = config.body.parse(body)
+
+    const res = await client(config.url, {
+      method: config.method,
+      searchParams: params,
+      json: body,
+    }).json()
+
+    return config.result.parse(res) as Result
+  }
+
+  /* ----------------------------------------
+   * React Query helpers
+   * --------------------------------------*/
+  const queryKey = (params: Params | undefined) =>
+    [config.url, ...keys, params ?? null] as const
+
+  const query = (params: Params | undefined) =>
+    queryOptions({
+      queryKey: queryKey(params),
+      queryFn: () => fetch((config.params ? { params } : undefined) as Args),
+    } as const)
+
+  const mutationFn = (args: Args) => fetch(args)
 
   return {
-    qry: (params: TParams) =>
-      queryOptions({
-        queryKey: [...keys, params] as const,
-        queryFn: () => executedFn(params),
-      }),
-    fn: executedFn,
-    $infer: {
-      params: {} as TParams,
-      response: {} as TResponse,
+    fetch,
+    query,
+    queryKey,
+    mutationFn,
+
+    /* ----------------------------------------
+     * Inference helpers (DX)
+     * --------------------------------------*/
+    _types: {
+      params: null as unknown as Params,
+      result: null as unknown as Result,
+      args: null as unknown as Args,
     },
   }
-}
-
-async function fetchWrapper<TResponse>(fetcher: Promise<TResponse>) {
-  try {
-    return await fetcher
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error
-    }
-
-    if (error instanceof Error) {
-      throw new ApiError(error.message)
-    }
-
-    throw new ApiError('An unknown error occurred')
-  }
-}
-
-export type InferParams<T extends { $infer: { params: unknown } }> =
-  T['$infer']['params']
-
-export type InferResponse<T extends { $infer: { response: unknown } }> =
-  T['$infer']['response']
-
-export function unwrapEdenResult<T extends { data: any; error: any }>(
-  res: T,
-): NonNullable<T['data']> {
-  if (res.error) {
-    const errorValue = res.error.value
-    const errorMessage =
-      typeof errorValue === 'object' &&
-      errorValue !== null &&
-      'message' in errorValue
-        ? String(errorValue.message)
-        : JSON.stringify(errorValue)
-
-    throw new ApiError(errorMessage || 'An unknown error occurred')
-  }
-
-  if (res.data === null || res.data === undefined) {
-    throw new ApiError('Response data is empty')
-  }
-
-  return res.data as NonNullable<T['data']>
-}
-
-export async function edenWrapper<T extends { data: any; error: any }>(
-  res: Promise<T>,
-) {
-  const data = await res
-  return unwrapEdenResult(data)
 }

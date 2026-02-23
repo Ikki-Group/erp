@@ -16,44 +16,13 @@ import { cn } from '@/lib/utils'
 import { getCommonPinningStyles } from './data-table-utils'
 import { useDataTableContext } from './data-table-context'
 
-interface DataTableTableProps<TData> extends ComponentProps<'div'> {
-  /**
-   * Number of skeleton rows to show while loading
-   * @default 10
-   */
-  skeletonRows?: number
+interface DataTableTableProps extends ComponentProps<'div'> {}
 
-  /**
-   * Custom empty state message
-   */
-  emptyMessage?: string
-
-  /**
-   * Enable row click handler
-   */
-  onRowClick?: (row: TData) => void
-
-  /**
-   * Enable row double click handler
-   */
-  onRowDoubleClick?: (row: TData) => void
-
-  /**
-   * Custom row className function
-   */
-  rowClassName?: (row: TData) => string
-}
-
-export function DataTableTable<TData>({
+export function DataTableTable({
   children,
   className,
-  skeletonRows = 10,
-  emptyMessage = 'No results found.',
-  onRowClick,
-  onRowDoubleClick,
-  rowClassName,
   ...props
-}: DataTableTableProps<TData>) {
+}: DataTableTableProps) {
   const { table, isLoading } = useDataTableContext()
 
   return (
@@ -115,7 +84,7 @@ export function DataTableTable<TData>({
         <TableBody>
           {isLoading ? (
             // Loading skeleton
-            Array.from({ length: skeletonRows }).map((_, i) => (
+            Array.from({ length: 10 }).map((_, i) => (
               <TableRow key={`skeleton-${i}`}>
                 {table.getVisibleFlatColumns().map((column) => (
                   <TableCell
@@ -135,12 +104,12 @@ export function DataTableTable<TData>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && 'selected'}
-                className={cn(
-                  onRowClick && 'cursor-pointer',
-                  rowClassName?.(row.original),
-                )}
-                onClick={() => onRowClick?.(row.original)}
-                onDoubleClick={() => onRowDoubleClick?.(row.original)}
+                // className={cn(
+                //   onRowClick && 'cursor-pointer',
+                //   rowClassName?.(row.original),
+                // )}
+                // onClick={() => onRowClick?.(row.original)}
+                // onDoubleClick={() => onRowDoubleClick?.(row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
@@ -162,7 +131,8 @@ export function DataTableTable<TData>({
                 colSpan={table.getAllColumns().length}
                 className="h-24 text-center text-muted-foreground"
               >
-                {emptyMessage}
+                {/* {emptyMessage} */}
+                No results.
               </TableCell>
             </TableRow>
           )}
