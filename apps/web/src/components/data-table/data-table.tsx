@@ -6,6 +6,8 @@ import { DataTableContext } from './data-table-context'
 import type { UseDataTableReturn } from './data-table-types'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableTable } from './data-table-table'
+import { DataTableToolbar } from './data-table-toolbar'
+import { DataTableColumnHeader } from './data-table-column-header'
 
 type DataTableProps = PropsWithChildren<{ table: UseDataTableReturn<any> }>
 
@@ -21,5 +23,7 @@ function DataTable({ table, children }: DataTableProps) {
 
 DataTable.Table = DataTableTable
 DataTable.Pagination = DataTablePagination
+DataTable.Toolbar = DataTableToolbar
+DataTable.ColumnHeader = DataTableColumnHeader
 
-export { DataTable }
+export { DataTable, DataTableColumnHeader, DataTableToolbar }

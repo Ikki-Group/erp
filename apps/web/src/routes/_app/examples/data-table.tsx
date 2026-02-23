@@ -5,6 +5,16 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
+import { MoreHorizontalIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 export const Route = createFileRoute('/_app/examples/data-table')({
   component: RouteComponent,
@@ -21,6 +31,7 @@ function RouteComponent() {
       </Page.Header>
 
       <Page.Content className="space-y-8">
+        <AdvancedExample />
         <BasicExample />
       </Page.Content>
     </Page>
@@ -59,6 +70,7 @@ function BasicExample() {
     data: MOCK_USERS,
     columns: basicColumns,
     ds,
+    isLoading: true,
   })
 
   return (
@@ -91,5 +103,109 @@ const basicColumns = [
   ch.accessor('role', {
     header: 'Role',
     cell: (info) => <Badge variant="outline">{info.getValue()}</Badge>,
+  }),
+]
+
+// ============================================================================
+// Example 2: Advanced Table
+// ============================================================================
+
+function AdvancedExample() {
+  const ds = useDataTableState()
+  const table = useDataTableAuto({
+    data: MOCK_USERS,
+    columns: advancedColumns,
+    ds,
+  })
+
+  return (
+    <Card>
+      <Card.Header className="border-b">
+        <Card.Title>Advanced Table</Card.Title>
+        <Card.Description>
+          Table with selection, search, column visibility, and row actions
+        </Card.Description>
+      </Card.Header>
+
+      <DataTable table={table}>
+        <div className="px-4 pb-2">
+          <DataTable.Toolbar />
+        </div>
+        <DataTable.Table className="border-y" />
+        <Card.Footer className="pt-4">
+          <DataTable.Pagination />
+        </Card.Footer>
+      </DataTable>
+    </Card>
+  )
+}
+
+const advancedColumns = [
+  ch.display({
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 8,
+  }),
+  ch.accessor('name', {
+    header: ({ column }) => (
+      <DataTable.ColumnHeader column={column} title="Name" />
+    ),
+    cell: (info) => info.getValue(),
+  }),
+  ch.accessor('email', {
+    header: ({ column }) => (
+      <DataTable.ColumnHeader column={column} title="Email" />
+    ),
+    cell: (info) => info.getValue(),
+  }),
+  ch.accessor('role', {
+    header: ({ column }) => (
+      <DataTable.ColumnHeader column={column} title="Role" />
+    ),
+    cell: (info) => <Badge variant="outline">{info.getValue()}</Badge>,
+  }),
+  ch.display({
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const user = row.original
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" className="size-8 p-0" />}
+          >
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontalIcon className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(user.id)}
+            >
+              Copy user ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Edit user</DropdownMenuItem>
+            <DropdownMenuItem>View details</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
   }),
 ]

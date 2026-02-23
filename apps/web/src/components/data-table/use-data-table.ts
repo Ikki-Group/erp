@@ -1,6 +1,7 @@
 import {
   getCoreRowModel,
   getPaginationRowModel,
+  getFilteredRowModel,
   OnChangeFn,
   PaginationState,
   TableOptions,
@@ -49,10 +50,13 @@ function useBaseDataTable<TData>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       pagination,
+      globalFilter: ds.search,
       ...state,
     },
+    onGlobalFilterChange: ds.setSearch,
     onPaginationChange,
     ...props,
   })
