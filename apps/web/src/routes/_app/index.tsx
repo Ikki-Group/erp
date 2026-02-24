@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useLocationStore } from '@/features/locations/hooks/use-location-store'
+import { useLocationStore } from '@/features/location/hooks/use-location-store'
 import { createFileRoute } from '@tanstack/react-router'
 import { DollarSignIcon, PackageIcon, ShoppingCartIcon } from 'lucide-react'
 

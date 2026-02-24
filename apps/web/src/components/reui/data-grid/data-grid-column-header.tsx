@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { HTMLAttributes, memo, ReactNode, useMemo } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
-import { Column } from "@tanstack/react-table"
+import { HTMLAttributes, memo, ReactNode, useMemo } from 'react'
+import { useDataGrid } from '@/components/reui/data-grid/data-grid'
+import { Column } from '@tanstack/react-table'
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,8 +18,19 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, CheckIcon, ArrowLeftToLineIcon, ArrowRightToLineIcon, ArrowLeftIcon, ArrowRightIcon, Settings2Icon, PinOffIcon } from "lucide-react"
+} from '@/components/ui/dropdown-menu'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronsUpDownIcon,
+  CheckIcon,
+  ArrowLeftToLineIcon,
+  ArrowRightToLineIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  Settings2Icon,
+  PinOffIcon,
+} from 'lucide-react'
 
 interface DataGridColumnHeaderProps<
   TData,
@@ -35,7 +46,7 @@ interface DataGridColumnHeaderProps<
 
 function DataGridColumnHeaderInner<TData, TValue>({
   column,
-  title = "",
+  title = '',
   icon,
   className,
   filter,
@@ -56,9 +67,9 @@ function DataGridColumnHeaderInner<TData, TValue>({
   const canMoveRight = columnIndex < columnOrder.length - 1
 
   const handleSort = () => {
-    if (isSorted === "asc") {
+    if (isSorted === 'asc') {
       column.toggleSorting(true)
-    } else if (isSorted === "desc") {
+    } else if (isSorted === 'desc') {
       column.clearSorting()
     } else {
       column.toggleSorting(false)
@@ -66,20 +77,20 @@ function DataGridColumnHeaderInner<TData, TValue>({
   }
 
   const headerLabelClassName = cn(
-    "text-secondary-foreground/80 inline-flex h-full items-center gap-1.5 font-normal [&_svg]:opacity-60 text-[0.8125rem] leading-[calc(1.125/0.8125)] [&_svg]:size-3.5",
-    className
+    'text-secondary-foreground/80 inline-flex h-full items-center gap-1.5 font-normal [&_svg]:opacity-60 text-[0.8125rem] leading-[calc(1.125/0.8125)] [&_svg]:size-3.5',
+    className,
   )
 
   const headerButtonClassName = cn(
-    "text-secondary-foreground/80 hover:bg-secondary data-[state=open]:bg-secondary hover:text-foreground data-[state=open]:text-foreground -ms-2 px-2 font-normal h-6 rounded-lg",
-    className
+    'text-secondary-foreground/80 hover:bg-secondary data-[state=open]:bg-secondary hover:text-foreground data-[state=open]:text-foreground -ms-2 px-2 font-normal h-6 rounded-lg',
+    className,
   )
 
   const sortIcon =
     canSort &&
-    (isSorted === "desc" ? (
+    (isSorted === 'desc' ? (
       <ArrowDownIcon className="size-3.25" />
-    ) : isSorted === "asc" ? (
+    ) : isSorted === 'asc' ? (
       <ArrowUpIcon className="size-3.25" />
     ) : (
       <ChevronsUpDownIcon className="mt-px size-3.25" />
@@ -100,7 +111,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
       items.push(
         <DropdownMenuGroup key="group-filter">
           <DropdownMenuLabel key="filter">{filter}</DropdownMenuLabel>
-        </DropdownMenuGroup>
+        </DropdownMenuGroup>,
       )
       hasPreviousSection = true
     }
@@ -114,7 +125,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
         <DropdownMenuItem
           key="sort-asc"
           onClick={() => {
-            if (isSorted === "asc") {
+            if (isSorted === 'asc') {
               column.clearSorting()
             } else {
               column.toggleSorting(false)
@@ -124,14 +135,14 @@ function DataGridColumnHeaderInner<TData, TValue>({
         >
           <ArrowUpIcon className="size-3.5!" />
           <span className="grow">Asc</span>
-          {isSorted === "asc" && (
+          {isSorted === 'asc' && (
             <CheckIcon className="text-primary size-4 opacity-100!" />
           )}
         </DropdownMenuItem>,
         <DropdownMenuItem
           key="sort-desc"
           onClick={() => {
-            if (isSorted === "desc") {
+            if (isSorted === 'desc') {
               column.clearSorting()
             } else {
               column.toggleSorting(true)
@@ -141,10 +152,10 @@ function DataGridColumnHeaderInner<TData, TValue>({
         >
           <ArrowDownIcon className="size-3.5!" />
           <span className="grow">Desc</span>
-          {isSorted === "desc" && (
+          {isSorted === 'desc' && (
             <CheckIcon className="text-primary size-4 opacity-100!" />
           )}
-        </DropdownMenuItem>
+        </DropdownMenuItem>,
       )
       hasPreviousSection = true
     }
@@ -157,24 +168,24 @@ function DataGridColumnHeaderInner<TData, TValue>({
       items.push(
         <DropdownMenuItem
           key="pin-left"
-          onClick={() => column.pin(isPinned === "left" ? false : "left")}
+          onClick={() => column.pin(isPinned === 'left' ? false : 'left')}
         >
           <ArrowLeftToLineIcon className="size-3.5!" aria-hidden="true" />
           <span className="grow">Pin to left</span>
-          {isPinned === "left" && (
+          {isPinned === 'left' && (
             <CheckIcon className="text-primary size-4 opacity-100!" />
           )}
         </DropdownMenuItem>,
         <DropdownMenuItem
           key="pin-right"
-          onClick={() => column.pin(isPinned === "right" ? false : "right")}
+          onClick={() => column.pin(isPinned === 'right' ? false : 'right')}
         >
           <ArrowRightToLineIcon className="size-3.5!" aria-hidden="true" />
           <span className="grow">Pin to right</span>
-          {isPinned === "right" && (
+          {isPinned === 'right' && (
             <CheckIcon className="text-primary size-4 opacity-100!" />
           )}
-        </DropdownMenuItem>
+        </DropdownMenuItem>,
       )
       hasPreviousSection = true
     }
@@ -214,7 +225,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
         >
           <ArrowRightIcon className="size-3.5!" aria-hidden="true" />
           <span>Move to Right</span>
-        </DropdownMenuItem>
+        </DropdownMenuItem>,
       )
       hasPreviousSection = true
     }
@@ -235,7 +246,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
               .getAllColumns()
               .filter(
                 (col) =>
-                  typeof col.accessorFn !== "undefined" && col.getCanHide()
+                  typeof col.accessorFn !== 'undefined' && col.getCanHide(),
               )
               .map((col) => (
                 <DropdownMenuCheckboxItem
@@ -249,7 +260,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        </DropdownMenuSub>,
       )
     }
 
@@ -337,7 +348,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
 }
 
 const DataGridColumnHeader = memo(
-  DataGridColumnHeaderInner
+  DataGridColumnHeaderInner,
 ) as typeof DataGridColumnHeaderInner
 
 export { DataGridColumnHeader, type DataGridColumnHeaderProps }

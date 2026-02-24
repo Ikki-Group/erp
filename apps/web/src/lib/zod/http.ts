@@ -9,6 +9,8 @@ const paginationMeta = z.object({
   totalPages: z.number(),
 })
 
+export type PaginationMeta = z.infer<typeof paginationMeta>
+
 export const zHttp = {
   boolean: z.boolean(),
   search: zPrimitive.str.optional().transform((val) => val || undefined),

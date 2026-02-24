@@ -1,29 +1,21 @@
 import { CardStat, CardStatProps } from '@/components/card/card-stat'
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Table } from '@/components/ui/table'
 import { Tabs } from '@/components/ui/tabs'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import {
-  MapPinIcon,
-  MoreHorizontalIcon,
-  PlusIcon,
-  ShieldEllipsisIcon,
-  UsersIcon,
-} from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 import { settingsApi } from '@/features/dashboard/api/settings.api'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { roleApi } from '@/features/iam'
-import {
-  DataTable,
-  useDataTable,
-  useDataTableState,
-} from '@/components/data-table'
+import { roleApi, userApi } from '@/features/iam'
 import { createColumnHelper } from '@tanstack/react-table'
-import { RoleDto } from '@/features/iam/dto'
+import { RoleDto, UserDto } from '@/features/iam/dto'
+import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+import { useDataTable } from '@/hooks/use-data-table'
+import { toDateTimeStamp } from '@/lib/formatter'
+import { locationApi, LocationDto } from '@/features/location'
+import { DataTableCard } from '@/components/card/data-table-card'
 
 export const Route = createFileRoute('/_app/settings-new/')({
   component: RouteComponent,
@@ -44,7 +36,7 @@ function RouteComponent() {
       />
       <SettingsSummarySection />
       <Page.Content>
-        <Tabs defaultValue="roles">
+        <Tabs>
           <Tabs.List className="w-full md:w-min h-10!">
             {TABS.map(([title, value]) => (
               <Tabs.Trigger key={value} className="py-2 px-4" value={value}>
@@ -52,17 +44,17 @@ function RouteComponent() {
               </Tabs.Trigger>
             ))}
           </Tabs.List>
-          <Card className="py-0 gap-0 mt-2 shadow-none">
+          <div className="mt-2">
             <Tabs.Content value="users">
-              <UserCard />
+              <UserTable />
             </Tabs.Content>
             <Tabs.Content value="roles">
-              <RoleCard />
+              <RolesTable />
             </Tabs.Content>
             <Tabs.Content value="locations">
-              <LocationCard />
+              <LocationsTable />
             </Tabs.Content>
-          </Card>
+          </div>
         </Tabs>
       </Page.Content>
     </Page>
@@ -99,103 +91,115 @@ function SettingsSummarySection() {
   )
 }
 
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-}
-
-const MOCK_USERS: User[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Admin',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    role: 'User',
-  },
+const userCh = createColumnHelper<UserDto>()
+const userColumns = [
+  userCh.accessor('username', {
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title="Nama Role"
+        visibility={true}
+        column={column}
+      />
+    ),
+    cell: (info) => (
+      <div className="flex gap-1 flex-col">
+        <p>{info.row.original.fullname}</p>
+        <p className="text-muted-foreground text-xs italic">
+          ({info.row.original.username})
+        </p>
+      </div>
+    ),
+    enableSorting: false,
+    size: 200,
+  }),
+  userCh.accessor('createdAt', {
+    header: 'Dibuat Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
+  }),
+  userCh.accessor('updatedAt', {
+    header: 'Diubah Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
+  }),
 ]
 
-function UserCard() {
+function UserTable() {
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(
+    userApi.list.query({
+      ...ds.pagination,
+    }),
+  )
+
+  const table = useDataTable({
+    columns: userColumns,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
+    ds,
+  })
+
   return (
-    <>
-      <Card.Header className="border-b pt-4">
-        <Card.Title>Data Pengguna</Card.Title>
-        <Card.Description>Kelola data pengguna sistem.</Card.Description>
-        <Card.Action>
-          <Button render={<Link to="/settings-new/users/create" />}>
-            <PlusIcon />
-            Tambah Pengguna
-          </Button>
-        </Card.Action>
-      </Card.Header>
-      <Card.Content className="px-2">
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Nama</Table.Head>
-              <Table.Head>Email</Table.Head>
-              <Table.Head>Role</Table.Head>
-              <Table.Head>Status</Table.Head>
-              <Table.Head className="text-right">Aksi</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {MOCK_USERS.map((user) => (
-              <Table.Row key={user.id}>
-                <Table.Cell>{user.name}</Table.Cell>
-                <Table.Cell>{user.email}</Table.Cell>
-                <Table.Cell>{user.role}</Table.Cell>
-                <Table.Cell>
-                  <Badge
-                    variant={user.role === 'Admin' ? 'default' : 'secondary'}
-                    className="font-normal"
-                  >
-                    {user.role}
-                  </Badge>
-                </Table.Cell>
-                <Table.Cell className="text-right">
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontalIcon />
-                  </Button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </Card.Content>
-      <Card.Footer>
-        <Button variant="outline">Lihat Semua</Button>
-      </Card.Footer>
-    </>
+    <DataTableCard
+      table={table}
+      isLoading={isLoading}
+      recordCount={data?.meta.total || 0}
+      action={<Button size="sm">Tambah Pengguna</Button>}
+    />
   )
 }
 
-interface Role {
-  id: string
-  name: string
-  description: string
-}
-
-const MOCK_ROLES: Role[] = [
-  {
-    id: '1',
-    name: 'Admin',
-    description: 'Administrator sistem',
-  },
-  {
-    id: '2',
-    name: 'User',
-    description: 'Pengguna sistem',
-  },
+const roleCh = createColumnHelper<RoleDto>()
+const roleColumns = [
+  roleCh.accessor('name', {
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title="Nama Role"
+        visibility={true}
+        column={column}
+      />
+    ),
+    cell: (info) => (
+      <div className="flex gap-2 flex-col">
+        <p>{info.row.original.name}</p>
+        <p className="text-muted-foreground text-xs italic">
+          ({info.row.original.code})
+        </p>
+      </div>
+    ),
+    enableSorting: false,
+    size: 200,
+  }),
+  roleCh.accessor('createdAt', {
+    header: 'Dibuat Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
+  }),
+  roleCh.accessor('updatedAt', {
+    header: 'Diubah Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
+  }),
 ]
 
-function RoleCard() {
+function RolesTable() {
   const ds = useDataTableState()
   const { data, isLoading } = useQuery(
     roleApi.list.query({
@@ -204,93 +208,86 @@ function RoleCard() {
   )
 
   const table = useDataTable({
-    data: data?.data ?? [],
-    rowCount: data?.meta.total ?? 0,
-    pageCount: data?.meta.totalPages ?? 0,
     columns: roleColumns,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
     ds,
-    isLoading,
   })
 
   return (
-    <DataTable table={table}>
-      <Card.Header className="pt-4">
-        <Card.Title>Data Role</Card.Title>
-        <Card.Description>Kelola data role sistem.</Card.Description>
-        <Card.Action>
-          <Button>
-            <PlusIcon />
-            Tambah Role
-          </Button>
-        </Card.Action>
-      </Card.Header>
-      <DataTable.Table />
-      <Card.Footer>
-        <DataTable.Pagination />
-      </Card.Footer>
-    </DataTable>
+    <DataTableCard
+      table={table}
+      isLoading={isLoading}
+      recordCount={data?.meta.total || 0}
+      action={<Button size="sm">Tambah Role</Button>}
+    />
   )
 }
 
-const roleCh = createColumnHelper<RoleDto>()
-const roleColumns = [
-  roleCh.accessor('name', {
-    header: 'Nama',
-    cell: (info) => info.getValue(),
+const locationCh = createColumnHelper<LocationDto>()
+const locationColumns = [
+  locationCh.accessor('name', {
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title="Nama Role"
+        visibility={true}
+        column={column}
+      />
+    ),
+    cell: (info) => (
+      <div className="flex gap-2 flex-col">
+        <p>{info.row.original.name}</p>
+        <p className="text-muted-foreground text-xs italic">
+          ({info.row.original.code})
+        </p>
+      </div>
+    ),
+    enableSorting: false,
+    size: 200,
+  }),
+  locationCh.accessor('createdAt', {
+    header: 'Dibuat Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
+  }),
+  locationCh.accessor('updatedAt', {
+    header: 'Diubah Pada',
+    cell: (info) => (
+      <p className="text-nowrap">
+        {toDateTimeStamp(info.row.original.createdAt)}
+      </p>
+    ),
+    enableSorting: false,
   }),
 ]
 
-interface Location {
-  id: string
-  name: string
-  address: string
-}
+function LocationsTable() {
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(
+    locationApi.list.query({
+      ...ds.pagination,
+    }),
+  )
 
-const MOCK_LOCATIONS: Location[] = [
-  { id: '1', name: 'Jakarta', address: 'Jl. Sudirman No. 1' },
-  { id: '2', name: 'Bandung', address: 'Jl. Asia Afrika No. 2' },
-]
+  const table = useDataTable({
+    columns: locationColumns,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
+    ds,
+  })
 
-function LocationCard() {
   return (
-    <>
-      <Card.Header className="border-b pt-4">
-        <Card.Title>Data Lokasi</Card.Title>
-        <Card.Description>Kelola data lokasi sistem.</Card.Description>
-        <Card.Action>
-          <Button>
-            <PlusIcon />
-            Tambah Lokasi
-          </Button>
-        </Card.Action>
-      </Card.Header>
-      <Card.Content className="px-2">
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Nama</Table.Head>
-              <Table.Head>Alamat</Table.Head>
-              <Table.Head className="text-right">Aksi</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {MOCK_LOCATIONS.map((location) => (
-              <Table.Row key={location.id}>
-                <Table.Cell>{location.name}</Table.Cell>
-                <Table.Cell>{location.address}</Table.Cell>
-                <Table.Cell className="text-right">
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontalIcon />
-                  </Button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </Card.Content>
-      <Card.Footer>
-        <Button variant="outline">Lihat Semua</Button>
-      </Card.Footer>
-    </>
+    <DataTableCard
+      table={table}
+      isLoading={isLoading}
+      recordCount={data?.meta.total || 0}
+      action={<Button size="sm">Tambah Lokasi</Button>}
+    />
   )
 }

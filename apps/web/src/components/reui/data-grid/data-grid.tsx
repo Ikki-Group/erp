@@ -91,10 +91,9 @@ export interface DataGridProps<TData extends object> {
   }
 }
 
-const DataGridContext = createContext<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  DataGridContextProps<any> | undefined
->(undefined)
+const DataGridContext = createContext<DataGridContextProps<any> | undefined>(
+  undefined,
+)
 
 function useDataGrid() {
   const context = useContext(DataGridContext)

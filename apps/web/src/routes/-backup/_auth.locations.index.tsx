@@ -17,7 +17,7 @@ import {
   useLocations,
   useDeleteLocation,
   useToggleLocationActive,
-} from '@/features/locations/hooks/locations.hooks'
+} from '@/features/location/hooks/locations.hooks'
 import { useConfirm } from '@/providers/ConfirmProvider'
 import { useDataTable } from '@/hooks/use-data-table'
 import { z } from 'zod'

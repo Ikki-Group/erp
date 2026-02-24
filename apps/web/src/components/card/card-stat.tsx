@@ -17,7 +17,7 @@ export function CardStat({
   isLoading,
 }: CardStatProps) {
   return (
-    <div className="flex flex-1 items-center gap-4 p-2 rounded-xl border bg-card text-card-foreground shadow-sm min-w-[200px] hover:shadow-md transition-all">
+    <div className="flex flex-1 items-center gap-4 p-2 rounded-xl border bg-card text-card-foreground shadow-sm min-w-50 hover:shadow-md transition-all">
       <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/5">
         <Icon className="size-6 text-primary" />
       </div>

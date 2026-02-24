@@ -26,7 +26,7 @@ import {
   useLocation,
   useCreateLocation,
   useUpdateLocation,
-} from '@/features/locations/hooks/locations.hooks'
+} from '@/features/location/hooks/locations.hooks'
 
 export const Route = createFileRoute('/_auth/locations/upsert')({
   component: LocationUpsertPage,
