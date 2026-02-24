@@ -81,6 +81,10 @@
 
   --animate-skeleton: skeleton 2s -1s infinite linear;
 
+  --color-invert-foreground: var(--invert-foreground);
+
+  --color-invert: var(--invert);
+
   @keyframes skeleton {
     to {
       background-position: -200% 0;
@@ -173,6 +177,15 @@
   --code: oklch(1 0 0);
   --code-foreground: var(--foreground);
   --code-highlight: oklch(0 0 0 / 4%);
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 .dark {
@@ -216,6 +229,15 @@
   );
   --code-foreground: var(--foreground);
   --code-highlight: oklch(1 0 0 / 8%);
+  --destructive-foreground: var(--color-red-600);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 @layer base {

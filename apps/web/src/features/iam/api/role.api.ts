@@ -2,11 +2,16 @@ import { apiFactory } from '@/lib/api'
 import { zHttp } from '@/lib/zod'
 import { RoleDto } from '../dto/role.dto'
 import { endpoint } from '@/config/endpoint'
+import z from 'zod'
 
 export const roleApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.iam.role.list,
+    params: z.object({
+      ...zHttp.pagination.shape,
+      search: zHttp.search,
+    }),
     result: zHttp.paginated(RoleDto.array()),
   }),
   detail: apiFactory({

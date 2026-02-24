@@ -1,4 +1,4 @@
-import { useNavigate, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import { useMutation } from '@tanstack/react-query'
-import { iamApi } from '@/features/iam'
+import { authApi } from '@/features/iam'
 import { useAuth } from '@/lib/auth'
 
 export const Route = createFileRoute('/_auth/login')({
@@ -78,7 +78,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
 
   const loginMutation = useMutation({
-    mutationFn: iamApi.auth.login.fn,
+    mutationFn: authApi.login.mutationFn,
     onSuccess: () =>
       toast.success('Login Berhasil', {
         description: 'Selamat datang kembali di IKKI ERP.',
@@ -96,11 +96,13 @@ function LoginForm() {
       password: '',
     },
     onSubmit: async ({ value }) => {
-      useAuth.getState().setToken('example')
       const res = await loginMutation.mutateAsync({
-        identifier: value.email,
-        password: value.password,
+        body: {
+          identifier: value.email,
+          password: value.password,
+        },
       })
+      useAuth.getState().setToken(res.data.token)
     },
   })
 
@@ -196,6 +198,7 @@ function LoginForm() {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
+                    autoComplete="current-password"
                   />
                   <InputGroupAddon align="inline-end">
                     <InputGroupButton

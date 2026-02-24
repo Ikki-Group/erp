@@ -13,21 +13,27 @@ import {
   ShieldEllipsisIcon,
   UsersIcon,
 } from 'lucide-react'
-import z from 'zod'
-import { zodValidator } from '@tanstack/zod-adapter'
+
+import { settingsApi } from '@/features/dashboard/api/settings.api'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { roleApi } from '@/features/iam'
+import {
+  DataTable,
+  useDataTable,
+  useDataTableState,
+} from '@/components/data-table'
+import { createColumnHelper } from '@tanstack/react-table'
+import { RoleDto } from '@/features/iam/dto'
 
 export const Route = createFileRoute('/_app/settings-new/')({
-  validateSearch: zodValidator(
-    z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().default(10),
-      search: z.string().optional(),
-      filters: z.string().optional(),
-      joinOperator: z.string().optional(),
-    }),
-  ),
   component: RouteComponent,
 })
+
+const TABS = [
+  ['Pengguna', 'users'],
+  ['Role', 'roles'],
+  ['Lokasi', 'locations'],
+]
 
 function RouteComponent() {
   return (
@@ -36,23 +42,15 @@ function RouteComponent() {
         title="Pengaturan"
         description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
       />
-      <Page.Content className="flex flex-wrap gap-4">
-        {MOCK_STATS.map((stat) => (
-          <CardStat key={stat.title} {...stat} />
-        ))}
-      </Page.Content>
+      <SettingsSummarySection />
       <Page.Content>
-        <Tabs>
-          <Tabs.List className="w-full md:w-min h-10!" variant="line">
-            <Tabs.Trigger className="py-2 px-4" value="users">
-              Pengguna
-            </Tabs.Trigger>
-            <Tabs.Trigger className="py-2 px-4" value="roles">
-              Role
-            </Tabs.Trigger>
-            <Tabs.Trigger className="py-2 px-4" value="locations">
-              Lokasi
-            </Tabs.Trigger>
+        <Tabs defaultValue="roles">
+          <Tabs.List className="w-full md:w-min h-10!">
+            {TABS.map(([title, value]) => (
+              <Tabs.Trigger key={value} className="py-2 px-4" value={value}>
+                {title}
+              </Tabs.Trigger>
+            ))}
           </Tabs.List>
           <Card className="py-0 gap-0 mt-2 shadow-none">
             <Tabs.Content value="users">
@@ -71,23 +69,35 @@ function RouteComponent() {
   )
 }
 
-const MOCK_STATS: CardStatProps[] = [
-  {
-    title: 'Total User',
-    value: '20',
-    icon: UsersIcon,
-  },
-  {
-    title: 'Total Role',
-    value: '6',
-    icon: ShieldEllipsisIcon,
-  },
-  {
-    title: 'Total Lokasi',
-    value: '2',
-    icon: MapPinIcon,
-  },
-]
+function SettingsSummarySection() {
+  const { data } = useSuspenseQuery(settingsApi.summary.query({}))
+
+  const stats = [
+    {
+      title: 'Total User',
+      value: data.data.users,
+      icon: UsersIcon,
+    },
+    {
+      title: 'Total Role',
+      value: data.data.roles,
+      icon: ShieldEllipsisIcon,
+    },
+    {
+      title: 'Total Lokasi',
+      value: data.data.locations,
+      icon: MapPinIcon,
+    },
+  ] satisfies CardStatProps[]
+
+  return (
+    <Page.Content className="flex flex-wrap gap-4">
+      {stats.map((stat) => (
+        <CardStat key={stat.title} {...stat} />
+      ))}
+    </Page.Content>
+  )
+}
 
 interface User {
   id: string
@@ -186,9 +196,25 @@ const MOCK_ROLES: Role[] = [
 ]
 
 function RoleCard() {
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(
+    roleApi.list.query({
+      ...ds.pagination,
+    }),
+  )
+
+  const table = useDataTable({
+    data: data?.data ?? [],
+    rowCount: data?.meta.total ?? 0,
+    pageCount: data?.meta.totalPages ?? 0,
+    columns: roleColumns,
+    ds,
+    isLoading,
+  })
+
   return (
-    <>
-      <Card.Header className="border-b pt-4">
+    <DataTable table={table}>
+      <Card.Header className="pt-4">
         <Card.Title>Data Role</Card.Title>
         <Card.Description>Kelola data role sistem.</Card.Description>
         <Card.Action>
@@ -198,36 +224,21 @@ function RoleCard() {
           </Button>
         </Card.Action>
       </Card.Header>
-      <Card.Content className="px-2">
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Nama</Table.Head>
-              <Table.Head>Deskripsi</Table.Head>
-              <Table.Head className="text-right">Aksi</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {MOCK_ROLES.map((role) => (
-              <Table.Row key={role.id}>
-                <Table.Cell>{role.name}</Table.Cell>
-                <Table.Cell>{role.description}</Table.Cell>
-                <Table.Cell className="text-right">
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontalIcon />
-                  </Button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </Card.Content>
+      <DataTable.Table />
       <Card.Footer>
-        <Button variant="outline">Lihat Semua</Button>
+        <DataTable.Pagination />
       </Card.Footer>
-    </>
+    </DataTable>
   )
 }
+
+const roleCh = createColumnHelper<RoleDto>()
+const roleColumns = [
+  roleCh.accessor('name', {
+    header: 'Nama',
+    cell: (info) => info.getValue(),
+  }),
+]
 
 interface Location {
   id: string

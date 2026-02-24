@@ -20,9 +20,10 @@ interface DataTableTableProps extends ComponentProps<'table'> {}
 
 export function DataTableTable({ children, ...props }: DataTableTableProps) {
   const { table, isLoading } = useDataTableContext()
+  const pageSize = table.getState().pagination.pageSize
 
   return (
-    <Table {...props}>
+    <table {...props}>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
@@ -39,8 +40,8 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
                     width: header.getSize(),
                   }}
                   className={cn(
-                    canSort && 'cursor-pointer select-none',
                     header.column.columnDef.meta?.className,
+                    'bg-muted/30',
                   )}
                   onClick={
                     canSort
@@ -75,8 +76,7 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
       </TableHeader>
       <TableBody>
         {isLoading ? (
-          // Loading skeleton
-          Array.from({ length: 10 }).map((_, i) => (
+          Array.from({ length: pageSize }).map((_, i) => (
             <TableRow key={`skeleton-${i}`}>
               {table.getVisibleFlatColumns().map((column) => (
                 <TableCell
@@ -91,7 +91,6 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
             </TableRow>
           ))
         ) : table.getRowModel().rows?.length ? (
-          // Data rows
           table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}
@@ -129,6 +128,6 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
           </TableRow>
         )}
       </TableBody>
-    </Table>
+    </table>
   )
 }

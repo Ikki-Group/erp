@@ -7,7 +7,7 @@ import {
 import { DEFAULT_PAGINATION } from './data-table-config'
 
 export function useDataTableState<
-  F extends DataTableFilters = {},
+  F extends DataTableFilters = DataTableFilters,
 >(): DataTableState<F> {
   const [pagination, setPagination] =
     useState<DataTablePagination>(DEFAULT_PAGINATION)

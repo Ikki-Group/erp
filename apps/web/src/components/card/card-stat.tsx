@@ -1,10 +1,12 @@
 import { LucideIcon } from 'lucide-react'
+import { Skeleton } from '../ui/skeleton'
 
 export interface CardStatProps {
   title: string
-  value: string
+  value: string | number
   icon: LucideIcon
   description?: string
+  isLoading?: boolean
 }
 
 export function CardStat({
@@ -12,6 +14,7 @@ export function CardStat({
   value,
   icon: Icon,
   description,
+  isLoading,
 }: CardStatProps) {
   return (
     <div className="flex flex-1 items-center gap-4 p-2 rounded-xl border bg-card text-card-foreground shadow-sm min-w-[200px] hover:shadow-md transition-all">
@@ -21,7 +24,9 @@ export function CardStat({
       <div>
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
         <div className="flex items-baseline gap-2">
-          <p className="text-xl font-bold">{value}</p>
+          <p className="text-xl font-bold">
+            {isLoading ? <Skeleton className="w-20 h-6" /> : value}
+          </p>
           {description && (
             <span className="text-xs text-muted-foreground">{description}</span>
           )}
