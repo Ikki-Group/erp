@@ -8,18 +8,18 @@ import { Page } from '@/components/layout/page'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { InputPassword } from '@/components/ui/input-password'
 import { Separator } from '@/components/ui/separator'
 import { Table } from '@/components/ui/table'
-import { useLocationStore } from '@/features/location/hooks/use-location-store'
 import { formOptions, useStore } from '@tanstack/react-form'
 import { LinkOptions } from '@tanstack/react-router'
 import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
 import z from 'zod'
 
 const FormDto = z.object({
-  email: z.email(),
   fullname: z.string(),
   username: z.string(),
+  email: z.email(),
   password: z.string(),
   isRoot: z.boolean(),
   isActive: z.boolean(),
@@ -76,22 +76,18 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
 
   return (
     <FormConfig mode={mode} id={id} backTo={backTo}>
-      <Page>
+      <Page size="sm">
         <Page.SimpleHeader
           title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
-          description={
-            mode === 'create' ? 'Tambah pengguna baru' : 'Edit pengguna'
-          }
           back={backTo}
         />
         <form.AppForm>
           <form.Form>
             <Page.Content>
               <FormLayout>
-                <div className="grid @3xl:grid-cols-[auto_350px] gap-6 grid-cols-1">
-                  <UserInformationCard />
-                  <StatusAndRoleCard />
-                </div>
+                <InputPassword />
+                <UserInformationCard />
+                <StatusAndRoleCard />
                 <RoleAndLocationCard />
                 <form.SimpleActions />
               </FormLayout>
@@ -107,12 +103,16 @@ function UserInformationCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <Card size="sm" className="h-full">
+    <Card size="sm">
       <Card.Header className="border-b">
         <Card.Title>Informasi Akun</Card.Title>
-        <Card.Description>Data login dan identitas pengguna</Card.Description>
       </Card.Header>
       <Card.Content className="space-y-4">
+        <form.AppField name="fullname">
+          {(field) => (
+            <field.Input label="Nama Lengkap" required placeholder="John Doe" />
+          )}
+        </form.AppField>
         <form.AppField name="email">
           {(field) => (
             <field.Input
@@ -138,12 +138,6 @@ function UserInformationCard() {
               type="password"
               placeholder="••••••••"
             />
-          )}
-        </form.AppField>
-
-        <form.AppField name="fullname">
-          {(field) => (
-            <field.Input label="Nama Lengkap" required placeholder="John Doe" />
           )}
         </form.AppField>
       </Card.Content>
@@ -188,7 +182,7 @@ function StatusAndRoleCard() {
 function RoleAndLocationCard() {
   const form = useTypedAppFormContext({ ...fopts })
   const isRoot = useStore(form.store, (s) => s.values.isRoot)
-  const { locations } = useLocationStore()
+  const locations = []
 
   return (
     <Card size="sm">

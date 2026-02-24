@@ -22,10 +22,10 @@ function Page({ size = 'lg', className, ...props }: PageProps) {
       {...props}
       className={cn(
         'w-full mx-auto py-4 flex-1 flex flex-col gap-6 @xl:pt-6',
-        size === 'sm' && 'max-w-4xl',
-        size === 'md' && 'max-w-5xl',
-        size === 'lg' && 'max-w-6xl',
-        size === 'xl' && 'max-w-7xl',
+        size === 'sm' && 'max-w-2xl',
+        size === 'md' && 'max-w-4xl',
+        size === 'lg' && 'max-w-5xl',
+        size === 'xl' && 'max-w-6xl',
         className,
       )}
     />
@@ -36,7 +36,7 @@ function Header({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       {...props}
-      className={cn('flex items-start gap-2.5 px-4 pb-4 border-b', className)}
+      className={cn('flex items-start gap-2.5 px-4', className)}
     />
   )
 }
@@ -46,7 +46,7 @@ function Title({ className, ...props }: ComponentProps<'h1'>) {
     <h1
       {...props}
       className={cn(
-        'text-2xl font-semibold tracking-tight text-foreground truncate',
+        'text-xl font-semibold tracking-tight text-foreground truncate',
         className,
       )}
     />
@@ -58,7 +58,7 @@ function Description({ className, ...props }: ComponentProps<'p'>) {
     <p
       {...props}
       className={cn(
-        'text-muted-foreground text-sm truncate leading-relaxed mt-1',
+        'text-muted-foreground text-sm truncate leading-relaxed',
         className,
       )}
     />
@@ -104,9 +104,11 @@ interface SimpleHeaderProps {
 
 function SimpleHeader({ title, description, back, action }: SimpleHeaderProps) {
   return (
-    <Header className="flex-wrap gap-y-4">
-      {back && <BackButton render={<Link {...back} />} />}
-      <div className="flex-1">
+    <Header className="flex-wrap gap-y-4 flex items-center">
+      {back && (
+        <BackButton className="self-start" render={<Link {...back} />} />
+      )}
+      <div className="flex-1 space-y-1">
         <Title>{title}</Title>
         {description && <Description>{description}</Description>}
       </div>

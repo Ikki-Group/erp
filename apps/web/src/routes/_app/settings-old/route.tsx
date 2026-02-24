@@ -53,7 +53,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 
-export const Route = createFileRoute('/_app/settings')({
+export const Route = createFileRoute('/_app/settings-old')({
   component: RouteComponent,
 })
 

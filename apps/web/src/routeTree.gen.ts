@@ -14,9 +14,9 @@ import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
-import { Route as AppSettingsNewIndexRouteImport } from './routes/_app/settings-new/index'
+import { Route as AppSettingsOldRouteRouteImport } from './routes/_app/settings-old/route'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
+import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
@@ -33,9 +33,10 @@ import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/exampl
 import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
 import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
-import { Route as AppSettingsNewUsersCreateRouteImport } from './routes/_app/settings-new/users.create'
-import { Route as AppSettingsNewUsersIdIndexRouteImport } from './routes/_app/settings-new/users.$id.index'
-import { Route as AppSettingsNewUsersIdUpdateRouteImport } from './routes/_app/settings-new/users.$id.update'
+import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
+import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
+import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
+import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -60,19 +61,19 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
 } as any)
-const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppSettingsNewIndexRoute = AppSettingsNewIndexRouteImport.update({
-  id: '/settings-new/',
-  path: '/settings-new/',
+const AppSettingsOldRouteRoute = AppSettingsOldRouteRouteImport.update({
+  id: '/settings-old',
+  path: '/settings-old',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
+  id: '/settings/_tab',
+  path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductsIdRoute = AppProductsIdRouteImport.update({
@@ -160,37 +161,42 @@ const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
   path: '/examples/charts/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppSettingsNewUsersCreateRoute =
-  AppSettingsNewUsersCreateRouteImport.update({
-    id: '/settings-new/users/create',
-    path: '/settings-new/users/create',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppSettingsNewUsersIdIndexRoute =
-  AppSettingsNewUsersIdIndexRouteImport.update({
-    id: '/settings-new/users/$id/',
-    path: '/settings-new/users/$id/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppSettingsNewUsersIdUpdateRoute =
-  AppSettingsNewUsersIdUpdateRouteImport.update({
-    id: '/settings-new/users/$id/update',
-    path: '/settings-new/users/$id/update',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppSettingsUserCreateRoute = AppSettingsUserCreateRouteImport.update({
+  id: '/settings/user/create',
+  path: '/settings/user/create',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsTabUserRoute = AppSettingsTabUserRouteImport.update({
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => AppSettingsTabRoute,
+} as any)
+const AppSettingsTabRoleRoute = AppSettingsTabRoleRouteImport.update({
+  id: '/role',
+  path: '/role',
+  getParentRoute: () => AppSettingsTabRoute,
+} as any)
+const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => AppSettingsTabRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/$': typeof SplatRoute
-  '/settings': typeof AppSettingsRouteRoute
+  '/settings-old': typeof AppSettingsOldRouteRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/products/$id': typeof AppProductsIdRoute
+  '/settings': typeof AppSettingsTabRouteWithChildren
   '/products/': typeof AppProductsIndexRoute
-  '/settings-new/': typeof AppSettingsNewIndexRoute
-  '/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
+  '/settings/role': typeof AppSettingsTabRoleRoute
+  '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -203,21 +209,22 @@ export interface FileRoutesByFullPath {
   '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search/': typeof AppExamplesSearchIndexRoute
   '/examples/table/': typeof AppExamplesTableIndexRoute
-  '/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
-  '/settings-new/users/$id/': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/$': typeof SplatRoute
-  '/settings': typeof AppSettingsRouteRoute
+  '/settings-old': typeof AppSettingsOldRouteRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/products/$id': typeof AppProductsIdRoute
+  '/settings': typeof AppSettingsTabRouteWithChildren
   '/products': typeof AppProductsIndexRoute
-  '/settings-new': typeof AppSettingsNewIndexRoute
-  '/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
+  '/settings/role': typeof AppSettingsTabRoleRoute
+  '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
   '/examples/dashboard': typeof AppExamplesDashboardIndexRoute
@@ -230,24 +237,25 @@ export interface FileRoutesByTo {
   '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search': typeof AppExamplesSearchIndexRoute
   '/examples/table': typeof AppExamplesTableIndexRoute
-  '/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
-  '/settings-new/users/$id': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/_app/settings': typeof AppSettingsRouteRoute
+  '/_app/settings-old': typeof AppSettingsOldRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
   '/_app/products/$id': typeof AppProductsIdRoute
+  '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/products/': typeof AppProductsIndexRoute
-  '/_app/settings-new/': typeof AppSettingsNewIndexRoute
-  '/_app/settings-new/users/create': typeof AppSettingsNewUsersCreateRoute
+  '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
+  '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
+  '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
+  '/_app/settings/user/create': typeof AppSettingsUserCreateRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
   '/_app/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
@@ -260,23 +268,24 @@ export interface FileRoutesById {
   '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
   '/_app/examples/table/': typeof AppExamplesTableIndexRoute
-  '/_app/settings-new/users/$id/update': typeof AppSettingsNewUsersIdUpdateRoute
-  '/_app/settings-new/users/$id/': typeof AppSettingsNewUsersIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$'
-    | '/settings'
+    | '/settings-old'
     | '/login'
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
     | '/products/$id'
+    | '/settings'
     | '/products/'
-    | '/settings-new/'
-    | '/settings-new/users/create'
+    | '/settings/location'
+    | '/settings/role'
+    | '/settings/user'
+    | '/settings/user/create'
     | '/examples/charts/'
     | '/examples/complex-form/'
     | '/examples/dashboard/'
@@ -289,21 +298,22 @@ export interface FileRouteTypes {
     | '/examples/page-layouts/'
     | '/examples/search/'
     | '/examples/table/'
-    | '/settings-new/users/$id/update'
-    | '/settings-new/users/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$'
-    | '/settings'
+    | '/settings-old'
     | '/login'
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
     | '/products/$id'
+    | '/settings'
     | '/products'
-    | '/settings-new'
-    | '/settings-new/users/create'
+    | '/settings/location'
+    | '/settings/role'
+    | '/settings/user'
+    | '/settings/user/create'
     | '/examples/charts'
     | '/examples/complex-form'
     | '/examples/dashboard'
@@ -316,23 +326,24 @@ export interface FileRouteTypes {
     | '/examples/page-layouts'
     | '/examples/search'
     | '/examples/table'
-    | '/settings-new/users/$id/update'
-    | '/settings-new/users/$id'
   id:
     | '__root__'
     | '/_app'
     | '/_auth'
     | '/$'
-    | '/_app/settings'
+    | '/_app/settings-old'
     | '/_auth/login'
     | '/_app/'
     | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
     | '/_app/products/$id'
+    | '/_app/settings/_tab'
     | '/_app/products/'
-    | '/_app/settings-new/'
-    | '/_app/settings-new/users/create'
+    | '/_app/settings/_tab/location'
+    | '/_app/settings/_tab/role'
+    | '/_app/settings/_tab/user'
+    | '/_app/settings/user/create'
     | '/_app/examples/charts/'
     | '/_app/examples/complex-form/'
     | '/_app/examples/dashboard/'
@@ -345,8 +356,6 @@ export interface FileRouteTypes {
     | '/_app/examples/page-layouts/'
     | '/_app/examples/search/'
     | '/_app/examples/table/'
-    | '/_app/settings-new/users/$id/update'
-    | '/_app/settings-new/users/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -392,18 +401,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRouteRoute
     }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/settings-new/': {
-      id: '/_app/settings-new/'
-      path: '/settings-new'
-      fullPath: '/settings-new/'
-      preLoaderRoute: typeof AppSettingsNewIndexRouteImport
+    '/_app/settings-old': {
+      id: '/_app/settings-old'
+      path: '/settings-old'
+      fullPath: '/settings-old'
+      preLoaderRoute: typeof AppSettingsOldRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/products/': {
@@ -411,6 +413,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products/'
       preLoaderRoute: typeof AppProductsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/_tab': {
+      id: '/_app/settings/_tab'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsTabRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/products/$id': {
@@ -525,40 +534,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExamplesChartsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/settings-new/users/create': {
-      id: '/_app/settings-new/users/create'
-      path: '/settings-new/users/create'
-      fullPath: '/settings-new/users/create'
-      preLoaderRoute: typeof AppSettingsNewUsersCreateRouteImport
+    '/_app/settings/user/create': {
+      id: '/_app/settings/user/create'
+      path: '/settings/user/create'
+      fullPath: '/settings/user/create'
+      preLoaderRoute: typeof AppSettingsUserCreateRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/settings-new/users/$id/': {
-      id: '/_app/settings-new/users/$id/'
-      path: '/settings-new/users/$id'
-      fullPath: '/settings-new/users/$id/'
-      preLoaderRoute: typeof AppSettingsNewUsersIdIndexRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_app/settings/_tab/user': {
+      id: '/_app/settings/_tab/user'
+      path: '/user'
+      fullPath: '/settings/user'
+      preLoaderRoute: typeof AppSettingsTabUserRouteImport
+      parentRoute: typeof AppSettingsTabRoute
     }
-    '/_app/settings-new/users/$id/update': {
-      id: '/_app/settings-new/users/$id/update'
-      path: '/settings-new/users/$id/update'
-      fullPath: '/settings-new/users/$id/update'
-      preLoaderRoute: typeof AppSettingsNewUsersIdUpdateRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/_app/settings/_tab/role': {
+      id: '/_app/settings/_tab/role'
+      path: '/role'
+      fullPath: '/settings/role'
+      preLoaderRoute: typeof AppSettingsTabRoleRouteImport
+      parentRoute: typeof AppSettingsTabRoute
+    }
+    '/_app/settings/_tab/location': {
+      id: '/_app/settings/_tab/location'
+      path: '/location'
+      fullPath: '/settings/location'
+      preLoaderRoute: typeof AppSettingsTabLocationRouteImport
+      parentRoute: typeof AppSettingsTabRoute
     }
   }
 }
 
+interface AppSettingsTabRouteChildren {
+  AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
+  AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
+  AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
+}
+
+const AppSettingsTabRouteChildren: AppSettingsTabRouteChildren = {
+  AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
+  AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
+  AppSettingsTabUserRoute: AppSettingsTabUserRoute,
+}
+
+const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
+  AppSettingsTabRouteChildren,
+)
+
 interface AppRouteRouteChildren {
-  AppSettingsRouteRoute: typeof AppSettingsRouteRoute
+  AppSettingsOldRouteRoute: typeof AppSettingsOldRouteRoute
   AppIndexRoute: typeof AppIndexRoute
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
+  AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppProductsIndexRoute: typeof AppProductsIndexRoute
-  AppSettingsNewIndexRoute: typeof AppSettingsNewIndexRoute
-  AppSettingsNewUsersCreateRoute: typeof AppSettingsNewUsersCreateRoute
+  AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
   AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
   AppExamplesDashboardIndexRoute: typeof AppExamplesDashboardIndexRoute
@@ -571,20 +603,18 @@ interface AppRouteRouteChildren {
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
   AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
   AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
-  AppSettingsNewUsersIdUpdateRoute: typeof AppSettingsNewUsersIdUpdateRoute
-  AppSettingsNewUsersIdIndexRoute: typeof AppSettingsNewUsersIdIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
-  AppSettingsRouteRoute: AppSettingsRouteRoute,
+  AppSettingsOldRouteRoute: AppSettingsOldRouteRoute,
   AppIndexRoute: AppIndexRoute,
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
   AppProductsIdRoute: AppProductsIdRoute,
+  AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppProductsIndexRoute: AppProductsIndexRoute,
-  AppSettingsNewIndexRoute: AppSettingsNewIndexRoute,
-  AppSettingsNewUsersCreateRoute: AppSettingsNewUsersCreateRoute,
+  AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
   AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,
   AppExamplesDashboardIndexRoute: AppExamplesDashboardIndexRoute,
@@ -597,8 +627,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
   AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
   AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
-  AppSettingsNewUsersIdUpdateRoute: AppSettingsNewUsersIdUpdateRoute,
-  AppSettingsNewUsersIdIndexRoute: AppSettingsNewUsersIdIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
