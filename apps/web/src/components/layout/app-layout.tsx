@@ -124,7 +124,7 @@ function SidebarMenus() {
 
 function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 transition-[width,height] ease-linear top-0 sticky inset-0">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear top-0 sticky bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/20">
       <div className="flex items-center gap-2">
         <SidebarTrigger variant="outline" size="icon-lg" />
         <Separator orientation="vertical" />

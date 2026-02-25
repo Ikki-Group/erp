@@ -13,6 +13,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
 
 interface DataTableCardProps<TData extends object> {
+  title: string
   table: Table<TData>
   isLoading?: boolean
   recordCount?: number
@@ -21,6 +22,7 @@ interface DataTableCardProps<TData extends object> {
 }
 
 export function DataTableCard<TData extends object>({
+  title,
   table,
   isLoading,
   action,
@@ -42,7 +44,7 @@ export function DataTableCard<TData extends object>({
     >
       <Card className="w-full gap-0! py-3.5" size="sm">
         <CardHeader className="flex items-center justify-between px-3.5 border-b">
-          <CardTitle>Daftar Pengguna</CardTitle>
+          <CardTitle>{title}</CardTitle>
           {action && <CardAction>{action}</CardAction>}
         </CardHeader>
         <div className="w-full">

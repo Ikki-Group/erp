@@ -82,6 +82,7 @@ function UserTable() {
 
   return (
     <DataTableCard
+      title="Daftar Pengguna"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
