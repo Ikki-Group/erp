@@ -1,13 +1,14 @@
 import { DataTableCard } from '@/components/card/data-table-card'
-import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
+import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
 import { Button } from '@/components/ui/button'
 import { locationApi, LocationDto } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
+import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/location')({
   component: RouteComponent,
@@ -19,41 +20,59 @@ function RouteComponent() {
 
 const ch = createColumnHelper<LocationDto>()
 const columns = [
+  ch.display({
+    id: 'action',
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center justify-center">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            render={
+              <Link
+                to="/settings/location/$id"
+                params={{ id: String(row.original.id) }}
+              />
+            }
+          >
+            <PencilIcon />
+          </Button>
+        </div>
+      )
+    },
+    size: 60,
+    enablePinning: true,
+  }),
   ch.accessor('name', {
-    header: ({ column }) => (
-      <DataGridColumnHeader
-        title="Nama Role"
-        visibility={true}
-        column={column}
-      />
-    ),
-    cell: (info) => (
+    header: 'Lokasi',
+    cell: ({ row }) => (
       <div className="flex gap-2 flex-col">
-        <p>{info.row.original.name}</p>
+        <p>{row.original.name}</p>
         <p className="text-muted-foreground text-xs italic">
-          ({info.row.original.code})
+          ({row.original.code})
         </p>
       </div>
     ),
     enableSorting: false,
     size: 200,
   }),
-  ch.accessor('createdAt', {
-    header: 'Dibuat Pada',
-    cell: (info) => (
-      <p className="text-nowrap">
-        {toDateTimeStamp(info.row.original.createdAt)}
-      </p>
-    ),
+  ch.accessor('isActive', {
+    header: 'Status',
+    cell: ({ row }) => {
+      const { isActive } = row.original
+      return <BadgeDot {...getActiveStatusBadge(isActive)} />
+    },
     enableSorting: false,
   }),
-  ch.accessor('updatedAt', {
-    header: 'Diubah Pada',
-    cell: (info) => (
-      <p className="text-nowrap">
-        {toDateTimeStamp(info.row.original.createdAt)}
-      </p>
-    ),
+  ch.accessor('description', {
+    header: 'Deskripsi',
+    cell: ({ row }) => row.original.description ?? '-',
+    enableSorting: false,
+    size: 200,
+  }),
+  ch.accessor('createdAt', {
+    header: 'Dibuat Pada',
+    cell: ({ row }) => toDateTimeStamp(row.original.createdAt),
     enableSorting: false,
   }),
 ]
@@ -80,7 +99,15 @@ function LocationsTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
-      action={<Button size="sm">Tambah Lokasi</Button>}
+      action={
+        <Button
+          size="sm"
+          render={<Link from={Route.fullPath} to="/settings/location/create" />}
+          nativeButton={false}
+        >
+          Tambah Lokasi
+        </Button>
+      }
     />
   )
 }

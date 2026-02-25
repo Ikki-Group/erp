@@ -30,7 +30,7 @@ function RouteComponent() {
         description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
       />
       <SettingsSummarySection />
-      <Page.Content>
+      <Page.Content className="mt-4">
         <Tabs value={pathname}>
           <div className="border-b w-full">
             <Tabs.List className="w-full md:w-min" variant="line">

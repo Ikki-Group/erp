@@ -33,6 +33,8 @@ import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/e
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
 import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
 import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
+import { Route as AppSettingsLocationCreateRouteImport } from './routes/_app/settings/location.create'
+import { Route as AppSettingsLocationIdRouteImport } from './routes/_app/settings/location.$id'
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
 import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
@@ -162,6 +164,17 @@ const AppSettingsUserIdRoute = AppSettingsUserIdRouteImport.update({
   path: '/settings/user/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsLocationCreateRoute =
+  AppSettingsLocationCreateRouteImport.update({
+    id: '/settings/location/create',
+    path: '/settings/location/create',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsLocationIdRoute = AppSettingsLocationIdRouteImport.update({
+  id: '/settings/location/$id',
+  path: '/settings/location/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSettingsTabUserRoute = AppSettingsTabUserRouteImport.update({
   id: '/user',
   path: '/user',
@@ -203,6 +216,8 @@ export interface FileRoutesByFullPath {
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/location/$id': typeof AppSettingsLocationIdRoute
+  '/settings/location/create': typeof AppSettingsLocationCreateRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
@@ -232,6 +247,8 @@ export interface FileRoutesByTo {
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/location/$id': typeof AppSettingsLocationIdRoute
+  '/settings/location/create': typeof AppSettingsLocationCreateRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
@@ -264,6 +281,8 @@ export interface FileRoutesById {
   '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
+  '/_app/settings/location/$id': typeof AppSettingsLocationIdRoute
+  '/_app/settings/location/create': typeof AppSettingsLocationCreateRoute
   '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
   '/_app/settings/user/create': typeof AppSettingsUserCreateRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
@@ -295,6 +314,8 @@ export interface FileRouteTypes {
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
+    | '/settings/location/$id'
+    | '/settings/location/create'
     | '/settings/user/$id'
     | '/settings/user/create'
     | '/examples/charts/'
@@ -324,6 +345,8 @@ export interface FileRouteTypes {
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
+    | '/settings/location/$id'
+    | '/settings/location/create'
     | '/settings/user/$id'
     | '/settings/user/create'
     | '/examples/charts'
@@ -355,6 +378,8 @@ export interface FileRouteTypes {
     | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
+    | '/_app/settings/location/$id'
+    | '/_app/settings/location/create'
     | '/_app/settings/user/$id'
     | '/_app/settings/user/create'
     | '/_app/examples/charts/'
@@ -546,6 +571,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsUserIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/settings/location/create': {
+      id: '/_app/settings/location/create'
+      path: '/settings/location/create'
+      fullPath: '/settings/location/create'
+      preLoaderRoute: typeof AppSettingsLocationCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/location/$id': {
+      id: '/_app/settings/location/$id'
+      path: '/settings/location/$id'
+      fullPath: '/settings/location/$id'
+      preLoaderRoute: typeof AppSettingsLocationIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/settings/_tab/user': {
       id: '/_app/settings/_tab/user'
       path: '/user'
@@ -610,6 +649,8 @@ interface AppRouteRouteChildren {
   AppProductsIndexRoute: typeof AppProductsIndexRoute
   AppExamplesLayoutsOneRoute: typeof AppExamplesLayoutsOneRoute
   AppExamplesLayoutsTwoRoute: typeof AppExamplesLayoutsTwoRoute
+  AppSettingsLocationIdRoute: typeof AppSettingsLocationIdRoute
+  AppSettingsLocationCreateRoute: typeof AppSettingsLocationCreateRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
@@ -635,6 +676,8 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductsIndexRoute: AppProductsIndexRoute,
   AppExamplesLayoutsOneRoute: AppExamplesLayoutsOneRoute,
   AppExamplesLayoutsTwoRoute: AppExamplesLayoutsTwoRoute,
+  AppSettingsLocationIdRoute: AppSettingsLocationIdRoute,
+  AppSettingsLocationCreateRoute: AppSettingsLocationCreateRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,

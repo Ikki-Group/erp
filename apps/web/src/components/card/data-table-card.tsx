@@ -37,8 +37,9 @@ export function DataTableCard<TData extends object>({
       isLoading={isLoading}
       loadingMode="spinner"
       tableLayout={{
-        cellBorder: true,
-        columnsPinnable: true,
+        cellBorder: false,
+        // cellBorder: true,
+        // columnsPinnable: true,
       }}
       onRowClick={onRowClick}
     >
@@ -53,8 +54,8 @@ export function DataTableCard<TData extends object>({
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-        <CardFooter className="px-3.5 py-0 border-t">
-          <DataGridPagination />
+        <CardFooter className="px-3.5 border-t">
+          <DataGridPagination className="py-0" />
         </CardFooter>
       </Card>
     </DataGrid>

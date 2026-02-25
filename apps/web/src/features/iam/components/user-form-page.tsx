@@ -94,13 +94,13 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   })
 
   return (
-    <FormConfig mode={mode} id={id} backTo={backTo}>
-      <Page size="sm">
-        <Page.BlockHeader
-          title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
-          back={backTo}
-        />
-        <form.AppForm>
+    <form.AppForm>
+      <FormConfig mode={mode} id={id} backTo={backTo}>
+        <Page size="sm">
+          <Page.BlockHeader
+            title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
+            back={backTo}
+          />
           <form.Form>
             <Page.Content className="gap-6 flex flex-col">
               <UserInformationCard />
@@ -109,9 +109,9 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
               <form.SimpleActions />
             </Page.Content>
           </form.Form>
-        </form.AppForm>
-      </Page>
-    </FormConfig>
+        </Page>
+      </FormConfig>
+    </form.AppForm>
   )
 }
 

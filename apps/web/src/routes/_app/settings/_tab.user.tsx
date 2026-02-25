@@ -1,15 +1,17 @@
 import { DataTableCard } from '@/components/card/data-table-card'
-import { Badge } from '@/components/reui/badge'
+import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { Button } from '@/components/ui/button'
 import { userApi } from '@/features/iam'
 import { UserDto } from '@/features/iam/dto'
+import { getUserStatusBadge } from '@/features/iam/utils'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
+import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/user')({
   component: RouteComponent,
@@ -28,8 +30,8 @@ const columns = [
     cell: ({ row }) => (
       <Link to="/settings/user/$id" params={{ id: String(row.original.id) }}>
         <div>
-          <p>{row.original.fullname}</p>
-          <p className="text-muted-foreground">{row.original.email}</p>
+          <p className="underline">{row.original.fullname}</p>
+          <p className="text-muted-foreground italic">{row.original.email}</p>
         </div>
       </Link>
     ),
@@ -38,29 +40,46 @@ const columns = [
   }),
   ch.accessor('isActive', {
     header: 'Aktif',
-    cell: (info) => {
-      const { isActive } = info.row.original
-      return (
-        <Badge variant={isActive ? 'success' : 'destructive'}>
-          {isActive ? 'Aktif' : 'Tidak Aktif'}
-        </Badge>
-      )
+    cell: ({ row }) => {
+      const { isActive } = row.original
+      return <BadgeDot {...getUserStatusBadge(isActive)} />
     },
     enableSorting: false,
   }),
   ch.accessor('username', {
     header: 'Username',
-    cell: (info) => <p>@{info.row.original.username}</p>,
+    cell: ({ row }) => <p>@{row.original.username}</p>,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
-    cell: (info) => (
-      <p className="text-nowrap">
-        {toDateTimeStamp(info.row.original.createdAt)}
-      </p>
+    cell: ({ row }) => (
+      <p className="text-nowrap">{toDateTimeStamp(row.original.createdAt)}</p>
     ),
     enableSorting: false,
+  }),
+  ch.display({
+    id: 'action',
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center justify-center">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            render={
+              <Link
+                to="/settings/user/$id"
+                params={{ id: String(row.original.id) }}
+              />
+            }
+          >
+            <PencilIcon />
+          </Button>
+        </div>
+      )
+    },
+    size: 60,
+    enablePinning: true,
   }),
 ]
 
