@@ -2,20 +2,45 @@ import { logger } from '@/lib/logger'
 
 import 'zod-openapi'
 
-import { app } from '@/app'
+import { configure, getConsoleSink } from '@logtape/logtape'
+
 import { env } from '@/config/env'
 
-app.listen({
-  port: env.PORT,
-})
-
-logger
-  .withMetadata({
-    port: env.PORT,
-    host: env.HOST,
-    env: env.NODE_ENV,
+async function main() {
+  await configure({
+    sinks: {
+      console: getConsoleSink(),
+    },
+    loggers: [
+      {
+        category: ['logtape', 'meta'],
+        sinks: ['console'],
+        lowestLevel: 'warning',
+      },
+      {
+        category: [],
+        sinks: ['console'],
+        lowestLevel: 'debug',
+      },
+    ],
   })
-  .info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`)
+
+  const app = await import('@/app').then((mod) => mod.app)
+
+  app.listen({
+    port: env.PORT,
+  })
+
+  logger
+    .withMetadata({
+      port: env.PORT,
+      host: env.HOST,
+      env: env.NODE_ENV,
+    })
+    .info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`)
+}
+
+main()
 
 // async function shutdown() {
 //   logger.info('Shutting down')

@@ -1,4 +1,5 @@
 import { cors } from '@elysiajs/cors'
+import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
@@ -30,6 +31,15 @@ export const app = new Elysia({
   precompile: true,
 })
   .use(cors())
+  .use(
+    elysiaLogger({
+      level: 'info',
+      format: 'dev',
+      logRequest: true,
+      scope: 'global',
+      category: 'request',
+    })
+  )
   .onError((ctx) => {
     let error: HttpError
     if (ctx.error instanceof HttpError) {
