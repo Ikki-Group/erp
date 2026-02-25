@@ -131,9 +131,8 @@
   html {
     @apply font-sans;
   }
+}
 
-  /* Debug */
-  .debug {
-    @apply border-red-500 border;
-  }
+@utility debug {
+  @apply border-red-500 border;
 }

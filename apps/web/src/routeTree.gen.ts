@@ -38,6 +38,8 @@ import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/us
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
 import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
+import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
+import { Route as AppExamplesLayoutsOneRouteImport } from './routes/_app/examples/layouts/one'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -187,6 +189,16 @@ const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
   path: '/location',
   getParentRoute: () => AppSettingsTabRoute,
 } as any)
+const AppExamplesLayoutsTwoRoute = AppExamplesLayoutsTwoRouteImport.update({
+  id: '/examples/layouts/two',
+  path: '/examples/layouts/two',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesLayoutsOneRoute = AppExamplesLayoutsOneRouteImport.update({
+  id: '/examples/layouts/one',
+  path: '/examples/layouts/one',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -199,6 +211,8 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/products/': typeof AppProductsIndexRoute
+  '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
+  '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -228,6 +242,8 @@ export interface FileRoutesByTo {
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/products': typeof AppProductsIndexRoute
+  '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
+  '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -260,6 +276,8 @@ export interface FileRoutesById {
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/products/': typeof AppProductsIndexRoute
+  '/_app/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
+  '/_app/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
@@ -291,6 +309,8 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/settings'
     | '/products/'
+    | '/examples/layouts/one'
+    | '/examples/layouts/two'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -320,6 +340,8 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/settings'
     | '/products'
+    | '/examples/layouts/one'
+    | '/examples/layouts/two'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -351,6 +373,8 @@ export interface FileRouteTypes {
     | '/_app/products/$id'
     | '/_app/settings/_tab'
     | '/_app/products/'
+    | '/_app/examples/layouts/one'
+    | '/_app/examples/layouts/two'
     | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
@@ -581,6 +605,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabLocationRouteImport
       parentRoute: typeof AppSettingsTabRoute
     }
+    '/_app/examples/layouts/two': {
+      id: '/_app/examples/layouts/two'
+      path: '/examples/layouts/two'
+      fullPath: '/examples/layouts/two'
+      preLoaderRoute: typeof AppExamplesLayoutsTwoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/examples/layouts/one': {
+      id: '/_app/examples/layouts/one'
+      path: '/examples/layouts/one'
+      fullPath: '/examples/layouts/one'
+      preLoaderRoute: typeof AppExamplesLayoutsOneRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -609,6 +647,8 @@ interface AppRouteRouteChildren {
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppProductsIndexRoute: typeof AppProductsIndexRoute
+  AppExamplesLayoutsOneRoute: typeof AppExamplesLayoutsOneRoute
+  AppExamplesLayoutsTwoRoute: typeof AppExamplesLayoutsTwoRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
@@ -634,6 +674,8 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductsIdRoute: AppProductsIdRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppProductsIndexRoute: AppProductsIndexRoute,
+  AppExamplesLayoutsOneRoute: AppExamplesLayoutsOneRoute,
+  AppExamplesLayoutsTwoRoute: AppExamplesLayoutsTwoRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,

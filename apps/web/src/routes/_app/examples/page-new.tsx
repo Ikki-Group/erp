@@ -1,28 +1,28 @@
-import { CardStat, CardStatProps } from "@/components/card/card-stat";
-import { Page } from "@/components/layout/page";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Table } from "@/components/ui/table";
-import { Tabs } from "@/components/ui/tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { CardStat, CardStatProps } from '@/components/card/card-stat'
+import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Table } from '@/components/ui/table'
+import { Tabs } from '@/components/ui/tabs'
+import { createFileRoute } from '@tanstack/react-router'
 import {
   MapPinIcon,
   MoreHorizontalIcon,
   PlusIcon,
   ShieldEllipsisIcon,
   UsersIcon,
-} from "lucide-react";
+} from 'lucide-react'
 
-export const Route = createFileRoute("/_app/examples/page-new")({
+export const Route = createFileRoute('/_app/examples/page-new')({
   component: RouteComponent,
-});
+})
 
 function RouteComponent() {
   return (
     <Page>
-      <Page.SimpleHeader
+      <Page.BlockHeader
         title="Pengaturan"
         description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
       />
@@ -73,7 +73,9 @@ function RouteComponent() {
                     <Table.Cell>{user.role}</Table.Cell>
                     <Table.Cell>
                       <Badge
-                        variant={user.role === "Admin" ? "default" : "secondary"}
+                        variant={
+                          user.role === 'Admin' ? 'default' : 'secondary'
+                        }
                         className="font-normal"
                       >
                         {user.role}
@@ -95,45 +97,45 @@ function RouteComponent() {
         </Card>
       </Page.Content>
     </Page>
-  );
+  )
 }
 
 const MOCK_STATS: CardStatProps[] = [
   {
-    title: "Total User",
-    value: "20",
+    title: 'Total User',
+    value: '20',
     icon: UsersIcon,
   },
   {
-    title: "Total Role",
-    value: "6",
+    title: 'Total Role',
+    value: '6',
     icon: ShieldEllipsisIcon,
   },
   {
-    title: "Total Lokasi",
-    value: "2",
+    title: 'Total Lokasi',
+    value: '2',
     icon: MapPinIcon,
   },
-];
+]
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
+  id: string
+  name: string
+  email: string
+  role: string
 }
 
 const MOCK_USERS: User[] = [
   {
-    id: "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "Admin",
+    id: '1',
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    role: 'Admin',
   },
   {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: "User",
+    id: '2',
+    name: 'Jane Smith',
+    email: 'jane.smith@example.com',
+    role: 'User',
   },
-];
+]

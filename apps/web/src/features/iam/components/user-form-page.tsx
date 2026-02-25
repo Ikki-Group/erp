@@ -96,7 +96,7 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   return (
     <FormConfig mode={mode} id={id} backTo={backTo}>
       <Page size="sm">
-        <Page.SimpleHeader
+        <Page.BlockHeader
           title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
           back={backTo}
         />

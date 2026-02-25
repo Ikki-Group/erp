@@ -25,7 +25,7 @@ function RouteComponent() {
   const { pathname } = useLocation()
   return (
     <Page>
-      <Page.SimpleHeader
+      <Page.BlockHeader
         title="Pengaturan"
         description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
       />

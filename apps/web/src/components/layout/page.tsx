@@ -3,52 +3,37 @@ import { Link, LinkOptions } from '@tanstack/react-router'
 import { ArrowLeftIcon } from 'lucide-react'
 import { ComponentProps } from 'react'
 import { Button } from '../ui/button'
+import { cva, VariantProps } from 'class-variance-authority'
 
-interface PageProps extends ComponentProps<'div'> {
-  /**
-   * Size variant affects max-width of content
-   * - sm: 1024px (compact forms, settings)
-   * - md: 1280px (default, balanced)
-   * - lg: 1536px (dashboards, tables)
-   * - xl: 1600px (wide layouts)
-   * - full: no constraint
-   */
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-}
+const pageVariants = cva('w-full mx-auto flex-1 flex py-6 flex-col gap-4', {
+  variants: {
+    size: {
+      sm: 'max-w-2xl',
+      md: 'max-w-4xl',
+      lg: 'max-w-5xl',
+      xl: 'max-w-6xl',
+      full: 'max-w-none',
+    },
+  },
+})
 
-function Page({ size = 'lg', className, ...props }: PageProps) {
-  return (
-    <div
-      {...props}
-      className={cn(
-        'w-full mx-auto py-4 flex-1 flex flex-col gap-6 @xl:pt-6',
-        size === 'sm' && 'max-w-2xl',
-        size === 'md' && 'max-w-4xl',
-        size === 'lg' && 'max-w-5xl',
-        size === 'xl' && 'max-w-6xl',
-        className,
-      )}
-    />
-  )
+function Page({
+  size = 'lg',
+  className,
+  ...props
+}: ComponentProps<'div'> & VariantProps<typeof pageVariants>) {
+  return <div {...props} className={cn(pageVariants({ size, className }))} />
 }
 
 function Header({ className, ...props }: ComponentProps<'div'>) {
-  return (
-    <div
-      {...props}
-      className={cn('flex items-start gap-2.5 px-4', className)}
-    />
-  )
+  return <div {...props} className={cn('flex gap-2.5 px-4', className)} />
 }
 
 function Title({ className, ...props }: ComponentProps<'h1'>) {
   return (
     <h1
       {...props}
-      className={cn(
-        'text-xl font-semibold tracking-tight text-foreground truncate',
-        className,
-      )}
+      className={cn('text-xl font-semibold tracking-tight truncate', className)}
     />
   )
 }
@@ -70,7 +55,7 @@ function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
     <Button
       variant="outline"
       size="icon-sm"
-      className={cn('mt-0.5 shrink-0', className)}
+      className={cn('shrink-0', className)}
       nativeButton={false}
       {...props}
     >
@@ -80,39 +65,84 @@ function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
 }
 
 function Actions({ className, ...props }: ComponentProps<'div'>) {
-  return (
-    <div
-      {...props}
-      className={cn(
-        'w-max flex flex-1 gap-2 items-center self-center',
-        className,
-      )}
-    />
-  )
+  return <div {...props} className={cn('flex gap-2 justify-end', className)} />
 }
 
 function Content({ className, ...props }: ComponentProps<'div'>) {
   return <div {...props} className={cn('px-4', className)} />
 }
 
-interface SimpleHeaderProps {
+// interface SimpleHeaderProps {
+//   title: string
+//   description?: string
+//   back?: LinkOptions
+//   action?: React.ReactNode
+// }
+
+// function SimpleHeader({ title, description, back, action }: SimpleHeaderProps) {
+//   return (
+//     <Header className="flex-wrap gap-y-4 flex items-center">
+//       {back && (
+//         <BackButton className="self-start" render={<Link {...back} />} />
+//       )}
+//       <div className="flex-1 space-y-1">
+//         <Title>{title}</Title>
+//         {description && <Description>{description}</Description>}
+//       </div>
+//       {action && <Actions>{action}</Actions>}
+//     </Header>
+//   )
+// }
+
+interface BlockHeaderProps {
   title: string
   description?: string
-  back?: LinkOptions
   action?: React.ReactNode
+  back?: LinkOptions | (() => void)
+  border?: boolean
 }
 
-function SimpleHeader({ title, description, back, action }: SimpleHeaderProps) {
+function BlockHeader({
+  title,
+  description,
+  action,
+  back,
+  border,
+}: BlockHeaderProps) {
   return (
-    <Header className="flex-wrap gap-y-4 flex items-center">
-      {back && (
-        <BackButton className="self-start" render={<Link {...back} />} />
+    <Header
+      className={cn(
+        'items-start gap-x-2',
+        border ? 'border-b pb-6 mb-2' : 'mb-4',
       )}
-      <div className="flex-1 space-y-1">
-        <Title>{title}</Title>
-        {description && <Description>{description}</Description>}
+    >
+      {back && (
+        <div>
+          {typeof back === 'function' ? (
+            <BackButton type="button" onClick={back} />
+          ) : (
+            <BackButton render={<Link {...back} />} />
+          )}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-y-4 grow gap-x-8">
+        <div className="flex flex-col grow gap-0.5">
+          <Title className="grow">{title}</Title>
+          {description && (
+            <Description className="text-wrap">{description}</Description>
+          )}
+        </div>
+        {action && (
+          <Actions
+            className={cn(
+              'items-end gap-1 flex flex-wrap justify-start',
+              !!description && '',
+            )}
+          >
+            {action}
+          </Actions>
+        )}
       </div>
-      {action && <Actions>{action}</Actions>}
     </Header>
   )
 }
@@ -126,6 +156,7 @@ Page.BackButton = BackButton
 Page.Actions = Actions
 
 // Template
-Page.SimpleHeader = SimpleHeader
+// Page.SimpleHeader = SimpleHeader
+Page.BlockHeader = BlockHeader
 
 export { Page }
