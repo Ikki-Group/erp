@@ -1,11 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 import {
   Page,
   PageContent,
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
+} from "@/components/layout/page-old";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 import {
   LucideIcon,
   MapPinIcon,
@@ -27,8 +27,8 @@ import {
   MailIcon,
   MoonIcon,
   SunIcon,
-} from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -36,13 +36,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,12 +50,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 
-export const Route = createFileRoute('/_app/settings-old')({
+export const Route = createFileRoute("/_app/settings-old")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
   return (
@@ -77,17 +77,11 @@ function RouteComponent() {
                 <UsersIcon className="h-4 w-4" />
                 Pengguna & Role
               </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="gap-2 flex-1 sm:flex-none"
-              >
+              <TabsTrigger value="notifications" className="gap-2 flex-1 sm:flex-none">
                 <BellIcon className="h-4 w-4" />
                 Notifikasi
               </TabsTrigger>
-              <TabsTrigger
-                value="appearance"
-                className="gap-2 flex-1 sm:flex-none"
-              >
+              <TabsTrigger value="appearance" className="gap-2 flex-1 sm:flex-none">
                 <PaletteIcon className="h-4 w-4" />
                 Tampilan
               </TabsTrigger>
@@ -115,9 +109,7 @@ function RouteComponent() {
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-4 border-b">
                 <div className="space-y-1">
                   <CardTitle>Daftar Pengguna</CardTitle>
-                  <CardDescription>
-                    Kelola akses dan role pengguna sistem.
-                  </CardDescription>
+                  <CardDescription>Kelola akses dan role pengguna sistem.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <div className="relative w-full sm:w-auto">
@@ -151,17 +143,11 @@ function RouteComponent() {
                             <AvatarFallback>{user.initials}</AvatarFallback>
                           </Avatar>
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {user.name}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {user.email}
-                        </TableCell>
+                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{user.email}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={
-                              user.role === 'Admin' ? 'default' : 'secondary'
-                            }
+                            variant={user.role === "Admin" ? "default" : "secondary"}
                             className="font-normal"
                           >
                             {user.role}
@@ -170,23 +156,15 @@ function RouteComponent() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span
-                              className={`h-2 w-2 rounded-full ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-300'}`}
+                              className={`h-2 w-2 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-gray-300"}`}
                             />
-                            <span className="text-sm text-muted-foreground">
-                              {user.status}
-                            </span>
+                            <span className="text-sm text-muted-foreground">{user.status}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger
-                              render={
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                />
-                              }
+                              render={<Button variant="ghost" size="icon" className="h-8 w-8" />}
                             >
                               <MoreHorizontalIcon className="h-4 w-4" />
                               <span className="sr-only">Menu</span>
@@ -210,8 +188,7 @@ function RouteComponent() {
               </CardContent>
               <CardFooter className="flex items-center justify-between border-t py-4">
                 <div className="text-xs text-muted-foreground">
-                  Menampilkan <strong>5</strong> dari <strong>20</strong>{' '}
-                  pengguna
+                  Menampilkan <strong>5</strong> dari <strong>20</strong> pengguna
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" disabled>
@@ -319,78 +296,78 @@ function RouteComponent() {
         </Tabs>
       </PageContent>
     </Page>
-  )
+  );
 }
 
 const MOCK_STATS: CardStatProps[] = [
   {
-    title: 'Total User',
-    value: '20',
+    title: "Total User",
+    value: "20",
     icon: UsersIcon,
-    description: '+2 bulan ini',
+    description: "+2 bulan ini",
   },
   {
-    title: 'Total Role',
-    value: '6',
+    title: "Total Role",
+    value: "6",
     icon: ShieldEllipsisIcon,
-    description: 'Stabil',
+    description: "Stabil",
   },
   {
-    title: 'Total Lokasi',
-    value: '2',
+    title: "Total Lokasi",
+    value: "2",
     icon: MapPinIcon,
-    description: '1 lokasi utama',
+    description: "1 lokasi utama",
   },
-]
+];
 
 const MOCK_USERS = [
   {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Admin',
-    status: 'Active',
-    initials: 'JD',
-    avatar: '',
+    name: "John Doe",
+    email: "john.doe@example.com",
+    role: "Admin",
+    status: "Active",
+    initials: "JD",
+    avatar: "",
   },
   {
-    name: 'Alice Smith',
-    email: 'alice.smith@example.com',
-    role: 'Manager',
-    status: 'Active',
-    initials: 'AS',
-    avatar: '',
+    name: "Alice Smith",
+    email: "alice.smith@example.com",
+    role: "Manager",
+    status: "Active",
+    initials: "AS",
+    avatar: "",
   },
   {
-    name: 'Bob Wilson',
-    email: 'bob.wilson@example.com',
-    role: 'Staff',
-    status: 'Inactive',
-    initials: 'BW',
-    avatar: '',
+    name: "Bob Wilson",
+    email: "bob.wilson@example.com",
+    role: "Staff",
+    status: "Inactive",
+    initials: "BW",
+    avatar: "",
   },
   {
-    name: 'Sarah Jones',
-    email: 'sarah.j@example.com',
-    role: 'Staff',
-    status: 'Active',
-    initials: 'SJ',
-    avatar: '',
+    name: "Sarah Jones",
+    email: "sarah.j@example.com",
+    role: "Staff",
+    status: "Active",
+    initials: "SJ",
+    avatar: "",
   },
   {
-    name: 'Mike Brown',
-    email: 'mike.b@example.com',
-    role: 'Staff',
-    status: 'Active',
-    initials: 'MB',
-    avatar: '',
+    name: "Mike Brown",
+    email: "mike.b@example.com",
+    role: "Staff",
+    status: "Active",
+    initials: "MB",
+    avatar: "",
   },
-]
+];
 
 interface CardStatProps {
-  title: string
-  value: string
-  icon: LucideIcon
-  description?: string
+  title: string;
+  value: string;
+  icon: LucideIcon;
+  description?: string;
 }
 
 function CardStat({ title, value, icon: Icon, description }: CardStatProps) {
@@ -403,11 +380,9 @@ function CardStat({ title, value, icon: Icon, description }: CardStatProps) {
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
         <div className="flex items-baseline gap-2">
           <p className="text-2xl font-bold">{value}</p>
-          {description && (
-            <span className="text-xs text-muted-foreground">{description}</span>
-          )}
+          {description && <span className="text-xs text-muted-foreground">{description}</span>}
         </div>
       </div>
     </div>
-  )
+  );
 }

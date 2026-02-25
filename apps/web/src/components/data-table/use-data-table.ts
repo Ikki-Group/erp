@@ -6,17 +6,14 @@ import {
   PaginationState,
   TableOptions,
   useReactTable,
-} from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
-import { DataTableState, UseDataTableReturn } from './data-table-types'
+} from "@tanstack/react-table";
+import { useCallback, useMemo } from "react";
+import { DataTableState, UseDataTableReturn } from "./data-table-types";
 
-type UseDataTableProps<TData> = Omit<
-  TableOptions<TData>,
-  'getCoreRowModel' | 'onStateChange'
-> & {
-  isLoading?: boolean
-  ds: DataTableState
-}
+type UseDataTableProps<TData> = Omit<TableOptions<TData>, "getCoreRowModel" | "onStateChange"> & {
+  isLoading?: boolean;
+  ds: DataTableState;
+};
 
 function useBaseDataTable<TData>({
   data,
@@ -27,23 +24,23 @@ function useBaseDataTable<TData>({
   ...props
 }: UseDataTableProps<TData>): UseDataTableReturn<TData> {
   const pagination: PaginationState = useMemo(() => {
-    const { page, limit } = ds.pagination
+    const { page, limit } = ds.pagination;
     return {
       pageIndex: page - 1,
       pageSize: limit,
-    }
-  }, [ds.pagination])
+    };
+  }, [ds.pagination]);
 
   const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
     (updater) => {
-      const next = typeof updater === 'function' ? updater(pagination) : updater
+      const next = typeof updater === "function" ? updater(pagination) : updater;
       ds.setPagination({
         page: next.pageIndex + 1,
         limit: next.pageSize,
-      })
+      });
     },
     [ds.pagination, pagination],
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -59,9 +56,9 @@ function useBaseDataTable<TData>({
     onGlobalFilterChange: ds.setSearch,
     onPaginationChange,
     ...props,
-  })
+  });
 
-  const { pageIndex, pageSize } = table.getState().pagination
+  const { pageIndex, pageSize } = table.getState().pagination;
 
   return {
     table,
@@ -71,16 +68,14 @@ function useBaseDataTable<TData>({
     rowCount: table.getRowCount(),
     isLoading,
     ds,
-  }
+  };
 }
 
-export function useDataTable<TData>(
-  props: UseDataTableProps<TData>,
-): UseDataTableReturn<TData> {
+export function useDataTable<TData>(props: UseDataTableProps<TData>): UseDataTableReturn<TData> {
   return useBaseDataTable({
     ...props,
     manualPagination: true,
-  })
+  });
 }
 
 export function useDataTableAuto<TData>(
@@ -89,5 +84,5 @@ export function useDataTableAuto<TData>(
   return useBaseDataTable({
     ...props,
     manualPagination: false,
-  })
+  });
 }

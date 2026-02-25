@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Plus, Mail, User, Shield, Trash2 } from 'lucide-react'
+import { createFileRoute } from "@tanstack/react-router";
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Plus, Mail, User, Shield, Trash2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,43 +11,39 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { DataTable } from '@/components/common/templates/DataTable'
-import {
-  useUsers,
-  useUpdateUser,
-  useDeleteUser,
-} from '@/features/iam/hooks/iam.hooks'
-import { useMemo } from 'react'
+} from "@/components/ui/dropdown-menu";
+import { DataTable } from "@/components/common/templates/DataTable";
+import { useUsers, useUpdateUser, useDeleteUser } from "@/features/iam/hooks/iam.hooks";
+import { useMemo } from "react";
 
-export const Route = createFileRoute('/_auth/iam/users/')({
+export const Route = createFileRoute("/_auth/iam/users/")({
   component: UsersListPage,
-})
+});
 
 type UserType = {
-  id: number
-  username: string
-  email: string
-  fullname: string
-  isActive: boolean
-  isRoot: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+  id: number;
+  username: string;
+  email: string;
+  fullname: string;
+  isActive: boolean;
+  isRoot: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-const columnHelper = createColumnHelper<UserType>()
+const columnHelper = createColumnHelper<UserType>();
 
 function UsersListPage() {
   const { data: usersData, isLoading } = useUsers({
     limit: 100, // TODO: Proper pagination support in DataTable
-  })
-  const updateUserMutation = useUpdateUser()
-  const deleteUserMutation = useDeleteUser()
+  });
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
 
   const columns = useMemo<ColumnDef<UserType, any>[]>(
     () => [
-      columnHelper.accessor('username', {
-        header: 'Username',
+      columnHelper.accessor("username", {
+        header: "Username",
         cell: (info) => (
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
@@ -57,8 +53,8 @@ function UsersListPage() {
           </div>
         ),
       }),
-      columnHelper.accessor('email', {
-        header: 'Email',
+      columnHelper.accessor("email", {
+        header: "Email",
         cell: (info) => (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Mail className="h-3 w-3" />
@@ -66,11 +62,11 @@ function UsersListPage() {
           </div>
         ),
       }),
-      columnHelper.accessor('fullname', {
-        header: 'Full Name',
+      columnHelper.accessor("fullname", {
+        header: "Full Name",
       }),
-      columnHelper.accessor('isRoot', {
-        header: 'Role',
+      columnHelper.accessor("isRoot", {
+        header: "Role",
         cell: (info) =>
           info.getValue() ? (
             <Badge variant="default" className="gap-1">
@@ -80,18 +76,18 @@ function UsersListPage() {
             <Badge variant="outline">User</Badge>
           ),
       }),
-      columnHelper.accessor('isActive', {
-        header: 'Status',
+      columnHelper.accessor("isActive", {
+        header: "Status",
         cell: (info) => (
-          <Badge variant={info.getValue() ? 'outline' : 'destructive'}>
-            {info.getValue() ? 'Active' : 'Inactive'}
+          <Badge variant={info.getValue() ? "outline" : "destructive"}>
+            {info.getValue() ? "Active" : "Inactive"}
           </Badge>
         ),
       }),
       columnHelper.display({
-        id: 'actions',
+        id: "actions",
         cell: (info) => {
-          const user = info.row.original
+          const user = info.row.original;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -102,9 +98,7 @@ function UsersListPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(user.username)}
-                >
+                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.username)}>
                   Copy username
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -118,7 +112,7 @@ function UsersListPage() {
                     })
                   }
                 >
-                  {user.isActive ? 'Deactivate' : 'Activate'}
+                  {user.isActive ? "Deactivate" : "Activate"}
                 </DropdownMenuItem>
                 {!user.isRoot && (
                   <>
@@ -126,10 +120,8 @@ function UsersListPage() {
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onClick={() => {
-                        if (
-                          confirm('Are you sure you want to delete this user?')
-                        ) {
-                          deleteUserMutation.mutate(user.id)
+                        if (confirm("Are you sure you want to delete this user?")) {
+                          deleteUserMutation.mutate(user.id);
                         }
                       }}
                     >
@@ -140,12 +132,12 @@ function UsersListPage() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
       }),
     ],
     [updateUserMutation, deleteUserMutation],
-  )
+  );
 
   return (
     <div className="space-y-4">
@@ -158,11 +150,7 @@ function UsersListPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={usersData?.data || []}
-        isLoading={isLoading}
-      />
+      <DataTable columns={columns} data={usersData?.data || []} isLoading={isLoading} />
     </div>
-  )
+  );
 }

@@ -1,64 +1,58 @@
-import * as React from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
-import { toast } from 'sonner'
-import { Package, ArrowLeft, Save, Loader2 } from 'lucide-react'
+import * as React from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Package, ArrowLeft, Save, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-export const Route = createFileRoute('/_auth/products/upsert')({
+export const Route = createFileRoute("/_auth/products/upsert")({
   component: ProductUpsertPage,
   staticData: {
-    breadcrumb: 'Add/Edit Product',
+    breadcrumb: "Add/Edit Product",
   },
-})
+});
 
 function ProductUpsertPage() {
-  const navigate = useNavigate()
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm({
     defaultValues: {
-      name: '',
-      category: '',
+      name: "",
+      category: "",
       price: 0,
       stock: 0,
-      status: 'draft' as 'active' | 'archived' | 'draft',
-      description: '',
+      status: "draft" as "active" | "archived" | "draft",
+      description: "",
     },
     onSubmit: async ({ value }) => {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       // Simulate async API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      console.log('Form submitted:', value)
+      console.log("Form submitted:", value);
 
-      toast.success('Product saved successfully', {
+      toast.success("Product saved successfully", {
         description: `${value.name} has been updated in the inventory.`,
-      })
+      });
 
-      setIsSubmitting(false)
-      navigate({ to: '/products' })
+      setIsSubmitting(false);
+      navigate({ to: "/products" });
     },
-  })
+  });
 
   return (
     <div className="flex-1 space-y-6 max-w-4xl mx-auto">
@@ -73,9 +67,7 @@ function ProductUpsertPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Product Details
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Product Details</h1>
             <p className="text-sm text-muted-foreground">
               Fill in the information below to update your inventory.
             </p>
@@ -85,9 +77,9 @@ function ProductUpsertPage() {
 
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          form.handleSubmit()
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
         }}
       >
         <div className="grid gap-6">
@@ -97,9 +89,7 @@ function ProductUpsertPage() {
                 <Package className="h-5 w-5 text-primary" />
                 General Information
               </CardTitle>
-              <CardDescription>
-                Essential details about your product.
-              </CardDescription>
+              <CardDescription>Essential details about your product.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form.Field
@@ -108,9 +98,9 @@ function ProductUpsertPage() {
                   onChange: ({ value }) => {
                     const res = z
                       .string()
-                      .min(2, 'Name must be at least 2 characters')
-                      .safeParse(value)
-                    return res.success ? undefined : res.error.issues[0].message
+                      .min(2, "Name must be at least 2 characters")
+                      .safeParse(value);
+                    return res.success ? undefined : res.error.issues[0].message;
                   },
                 }}
                 children={(field) => (
@@ -123,15 +113,11 @@ function ProductUpsertPage() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="e.g. Espresso Roast"
-                      className={
-                        field.state.meta.errors.length
-                          ? 'border-destructive'
-                          : ''
-                      }
+                      className={field.state.meta.errors.length ? "border-destructive" : ""}
                     />
                     {field.state.meta.errors ? (
                       <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                        {field.state.meta.errors.join(', ')}
+                        {field.state.meta.errors.join(", ")}
                       </em>
                     ) : null}
                   </div>
@@ -143,28 +129,16 @@ function ProductUpsertPage() {
                   name="category"
                   validators={{
                     onChange: ({ value }) => {
-                      const res = z
-                        .string()
-                        .min(1, 'Category is required')
-                        .safeParse(value)
-                      return res.success
-                        ? undefined
-                        : res.error.issues[0].message
+                      const res = z.string().min(1, "Category is required").safeParse(value);
+                      return res.success ? undefined : res.error.issues[0].message;
                     },
                   }}
                   children={(field) => (
                     <div className="space-y-2">
                       <Label htmlFor={field.name}>Category</Label>
-                      <Select
-                        value={field.state.value}
-                        onValueChange={field.handleChange}
-                      >
+                      <Select value={field.state.value} onValueChange={field.handleChange}>
                         <SelectTrigger
-                          className={
-                            field.state.meta.errors.length
-                              ? 'border-destructive'
-                              : ''
-                          }
+                          className={field.state.meta.errors.length ? "border-destructive" : ""}
                         >
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
@@ -173,14 +147,12 @@ function ProductUpsertPage() {
                           <SelectItem value="Supplies">Supplies</SelectItem>
                           <SelectItem value="Packaging">Packaging</SelectItem>
                           <SelectItem value="Dairy">Dairy</SelectItem>
-                          <SelectItem value="Merchandise">
-                            Merchandise
-                          </SelectItem>
+                          <SelectItem value="Merchandise">Merchandise</SelectItem>
                         </SelectContent>
                       </Select>
                       {field.state.meta.errors ? (
                         <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                          {field.state.meta.errors.join(', ')}
+                          {field.state.meta.errors.join(", ")}
                         </em>
                       ) : null}
                     </div>
@@ -194,9 +166,7 @@ function ProductUpsertPage() {
                       <Label htmlFor={field.name}>Status</Label>
                       <Select
                         value={field.state.value}
-                        onValueChange={(value) =>
-                          field.handleChange(value as any)
-                        }
+                        onValueChange={(value) => field.handleChange(value as any)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -219,13 +189,8 @@ function ProductUpsertPage() {
                   name="price"
                   validators={{
                     onChange: ({ value }) => {
-                      const res = z
-                        .number()
-                        .positive('Price must be positive')
-                        .safeParse(value)
-                      return res.success
-                        ? undefined
-                        : res.error.issues[0].message
+                      const res = z.number().positive("Price must be positive").safeParse(value);
+                      return res.success ? undefined : res.error.issues[0].message;
                     },
                   }}
                   children={(field) => (
@@ -236,19 +201,13 @@ function ProductUpsertPage() {
                         type="number"
                         step="0.01"
                         value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(Number(e.target.value))
-                        }
+                        onChange={(e) => field.handleChange(Number(e.target.value))}
                         placeholder="0.00"
-                        className={
-                          field.state.meta.errors.length
-                            ? 'border-destructive'
-                            : ''
-                        }
+                        className={field.state.meta.errors.length ? "border-destructive" : ""}
                       />
                       {field.state.meta.errors ? (
                         <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                          {field.state.meta.errors.join(', ')}
+                          {field.state.meta.errors.join(", ")}
                         </em>
                       ) : null}
                     </div>
@@ -262,11 +221,9 @@ function ProductUpsertPage() {
                       const res = z
                         .number()
                         .int()
-                        .nonnegative('Stock cannot be negative')
-                        .safeParse(value)
-                      return res.success
-                        ? undefined
-                        : res.error.issues[0].message
+                        .nonnegative("Stock cannot be negative")
+                        .safeParse(value);
+                      return res.success ? undefined : res.error.issues[0].message;
                     },
                   }}
                   children={(field) => (
@@ -276,19 +233,13 @@ function ProductUpsertPage() {
                         id={field.name}
                         type="number"
                         value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(Number(e.target.value))
-                        }
+                        onChange={(e) => field.handleChange(Number(e.target.value))}
                         placeholder="0"
-                        className={
-                          field.state.meta.errors.length
-                            ? 'border-destructive'
-                            : ''
-                        }
+                        className={field.state.meta.errors.length ? "border-destructive" : ""}
                       />
                       {field.state.meta.errors ? (
                         <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                          {field.state.meta.errors.join(', ')}
+                          {field.state.meta.errors.join(", ")}
                         </em>
                       ) : null}
                     </div>
@@ -302,7 +253,7 @@ function ProductUpsertPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate({ to: '/products' })}
+              onClick={() => navigate({ to: "/products" })}
               disabled={isSubmitting}
             >
               Cancel
@@ -333,5 +284,5 @@ function ProductUpsertPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

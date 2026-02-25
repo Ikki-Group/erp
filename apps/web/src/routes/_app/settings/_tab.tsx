@@ -32,7 +32,7 @@ function RouteComponent() {
       <SettingsSummarySection />
       <Page.Content>
         <Tabs value={pathname}>
-          <div className="border-b">
+          <div className="border-b w-full">
             <Tabs.List className="w-full md:w-min" variant="line">
               {TABS.map(([title, path]) => (
                 <Tabs.Trigger
@@ -47,10 +47,10 @@ function RouteComponent() {
               ))}
             </Tabs.List>
           </div>
-          <div className="mt-2">
-            <Outlet />
-          </div>
         </Tabs>
+      </Page.Content>
+      <Page.Content>
+        <Outlet />
       </Page.Content>
     </Page>
   )

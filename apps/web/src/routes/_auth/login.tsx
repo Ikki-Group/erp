@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
-import { toast } from 'sonner'
+import { createFileRoute } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
+import { toast } from "sonner";
 import {
   Loader2Icon,
   MailIcon,
@@ -11,24 +11,24 @@ import {
   ArrowRightIcon,
   CheckCircle2Icon,
   CommandIcon,
-} from 'lucide-react'
-import { useState } from 'react'
+} from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupButton,
-} from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
-import { useMutation } from '@tanstack/react-query'
-import { authApi } from '@/features/iam'
-import { useAuth } from '@/lib/auth'
+} from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "@/features/iam";
+import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute('/_auth/login')({
+export const Route = createFileRoute("/_auth/login")({
   component: LoginPage,
-})
+});
 
 function LoginPage() {
   return (
@@ -36,7 +36,7 @@ function LoginPage() {
       <BrandingSection />
       <LoginForm />
     </div>
-  )
+  );
 }
 
 function BrandingSection() {
@@ -61,39 +61,36 @@ function BrandingSection() {
       <div className="relative z-20 mt-auto">
         <blockquote className="space-y-2">
           <p className="text-lg">
-            &ldquo;Platform manajemen enterprise yang mengintegrasikan seluruh
-            operasional bisnis Anda dalam satu dashboard yang intuitif dan
-            efisien.&rdquo;
+            &ldquo;Platform manajemen enterprise yang mengintegrasikan seluruh operasional bisnis
+            Anda dalam satu dashboard yang intuitif dan efisien.&rdquo;
           </p>
-          <footer className="text-sm text-zinc-400">
-            Department IT & Operasional
-          </footer>
+          <footer className="text-sm text-zinc-400">Department IT & Operasional</footer>
         </blockquote>
       </div>
     </div>
-  )
+  );
 }
 
 function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: authApi.login.mutationFn,
     onSuccess: () =>
-      toast.success('Login Berhasil', {
-        description: 'Selamat datang kembali di IKKI ERP.',
+      toast.success("Login Berhasil", {
+        description: "Selamat datang kembali di IKKI ERP.",
         icon: <CheckCircle2Icon className="text-green-600" />,
       }),
     onError: () =>
-      toast.error('Login Gagal', {
-        description: 'Silakan periksa kembali email dan password Anda.',
+      toast.error("Login Gagal", {
+        description: "Silakan periksa kembali email dan password Anda.",
       }),
-  })
+  });
 
   const form = useForm({
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
     onSubmit: async ({ value }) => {
       const res = await loginMutation.mutateAsync({
@@ -101,18 +98,16 @@ function LoginForm() {
           identifier: value.email,
           password: value.password,
         },
-      })
-      useAuth.getState().setToken(res.data.token)
+      });
+      useAuth.getState().setToken(res.data.token);
     },
-  })
+  });
 
   return (
     <div className="lg:p-8 p-4 relative flex items-center justify-center">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[380px]">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Selamat Datang
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Selamat Datang</h1>
           <p className="text-sm text-muted-foreground">
             Masukkan email dan password Anda untuk masuk
           </p>
@@ -120,9 +115,9 @@ function LoginForm() {
 
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
           }}
           className="space-y-4"
         >
@@ -130,8 +125,8 @@ function LoginForm() {
             name="email"
             validators={{
               onChange: ({ value }) => {
-                const res = z.email('Email tidak valid').safeParse(value)
-                return res.success ? undefined : res.error.issues[0].message
+                const res = z.email("Email tidak valid").safeParse(value);
+                return res.success ? undefined : res.error.issues[0].message;
               },
             }}
             children={(field) => (
@@ -151,7 +146,7 @@ function LoginForm() {
                 </InputGroup>
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
-                    {field.state.meta.errors.join(', ')}
+                    {field.state.meta.errors.join(", ")}
                   </p>
                 )}
               </div>
@@ -162,11 +157,8 @@ function LoginForm() {
             name="password"
             validators={{
               onChange: ({ value }) => {
-                const res = z
-                  .string()
-                  .min(1, 'Password diperlukan')
-                  .safeParse(value)
-                return res.success ? undefined : res.error.issues[0].message
+                const res = z.string().min(1, "Password diperlukan").safeParse(value);
+                return res.success ? undefined : res.error.issues[0].message;
               },
             }}
             children={(field) => (
@@ -178,9 +170,8 @@ function LoginForm() {
                     className="h-auto p-0 text-xs font-normal text-muted-foreground hover:text-primary"
                     type="button"
                     onClick={() =>
-                      toast.info('Info', {
-                        description:
-                          'Silakan hubungi administrator untuk reset password.',
+                      toast.info("Info", {
+                        description: "Silakan hubungi administrator untuk reset password.",
                       })
                     }
                   >
@@ -193,7 +184,7 @@ function LoginForm() {
                   </InputGroupAddon>
                   <InputGroupInput
                     id={field.name}
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -201,17 +192,14 @@ function LoginForm() {
                     autoComplete="current-password"
                   />
                   <InputGroupAddon align="inline-end">
-                    <InputGroupButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      size="icon-xs"
-                    >
+                    <InputGroupButton onClick={() => setShowPassword(!showPassword)} size="icon-xs">
                       {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </InputGroupButton>
                   </InputGroupAddon>
                 </InputGroup>
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
-                    {field.state.meta.errors.join(', ')}
+                    {field.state.meta.errors.join(", ")}
                   </p>
                 )}
               </div>
@@ -231,7 +219,7 @@ function LoginForm() {
                 ) : (
                   <ArrowRightIcon className="h-4 w-4 mr-2" />
                 )}
-                {isSubmitting ? 'Memproses...' : 'Masuk'}
+                {isSubmitting ? "Memproses..." : "Masuk"}
               </Button>
             )}
           />
@@ -242,22 +230,19 @@ function LoginForm() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Atau
-            </span>
+            <span className="bg-background px-2 text-muted-foreground">Atau</span>
           </div>
         </div>
 
         <div className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
           <p>
-            Belum punya akun?{' '}
+            Belum punya akun?{" "}
             <Button
               variant="link"
               className="underline underline-offset-4 hover:text-primary p-0 h-auto"
               onClick={() =>
-                toast.info('Info', {
-                  description:
-                    'Hubungi administrator sistem untuk pembuatan akun baru.',
+                toast.info("Info", {
+                  description: "Hubungi administrator sistem untuk pembuatan akun baru.",
                 })
               }
             >
@@ -267,5 +252,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

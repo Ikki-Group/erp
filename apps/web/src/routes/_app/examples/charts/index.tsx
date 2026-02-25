@@ -5,12 +5,12 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
+} from "@/components/layout/page-old";
 import {
   ChartCard,
   ChartGrid,
   ChartFooterContent,
-} from '@/components/common/data-display/chart-card'
+} from "@/components/common/data-display/chart-card";
 import {
   ChartConfig,
   ChartContainer,
@@ -18,17 +18,17 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from '@/components/ui/chart'
+} from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { createFileRoute } from '@tanstack/react-router'
-import { TrendingUpIcon } from 'lucide-react'
-import { useState, useMemo } from 'react'
+} from "@/components/ui/select";
+import { createFileRoute } from "@tanstack/react-router";
+import { TrendingUpIcon } from "lucide-react";
+import { useState, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -40,88 +40,86 @@ import {
   XAxis,
   YAxis,
   Label,
-} from 'recharts'
+} from "recharts";
 
-export const Route = createFileRoute('/_app/examples/charts/')({
+export const Route = createFileRoute("/_app/examples/charts/")({
   component: ChartsPage,
-})
+});
 
 // --- 1. Revenue Config (Area Chart with Filter) ---
 const revenueDataFull = [
-  { month: 'Jan', revenue: 186000, profit: 80000 },
-  { month: 'Feb', revenue: 305000, profit: 120000 },
-  { month: 'Mar', revenue: 237000, profit: 95000 },
-  { month: 'Apr', revenue: 573000, profit: 210000 },
-  { month: 'May', revenue: 409000, profit: 160000 },
-  { month: 'Jun', revenue: 614000, profit: 280000 },
-  { month: 'Jul', revenue: 450000, profit: 190000 },
-  { month: 'Aug', revenue: 520000, profit: 230000 },
-  { month: 'Sep', revenue: 480000, profit: 200000 },
-  { month: 'Oct', revenue: 590000, profit: 260000 },
-  { month: 'Nov', revenue: 650000, profit: 300000 },
-  { month: 'Dec', revenue: 720000, profit: 340000 },
-]
+  { month: "Jan", revenue: 186000, profit: 80000 },
+  { month: "Feb", revenue: 305000, profit: 120000 },
+  { month: "Mar", revenue: 237000, profit: 95000 },
+  { month: "Apr", revenue: 573000, profit: 210000 },
+  { month: "May", revenue: 409000, profit: 160000 },
+  { month: "Jun", revenue: 614000, profit: 280000 },
+  { month: "Jul", revenue: 450000, profit: 190000 },
+  { month: "Aug", revenue: 520000, profit: 230000 },
+  { month: "Sep", revenue: 480000, profit: 200000 },
+  { month: "Oct", revenue: 590000, profit: 260000 },
+  { month: "Nov", revenue: 650000, profit: 300000 },
+  { month: "Dec", revenue: 720000, profit: 340000 },
+];
 
 const revenueConfig = {
   revenue: {
-    label: 'Revenue',
-    color: 'hsl(var(--primary))',
+    label: "Revenue",
+    color: "hsl(var(--primary))",
   },
   profit: {
-    label: 'Profit',
-    color: 'hsl(var(--chart-2))',
+    label: "Profit",
+    color: "hsl(var(--chart-2))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 // --- 2. Consolidation Config (Stacked/Grouped Bar) ---
 const consolidationData = [
-  { month: 'Jan', jakarta: 4500, surabaya: 2300, bali: 3100 },
-  { month: 'Feb', jakarta: 5200, surabaya: 2800, bali: 3400 },
-  { month: 'Mar', jakarta: 4900, surabaya: 2600, bali: 3200 },
-  { month: 'Apr', jakarta: 5800, surabaya: 3100, bali: 4500 },
-  { month: 'May', jakarta: 6100, surabaya: 3400, bali: 4200 },
-  { month: 'Jun', jakarta: 6700, surabaya: 3800, bali: 4800 },
-]
+  { month: "Jan", jakarta: 4500, surabaya: 2300, bali: 3100 },
+  { month: "Feb", jakarta: 5200, surabaya: 2800, bali: 3400 },
+  { month: "Mar", jakarta: 4900, surabaya: 2600, bali: 3200 },
+  { month: "Apr", jakarta: 5800, surabaya: 3100, bali: 4500 },
+  { month: "May", jakarta: 6100, surabaya: 3400, bali: 4200 },
+  { month: "Jun", jakarta: 6700, surabaya: 3800, bali: 4800 },
+];
 
 const consolidationConfig = {
   jakarta: {
-    label: 'Jakarta HQ',
-    color: 'hsl(var(--chart-1))',
+    label: "Jakarta HQ",
+    color: "hsl(var(--chart-1))",
   },
   surabaya: {
-    label: 'Surabaya Branch',
-    color: 'hsl(var(--chart-2))',
+    label: "Surabaya Branch",
+    color: "hsl(var(--chart-2))",
   },
   bali: {
-    label: 'Bali Hub',
-    color: 'hsl(var(--chart-3))',
+    label: "Bali Hub",
+    color: "hsl(var(--chart-3))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 // --- 3. Order Status (Donut Chart) ---
 const statusData = [
-  { status: 'completed', count: 245, fill: 'hsl(var(--chart-2))' }, // Emerald/Green-ish
-  { status: 'pending', count: 120, fill: 'hsl(var(--chart-4))' }, // Orange/Yellow-ish
-  { status: 'cancelled', count: 45, fill: 'hsl(var(--chart-5))' }, // Red/Rose
-]
+  { status: "completed", count: 245, fill: "hsl(var(--chart-2))" }, // Emerald/Green-ish
+  { status: "pending", count: 120, fill: "hsl(var(--chart-4))" }, // Orange/Yellow-ish
+  { status: "cancelled", count: 45, fill: "hsl(var(--chart-5))" }, // Red/Rose
+];
 
 const statusConfig = {
-  count: { label: 'Orders' },
-  completed: { label: 'Completed', color: 'hsl(var(--chart-2))' },
-  pending: { label: 'Pending', color: 'hsl(var(--chart-4))' },
-  cancelled: { label: 'Cancelled', color: 'hsl(var(--chart-5))' },
-} satisfies ChartConfig
+  count: { label: "Orders" },
+  completed: { label: "Completed", color: "hsl(var(--chart-2))" },
+  pending: { label: "Pending", color: "hsl(var(--chart-4))" },
+  cancelled: { label: "Cancelled", color: "hsl(var(--chart-5))" },
+} satisfies ChartConfig;
 
 function ChartsPage() {
-  const [timeRange, setTimeRange] = useState('90d')
+  const [timeRange, setTimeRange] = useState("90d");
 
   const filteredRevenueData = useMemo(() => {
-    if (timeRange === '30d')
-      return revenueDataFull.slice(revenueDataFull.length - 2)
-    if (timeRange === '90d')
-      return revenueDataFull.slice(revenueDataFull.length - 6)
-    return revenueDataFull
-  }, [timeRange])
+    if (timeRange === "30d") return revenueDataFull.slice(revenueDataFull.length - 2);
+    if (timeRange === "90d") return revenueDataFull.slice(revenueDataFull.length - 6);
+    return revenueDataFull;
+  }, [timeRange]);
 
   return (
     <Page>
@@ -140,10 +138,7 @@ function ChartsPage() {
             title="Revenue & Profit"
             description="Financial performance over time."
             action={
-              <Select
-                value={timeRange}
-                onValueChange={(val) => val && setTimeRange(val)}
-              >
+              <Select value={timeRange} onValueChange={(val) => val && setTimeRange(val)}>
                 <SelectTrigger
                   className="w-[120px] h-8 text-xs font-medium"
                   aria-label="Select time range"
@@ -174,28 +169,12 @@ function ChartsPage() {
               >
                 <defs>
                   <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-revenue)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-revenue)"
-                      stopOpacity={0.1}
-                    />
+                    <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.1} />
                   </linearGradient>
                   <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-profit)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-profit)"
-                      stopOpacity={0.1}
-                    />
+                    <stop offset="5%" stopColor="var(--color-profit)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-profit)" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} />
@@ -206,10 +185,7 @@ function ChartsPage() {
                   tickMargin={8}
                   tickFormatter={(value) => value.slice(0, 3)}
                 />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
+                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                 <ChartLegend content={<ChartLegendContent />} />
                 <Area
                   dataKey="profit"
@@ -244,15 +220,9 @@ function ChartsPage() {
               />
             }
           >
-            <ChartContainer
-              config={statusConfig}
-              className="mx-auto aspect-square max-h-[300px]"
-            >
+            <ChartContainer config={statusConfig} className="mx-auto aspect-square max-h-[300px]">
               <PieChart>
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
+                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                 <Pie
                   data={statusData}
                   dataKey="count"
@@ -262,7 +232,7 @@ function ChartsPage() {
                 >
                   <Label
                     content={({ viewBox }) => {
-                      if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                         return (
                           <text
                             x={viewBox.cx}
@@ -275,9 +245,7 @@ function ChartsPage() {
                               y={viewBox.cy}
                               className="fill-foreground text-3xl font-bold"
                             >
-                              {statusData
-                                .reduce((acc, cur) => acc + cur.count, 0)
-                                .toLocaleString()}
+                              {statusData.reduce((acc, cur) => acc + cur.count, 0).toLocaleString()}
                             </tspan>
                             <tspan
                               x={viewBox.cx}
@@ -287,7 +255,7 @@ function ChartsPage() {
                               Total Orders
                             </tspan>
                           </text>
-                        )
+                        );
                       }
                     }}
                   />
@@ -325,17 +293,10 @@ function ChartsPage() {
                   tickFormatter={(value) => value.slice(0, 3)}
                 />
                 <YAxis tickLine={false} axisLine={false} tickMargin={10} />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dashed" />}
-                />
+                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                 <ChartLegend content={<ChartLegendContent />} />
                 <Bar dataKey="jakarta" fill="var(--color-jakarta)" radius={4} />
-                <Bar
-                  dataKey="surabaya"
-                  fill="var(--color-surabaya)"
-                  radius={4}
-                />
+                <Bar dataKey="surabaya" fill="var(--color-surabaya)" radius={4} />
                 <Bar dataKey="bali" fill="var(--color-bali)" radius={4} />
               </BarChart>
             </ChartContainer>
@@ -343,5 +304,5 @@ function ChartsPage() {
         </ChartGrid>
       </PageContent>
     </Page>
-  )
+  );
 }

@@ -3,14 +3,14 @@
 @import '@fontsource-variable/inter';
 
 @custom-variant dark (&:is(.dark *));
-@custom-variant fixed (&:is(.layout-fixed *));
+/* @custom-variant fixed (&:is(.layout-fixed *)); */
 
-@theme static {
+/* @theme static {
   --container-8xl: 1440px;
 
   --spacing: 0.25rem;
   --spacing-main: calc(var(--spacing) * 6);
-}
+} */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -245,8 +245,12 @@
     @apply border-border outline-ring/50;
   }
 
+  body {
+    @apply font-sans bg-background text-foreground;
+  }
+
   html {
-    @apply bg-background text-foreground;
+    @apply font-sans;
   }
 }
 
@@ -267,7 +271,7 @@
 }
 
 /** Custom Container **/
-@utility container-main {
+/* @utility container-main {
   margin-inline: auto;
   padding-inline: 1.5rem;
   @media (width >= --theme(--breakpoint-sm)) {
@@ -277,7 +281,7 @@
     padding-inline: 2rem;
     max-width: 1440px;
   }
-}
+} */
 
 /** Smooth scroll **/
 html {

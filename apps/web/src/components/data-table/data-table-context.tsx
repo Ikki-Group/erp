@@ -1,16 +1,14 @@
-import { createContext, useContext } from 'react'
-import { UseDataTableReturn } from './data-table-types'
+import { createContext, useContext } from "react";
+import { UseDataTableReturn } from "./data-table-types";
 
-export const DataTableContext = createContext<UseDataTableReturn<any> | null>(
-  null,
-)
+export const DataTableContext = createContext<UseDataTableReturn<any> | null>(null);
 
 export function useDataTableContext() {
-  const context = useContext(DataTableContext)
+  const context = useContext(DataTableContext);
 
   if (!context) {
-    throw new Error('useDataTableContext must be used within a DataTableRoot')
+    throw new Error("useDataTableContext must be used within a DataTableRoot");
   }
 
-  return context
+  return context;
 }

@@ -6,24 +6,18 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { createFileRoute } from '@tanstack/react-router'
-import { ChevronLeftIcon, SaveIcon } from 'lucide-react'
+} from "@/components/layout/page-old";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { createFileRoute } from "@tanstack/react-router";
+import { ChevronLeftIcon, SaveIcon } from "lucide-react";
 
-export const Route = createFileRoute('/_app/examples/form/')({
+export const Route = createFileRoute("/_app/examples/form/")({
   component: FormPage,
-})
+});
 
 function FormPage() {
   return (
@@ -35,9 +29,7 @@ function FormPage() {
           </Button>
           <PageTitleContainer>
             <PageTitle>Create Product</PageTitle>
-            <PageDescription>
-              Add a new product to your inventory.
-            </PageDescription>
+            <PageDescription>Add a new product to your inventory.</PageDescription>
           </PageTitleContainer>
         </div>
         <PageActions>
@@ -54,9 +46,7 @@ function FormPage() {
             <Card>
               <CardHeader>
                 <CardTitle>General Information</CardTitle>
-                <CardDescription>
-                  Product details and identification.
-                </CardDescription>
+                <CardDescription>Product details and identification.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -125,5 +115,5 @@ function FormPage() {
         </div>
       </PageContent>
     </Page>
-  )
+  );
 }

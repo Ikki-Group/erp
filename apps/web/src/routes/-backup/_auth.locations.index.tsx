@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, ArrowUpDown, Plus, Trash2, Power } from 'lucide-react'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, ArrowUpDown, Plus, Trash2, Power } from "lucide-react";
 
-import { DataTable } from '@/components/common/templates/DataTable'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { DataTable } from "@/components/common/templates/DataTable";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +12,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   useLocations,
   useDeleteLocation,
   useToggleLocationActive,
-} from '@/features/location/hooks/locations.hooks'
-import { useConfirm } from '@/providers/ConfirmProvider'
-import { useDataTable } from '@/hooks/use-data-table'
-import { z } from 'zod'
+} from "@/features/location/hooks/locations.hooks";
+import { useConfirm } from "@/providers/ConfirmProvider";
+import { useDataTable } from "@/hooks/use-data-table";
+import { z } from "zod";
 
 const searchSchema = z.object({
   page: z.number().optional().default(1),
@@ -28,43 +28,44 @@ const searchSchema = z.object({
   search: z.string().optional(),
   sort: z.string().optional(),
   filters: z.string().optional(),
-})
+});
 
-export const Route = createFileRoute('/_auth/locations/')({
+export const Route = createFileRoute("/_auth/locations/")({
   component: LocationsPage,
   validateSearch: (search) => searchSchema.parse(search),
-})
+});
 
 function LocationsPage() {
   const { tableState, onStateChange } = useDataTable({
-    routeId: '/_auth/locations/',
-  })
+    routeId: "/_auth/locations/",
+  });
 
   // Derive search from tableState.columnFilters
-  const search = tableState.columnFilters?.find((f) => f.id === 'name')
-    ?.value as string | undefined
+  const search = tableState.columnFilters?.find((f) => f.id === "name")?.value as
+    | string
+    | undefined;
 
   const { data, isLoading } = useLocations({
     page: (tableState.pagination?.pageIndex ?? 0) + 1,
     limit: tableState.pagination?.pageSize ?? 10,
     search: search,
-  })
+  });
 
-  const deleteLocation = useDeleteLocation()
-  const toggleActive = useToggleLocationActive()
-  const confirm = useConfirm()
+  const deleteLocation = useDeleteLocation();
+  const toggleActive = useToggleLocationActive();
+  const confirm = useConfirm();
 
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: 'code',
-      header: 'Code',
+      accessorKey: "code",
+      header: "Code",
     },
     {
-      accessorKey: 'name',
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="-ml-4 h-8"
         >
           Location Name
@@ -73,30 +74,28 @@ function LocationsPage() {
       ),
     },
     {
-      accessorKey: 'type',
-      header: 'Type',
+      accessorKey: "type",
+      header: "Type",
       cell: ({ row }) => (
-        <span className="capitalize">
-          {row.getValue('type')?.toString().replace('_', ' ')}
-        </span>
+        <span className="capitalize">{row.getValue("type")?.toString().replace("_", " ")}</span>
       ),
     },
     {
-      accessorKey: 'isActive',
-      header: 'Status',
+      accessorKey: "isActive",
+      header: "Status",
       cell: ({ row }) => {
-        const isActive = row.getValue('isActive') as boolean
+        const isActive = row.getValue("isActive") as boolean;
         return (
-          <Badge variant={isActive ? 'outline' : 'secondary'}>
-            {isActive ? 'Active' : 'Inactive'}
+          <Badge variant={isActive ? "outline" : "secondary"}>
+            {isActive ? "Active" : "Inactive"}
           </Badge>
-        )
+        );
       },
     },
     {
-      id: 'actions',
+      id: "actions",
       cell: ({ row }) => {
-        const location = row.original
+        const location = row.original;
 
         return (
           <DropdownMenu>
@@ -109,9 +108,7 @@ function LocationsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(location.id.toString())
-                }
+                onClick={() => navigator.clipboard.writeText(location.id.toString())}
               >
                 Copy ID
               </DropdownMenuItem>
@@ -126,22 +123,22 @@ function LocationsPage() {
                 onClick={() => toggleActive.mutate(location.id)}
               >
                 <Power className="h-4 w-4" />
-                {location.isActive ? 'Deactivate' : 'Activate'}
+                {location.isActive ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex items-center gap-2 text-destructive focus:text-destructive"
                 onClick={async () => {
                   const isConfirmed = await confirm({
-                    title: 'Delete Location?',
+                    title: "Delete Location?",
                     description: `Are you sure you want to delete ${location.name}? This action cannot be undone.`,
-                    confirmText: 'Delete',
-                    variant: 'destructive',
+                    confirmText: "Delete",
+                    variant: "destructive",
                     confirmationKeyword: location.code,
-                  })
+                  });
 
                   if (isConfirmed) {
-                    deleteLocation.mutate(location.id)
+                    deleteLocation.mutate(location.id);
                   }
                 }}
               >
@@ -150,10 +147,10 @@ function LocationsPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
 
   return (
     <div className="flex-1 space-y-4">
@@ -189,5 +186,5 @@ function LocationsPage() {
         searchPlaceholder="Filter locations..."
       />
     </div>
-  )
+  );
 }

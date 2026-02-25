@@ -1,11 +1,11 @@
-import { apiFactory } from '@/lib/api'
-import { zHttp } from '@/lib/zod'
-import { z } from 'zod'
+import { apiFactory } from "@/lib/api";
+import { zHttp } from "@/lib/zod";
+import { z } from "zod";
 
 export const authApi = {
   login: apiFactory({
-    method: 'post',
-    url: 'iam/auth/login',
+    method: "post",
+    url: "iam/auth/login",
     body: z.object({
       identifier: z.string(),
       password: z.string(),
@@ -16,4 +16,4 @@ export const authApi = {
       }),
     ),
   }),
-}
+};

@@ -1,15 +1,15 @@
-import z from 'zod'
+import z from "zod";
 
-import { zPrimitive } from './primitive'
+import { zPrimitive } from "./primitive";
 
 const paginationMeta = z.object({
   page: z.number(),
   limit: z.number(),
   total: z.number(),
   totalPages: z.number(),
-})
+});
 
-export type PaginationMeta = z.infer<typeof paginationMeta>
+export type PaginationMeta = z.infer<typeof paginationMeta>;
 
 export const zHttp = {
   boolean: z.boolean(),
@@ -38,4 +38,4 @@ export const zHttp = {
       data: data,
       meta: paginationMeta,
     }),
-}
+};

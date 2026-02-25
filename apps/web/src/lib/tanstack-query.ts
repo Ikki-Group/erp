@@ -1,7 +1,7 @@
-import { broadcastQueryClient } from '@tanstack/query-broadcast-client-experimental'
-import { MutationCache, QueryClient } from '@tanstack/react-query'
+import { broadcastQueryClient } from "@tanstack/query-broadcast-client-experimental";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 
-import { APP_VERSION, IS_DEV } from '@/config/constant'
+import { APP_VERSION, IS_DEV } from "@/config/constant";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,12 +17,12 @@ export const queryClient = new QueryClient({
   },
   mutationCache: new MutationCache({
     onSettled() {
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries();
     },
   }),
-})
+});
 
 broadcastQueryClient({
   queryClient,
   broadcastChannel: APP_VERSION,
-})
+});

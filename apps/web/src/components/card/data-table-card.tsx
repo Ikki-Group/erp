@@ -17,6 +17,7 @@ interface DataTableCardProps<TData extends object> {
   isLoading?: boolean
   recordCount?: number
   action?: ReactNode
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTableCard<TData extends object>({
@@ -24,6 +25,7 @@ export function DataTableCard<TData extends object>({
   isLoading,
   action,
   recordCount = 0,
+  onRowClick,
 }: DataTableCardProps<TData>) {
   return (
     <DataGrid
@@ -34,7 +36,9 @@ export function DataTableCard<TData extends object>({
       loadingMode="spinner"
       tableLayout={{
         cellBorder: true,
+        columnsPinnable: true,
       }}
+      onRowClick={onRowClick}
     >
       <Card className="w-full gap-0! py-3.5" size="sm">
         <CardHeader className="flex items-center justify-between px-3.5 border-b">

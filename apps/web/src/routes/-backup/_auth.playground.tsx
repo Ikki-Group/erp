@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Activity,
   AlertCircle,
@@ -8,26 +8,26 @@ import {
   Check,
   Loader2,
   Mail,
-} from 'lucide-react'
-import { format } from 'date-fns'
+} from "lucide-react";
+import { format } from "date-fns";
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Switch } from '@/components/ui/switch'
-import { Slider } from '@/components/ui/slider'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -35,9 +35,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -45,7 +45,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +54,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -62,24 +62,15 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Progress } from '@/components/ui/progress'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/sheet";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
-import { toast } from 'sonner'
+import { toast } from "sonner";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -87,7 +78,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+} from "@/components/ui/breadcrumb";
 import {
   Pagination,
   PaginationContent,
@@ -96,24 +87,21 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination'
+} from "@/components/ui/pagination";
 
-export const Route = createFileRoute('/_auth/playground')({
+export const Route = createFileRoute("/_auth/playground")({
   component: PlaygroundPage,
-})
+});
 
 function PlaygroundPage() {
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState<Date>();
 
   return (
     <div className="container mx-auto py-10 space-y-10">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Design System Playground
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Design System Playground</h1>
         <p className="text-muted-foreground">
-          A showcase of all available components and primitives in our design
-          system.
+          A showcase of all available components and primitives in our design system.
         </p>
       </div>
 
@@ -155,86 +143,53 @@ function PlaygroundPage() {
           <Section title="Typography">
             <div className="space-y-4">
               <div className="space-y-2">
-                <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-                  Heading 1
-                </h1>
+                <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">Heading 1</h1>
                 <p className="text-muted-foreground">
                   text-4xl font-extrabold tracking-tight lg:text-5xl
                 </p>
               </div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold tracking-tight first:mt-0">
-                  Heading 2
-                </h2>
-                <p className="text-muted-foreground">
-                  text-3xl font-semibold tracking-tight
-                </p>
+                <h2 className="text-3xl font-semibold tracking-tight first:mt-0">Heading 2</h2>
+                <p className="text-muted-foreground">text-3xl font-semibold tracking-tight</p>
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-semibold tracking-tight">
-                  Heading 3
-                </h3>
-                <p className="text-muted-foreground">
-                  text-2xl font-semibold tracking-tight
-                </p>
+                <h3 className="text-2xl font-semibold tracking-tight">Heading 3</h3>
+                <p className="text-muted-foreground">text-2xl font-semibold tracking-tight</p>
               </div>
               <div className="space-y-2">
-                <h4 className="text-xl font-semibold tracking-tight">
-                  Heading 4
-                </h4>
-                <p className="text-muted-foreground">
-                  text-xl font-semibold tracking-tight
-                </p>
+                <h4 className="text-xl font-semibold tracking-tight">Heading 4</h4>
+                <p className="text-muted-foreground">text-xl font-semibold tracking-tight</p>
               </div>
               <div className="space-y-2">
                 <p className="leading-7 [&:not(:first-child)]:mt-6">
-                  The king, seeing how much happier his subjects were, realized
-                  the error of his ways and repealed the joke tax.
+                  The king, seeing how much happier his subjects were, realized the error of his
+                  ways and repealed the joke tax.
                 </p>
                 <p className="text-muted-foreground">p leading-7</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium leading-none">Small text</p>
-                <p className="text-muted-foreground">
-                  text-sm font-medium leading-none
-                </p>
+                <p className="text-muted-foreground">text-sm font-medium leading-none</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Muted text</p>
-                <p className="text-muted-foreground">
-                  text-sm text-muted-foreground
-                </p>
+                <p className="text-muted-foreground">text-sm text-muted-foreground</p>
               </div>
             </div>
           </Section>
 
           <Section title="Colors - Primary">
             <div className="flex flex-wrap gap-4">
-              <ColorCard
-                name="bg-primary"
-                className="bg-primary text-primary-foreground"
-              />
-              <ColorCard
-                name="bg-primary/90"
-                className="bg-primary/90 text-primary-foreground"
-              />
-              <ColorCard
-                name="bg-primary/80"
-                className="bg-primary/80 text-primary-foreground"
-              />
-              <ColorCard
-                name="bg-primary/50"
-                className="bg-primary/50 text-white"
-              />
+              <ColorCard name="bg-primary" className="bg-primary text-primary-foreground" />
+              <ColorCard name="bg-primary/90" className="bg-primary/90 text-primary-foreground" />
+              <ColorCard name="bg-primary/80" className="bg-primary/80 text-primary-foreground" />
+              <ColorCard name="bg-primary/50" className="bg-primary/50 text-white" />
             </div>
           </Section>
 
           <Section title="Colors - Secondary">
             <div className="flex flex-wrap gap-4">
-              <ColorCard
-                name="bg-secondary"
-                className="bg-secondary text-secondary-foreground"
-              />
+              <ColorCard name="bg-secondary" className="bg-secondary text-secondary-foreground" />
               <ColorCard
                 name="bg-secondary/80"
                 className="bg-secondary/80 text-secondary-foreground"
@@ -257,36 +212,21 @@ function PlaygroundPage() {
 
           <Section title="Colors - Muted">
             <div className="flex flex-wrap gap-4">
-              <ColorCard
-                name="bg-muted"
-                className="bg-muted text-muted-foreground"
-              />
-              <ColorCard
-                name="bg-muted/50"
-                className="bg-muted/50 text-muted-foreground"
-              />
+              <ColorCard name="bg-muted" className="bg-muted text-muted-foreground" />
+              <ColorCard name="bg-muted/50" className="bg-muted/50 text-muted-foreground" />
             </div>
           </Section>
 
           <Section title="Colors - Accent">
             <div className="flex flex-wrap gap-4">
-              <ColorCard
-                name="bg-accent"
-                className="bg-accent text-accent-foreground"
-              />
+              <ColorCard name="bg-accent" className="bg-accent text-accent-foreground" />
             </div>
           </Section>
 
           <Section title="Colors - Card & Popover">
             <div className="flex flex-wrap gap-4">
-              <ColorCard
-                name="bg-card"
-                className="bg-card text-card-foreground border"
-              />
-              <ColorCard
-                name="bg-popover"
-                className="bg-popover text-popover-foreground border"
-              />
+              <ColorCard name="bg-card" className="bg-card text-card-foreground border" />
+              <ColorCard name="bg-popover" className="bg-popover text-popover-foreground border" />
             </div>
           </Section>
         </TabsContent>
@@ -399,34 +339,24 @@ function PlaygroundPage() {
           </Section>
 
           <Section title="Slider">
-            <Slider
-              defaultValue={[50]}
-              max={100}
-              step={1}
-              className="w-[60%]"
-            />
+            <Slider defaultValue={[50]} max={100} step={1} className="w-[60%]" />
           </Section>
           <Section title="Date Picker">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant={'outline'}
+                  variant={"outline"}
                   className={cn(
-                    'w-[280px] justify-start text-left font-normal',
-                    !date && 'text-muted-foreground',
+                    "w-[280px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
+                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
               </PopoverContent>
             </Popover>
           </Section>
@@ -457,12 +387,8 @@ function PlaygroundPage() {
                   <div className=" flex items-center space-x-4 rounded-md border p-4">
                     <Bell className="size-5" />
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        Push Notifications
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Send notifications to device.
-                      </p>
+                      <p className="text-sm font-medium leading-none">Push Notifications</p>
+                      <p className="text-sm text-muted-foreground">Send notifications to device.</p>
                     </div>
                     <Switch />
                   </div>
@@ -488,10 +414,7 @@ function PlaygroundPage() {
           <Section title="Avatars">
             <div className="flex gap-4">
               <Avatar>
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@shadcn"
-                />
+                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
               <Avatar>
@@ -541,8 +464,7 @@ function PlaygroundPage() {
                 <DialogHeader>
                   <DialogTitle>Edit profile</DialogTitle>
                   <DialogDescription>
-                    Make changes to your profile here. Click save when you're
-                    done.
+                    Make changes to your profile here. Click save when you're done.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -550,21 +472,13 @@ function PlaygroundPage() {
                     <Label htmlFor="name" className="text-right">
                       Name
                     </Label>
-                    <Input
-                      id="name"
-                      defaultValue="Pedro Duarte"
-                      className="col-span-3"
-                    />
+                    <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="username" className="text-right">
                       Username
                     </Label>
-                    <Input
-                      id="username"
-                      defaultValue="@peduarte"
-                      className="col-span-3"
-                    />
+                    <Input id="username" defaultValue="@peduarte" className="col-span-3" />
                   </div>
                 </div>
                 <DialogFooter>
@@ -583,8 +497,7 @@ function PlaygroundPage() {
                 <SheetHeader>
                   <SheetTitle>Edit profile</SheetTitle>
                   <SheetDescription>
-                    Make changes to your profile here. Click save when you're
-                    done.
+                    Make changes to your profile here. Click save when you're done.
                   </SheetDescription>
                 </SheetHeader>
                 <div className="grid gap-4 py-4">
@@ -592,21 +505,13 @@ function PlaygroundPage() {
                     <Label htmlFor="name" className="text-right">
                       Name
                     </Label>
-                    <Input
-                      id="name"
-                      defaultValue="Pedro Duarte"
-                      className="col-span-3"
-                    />
+                    <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="username" className="text-right">
                       Username
                     </Label>
-                    <Input
-                      id="username"
-                      defaultValue="@peduarte"
-                      className="col-span-3"
-                    />
+                    <Input id="username" defaultValue="@peduarte" className="col-span-3" />
                   </div>
                 </div>
                 <div className="flex justify-end mt-4">
@@ -643,9 +548,7 @@ function PlaygroundPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>
-                  Your session has expired. Please log in again.
-                </AlertDescription>
+                <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
               </Alert>
             </div>
           </Section>
@@ -655,11 +558,11 @@ function PlaygroundPage() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  toast('Event has been created', {
-                    description: 'Sunday, December 03, 2023 at 9:00 AM',
+                  toast("Event has been created", {
+                    description: "Sunday, December 03, 2023 at 9:00 AM",
                     action: {
-                      label: 'Undo',
-                      onClick: () => console.log('Undo'),
+                      label: "Undo",
+                      onClick: () => console.log("Undo"),
                     },
                   })
                 }
@@ -669,8 +572,8 @@ function PlaygroundPage() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  toast.error('Uh oh! Something went wrong.', {
-                    description: 'There was a problem with your request.',
+                  toast.error("Uh oh! Something went wrong.", {
+                    description: "There was a problem with your request.",
                   })
                 }
               >
@@ -732,38 +635,30 @@ function PlaygroundPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
         <Separator className="flex-1" />
       </div>
-      <div className="p-4 md:p-6 border rounded-lg bg-card/50 backdrop-blur-sm">
-        {children}
-      </div>
+      <div className="p-4 md:p-6 border rounded-lg bg-card/50 backdrop-blur-sm">{children}</div>
     </div>
-  )
+  );
 }
 
 function ColorCard({ name, className }: { name: string; className: string }) {
   return (
     <div
       className={cn(
-        'h-24 w-48 rounded-md flex items-center justify-center border shadow-sm',
+        "h-24 w-48 rounded-md flex items-center justify-center border shadow-sm",
         className,
       )}
     >
       <span className="font-mono text-sm font-medium">{name}</span>
     </div>
-  )
+  );
 }

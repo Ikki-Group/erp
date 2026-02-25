@@ -1,6 +1,6 @@
 export interface DataTablePagination {
-  page: number
-  limit: number
+  page: number;
+  limit: number;
 }
 
-export type DataTableFilters = Record<string, unknown>
+export type DataTableFilters = Record<string, unknown>;

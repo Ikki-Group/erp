@@ -34,6 +34,7 @@ import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/exa
 import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
 import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
+import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
 import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
@@ -166,6 +167,11 @@ const AppSettingsUserCreateRoute = AppSettingsUserCreateRouteImport.update({
   path: '/settings/user/create',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsUserIdRoute = AppSettingsUserIdRouteImport.update({
+  id: '/settings/user/$id',
+  path: '/settings/user/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSettingsTabUserRoute = AppSettingsTabUserRouteImport.update({
   id: '/user',
   path: '/user',
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
   '/examples/charts': typeof AppExamplesChartsIndexRoute
   '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
+  '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
   '/_app/settings/user/create': typeof AppSettingsUserCreateRoute
   '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
   '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
+    | '/settings/user/$id'
     | '/settings/user/create'
     | '/examples/charts/'
     | '/examples/complex-form/'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
+    | '/settings/user/$id'
     | '/settings/user/create'
     | '/examples/charts'
     | '/examples/complex-form'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
+    | '/_app/settings/user/$id'
     | '/_app/settings/user/create'
     | '/_app/examples/charts/'
     | '/_app/examples/complex-form/'
@@ -541,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsUserCreateRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/settings/user/$id': {
+      id: '/_app/settings/user/$id'
+      path: '/settings/user/$id'
+      fullPath: '/settings/user/$id'
+      preLoaderRoute: typeof AppSettingsUserIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/settings/_tab/user': {
       id: '/_app/settings/_tab/user'
       path: '/user'
@@ -590,6 +609,7 @@ interface AppRouteRouteChildren {
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppProductsIndexRoute: typeof AppProductsIndexRoute
+  AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
   AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
@@ -614,6 +634,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductsIdRoute: AppProductsIdRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppProductsIndexRoute: AppProductsIndexRoute,
+  AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
   AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,

@@ -1,26 +1,22 @@
-import { useMemo, useState } from 'react'
-import { Badge } from '@/components/reui/badge'
-import { Column } from '@tanstack/react-table'
+import { useMemo, useState } from "react";
+import { Badge } from "@/components/reui/badge";
+import { Column } from "@tanstack/react-table";
 
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
-import { CirclePlusIcon, CheckIcon } from 'lucide-react'
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { CirclePlusIcon, CheckIcon } from "lucide-react";
 
 interface DataGridColumnFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>
-  title?: string
+  column?: Column<TData, TValue>;
+  title?: string;
   options: {
-    label: string
-    value: string
-    icon?: React.ComponentType<{ className?: string }>
-  }[]
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
 }
 
 function DataGridColumnFilter<TData, TValue>({
@@ -28,16 +24,16 @@ function DataGridColumnFilter<TData, TValue>({
   title,
   options,
 }: DataGridColumnFilterProps<TData, TValue>) {
-  const facets = column?.getFacetedUniqueValues()
-  const selectedValues = new Set(column?.getFilterValue() as string[])
-  const [searchQuery, setSearchQuery] = useState('')
+  const facets = column?.getFacetedUniqueValues();
+  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredOptions = useMemo(() => {
-    if (!searchQuery) return options
+    if (!searchQuery) return options;
     return options.filter((option) =>
       option.label.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-  }, [options, searchQuery])
+    );
+  }, [options, searchQuery]);
 
   return (
     <Popover>
@@ -49,18 +45,12 @@ function DataGridColumnFilter<TData, TValue>({
             {selectedValues?.size > 0 && (
               <>
                 <Separator orientation="vertical" className="mx-2 h-4" />
-                <Badge
-                  variant="secondary"
-                  className="rounded-sm px-1 font-normal lg:hidden"
-                >
+                <Badge variant="secondary" className="rounded-sm px-1 font-normal lg:hidden">
                   {selectedValues.size}
                 </Badge>
                 <div className="hidden space-x-1 lg:flex">
                   {selectedValues.size > 2 ? (
-                    <Badge
-                      variant="secondary"
-                      className="rounded-sm px-1 font-normal"
-                    >
+                    <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                       {selectedValues.size} selected
                     </Badge>
                   ) : (
@@ -93,45 +83,39 @@ function DataGridColumnFilter<TData, TValue>({
         </div>
         <div className="max-h-75 overflow-y-auto">
           {filteredOptions.length === 0 ? (
-            <div className="text-muted-foreground py-6 text-center text-sm">
-              No results found.
-            </div>
+            <div className="text-muted-foreground py-6 text-center text-sm">No results found.</div>
           ) : (
             <div className="p-1">
               {filteredOptions.map((option) => {
-                const isSelected = selectedValues.has(option.value)
+                const isSelected = selectedValues.has(option.value);
                 return (
                   <div
                     key={option.value}
                     onClick={() => {
                       if (isSelected) {
-                        selectedValues.delete(option.value)
+                        selectedValues.delete(option.value);
                       } else {
-                        selectedValues.add(option.value)
+                        selectedValues.add(option.value);
                       }
-                      const filterValues = Array.from(selectedValues)
-                      column?.setFilterValue(
-                        filterValues.length ? filterValues : undefined,
-                      )
+                      const filterValues = Array.from(selectedValues);
+                      column?.setFilterValue(filterValues.length ? filterValues : undefined);
                     }}
                     className={cn(
-                      'relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none',
-                      'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                      "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none",
+                      "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                     )}
                   >
                     <div
                       className={cn(
-                        'border-primary me-2 flex h-4 w-4 items-center justify-center rounded-sm border',
+                        "border-primary me-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected
-                          ? 'bg-primary text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible',
+                          ? "bg-primary text-primary-foreground"
+                          : "opacity-50 [&_svg]:invisible",
                       )}
                     >
                       <CheckIcon className="h-4 w-4" />
                     </div>
-                    {option.icon && (
-                      <option.icon className="text-muted-foreground mr-2 h-4 w-4" />
-                    )}
+                    {option.icon && <option.icon className="text-muted-foreground mr-2 h-4 w-4" />}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
                       <span className="ms-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
@@ -139,7 +123,7 @@ function DataGridColumnFilter<TData, TValue>({
                       </span>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -159,7 +143,7 @@ function DataGridColumnFilter<TData, TValue>({
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
-export { DataGridColumnFilter, type DataGridColumnFilterProps }
+export { DataGridColumnFilter, type DataGridColumnFilterProps };

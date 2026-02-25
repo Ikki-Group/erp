@@ -6,17 +6,11 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/layout/page-old";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -24,74 +18,70 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { createFileRoute } from '@tanstack/react-router'
-import { ChevronLeftIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+} from "@/components/ui/select";
+import { createFileRoute } from "@tanstack/react-router";
+import { ChevronLeftIcon, PlusIcon, SaveIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
 
-export const Route = createFileRoute('/_app/examples/complex-form/')({
+export const Route = createFileRoute("/_app/examples/complex-form/")({
   component: ComplexFormPage,
-})
+});
 
 type InvoiceItem = {
-  id: string
-  description: string
-  quantity: number
-  unitPrice: number
-  tax: number
-}
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  tax: number;
+};
 
 function ComplexFormPage() {
   const [items, setItems] = useState<InvoiceItem[]>([
     {
-      id: '1',
-      description: 'Web Development Services',
+      id: "1",
+      description: "Web Development Services",
       quantity: 1,
       unitPrice: 1500,
       tax: 0,
     },
-  ])
+  ]);
 
   const addItem = () => {
     setItems([
       ...items,
       {
         id: Math.random().toString(36).substr(2, 9),
-        description: '',
+        description: "",
         quantity: 1,
         unitPrice: 0,
         tax: 0,
       },
-    ])
-  }
+    ]);
+  };
 
   const removeItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id))
-  }
+    setItems(items.filter((item) => item.id !== id));
+  };
 
   const updateItem = (id: string, field: keyof InvoiceItem, value: any) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
-    )
-  }
+    setItems(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  };
 
   const calculateSubtotal = () => {
-    return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
-  }
+    return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  };
 
   const calculateTotal = () => {
     // simplified tax calc
-    return calculateSubtotal() * 1.1 // Assuming flat 10% tax for total for now or we sum individual tax
-  }
+    return calculateSubtotal() * 1.1; // Assuming flat 10% tax for total for now or we sum individual tax
+  };
 
   return (
     <Page>
@@ -102,9 +92,7 @@ function ComplexFormPage() {
           </Button>
           <PageTitleContainer>
             <PageTitle>New Invoice</PageTitle>
-            <PageDescription>
-              Create a new invoice for a client.
-            </PageDescription>
+            <PageDescription>Create a new invoice for a client.</PageDescription>
           </PageTitleContainer>
         </div>
         <PageActions>
@@ -206,9 +194,7 @@ function ComplexFormPage() {
                     <TableHead className="w-[40%]">Description</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[150px]">Unit Price</TableHead>
-                    <TableHead className="w-[150px] text-right">
-                      Amount
-                    </TableHead>
+                    <TableHead className="w-[150px] text-right">Amount</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -218,9 +204,7 @@ function ComplexFormPage() {
                       <TableCell>
                         <Input
                           value={item.description}
-                          onChange={(e) =>
-                            updateItem(item.id, 'description', e.target.value)
-                          }
+                          onChange={(e) => updateItem(item.id, "description", e.target.value)}
                           placeholder="Item description"
                           className="border-0 shadow-none focus-visible:ring-0 px-0 h-auto font-medium"
                         />
@@ -230,11 +214,7 @@ function ComplexFormPage() {
                           type="number"
                           value={item.quantity}
                           onChange={(e) =>
-                            updateItem(
-                              item.id,
-                              'quantity',
-                              parseFloat(e.target.value) || 0,
-                            )
+                            updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)
                           }
                           className="h-8 w-20"
                         />
@@ -248,11 +228,7 @@ function ComplexFormPage() {
                             type="number"
                             value={item.unitPrice}
                             onChange={(e) =>
-                              updateItem(
-                                item.id,
-                                'unitPrice',
-                                parseFloat(e.target.value) || 0,
-                              )
+                              updateItem(item.id, "unitPrice", parseFloat(e.target.value) || 0)
                             }
                             className="h-8 w-32 pl-6"
                           />
@@ -296,5 +272,5 @@ function ComplexFormPage() {
         </div>
       </PageContent>
     </Page>
-  )
+  );
 }

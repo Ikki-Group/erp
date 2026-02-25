@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Loader2, ArrowLeft } from 'lucide-react'
-import { useEffect } from 'react'
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,59 +14,55 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  useCreateUser,
-  useUpdateUser,
-  useUser,
-} from '@/features/iam/hooks/iam.hooks'
-import { zSchema } from '@/lib/zod'
-import { Switch } from '@/components/ui/switch'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCreateUser, useUpdateUser, useUser } from "@/features/iam/hooks/iam.hooks";
+import { zSchema } from "@/lib/zod";
+import { Switch } from "@/components/ui/switch";
 
-export const Route = createFileRoute('/_auth/iam/users/upsert')({
+export const Route = createFileRoute("/_auth/iam/users/upsert")({
   component: UserUpsertPage,
   validateSearch: z.object({
     userId: zSchema.numCoerce.optional(),
   }),
-})
+});
 
 const userFormSchema = z
   .object({
     username: zSchema.username,
     email: zSchema.email,
     fullname: zSchema.str,
-    password: zSchema.password.optional().or(z.literal('')),
+    password: zSchema.password.optional().or(z.literal("")),
     isActive: z.boolean().default(true),
   })
   .refine((data) => {
     // Password is required for new users (we'll handle this check in component logic mainly, but here for safety)
-    return true
-  })
+    return true;
+  });
 
-type UserFormValues = z.infer<typeof userFormSchema>
+type UserFormValues = z.infer<typeof userFormSchema>;
 
 function UserUpsertPage() {
-  const { userId } = Route.useSearch()
-  const navigate = useNavigate()
+  const { userId } = Route.useSearch();
+  const navigate = useNavigate();
 
-  const isEditMode = !!userId
+  const isEditMode = !!userId;
 
-  const { data: userData, isLoading: isLoadingUser } = useUser(userId || 0)
-  const createUserMutation = useCreateUser()
-  const updateUserMutation = useUpdateUser()
+  const { data: userData, isLoading: isLoadingUser } = useUser(userId || 0);
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      username: '',
-      email: '',
-      fullname: '',
-      password: '',
+      username: "",
+      email: "",
+      fullname: "",
+      password: "",
       isActive: true,
     },
-  })
+  });
 
   useEffect(() => {
     if (userData?.data) {
@@ -75,10 +71,10 @@ function UserUpsertPage() {
         email: userData.data.email,
         fullname: userData.data.fullname,
         isActive: userData.data.isActive,
-        password: '', // Don't fill password
-      })
+        password: "", // Don't fill password
+      });
     }
-  }, [userData, form])
+  }, [userData, form]);
 
   async function onSubmit(data: UserFormValues) {
     try {
@@ -90,17 +86,17 @@ function UserUpsertPage() {
           email: data.email,
           fullname: data.fullname,
           isActive: data.isActive,
-        }
+        };
         if (data.password) {
-          updateData.password = data.password
+          updateData.password = data.password;
         }
-        await updateUserMutation.mutateAsync(updateData)
+        await updateUserMutation.mutateAsync(updateData);
       } else {
         if (!data.password) {
-          form.setError('password', {
-            message: 'Password is required for new users',
-          })
-          return
+          form.setError("password", {
+            message: "Password is required for new users",
+          });
+          return;
         }
         await createUserMutation.mutateAsync({
           username: data.username,
@@ -108,25 +104,22 @@ function UserUpsertPage() {
           fullname: data.fullname,
           isActive: data.isActive,
           password: data.password,
-        })
+        });
       }
-      navigate({ to: '/_auth/iam/users' })
+      navigate({ to: "/_auth/iam/users" });
     } catch (error) {
-      console.error('Failed to submit user form', error)
+      console.error("Failed to submit user form", error);
     }
   }
 
-  const isLoading =
-    isLoadingUser ||
-    createUserMutation.isPending ||
-    updateUserMutation.isPending
+  const isLoading = isLoadingUser || createUserMutation.isPending || updateUserMutation.isPending;
 
   if (isEditMode && isLoadingUser) {
     return (
       <div className="flex justify-center p-10">
         <Loader2 className="animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
@@ -138,7 +131,7 @@ function UserUpsertPage() {
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isEditMode ? 'Edit User' : 'Create User'}
+          {isEditMode ? "Edit User" : "Create User"}
         </h2>
       </div>
 
@@ -158,9 +151,7 @@ function UserUpsertPage() {
                     <FormControl>
                       <Input placeholder="jdoe" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      Unique identifier for the user.
-                    </FormDescription>
+                    <FormDescription>Unique identifier for the user.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -173,11 +164,7 @@ function UserUpsertPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="john.doe@example.com"
-                        type="email"
-                        {...field}
-                      />
+                      <Input placeholder="john.doe@example.com" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -203,17 +190,11 @@ function UserUpsertPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {isEditMode ? 'New Password (Optional)' : 'Password'}
-                    </FormLabel>
+                    <FormLabel>{isEditMode ? "New Password (Optional)" : "Password"}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder={
-                          isEditMode
-                            ? 'Leave empty to keep current'
-                            : 'Secure password'
-                        }
+                        placeholder={isEditMode ? "Leave empty to keep current" : "Secure password"}
                         {...field}
                       />
                     </FormControl>
@@ -233,18 +214,11 @@ function UserUpsertPage() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Active Account
-                      </FormLabel>
-                      <FormDescription>
-                        Disable to prevent user from logging in.
-                      </FormDescription>
+                      <FormLabel className="text-base">Active Account</FormLabel>
+                      <FormDescription>Disable to prevent user from logging in.</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -255,10 +229,8 @@ function UserUpsertPage() {
                   <Link to="/_auth/iam/users">Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isEditMode ? 'Update User' : 'Create User'}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isEditMode ? "Update User" : "Create User"}
                 </Button>
               </div>
             </form>
@@ -266,5 +238,5 @@ function UserUpsertPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

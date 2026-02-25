@@ -1,82 +1,72 @@
-import * as React from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
-import { MapPin, ArrowLeft, Save, Loader2 } from 'lucide-react'
+import * as React from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
+import { MapPin, ArrowLeft, Save, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   useLocation,
   useCreateLocation,
   useUpdateLocation,
-} from '@/features/location/hooks/locations.hooks'
+} from "@/features/location/hooks/locations.hooks";
 
-export const Route = createFileRoute('/_auth/locations/upsert')({
+export const Route = createFileRoute("/_auth/locations/upsert")({
   component: LocationUpsertPage,
   validateSearch: (search: Record<string, unknown>) => {
     return {
       id: search.id ? Number(search.id) : undefined,
-    }
+    };
   },
-})
+});
 
 function LocationUpsertPage() {
-  const navigate = useNavigate()
-  const { id } = Route.useSearch()
-  const { data: location, isLoading: isLoadingDetail } = useLocation(id!)
-  const createLocation = useCreateLocation()
-  const updateLocation = useUpdateLocation()
+  const navigate = useNavigate();
+  const { id } = Route.useSearch();
+  const { data: location, isLoading: isLoadingDetail } = useLocation(id!);
+  const createLocation = useCreateLocation();
+  const updateLocation = useUpdateLocation();
 
   const form = useForm({
     defaultValues: {
-      code: '',
-      name: '',
-      type: 'store' as 'store' | 'warehouse' | 'central_warehouse',
-      description: '',
+      code: "",
+      name: "",
+      type: "store" as "store" | "warehouse" | "central_warehouse",
+      description: "",
     },
     onSubmit: async ({ value }) => {
       if (id) {
-        await updateLocation.mutateAsync({ id, ...value })
+        await updateLocation.mutateAsync({ id, ...value });
       } else {
-        await createLocation.mutateAsync(value)
+        await createLocation.mutateAsync(value);
       }
-      navigate({ to: '/locations' })
+      navigate({ to: "/locations" });
     },
-  })
+  });
 
   // Set form defaults when location data is loaded
   React.useEffect(() => {
     if (location) {
-      form.setFieldValue('code', location.code)
-      form.setFieldValue('name', location.name)
-      form.setFieldValue('type', location.type)
-      form.setFieldValue('description', location.description ?? '')
+      form.setFieldValue("code", location.code);
+      form.setFieldValue("name", location.name);
+      form.setFieldValue("type", location.type);
+      form.setFieldValue("description", location.description ?? "");
     }
-  }, [location, form])
+  }, [location, form]);
 
   if (id && isLoadingDetail) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        Loading location details...
-      </div>
-    )
+    return <div className="flex items-center justify-center h-64">Loading location details...</div>;
   }
 
   return (
@@ -93,12 +83,12 @@ function LocationUpsertPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {id ? 'Edit Location' : 'Add Location'}
+              {id ? "Edit Location" : "Add Location"}
             </h1>
             <p className="text-sm text-muted-foreground">
               {id
-                ? 'Update location details in your system.'
-                : 'Create a new location for your operations.'}
+                ? "Update location details in your system."
+                : "Create a new location for your operations."}
             </p>
           </div>
         </div>
@@ -106,9 +96,9 @@ function LocationUpsertPage() {
 
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          form.handleSubmit()
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
         }}
       >
         <div className="grid gap-6">
@@ -118,9 +108,7 @@ function LocationUpsertPage() {
                 <MapPin className="h-5 w-5 text-primary" />
                 Location Information
               </CardTitle>
-              <CardDescription>
-                Essential details about this store or warehouse.
-              </CardDescription>
+              <CardDescription>Essential details about this store or warehouse.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,11 +118,9 @@ function LocationUpsertPage() {
                     onChange: ({ value }) => {
                       const res = z
                         .string()
-                        .min(2, 'Code must be at least 2 characters')
-                        .safeParse(value)
-                      return res.success
-                        ? undefined
-                        : res.error.issues[0].message
+                        .min(2, "Code must be at least 2 characters")
+                        .safeParse(value);
+                      return res.success ? undefined : res.error.issues[0].message;
                     },
                   }}
                   children={(field) => (
@@ -147,15 +133,11 @@ function LocationUpsertPage() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         placeholder="e.g. WH-JKT-01"
-                        className={
-                          field.state.meta.errors.length
-                            ? 'border-destructive'
-                            : ''
-                        }
+                        className={field.state.meta.errors.length ? "border-destructive" : ""}
                       />
                       {field.state.meta.errors ? (
                         <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                          {field.state.meta.errors.join(', ')}
+                          {field.state.meta.errors.join(", ")}
                         </em>
                       ) : null}
                     </div>
@@ -168,11 +150,9 @@ function LocationUpsertPage() {
                     onChange: ({ value }) => {
                       const res = z
                         .string()
-                        .min(2, 'Name must be at least 2 characters')
-                        .safeParse(value)
-                      return res.success
-                        ? undefined
-                        : res.error.issues[0].message
+                        .min(2, "Name must be at least 2 characters")
+                        .safeParse(value);
+                      return res.success ? undefined : res.error.issues[0].message;
                     },
                   }}
                   children={(field) => (
@@ -185,15 +165,11 @@ function LocationUpsertPage() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         placeholder="e.g. Jakarta Central Warehouse"
-                        className={
-                          field.state.meta.errors.length
-                            ? 'border-destructive'
-                            : ''
-                        }
+                        className={field.state.meta.errors.length ? "border-destructive" : ""}
                       />
                       {field.state.meta.errors ? (
                         <em className="text-[10px] text-destructive font-medium uppercase tracking-wider not-italic">
-                          {field.state.meta.errors.join(', ')}
+                          {field.state.meta.errors.join(", ")}
                         </em>
                       ) : null}
                     </div>
@@ -216,9 +192,7 @@ function LocationUpsertPage() {
                       <SelectContent>
                         <SelectItem value="store">Store</SelectItem>
                         <SelectItem value="warehouse">Warehouse</SelectItem>
-                        <SelectItem value="central_warehouse">
-                          Central Warehouse
-                        </SelectItem>
+                        <SelectItem value="central_warehouse">Central Warehouse</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -249,7 +223,7 @@ function LocationUpsertPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate({ to: '/locations' })}
+              onClick={() => navigate({ to: "/locations" })}
               disabled={createLocation.isPending || updateLocation.isPending}
             >
               Cancel
@@ -267,9 +241,7 @@ function LocationUpsertPage() {
                   }
                   className="min-w-[120px] shadow-lg shadow-primary/20"
                 >
-                  {isSubmitting ||
-                  createLocation.isPending ||
-                  updateLocation.isPending ? (
+                  {isSubmitting || createLocation.isPending || updateLocation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...
@@ -277,7 +249,7 @@ function LocationUpsertPage() {
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      {id ? 'Update Location' : 'Save Location'}
+                      {id ? "Update Location" : "Save Location"}
                     </>
                   )}
                 </Button>
@@ -287,5 +259,5 @@ function LocationUpsertPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

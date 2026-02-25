@@ -8,22 +8,16 @@ import {
   PageActions,
   PageContent,
   PageBreadcrumb,
-} from '@/components/layout/page-old'
-import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+} from "@/components/layout/page-old";
+import { Grid, Stack, Inline } from "@/components/common/layout/primitives";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DescriptionList,
   DescriptionItem,
-} from '@/components/common/data-display/description-list'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+} from "@/components/common/data-display/description-list";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   HomeIcon,
   ChevronRightIcon,
@@ -32,7 +26,7 @@ import {
   TrashIcon,
   AlertTriangleIcon,
   TrendingUpIcon,
-} from 'lucide-react'
+} from "lucide-react";
 import {
   getProductById,
   formatCurrency,
@@ -40,16 +34,16 @@ import {
   getStatusLabel,
   getUnitLabel,
   getStockStatus,
-} from '@/features/products/mock-data'
+} from "@/features/products/mock-data";
 
-export const Route = createFileRoute('/_app/products/$id')({
+export const Route = createFileRoute("/_app/products/$id")({
   component: ProductDetailPage,
-})
+});
 
 function ProductDetailPage() {
-  const { id } = Route.useParams()
-  const navigate = useNavigate()
-  const product = getProductById(id)
+  const { id } = Route.useParams();
+  const navigate = useNavigate();
+  const product = getProductById(id);
 
   if (!product) {
     return (
@@ -65,51 +59,39 @@ function ProductDetailPage() {
                     Produk yang Anda cari tidak ditemukan.
                   </p>
                 </div>
-                <Button onClick={() => navigate({ to: '/products' })}>
-                  Kembali ke Produk
-                </Button>
+                <Button onClick={() => navigate({ to: "/products" })}>Kembali ke Produk</Button>
               </Stack>
             </CardContent>
           </Card>
         </PageContent>
       </Page>
-    )
+    );
   }
 
-  const stockStatus = getStockStatus(
-    product.stock,
-    product.minStock,
-    product.reorderPoint,
-  )
+  const stockStatus = getStockStatus(product.stock, product.minStock, product.reorderPoint);
 
   const basicInfo: DescriptionItem[] = [
     {
-      term: 'Kode Produk',
+      term: "Kode Produk",
       description: (
-        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
-          {product.code}
-        </code>
+        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">{product.code}</code>
       ),
     },
     {
-      term: 'Nama Produk',
+      term: "Nama Produk",
       description: <span className="font-medium">{product.name}</span>,
     },
     {
-      term: 'Kategori',
-      description: (
-        <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>
-      ),
+      term: "Kategori",
+      description: <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>,
     },
     {
-      term: 'Status',
+      term: "Status",
       description: (
         <Badge
-          variant={product.status === 'active' ? 'default' : 'outline'}
+          variant={product.status === "active" ? "default" : "outline"}
           className={
-            product.status === 'discontinued'
-              ? 'bg-red-50 text-red-700 border-red-200'
-              : ''
+            product.status === "discontinued" ? "bg-red-50 text-red-700 border-red-200" : ""
           }
         >
           {getStatusLabel(product.status)}
@@ -117,114 +99,101 @@ function ProductDetailPage() {
       ),
     },
     {
-      term: 'Deskripsi',
-      description: product.description || '-',
-      className: 'md:col-span-2',
+      term: "Deskripsi",
+      description: product.description || "-",
+      className: "md:col-span-2",
     },
-  ]
+  ];
 
   const inventoryInfo: DescriptionItem[] = [
     {
-      term: 'Stok Saat Ini',
+      term: "Stok Saat Ini",
       description: (
         <div className="flex items-center gap-2">
           <span
             className={`text-lg font-bold ${
-              stockStatus === 'critical'
-                ? 'text-red-600'
-                : stockStatus === 'low'
-                  ? 'text-orange-600'
-                  : 'text-green-600'
+              stockStatus === "critical"
+                ? "text-red-600"
+                : stockStatus === "low"
+                  ? "text-orange-600"
+                  : "text-green-600"
             }`}
           >
             {product.stock}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {getUnitLabel(product.unit)}
-          </span>
-          {stockStatus !== 'normal' && (
+          <span className="text-sm text-muted-foreground">{getUnitLabel(product.unit)}</span>
+          {stockStatus !== "normal" && (
             <Badge
               variant="outline"
               className={
-                stockStatus === 'critical'
-                  ? 'border-red-500 text-red-700'
-                  : 'border-orange-500 text-orange-700'
+                stockStatus === "critical"
+                  ? "border-red-500 text-red-700"
+                  : "border-orange-500 text-orange-700"
               }
             >
-              {stockStatus === 'critical' ? 'Mendesak' : 'Stok Rendah'}
+              {stockStatus === "critical" ? "Mendesak" : "Stok Rendah"}
             </Badge>
           )}
         </div>
       ),
     },
     {
-      term: 'Satuan',
+      term: "Satuan",
       description: getUnitLabel(product.unit),
     },
     {
-      term: 'Stok Minimum',
+      term: "Stok Minimum",
       description: `${product.minStock} ${product.unit}`,
     },
     {
-      term: 'Stok Maksimum',
+      term: "Stok Maksimum",
       description: `${product.maxStock} ${product.unit}`,
     },
     {
-      term: 'Titik Pemesanan Ulang',
+      term: "Titik Pemesanan Ulang",
       description: `${product.reorderPoint} ${product.unit}`,
     },
     {
-      term: 'Nilai Stok',
+      term: "Nilai Stok",
       description: (
-        <span className="font-bold text-lg">
-          {formatCurrency(product.stock * product.price)}
-        </span>
+        <span className="font-bold text-lg">{formatCurrency(product.stock * product.price)}</span>
       ),
     },
-  ]
+  ];
 
   const pricingInfo: DescriptionItem[] = [
     {
-      term: 'Harga Jual',
-      description: (
-        <span className="text-lg font-bold">
-          {formatCurrency(product.price)}
-        </span>
-      ),
+      term: "Harga Jual",
+      description: <span className="text-lg font-bold">{formatCurrency(product.price)}</span>,
     },
     {
-      term: 'Harga Pokok',
+      term: "Harga Pokok",
       description: formatCurrency(product.cost),
     },
     {
-      term: 'Margin Keuntungan',
+      term: "Margin Keuntungan",
       description: (
         <div className="flex items-center gap-2">
           <span className="font-medium text-green-600">
-            {(((product.price - product.cost) / product.price) * 100).toFixed(
-              1,
-            )}
-            %
+            {(((product.price - product.cost) / product.price) * 100).toFixed(1)}%
           </span>
           <TrendingUpIcon className="h-4 w-4 text-green-500" />
         </div>
       ),
     },
     {
-      term: 'Keuntungan per Unit',
+      term: "Keuntungan per Unit",
       description: (
-        <span className="font-medium">
-          {formatCurrency(product.price - product.cost)}
-        </span>
+        <span className="font-medium">{formatCurrency(product.price - product.cost)}</span>
       ),
     },
-  ]
+  ];
 
   const additionalInfo: DescriptionItem[] = [
     ...(product.supplier
       ? [
           {
-            term: 'Pemasok',
+            term: "Pemasok",
             description: product.supplier,
           },
         ]
@@ -232,11 +201,9 @@ function ProductDetailPage() {
     ...(product.barcode
       ? [
           {
-            term: 'Barcode',
+            term: "Barcode",
             description: (
-              <code className="bg-muted px-2 py-1 rounded text-sm">
-                {product.barcode}
-              </code>
+              <code className="bg-muted px-2 py-1 rounded text-sm">{product.barcode}</code>
             ),
           },
         ]
@@ -244,19 +211,15 @@ function ProductDetailPage() {
     ...(product.sku
       ? [
           {
-            term: 'SKU',
-            description: (
-              <code className="bg-muted px-2 py-1 rounded text-sm">
-                {product.sku}
-              </code>
-            ),
+            term: "SKU",
+            description: <code className="bg-muted px-2 py-1 rounded text-sm">{product.sku}</code>,
           },
         ]
       : []),
     ...(product.weight
       ? [
           {
-            term: 'Berat',
+            term: "Berat",
             description: `${product.weight} kg`,
           },
         ]
@@ -264,35 +227,35 @@ function ProductDetailPage() {
     ...(product.dimensions
       ? [
           {
-            term: 'Dimensi (P×L×T)',
+            term: "Dimensi (P×L×T)",
             description: `${product.dimensions.length} × ${product.dimensions.width} × ${product.dimensions.height} cm`,
           },
         ]
       : []),
-  ]
+  ];
 
   const systemInfo: DescriptionItem[] = [
     {
-      term: 'Dibuat Pada',
-      description: product.createdAt.toLocaleDateString('id-ID', {
-        dateStyle: 'long',
+      term: "Dibuat Pada",
+      description: product.createdAt.toLocaleDateString("id-ID", {
+        dateStyle: "long",
       }),
     },
     {
-      term: 'Dibuat Oleh',
+      term: "Dibuat Oleh",
       description: product.createdBy,
     },
     {
-      term: 'Terakhir Diperbarui',
-      description: product.updatedAt.toLocaleDateString('id-ID', {
-        dateStyle: 'long',
+      term: "Terakhir Diperbarui",
+      description: product.updatedAt.toLocaleDateString("id-ID", {
+        dateStyle: "long",
       }),
     },
     {
-      term: 'Diperbarui Oleh',
+      term: "Diperbarui Oleh",
       description: product.updatedBy,
     },
-  ]
+  ];
 
   return (
     <Page size="lg">
@@ -300,17 +263,11 @@ function ProductDetailPage() {
         <PageHeaderContent>
           <Stack gap="sm">
             <PageBreadcrumb>
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link to="/" className="text-muted-foreground hover:text-foreground">
                 <HomeIcon className="h-4 w-4" />
               </Link>
               <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
-              <Link
-                to="/products"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link to="/products" className="text-muted-foreground hover:text-foreground">
                 Produk
               </Link>
               <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
@@ -348,52 +305,42 @@ function ProductDetailPage() {
       <PageContent>
         <Stack gap="lg">
           {/* Stock Alert */}
-          {stockStatus !== 'normal' && (
+          {stockStatus !== "normal" && (
             <Card
               className={
-                stockStatus === 'critical'
-                  ? 'border-red-200 bg-red-50'
-                  : 'border-orange-200 bg-orange-50'
+                stockStatus === "critical"
+                  ? "border-red-200 bg-red-50"
+                  : "border-orange-200 bg-orange-50"
               }
             >
               <CardContent>
                 <Inline gap="md" align="center">
                   <AlertTriangleIcon
                     className={`h-5 w-5 ${
-                      stockStatus === 'critical'
-                        ? 'text-red-600'
-                        : 'text-orange-600'
+                      stockStatus === "critical" ? "text-red-600" : "text-orange-600"
                     }`}
                   />
                   <div>
                     <p
                       className={`font-medium ${
-                        stockStatus === 'critical'
-                          ? 'text-red-900'
-                          : 'text-orange-900'
+                        stockStatus === "critical" ? "text-red-900" : "text-orange-900"
                       }`}
                     >
-                      {stockStatus === 'critical'
-                        ? 'Level Stok Kritis'
-                        : 'Peringatan Stok Rendah'}
+                      {stockStatus === "critical" ? "Level Stok Kritis" : "Peringatan Stok Rendah"}
                     </p>
                     <p
                       className={`text-sm ${
-                        stockStatus === 'critical'
-                          ? 'text-red-700'
-                          : 'text-orange-700'
+                        stockStatus === "critical" ? "text-red-700" : "text-orange-700"
                       }`}
                     >
-                      Stok saat ini ({product.stock} {product.unit}) berada di{' '}
-                      {stockStatus === 'critical'
-                        ? 'bawah minimum'
-                        : 'bawah titik pemesanan ulang'}
+                      Stok saat ini ({product.stock} {product.unit}) berada di{" "}
+                      {stockStatus === "critical" ? "bawah minimum" : "bawah titik pemesanan ulang"}
                       . Pertimbangkan untuk melakukan restok segera.
                     </p>
                   </div>
                   <Button
                     size="sm"
-                    variant={stockStatus === 'critical' ? 'default' : 'outline'}
+                    variant={stockStatus === "critical" ? "default" : "outline"}
                     className="ml-auto"
                   >
                     Buat Purchase Order
@@ -411,11 +358,7 @@ function ProductDetailPage() {
                 <CardDescription>Detail dan klasifikasi produk</CardDescription>
               </CardHeader>
               <CardContent>
-                <DescriptionList
-                  items={basicInfo}
-                  columns={1}
-                  className="sm:grid-cols-2"
-                />
+                <DescriptionList items={basicInfo} columns={1} className="sm:grid-cols-2" />
               </CardContent>
             </Card>
 
@@ -451,16 +394,10 @@ function ProductDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Detail Tambahan</CardTitle>
-                <CardDescription>
-                  Supplier, identifikasi, dan spesifikasi fisik
-                </CardDescription>
+                <CardDescription>Supplier, identifikasi, dan spesifikasi fisik</CardDescription>
               </CardHeader>
               <CardContent>
-                <DescriptionList
-                  items={additionalInfo}
-                  columns={1}
-                  className="sm:grid-cols-2"
-                />
+                <DescriptionList items={additionalInfo} columns={1} className="sm:grid-cols-2" />
               </CardContent>
             </Card>
           )}
@@ -490,15 +427,11 @@ function ProductDetailPage() {
               <CardDescription>Jejak audit dan metadata</CardDescription>
             </CardHeader>
             <CardContent>
-              <DescriptionList
-                items={systemInfo}
-                columns={1}
-                className="sm:grid-cols-2"
-              />
+              <DescriptionList items={systemInfo} columns={1} className="sm:grid-cols-2" />
             </CardContent>
           </Card>
         </Stack>
       </PageContent>
     </Page>
-  )
+  );
 }

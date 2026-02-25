@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/react'
-import { type Router } from '@tanstack/react-router'
+import * as Sentry from "@sentry/react";
+import { type Router } from "@tanstack/react-router";
 
 export const initSentry = (router: Router<any, any>) => {
   Sentry.init({
@@ -16,5 +16,5 @@ export const initSentry = (router: Router<any, any>) => {
     // tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
-  })
-}
+  });
+};

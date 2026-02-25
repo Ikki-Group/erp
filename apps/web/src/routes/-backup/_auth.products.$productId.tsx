@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 import {
   Package,
   BarChart3,
@@ -10,66 +10,58 @@ import {
   Box,
   TrendingUp,
   Tag,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute('/_auth/products/$productId')({
+export const Route = createFileRoute("/_auth/products/$productId")({
   component: ProductDetailPage,
   staticData: {
-    breadcrumb: 'Product Details',
+    breadcrumb: "Product Details",
   },
-})
+});
 
 // Mock data (matching products.tsx for consistency)
 const productsData = [
   {
-    id: 'PRD-001',
-    name: 'Espresso Roast',
-    category: 'Coffee',
+    id: "PRD-001",
+    name: "Espresso Roast",
+    category: "Coffee",
     price: 45.0,
     stock: 124,
-    status: 'active',
-    lastUpdated: '2024-01-20',
+    status: "active",
+    lastUpdated: "2024-01-20",
     description:
-      'Our signature dark roast with rich, intense flavor and a smooth finish. Perfect for espresso and milk-based drinks.',
-    supplier: 'RoastMasters Co.',
-    sku: 'SKU-ESP-001',
-    warehouse: 'Main A1',
+      "Our signature dark roast with rich, intense flavor and a smooth finish. Perfect for espresso and milk-based drinks.",
+    supplier: "RoastMasters Co.",
+    sku: "SKU-ESP-001",
+    warehouse: "Main A1",
   },
   {
-    id: 'PRD-002',
-    name: 'Vanilla Syrup (1L)',
-    category: 'Supplies',
+    id: "PRD-002",
+    name: "Vanilla Syrup (1L)",
+    category: "Supplies",
     price: 12.5,
     stock: 45,
-    status: 'active',
-    lastUpdated: '2024-01-18',
-    description:
-      'Premium vanilla syrup for flavoring coffee and other beverages.',
-    supplier: 'SweetSupplies Ltd.',
-    sku: 'SKU-VAN-002',
-    warehouse: 'Cold Store B2',
+    status: "active",
+    lastUpdated: "2024-01-18",
+    description: "Premium vanilla syrup for flavoring coffee and other beverages.",
+    supplier: "SweetSupplies Ltd.",
+    sku: "SKU-VAN-002",
+    warehouse: "Cold Store B2",
   },
-]
+];
 
 function ProductDetailPage() {
-  const { productId } = Route.useParams()
+  const { productId } = Route.useParams();
 
   // Find the product (in a real app, this would be a query)
-  const product =
-    productsData.find((p) => p.id === productId) || productsData[0]
+  const product = productsData.find((p) => p.id === productId) || productsData[0];
 
   return (
     <div className="flex-1 space-y-6">
@@ -97,18 +89,12 @@ function ProductDetailPage() {
                   {product.category}
                 </span>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {product.name}
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background/50 backdrop-blur-sm"
-            >
+            <Button variant="outline" size="sm" className="bg-background/50 backdrop-blur-sm">
               <Edit className="mr-2 h-4 w-4" />
               Edit Details
             </Button>
@@ -130,9 +116,7 @@ function ProductDetailPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ${product.price.toFixed(2)}
-            </div>
+            <div className="text-2xl font-bold">${product.price.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline mr-1 h-3 w-3 text-emerald-500" />
               +2.5% from last month
@@ -146,10 +130,7 @@ function ProductDetailPage() {
           </CardHeader>
           <CardContent>
             <div
-              className={cn(
-                'text-2xl font-bold',
-                product.stock <= 20 ? 'text-destructive' : '',
-              )}
+              className={cn("text-2xl font-bold", product.stock <= 20 ? "text-destructive" : "")}
             >
               {product.stock}
             </div>
@@ -166,7 +147,7 @@ function ProductDetailPage() {
           <CardContent>
             <div className="flex items-center mt-1">
               <Badge
-                variant={product.status === 'active' ? 'secondary' : 'outline'}
+                variant={product.status === "active" ? "secondary" : "outline"}
                 className="capitalize px-3 py-0.5"
               >
                 {product.status}
@@ -183,9 +164,7 @@ function ProductDetailPage() {
             <div className="text-2xl font-bold">
               {new Date(product.lastUpdated).toLocaleDateString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              By System Administrator
-            </p>
+            <p className="text-xs text-muted-foreground">By System Administrator</p>
           </CardContent>
         </Card>
       </div>
@@ -194,22 +173,13 @@ function ProductDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <div className="flex items-center justify-between">
           <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-background"
-            >
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
               Overview
             </TabsTrigger>
-            <TabsTrigger
-              value="inventory"
-              className="data-[state=active]:bg-background"
-            >
+            <TabsTrigger value="inventory" className="data-[state=active]:bg-background">
               Inventory
             </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="data-[state=active]:bg-background"
-            >
+            <TabsTrigger value="history" className="data-[state=active]:bg-background">
               History
             </TabsTrigger>
           </TabsList>
@@ -220,20 +190,14 @@ function ProductDetailPage() {
             <Card className="md:col-span-4">
               <CardHeader>
                 <CardTitle>Description</CardTitle>
-                <CardDescription>
-                  Detailed product information and specifications.
-                </CardDescription>
+                <CardDescription>Detailed product information and specifications.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-balance leading-relaxed">
-                  {product.description}
-                </p>
+                <p className="text-sm text-balance leading-relaxed">{product.description}</p>
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">
-                      Supplier
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase">Supplier</p>
                     <p className="text-sm font-semibold">{product.supplier}</p>
                   </div>
                   <div className="space-y-1">
@@ -260,22 +224,13 @@ function ProductDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs h-8"
-                >
+                <Button variant="outline" className="w-full justify-start text-xs h-8">
                   Generate Barcode
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs h-8"
-                >
+                <Button variant="outline" className="w-full justify-start text-xs h-8">
                   Export Spec Sheet (PDF)
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs h-8"
-                >
+                <Button variant="outline" className="w-full justify-start text-xs h-8">
                   Duplicate Product
                 </Button>
                 <Button
@@ -325,9 +280,7 @@ function ProductDetailPage() {
                       <p className="text-sm font-medium leading-none">
                         Inventory updated - Added 12 units
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        2 days ago • by Sarah Miller
-                      </p>
+                      <p className="text-xs text-muted-foreground">2 days ago • by Sarah Miller</p>
                     </div>
                   </div>
                 ))}
@@ -337,5 +290,5 @@ function ProductDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

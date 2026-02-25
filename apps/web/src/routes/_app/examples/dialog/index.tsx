@@ -5,92 +5,77 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { useConfirm } from '@/providers/confirm-provider'
-import { createFileRoute } from '@tanstack/react-router'
-import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
-  InfoIcon,
-  Trash2Icon,
-} from 'lucide-react'
-import { toast } from 'sonner' // Assuming sonner is installed as per package.json
+} from "@/components/layout/page-old";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirm } from "@/providers/confirm-provider";
+import { createFileRoute } from "@tanstack/react-router";
+import { AlertTriangleIcon, CheckCircle2Icon, InfoIcon, Trash2Icon } from "lucide-react";
+import { toast } from "sonner"; // Assuming sonner is installed as per package.json
 
-export const Route = createFileRoute('/_app/examples/dialog/')({
+export const Route = createFileRoute("/_app/examples/dialog/")({
   component: DialogPage,
-})
+});
 
 function DialogPage() {
-  const { confirm } = useConfirm()
+  const { confirm } = useConfirm();
 
   const handleDestructive = () => {
     confirm({
-      title: 'Delete Project?',
+      title: "Delete Project?",
       description:
-        'This action cannot be undone. This will permanently delete your project and remove your data from our servers.',
-      confirmText: 'Delete Project',
-      variant: 'destructive',
+        "This action cannot be undone. This will permanently delete your project and remove your data from our servers.",
+      confirmText: "Delete Project",
+      variant: "destructive",
       onConfirm: async () => {
         // Simulate async operation
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        toast.success('Project deleted successfully')
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        toast.success("Project deleted successfully");
       },
-    })
-  }
+    });
+  };
 
   const handleInfo = () => {
     confirm({
-      title: 'Update Available',
-      description:
-        'A new version of the application is available. Would you like to update now?',
-      confirmText: 'Update Now',
-      variant: 'info',
+      title: "Update Available",
+      description: "A new version of the application is available. Would you like to update now?",
+      confirmText: "Update Now",
+      variant: "info",
       onConfirm: async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        toast.info('Application updated')
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        toast.info("Application updated");
       },
-    })
-  }
+    });
+  };
 
   const handleWarning = () => {
     confirm({
-      title: 'Unsaved Changes',
-      description:
-        'You have unsaved changes. Are you sure you want to leave without saving?',
-      confirmText: 'Leave',
-      variant: 'warning',
+      title: "Unsaved Changes",
+      description: "You have unsaved changes. Are you sure you want to leave without saving?",
+      confirmText: "Leave",
+      variant: "warning",
       onConfirm: () => {
-        toast.warning('Changes discarded')
+        toast.warning("Changes discarded");
       },
-    })
-  }
+    });
+  };
 
   const handleDefault = () => {
     confirm({
-      title: 'Confirm Action',
-      description: 'Please confirm that you want to proceed with this action.',
+      title: "Confirm Action",
+      description: "Please confirm that you want to proceed with this action.",
       onConfirm: () => {
-        toast.success('Action confirmed')
+        toast.success("Action confirmed");
       },
-    })
-  }
+    });
+  };
 
   return (
     <Page>
       <PageHeader sticky>
         <PageTitleContainer>
           <PageTitle>Confirmation Dialogs</PageTitle>
-          <PageDescription>
-            Reusable confirmation dialogs with async support.
-          </PageDescription>
+          <PageDescription>Reusable confirmation dialogs with async support.</PageDescription>
         </PageTitleContainer>
       </PageHeader>
       <PageContent>
@@ -101,9 +86,7 @@ function DialogPage() {
                 <Trash2Icon className="text-destructive h-5 w-5" />
                 Destructive Action
               </CardTitle>
-              <CardDescription>
-                Use for actions that result in data loss.
-              </CardDescription>
+              <CardDescription>Use for actions that result in data loss.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="destructive" onClick={handleDestructive}>
@@ -119,8 +102,7 @@ function DialogPage() {
                 Warning Action
               </CardTitle>
               <CardDescription>
-                Use for actions that might have consequences but aren't
-                destructive.
+                Use for actions that might have consequences but aren't destructive.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -166,5 +148,5 @@ function DialogPage() {
         </div>
       </PageContent>
     </Page>
-  )
+  );
 }

@@ -6,16 +6,16 @@ import {
   PageHeader,
   PageTitle,
   PageTitleContainer,
-} from '@/components/layout/page-old'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { createFileRoute } from '@tanstack/react-router'
-import { Edit2Icon, Trash2Icon, PrinterIcon } from 'lucide-react'
+} from "@/components/layout/page-old";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { createFileRoute } from "@tanstack/react-router";
+import { Edit2Icon, Trash2Icon, PrinterIcon } from "lucide-react";
 
-export const Route = createFileRoute('/_app/examples/detail/')({
+export const Route = createFileRoute("/_app/examples/detail/")({
   component: DetailPage,
-})
+});
 
 function DetailPage() {
   return (
@@ -55,18 +55,12 @@ function DetailPage() {
               <CardContent className="grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
-                      Customer
-                    </h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Customer</h4>
                     <p>Sofia Davis</p>
-                    <p className="text-sm text-muted-foreground">
-                      sofia@example.com
-                    </p>
+                    <p className="text-sm text-muted-foreground">sofia@example.com</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
-                      Phone
-                    </h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Phone</h4>
                     <p>+1 202-555-0136</p>
                   </div>
                 </div>
@@ -80,9 +74,7 @@ function DetailPage() {
                     <p>Anytown, CA 12345</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
-                      Billing Address
-                    </h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Billing Address</h4>
                     <p>Same as shipping</p>
                   </div>
                 </div>
@@ -111,16 +103,12 @@ function DetailPage() {
                     </thead>
                     <tbody className="[&_tr:last-child]:border-0">
                       <tr className="hover:bg-muted/50 border-b transition-colors">
-                        <td className="p-4 align-middle font-medium">
-                          Glimmer Lamps
-                        </td>
+                        <td className="p-4 align-middle font-medium">Glimmer Lamps</td>
                         <td className="p-4 align-middle">2</td>
                         <td className="p-4 text-right align-middle">$250.00</td>
                       </tr>
                       <tr className="hover:bg-muted/50 border-b transition-colors">
-                        <td className="p-4 align-middle font-medium">
-                          Aqua Filters
-                        </td>
+                        <td className="p-4 align-middle font-medium">Aqua Filters</td>
                         <td className="p-4 align-middle">1</td>
                         <td className="p-4 text-right align-middle">$49.00</td>
                       </tr>
@@ -157,16 +145,12 @@ function DetailPage() {
                   <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
                     <div className="bg-primary absolute -left-[5px] top-0 h-2 w-2 rounded-full" />
                     <p className="text-sm font-medium">Order Placed</p>
-                    <p className="text-xs text-muted-foreground">
-                      Jan 23, 2024 - 10:00 AM
-                    </p>
+                    <p className="text-xs text-muted-foreground">Jan 23, 2024 - 10:00 AM</p>
                   </li>
                   <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
                     <div className="bg-muted-foreground absolute -left-[5px] top-0 h-2 w-2 rounded-full" />
                     <p className="text-sm font-medium">Payment Confirmed</p>
-                    <p className="text-xs text-muted-foreground">
-                      Jan 23, 2024 - 10:05 AM
-                    </p>
+                    <p className="text-xs text-muted-foreground">Jan 23, 2024 - 10:05 AM</p>
                   </li>
                 </ul>
               </CardContent>
@@ -175,5 +159,5 @@ function DetailPage() {
         </div>
       </PageContent>
     </Page>
-  )
+  );
 }

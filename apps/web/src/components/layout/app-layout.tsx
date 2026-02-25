@@ -21,12 +21,13 @@ import {
 } from '@/components/ui/sidebar'
 import { Link, Outlet, useLocation } from '@tanstack/react-router'
 import { ChevronRightIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import { IkkiLogo } from '@/components/common/logo'
 import { ThemeSwitcher } from '@/components/common/theme'
 import { getAppMenu } from '@/config/app-menu'
 import { LocationSwitcher } from '@/features/locations/components/location-switcher'
 import { Separator } from '../ui/separator'
+import { LoadingPage } from '../common/loading-page'
 
 export function AppLayout() {
   return (
@@ -54,9 +55,11 @@ export function AppLayout() {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <main className="flex flex-1 flex-col h-full overflow-hidden @container">
-          <Outlet />
-        </main>
+        <Suspense fallback={<LoadingPage />}>
+          <main className="flex flex-1 flex-col h-full overflow-hidden @container">
+            <Outlet />
+          </main>
+        </Suspense>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -1,8 +1,8 @@
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp } from '@/lib/zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 import z from 'zod'
-import { UserDto } from '../dto'
+import { UserDto, UserMutationDto } from '../dto'
 
 export const userApi = {
   list: apiFactory({
@@ -17,23 +17,27 @@ export const userApi = {
   detail: apiFactory({
     method: 'get',
     url: endpoint.iam.user.detail,
+    params: zSchema.recordId,
     result: zHttp.ok(UserDto),
   }),
   create: apiFactory({
     method: 'post',
     url: endpoint.iam.user.create,
-    body: UserDto,
-    result: zHttp.ok(UserDto),
+    body: UserMutationDto,
+    result: zHttp.ok(zSchema.recordId),
   }),
   update: apiFactory({
     method: 'put',
     url: endpoint.iam.user.update,
-    body: UserDto,
-    result: zHttp.ok(UserDto),
+    body: z.object({
+      id: zPrimitive.num,
+      ...UserMutationDto.omit({ password: true }).shape,
+    }),
+    result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({
     method: 'delete',
     url: endpoint.iam.user.remove,
-    result: zHttp.ok(UserDto),
+    result: zHttp.ok(zSchema.recordId),
   }),
 }

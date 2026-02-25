@@ -1,5 +1,5 @@
-import { zPrimitive, zSchema } from '@/lib/zod'
-import z from 'zod'
+import { zPrimitive, zSchema } from "@/lib/zod";
+import z from "zod";
 
 export const LocationDto = z.object({
   id: zPrimitive.num,
@@ -9,6 +9,6 @@ export const LocationDto = z.object({
   description: zPrimitive.str,
   isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
-})
+});
 
-export type LocationDto = z.infer<typeof LocationDto>
+export type LocationDto = z.infer<typeof LocationDto>;
