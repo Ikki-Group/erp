@@ -19,11 +19,18 @@ export class SessionService {
       expiresIn: env.JWT_EXPIRES_IN,
     })
 
-    const session = await (tx || db).insert(userSessions).values({
-      token,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + env.JWT_EXPIRES_IN),
-    })
+    const [session] = await (tx || db)
+      .insert(userSessions)
+      .values({
+        token,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + env.JWT_EXPIRES_IN),
+      })
+      .returning()
+
+    if (!session) {
+      throw new Error('Failed to create session')
+    }
 
     return session
   }

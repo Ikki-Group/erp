@@ -71,9 +71,10 @@ export class LocationService {
     return db.select().from(locations).where(whereClause).execute()
   }
 
-  async count(filter: LocationFilterDto): Promise<number> {
-    const whereClause = this.#buildWhere(filter)
-    const [result] = await db.select({ total: count() }).from(locations).where(whereClause)
+  async count(filter?: LocationFilterDto): Promise<number> {
+    const qry = db.select({ total: count() }).from(locations).$dynamic()
+    if (filter) qry.where(this.#buildWhere(filter))
+    const [result] = await qry.execute()
     return result?.total || 0
   }
 

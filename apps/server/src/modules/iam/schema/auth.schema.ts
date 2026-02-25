@@ -10,8 +10,8 @@ export const LoginDto = z.object({
 export type LoginDto = z.infer<typeof LoginDto>
 
 export const AuthResponseDto = z.object({
-  user: UserDetailDto,
   token: z.string(),
+  user: UserDetailDto,
 })
 
 export type AuthResponseDto = z.infer<typeof AuthResponseDto>

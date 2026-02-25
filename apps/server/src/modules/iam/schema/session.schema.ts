@@ -3,9 +3,9 @@ import z from 'zod'
 import { zPrimitive } from '@/lib/validation'
 
 export const UserSessionDto = z.object({
-  id: zPrimitive.num,
   token: zPrimitive.str,
   userId: zPrimitive.num,
+  createdAt: zPrimitive.date,
   expiresAt: zPrimitive.date,
 })
 

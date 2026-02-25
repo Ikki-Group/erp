@@ -70,9 +70,10 @@ export class RoleService {
     if (nameConflict) throw err.nameConflict(input.name)
   }
 
-  async count(filter: RoleFilterDto): Promise<number> {
-    const where = this.#buildWhere(filter)
-    const [result] = await db.select({ total: count() }).from(roles).where(where)
+  async count(filter?: RoleFilterDto): Promise<number> {
+    const qry = db.select({ total: count() }).from(roles).$dynamic()
+    if (filter) qry.where(this.#buildWhere(filter))
+    const [result] = await qry.execute()
     return result?.total ?? 0
   }
 

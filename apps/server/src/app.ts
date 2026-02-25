@@ -5,6 +5,7 @@ import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/htt
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
+import { DashboardServiceModule, initDashboardRouteModule } from '@/modules/dashboard'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initInventoryRouteModule, InventoryServiceModule } from '@/modules/inventory'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
@@ -15,12 +16,14 @@ const iamService = new IamServiceModule()
 const inventoryService = new InventoryServiceModule()
 const locationService = new LocationServiceModule()
 const masterService = new MasterServiceModule()
+const dashboardService = new DashboardServiceModule(iamService, locationService)
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
 const inventoryRoute = initInventoryRouteModule(inventoryService)
 const locationsRoute = initLocationRouteModule(locationService)
 const masterRoute = initMasterRouteModule(masterService)
+const dashboardRoute = initDashboardRouteModule(dashboardService)
 
 export const app = new Elysia({
   name: 'App',
@@ -49,6 +52,7 @@ export const app = new Elysia({
   .use(inventoryRoute)
   .use(locationsRoute)
   .use(masterRoute)
+  .use(dashboardRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
 //   detail: { hide: true },

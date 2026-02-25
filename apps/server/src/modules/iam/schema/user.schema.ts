@@ -2,6 +2,8 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
+import { LocationDto } from '@/modules/location'
+
 import { RoleDto } from './role.schema'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -73,7 +75,7 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 export const UserDetailAssignmentDto = z.object({
   isDefault: zPrimitive.bool,
   role: RoleDto.pick({ id: true, name: true, code: true }),
-  location: z.any(),
+  location: LocationDto,
 })
 
 export type UserDetailAssignmentDto = z.infer<typeof UserDetailAssignmentDto>

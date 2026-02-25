@@ -175,9 +175,10 @@ export class UserService {
     }
   }
 
-  async count(filter: UserFilterDto): Promise<number> {
-    const where = this.#buildWhere(filter)
-    const [result] = await db.select({ total: count() }).from(users).where(where)
+  async count(filter?: UserFilterDto): Promise<number> {
+    const qry = db.select({ total: count() }).from(users).$dynamic()
+    if (filter) qry.where(this.#buildWhere(filter))
+    const [result] = await qry.execute()
     return result?.total ?? 0
   }
 
@@ -210,8 +211,22 @@ export class UserService {
   async findDetailById(id: number): Promise<UserDetailDto> {
     const user = await this.findById(id)
 
-    if (user.isRoot) return this.#buildRootUser(user)
-    return this.#buildNonRootUser(user)
+    const result = user.isRoot ? await this.#buildRootUser(user) : await this.#buildNonRootUser(user)
+
+    // Sort by default
+    // Set isDefault fallback
+    if (result.assignments.length > 0) {
+      // Ensure default is exists
+      const defaultAssignment = result.assignments.find((a) => a.isDefault)
+      if (!defaultAssignment) {
+        result.assignments.sort((a, b) => a.location.id - b.location.id)
+        result.assignments[0]!.isDefault = true
+      }
+
+      result.assignments.sort((a, b) => (a.isDefault ? -1 : 0) - (b.isDefault ? -1 : 0))
+    }
+
+    return result
   }
 
   async create(input: UserCreateDto, createdBy = 1): Promise<UserDto> {
