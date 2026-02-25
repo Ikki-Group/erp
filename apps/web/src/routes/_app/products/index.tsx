@@ -1,26 +1,23 @@
-import {
-  Page,
-  PageHeader,
-  PageHeaderContent,
-  PageTitleContainer,
-  PageTitle,
-  PageDescription,
-  PageActions,
-  PageContent,
-} from "@/components/layout/page-old";
-import { Grid, Stack, Inline } from "@/components/common/layout/primitives";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Page } from '@/components/layout/page'
+import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+} from '@/components/ui/select'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   PlusIcon,
   PackageIcon,
@@ -30,149 +27,143 @@ import {
   XIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "lucide-react";
+} from 'lucide-react'
 import {
   MOCK_PRODUCTS,
   formatCurrency,
   getCategoryLabel,
   getStatusLabel,
   getStockStatus,
-} from "@/features/products/mock-data";
-import type { ProductCategory, ProductStatus } from "@/features/products/types";
-import { useMemo, useState } from "react";
+} from '@/features/products/mock-data'
+import type { ProductCategory, ProductStatus } from '@/features/products/types'
+import { useMemo, useState } from 'react'
 
-export const Route = createFileRoute("/_app/products/")({
+export const Route = createFileRoute('/_app/products/')({
   component: ProductsPage,
-});
+})
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 10
 
 function ProductsPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   // Filter states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
-  const [stockFilter, setStockFilter] = useState<"all" | "low" | "critical">("all");
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | 'all'>(
+    'all',
+  )
+  const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all')
+  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'critical'>(
+    'all',
+  )
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Filter and paginate products
   const { filteredProducts, totalPages, paginatedProducts } = useMemo(() => {
-    let filtered = MOCK_PRODUCTS;
+    let filtered = MOCK_PRODUCTS
 
     // Search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(query) ||
           p.code.toLowerCase().includes(query) ||
           p.description?.toLowerCase().includes(query),
-      );
+      )
     }
 
     // Category filter
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter((p) => p.category === categoryFilter);
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((p) => p.category === categoryFilter)
     }
 
     // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((p) => p.status === statusFilter);
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((p) => p.status === statusFilter)
     }
 
     // Stock filter
-    if (stockFilter !== "all") {
+    if (stockFilter !== 'all') {
       filtered = filtered.filter((p) => {
-        const status = getStockStatus(p.stock, p.minStock, p.reorderPoint);
-        return status === stockFilter;
-      });
+        const status = getStockStatus(p.stock, p.minStock, p.reorderPoint)
+        return status === stockFilter
+      })
     }
 
-    const total = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const total = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const paginated = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
     return {
       filteredProducts: filtered,
       totalPages: total,
       paginatedProducts: paginated,
-    };
-  }, [searchQuery, categoryFilter, statusFilter, stockFilter, currentPage]);
+    }
+  }, [searchQuery, categoryFilter, statusFilter, stockFilter, currentPage])
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = MOCK_PRODUCTS.length;
-    const active = MOCK_PRODUCTS.filter((p) => p.status === "active").length;
+    const total = MOCK_PRODUCTS.length
+    const active = MOCK_PRODUCTS.filter((p) => p.status === 'active').length
     const lowStock = MOCK_PRODUCTS.filter(
-      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === "low",
-    ).length;
+      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'low',
+    ).length
     const critical = MOCK_PRODUCTS.filter(
-      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === "critical",
-    ).length;
-    const totalValue = MOCK_PRODUCTS.reduce((sum, p) => sum + p.stock * p.price, 0);
+      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'critical',
+    ).length
+    const totalValue = MOCK_PRODUCTS.reduce(
+      (sum, p) => sum + p.stock * p.price,
+      0,
+    )
 
-    return { total, active, lowStock, critical, totalValue };
-  }, []);
+    return { total, active, lowStock, critical, totalValue }
+  }, [])
 
   // Reset to page 1 when filters change
   const handleFilterChange = () => {
-    setCurrentPage(1);
-  };
+    setCurrentPage(1)
+  }
 
   const clearFilters = () => {
-    setSearchQuery("");
-    setCategoryFilter("all");
-    setStatusFilter("all");
-    setStockFilter("all");
-    setCurrentPage(1);
-  };
+    setSearchQuery('')
+    setCategoryFilter('all')
+    setStatusFilter('all')
+    setStockFilter('all')
+    setCurrentPage(1)
+  }
 
   const hasActiveFilters =
-    searchQuery || categoryFilter !== "all" || statusFilter !== "all" || stockFilter !== "all";
+    searchQuery ||
+    categoryFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    stockFilter !== 'all'
 
   return (
     <Page size="xl">
-      <PageHeader sticky>
-        <PageHeaderContent>
-          <PageTitleContainer>
-            <Inline gap="sm" align="center">
-              <PackageIcon className="h-8 w-8 text-primary" />
-              <PageTitle>Produk</PageTitle>
-            </Inline>
-            <PageDescription maxWidth>
-              Kelola katalog produk, inventori, dan harga Anda
-            </PageDescription>
-          </PageTitleContainer>
+      <Page.BlockHeader
+        title="Produk"
+        description="Kelola katalog produk, inventori, dan harga Anda"
+        action={
+          <Button size="sm" variant="outline" className="h-8 gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Tambah Produk
+          </Button>
+        }
+      />
 
-          <PageActions>
-            <Button variant="outline" size="sm">
-              Impor
-            </Button>
-            <Button variant="outline" size="sm">
-              Ekspor
-            </Button>
-            <Link to="/products">
-              <Button size="sm">
-                <PlusIcon className="h-4 w-4" />
-                Tambah Produk
-              </Button>
-            </Link>
-          </PageActions>
-        </PageHeaderContent>
-      </PageHeader>
-
-      <PageContent>
+      <Page.Content>
         <Stack gap="lg">
           {/* Statistics Cards */}
           <Grid cols={4} gap="md">
             <Card>
               <CardContent>
                 <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">Total Produk</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Total Produk
+                  </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">{stats.total}</p>
                     <Badge variant="outline" className="text-xs">
@@ -186,14 +177,18 @@ function ProductsPage() {
             <Card>
               <CardContent>
                 <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">Nilai Inventori</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Nilai Inventori
+                  </p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">
-                      {formatCurrency(stats.totalValue).replace("Rp", "")}
+                      {formatCurrency(stats.totalValue).replace('Rp', '')}
                     </p>
                     <Inline gap="sm" align="center">
                       <TrendingUpIcon className="h-4 w-4 text-green-500" />
-                      <span className="text-xs text-green-600 font-medium">+12.5%</span>
+                      <span className="text-xs text-green-600 font-medium">
+                        +12.5%
+                      </span>
                     </Inline>
                   </div>
                 </Stack>
@@ -203,10 +198,17 @@ function ProductsPage() {
             <Card>
               <CardContent>
                 <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">Stok Rendah</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Stok Rendah
+                  </p>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-orange-600">{stats.lowStock}</p>
-                    <Badge variant="outline" className="text-xs border-orange-500 text-orange-700">
+                    <p className="text-3xl font-bold text-orange-600">
+                      {stats.lowStock}
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="text-xs border-orange-500 text-orange-700"
+                    >
                       Perlu perhatian
                     </Badge>
                   </div>
@@ -217,12 +219,18 @@ function ProductsPage() {
             <Card>
               <CardContent>
                 <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">Stok Kritis</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Stok Kritis
+                  </p>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-red-600">{stats.critical}</p>
+                    <p className="text-3xl font-bold text-red-600">
+                      {stats.critical}
+                    </p>
                     <Inline gap="sm" align="center">
                       <AlertTriangleIcon className="h-4 w-4 text-red-500" />
-                      <span className="text-xs text-red-600 font-medium">Mendesak</span>
+                      <span className="text-xs text-red-600 font-medium">
+                        Mendesak
+                      </span>
                     </Inline>
                   </div>
                 </Stack>
@@ -264,8 +272,8 @@ function ProductsPage() {
                       placeholder="Cari produk..."
                       value={searchQuery}
                       onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        handleFilterChange();
+                        setSearchQuery(e.target.value)
+                        handleFilterChange()
                       }}
                       className="pl-9"
                     />
@@ -278,8 +286,8 @@ function ProductsPage() {
                   <Select
                     value={categoryFilter}
                     onValueChange={(value) => {
-                      setCategoryFilter(value as ProductCategory | "all");
-                      handleFilterChange();
+                      setCategoryFilter(value as ProductCategory | 'all')
+                      handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
@@ -288,8 +296,12 @@ function ProductsPage() {
                     <SelectContent>
                       <SelectItem value="all">Semua Kategori</SelectItem>
                       <SelectItem value="raw-material">Bahan Baku</SelectItem>
-                      <SelectItem value="semi-finished">Setengah Jadi</SelectItem>
-                      <SelectItem value="finished-goods">Barang Jadi</SelectItem>
+                      <SelectItem value="semi-finished">
+                        Setengah Jadi
+                      </SelectItem>
+                      <SelectItem value="finished-goods">
+                        Barang Jadi
+                      </SelectItem>
                       <SelectItem value="consumable">Habis Pakai</SelectItem>
                     </SelectContent>
                   </Select>
@@ -301,8 +313,8 @@ function ProductsPage() {
                   <Select
                     value={statusFilter}
                     onValueChange={(value) => {
-                      setStatusFilter(value as ProductStatus | "all");
-                      handleFilterChange();
+                      setStatusFilter(value as ProductStatus | 'all')
+                      handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
@@ -323,8 +335,8 @@ function ProductsPage() {
                   <Select
                     value={stockFilter}
                     onValueChange={(value) => {
-                      setStockFilter(value as "all" | "low" | "critical");
-                      handleFilterChange();
+                      setStockFilter(value as 'all' | 'low' | 'critical')
+                      handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
@@ -342,9 +354,14 @@ function ProductsPage() {
               {/* Results count */}
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Menampilkan <span className="font-medium">{paginatedProducts.length}</span> dari{" "}
-                  <span className="font-medium">{filteredProducts.length}</span> produk
-                  {hasActiveFilters && " (terfilter)"}
+                  Menampilkan{' '}
+                  <span className="font-medium">
+                    {paginatedProducts.length}
+                  </span>{' '}
+                  dari{' '}
+                  <span className="font-medium">{filteredProducts.length}</span>{' '}
+                  produk
+                  {hasActiveFilters && ' (terfilter)'}
                 </p>
               </div>
             </CardContent>
@@ -387,7 +404,9 @@ function ProductsPage() {
                           <Stack gap="md" align="center">
                             <PackageIcon className="h-12 w-12 text-muted-foreground" />
                             <div>
-                              <p className="font-medium">Produk tidak ditemukan</p>
+                              <p className="font-medium">
+                                Produk tidak ditemukan
+                              </p>
                               <p className="text-sm text-muted-foreground">
                                 Coba sesuaikan filter Anda
                               </p>
@@ -401,14 +420,14 @@ function ProductsPage() {
                           product.stock,
                           product.minStock,
                           product.reorderPoint,
-                        );
+                        )
                         return (
                           <tr
                             key={product.id}
                             className="hover:bg-muted/30 transition-colors cursor-pointer"
                             onClick={() =>
                               navigate({
-                                to: "/products/$id",
+                                to: '/products/$id',
                                 params: { id: product.id },
                               })
                             }
@@ -420,7 +439,9 @@ function ProductsPage() {
                             </td>
                             <td className="px-4 py-3">
                               <div>
-                                <p className="font-medium text-sm">{product.name}</p>
+                                <p className="font-medium text-sm">
+                                  {product.name}
+                                </p>
                                 {product.description && (
                                   <p className="text-xs text-muted-foreground line-clamp-1">
                                     {product.description}
@@ -437,11 +458,11 @@ function ProductsPage() {
                               <div className="flex items-center gap-2">
                                 <span
                                   className={`text-sm font-medium ${
-                                    stockStatus === "critical"
-                                      ? "text-red-600"
-                                      : stockStatus === "low"
-                                        ? "text-orange-600"
-                                        : ""
+                                    stockStatus === 'critical'
+                                      ? 'text-red-600'
+                                      : stockStatus === 'low'
+                                        ? 'text-orange-600'
+                                        : ''
                                   }`}
                                 >
                                   {product.stock}
@@ -449,48 +470,71 @@ function ProductsPage() {
                                 <span className="text-xs text-muted-foreground">
                                   {product.unit}
                                 </span>
-                                {stockStatus !== "normal" && (
+                                {stockStatus !== 'normal' && (
                                   <AlertTriangleIcon
                                     className={`h-3 w-3 ${
-                                      stockStatus === "critical"
-                                        ? "text-red-500"
-                                        : "text-orange-500"
+                                      stockStatus === 'critical'
+                                        ? 'text-red-500'
+                                        : 'text-orange-500'
                                     }`}
                                   />
                                 )}
                               </div>
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <p className="text-sm font-medium">{formatCurrency(product.price)}</p>
+                              <p className="text-sm font-medium">
+                                {formatCurrency(product.price)}
+                              </p>
                             </td>
                             <td className="px-4 py-3">
                               <Badge
-                                variant={product.status === "active" ? "default" : "outline"}
+                                variant={
+                                  product.status === 'active'
+                                    ? 'default'
+                                    : 'outline'
+                                }
                                 className={
-                                  product.status === "discontinued"
-                                    ? "bg-red-50 text-red-700 border-red-200"
-                                    : ""
+                                  product.status === 'discontinued'
+                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                    : ''
                                 }
                               >
                                 {getStatusLabel(product.status)}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <td
+                              className="px-4 py-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Inline gap="sm" justify="end">
-                                <Link to="/products/$id" params={{ id: product.id }}>
-                                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                <Link
+                                  to="/products/$id"
+                                  params={{ id: product.id }}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                  >
                                     Lihat
                                   </Button>
                                 </Link>
-                                <Link to="/products/$id" params={{ id: product.id }}>
-                                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                <Link
+                                  to="/products/$id"
+                                  params={{ id: product.id }}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                  >
                                     Ubah
                                   </Button>
                                 </Link>
                               </Inline>
                             </td>
                           </tr>
-                        );
+                        )
                       })
                     )}
                   </tbody>
@@ -508,7 +552,9 @@ function ProductsPage() {
                     <PackageIcon className="h-12 w-12 text-muted-foreground" />
                     <div className="text-center">
                       <p className="font-medium">Produk tidak ditemukan</p>
-                      <p className="text-sm text-muted-foreground">Coba sesuaikan filter Anda</p>
+                      <p className="text-sm text-muted-foreground">
+                        Coba sesuaikan filter Anda
+                      </p>
                     </div>
                   </Stack>
                 </CardContent>
@@ -519,14 +565,14 @@ function ProductsPage() {
                   product.stock,
                   product.minStock,
                   product.reorderPoint,
-                );
+                )
                 return (
                   <Card
                     key={product.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() =>
                       navigate({
-                        to: "/products/$id",
+                        to: '/products/$id',
                         params: { id: product.id },
                       })
                     }
@@ -534,7 +580,9 @@ function ProductsPage() {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base truncate">{product.name}</CardTitle>
+                          <CardTitle className="text-base truncate">
+                            {product.name}
+                          </CardTitle>
                           <CardDescription className="mt-1">
                             <code className="text-xs bg-muted px-2 py-0.5 rounded">
                               {product.code}
@@ -542,11 +590,13 @@ function ProductsPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          variant={product.status === "active" ? "default" : "outline"}
+                          variant={
+                            product.status === 'active' ? 'default' : 'outline'
+                          }
                           className={
-                            product.status === "discontinued"
-                              ? "bg-red-50 text-red-700 border-red-200"
-                              : ""
+                            product.status === 'discontinued'
+                              ? 'bg-red-50 text-red-700 border-red-200'
+                              : ''
                           }
                         >
                           {getStatusLabel(product.status)}
@@ -556,30 +606,36 @@ function ProductsPage() {
                     <CardContent>
                       <Stack gap="sm">
                         <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">Kategori</span>
+                          <span className="text-sm text-muted-foreground">
+                            Kategori
+                          </span>
                           <Badge variant="outline" className="text-xs">
                             {getCategoryLabel(product.category)}
                           </Badge>
                         </Inline>
 
                         <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">Stok</span>
+                          <span className="text-sm text-muted-foreground">
+                            Stok
+                          </span>
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-sm font-medium ${
-                                stockStatus === "critical"
-                                  ? "text-red-600"
-                                  : stockStatus === "low"
-                                    ? "text-orange-600"
-                                    : ""
+                                stockStatus === 'critical'
+                                  ? 'text-red-600'
+                                  : stockStatus === 'low'
+                                    ? 'text-orange-600'
+                                    : ''
                               }`}
                             >
                               {product.stock} {product.unit}
                             </span>
-                            {stockStatus !== "normal" && (
+                            {stockStatus !== 'normal' && (
                               <AlertTriangleIcon
                                 className={`h-4 w-4 ${
-                                  stockStatus === "critical" ? "text-red-500" : "text-orange-500"
+                                  stockStatus === 'critical'
+                                    ? 'text-red-500'
+                                    : 'text-orange-500'
                                 }`}
                               />
                             )}
@@ -587,14 +643,28 @@ function ProductsPage() {
                         </Inline>
 
                         <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">Harga</span>
-                          <span className="text-sm font-bold">{formatCurrency(product.price)}</span>
+                          <span className="text-sm text-muted-foreground">
+                            Harga
+                          </span>
+                          <span className="text-sm font-bold">
+                            {formatCurrency(product.price)}
+                          </span>
                         </Inline>
 
-                        <div className="pt-2 mt-2 border-t" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="pt-2 mt-2 border-t"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Inline gap="sm" justify="end">
-                            <Link to="/products/$id" params={{ id: product.id }}>
-                              <Button variant="outline" size="sm" className="flex-1">
+                            <Link
+                              to="/products/$id"
+                              params={{ id: product.id }}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                              >
                                 Lihat Detail
                               </Button>
                             </Link>
@@ -603,7 +673,7 @@ function ProductsPage() {
                       </Stack>
                     </CardContent>
                   </Card>
-                );
+                )
               })
             )}
           </div>
@@ -614,8 +684,8 @@ function ProductsPage() {
               <CardContent>
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <p className="text-sm text-muted-foreground">
-                    Halaman <span className="font-medium">{currentPage}</span> dari{" "}
-                    <span className="font-medium">{totalPages}</span>
+                    Halaman <span className="font-medium">{currentPage}</span>{' '}
+                    dari <span className="font-medium">{totalPages}</span>
                   </p>
 
                   <Inline gap="sm">
@@ -639,36 +709,43 @@ function ProductsPage() {
 
                     {/* Page numbers */}
                     <div className="hidden sm:flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum
+                          if (totalPages <= 5) {
+                            pageNum = i + 1
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i
+                          } else {
+                            pageNum = currentPage - 2 + i
+                          }
 
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="w-9"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                currentPage === pageNum ? 'default' : 'outline'
+                              }
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="w-9"
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        },
+                      )}
                     </div>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage === totalPages}
                     >
                       Next
@@ -688,7 +765,7 @@ function ProductsPage() {
             </Card>
           )}
         </Stack>
-      </PageContent>
+      </Page.Content>
     </Page>
-  );
+  )
 }

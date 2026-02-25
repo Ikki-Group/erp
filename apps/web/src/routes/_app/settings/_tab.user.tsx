@@ -41,7 +41,7 @@ const columns = [
     cell: (info) => {
       const { isActive } = info.row.original
       return (
-        <Badge variant={isActive ? 'success' : 'destructive-outline'}>
+        <Badge variant={isActive ? 'success' : 'destructive'}>
           {isActive ? 'Aktif' : 'Tidak Aktif'}
         </Badge>
       )

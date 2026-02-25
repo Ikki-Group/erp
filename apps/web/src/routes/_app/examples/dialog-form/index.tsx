@@ -1,12 +1,5 @@
-import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from "@/components/layout/page-old";
-import { Button } from "@/components/ui/button";
+import { Page } from '@/components/layout/page'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -15,52 +8,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { createFileRoute } from "@tanstack/react-router";
-import { PlusIcon } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "@tanstack/react-form";
-import { zodValidator } from "@tanstack/zod-form-adapter";
-import { z } from "zod";
-import { toast } from "sonner";
+} from '@/components/ui/select'
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { zodValidator } from '@tanstack/zod-form-adapter'
+import { z } from 'zod'
+import { toast } from 'sonner'
 
-export const Route = createFileRoute("/_app/examples/dialog-form/")({
+export const Route = createFileRoute('/_app/examples/dialog-form/')({
   component: DialogFormPage,
-});
+})
 
 const taskSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  priority: z.enum(["low", "medium", "high"]),
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  priority: z.enum(['low', 'medium', 'high']),
   description: z.string(),
-  dueDate: z.string().min(1, "Due date is required"),
-});
+  dueDate: z.string().min(1, 'Due date is required'),
+})
 
-type Task = z.infer<typeof taskSchema>;
+type Task = z.infer<typeof taskSchema>
 
 function DialogFormPage() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Dialog Form</PageTitle>
-          <PageDescription>
-            Example of a form inside a modal dialog using TanStack Form.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Dialog Form"
+        description="Example of a form inside a modal dialog using TanStack Form."
+      />
+
+      <Page.Content>
         <div className="flex flex-col items-center justify-center h-[50vh] gap-4 border border-dashed rounded-lg bg-muted/10">
           <p className="text-muted-foreground text-sm">
             No tasks found. Create a new task to get started.
@@ -85,18 +75,18 @@ function DialogFormPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
-  );
+  )
 }
 
 function TaskForm({ onSuccess }: { onSuccess: () => void }) {
   const form = useForm({
     defaultValues: {
-      title: "",
-      priority: "medium" as Task["priority"],
-      description: "",
-      dueDate: new Date().toISOString().split("T")[0],
+      title: '',
+      priority: 'medium' as Task['priority'],
+      description: '',
+      dueDate: new Date().toISOString().split('T')[0],
     },
     // @ts-ignore
     validatorAdapter: zodValidator(),
@@ -106,19 +96,19 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     },
     onSubmit: async ({ value }) => {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Submitted:", value);
-      toast.success("Task created successfully");
-      onSuccess();
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      console.log('Submitted:', value)
+      toast.success('Task created successfully')
+      onSuccess()
     },
-  });
+  })
 
   return (
     <form
       onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
       }}
       className="space-y-6"
     >
@@ -137,7 +127,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
                 placeholder="e.g. Fix login bug"
               />
               {field.state.meta.errors ? (
-                <p className="text-destructive text-xs">{field.state.meta.errors.join(", ")}</p>
+                <p className="text-destructive text-xs">
+                  {field.state.meta.errors.join(', ')}
+                </p>
               ) : null}
             </div>
           )}
@@ -163,7 +155,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors ? (
-                  <p className="text-destructive text-xs">{field.state.meta.errors.join(", ")}</p>
+                  <p className="text-destructive text-xs">
+                    {field.state.meta.errors.join(', ')}
+                  </p>
                 ) : null}
               </div>
             )}
@@ -182,7 +176,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors ? (
-                  <p className="text-destructive text-xs">{field.state.meta.errors.join(", ")}</p>
+                  <p className="text-destructive text-xs">
+                    {field.state.meta.errors.join(', ')}
+                  </p>
                 ) : null}
               </div>
             )}
@@ -203,7 +199,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
                 placeholder="Additional details..."
               />
               {field.state.meta.errors ? (
-                <p className="text-destructive text-xs">{field.state.meta.errors.join(", ")}</p>
+                <p className="text-destructive text-xs">
+                  {field.state.meta.errors.join(', ')}
+                </p>
               ) : null}
             </div>
           )}
@@ -215,11 +213,11 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
           selector={(state) => [state.canSubmit, state.isSubmitting]}
           children={([canSubmit, isSubmitting]) => (
             <Button type="submit" disabled={!canSubmit}>
-              {isSubmitting ? "Saving..." : "Save Task"}
+              {isSubmitting ? 'Saving...' : 'Save Task'}
             </Button>
           )}
         />
       </DialogFooter>
     </form>
-  );
+  )
 }

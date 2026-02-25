@@ -1,35 +1,42 @@
+import { Page } from '@/components/layout/page'
 import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from "@/components/layout/page-old";
-import { Section, SectionHeader, Grid, Stack, Inline } from "@/components/common/layout/primitives";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { createFileRoute } from "@tanstack/react-router";
-import { PlusIcon, SettingsIcon, UserIcon } from "lucide-react";
+  Section,
+  SectionHeader,
+  Grid,
+  Stack,
+  Inline,
+} from '@/components/common/layout/primitives'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon, SettingsIcon, UserIcon } from 'lucide-react'
 
-export const Route = createFileRoute("/_app/examples/layouts/")({
+export const Route = createFileRoute('/_app/examples/layouts/')({
   component: LayoutsPage,
-});
+})
 
 function LayoutsPage() {
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Layout Primitives</PageTitle>
-          <PageDescription>
-            Reusable layout components for consistent spacing and alignment.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
+      <Page.BlockHeader
+        title="Layout Primitives"
+        description="Reusable layout components for consistent spacing and alignment."
+        action={
+          <Button size="sm" variant="outline">
+            <PlusIcon className="h-4 w-4" />
+            Add Item
+          </Button>
+        }
+      />
 
-      <PageContent>
+      <Page.Content>
         <Stack gap="xl">
           {/* Grid Examples */}
           <Section>
@@ -47,7 +54,9 @@ function LayoutsPage() {
             <Stack gap="lg">
               {/* 2 Columns (Default) */}
               <div>
-                <h3 className="text-sm font-medium mb-3">2 Columns (Default)</h3>
+                <h3 className="text-sm font-medium mb-3">
+                  2 Columns (Default)
+                </h3>
                 <Grid>
                   <Card>
                     <CardHeader>
@@ -108,7 +117,9 @@ function LayoutsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Default Stack</CardTitle>
-                  <CardDescription>Medium gap, stretch alignment</CardDescription>
+                  <CardDescription>
+                    Medium gap, stretch alignment
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Stack>
@@ -129,7 +140,9 @@ function LayoutsPage() {
                     <UserIcon className="h-12 w-12 text-muted-foreground" />
                     <div className="text-center">
                       <h4 className="font-medium">Welcome</h4>
-                      <p className="text-sm text-muted-foreground">Get started below</p>
+                      <p className="text-sm text-muted-foreground">
+                        Get started below
+                      </p>
                     </div>
                     <Button>Continue</Button>
                   </Stack>
@@ -155,7 +168,9 @@ function LayoutsPage() {
                   <Inline justify="between">
                     <div>
                       <h4 className="font-medium">Section Title</h4>
-                      <p className="text-sm text-muted-foreground">Description text</p>
+                      <p className="text-sm text-muted-foreground">
+                        Description text
+                      </p>
                     </div>
                     <Button size="sm">
                       <SettingsIcon className="h-4 w-4" />
@@ -197,7 +212,9 @@ function LayoutsPage() {
                 <Inline justify="between">
                   <div>
                     <CardTitle>Dashboard Overview</CardTitle>
-                    <CardDescription>Key metrics and statistics</CardDescription>
+                    <CardDescription>
+                      Key metrics and statistics
+                    </CardDescription>
                   </div>
                   <Inline gap="sm">
                     <Button variant="outline" size="sm">
@@ -211,15 +228,17 @@ function LayoutsPage() {
                 <Stack gap="lg">
                   <Grid cols={4} gap="sm">
                     {[
-                      { label: "Total Users", value: "1,234" },
-                      { label: "Revenue", value: "$45.2K" },
-                      { label: "Orders", value: "892" },
-                      { label: "Growth", value: "+12.5%" },
+                      { label: 'Total Users', value: '1,234' },
+                      { label: 'Revenue', value: '$45.2K' },
+                      { label: 'Orders', value: '892' },
+                      { label: 'Growth', value: '+12.5%' },
                     ].map((stat) => (
                       <Card key={stat.label} size="sm">
                         <CardContent>
                           <Stack gap="sm" align="center">
-                            <p className="text-xs text-muted-foreground">{stat.label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {stat.label}
+                            </p>
                             <p className="text-2xl font-bold">{stat.value}</p>
                           </Stack>
                         </CardContent>
@@ -229,8 +248,9 @@ function LayoutsPage() {
 
                   <div className="bg-muted/50 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      This example combines Grid, Stack, and Inline primitives to create a dashboard
-                      layout without any custom className at the screen level.
+                      This example combines Grid, Stack, and Inline primitives
+                      to create a dashboard layout without any custom className
+                      at the screen level.
                     </p>
                   </div>
                 </Stack>
@@ -238,7 +258,7 @@ function LayoutsPage() {
             </Card>
           </Section>
         </Stack>
-      </PageContent>
+      </Page.Content>
     </Page>
-  );
+  )
 }

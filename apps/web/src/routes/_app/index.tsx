@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import {
   Card,
   CardContent,
@@ -33,23 +25,20 @@ function Dashboard() {
 
   return (
     <Page>
-      <PageHeader>
-        <PageTitleContainer>
-          <PageTitle>Dashboard</PageTitle>
-          <PageDescription>
-            Overview of your organization performance across locations.
-          </PageDescription>
-        </PageTitleContainer>
-        <PageActions>
+      <Page.BlockHeader
+        title="Dashboard"
+        description="Overview of your organization performance across locations."
+        action={
           <span className="text-sm text-muted-foreground">
             Viewing:{' '}
             <span className="font-semibold text-foreground">
               {activeLocation ? activeLocation.name : 'All Locations'}
             </span>
           </span>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+        }
+      />
+
+      <Page.Content>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -130,7 +119,7 @@ function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

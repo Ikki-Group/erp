@@ -14,7 +14,6 @@ import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as AppSettingsOldRouteRouteImport } from './routes/_app/settings-old/route'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
@@ -26,7 +25,6 @@ import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/exampl
 import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
 import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
 import { Route as AppExamplesFormIndexRouteImport } from './routes/_app/examples/form/index'
-import { Route as AppExamplesDialogIndexRouteImport } from './routes/_app/examples/dialog/index'
 import { Route as AppExamplesDialogFormIndexRouteImport } from './routes/_app/examples/dialog-form/index'
 import { Route as AppExamplesDetailsIndexRouteImport } from './routes/_app/examples/details/index'
 import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/examples/detail/index'
@@ -63,11 +61,6 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
-} as any)
-const AppSettingsOldRouteRoute = AppSettingsOldRouteRouteImport.update({
-  id: '/settings-old',
-  path: '/settings-old',
-  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
@@ -124,11 +117,6 @@ const AppExamplesLayoutsIndexRoute = AppExamplesLayoutsIndexRouteImport.update({
 const AppExamplesFormIndexRoute = AppExamplesFormIndexRouteImport.update({
   id: '/examples/form/',
   path: '/examples/form/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesDialogIndexRoute = AppExamplesDialogIndexRouteImport.update({
-  id: '/examples/dialog/',
-  path: '/examples/dialog/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesDialogFormIndexRoute =
@@ -203,7 +191,6 @@ const AppExamplesLayoutsOneRoute = AppExamplesLayoutsOneRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/$': typeof SplatRoute
-  '/settings-old': typeof AppSettingsOldRouteRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
@@ -224,7 +211,6 @@ export interface FileRoutesByFullPath {
   '/examples/detail/': typeof AppExamplesDetailIndexRoute
   '/examples/details/': typeof AppExamplesDetailsIndexRoute
   '/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
-  '/examples/dialog/': typeof AppExamplesDialogIndexRoute
   '/examples/form/': typeof AppExamplesFormIndexRoute
   '/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
   '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
@@ -234,7 +220,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/$': typeof SplatRoute
-  '/settings-old': typeof AppSettingsOldRouteRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
@@ -255,7 +240,6 @@ export interface FileRoutesByTo {
   '/examples/detail': typeof AppExamplesDetailIndexRoute
   '/examples/details': typeof AppExamplesDetailsIndexRoute
   '/examples/dialog-form': typeof AppExamplesDialogFormIndexRoute
-  '/examples/dialog': typeof AppExamplesDialogIndexRoute
   '/examples/form': typeof AppExamplesFormIndexRoute
   '/examples/layouts': typeof AppExamplesLayoutsIndexRoute
   '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
@@ -267,7 +251,6 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/_app/settings-old': typeof AppSettingsOldRouteRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
@@ -289,7 +272,6 @@ export interface FileRoutesById {
   '/_app/examples/detail/': typeof AppExamplesDetailIndexRoute
   '/_app/examples/details/': typeof AppExamplesDetailsIndexRoute
   '/_app/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
-  '/_app/examples/dialog/': typeof AppExamplesDialogIndexRoute
   '/_app/examples/form/': typeof AppExamplesFormIndexRoute
   '/_app/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
   '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
@@ -301,7 +283,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
-    | '/settings-old'
     | '/login'
     | '/examples/data-table'
     | '/examples/form-components'
@@ -322,7 +303,6 @@ export interface FileRouteTypes {
     | '/examples/detail/'
     | '/examples/details/'
     | '/examples/dialog-form/'
-    | '/examples/dialog/'
     | '/examples/form/'
     | '/examples/layouts/'
     | '/examples/page-layouts/'
@@ -332,7 +312,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$'
-    | '/settings-old'
     | '/login'
     | '/examples/data-table'
     | '/examples/form-components'
@@ -353,7 +332,6 @@ export interface FileRouteTypes {
     | '/examples/detail'
     | '/examples/details'
     | '/examples/dialog-form'
-    | '/examples/dialog'
     | '/examples/form'
     | '/examples/layouts'
     | '/examples/page-layouts'
@@ -364,7 +342,6 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/$'
-    | '/_app/settings-old'
     | '/_auth/login'
     | '/_app/'
     | '/_app/examples/data-table'
@@ -386,7 +363,6 @@ export interface FileRouteTypes {
     | '/_app/examples/detail/'
     | '/_app/examples/details/'
     | '/_app/examples/dialog-form/'
-    | '/_app/examples/dialog/'
     | '/_app/examples/form/'
     | '/_app/examples/layouts/'
     | '/_app/examples/page-layouts/'
@@ -436,13 +412,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRouteRoute
-    }
-    '/_app/settings-old': {
-      id: '/_app/settings-old'
-      path: '/settings-old'
-      fullPath: '/settings-old'
-      preLoaderRoute: typeof AppSettingsOldRouteRouteImport
-      parentRoute: typeof AppRouteRoute
     }
     '/_app/products/': {
       id: '/_app/products/'
@@ -519,13 +488,6 @@ declare module '@tanstack/react-router' {
       path: '/examples/form'
       fullPath: '/examples/form/'
       preLoaderRoute: typeof AppExamplesFormIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/dialog/': {
-      id: '/_app/examples/dialog/'
-      path: '/examples/dialog'
-      fullPath: '/examples/dialog/'
-      preLoaderRoute: typeof AppExamplesDialogIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/dialog-form/': {
@@ -639,7 +601,6 @@ const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
-  AppSettingsOldRouteRoute: typeof AppSettingsOldRouteRoute
   AppIndexRoute: typeof AppIndexRoute
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
@@ -657,7 +618,6 @@ interface AppRouteRouteChildren {
   AppExamplesDetailIndexRoute: typeof AppExamplesDetailIndexRoute
   AppExamplesDetailsIndexRoute: typeof AppExamplesDetailsIndexRoute
   AppExamplesDialogFormIndexRoute: typeof AppExamplesDialogFormIndexRoute
-  AppExamplesDialogIndexRoute: typeof AppExamplesDialogIndexRoute
   AppExamplesFormIndexRoute: typeof AppExamplesFormIndexRoute
   AppExamplesLayoutsIndexRoute: typeof AppExamplesLayoutsIndexRoute
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
@@ -666,7 +626,6 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
-  AppSettingsOldRouteRoute: AppSettingsOldRouteRoute,
   AppIndexRoute: AppIndexRoute,
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
@@ -684,7 +643,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesDetailIndexRoute: AppExamplesDetailIndexRoute,
   AppExamplesDetailsIndexRoute: AppExamplesDetailsIndexRoute,
   AppExamplesDialogFormIndexRoute: AppExamplesDialogFormIndexRoute,
-  AppExamplesDialogIndexRoute: AppExamplesDialogIndexRoute,
   AppExamplesFormIndexRoute: AppExamplesFormIndexRoute,
   AppExamplesLayoutsIndexRoute: AppExamplesLayoutsIndexRoute,
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,

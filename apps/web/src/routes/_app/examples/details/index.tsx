@@ -1,48 +1,55 @@
+import { Page } from '@/components/layout/page'
 import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from "@/components/layout/page-old";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   DescriptionList,
   DescriptionItem,
-} from "@/components/common/data-display/description-list";
-import { Grid } from "@/components/common/layout/primitives";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createFileRoute } from "@tanstack/react-router";
-import { CalendarIcon, CreditCardIcon, MailIcon, MapPinIcon } from "lucide-react";
+} from '@/components/common/data-display/description-list'
+import { Grid } from '@/components/common/layout/primitives'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { createFileRoute } from '@tanstack/react-router'
+import {
+  CalendarIcon,
+  CreditCardIcon,
+  MailIcon,
+  MapPinIcon,
+} from 'lucide-react'
 
-export const Route = createFileRoute("/_app/examples/details/")({
+export const Route = createFileRoute('/_app/examples/details/')({
   component: DetailsPage,
-});
+})
 
 function DetailsPage() {
   const accountInfo: DescriptionItem[] = [
     {
-      term: "Full Name",
-      description: "Isabella Nguyen",
+      term: 'Full Name',
+      description: 'Isabella Nguyen',
     },
     {
-      term: "Email Address",
+      term: 'Email Address',
       description: (
-        <a href="mailto:isabella@example.com" className="hover:underline flex items-center gap-1">
+        <a
+          href="mailto:isabella@example.com"
+          className="hover:underline flex items-center gap-1"
+        >
           <MailIcon className="h-4 w-4 text-muted-foreground" />
           isabella@example.com
         </a>
       ),
     },
     {
-      term: "Role",
+      term: 'Role',
       description: <Badge>Administrator</Badge>,
     },
     {
-      term: "Location",
+      term: 'Location',
       description: (
         <div className="flex items-center gap-1 text-muted-foreground">
           <MapPinIcon className="h-4 w-4" />
@@ -51,28 +58,35 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Bio",
+      term: 'Bio',
       description:
-        "Senior Software Engineer with 10+ years of experience in building scalable web applications. Passionate about UX and performance.",
-      className: "md:col-span-2",
+        'Senior Software Engineer with 10+ years of experience in building scalable web applications. Passionate about UX and performance.',
+      className: 'md:col-span-2',
     },
-  ];
+  ]
 
   const orderDetails: DescriptionItem[] = [
     {
-      term: "Order ID",
-      description: <code className="bg-muted px-1.5 py-0.5 rounded text-sm">#ORD-2024-8521</code>,
+      term: 'Order ID',
+      description: (
+        <code className="bg-muted px-1.5 py-0.5 rounded text-sm">
+          #ORD-2024-8521
+        </code>
+      ),
     },
     {
-      term: "Status",
+      term: 'Status',
       description: (
-        <Badge variant="outline" className="border-green-500 text-green-700 bg-green-50">
+        <Badge
+          variant="outline"
+          className="border-green-500 text-green-700 bg-green-50"
+        >
           Paid
         </Badge>
       ),
     },
     {
-      term: "Customer",
+      term: 'Customer',
       description: (
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
@@ -84,7 +98,7 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Date",
+      term: 'Date',
       description: (
         <div className="flex items-center gap-1">
           <CalendarIcon className="h-4 w-4 text-muted-foreground" />
@@ -93,7 +107,7 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Payment Method",
+      term: 'Payment Method',
       description: (
         <div className="flex items-center gap-2">
           <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
@@ -102,14 +116,14 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Total",
+      term: 'Total',
       description: <span className="font-bold text-lg">$250.00</span>,
     },
-  ];
+  ]
 
   const documentList: DescriptionItem[] = [
     {
-      term: "Contract.pdf",
+      term: 'Contract.pdf',
       description: (
         <div className="flex justify-between items-center w-full">
           <span className="text-muted-foreground">2.4 MB</span>
@@ -120,7 +134,7 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Invoice_Jan.pdf",
+      term: 'Invoice_Jan.pdf',
       description: (
         <div className="flex justify-between items-center w-full">
           <span className="text-muted-foreground">1.1 MB</span>
@@ -131,7 +145,7 @@ function DetailsPage() {
       ),
     },
     {
-      term: "Specs_v2.docx",
+      term: 'Specs_v2.docx',
       description: (
         <div className="flex justify-between items-center w-full">
           <span className="text-muted-foreground">4.5 MB</span>
@@ -141,25 +155,24 @@ function DetailsPage() {
         </div>
       ),
     },
-  ];
+  ]
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Details Display</PageTitle>
-          <PageDescription>
-            Examples of displaying key-value pairs with rich content.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Details Display"
+        description="Examples of displaying key-value pairs with rich content."
+      />
+
+      <Page.Content>
         <Grid>
           {/* Card 1: User Profile (Grid layout) */}
           <Card>
             <CardHeader>
               <CardTitle>User Profile</CardTitle>
-              <CardDescription>Personal information and role details.</CardDescription>
+              <CardDescription>
+                Personal information and role details.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <DescriptionList
@@ -174,10 +187,16 @@ function DetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
-              <CardDescription>Details of the recent transaction.</CardDescription>
+              <CardDescription>
+                Details of the recent transaction.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <DescriptionList items={orderDetails} variant="bordered" className="divide-border" />
+              <DescriptionList
+                items={orderDetails}
+                variant="bordered"
+                className="divide-border"
+              />
             </CardContent>
           </Card>
 
@@ -185,7 +204,9 @@ function DetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Attachments</CardTitle>
-              <CardDescription>Documents related to this project.</CardDescription>
+              <CardDescription>
+                Documents related to this project.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <DescriptionList items={documentList} variant="striped" />
@@ -196,14 +217,16 @@ function DetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>System Properties</CardTitle>
-              <CardDescription>Advanced configuration settings.</CardDescription>
+              <CardDescription>
+                Advanced configuration settings.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <DescriptionList
                 layout="vertical"
                 items={[
                   {
-                    term: "API Endpoint",
+                    term: 'API Endpoint',
                     description: (
                       <code className="bg-muted p-1 rounded block w-full whitespace-pre-wrap break-all">
                         https://api.example.com/v1/users/webhook
@@ -211,13 +234,17 @@ function DetailsPage() {
                     ),
                   },
                   {
-                    term: "Public Key",
+                    term: 'Public Key',
                     description: (
                       <div className="flex items-center gap-2">
                         <code className="bg-muted p-1 rounded text-xs flex-1 truncate">
                           pk_live_51Msz...234
                         </code>
-                        <Button variant="outline" size="sm" className="h-6 text-xs">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 text-xs"
+                        >
                           Copy
                         </Button>
                       </div>
@@ -228,7 +255,7 @@ function DetailsPage() {
             </CardContent>
           </Card>
         </Grid>
-      </PageContent>
+      </Page.Content>
     </Page>
-  );
+  )
 }

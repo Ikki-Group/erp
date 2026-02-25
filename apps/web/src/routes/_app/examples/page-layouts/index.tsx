@@ -1,15 +1,5 @@
-import {
-  Page,
-  PageHeader,
-  PageHeaderContent,
-  PageTitleContainer,
-  PageTitle,
-  PageDescription,
-  PageActions,
-  PageContent,
-  PageBreadcrumb,
-} from '@/components/layout/page-old'
-import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
+import { Page } from '@/components/layout/page'
+import { Grid, Stack } from '@/components/common/layout/primitives'
 import {
   Card,
   CardContent,
@@ -18,15 +8,9 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  PlusIcon,
-  DownloadIcon,
-  SettingsIcon,
-  HomeIcon,
-  ChevronRightIcon,
-} from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/page-layouts/')({
   component: PageLayoutsExample,
@@ -35,48 +19,18 @@ export const Route = createFileRoute('/_app/examples/page-layouts/')({
 function PageLayoutsExample() {
   return (
     <Page size="lg">
-      <PageHeader sticky border="default">
-        <PageHeaderContent>
-          <Stack gap="sm">
-            <PageBreadcrumb>
-              <HomeIcon className="h-4 w-4 text-muted-foreground" />
-              <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">Examples</span>
-              <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
-              <span className="font-medium">Page Layouts</span>
-            </PageBreadcrumb>
+      <Page.BlockHeader
+        title="Page Layouts"
+        description="Reusable layout components for consistent spacing and alignment."
+        action={
+          <Button size="sm">
+            <PlusIcon className="h-4 w-4" />
+            Create New
+          </Button>
+        }
+      />
 
-            <PageTitleContainer>
-              <Inline gap="sm" align="center">
-                <PageTitle>Enhanced Page Components</PageTitle>
-                <Badge variant="outline">New</Badge>
-              </Inline>
-              <PageDescription maxWidth>
-                Improved page layout components with size variants, better
-                responsive behavior, and enhanced visual hierarchy for modern
-                ERP applications.
-              </PageDescription>
-            </PageTitleContainer>
-          </Stack>
-
-          <PageActions mobileAlign="right">
-            <Button variant="outline" size="sm">
-              <DownloadIcon className="h-4 w-4" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <SettingsIcon className="h-4 w-4" />
-              Settings
-            </Button>
-            <Button size="sm">
-              <PlusIcon className="h-4 w-4" />
-              Create New
-            </Button>
-          </PageActions>
-        </PageHeaderContent>
-      </PageHeader>
-
-      <PageContent padding="md">
+      <Page.Content>
         <Stack gap="xl">
           {/* Page Size Variants */}
           <Card>
@@ -329,7 +283,7 @@ function PageLayoutsExample() {
             </CardContent>
           </Card>
         </Stack>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }
