@@ -26,7 +26,7 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 /* --------------------------------- MUTATION --------------------------------- */
 
 export const RoleCreateDto = z.object({
-  code: zPrimitive.str,
+  code: zPrimitive.codeUpper,
   name: zPrimitive.str,
   isSystem: zPrimitive.bool.optional().default(false),
 })
