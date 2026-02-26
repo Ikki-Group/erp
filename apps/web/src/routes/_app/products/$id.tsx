@@ -1,14 +1,4 @@
-import {
-  Page,
-  PageHeader,
-  PageHeaderContent,
-  PageTitleContainer,
-  PageTitle,
-  PageDescription,
-  PageActions,
-  PageContent,
-  PageBreadcrumb,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,15 +13,13 @@ import {
   DescriptionList,
   DescriptionItem,
 } from '@/components/common/data-display/description-list'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
-  HomeIcon,
-  ChevronRightIcon,
-  PackageIcon,
-  EditIcon,
-  TrashIcon,
   AlertTriangleIcon,
   TrendingUpIcon,
+  PlusIcon,
+  FileDownIcon,
+  FileUpIcon,
 } from 'lucide-react'
 import {
   getProductById,
@@ -54,7 +42,7 @@ function ProductDetailPage() {
   if (!product) {
     return (
       <Page>
-        <PageContent>
+        <Page.Content>
           <Card>
             <CardContent>
               <Stack gap="md" align="center">
@@ -71,7 +59,7 @@ function ProductDetailPage() {
               </Stack>
             </CardContent>
           </Card>
-        </PageContent>
+        </Page.Content>
       </Page>
     )
   }
@@ -296,56 +284,28 @@ function ProductDetailPage() {
 
   return (
     <Page size="lg">
-      <PageHeader sticky>
-        <PageHeaderContent>
-          <Stack gap="sm">
-            <PageBreadcrumb>
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <HomeIcon className="h-4 w-4" />
-              </Link>
-              <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
-              <Link
-                to="/products"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Produk
-              </Link>
-              <ChevronRightIcon className="h-3 w-3 text-muted-foreground" />
-              <span className="font-medium">{product.code}</span>
-            </PageBreadcrumb>
-
-            <PageTitleContainer>
-              <Inline gap="sm" align="center">
-                <PackageIcon className="h-7 w-7 text-primary" />
-                <PageTitle size="md" truncate>
-                  {product.name}
-                </PageTitle>
-              </Inline>
-              <PageDescription>
-                {getCategoryLabel(product.category)} • {product.code}
-              </PageDescription>
-            </PageTitleContainer>
-          </Stack>
-
-          <PageActions>
-            <Link to="/products/$id" params={{ id: product.id }}>
-              <Button variant="outline" size="sm">
-                <EditIcon className="h-4 w-4" />
-                Ubah
-              </Button>
-            </Link>
-            <Button variant="outline" size="sm" className="text-red-600">
-              <TrashIcon className="h-4 w-4" />
-              Hapus
+      <Page.BlockHeader
+        title="Produk"
+        description="Kelola katalog produk, inventori, dan harga Anda"
+        action={
+          <>
+            <Button variant="outline" size="sm">
+              <FileUpIcon className="mr-2 h-4 w-4" />
+              Export
             </Button>
-          </PageActions>
-        </PageHeaderContent>
-      </PageHeader>
+            <Button variant="outline" size="sm">
+              <FileDownIcon className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+            <Button size="sm">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Tambah Produk
+            </Button>
+          </>
+        }
+      />
 
-      <PageContent>
+      <Page.Content>
         <Stack gap="lg">
           {/* Stock Alert */}
           {stockStatus !== 'normal' && (
@@ -498,7 +458,7 @@ function ProductDetailPage() {
             </CardContent>
           </Card>
         </Stack>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

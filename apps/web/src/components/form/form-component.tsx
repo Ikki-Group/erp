@@ -26,38 +26,70 @@ function FormSimpleActions() {
   const navigate = useNavigate()
 
   return (
-    <Card
-      size="sm"
-      className="flex-row items-center justify-center p-2! gap-2! bg-muted/50 border"
-    >
-      <Button
-        variant="outline"
-        type="button"
-        onClick={() => {
-          if (backTo) {
-            navigate({
-              to: backTo.to!,
-              search: backTo.search,
-              params: backTo.params,
-            })
-          } else {
-            window.history.back()
-          }
-        }}
-      >
+    <Card size="sm" className="px-3 flex items-end ring-0">
+      <div className="flex gap-2 max-w-72 w-full">
+        <Button
+          variant="outline"
+          type="button"
+          className="flex-1"
+          onClick={() => {
+            if (backTo) {
+              navigate({
+                to: backTo.to!,
+                search: backTo.search,
+                params: backTo.params,
+              })
+            } else {
+              window.history.back()
+            }
+          }}
+        >
+          Batal
+        </Button>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button
+              type="submit"
+              disabled={!canSubmit || isSubmitting}
+              className="flex-1 "
+            >
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+            </Button>
+          )}
+        </form.Subscribe>
+      </div>
+    </Card>
+  )
+}
+
+interface FormDialogActionsProps {
+  onCancel: () => void
+}
+
+function FormDialogActions({ onCancel }: FormDialogActionsProps) {
+  const form = useFormContext()
+  return (
+    <>
+      <Button variant="outline" type="button" onClick={onCancel}>
         Batal
       </Button>
       <form.Subscribe
         selector={(state) => [state.canSubmit, state.isSubmitting]}
       >
         {([canSubmit, isSubmitting]) => (
-          <Button type="submit" disabled={!canSubmit || isSubmitting}>
+          <Button
+            type={'button'}
+            disabled={!canSubmit || isSubmitting}
+            onClick={() => form.handleSubmit()}
+          >
             {isSubmitting ? 'Menyimpan...' : 'Simpan'}
           </Button>
         )}
       </form.Subscribe>
-    </Card>
+    </>
   )
 }
 
-export { Form, FormSimpleActions }
+export { Form, FormSimpleActions, FormDialogActions }

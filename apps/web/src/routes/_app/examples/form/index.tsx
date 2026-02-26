@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -19,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronLeftIcon, SaveIcon } from 'lucide-react'
+import { SaveIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/form/')({
   component: FormPage,
@@ -28,27 +20,21 @@ export const Route = createFileRoute('/_app/examples/form/')({
 function FormPage() {
   return (
     <Page>
-      <PageHeader sticky>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="-ml-2">
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <PageTitleContainer>
-            <PageTitle>Create Product</PageTitle>
-            <PageDescription>
-              Add a new product to your inventory.
-            </PageDescription>
-          </PageTitleContainer>
-        </div>
-        <PageActions>
-          <Button variant="outline">Cancel</Button>
-          <Button>
-            <SaveIcon className="mr-2 h-4 w-4" />
-            Save Product
-          </Button>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Create Product"
+        description="Add a new product to your inventory."
+        action={
+          <>
+            <Button variant="outline">Cancel</Button>
+            <Button size="sm">
+              <SaveIcon className="mr-2 h-4 w-4" />
+              Save Product
+            </Button>
+          </>
+        }
+      />
+
+      <Page.Content>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-6 md:col-span-2">
             <Card>
@@ -123,7 +109,7 @@ function FormPage() {
             </Card>
           </div>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

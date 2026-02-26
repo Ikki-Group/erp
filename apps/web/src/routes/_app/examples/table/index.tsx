@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { DataTable } from '@/components/common/templates/DataTable'
 import { Button } from '@/components/ui/button'
 import { createFileRoute } from '@tanstack/react-router'
@@ -111,36 +103,35 @@ export const Route = createFileRoute('/_app/examples/table/')({
 function TablePage() {
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Transactions</PageTitle>
-          <PageDescription>
-            Manage and view all your transactions in one place.
-          </PageDescription>
-        </PageTitleContainer>
-        <PageActions>
-          <Button variant="outline" size="sm">
-            <FileUpIcon className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <FileDownIcon className="mr-2 h-4 w-4" />
-            Import
-          </Button>
-          <Button size="sm">
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add Transaction
-          </Button>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Transactions"
+        description="Manage and view all your transactions in one place."
+        action={
+          <>
+            <Button variant="outline" size="sm">
+              <FileUpIcon className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileDownIcon className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+            <Button size="sm">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Add Transaction
+            </Button>
+          </>
+        }
+      />
+
+      <Page.Content>
         <DataTable
           columns={columns}
           data={data}
           searchKey="email"
           searchPlaceholder="Filter emails..."
         />
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

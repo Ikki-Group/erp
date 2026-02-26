@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -20,32 +12,28 @@ export const Route = createFileRoute('/_app/examples/detail/')({
 function DetailPage() {
   return (
     <Page>
-      <PageHeader>
-        <PageTitleContainer>
-          <div className="flex items-center gap-3">
-            <PageTitle>Order #ORD-2024-001</PageTitle>
-            <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-              Paid
-            </span>
-          </div>
-          <PageDescription>Placed on January 23, 2024</PageDescription>
-        </PageTitleContainer>
-        <PageActions>
-          <Button variant="outline" size="sm">
-            <PrinterIcon className="mr-2 h-4 w-4" />
-            Print
-          </Button>
-          <Button variant="outline" size="sm">
-            <Edit2Icon className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2Icon className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Order #ORD-2024-001"
+        description="Placed on January 23, 2024"
+        action={
+          <>
+            <Button variant="outline" size="sm">
+              <PrinterIcon className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+            <Button variant="outline" size="sm">
+              <Edit2Icon className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            <Button variant="destructive" size="sm">
+              <Trash2Icon className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </>
+        }
+      />
+
+      <Page.Content>
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-6 md:col-span-2">
             <Card>
@@ -155,14 +143,14 @@ function DetailPage() {
               <CardContent>
                 <ul className="space-y-4">
                   <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
-                    <div className="bg-primary absolute -left-[5px] top-0 h-2 w-2 rounded-full" />
+                    <div className="bg-primary absolute -left-1.25 top-0 h-2 w-2 rounded-full" />
                     <p className="text-sm font-medium">Order Placed</p>
                     <p className="text-xs text-muted-foreground">
                       Jan 23, 2024 - 10:00 AM
                     </p>
                   </li>
                   <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
-                    <div className="bg-muted-foreground absolute -left-[5px] top-0 h-2 w-2 rounded-full" />
+                    <div className="bg-muted-foreground absolute -left-1.25 top-0 h-2 w-2 rounded-full" />
                     <p className="text-sm font-medium">Payment Confirmed</p>
                     <p className="text-xs text-muted-foreground">
                       Jan 23, 2024 - 10:05 AM
@@ -173,7 +161,7 @@ function DetailPage() {
             </Card>
           </div>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

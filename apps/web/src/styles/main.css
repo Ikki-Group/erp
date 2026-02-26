@@ -3,14 +3,14 @@
 @import '@fontsource-variable/inter';
 
 @custom-variant dark (&:is(.dark *));
-@custom-variant fixed (&:is(.layout-fixed *));
+/* @custom-variant fixed (&:is(.layout-fixed *)); */
 
-@theme static {
+/* @theme static {
   --container-8xl: 1440px;
 
   --spacing: 0.25rem;
   --spacing-main: calc(var(--spacing) * 6);
-}
+} */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -80,6 +80,10 @@
   --color-code-highlight: var(--code-highlight);
 
   --animate-skeleton: skeleton 2s -1s infinite linear;
+
+  --color-invert-foreground: var(--invert-foreground);
+
+  --color-invert: var(--invert);
 
   @keyframes skeleton {
     to {
@@ -173,6 +177,15 @@
   --code: oklch(1 0 0);
   --code-foreground: var(--foreground);
   --code-highlight: oklch(0 0 0 / 4%);
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 .dark {
@@ -216,6 +229,15 @@
   );
   --code-foreground: var(--foreground);
   --code-highlight: oklch(1 0 0 / 8%);
+  --destructive-foreground: var(--color-red-600);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 @layer base {
@@ -223,8 +245,17 @@
     @apply border-border outline-ring/50;
   }
 
+  body {
+    @apply font-sans bg-background text-foreground;
+  }
+
   html {
-    @apply bg-background text-foreground;
+    @apply font-sans;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
   }
 }
 
@@ -245,7 +276,7 @@
 }
 
 /** Custom Container **/
-@utility container-main {
+/* @utility container-main {
   margin-inline: auto;
   padding-inline: 1.5rem;
   @media (width >= --theme(--breakpoint-sm)) {
@@ -255,7 +286,7 @@
     padding-inline: 2rem;
     max-width: 1440px;
   }
-}
+} */
 
 /** Smooth scroll **/
 html {

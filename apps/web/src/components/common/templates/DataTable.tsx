@@ -11,13 +11,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Settings2,
-} from 'lucide-react'
+// @ts-expect-error
+// prettier-ignore
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Settings2 } from "lucide-react";
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -150,7 +146,7 @@ export function DataTable<TData, TValue>({
           )}
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button variant="outline" size="sm" className="ml-auto flex h-8">
               <Settings2 className="mr-2 h-4 w-4" />
               View

@@ -1,31 +1,25 @@
-import { ComponentProps, ReactNode } from 'react'
-import { Checkbox } from '../ui/checkbox'
-import { FieldContent } from '../ui/field'
-import { Input } from '../ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
-import { Select } from '../ui/select'
-import { Switch } from '../ui/switch'
-import { Textarea } from '../ui/textarea'
-import { Option, StringOrNumber } from '@/types/common'
-import { useFieldContext } from './form-hook-context'
-import {
-  Field,
-  FieldControl,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from './form-tanstack'
+import { ComponentProps } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FieldContent } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Option, StringOrNumber } from "@/types/common";
+import { useFieldContext } from "./form-hook-context";
+import { InputPassword } from "@/components/ui/input-password";
+import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from "./form-tanstack";
 
 interface BaseFieldProps {
-  label?: string
-  description?: string
-  required?: boolean
-  className?: string
+  label?: string;
+  description?: string;
+  required?: boolean;
+  className?: string;
 }
 
-interface FieldBaseProps
-  extends BaseFieldProps, Omit<ComponentProps<typeof Field>, 'children'> {
-  children: React.ReactNode
+interface FieldBaseProps extends BaseFieldProps, Omit<ComponentProps<typeof Field>, "children"> {
+  children: React.ReactNode;
 }
 
 function FieldBase({
@@ -43,110 +37,58 @@ function FieldBase({
       {description && <FieldDescription>{description}</FieldDescription>}
       <FieldError />
     </Field>
-  )
+  );
 }
 
-interface FieldInputProps extends ComponentProps<typeof Input>, BaseFieldProps {
-  startContent?: ReactNode
-  endContent?: ReactNode
-}
-
-function FieldInput({
-  label,
-  description,
-  required,
-  className,
-  startContent,
-  endContent,
-  ...props
-}: FieldInputProps) {
-  const field = useFieldContext<string>()
+function FieldInput(props: ComponentProps<typeof Input>) {
+  const field = useFieldContext<string>();
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
-      {startContent || endContent ? (
-        <InputGroup className="w-full">
-          {startContent && (
-            <InputGroupAddon align="inline-start">
-              {startContent}
-            </InputGroupAddon>
-          )}
-          <FieldControl>
-            <InputGroupInput
-              name={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-              {...props}
-            />
-          </FieldControl>
-          {endContent && (
-            <InputGroupAddon align="inline-end">{endContent}</InputGroupAddon>
-          )}
-        </InputGroup>
-      ) : (
-        <FieldControl>
-          <Input
-            name={field.name}
-            value={field.state.value}
-            onBlur={field.handleBlur}
-            onChange={(e) => field.handleChange(e.target.value)}
-            {...props}
-          />
-        </FieldControl>
-      )}
-    </FieldBase>
-  )
+    <FieldControl>
+      <Input
+        value={field.state.value}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
+        {...props}
+      />
+    </FieldControl>
+  );
 }
 
-interface FieldTextareaProps
-  extends ComponentProps<typeof Textarea>, BaseFieldProps {}
-
-function FieldTextarea({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldTextareaProps) {
-  const field = useFieldContext<string>()
+function FieldInputPassword(props: ComponentProps<typeof InputPassword>) {
+  const field = useFieldContext<string>();
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
-      <FieldControl>
-        <Textarea
-          name={field.name}
-          value={field.state.value}
-          onBlur={field.handleBlur}
-          onChange={(e) => field.handleChange(e.target.value)}
-          {...props}
-        />
-      </FieldControl>
-    </FieldBase>
-  )
+    <FieldControl>
+      <InputPassword
+        value={field.state.value}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
+        {...props}
+      />
+    </FieldControl>
+  );
+}
+
+function FieldTextarea(props: ComponentProps<typeof Textarea>) {
+  const field = useFieldContext<string>();
+  return (
+    <FieldControl>
+      <Textarea
+        value={field.state.value}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
+        {...props}
+      />
+    </FieldControl>
+  );
 }
 
 interface FieldCheckboxProps
-  extends Omit<ComponentProps<typeof Checkbox>, 'className'>, BaseFieldProps {}
+  extends Omit<ComponentProps<typeof Checkbox>, "className">, BaseFieldProps {}
 
-function FieldCheckbox({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldCheckboxProps) {
-  const field = useFieldContext<boolean>()
+function FieldCheckbox({ label, description, required, className, ...props }: FieldCheckboxProps) {
+  const field = useFieldContext<boolean>();
 
   return (
     <Field orientation="horizontal" className={className}>
@@ -165,20 +107,14 @@ function FieldCheckbox({
         <FieldError />
       </FieldContent>
     </Field>
-  )
+  );
 }
 
 interface FieldSwitchProps
-  extends Omit<ComponentProps<typeof Switch>, 'className'>, BaseFieldProps {}
+  extends Omit<ComponentProps<typeof Switch>, "className">, BaseFieldProps {}
 
-function FieldSwitch({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldSwitchProps) {
-  const field = useFieldContext<boolean>()
+function FieldSwitch({ label, description, required, className, ...props }: FieldSwitchProps) {
+  const field = useFieldContext<boolean>();
 
   return (
     <Field orientation="horizontal" className={className}>
@@ -196,15 +132,13 @@ function FieldSwitch({
         />
       </FieldControl>
     </Field>
-  )
+  );
 }
 
 interface FieldSelectProps<V extends StringOrNumber>
-  extends
-    Omit<ComponentProps<typeof Select>, 'value' | 'onValueChange'>,
-    BaseFieldProps {
-  placeholder?: string
-  options: Option<V>[]
+  extends Omit<ComponentProps<typeof Select>, "value" | "onValueChange">, BaseFieldProps {
+  placeholder?: string;
+  options: Option<V>[];
 }
 
 function FieldSelect<V extends StringOrNumber = string>({
@@ -216,15 +150,10 @@ function FieldSelect<V extends StringOrNumber = string>({
   className,
   ...props
 }: FieldSelectProps<V>) {
-  const field = useFieldContext<V | null>()
+  const field = useFieldContext<V | null>();
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <Select
         value={field.state.value}
         onValueChange={(val) => field.handleChange(val as any)}
@@ -244,14 +173,15 @@ function FieldSelect<V extends StringOrNumber = string>({
         </Select.Content>
       </Select>
     </FieldBase>
-  )
+  );
 }
 
 export {
   FieldBase,
   FieldInput,
+  FieldInputPassword,
   FieldCheckbox,
   FieldSwitch,
   FieldSelect,
   FieldTextarea,
-}
+};

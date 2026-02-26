@@ -22,7 +22,7 @@ export const Route = createFileRoute('/_app/examples/page-new')({
 function RouteComponent() {
   return (
     <Page>
-      <Page.SimpleHeader
+      <Page.BlockHeader
         title="Pengaturan"
         description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
       />

@@ -19,8 +19,8 @@ export const zSchema = {
   numCoerce,
   bool: z.boolean(),
   date,
-  email: str.email(),
-  uuid: str.uuid(),
+  email: z.email(),
+  uuid: z.uuidv7(),
 
   password: str.min(8, 'Password must be at least 8 characters').max(100, 'Password must not exceed 100 characters'),
 

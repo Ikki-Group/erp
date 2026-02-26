@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
 import { toast } from 'sonner'
+
+const api = {} as any
 
 export function useLocations(
   params: {

@@ -1,11 +1,4 @@
-import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import {
   ChartCard,
   ChartGrid,
@@ -125,15 +118,11 @@ function ChartsPage() {
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Data Visualization</PageTitle>
-          <PageDescription>
-            Interactive charts with filtering, legends, and advanced layouts.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Data Visualization"
+        description="Interactive charts with filtering, legends, and advanced layouts."
+      />
+      <Page.Content>
         <ChartGrid>
           {/* 1. Interactive Revenue Chart */}
           <ChartCard
@@ -145,7 +134,7 @@ function ChartsPage() {
                 onValueChange={(val) => val && setTimeRange(val)}
               >
                 <SelectTrigger
-                  className="w-[120px] h-8 text-xs font-medium"
+                  className="w-30 h-8 text-xs font-medium"
                   aria-label="Select time range"
                 >
                   <SelectValue placeholder="Last 3 months" />
@@ -341,7 +330,7 @@ function ChartsPage() {
             </ChartContainer>
           </ChartCard>
         </ChartGrid>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

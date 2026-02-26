@@ -1,6 +1,6 @@
 {
-  "id": "62b91331-33d0-4648-9ea8-462f9430b476",
-  "prevId": "50af3146-6310-43b3-90a1-50f75d997c32",
+  "id": "f3925bb0-237b-4700-9d97-17744895b0bf",
+  "prevId": "8e032c1e-942c-4524-9c2a-e1e2fffa7fd6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -85,6 +85,58 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.uoms": {
+      "name": "uoms",
+      "schema": "",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "varchar(50)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "isActive": {
+          "name": "isActive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "createdBy": {
+          "name": "createdBy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedBy": {
+          "name": "updatedBy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -213,12 +265,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "code": {
-          "name": "code",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "name": {
           "name": "name",
           "type": "varchar(255)",
@@ -268,43 +314,29 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "material_categories_code_unique": {
-          "name": "material_categories_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.material_units": {
-      "name": "material_units",
+    "public.material_uoms": {
+      "name": "material_uoms",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
         "materialId": {
           "name": "materialId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "uomId": {
-          "name": "uomId",
-          "type": "integer",
+        "uom": {
+          "name": "uom",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
         },
-        "isBaseUnit": {
-          "name": "isBaseUnit",
+        "isBase": {
+          "name": "isBase",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -339,9 +371,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "material_units_materialId_materials_id_fk": {
-          "name": "material_units_materialId_materials_id_fk",
-          "tableFrom": "material_units",
+        "material_uoms_materialId_materials_id_fk": {
+          "name": "material_uoms_materialId_materials_id_fk",
+          "tableFrom": "material_uoms",
           "tableTo": "materials",
           "columnsFrom": [
             "materialId"
@@ -352,31 +384,22 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "material_units_uomId_units_of_measure_id_fk": {
-          "name": "material_units_uomId_units_of_measure_id_fk",
-          "tableFrom": "material_units",
-          "tableTo": "units_of_measure",
+        "material_uoms_uom_uoms_code_fk": {
+          "name": "material_uoms_uom_uoms_code_fk",
+          "tableFrom": "material_uoms",
+          "tableTo": "uoms",
           "columnsFrom": [
-            "uomId"
+            "uom"
           ],
           "columnsTo": [
-            "id"
+            "code"
           ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "material_units_materialId_uomId_unique": {
-          "name": "material_units_materialId_uomId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "materialId",
-            "uomId"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -429,6 +452,12 @@
           "notNull": true,
           "default": true
         },
+        "baseUom": {
+          "name": "baseUom",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -470,6 +499,19 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
+        },
+        "materials_baseUom_uoms_code_fk": {
+          "name": "materials_baseUom_uoms_code_fk",
+          "tableFrom": "materials",
+          "tableTo": "uoms",
+          "columnsFrom": [
+            "baseUom"
+          ],
+          "columnsTo": [
+            "code"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -479,190 +521,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "sku"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.units_of_measure": {
-      "name": "units_of_measure",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "code": {
-          "name": "code",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "symbol": {
-          "name": "symbol",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "isActive": {
-          "name": "isActive",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "createdBy": {
-          "name": "createdBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedBy": {
-          "name": "updatedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "units_of_measure_code_unique": {
-          "name": "units_of_measure_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
-        },
-        "units_of_measure_symbol_unique": {
-          "name": "units_of_measure_symbol_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "symbol"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.uom_conversions": {
-      "name": "uom_conversions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "fromUomId": {
-          "name": "fromUomId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "toUomId": {
-          "name": "toUomId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "conversionFactor": {
-          "name": "conversionFactor",
-          "type": "numeric(20, 6)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "createdBy": {
-          "name": "createdBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedBy": {
-          "name": "updatedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "uom_conversions_fromUomId_units_of_measure_id_fk": {
-          "name": "uom_conversions_fromUomId_units_of_measure_id_fk",
-          "tableFrom": "uom_conversions",
-          "tableTo": "units_of_measure",
-          "columnsFrom": [
-            "fromUomId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "uom_conversions_toUomId_units_of_measure_id_fk": {
-          "name": "uom_conversions_toUomId_units_of_measure_id_fk",
-          "tableFrom": "uom_conversions",
-          "tableTo": "units_of_measure",
-          "columnsFrom": [
-            "toUomId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "uom_conversions_fromUomId_toUomId_unique": {
-          "name": "uom_conversions_fromUomId_toUomId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "fromUomId",
-            "toUomId"
           ]
         }
       },
@@ -749,16 +607,10 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.user_role_assignments": {
-      "name": "user_role_assignments",
+    "public.user_role_locations": {
+      "name": "user_role_locations",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
         "userId": {
           "name": "userId",
           "type": "integer",
@@ -777,25 +629,19 @@
           "primaryKey": false,
           "notNull": true
         },
-        "assignedAt": {
-          "name": "assignedAt",
-          "type": "timestamp",
+        "isDefault": {
+          "name": "isDefault",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
-        },
-        "assignedBy": {
-          "name": "assignedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
+          "default": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "user_role_assignments_userId_users_id_fk": {
-          "name": "user_role_assignments_userId_users_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_role_locations_userId_users_id_fk": {
+          "name": "user_role_locations_userId_users_id_fk",
+          "tableFrom": "user_role_locations",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
@@ -806,9 +652,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "user_role_assignments_roleId_roles_id_fk": {
-          "name": "user_role_assignments_roleId_roles_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_role_locations_roleId_roles_id_fk": {
+          "name": "user_role_locations_roleId_roles_id_fk",
+          "tableFrom": "user_role_locations",
           "tableTo": "roles",
           "columnsFrom": [
             "roleId"
@@ -819,9 +665,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "user_role_assignments_locationId_locations_id_fk": {
-          "name": "user_role_assignments_locationId_locations_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_role_locations_locationId_locations_id_fk": {
+          "name": "user_role_locations_locationId_locations_id_fk",
+          "tableFrom": "user_role_locations",
           "tableTo": "locations",
           "columnsFrom": [
             "locationId"
@@ -833,17 +679,16 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "user_role_assignments_userId_locationId_unique": {
-          "name": "user_role_assignments_userId_locationId_unique",
-          "nullsNotDistinct": false,
+      "compositePrimaryKeys": {
+        "user_role_locations_userId_locationId_pk": {
+          "name": "user_role_locations_userId_locationId_pk",
           "columns": [
             "userId",
             "locationId"
           ]
         }
       },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -953,8 +798,7 @@
       "schema": "public",
       "values": [
         "store",
-        "warehouse",
-        "central_warehouse"
+        "warehouse"
       ]
     },
     "public.material_type": {

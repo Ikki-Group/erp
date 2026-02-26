@@ -1,11 +1,4 @@
-import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import {
   Card,
   CardContent,
@@ -166,15 +159,12 @@ function DetailsPage() {
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Details Display</PageTitle>
-          <PageDescription>
-            Examples of displaying key-value pairs with rich content.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Details Display"
+        description="Examples of displaying key-value pairs with rich content."
+      />
+
+      <Page.Content>
         <Grid>
           {/* Card 1: User Profile (Grid layout) */}
           <Card>
@@ -265,7 +255,7 @@ function DetailsPage() {
             </CardContent>
           </Card>
         </Grid>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

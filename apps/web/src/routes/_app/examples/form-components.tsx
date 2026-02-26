@@ -25,33 +25,30 @@ export const Route = createFileRoute('/_app/examples/form-components')({
 })
 
 // Schema untuk validasi form
-const formSchema = z.object({
-  // Text inputs
-  fullName: z.string().min(3, 'Nama minimal 3 karakter'),
-  email: z.string().email('Email tidak valid'),
-  phone: z.string().min(10, 'Nomor telepon minimal 10 digit'),
+// const formSchema = z.object({
+//   // Text inputs
+//   fullName: z.string().min(3, "Nama minimal 3 karakter"),
+//   email: z.string().email("Email tidak valid"),
+//   phone: z.string().min(10, "Nomor telepon minimal 10 digit"),
 
-  // Textarea
-  bio: z
-    .string()
-    .min(10, 'Bio minimal 10 karakter')
-    .max(500, 'Bio maksimal 500 karakter'),
+//   // Textarea
+//   bio: z.string().min(10, "Bio minimal 10 karakter").max(500, "Bio maksimal 500 karakter"),
 
-  // Select
-  country: z.string().min(1, 'Pilih negara'),
-  role: z.string().min(1, 'Pilih role'),
+//   // Select
+//   country: z.string().min(1, "Pilih negara"),
+//   role: z.string().min(1, "Pilih role"),
 
-  // Checkboxes
-  newsletter: z.boolean(),
-  terms: z.boolean().refine((val) => val === true, {
-    message: 'Anda harus menyetujui syarat dan ketentuan',
-  }),
+//   // Checkboxes
+//   newsletter: z.boolean(),
+//   terms: z.boolean().refine((val) => val === true, {
+//     message: "Anda harus menyetujui syarat dan ketentuan",
+//   }),
 
-  // Number input
-  age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 18, {
-    message: 'Umur minimal 18 tahun',
-  }),
-})
+//   // Number input
+//   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 18, {
+//     message: "Umur minimal 18 tahun",
+//   }),
+// });
 
 function FormComponentsExample() {
   const form = useForm({

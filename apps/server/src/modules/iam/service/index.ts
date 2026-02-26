@@ -1,23 +1,23 @@
-import { IamAuthService } from './iam-auth.service'
-import { IamRolesService } from './iam-roles.service'
-import { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
-import { IamUsersService } from './iam-users.service'
+import { AuthService } from './auth.service'
+import { RoleService } from './role.service'
+import { SessionService } from './session.service'
+import { UserService } from './user.service'
 
 export class IamServiceModule {
-  public readonly auth: IamAuthService
-  public readonly users: IamUsersService
-  public readonly roles: IamRolesService
-  public readonly userRoleAssignments: IamUserRoleAssignmentsService
+  public readonly role: RoleService
+  public readonly auth: AuthService
+  public readonly user: UserService
+  public readonly session: SessionService
 
   constructor() {
-    this.userRoleAssignments = new IamUserRoleAssignmentsService()
-    this.users = new IamUsersService(this.userRoleAssignments)
-    this.roles = new IamRolesService()
-    this.auth = new IamAuthService(this.users)
+    this.role = new RoleService()
+    this.user = new UserService()
+    this.session = new SessionService()
+    this.auth = new AuthService(this.user, this.session)
   }
 }
 
-export { IamAuthService } from './iam-auth.service'
-export { IamRolesService } from './iam-roles.service'
-export { IamUserRoleAssignmentsService } from './iam-user-role-assignments.service'
-export { IamUsersService } from './iam-users.service'
+export { AuthService } from './auth.service'
+export { RoleService } from './role.service'
+export { SessionService } from './session.service'
+export { UserService } from './user.service'

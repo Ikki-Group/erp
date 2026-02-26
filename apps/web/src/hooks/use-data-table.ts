@@ -1,58 +1,83 @@
-import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useCallback, useMemo } from 'react'
-import type { TableState } from '@tanstack/react-table'
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  OnChangeFn,
+  PaginationState,
+  TableOptions,
+  useReactTable,
+  Table,
+} from "@tanstack/react-table";
+import { useCallback, useMemo, useState } from "react";
+import { DataTableState } from "./use-data-table-state";
 
-interface UseDataTableOptions {
-  routeId: string
-  defaultPageSize?: number
+type UseDataTableProps<TData> = Omit<TableOptions<TData>, "getCoreRowModel" | "onStateChange"> & {
+  isLoading?: boolean;
+  ds: DataTableState;
+};
+
+function useBaseDataTable<TData>({
+  data,
+  columns,
+  isLoading = false,
+  ds,
+  state = {},
+  ...props
+}: UseDataTableProps<TData>): Table<TData> {
+  const [columnOrder, setColumnOrder] = useState<string[]>(
+    columns.map((column) => column.id as string),
+  );
+
+  const pagination: PaginationState = useMemo(() => {
+    const { page, limit } = ds.pagination;
+    return {
+      pageIndex: page - 1,
+      pageSize: limit,
+    };
+  }, [ds.pagination]);
+
+  const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
+    (updater) => {
+      const next = typeof updater === "function" ? updater(pagination) : updater;
+      ds.setPagination({
+        page: next.pageIndex + 1,
+        limit: next.pageSize,
+      });
+    },
+    [ds.pagination, pagination],
+  );
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      pagination,
+      globalFilter: ds.search,
+      columnOrder,
+      ...state,
+    },
+    onGlobalFilterChange: ds.setSearch,
+    onPaginationChange,
+    onColumnOrderChange: setColumnOrder,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    ...props,
+  });
+
+  return table;
 }
 
-export function useDataTable({
-  routeId,
-  defaultPageSize = 10,
-}: UseDataTableOptions) {
-  const navigate = useNavigate()
-  const search = useSearch({ from: routeId as any }) as any
+export function useDataTable<TData>(props: UseDataTableProps<TData>): Table<TData> {
+  return useBaseDataTable({
+    ...props,
+    manualPagination: true,
+  });
+}
 
-  // Map URL search params to table state
-  const tableState = useMemo(() => {
-    return {
-      pagination: {
-        pageIndex: (Number(search.page) || 1) - 1,
-        pageSize: Number(search.limit) || defaultPageSize,
-      },
-      sorting: search.sort
-        ? JSON.parse(decodeURIComponent(search.sort as string))
-        : [],
-      columnFilters: search.filters
-        ? JSON.parse(decodeURIComponent(search.filters as string))
-        : [],
-    } as Partial<TableState>
-  }, [search.page, search.limit, search.sort, search.filters, defaultPageSize])
-
-  const onStateChange = useCallback(
-    (nextState: TableState) => {
-      const { pagination, sorting, columnFilters } = nextState
-
-      navigate({
-        search: ((prev: any) => ({
-          ...prev,
-          page: pagination.pageIndex + 1,
-          limit: pagination.pageSize,
-          sort: sorting.length
-            ? encodeURIComponent(JSON.stringify(sorting))
-            : undefined,
-          filters: columnFilters.length
-            ? encodeURIComponent(JSON.stringify(columnFilters))
-            : undefined,
-        })) as any,
-      })
-    },
-    [navigate],
-  )
-
-  return {
-    tableState,
-    onStateChange,
-  }
+export function useDataTableAuto<TData>(props: UseDataTableProps<TData>): Table<TData> {
+  return useBaseDataTable({
+    ...props,
+    manualPagination: false,
+  });
 }

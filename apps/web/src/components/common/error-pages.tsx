@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Stack, Inline } from '@/components/common/layout/primitives'
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Stack, Inline } from "@/components/common/layout/primitives";
 import {
   AlertTriangleIcon,
   FileQuestionIcon,
@@ -8,17 +8,17 @@ import {
   HomeIcon,
   RefreshCwIcon,
   ArrowLeftIcon,
-} from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface ErrorPageProps {
-  title: string
-  description: string
-  icon: React.ReactNode
-  actions?: React.ReactNode
-  showBackButton?: boolean
-  showHomeButton?: boolean
-  showRefreshButton?: boolean
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  actions?: React.ReactNode;
+  showBackButton?: boolean;
+  showHomeButton?: boolean;
+  showRefreshButton?: boolean;
 }
 
 function ErrorPageLayout({
@@ -46,9 +46,7 @@ function ErrorPageLayout({
             {/* Content */}
             <Stack gap="sm" align="center" className="text-center">
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-              <p className="text-muted-foreground text-lg max-w-md">
-                {description}
-              </p>
+              <p className="text-muted-foreground text-lg max-w-md">{description}</p>
             </Stack>
 
             {/* Actions */}
@@ -58,11 +56,7 @@ function ErrorPageLayout({
               ) : (
                 <Inline gap="sm" justify="center" className="flex-wrap">
                   {showBackButton && (
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => window.history.back()}
-                    >
+                    <Button variant="outline" size="lg" onClick={() => window.history.back()}>
                       <ArrowLeftIcon className="h-4 w-4" />
                       Kembali
                     </Button>
@@ -76,11 +70,7 @@ function ErrorPageLayout({
                     </Link>
                   )}
                   {showRefreshButton && (
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => window.location.reload()}
-                    >
+                    <Button variant="outline" size="lg" onClick={() => window.location.reload()}>
                       <RefreshCwIcon className="h-4 w-4" />
                       Muat Ulang
                     </Button>
@@ -92,7 +82,7 @@ function ErrorPageLayout({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 // 404 - Not Found
@@ -101,13 +91,11 @@ export function NotFoundPage() {
     <ErrorPageLayout
       title="Halaman Tidak Ditemukan"
       description="Maaf, halaman yang Anda cari tidak dapat ditemukan. Mungkin halaman telah dipindahkan atau dihapus."
-      icon={
-        <FileQuestionIcon className="h-16 w-16 text-primary stroke-[1.5]" />
-      }
+      icon={<FileQuestionIcon className="h-16 w-16 text-primary stroke-[1.5]" />}
       showBackButton
       showHomeButton
     />
-  )
+  );
 }
 
 // 500 - Server Error
@@ -116,34 +104,23 @@ export function ServerErrorPage() {
     <ErrorPageLayout
       title="Terjadi Kesalahan Server"
       description="Maaf, terjadi kesalahan pada server kami. Tim kami telah diberitahu dan sedang memperbaikinya. Silakan coba lagi nanti."
-      icon={
-        <ServerCrashIcon className="h-16 w-16 text-destructive stroke-[1.5]" />
-      }
+      icon={<ServerCrashIcon className="h-16 w-16 text-destructive stroke-[1.5]" />}
       showHomeButton
       showRefreshButton
       showBackButton={false}
     />
-  )
+  );
 }
 
 // Generic Error
-export function GenericErrorPage({
-  error,
-  reset,
-}: {
-  error?: Error
-  reset?: () => void
-}) {
+export function GenericErrorPage({ error, reset }: { error?: Error; reset?: () => void }) {
   return (
     <ErrorPageLayout
       title="Terjadi Kesalahan"
       description={
-        error?.message ||
-        'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.'
+        error?.message || "Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi."
       }
-      icon={
-        <AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />
-      }
+      icon={<AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />}
       actions={
         <Inline gap="sm" justify="center" className="flex-wrap">
           {reset && (
@@ -161,7 +138,7 @@ export function GenericErrorPage({
         </Inline>
       }
     />
-  )
+  );
 }
 
 // Maintenance Mode
@@ -170,14 +147,12 @@ export function MaintenancePage() {
     <ErrorPageLayout
       title="Sedang Dalam Pemeliharaan"
       description="Kami sedang melakukan pemeliharaan sistem untuk meningkatkan layanan. Mohon kembali lagi dalam beberapa saat."
-      icon={
-        <ServerCrashIcon className="h-16 w-16 text-blue-500 stroke-[1.5]" />
-      }
+      icon={<ServerCrashIcon className="h-16 w-16 text-blue-500 stroke-[1.5]" />}
       showHomeButton={false}
       showBackButton={false}
       showRefreshButton
     />
-  )
+  );
 }
 
 // Unauthorized
@@ -186,16 +161,10 @@ export function UnauthorizedPage() {
     <ErrorPageLayout
       title="Akses Ditolak"
       description="Anda tidak memiliki izin untuk mengakses halaman ini. Silakan hubungi administrator jika Anda merasa ini adalah kesalahan."
-      icon={
-        <AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />
-      }
+      icon={<AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />}
       actions={
         <Inline gap="sm" justify="center" className="flex-wrap">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => window.history.back()}
-          >
+          <Button variant="outline" size="lg" onClick={() => window.history.back()}>
             <ArrowLeftIcon className="h-4 w-4" />
             Kembali
           </Button>
@@ -208,5 +177,5 @@ export function UnauthorizedPage() {
         </Inline>
       }
     />
-  )
+  );
 }

@@ -1,10 +1,15 @@
 import Elysia from 'elysia'
 
 import type { MasterServiceModule } from '../service'
-import { initMasterUomRouter } from './master-uom.router'
+
+import { initUomRoute } from './uom.route'
 
 export function initMasterRouteModule(svc: MasterServiceModule) {
-  const masterRouter = initMasterUomRouter(svc)
+  const masterRouter = initUomRoute(svc.uom)
 
-  return new Elysia({ prefix: '/master', tags: ['master'] }).group('', (g) => g.use(masterRouter))
+  return (
+    new Elysia({ prefix: '/master', tags: ['master'] })
+      //
+      .group('', (g) => g.use(masterRouter))
+  )
 }

@@ -1,11 +1,4 @@
-import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Command, CommandItem, CommandList } from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -74,16 +67,12 @@ function SearchDialogPage() {
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Search & Select Dialog</PageTitle>
-          <PageDescription>
-            Optimized dialogs for searching and selecting from large server-side
-            datasets.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Search & Select Dialog"
+        description="Optimized dialogs for searching and selecting from large server-side datasets."
+      />
+
+      <Page.Content>
         <div className="grid gap-8 md:grid-cols-2">
           {/* Example 1: Single Selection */}
           <div className="space-y-4">
@@ -121,7 +110,7 @@ function SearchDialogPage() {
 
             <div className="flex flex-col gap-2">
               <Label>Recipe Ingredients</Label>
-              <div className="border rounded-md p-4 min-h-[100px] space-y-2">
+              <div className="border rounded-md p-4 min-h-25 space-y-2">
                 {selectedMultiple.length === 0 ? (
                   <p className="text-muted-foreground text-sm">
                     No ingredients added yet.
@@ -169,7 +158,7 @@ function SearchDialogPage() {
             </div>
           </div>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }
@@ -219,7 +208,7 @@ function SingleSelectDialog({
           </Button>
         }
       />
-      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-[500px]">
+      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-125">
         <Command shouldFilter={false}>
           <div className="flex items-center border-b px-3">
             <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -233,7 +222,7 @@ function SingleSelectDialog({
               <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
           </div>
-          <CommandList className="max-h-[300px] overflow-y-auto p-1">
+          <CommandList className="max-h-75 overflow-y-auto p-1">
             {results.length === 0 && !loading && (
               <div className="py-6 text-center text-sm text-muted-foreground">
                 No ingredients found.
@@ -350,7 +339,7 @@ function MultiSelectDialog({
           </Button>
         }
       />
-      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-[600px] h-[500px] flex flex-col">
+      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-150 h-125 flex flex-col">
         <div className="p-4 border-b flex flex-col gap-1 bg-muted/10">
           <DialogTitle>Add Ingredients</DialogTitle>
           <DialogDescription>

@@ -15,8 +15,5 @@ export {
   ChartFooterContent,
 } from './data-display/chart-card'
 
-// Navigation
-export { Breadcrumbs } from './navigation/Breadcrumbs'
-
 // Templates
 export { DataTable } from './templates/DataTable'

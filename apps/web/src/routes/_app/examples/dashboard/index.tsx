@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -31,18 +23,13 @@ export const Route = createFileRoute('/_app/examples/dashboard/')({
 function DashboardPage() {
   return (
     <Page>
-      <PageHeader>
-        <PageTitleContainer>
-          <PageTitle>Analytics Dashboard</PageTitle>
-          <PageDescription>
-            Real-time overview of your business performance.
-          </PageDescription>
-        </PageTitleContainer>
-        <PageActions>
-          <Button>Download Report</Button>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Analytics Dashboard"
+        description="Real-time overview of your business performance."
+        action={<Button>Download Report</Button>}
+      />
+
+      <Page.Content>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -115,7 +102,7 @@ function DashboardPage() {
                 </CardHeader>
                 <CardContent className="pl-2">
                   {/* Chart placeholder */}
-                  <div className="bg-muted/20 text-muted-foreground flex h-[240px] w-full items-center justify-center rounded">
+                  <div className="bg-muted/20 text-muted-foreground flex h-60 w-full items-center justify-center rounded">
                     Chart Area
                   </div>
                 </CardContent>
@@ -250,7 +237,7 @@ function DashboardPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

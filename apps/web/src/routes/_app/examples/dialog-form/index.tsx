@@ -1,11 +1,4 @@
-import {
-  Page,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -52,15 +45,12 @@ function DialogFormPage() {
 
   return (
     <Page>
-      <PageHeader sticky>
-        <PageTitleContainer>
-          <PageTitle>Dialog Form</PageTitle>
-          <PageDescription>
-            Example of a form inside a modal dialog using TanStack Form.
-          </PageDescription>
-        </PageTitleContainer>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Dialog Form"
+        description="Example of a form inside a modal dialog using TanStack Form."
+      />
+
+      <Page.Content>
         <div className="flex flex-col items-center justify-center h-[50vh] gap-4 border border-dashed rounded-lg bg-muted/10">
           <p className="text-muted-foreground text-sm">
             No tasks found. Create a new task to get started.
@@ -74,7 +64,7 @@ function DialogFormPage() {
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
               <DialogHeader>
                 <DialogTitle>Create Task</DialogTitle>
                 <DialogDescription>
@@ -85,7 +75,7 @@ function DialogFormPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

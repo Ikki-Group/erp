@@ -15,8 +15,9 @@ import {
   FieldSwitch,
   FieldSelect,
   FieldTextarea,
+  FieldInputPassword,
 } from './form-field-component'
-import { Form, FormSimpleActions } from './form-component'
+import { Form, FormSimpleActions, FormDialogActions } from './form-component'
 import { FieldSet, FieldLegend, FieldGroup } from '../ui/field'
 
 export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
@@ -35,7 +36,9 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
       Error: FieldError,
 
       // Custom components
+      Base: FieldBase,
       Input: FieldInput,
+      InputPassword: FieldInputPassword,
       Checkbox: FieldCheckbox,
       Switch: FieldSwitch,
       Select: FieldSelect,
@@ -48,6 +51,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
       Form: Form,
       Item: FormItem,
       SimpleActions: FormSimpleActions,
+      DialogActions: FormDialogActions,
     },
     fieldContext,
     formContext,

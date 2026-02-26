@@ -1,13 +1,4 @@
-import {
-  Page,
-  PageHeader,
-  PageHeaderContent,
-  PageTitleContainer,
-  PageTitle,
-  PageDescription,
-  PageActions,
-  PageContent,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -152,36 +143,18 @@ function ProductsPage() {
 
   return (
     <Page size="xl">
-      <PageHeader sticky>
-        <PageHeaderContent>
-          <PageTitleContainer>
-            <Inline gap="sm" align="center">
-              <PackageIcon className="h-8 w-8 text-primary" />
-              <PageTitle>Produk</PageTitle>
-            </Inline>
-            <PageDescription maxWidth>
-              Kelola katalog produk, inventori, dan harga Anda
-            </PageDescription>
-          </PageTitleContainer>
+      <Page.BlockHeader
+        title="Produk"
+        description="Kelola katalog produk, inventori, dan harga Anda"
+        action={
+          <Button size="sm" variant="outline" className="h-8 gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Tambah Produk
+          </Button>
+        }
+      />
 
-          <PageActions>
-            <Button variant="outline" size="sm">
-              Impor
-            </Button>
-            <Button variant="outline" size="sm">
-              Ekspor
-            </Button>
-            <Link to="/products">
-              <Button size="sm">
-                <PlusIcon className="h-4 w-4" />
-                Tambah Produk
-              </Button>
-            </Link>
-          </PageActions>
-        </PageHeaderContent>
-      </PageHeader>
-
-      <PageContent>
+      <Page.Content>
         <Stack gap="lg">
           {/* Statistics Cards */}
           <Grid cols={4} gap="md">
@@ -792,7 +765,7 @@ function ProductsPage() {
             </Card>
           )}
         </Stack>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

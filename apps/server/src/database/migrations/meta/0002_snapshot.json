@@ -1,6 +1,6 @@
 {
-  "id": "28998984-f0bb-4700-a424-405038816346",
-  "prevId": "62b91331-33d0-4648-9ea8-462f9430b476",
+  "id": "2a536fe8-8201-4be6-a7f6-4e38fe1d2cd9",
+  "prevId": "f3925bb0-237b-4700-9d97-17744895b0bf",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -607,16 +607,10 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.user_role_assignments": {
-      "name": "user_role_assignments",
+    "public.user_assignments": {
+      "name": "user_assignments",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
         "userId": {
           "name": "userId",
           "type": "integer",
@@ -635,25 +629,19 @@
           "primaryKey": false,
           "notNull": true
         },
-        "assignedAt": {
-          "name": "assignedAt",
-          "type": "timestamp",
+        "isDefault": {
+          "name": "isDefault",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
-        },
-        "assignedBy": {
-          "name": "assignedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
+          "default": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "user_role_assignments_userId_users_id_fk": {
-          "name": "user_role_assignments_userId_users_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_assignments_userId_users_id_fk": {
+          "name": "user_assignments_userId_users_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
@@ -664,9 +652,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "user_role_assignments_roleId_roles_id_fk": {
-          "name": "user_role_assignments_roleId_roles_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_assignments_roleId_roles_id_fk": {
+          "name": "user_assignments_roleId_roles_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "roles",
           "columnsFrom": [
             "roleId"
@@ -677,9 +665,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "user_role_assignments_locationId_locations_id_fk": {
-          "name": "user_role_assignments_locationId_locations_id_fk",
-          "tableFrom": "user_role_assignments",
+        "user_assignments_locationId_locations_id_fk": {
+          "name": "user_assignments_locationId_locations_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "locations",
           "columnsFrom": [
             "locationId"
@@ -691,14 +679,74 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "user_role_assignments_userId_locationId_unique": {
-          "name": "user_role_assignments_userId_locationId_unique",
-          "nullsNotDistinct": false,
+      "compositePrimaryKeys": {
+        "user_assignments_userId_roleId_locationId_pk": {
+          "name": "user_assignments_userId_roleId_locationId_pk",
           "columns": [
             "userId",
+            "roleId",
             "locationId"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_sessions": {
+      "name": "user_sessions",
+      "schema": "",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_sessions_userId_users_id_fk": {
+          "name": "user_sessions_userId_users_id_fk",
+          "tableFrom": "user_sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_sessions_token_unique": {
+          "name": "user_sessions_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
           ]
         }
       },
@@ -811,8 +859,7 @@
       "schema": "public",
       "values": [
         "store",
-        "warehouse",
-        "central_warehouse"
+        "warehouse"
       ]
     },
     "public.material_type": {

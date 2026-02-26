@@ -1,48 +1,43 @@
-import * as React from 'react'
-import { useForm } from '@tanstack/react-form'
-import { zodValidator } from '@tanstack/zod-form-adapter'
+import * as React from "react";
+import { useForm } from "@tanstack/react-form";
+import { zodValidator } from "@tanstack/zod-form-adapter";
 
-import { cn } from '@/lib/utils'
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { cn } from "@/lib/utils";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
 // ============================================================================
 // Form Wrapper Component
 // ============================================================================
 
-interface FormProps extends Omit<React.ComponentProps<'form'>, 'onSubmit'> {
-  form: any
+interface FormProps extends Omit<React.ComponentProps<"form">, "onSubmit"> {
+  form: any;
 }
 
 function Form({ form, className, children, ...props }: FormProps) {
   return (
     <form
       onSubmit={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        form.handleSubmit()
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
       }}
-      className={cn('space-y-6', className)}
+      className={cn("space-y-6", className)}
       {...props}
     >
       {children}
     </form>
-  )
+  );
 }
 
 // ============================================================================
@@ -50,18 +45,18 @@ function Form({ form, className, children, ...props }: FormProps) {
 // ============================================================================
 
 interface FormFieldProps {
-  form: any
-  name: string
-  label?: string
-  description?: string
-  orientation?: 'vertical' | 'horizontal' | 'responsive'
-  validators?: any
+  form: any;
+  name: string;
+  label?: string;
+  description?: string;
+  orientation?: "vertical" | "horizontal" | "responsive";
+  validators?: any;
   children: (field: {
-    value: any
-    onChange: (value: any) => void
-    onBlur: () => void
-    errors: string[]
-  }) => React.ReactNode
+    value: any;
+    onChange: (value: any) => void;
+    onBlur: () => void;
+    errors: string[];
+  }) => React.ReactNode;
 }
 
 function FormField({
@@ -69,23 +64,20 @@ function FormField({
   name,
   label,
   description,
-  orientation = 'vertical',
+  orientation = "vertical",
   validators,
   children,
 }: FormFieldProps) {
   return (
     <form.Field name={name} validators={validators}>
       {(field: any) => {
-        const hasErrors = field.state.meta.errors.length > 0
+        const hasErrors = field.state.meta.errors.length > 0;
         const errors = field.state.meta.errors.map((error: string) => ({
           message: error,
-        }))
+        }));
 
         return (
-          <Field
-            orientation={orientation}
-            data-invalid={hasErrors || undefined}
-          >
+          <Field orientation={orientation} data-invalid={hasErrors || undefined}>
             {label && <FieldLabel htmlFor={name}>{label}</FieldLabel>}
             {description && <FieldDescription>{description}</FieldDescription>}
             {children({
@@ -96,10 +88,10 @@ function FormField({
             })}
             <FieldError errors={errors} />
           </Field>
-        )
+        );
       }}
     </form.Field>
-  )
+  );
 }
 
 // ============================================================================
@@ -108,14 +100,14 @@ function FormField({
 
 interface FormInputProps extends Omit<
   React.ComponentProps<typeof Input>,
-  'name' | 'value' | 'onChange' | 'onBlur'
+  "name" | "value" | "onChange" | "onBlur"
 > {
-  form: any
-  name: string
-  label?: string
-  description?: string
-  orientation?: 'vertical' | 'horizontal' | 'responsive'
-  validators?: any
+  form: any;
+  name: string;
+  label?: string;
+  description?: string;
+  orientation?: "vertical" | "horizontal" | "responsive";
+  validators?: any;
 }
 
 function FormInput({
@@ -149,7 +141,7 @@ function FormInput({
         />
       )}
     </FormField>
-  )
+  );
 }
 
 // ============================================================================
@@ -158,14 +150,14 @@ function FormInput({
 
 interface FormTextareaProps extends Omit<
   React.ComponentProps<typeof Textarea>,
-  'name' | 'value' | 'onChange' | 'onBlur'
+  "name" | "value" | "onChange" | "onBlur"
 > {
-  form: any
-  name: string
-  label?: string
-  description?: string
-  orientation?: 'vertical' | 'horizontal' | 'responsive'
-  validators?: any
+  form: any;
+  name: string;
+  label?: string;
+  description?: string;
+  orientation?: "vertical" | "horizontal" | "responsive";
+  validators?: any;
 }
 
 function FormTextarea({
@@ -199,7 +191,7 @@ function FormTextarea({
         />
       )}
     </FormField>
-  )
+  );
 }
 
 // ============================================================================
@@ -207,20 +199,20 @@ function FormTextarea({
 // ============================================================================
 
 interface SelectOption {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface FormSelectProps {
-  form: any
-  name: string
-  label?: string
-  description?: string
-  orientation?: 'vertical' | 'horizontal' | 'responsive'
-  validators?: any
-  options: SelectOption[]
-  placeholder?: string
-  className?: string
+  form: any;
+  name: string;
+  label?: string;
+  description?: string;
+  orientation?: "vertical" | "horizontal" | "responsive";
+  validators?: any;
+  options: SelectOption[];
+  placeholder?: string;
+  className?: string;
 }
 
 function FormSelect({
@@ -231,7 +223,7 @@ function FormSelect({
   orientation,
   validators,
   options,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   className,
 }: FormSelectProps) {
   return (
@@ -246,10 +238,10 @@ function FormSelect({
       {({ value, onChange, errors }) => (
         <Select
           value={(value as string) || undefined}
-          onValueChange={(newValue) => onChange(newValue || '')}
+          onValueChange={(newValue) => onChange(newValue || "")}
         >
           <SelectTrigger
-            className={cn('w-full', className)}
+            className={cn("w-full", className)}
             aria-invalid={errors.length > 0 || undefined}
           >
             <SelectValue placeholder={placeholder} />
@@ -264,7 +256,7 @@ function FormSelect({
         </Select>
       )}
     </FormField>
-  )
+  );
 }
 
 // ============================================================================
@@ -272,13 +264,13 @@ function FormSelect({
 // ============================================================================
 
 interface FormCheckboxProps {
-  form: any
-  name: string
-  label?: string
-  description?: string
-  orientation?: 'vertical' | 'horizontal' | 'responsive'
-  validators?: any
-  className?: string
+  form: any;
+  name: string;
+  label?: string;
+  description?: string;
+  orientation?: "vertical" | "horizontal" | "responsive";
+  validators?: any;
+  className?: string;
 }
 
 function FormCheckbox({
@@ -286,7 +278,7 @@ function FormCheckbox({
   name,
   label,
   description,
-  orientation = 'horizontal',
+  orientation = "horizontal",
   validators,
   className,
 }: FormCheckboxProps) {
@@ -310,25 +302,22 @@ function FormCheckbox({
         />
       )}
     </FormField>
-  )
+  );
 }
 
 // ============================================================================
 // FormSubmit Component - Submit button with form state awareness
 // ============================================================================
 
-interface FormSubmitProps extends Omit<
-  React.ComponentProps<typeof Button>,
-  'type'
-> {
-  form: any
-  loadingText?: string
+interface FormSubmitProps extends Omit<React.ComponentProps<typeof Button>, "type"> {
+  form: any;
+  loadingText?: string;
 }
 
 function FormSubmit({
   form,
-  children = 'Submit',
-  loadingText = 'Submitting...',
+  children = "Submit",
+  loadingText = "Submitting...",
   disabled,
   ...buttonProps
 }: FormSubmitProps) {
@@ -339,23 +328,13 @@ function FormSubmit({
         isSubmitting: state.isSubmitting,
       })}
     >
-      {({
-        canSubmit,
-        isSubmitting,
-      }: {
-        canSubmit: boolean
-        isSubmitting: boolean
-      }) => (
-        <Button
-          type="submit"
-          disabled={!canSubmit || disabled}
-          {...buttonProps}
-        >
+      {({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitting: boolean }) => (
+        <Button type="submit" disabled={!canSubmit || disabled} {...buttonProps}>
           {isSubmitting ? loadingText : children}
         </Button>
       )}
     </form.Subscribe>
-  )
+  );
 }
 
 // ============================================================================
@@ -373,4 +352,4 @@ export {
   useForm,
   zodValidator,
   type SelectOption,
-}
+};

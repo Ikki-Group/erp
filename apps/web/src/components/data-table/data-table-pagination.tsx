@@ -1,21 +1,21 @@
-import { ChevronLeftIcon, ChevronRightIcon, MinusIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, MinusIcon } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-import { useDataTableContext } from './data-table-context'
-import { Skeleton } from '../ui/skeleton'
-import { DEFAULT_PAGE_SIZE_OPTIONS } from './data-table-config'
-import { ComponentProps } from 'react'
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { useDataTableContext } from "./data-table-context";
+import { Skeleton } from "../ui/skeleton";
+import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-config";
+import { ComponentProps } from "react";
 
-interface DataTablePaginationProps extends ComponentProps<'div'> {
-  pageSizeOptions?: number[]
+interface DataTablePaginationProps extends ComponentProps<"div"> {
+  pageSizeOptions?: number[];
 }
 
 export function DataTablePagination({
@@ -23,16 +23,15 @@ export function DataTablePagination({
   className,
   ...props
 }: DataTablePaginationProps) {
-  const { table, rowCount, pageIndex, pageSize, isLoading, pageCount } =
-    useDataTableContext()
+  const { table, rowCount, pageIndex, pageSize, isLoading, pageCount } = useDataTableContext();
 
-  const from = rowCount === 0 ? rowCount : pageIndex * pageSize + 1
-  const to = Math.min(rowCount, (pageIndex + 1) * pageSize)
+  const from = rowCount === 0 ? rowCount : pageIndex * pageSize + 1;
+  const to = Math.min(rowCount, (pageIndex + 1) * pageSize);
 
   return (
     <div
       className={cn(
-        'flex w-full items-center justify-between py-2.5 text-sm text-muted-foreground flex-col md:flex-row',
+        "flex w-full items-center justify-between py-2.5 text-sm text-muted-foreground flex-col md:flex-row",
         className,
       )}
       {...props}
@@ -41,7 +40,7 @@ export function DataTablePagination({
         <Select
           value={String(pageSize)}
           onValueChange={(value) => {
-            table.setPageSize(Number(value))
+            table.setPageSize(Number(value));
           }}
         >
           <SelectTrigger className="mr-2">
@@ -66,7 +65,7 @@ export function DataTablePagination({
         )}
       </div>
       <div className="flex items-center gap-x-2">
-        <div className="inline-flex items-center gap-x-1 px-3 py-[5px]">
+        <div className="inline-flex items-center gap-x-1 px-3 py-1.25">
           {isLoading ? (
             <Skeleton className="h-4 w-full" />
           ) : (
@@ -99,5 +98,5 @@ export function DataTablePagination({
         </Button>
       </div>
     </div>
-  )
+  );
 }

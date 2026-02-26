@@ -3,21 +3,19 @@ import { Elysia } from 'elysia'
 import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 
 import type { IamServiceModule } from '../service'
-import { initIamAuthRoute } from './iam-auth.route'
-import { initIamRoleRoute } from './iam-role.route'
-import { initIamUserRoleAssignmentRoute } from './iam-user-role-assignment.route'
-import { initIamUserRoute } from './iam-user.route'
 
-export function initIamRouteModule(service: IamServiceModule) {
-  const authRouter = initIamAuthRoute(service)
-  const userRouter = initIamUserRoute(service)
-  const roleRouter = initIamRoleRoute(service)
-  const userRoleAssignmentRouter = initIamUserRoleAssignmentRoute(service)
+import { initAuthRoute } from './auth.route'
+import { initRoleRoute } from './role.route'
+import { initUserRoute } from './user.route'
+
+export function initIamRouteModule(s: IamServiceModule) {
+  const authRouter = initAuthRoute(s)
+  const userRouter = initUserRoute(s)
+  const roleRouter = initRoleRoute(s)
 
   return new Elysia({ prefix: '/iam' })
-    .use(createAuthPlugin(service))
-    .group('/auth', { tags: ['auth'] }, (g) => g.use(authRouter))
-    .group('/users', { tags: ['users'] }, (g) => g.use(userRouter))
-    .group('/roles', { tags: ['roles'] }, (g) => g.use(roleRouter))
-    .group('/user-role-assignments', { tags: ['user-role-assignments'] }, (g) => g.use(userRoleAssignmentRouter))
+    .use(createAuthPlugin(s))
+    .group('/auth', (g) => g.use(authRouter))
+    .group('/user', (g) => g.use(userRouter))
+    .group('/role', (g) => g.use(roleRouter))
 }

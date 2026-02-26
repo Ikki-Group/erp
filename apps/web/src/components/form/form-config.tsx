@@ -2,7 +2,7 @@ import { LinkOptions } from '@tanstack/react-router'
 import { createContext, useContext, type PropsWithChildren } from 'react'
 
 export type FormConfigProps = {
-  mode: 'create' | 'edit'
+  mode: 'create' | 'update'
   id?: string
   backTo?: LinkOptions
 }

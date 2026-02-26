@@ -1,12 +1,4 @@
-import {
-  Page,
-  PageActions,
-  PageContent,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  PageTitleContainer,
-} from '@/components/layout/page-old'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -33,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronLeftIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react'
+import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/_app/examples/complex-form/')({
@@ -95,27 +87,12 @@ function ComplexFormPage() {
 
   return (
     <Page>
-      <PageHeader sticky>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="-ml-2">
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <PageTitleContainer>
-            <PageTitle>New Invoice</PageTitle>
-            <PageDescription>
-              Create a new invoice for a client.
-            </PageDescription>
-          </PageTitleContainer>
-        </div>
-        <PageActions>
-          <Button variant="outline">Save Draft</Button>
-          <Button>
-            <SaveIcon className="mr-2 h-4 w-4" />
-            Send Invoice
-          </Button>
-        </PageActions>
-      </PageHeader>
-      <PageContent>
+      <Page.BlockHeader
+        title="Complex Form"
+        description="Create a new invoice for a client."
+      />
+
+      <Page.Content>
         <div className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
@@ -204,12 +181,10 @@ function ComplexFormPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-[100px]">Quantity</TableHead>
-                    <TableHead className="w-[150px]">Unit Price</TableHead>
-                    <TableHead className="w-[150px] text-right">
-                      Amount
-                    </TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-25">Quantity</TableHead>
+                    <TableHead className="w-37.5">Unit Price</TableHead>
+                    <TableHead className="w-37.5 text-right">Amount</TableHead>
+                    <TableHead className="w-12.5"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -279,22 +254,22 @@ function ComplexFormPage() {
               </Table>
             </CardContent>
             <div className="p-6 bg-muted/20 border-t flex flex-col items-end gap-2">
-              <div className="flex justify-between w-[300px] text-sm">
+              <div className="flex justify-between w-75 text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${calculateSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between w-[300px] text-sm">
+              <div className="flex justify-between w-75 text-sm">
                 <span className="text-muted-foreground">Tax (10%)</span>
                 <span>${(calculateSubtotal() * 0.1).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between w-[300px] text-lg font-bold mt-2">
+              <div className="flex justify-between w-75 text-lg font-bold mt-2">
                 <span>Total</span>
                 <span>${calculateTotal().toFixed(2)}</span>
               </div>
             </div>
           </Card>
         </div>
-      </PageContent>
+      </Page.Content>
     </Page>
   )
 }

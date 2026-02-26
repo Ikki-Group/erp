@@ -1,40 +1,47 @@
 import { Button } from '@/components/ui/button'
 
 import { MoonIcon, SunIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+// import { create } from 'zustand'
+// import { createJSONStorage, persist } from 'zustand/middleware'
 
-export type Theme = 'light' | 'dark'
+// export type Theme = 'light' | 'dark'
 
-interface State {
-  theme: Theme
-  set: (theme: Theme) => void
-  toggle: () => void
-}
+// interface State {
+//   theme: Theme
+//   set: (theme: Theme) => void
+//   toggle: () => void
+// }
 
-export const useTheme = create<State>()(
-  persist(
-    (set) => ({
-      theme: 'light',
-      set: (theme) => set({ theme }),
-      toggle: () =>
-        set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
-    }),
-    {
-      name: 'theme',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
-)
+// export const useTheme = create<State>()(
+//   persist(
+//     (set) => ({
+//       theme: 'light',
+//       set: (theme) => set({ theme }),
+//       toggle: () =>
+//         set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+//     }),
+//     {
+//       name: 'theme-provider',
+//       storage: createJSONStorage(() => localStorage),
+//     },
+//   ),
+// )
 
 export function ThemeListener() {
-  const { theme } = useTheme()
+  // const { theme } = useTheme()
 
-  useEffect(() => {
-    document.documentElement.classList.remove('light', 'dark')
-    document.documentElement.classList.add(theme)
-  }, [theme])
+  // useEffect(() => {
+  //   // console.log({ theme })
+  //   // document.documentElement.classList.remove('light', 'dark')
+  //   // document.documentElement.classList.add(theme)
+  //   // // Update color scheme
+  //   // const meta = document.querySelector('meta[name="theme-color"]')
+  //   // if (meta) {
+  //   //   meta.setAttribute('content', theme === 'light' ? '#ffffff' : '#000000')
+  //   // }
+  // }, [theme])
 
   useEffect(() => {
     const isIphone = /iPhone/i.test(navigator.userAgent)
@@ -52,10 +59,14 @@ export function ThemeListener() {
 }
 
 export function ThemeSwitcher() {
-  const { toggle } = useTheme()
+  const { setTheme } = useTheme()
+
+  const onClick = () => {
+    setTheme((t) => (t === 'light' ? 'dark' : 'light'))
+  }
 
   return (
-    <Button variant="outline" onClick={toggle} className="size-8 rounded-full">
+    <Button variant="outline" onClick={onClick} className="size-8 rounded-full">
       <SunIcon className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" />
       <MoonIcon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" />
       <span className="sr-only">Toggle theme</span>
