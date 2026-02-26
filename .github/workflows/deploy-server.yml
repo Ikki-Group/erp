@@ -10,33 +10,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    concurrency: deploy-group
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        working-directory: apps/server
-        run: npm ci
-
-      - name: Determine Fly app
-        id: flyapp
-        run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            echo "app=${FLY_APP_MAIN}" >> $GITHUB_OUTPUT
-          else
-            echo "app=${FLY_APP_DEV}" >> $GITHUB_OUTPUT
-          fi
-        env:
-          FLY_APP_MAIN: ${{ secrets.FLY_APP_MAIN }}
-          FLY_APP_DEV: ${{ secrets.FLY_APP_DEV }}
-
-      - name: Deploy to Fly.io
-        uses: superfly/flyctl-actions@v1
-        with:
-          args: deploy --config apps/server/fly.toml --app ${{ steps.flyapp.outputs.app }} --remote-only
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: cd apps/server && flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

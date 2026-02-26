@@ -1,32 +1,17 @@
-FROM oven/bun AS build
+FROM oven/bun:1
 
 WORKDIR /app
 
-# Cache packages installation
 COPY package.json package.json
 COPY bun.lock bun.lock
 
-RUN bun install
+RUN bun install --ignore-scripts
 
-COPY ./src ./src
+COPY . .
 
-ENV NODE_ENV=production
-
-RUN bun build \
-	--compile \
-	--minify-whitespace \
-	--minify-syntax \
-	--outfile server \
-	src/index.ts
-
-FROM gcr.io/distroless/base
-
-WORKDIR /app
-
-COPY --from=build /app/server server
+RUN bun run build
 
 ENV NODE_ENV=production
 
-CMD ["./server"]
-
+CMD [ "bun", "run", "dist/server.js" ]
 EXPOSE 3000
