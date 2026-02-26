@@ -3,11 +3,15 @@ FROM oven/bun:1
 WORKDIR /app
 
 COPY package.json package.json
-RUN bun install
+COPY bun.lock bun.lock
+
+RUN bun install --ignore-scripts
 
 COPY . .
 
+RUN bun run build
+
 ENV NODE_ENV=production
 
-CMD [ "bun", "run", "src/server.ts" ]
+CMD [ "bun", "run", "dist/server.js" ]
 EXPOSE 3000
