@@ -1,5 +1,6 @@
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
+import { ConflictError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -13,8 +14,8 @@ import { materialTable } from '@/database/schema'
 import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
 
 const err = {
-  notFound: (id: number) => new Error(`Material with ID ${id} not found`),
-  conflict: (sku: string) => new Error(`Material with SKU ${sku} already exists`),
+  notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`),
+  conflict: (sku: string) => new ConflictError(`Material with SKU ${sku} already exists`),
 }
 
 export class MaterialService {
