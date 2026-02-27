@@ -1,9 +1,11 @@
-import { cn } from '@/lib/utils'
-import { Link, LinkOptions } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { ArrowLeftIcon } from 'lucide-react'
-import { ComponentProps } from 'react'
+import { cva } from 'class-variance-authority'
 import { Button } from '../ui/button'
-import { cva, VariantProps } from 'class-variance-authority'
+import type { VariantProps } from 'class-variance-authority';
+import type { ComponentProps } from 'react'
+import type { LinkOptions } from '@tanstack/react-router';
+import { cn } from '@/lib/utils'
 
 const pageVariants = cva('w-full mx-auto flex-1 flex py-6 flex-col gap-4', {
   variants: {

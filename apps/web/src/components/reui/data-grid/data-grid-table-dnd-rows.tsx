@@ -1,5 +1,27 @@
-import { createContext, CSSProperties, useContext, useId, useMemo, useRef } from "react";
-import { useDataGrid } from "@/components/reui/data-grid/data-grid";
+import { createContext, use, useId, useMemo, useRef } from "react";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors
+  
+  
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { flexRender } from "@tanstack/react-table";
+
+import { GripHorizontalIcon } from "lucide-react";
+import type { Cell, HeaderGroup, Row } from "@tanstack/react-table";
+import type {DragEndEvent, Modifier,
+  UniqueIdentifier} from "@dnd-kit/core";
+import type { CSSProperties} from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DataGridTableBase,
   DataGridTableBody,
@@ -14,26 +36,7 @@ import {
   DataGridTableHeadRowCellResize,
   DataGridTableRowSpacer,
 } from "@/components/reui/data-grid/data-grid-table";
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  UniqueIdentifier,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type Modifier,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Cell, flexRender, HeaderGroup, Row } from "@tanstack/react-table";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { GripHorizontalIcon } from "lucide-react";
+import { useDataGrid } from "@/components/reui/data-grid/data-grid";
 
 // Context to share sortable listeners from row to handle
 type SortableContextValue = ReturnType<typeof useSortable>;
@@ -43,7 +46,7 @@ const SortableRowContext = createContext<Pick<
 > | null>(null);
 
 function DataGridTableDndRowHandle({ className }: { className?: string }) {
-  const context = useContext(SortableRowContext);
+  const context = use(SortableRowContext);
 
   if (!context) {
     // Fallback if context is not available (shouldn't happen in normal usage)
@@ -92,7 +95,7 @@ function DataGridTableDndRow<TData>({ row }: { row: Row<TData> }) {
   };
 
   return (
-    <SortableRowContext.Provider value={{ attributes, listeners }}>
+    <SortableRowContext value={{ attributes, listeners }}>
       <DataGridTableBodyRow row={row} dndRef={setNodeRef} dndStyle={style} key={row.id}>
         {row.getVisibleCells().map((cell: Cell<TData, unknown>, colIndex) => {
           return (
@@ -102,7 +105,7 @@ function DataGridTableDndRow<TData>({ row }: { row: Row<TData> }) {
           );
         })}
       </DataGridTableBodyRow>
-    </SortableRowContext.Provider>
+    </SortableRowContext>
   );
 }
 
@@ -111,7 +114,7 @@ function DataGridTableDndRows<TData>({
   dataIds,
 }: {
   handleDragEnd: (event: DragEndEvent) => void;
-  dataIds: UniqueIdentifier[];
+  dataIds: Array<UniqueIdentifier>;
 }) {
   const { table, isLoading, props } = useDataGrid();
   const pagination = table.getState().pagination;

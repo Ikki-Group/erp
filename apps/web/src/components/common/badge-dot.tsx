@@ -1,5 +1,5 @@
+import type { ComponentProps } from 'react'
 import { Badge } from '@/components/reui/badge'
-import { ComponentProps } from 'react'
 
 export interface BadgeDotProps extends ComponentProps<typeof Badge> {}
 

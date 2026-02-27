@@ -1,20 +1,21 @@
-import { CardSection } from '@/components/card/card-section'
+import { formOptions } from '@tanstack/react-form'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import z from 'zod'
+import { toast } from 'sonner'
+import { userApi } from '../api'
+import type { LinkOptions} from '@tanstack/react-router';
+import type { UserDto } from '../dto'
+import { Separator } from '@/components/ui/separator'
+import { Card } from '@/components/ui/card'
+import { Page } from '@/components/layout/page'
 import {
   FormConfig,
   useAppForm,
   useFormConfig,
   useTypedAppFormContext,
 } from '@/components/form'
-import { Page } from '@/components/layout/page'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { formOptions } from '@tanstack/react-form'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { LinkOptions, useNavigate } from '@tanstack/react-router'
-import z from 'zod'
-import { userApi } from '../api'
-import { toast } from 'sonner'
-import { UserDto } from '../dto'
+import { CardSection } from '@/components/card/card-section'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 const FormDto = z.object({

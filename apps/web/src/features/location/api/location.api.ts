@@ -1,8 +1,8 @@
+import z from 'zod'
+import { LocationDto, LocationMutationDto } from '../dto/location.dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-import { LocationDto, LocationMutationDto } from '../dto/location.dto'
 import { endpoint } from '@/config/endpoint'
-import z from 'zod'
 
 export const locationApi = {
   list: apiFactory({

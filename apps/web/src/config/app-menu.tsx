@@ -1,10 +1,11 @@
 import {
   LayoutDashboardIcon,
   LayoutTemplateIcon,
-  LucideIcon,
   PackageIcon,
   Settings2Icon,
 } from "lucide-react";
+import type {
+  LucideIcon} from "lucide-react";
 
 export interface AppMenu {
   title: string;
@@ -12,11 +13,11 @@ export interface AppMenu {
   icon: LucideIcon;
   isHide?: boolean;
   isActive?: boolean;
-  children?: Omit<AppMenu, "children" | "icon">[];
+  children?: Array<Omit<AppMenu, "children" | "icon">>;
 }
 
-export function getAppMenu(pathname: string): AppMenu[] {
-  const menus: AppMenu[] = [
+export function getAppMenu(pathname: string): Array<AppMenu> {
+  const menus: Array<AppMenu> = [
     {
       title: "Dashboard",
       href: "/",
@@ -113,7 +114,7 @@ export function getAppMenu(pathname: string): AppMenu[] {
     },
   ];
 
-  return menus.reduce<AppMenu[]>((acc, menu) => {
+  return menus.reduce<Array<AppMenu>>((acc, menu) => {
     if (menu.isHide) return acc;
     return [...acc, menu];
   }, []);

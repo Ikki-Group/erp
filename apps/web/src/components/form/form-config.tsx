@@ -1,5 +1,6 @@
-import { LinkOptions } from '@tanstack/react-router'
-import { createContext, useContext, type PropsWithChildren } from 'react'
+import {  createContext, use } from 'react'
+import type {PropsWithChildren} from 'react';
+import type { LinkOptions } from '@tanstack/react-router'
 
 export type FormConfigProps = {
   mode: 'create' | 'update'
@@ -17,7 +18,7 @@ export function FormConfig({
 }
 
 export function useFormConfig(): FormConfigProps {
-  const ctx = useContext(Ctx)
+  const ctx = use(Ctx)
   if (!ctx) {
     throw new Error('useFormConfig must be used within <form.Config>')
   }

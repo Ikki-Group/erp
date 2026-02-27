@@ -1,15 +1,16 @@
-import { CardStat, CardStatProps } from '@/components/card/card-stat'
-import { Page } from '@/components/layout/page'
-import { Tabs } from '@/components/ui/tabs'
-import { settingsApi } from '@/features/dashboard/api/settings.api'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import {
-  createFileRoute,
   Link,
   Outlet,
+  createFileRoute,
   useLocation,
 } from '@tanstack/react-router'
 import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+import type { CardStatProps } from '@/components/card/card-stat';
+import { CardStat } from '@/components/card/card-stat'
+import { Page } from '@/components/layout/page'
+import { Tabs } from '@/components/ui/tabs'
+import { settingsApi } from '@/features/dashboard/api/settings.api'
 
 const TABS = [
   ['Pengguna', '/settings/user'],
@@ -75,7 +76,7 @@ function SettingsSummarySection() {
       value: data.data.locations,
       icon: MapPinIcon,
     },
-  ] satisfies CardStatProps[]
+  ] satisfies Array<CardStatProps>
 
   return (
     <Page.Content className="flex flex-wrap gap-2">

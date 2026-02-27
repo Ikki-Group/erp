@@ -1,5 +1,5 @@
-import { zSchema, zPrimitive } from '@/lib/zod'
 import z from 'zod'
+import { zPrimitive, zSchema } from '@/lib/zod'
 
 export const RoleDto = z.object({
   id: zPrimitive.num,

@@ -1,3 +1,8 @@
+import { Link, Outlet, useLocation } from '@tanstack/react-router'
+import { ChevronRightIcon } from 'lucide-react'
+import { Suspense, useMemo } from 'react'
+import { Separator } from '../ui/separator'
+import { LoadingPage } from '../common/loading-page'
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,15 +24,10 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { Link, Outlet, useLocation } from '@tanstack/react-router'
-import { ChevronRightIcon } from 'lucide-react'
-import { Suspense, useMemo } from 'react'
 import { IkkiLogo } from '@/components/common/logo'
 import { ThemeSwitcher } from '@/components/common/theme'
 import { getAppMenu } from '@/config/app-menu'
 import { LocationSwitcher } from '@/features/locations/components/location-switcher'
-import { Separator } from '../ui/separator'
-import { LoadingPage } from '../common/loading-page'
 
 export function AppLayout() {
   return (

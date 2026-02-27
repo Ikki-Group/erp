@@ -1,9 +1,9 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { FileDownIcon, FileUpIcon, PlusIcon } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Page } from '@/components/layout/page'
 import { DataTable } from '@/components/common/templates/DataTable'
 import { Button } from '@/components/ui/button'
-import { createFileRoute } from '@tanstack/react-router'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon, FileDownIcon, FileUpIcon } from 'lucide-react'
 
 // Define the Payment type
 type Payment = {
@@ -14,7 +14,7 @@ type Payment = {
   date: string
 }
 
-const data: Payment[] = [
+const data: Array<Payment> = [
   {
     id: 'm5gr84i9',
     amount: 316,
@@ -59,7 +59,7 @@ const data: Payment[] = [
   },
 ]
 
-const columns: ColumnDef<Payment>[] = [
+const columns: Array<ColumnDef<Payment>> = [
   {
     accessorKey: 'id',
     header: 'Transaction ID',
@@ -73,7 +73,7 @@ const columns: ColumnDef<Payment>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const status = row.getValue('status') as string
+      const status = row.getValue('status')
       return <div className="capitalize">{status}</div>
     },
   },

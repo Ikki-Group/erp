@@ -5,7 +5,7 @@ import type { Product } from "./types";
  * Simulated product data for development
  */
 
-export const MOCK_PRODUCTS: Product[] = [
+export const MOCK_PRODUCTS: Array<Product> = [
   {
     id: "1",
     code: "RM-001",

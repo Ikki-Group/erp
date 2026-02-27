@@ -1,15 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Stack, Inline } from "@/components/common/layout/primitives";
 import {
   AlertTriangleIcon,
+  ArrowLeftIcon,
   FileQuestionIcon,
-  ServerCrashIcon,
   HomeIcon,
   RefreshCwIcon,
-  ArrowLeftIcon,
+  ServerCrashIcon,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Inline, Stack } from "@/components/common/layout/primitives";
 
 interface ErrorPageProps {
   title: string;

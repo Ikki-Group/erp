@@ -1,12 +1,13 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
-import { ColumnFiltersState, RowData, SortingState, Table } from "@tanstack/react-table";
+import { createContext, use } from "react";
+import type { ReactNode} from "react";
+import type { ColumnFiltersState, RowData, SortingState, Table } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 
 declare module "@tanstack/react-table" {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   interface ColumnMeta<TData extends RowData, TValue> {
     headerTitle?: string;
     headerClassName?: string;
@@ -25,7 +26,7 @@ export type DataGridApiFetchParams = {
 };
 
 export type DataGridApiResponse<T> = {
-  data: T[];
+  data: Array<T>;
   empty: boolean;
   pagination: {
     total: number;
@@ -89,7 +90,7 @@ export interface DataGridProps<TData extends object> {
 const DataGridContext = createContext<DataGridContextProps<any> | undefined>(undefined);
 
 function useDataGrid() {
-  const context = useContext(DataGridContext);
+  const context = use(DataGridContext);
   if (!context) {
     throw new Error("useDataGrid must be used within a DataGridProvider");
   }
@@ -102,7 +103,7 @@ function DataGridProvider<TData extends object>({
   ...props
 }: DataGridProps<TData> & { table: Table<TData> }) {
   return (
-    <DataGridContext.Provider
+    <DataGridContext
       value={{
         props,
         table,
@@ -111,7 +112,7 @@ function DataGridProvider<TData extends object>({
       }}
     >
       {children}
-    </DataGridContext.Provider>
+    </DataGridContext>
   );
 }
 

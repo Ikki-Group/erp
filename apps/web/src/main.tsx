@@ -6,9 +6,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { z } from 'zod'
 
-z.config(z.locales.id())
-
 import { App } from './app'
+
+z.config(z.locales.id())
 
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {

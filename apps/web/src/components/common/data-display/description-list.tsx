@@ -1,5 +1,5 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
 
 export interface DescriptionItem {
   term: ReactNode;
@@ -10,7 +10,7 @@ export interface DescriptionItem {
 }
 
 interface DescriptionListProps extends React.HTMLAttributes<HTMLDListElement> {
-  items: DescriptionItem[];
+  items: Array<DescriptionItem>;
   variant?: "default" | "bordered" | "striped";
   layout?: "vertical" | "horizontal";
   columns?: 1 | 2 | 3;

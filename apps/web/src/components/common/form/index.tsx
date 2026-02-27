@@ -3,7 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 
 import { cn } from "@/lib/utils";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -55,7 +55,7 @@ interface FormFieldProps {
     value: any;
     onChange: (value: any) => void;
     onBlur: () => void;
-    errors: string[];
+    errors: Array<string>;
   }) => React.ReactNode;
 }
 
@@ -210,7 +210,7 @@ interface FormSelectProps {
   description?: string;
   orientation?: "vertical" | "horizontal" | "responsive";
   validators?: any;
-  options: SelectOption[];
+  options: Array<SelectOption>;
   placeholder?: string;
   className?: string;
 }

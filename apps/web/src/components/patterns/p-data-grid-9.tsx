@@ -1,26 +1,27 @@
 import { useMemo, useState } from "react";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { SquareMinusIcon, SquarePlusIcon } from "lucide-react";
+import type {
+  ColumnDef,
+  ExpandedState,
+  PaginationState,
+  SortingState} from "@tanstack/react-table";
+import type { VariantProps } from "class-variance-authority";
 import { Badge } from "@/components/reui/badge";
 import { DataGrid, DataGridContainer } from "@/components/reui/data-grid/data-grid";
 import { DataGridColumnHeader } from "@/components/reui/data-grid/data-grid-column-header";
 import { DataGridPagination } from "@/components/reui/data-grid/data-grid-pagination";
 import { DataGridTable } from "@/components/reui/data-grid/data-grid-table";
-import {
-  ColumnDef,
-  ExpandedState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  PaginationState,
-  SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
-import type { VariantProps } from "class-variance-authority";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { SquareMinusIcon, SquarePlusIcon } from "lucide-react";
 
 interface OrderItemData {
   id: string;
@@ -41,10 +42,10 @@ interface Data {
     label: string;
     variant: VariantProps<typeof Badge>["variant"];
   };
-  items: OrderItemData[];
+  items: Array<OrderItemData>;
 }
 
-const demoData: Data[] = [
+const demoData: Array<Data> = [
   {
     id: "1",
     orderNumber: "SO-001",
@@ -1715,14 +1716,14 @@ const demoData: Data[] = [
 ];
 
 // Sub-table component for order items
-function OrderItemsSubTable({ items }: { items: OrderItemData[] }) {
+function OrderItemsSubTable({ items }: { items: Array<OrderItemData> }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5, // Show 3 items per page for sub-tables
   });
 
-  const columns = useMemo<ColumnDef<OrderItemData>[]>(
+  const columns = useMemo<Array<ColumnDef<OrderItemData>>>(
     () => [
       {
         accessorKey: "productName",
@@ -1804,7 +1805,7 @@ export function PDataGrid9() {
   });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expandedRows, setExpandedRows] = useState<ExpandedState>({});
-  const [columnOrder, setColumnOrder] = useState<string[]>([
+  const [columnOrder, setColumnOrder] = useState<Array<string>>([
     "expand",
     "orderNumber",
     "customer",
@@ -1812,7 +1813,7 @@ export function PDataGrid9() {
     "status",
   ]);
 
-  const columns = useMemo<ColumnDef<Data>[]>(
+  const columns = useMemo<Array<ColumnDef<Data>>>(
     () => [
       {
         id: "expand",
@@ -1876,7 +1877,7 @@ export function PDataGrid9() {
           <DataGridColumnHeader title="Items" visibility={true} column={column} />
         ),
         cell: (info) => {
-          const items = info.getValue() as OrderItemData[];
+          const items = info.getValue() as Array<OrderItemData>;
           const itemCount = items.length;
           return (
             <div

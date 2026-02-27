@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { zodValidator } from "@tanstack/zod-form-adapter";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

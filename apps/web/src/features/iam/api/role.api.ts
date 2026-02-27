@@ -1,8 +1,8 @@
+import z from 'zod'
+import { RoleDto, RoleMutationDto } from '../dto/role.dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-import { RoleDto, RoleMutationDto } from '../dto/role.dto'
 import { endpoint } from '@/config/endpoint'
-import z from 'zod'
 
 export const roleApi = {
   list: apiFactory({

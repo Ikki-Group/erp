@@ -1,14 +1,15 @@
+import { useQuery } from '@tanstack/react-query'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { createColumnHelper } from '@tanstack/react-table'
+import { PencilIcon } from 'lucide-react'
+import type { LocationDto } from '@/features/location';
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
 import { Button } from '@/components/ui/button'
-import { locationApi, LocationDto } from '@/features/location'
+import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
-import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/location')({
   component: RouteComponent,

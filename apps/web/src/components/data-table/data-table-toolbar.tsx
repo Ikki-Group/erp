@@ -1,6 +1,7 @@
 import { Settings2Icon, XIcon } from "lucide-react";
-import { ComponentProps } from "react";
-import { Table } from "@tanstack/react-table";
+import { useDataTableContext } from "./data-table-context";
+import type { ComponentProps } from "react";
+import type { Table } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDataTableContext } from "./data-table-context";
 import { cn } from "@/lib/utils";
 
 interface DataTableToolbarProps extends ComponentProps<"div"> {

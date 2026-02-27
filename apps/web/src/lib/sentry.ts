@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react";
-import { type Router } from "@tanstack/react-router";
+import type {Router} from "@tanstack/react-router";
 
 export const initSentry = (router: Router<any, any>) => {
   Sentry.init({

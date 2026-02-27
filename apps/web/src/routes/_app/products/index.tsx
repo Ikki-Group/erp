@@ -1,5 +1,18 @@
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import {
+  AlertTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PackageIcon,
+  PlusIcon,
+  SearchIcon,
+  TrendingUpIcon,
+  XIcon,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import type { ProductCategory, ProductStatus } from '@/features/products/types'
 import { Page } from '@/components/layout/page'
-import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
+import { Grid, Inline, Stack } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -17,17 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import {
-  PlusIcon,
-  PackageIcon,
-  TrendingUpIcon,
-  AlertTriangleIcon,
-  SearchIcon,
-  XIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from 'lucide-react'
 import {
   MOCK_PRODUCTS,
   formatCurrency,
@@ -35,8 +37,6 @@ import {
   getStatusLabel,
   getStockStatus,
 } from '@/features/products/mock-data'
-import type { ProductCategory, ProductStatus } from '@/features/products/types'
-import { useMemo, useState } from 'react'
 
 export const Route = createFileRoute('/_app/products/')({
   component: ProductsPage,

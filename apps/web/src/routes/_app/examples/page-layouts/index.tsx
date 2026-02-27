@@ -1,3 +1,5 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon } from 'lucide-react'
 import { Page } from '@/components/layout/page'
 import { Grid, Stack } from '@/components/common/layout/primitives'
 import {
@@ -9,8 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-import { createFileRoute } from '@tanstack/react-router'
-import { PlusIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/page-layouts/')({
   component: PageLayoutsExample,

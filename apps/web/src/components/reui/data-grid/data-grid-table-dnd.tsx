@@ -1,7 +1,26 @@
 "use client";
 
-import { CSSProperties, Fragment, useId, useRef } from "react";
-import { useDataGrid } from "@/components/reui/data-grid/data-grid";
+import { Fragment, useId, useRef } from "react";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors
+  
+} from "@dnd-kit/core";
+import { SortableContext, horizontalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { flexRender } from "@tanstack/react-table";
+
+import { GripVerticalIcon } from "lucide-react";
+import type { Cell, Header, HeaderGroup, Row } from "@tanstack/react-table";
+import type {DragEndEvent,
+  Modifier} from "@dnd-kit/core";
+import type { CSSProperties} from "react";
+import { Button } from "@/components/ui/button";
 import {
   DataGridTableBase,
   DataGridTableBody,
@@ -17,23 +36,7 @@ import {
   DataGridTableHeadRowCellResize,
   DataGridTableRowSpacer,
 } from "@/components/reui/data-grid/data-grid-table";
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  Modifier,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Cell, flexRender, Header, HeaderGroup, Row } from "@tanstack/react-table";
-
-import { Button } from "@/components/ui/button";
-import { GripVerticalIcon } from "lucide-react";
+import { useDataGrid } from "@/components/reui/data-grid/data-grid";
 
 function DataGridTableDndHeader<TData>({ header }: { header: Header<TData, unknown> }) {
   const { props } = useDataGrid();

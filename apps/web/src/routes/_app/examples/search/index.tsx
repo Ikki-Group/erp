@@ -1,3 +1,12 @@
+import {
+  CheckIcon,
+  Loader2Icon,
+  PlusIcon,
+  SearchIcon,
+  XIcon,
+} from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { Page } from '@/components/layout/page'
 import { Command, CommandItem, CommandList } from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
@@ -12,15 +21,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import {
-  CheckIcon,
-  Loader2Icon,
-  SearchIcon,
-  PlusIcon,
-  XIcon,
-} from 'lucide-react'
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
 
 // --- Types ---
 type Ingredient = {
@@ -34,7 +34,7 @@ type Ingredient = {
 const CATEGORIES = ['Vegetables', 'Fruits', 'Spices', 'Dairy', 'Meat', 'Grains']
 
 // --- Mock Data Generator ---
-const generateMockData = (count: number): Ingredient[] => {
+const generateMockData = (count: number): Array<Ingredient> => {
   return Array.from({ length: count }).map((_, i) => ({
     id: `ing-${i + 1}`,
     name: `Ingredient ${i + 1}`,
@@ -47,7 +47,7 @@ const generateMockData = (count: number): Ingredient[] => {
 const MOCK_DB = generateMockData(500) // Large dataset simulation
 
 // --- Mock Server Action ---
-const searchIngredients = async (query: string): Promise<Ingredient[]> => {
+const searchIngredients = async (query: string): Promise<Array<Ingredient>> => {
   await new Promise((resolve) => setTimeout(resolve, 500)) // Network latency
   if (!query) return MOCK_DB.slice(0, 20)
   return MOCK_DB.filter(
@@ -63,7 +63,7 @@ export const Route = createFileRoute('/_app/examples/search/')({
 
 function SearchDialogPage() {
   const [selectedSingle, setSelectedSingle] = useState<Ingredient | null>(null)
-  const [selectedMultiple, setSelectedMultiple] = useState<Ingredient[]>([])
+  const [selectedMultiple, setSelectedMultiple] = useState<Array<Ingredient>>([])
 
   return (
     <Page>
@@ -173,7 +173,7 @@ function SingleSelectDialog({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Ingredient[]>([])
+  const [results, setResults] = useState<Array<Ingredient>>([])
   const [loading, setLoading] = useState(false)
 
   // Simple debounce logic inside effect
@@ -258,12 +258,12 @@ function MultiSelectDialog({
   onConfirm,
   selectedIds = [],
 }: {
-  onConfirm: (items: Ingredient[]) => void
-  selectedIds?: string[]
+  onConfirm: (items: Array<Ingredient>) => void
+  selectedIds?: Array<string>
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Ingredient[]>([])
+  const [results, setResults] = useState<Array<Ingredient>>([])
   const [loading, setLoading] = useState(false)
   const [tempSelected, setTempSelected] = useState<Set<string>>(
     new Set(selectedIds),
@@ -323,7 +323,7 @@ function MultiSelectDialog({
       .map((id) => {
         return selectedItemsMap.get(id) || results.find((r) => r.id === id)
       })
-      .filter(Boolean) as Ingredient[]
+      .filter(Boolean) as Array<Ingredient>
 
     onConfirm(items)
     setOpen(false)

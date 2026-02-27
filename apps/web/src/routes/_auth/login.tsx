@@ -3,26 +3,26 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  Loader2Icon,
-  MailIcon,
-  LockIcon,
-  EyeIcon,
-  EyeOffIcon,
   ArrowRightIcon,
   CheckCircle2Icon,
   CommandIcon,
+  EyeIcon,
+  EyeOffIcon,
+  Loader2Icon,
+  LockIcon,
+  MailIcon,
 } from "lucide-react";
 import { useState } from "react";
 
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupInput,
   InputGroupButton,
+  InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/features/iam";
 import { useAuth } from "@/lib/auth";
 
