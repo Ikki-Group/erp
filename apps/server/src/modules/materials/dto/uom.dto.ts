@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -14,7 +14,7 @@ export type UomDto = z.infer<typeof UomDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const UomFilterDto = z.object({
-  search: zPrimitive.str,
+  search: zHttp.query.search,
 })
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>

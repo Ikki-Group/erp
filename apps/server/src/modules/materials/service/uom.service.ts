@@ -1,5 +1,6 @@
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
+import { ConflictError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -13,8 +14,8 @@ import { uomTable } from '@/database/schema'
 import type { UomCreateDto, UomDto, UomFilterDto, UomUpdateDto } from '../dto'
 
 const err = {
-  notFound: (code: string) => new Error(`UOM with code ${code} not found`),
-  conflict: (code: string) => new Error(`UOM code ${code} already exists`),
+  notFound: (code: string) => new NotFoundError(`UOM with code ${code} not found`),
+  conflict: (code: string) => new ConflictError(`UOM code ${code} already exists`),
 }
 
 export class UomService {
