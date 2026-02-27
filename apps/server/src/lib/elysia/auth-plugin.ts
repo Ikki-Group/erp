@@ -29,7 +29,7 @@ export function createAuthPlugin(iamService: IamServiceModule) {
 
       if (token) {
         token = token.startsWith('Bearer ') ? token.slice(7) : token
-        const user = await iamService.auth.verifyToken(token)
+        const user = await iamService.auth.verifyToken(token).catch(() => null)
         auth = new AuthContext(user)
       }
 
@@ -50,6 +50,11 @@ export const authPluginMacro = new Elysia({ name: 'auth-plugin' })
   })
   .macro({
     isAuthenticated: (enabled: boolean) => ({
+      resolve: ({ auth }) => {
+        if (enabled && !auth.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
+      },
+    }),
+    auth: (enabled: boolean) => ({
       resolve: ({ auth }) => {
         if (enabled && !auth.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
       },
