@@ -1,6 +1,6 @@
 import { and, count, eq, ilike } from 'drizzle-orm'
 
-import { NotFoundError } from '@/lib/error/http'
+import { InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -78,7 +78,7 @@ export class MaterialCategoryService {
       })
       .returning()
 
-    if (!category) throw new Error('Failed to create material category')
+    if (!category) throw new InternalServerError('Failed to create material category')
     return category
   }
 

@@ -1,6 +1,6 @@
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -89,7 +89,7 @@ export class UomService {
       })
       .returning()
 
-    if (!uom) throw new Error('Failed to create UOM')
+    if (!uom) throw new InternalServerError('Failed to create UOM')
     return uom
   }
 
