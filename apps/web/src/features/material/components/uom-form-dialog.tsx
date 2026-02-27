@@ -33,16 +33,16 @@ function getDefaultValues(v?: UomDto): FormDto {
 }
 
 interface UomFormDialogProps {
-  code?: string
+  id?: number
 }
 
 export const UomFormDialog = createCallable<UomFormDialogProps>(props => {
-  const { call, code } = props
-  const isCreate = code === undefined
+  const { call, id } = props
+  const isCreate = id === undefined
 
   const selectedUom = useQuery({
-    ...uomApi.detail.query({ code: code ?? '' }),
-    enabled: !!props.code,
+    ...uomApi.detail.query({ id: id! }),
+    enabled: !!props.id,
     refetchOnMount: true,
   })
 
@@ -65,6 +65,7 @@ export const UomFormDialog = createCallable<UomFormDialogProps>(props => {
           })
         : update.mutateAsync({
             body: {
+              id: id,
               ...value,
             },
           })

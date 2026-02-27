@@ -2,6 +2,7 @@ import z from 'zod'
 import { zPrimitive, zSchema } from '@/lib/zod'
 
 export const UomDto = z.object({
+  id: zPrimitive.idNum,
   code: zPrimitive.str,
   ...zSchema.meta.shape,
 })

@@ -10,7 +10,8 @@ export const materialCategoryTable = pgTable('materialCategories', {
 })
 
 export const uomTable = pgTable('uoms', {
-  code: varchar({ length: 255 }).notNull().primaryKey(),
+  id: serial().primaryKey(),
+  code: varchar({ length: 255 }).notNull(),
   ...metafields,
 })
 
@@ -22,9 +23,9 @@ export const materialTable = pgTable('materials', {
   categoryId: integer()
     .notNull()
     .references(() => materialCategoryTable.id),
-  baseUomCode: varchar({ length: 255 })
+  baseUomId: integer()
     .notNull()
-    .references(() => uomTable.code),
+    .references(() => uomTable.id),
   isActive: boolean().default(true).notNull(),
   ...metafields,
 })
@@ -35,13 +36,13 @@ export const materialUomConversionTable = pgTable(
     materialId: integer()
       .notNull()
       .references(() => materialTable.id),
-    fromUomCode: varchar({ length: 255 })
+    fromUomId: integer()
       .notNull()
-      .references(() => uomTable.code),
-    toUomCode: varchar({ length: 255 })
+      .references(() => uomTable.id),
+    toUomId: integer()
       .notNull()
-      .references(() => uomTable.code),
+      .references(() => uomTable.id),
     multiplier: numeric().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.materialId, t.fromUomCode, t.toUomCode] })]
+  (t) => [primaryKey({ columns: [t.materialId, t.fromUomId, t.toUomId] })]
 )

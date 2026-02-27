@@ -10,7 +10,7 @@ export const MaterialDto = z.object({
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   categoryId: zPrimitive.idNum,
-  baseUomCode: zPrimitive.str,
+  baseUomId: zPrimitive.idNum,
   isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
 })
@@ -33,7 +33,7 @@ export const MaterialCreateDto = z.object({
     description: true,
     sku: true,
     categoryId: true,
-    baseUomCode: true,
+    baseUomId: true,
     isActive: true,
   }).shape,
 })

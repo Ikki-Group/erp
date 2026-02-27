@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse } from '@/lib/validation'
+import { zHttp, zResponse, zSchema } from '@/lib/validation'
 
 import { UomCreateDto, UomDto, UomFilterDto, UomUpdateDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -29,11 +29,11 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .get(
       '/detail',
       async function detail({ query }) {
-        const category = await s.uom.findByCode(query.code)
+        const category = await s.uom.findById(query.id)
         return res.ok(category)
       },
       {
-        query: z.object({ code: zPrimitive.str }),
+        query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(UomDto),
         auth: true,
       }
@@ -41,36 +41,36 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .post(
       '/create',
       async function create({ body }) {
-        const { code } = await s.uom.create(body)
-        return res.created({ code }, 'MATERIAL_CATEGORY_CREATED')
+        const { id } = await s.uom.create(body)
+        return res.created({ id }, 'MATERIAL_CATEGORY_CREATED')
       },
       {
         body: UomCreateDto,
-        response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
     .put(
       '/update',
       async function update({ body }) {
-        const { code } = await s.uom.update(body)
-        return res.ok({ code }, 'MATERIAL_CATEGORY_UPDATED')
+        const { id } = await s.uom.update(body)
+        return res.ok({ id }, 'MATERIAL_CATEGORY_UPDATED')
       },
       {
         body: UomUpdateDto,
-        response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
     .delete(
       '/remove',
       async function remove({ query }) {
-        await s.uom.remove(query.code)
-        return res.ok({ code: query.code }, 'MATERIAL_CATEGORY_DELETED')
+        await s.uom.remove(query.id)
+        return res.ok({ id: query.id }, 'MATERIAL_CATEGORY_DELETED')
       },
       {
-        query: z.object({ code: zPrimitive.str }),
-        response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        query: z.object({ id: zHttp.query.idRequired }),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )

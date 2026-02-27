@@ -50,7 +50,7 @@ const columns = [
           <Button
             variant='ghost'
             size='icon-sm'
-            onClick={() => UomFormDialog.upsert({ code: row.original.code })}
+            onClick={() => UomFormDialog.upsert({ id: row.original.id })}
           >
             <PencilIcon />
           </Button>

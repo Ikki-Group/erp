@@ -14,7 +14,7 @@ import { uomTable } from '@/database/schema'
 import type { UomCreateDto, UomDto, UomFilterDto, UomUpdateDto } from '../dto'
 
 const err = {
-  notFound: (code: string) => new NotFoundError(`UOM with code ${code} not found`),
+  notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`),
   conflict: (code: string) => new ConflictError(`UOM code ${code} already exists`),
 }
 
@@ -70,10 +70,10 @@ export class UomService {
     }
   }
 
-  async findByCode(code: string): Promise<UomDto> {
-    const [uom] = await db.select().from(uomTable).where(eq(uomTable.code, code)).limit(1)
+  async findById(id: number): Promise<UomDto> {
+    const [uom] = await db.select().from(uomTable).where(eq(uomTable.id, id)).limit(1)
 
-    if (!uom) throw err.notFound(code)
+    if (!uom) throw err.notFound(id)
     return uom
   }
 
@@ -94,7 +94,7 @@ export class UomService {
   }
 
   async update(data: UomUpdateDto, updatedBy = 1): Promise<UomDto> {
-    const uom = await this.findByCode(data.code)
+    const uom = await this.findById(data.id)
 
     await this.#checkConflict(data, uom)
 
@@ -104,15 +104,15 @@ export class UomService {
         ...data,
         updatedBy,
       })
-      .where(eq(uomTable.code, data.code))
+      .where(eq(uomTable.id, data.id))
       .returning()
 
-    if (!updatedUom) throw err.notFound(uom.code)
+    if (!updatedUom) throw err.notFound(uom.id)
     return updatedUom
   }
 
-  async remove(code: string): Promise<void> {
-    await this.findByCode(code)
-    await db.delete(uomTable).where(eq(uomTable.code, code))
+  async remove(id: number): Promise<void> {
+    await this.findById(id)
+    await db.delete(uomTable).where(eq(uomTable.id, id))
   }
 }

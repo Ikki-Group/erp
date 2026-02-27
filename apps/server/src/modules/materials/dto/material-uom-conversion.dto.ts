@@ -6,8 +6,8 @@ import { zPrimitive, zSchema } from '@/lib/validation'
 
 export const MaterialUomConversionDto = z.object({
   materialId: zPrimitive.idNum,
-  fromUomCode: zPrimitive.str,
-  toUomCode: zPrimitive.str,
+  fromUomId: zPrimitive.str,
+  toUomId: zPrimitive.str,
   multiplier: zPrimitive.num,
   ...zSchema.meta.shape,
 })
