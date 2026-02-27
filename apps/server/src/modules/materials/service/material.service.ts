@@ -1,6 +1,6 @@
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
   withPagination,
@@ -89,7 +89,7 @@ export class MaterialService {
       })
       .returning()
 
-    if (!material) throw new Error('Failed to create material')
+    if (!material) throw new InternalServerError('Failed to create material')
     return material
   }
 
