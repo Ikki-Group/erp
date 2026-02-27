@@ -10,17 +10,6 @@ import type { IamServiceModule } from '../service'
 export function initUserRoute(s: IamServiceModule) {
   return new Elysia()
     .get(
-      '/me/detail',
-      // TODO: add auth guard
-      async function meDetail() {
-        const userDetail = await s.user.findDetailById(1)
-        return res.ok(userDetail)
-      },
-      {
-        response: zResponse.ok(UserDetailDto),
-      }
-    )
-    .get(
       '/list',
       async function list({ query }) {
         const { isActive, search, page, limit } = query
@@ -34,6 +23,7 @@ export function initUserRoute(s: IamServiceModule) {
           isActive: zHttp.query.boolean,
         }),
         response: zResponse.paginated(UserDto.array()),
+        auth: true,
       }
     )
     .get(
@@ -45,6 +35,7 @@ export function initUserRoute(s: IamServiceModule) {
       {
         query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(UserDetailDto),
+        auth: true,
       }
     )
     .post(
@@ -56,6 +47,7 @@ export function initUserRoute(s: IamServiceModule) {
       {
         body: UserCreateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .put(
@@ -67,6 +59,7 @@ export function initUserRoute(s: IamServiceModule) {
       {
         body: UserUpdateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .delete(
@@ -78,6 +71,7 @@ export function initUserRoute(s: IamServiceModule) {
       {
         body: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
 }

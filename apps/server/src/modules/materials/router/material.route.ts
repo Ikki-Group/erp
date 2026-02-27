@@ -35,6 +35,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       {
         query: z.object({ id: zPrimitive.idNum }),
         response: zResponse.ok(MaterialDto),
+        auth: true,
       }
     )
     .post(
@@ -46,6 +47,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       {
         body: MaterialCreateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .put(
@@ -57,6 +59,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       {
         body: MaterialUpdateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .delete(
@@ -68,6 +71,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       {
         query: zSchema.recordId,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
 }

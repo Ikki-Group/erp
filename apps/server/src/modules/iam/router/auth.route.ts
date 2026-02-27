@@ -27,8 +27,8 @@ export function initAuthRoute(service: IamServiceModule) {
         return res.ok(auth.user!, 'AUTH_ME_SUCCESS')
       },
       {
-        isAuthenticated: true,
         response: zResponse.ok(UserDetailDto),
+        auth: true,
       }
     )
 }

@@ -35,6 +35,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       {
         query: z.object({ code: zPrimitive.str }),
         response: zResponse.ok(UomDto),
+        auth: true,
       }
     )
     .post(
@@ -46,6 +47,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       {
         body: UomCreateDto,
         response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        auth: true,
       }
     )
     .put(
@@ -57,6 +59,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       {
         body: UomUpdateDto,
         response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        auth: true,
       }
     )
     .delete(
@@ -68,6 +71,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       {
         query: z.object({ code: zPrimitive.str }),
         response: zResponse.ok(z.object({ code: zPrimitive.str })),
+        auth: true,
       }
     )
 }

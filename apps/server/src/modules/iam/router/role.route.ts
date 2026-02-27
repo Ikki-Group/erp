@@ -22,6 +22,7 @@ export function initRoleRoute(service: IamServiceModule) {
           ...RoleFilterDto.shape,
         }),
         response: zResponse.paginated(RoleDto.array()),
+        auth: true,
       }
     )
     .get(
@@ -33,6 +34,7 @@ export function initRoleRoute(service: IamServiceModule) {
       {
         query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(RoleDto),
+        auth: true,
       }
     )
     .post(
@@ -44,6 +46,7 @@ export function initRoleRoute(service: IamServiceModule) {
       {
         body: RoleCreateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .put(
@@ -55,6 +58,7 @@ export function initRoleRoute(service: IamServiceModule) {
       {
         body: RoleUpdateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .delete(
@@ -66,6 +70,7 @@ export function initRoleRoute(service: IamServiceModule) {
       {
         body: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
 }

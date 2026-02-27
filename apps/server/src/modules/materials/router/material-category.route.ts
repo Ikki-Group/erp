@@ -40,6 +40,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       {
         query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(MaterialCategoryDto),
+        auth: true,
       }
     )
     .post(
@@ -51,6 +52,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       {
         body: MaterialCategoryCreateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .put(
@@ -62,6 +64,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       {
         body: MaterialCategoryUpdateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .delete(
@@ -73,6 +76,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       {
         query: z.object({ id: zHttp.query.idRequired }),
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
 }
