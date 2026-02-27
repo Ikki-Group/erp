@@ -2,7 +2,7 @@ import { boolean, integer, numeric, pgTable, primaryKey, serial, varchar } from 
 
 import { metafields } from '@/database/schema/common'
 
-export const masterialCategoryTable = pgTable('masterialCategories', {
+export const materialCategoryTable = pgTable('masterialCategories', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 255 }),
@@ -21,7 +21,7 @@ export const materialTable = pgTable('masterials', {
   sku: varchar({ length: 255 }).notNull().unique(),
   categoryId: integer()
     .notNull()
-    .references(() => masterialCategoryTable.id),
+    .references(() => materialCategoryTable.id),
   baseUomId: integer()
     .notNull()
     .references(() => uomTable.code),
