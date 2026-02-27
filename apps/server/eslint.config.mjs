@@ -4,7 +4,7 @@ import importPlugin from 'eslint-plugin-import'
 import n from 'eslint-plugin-n'
 import unicorn from 'eslint-plugin-unicorn'
 import unusedImports from 'eslint-plugin-unused-imports'
-import { defineConfig } from 'eslint/config'
+import { defineConfig, globalIgnores } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig(
@@ -83,5 +83,6 @@ export default defineConfig(
       'unicorn/prefer-module': 'off',
     },
   },
-  prettierConfig
+  prettierConfig,
+  globalIgnores(['./dist/*'])
 )
