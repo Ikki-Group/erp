@@ -31,6 +31,13 @@ const material = {
     update: 'materials/category/update',
     remove: 'materials/category/remove',
   },
+  uom: {
+    list: 'materials/uom/list',
+    detail: 'materials/uom/detail',
+    create: 'materials/uom/create',
+    update: 'materials/uom/update',
+    remove: 'materials/uom/remove',
+  },
 }
 
 export const endpoint = {
