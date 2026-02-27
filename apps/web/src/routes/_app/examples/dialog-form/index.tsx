@@ -1,3 +1,10 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { zodValidator } from '@tanstack/zod-form-adapter'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,13 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createFileRoute } from '@tanstack/react-router'
-import { PlusIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from '@tanstack/react-form'
-import { zodValidator } from '@tanstack/zod-form-adapter'
-import { z } from 'zod'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/examples/dialog-form/')({
   component: DialogFormPage,
@@ -46,25 +46,25 @@ function DialogFormPage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Dialog Form"
-        description="Example of a form inside a modal dialog using TanStack Form."
+        title='Dialog Form'
+        description='Example of a form inside a modal dialog using TanStack Form.'
       />
 
       <Page.Content>
-        <div className="flex flex-col items-center justify-center h-[50vh] gap-4 border border-dashed rounded-lg bg-muted/10">
-          <p className="text-muted-foreground text-sm">
+        <div className='flex flex-col items-center justify-center h-[50vh] gap-4 border border-dashed rounded-lg bg-muted/10'>
+          <p className='text-muted-foreground text-sm'>
             No tasks found. Create a new task to get started.
           </p>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
               render={
                 <Button>
-                  <PlusIcon className="mr-2 h-4 w-4" />
+                  <PlusIcon className='mr-2 h-4 w-4' />
                   Create New Task
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-125">
+            <DialogContent className='sm:max-w-125'>
               <DialogHeader>
                 <DialogTitle>Create Task</DialogTitle>
                 <DialogDescription>
@@ -96,7 +96,7 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     },
     onSubmit: async ({ value }) => {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
       console.log('Submitted:', value)
       toast.success('Task created successfully')
       onSuccess()
@@ -105,29 +105,29 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={e => {
         e.preventDefault()
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className="space-y-6"
+      className='space-y-6'
     >
-      <div className="space-y-4">
+      <div className='space-y-4'>
         <form.Field
-          name="title"
-          children={(field) => (
-            <div className="grid gap-2">
+          name='title'
+          children={field => (
+            <div className='grid gap-2'>
               <Label htmlFor={field.name}>Title</Label>
               <Input
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="e.g. Fix login bug"
+                onChange={e => field.handleChange(e.target.value)}
+                placeholder='e.g. Fix login bug'
               />
               {field.state.meta.errors ? (
-                <p className="text-destructive text-xs">
+                <p className='text-destructive text-xs'>
                   {field.state.meta.errors.join(', ')}
                 </p>
               ) : null}
@@ -135,27 +135,27 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className='grid grid-cols-2 gap-4'>
           <form.Field
-            name="priority"
-            children={(field) => (
-              <div className="grid gap-2">
+            name='priority'
+            children={field => (
+              <div className='grid gap-2'>
                 <Label htmlFor={field.name}>Priority</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: any) => field.handleChange(val)}
                 >
                   <SelectTrigger id={field.name}>
-                    <SelectValue placeholder="Select priority" />
+                    <SelectValue placeholder='Select priority' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value='low'>Low</SelectItem>
+                    <SelectItem value='medium'>Medium</SelectItem>
+                    <SelectItem value='high'>High</SelectItem>
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors ? (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {field.state.meta.errors.join(', ')}
                   </p>
                 ) : null}
@@ -163,20 +163,20 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           />
           <form.Field
-            name="dueDate"
-            children={(field) => (
-              <div className="grid gap-2">
+            name='dueDate'
+            children={field => (
+              <div className='grid gap-2'>
                 <Label htmlFor={field.name}>Due Date</Label>
                 <Input
                   id={field.name}
-                  type="date"
+                  type='date'
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={e => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors ? (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {field.state.meta.errors.join(', ')}
                   </p>
                 ) : null}
@@ -186,20 +186,20 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <form.Field
-          name="description"
-          children={(field) => (
-            <div className="grid gap-2">
+          name='description'
+          children={field => (
+            <div className='grid gap-2'>
               <Label htmlFor={field.name}>Description</Label>
               <Textarea
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Additional details..."
+                onChange={e => field.handleChange(e.target.value)}
+                placeholder='Additional details...'
               />
               {field.state.meta.errors ? (
-                <p className="text-destructive text-xs">
+                <p className='text-destructive text-xs'>
                   {field.state.meta.errors.join(', ')}
                 </p>
               ) : null}
@@ -210,9 +210,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
 
       <DialogFooter>
         <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
+          selector={state => [state.canSubmit, state.isSubmitting]}
           children={([canSubmit, isSubmitting]) => (
-            <Button type="submit" disabled={!canSubmit}>
+            <Button type='submit' disabled={!canSubmit}>
               {isSubmitting ? 'Saving...' : 'Save Task'}
             </Button>
           )}

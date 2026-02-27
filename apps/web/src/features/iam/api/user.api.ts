@@ -1,12 +1,13 @@
-import { endpoint } from '@/config/endpoint'
-import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-import z from 'zod'
-import { UserDto, UserMutationDto } from '../dto'
+import z from "zod";
+
+import { UserDto, UserMutationDto } from "../dto";
+import { endpoint } from "@/config/endpoint";
+import { apiFactory } from "@/lib/api";
+import { zHttp, zPrimitive, zSchema } from "@/lib/zod";
 
 export const userApi = {
   list: apiFactory({
-    method: 'get',
+    method: "get",
     url: endpoint.iam.user.list,
     params: z.object({
       ...zHttp.pagination.shape,
@@ -15,19 +16,19 @@ export const userApi = {
     result: zHttp.paginated(UserDto.array()),
   }),
   detail: apiFactory({
-    method: 'get',
+    method: "get",
     url: endpoint.iam.user.detail,
     params: zSchema.recordId,
     result: zHttp.ok(UserDto),
   }),
   create: apiFactory({
-    method: 'post',
+    method: "post",
     url: endpoint.iam.user.create,
     body: UserMutationDto,
     result: zHttp.ok(zSchema.recordId),
   }),
   update: apiFactory({
-    method: 'put',
+    method: "put",
     url: endpoint.iam.user.update,
     body: z.object({
       id: zPrimitive.num,
@@ -36,8 +37,8 @@ export const userApi = {
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({
-    method: 'delete',
+    method: "delete",
     url: endpoint.iam.user.remove,
     result: zHttp.ok(zSchema.recordId),
   }),
-}
+};
