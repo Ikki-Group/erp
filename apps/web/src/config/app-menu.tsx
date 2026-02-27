@@ -1,4 +1,5 @@
 import {
+  CirclePileIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
   PackageIcon,
@@ -29,6 +30,13 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
       href: '/products',
       icon: PackageIcon,
       isActive: pathname.startsWith('/products'),
+      isHide: false,
+    },
+    {
+      title: 'Bahan Baku',
+      href: '/materials',
+      icon: CirclePileIcon,
+      isActive: pathname.startsWith('/materials'),
       isHide: false,
     },
     {
