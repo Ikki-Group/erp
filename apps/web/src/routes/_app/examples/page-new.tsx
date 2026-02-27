@@ -1,11 +1,3 @@
-import { CardStat, CardStatProps } from '@/components/card/card-stat'
-import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Table } from '@/components/ui/table'
-import { Tabs } from '@/components/ui/tabs'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   MapPinIcon,
@@ -14,6 +6,15 @@ import {
   ShieldEllipsisIcon,
   UsersIcon,
 } from 'lucide-react'
+import type { CardStatProps } from '@/components/card/card-stat';
+import { CardStat } from '@/components/card/card-stat'
+import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Table } from '@/components/ui/table'
+import { Tabs } from '@/components/ui/tabs'
 
 export const Route = createFileRoute('/_app/examples/page-new')({
   component: RouteComponent,
@@ -100,7 +101,7 @@ function RouteComponent() {
   )
 }
 
-const MOCK_STATS: CardStatProps[] = [
+const MOCK_STATS: Array<CardStatProps> = [
   {
     title: 'Total User',
     value: '20',
@@ -125,7 +126,7 @@ interface User {
   role: string
 }
 
-const MOCK_USERS: User[] = [
+const MOCK_USERS: Array<User> = [
   {
     id: '1',
     name: 'John Doe',

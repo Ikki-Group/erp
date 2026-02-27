@@ -1,7 +1,7 @@
 import ky from "ky";
 
-import { API_URL } from "@/config/constant";
 import { useAuth } from "../auth";
+import { API_URL } from "@/config/constant";
 
 const apiClient = ky.create({
   prefixUrl: API_URL,

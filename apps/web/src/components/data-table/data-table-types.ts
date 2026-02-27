@@ -1,4 +1,4 @@
-import type { RowData, Table, OnChangeFn } from "@tanstack/react-table";
+import type { OnChangeFn, RowData, Table } from "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {

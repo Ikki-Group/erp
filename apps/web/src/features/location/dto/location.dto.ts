@@ -1,5 +1,5 @@
-import { zPrimitive, zSchema } from '@/lib/zod'
 import z from 'zod'
+import { zPrimitive, zSchema } from '@/lib/zod'
 
 export const LocationType = z.enum(['store', 'warehouse'])
 export type LocationType = z.infer<typeof LocationType>

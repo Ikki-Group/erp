@@ -1,11 +1,11 @@
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import * as Sentry from '@sentry/react'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { RouteContext } from '@/lib/tanstack-router'
 import { ThemeProvider } from 'next-themes'
+import type { RouteContext } from '@/lib/tanstack-router'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 
 export const Route = createRootRouteWithContext<RouteContext>()({

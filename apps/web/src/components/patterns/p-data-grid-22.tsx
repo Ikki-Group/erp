@@ -1,6 +1,26 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import { toast } from 'sonner'
+import {
+  FunnelIcon,
+  MoreHorizontalIcon,
+  SearchIcon,
+  UserPlusIcon,
+  XIcon,
+} from 'lucide-react'
+import type {
+  ColumnDef,
+  PaginationState,
+  Row,
+  SortingState} from '@tanstack/react-table';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
@@ -11,18 +31,6 @@ import {
   DataGridTableRowSelect,
   DataGridTableRowSelectAll,
 } from '@/components/reui/data-grid/data-grid-table'
-import {
-  ColumnDef,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  PaginationState,
-  Row,
-  SortingState,
-  useReactTable,
-} from '@tanstack/react-table'
-import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -54,13 +62,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import {
-  MoreHorizontalIcon,
-  SearchIcon,
-  XIcon,
-  FunnelIcon,
-  UserPlusIcon,
-} from 'lucide-react'
 
 interface IData {
   id: string
@@ -77,7 +78,7 @@ interface IData {
   balance: number
 }
 
-const demoData: IData[] = [
+const demoData: Array<IData> = [
   {
     id: '1',
     name: 'Alex Johnson',
@@ -300,7 +301,7 @@ export function Pattern() {
     { id: 'name', desc: true },
   ])
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<Array<string>>([])
 
   const filteredData = useMemo(() => {
     return demoData.filter((item) => {
@@ -339,7 +340,7 @@ export function Pattern() {
     )
   }
 
-  const columns = useMemo<ColumnDef<IData>[]>(
+  const columns = useMemo<Array<ColumnDef<IData>>>(
     () => [
       {
         accessorKey: 'id',
@@ -513,7 +514,7 @@ export function Pattern() {
     [],
   )
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(
+  const [columnOrder, setColumnOrder] = useState<Array<string>>(
     columns.map((column) => column.id as string),
   )
 

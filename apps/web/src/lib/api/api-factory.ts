@@ -1,7 +1,7 @@
-import type { KyInstance } from "ky";
 import { queryOptions } from "@tanstack/react-query";
-import { z, ZodType } from "zod";
 import { apiClient } from "./api-client";
+import type { ZodType, z } from "zod";
+import type { KyInstance } from "ky";
 
 type HttpMethod = "get" | "post" | "put" | "delete";
 
@@ -12,7 +12,7 @@ interface ApiFactoryConfig<
 > {
   method: HttpMethod;
   url: string;
-  keys?: readonly string[];
+  keys?: ReadonlyArray<string>;
   params?: TParams;
   body?: TBody;
   result: TResult;

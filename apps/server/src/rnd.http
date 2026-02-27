@@ -1,0 +1,24 @@
+DELETE http://localhost:3000/location/1
+
+
+###
+DELETE http://localhost:3000/location/2
+Authorization: Bearer root
+
+
+###
+POST http://localhost:3000/location
+Authorization: Bearer root
+Content-Type: application/json
+
+{
+  "name": "LOK-3"
+}
+
+###
+GET http://localhost:3000
+# Authorization: Bearer root
+
+###
+GET http://localhost:3000/public
+Authorization: Bearer root

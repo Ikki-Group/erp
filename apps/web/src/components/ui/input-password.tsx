@@ -1,6 +1,7 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useState } from "react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./input-group";
-import { ComponentProps, useState } from "react";
+import type { ComponentProps} from "react";
 
 export function InputPassword({
   placeholder = "Masukkan kata sandi...",

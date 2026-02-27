@@ -1,15 +1,16 @@
 import {
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
-  OnChangeFn,
-  PaginationState,
-  TableOptions,
-  useReactTable,
-  Table,
+  getPaginationRowModel,
+  useReactTable
 } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
-import { DataTableState } from "./use-data-table-state";
+import type {
+  OnChangeFn,
+  PaginationState,
+  Table,
+  TableOptions} from "@tanstack/react-table";
+import type { DataTableState } from "./use-data-table-state";
 
 type UseDataTableProps<TData> = Omit<TableOptions<TData>, "getCoreRowModel" | "onStateChange"> & {
   isLoading?: boolean;
@@ -24,7 +25,7 @@ function useBaseDataTable<TData>({
   state = {},
   ...props
 }: UseDataTableProps<TData>): Table<TData> {
-  const [columnOrder, setColumnOrder] = useState<string[]>(
+  const [columnOrder, setColumnOrder] = useState<Array<string>>(
     columns.map((column) => column.id as string),
   );
 

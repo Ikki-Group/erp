@@ -1,3 +1,11 @@
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  GalleryVerticalEndIcon,
+  MapPinIcon,
+  PlusIcon,
+} from "lucide-react";
+import { useLocationStore } from "../hooks/use-location-store";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,14 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  GalleryVerticalEndIcon,
-  MapPinIcon,
-  PlusIcon,
-} from "lucide-react";
-import { useLocationStore } from "../hooks/use-location-store";
 
 export function LocationSwitcher() {
   const { locations, selectedLocationId, setSelectedLocation } = useLocationStore();

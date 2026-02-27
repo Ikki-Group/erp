@@ -1,3 +1,12 @@
+import { createFileRoute } from '@tanstack/react-router'
+import {
+  CalendarIcon,
+  CreditCardIcon,
+  MailIcon,
+  MapPinIcon,
+} from 'lucide-react'
+import type {
+  DescriptionItem} from '@/components/common/data-display/description-list';
 import { Page } from '@/components/layout/page'
 import {
   Card,
@@ -7,27 +16,19 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import {
-  DescriptionList,
-  DescriptionItem,
+  DescriptionList
 } from '@/components/common/data-display/description-list'
 import { Grid } from '@/components/common/layout/primitives'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createFileRoute } from '@tanstack/react-router'
-import {
-  CalendarIcon,
-  CreditCardIcon,
-  MailIcon,
-  MapPinIcon,
-} from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/details/')({
   component: DetailsPage,
 })
 
 function DetailsPage() {
-  const accountInfo: DescriptionItem[] = [
+  const accountInfo: Array<DescriptionItem> = [
     {
       term: 'Full Name',
       description: 'Isabella Nguyen',
@@ -65,7 +66,7 @@ function DetailsPage() {
     },
   ]
 
-  const orderDetails: DescriptionItem[] = [
+  const orderDetails: Array<DescriptionItem> = [
     {
       term: 'Order ID',
       description: (
@@ -121,7 +122,7 @@ function DetailsPage() {
     },
   ]
 
-  const documentList: DescriptionItem[] = [
+  const documentList: Array<DescriptionItem> = [
     {
       term: 'Contract.pdf',
       description: (

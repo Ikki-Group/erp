@@ -1,22 +1,22 @@
 import { useMemo, useState } from "react";
+import { CheckIcon, CirclePlusIcon } from "lucide-react";
+import type { Column } from "@tanstack/react-table";
 import { Badge } from "@/components/reui/badge";
-import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { CirclePlusIcon, CheckIcon } from "lucide-react";
 
 interface DataGridColumnFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
-  options: {
+  options: Array<{
     label: string;
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
-  }[];
+  }>;
 }
 
 function DataGridColumnFilter<TData, TValue>({
@@ -25,7 +25,7 @@ function DataGridColumnFilter<TData, TValue>({
   options,
 }: DataGridColumnFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const selectedValues = new Set(column?.getFilterValue() as Array<string>);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredOptions = useMemo(() => {

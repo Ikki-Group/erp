@@ -1,5 +1,9 @@
 import { ChevronLeftIcon, ChevronRightIcon, MinusIcon } from "lucide-react";
 
+import { Skeleton } from "../ui/skeleton";
+import { useDataTableContext } from "./data-table-context";
+import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-config";
+import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,13 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useDataTableContext } from "./data-table-context";
-import { Skeleton } from "../ui/skeleton";
-import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-config";
-import { ComponentProps } from "react";
 
 interface DataTablePaginationProps extends ComponentProps<"div"> {
-  pageSizeOptions?: number[];
+  pageSizeOptions?: Array<number>;
 }
 
 export function DataTablePagination({

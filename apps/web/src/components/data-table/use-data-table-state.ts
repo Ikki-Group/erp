@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { DataTableFilters, DataTablePagination, DataTableState } from "./data-table-types";
 import { DEFAULT_PAGINATION } from "./data-table-config";
+import type { DataTableFilters, DataTablePagination, DataTableState } from "./data-table-types";
 
 export function useDataTableState<
   F extends DataTableFilters = DataTableFilters,

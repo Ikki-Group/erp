@@ -1,5 +1,5 @@
-import { LucideIcon } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import type { LucideIcon } from "lucide-react";
 
 export interface CardStatProps {
   title: string;

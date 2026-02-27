@@ -1,11 +1,13 @@
-export type StringOrNumber = string | number;
+export type StringOrNumber = string | number
 
-export interface Option<V extends StringOrNumber> {
-  label: string;
-  value: V;
-  [key: string]: any;
+export interface Option<TValue extends StringOrNumber> {
+  label: string
+  value: TValue
+  [key: string]: any
 }
 
-export type OptionsWithData<V extends StringOrNumber, D = any> = (Option<V> & {
-  data: D;
-})[];
+export type OptionsWithData<TValue extends StringOrNumber, TData = any> = Array<
+  Option<TValue> & {
+    data: TData
+  }
+>

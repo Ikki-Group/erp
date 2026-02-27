@@ -1,3 +1,6 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon, Trash2Icon } from 'lucide-react'
+import { useState } from 'react'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,9 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createFileRoute } from '@tanstack/react-router'
-import { PlusIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
 
 export const Route = createFileRoute('/_app/examples/complex-form/')({
   component: ComplexFormPage,
@@ -41,7 +41,7 @@ type InvoiceItem = {
 }
 
 function ComplexFormPage() {
-  const [items, setItems] = useState<InvoiceItem[]>([
+  const [items, setItems] = useState<Array<InvoiceItem>>([
     {
       id: '1',
       description: 'Web Development Services',

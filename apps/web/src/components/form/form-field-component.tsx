@@ -1,4 +1,7 @@
-import { ComponentProps } from "react";
+import { useFieldContext } from "./form-hook-context";
+import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from "./form-tanstack";
+import type { ComponentProps } from "react";
+import type { Option, StringOrNumber } from "@/types/common";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FieldContent } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -6,10 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Option, StringOrNumber } from "@/types/common";
-import { useFieldContext } from "./form-hook-context";
 import { InputPassword } from "@/components/ui/input-password";
-import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from "./form-tanstack";
 
 interface BaseFieldProps {
   label?: string;
@@ -138,7 +138,7 @@ function FieldSwitch({ label, description, required, className, ...props }: Fiel
 interface FieldSelectProps<V extends StringOrNumber>
   extends Omit<ComponentProps<typeof Select>, "value" | "onValueChange">, BaseFieldProps {
   placeholder?: string;
-  options: Option<V>[];
+  options: Array<Option<V>>;
 }
 
 function FieldSelect<V extends StringOrNumber = string>({

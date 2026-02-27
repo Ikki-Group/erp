@@ -1,9 +1,9 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { Edit2Icon, PrinterIcon, Trash2Icon } from 'lucide-react'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { createFileRoute } from '@tanstack/react-router'
-import { Edit2Icon, Trash2Icon, PrinterIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/detail/')({
   component: DetailPage,

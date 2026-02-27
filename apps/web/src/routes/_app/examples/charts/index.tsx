@@ -1,11 +1,27 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { TrendingUpIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Label,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import type {
+  ChartConfig} from '@/components/ui/chart';
 import { Page } from '@/components/layout/page'
 import {
   ChartCard,
-  ChartGrid,
   ChartFooterContent,
+  ChartGrid,
 } from '@/components/common/data-display/chart-card'
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -19,21 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createFileRoute } from '@tanstack/react-router'
-import { TrendingUpIcon } from 'lucide-react'
-import { useState, useMemo } from 'react'
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-  Label,
-} from 'recharts'
 
 export const Route = createFileRoute('/_app/examples/charts/')({
   component: ChartsPage,

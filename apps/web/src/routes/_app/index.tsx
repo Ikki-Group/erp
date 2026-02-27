@@ -1,3 +1,5 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { DollarSignIcon, PackageIcon, ShoppingCartIcon } from 'lucide-react'
 import { Page } from '@/components/layout/page'
 import {
   Card,
@@ -7,8 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useLocationStore } from '@/features/locations/hooks/use-location-store'
-import { createFileRoute } from '@tanstack/react-router'
-import { DollarSignIcon, PackageIcon, ShoppingCartIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/')({
   component: Dashboard,

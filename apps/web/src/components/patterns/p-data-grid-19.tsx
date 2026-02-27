@@ -1,25 +1,26 @@
 import { useMemo, useState } from "react";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { UserPlusIcon } from "lucide-react";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState} from "@tanstack/react-table";
 import { Badge } from "@/components/reui/badge";
 import { DataGrid } from "@/components/reui/data-grid/data-grid";
 import { DataGridColumnHeader } from "@/components/reui/data-grid/data-grid-column-header";
 import { DataGridPagination } from "@/components/reui/data-grid/data-grid-pagination";
 import { DataGridTable } from "@/components/reui/data-grid/data-grid-table";
-import {
-  ColumnDef,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  PaginationState,
-  SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { UserPlusIcon } from "lucide-react";
 
 interface IData {
   id: string;
@@ -36,7 +37,7 @@ interface IData {
   balance: number;
 }
 
-const demoData: IData[] = [
+const demoData: Array<IData> = [
   {
     id: "1",
     name: "Alex Johnson",
@@ -214,7 +215,7 @@ export function PDataGrid19() {
   });
   const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: true }]);
 
-  const columns = useMemo<ColumnDef<IData>[]>(
+  const columns = useMemo<Array<ColumnDef<IData>>>(
     () => [
       {
         accessorKey: "name",
@@ -293,7 +294,7 @@ export function PDataGrid19() {
     [],
   );
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(
+  const [columnOrder, setColumnOrder] = useState<Array<string>>(
     columns.map((column) => column.id as string),
   );
 

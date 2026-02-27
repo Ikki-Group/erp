@@ -1,9 +1,9 @@
-import { ComponentProps } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useFormContext } from './form-hook-context'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
+import { useFormContext } from './form-hook-context'
 import { useFormConfig } from './form-config'
+import type { ComponentProps } from 'react'
 
 function Form(props: ComponentProps<'form'>) {
   const form = useFormContext()

@@ -1,5 +1,5 @@
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
-import { ComponentProps } from "react";
 
 function FormLayout({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("flex flex-1 flex-col gap-6", className)} {...props} />;

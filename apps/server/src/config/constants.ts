@@ -1,8 +1,4 @@
 /**
- * Application-wide constants
- */
-
-/**
  * Default pagination values
  */
 export const PAGINATION = {

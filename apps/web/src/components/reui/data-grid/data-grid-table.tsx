@@ -1,14 +1,16 @@
-import { CSSProperties, Fragment, ReactNode } from 'react'
-import { useDataGrid } from '@/components/reui/data-grid/data-grid'
+import { Fragment } from 'react'
 import {
-  Cell,
-  Column,
-  flexRender,
-  Header,
-  HeaderGroup,
-  Row,
+  flexRender
 } from '@tanstack/react-table'
 import { cva } from 'class-variance-authority'
+import type {
+  Cell,
+  Column,
+  Header,
+  HeaderGroup,
+  Row} from '@tanstack/react-table';
+import type { CSSProperties, ReactNode } from 'react';
+import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'

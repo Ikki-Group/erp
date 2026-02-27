@@ -1,6 +1,8 @@
 import { flexRender } from '@tanstack/react-table'
-import { ComponentProps } from 'react'
-import { ChevronsUpDownIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react'
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from 'lucide-react'
+import { getCommonPinningStyles } from './data-table-utils'
+import { useDataTableContext } from './data-table-context'
+import type { ComponentProps } from 'react'
 
 import {
   TableBody,
@@ -12,8 +14,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-import { getCommonPinningStyles } from './data-table-utils'
-import { useDataTableContext } from './data-table-context'
 
 interface DataTableTableProps extends ComponentProps<'table'> {}
 

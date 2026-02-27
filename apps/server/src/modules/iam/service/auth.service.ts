@@ -6,7 +6,7 @@ import { verifyPassword } from '@/lib/utils/password.util'
 import { db } from '@/database'
 import { users } from '@/database/schema'
 
-import type { AuthResponseDto, LoginDto } from '../schema'
+import type { AuthResponseDto, LoginDto, UserDetailDto } from '../schema'
 
 import type { SessionService } from './session.service'
 import type { UserService } from './user.service'
@@ -56,5 +56,15 @@ export class AuthService {
       user: userWithAccess,
       token: session.token,
     }
+  }
+
+  async verifyToken(token: string): Promise<UserDetailDto> {
+    const session = await this.sessionService.verifySession(token)
+    if (!session) {
+      throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
+    }
+
+    const userWithAccess = await this.userService.findDetailById(session.userId)
+    return userWithAccess
   }
 }

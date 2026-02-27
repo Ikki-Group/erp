@@ -1,5 +1,7 @@
-import { zPrimitive, zSchema } from '@/lib/zod'
 import z from 'zod'
+import { RoleDto } from './role.dto'
+import { LocationDto } from '@/features/location'
+import { zPrimitive, zSchema } from '@/lib/zod'
 
 export const UserDto = z.object({
   id: zPrimitive.num,
@@ -24,8 +26,23 @@ export const UserMutationDto = z.object({
     z.object({
       locationId: zPrimitive.str,
       roleId: zPrimitive.str,
-    }),
+    })
   ),
 })
 
 export type UserMutationDto = z.infer<typeof UserMutationDto>
+
+export const UserDetailAssignmentDto = z.object({
+  isDefault: zPrimitive.bool,
+  role: RoleDto.pick({ id: true, name: true, code: true }),
+  location: LocationDto,
+})
+
+export type UserDetailAssignmentDto = z.infer<typeof UserDetailAssignmentDto>
+
+export const UserDetailDto = z.object({
+  ...UserDto.shape,
+  assignments: z.array(UserDetailAssignmentDto),
+})
+
+export type UserDetailDto = z.infer<typeof UserDetailDto>

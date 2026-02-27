@@ -1,13 +1,13 @@
 import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
+import { useStore } from "@tanstack/react-form";
+import { useFieldContext } from "./form-hook-context";
 import * as scn from "@/components/ui/field";
 
 import { cn } from "@/lib/utils";
-import { useFieldContext } from "./form-hook-context";
-import { useStore } from "@tanstack/react-form";
 
 function useFormField() {
-  const itemContext = React.useContext(FormItemContext);
+  const itemContext = React.use(FormItemContext);
   const fieldContext = useFieldContext();
 
   if (!fieldContext) {
@@ -42,14 +42,14 @@ function FormItem({ className, ...props }: React.ComponentProps<typeof scn.Field
   const hasError = showError && errors.length > 0;
 
   return (
-    <FormItemContext.Provider value={{ id }}>
+    <FormItemContext value={{ id }}>
       <scn.Field
         data-slot="form-item"
         data-invalid={hasError ? "true" : undefined}
         className={className}
         {...props}
       />
-    </FormItemContext.Provider>
+    </FormItemContext>
   );
 }
 

@@ -3,9 +3,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 interface UseAuth {
   token: string;
-  setToken(token: string): void;
-  clear(): void;
-  isAuthenticated(): boolean;
+  setToken: (token: string) => void;
+  clear: () => void;
+  isAuthenticated: () => boolean;
 }
 
 export const useAuth = create<UseAuth>()(

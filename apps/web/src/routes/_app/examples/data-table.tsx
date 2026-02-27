@@ -1,19 +1,19 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { createColumnHelper } from "@tanstack/react-table";
+import { MoreHorizontalIcon } from "lucide-react";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableAuto, useDataTableState } from "@/components/data-table";
 import { Page } from "@/components/layout/page";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { createFileRoute } from "@tanstack/react-router";
-import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_app/examples/data-table")({
@@ -51,7 +51,7 @@ interface User {
   createdAt: Date;
 }
 
-const MOCK_USERS: User[] = Array.from({ length: 100 }).map((_, index) => ({
+const MOCK_USERS: Array<User> = Array.from({ length: 100 }).map((_, index) => ({
   id: `user-${index + 1}`,
   name: `User ${index + 1}`,
   email: `user${index + 1}@example.com`,

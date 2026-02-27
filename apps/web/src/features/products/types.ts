@@ -31,7 +31,7 @@ export interface Product {
     height: number;
   };
   imageUrl?: string;
-  tags?: string[];
+  tags?: Array<string>;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
@@ -60,7 +60,7 @@ export interface ProductFormData {
     width: number;
     height: number;
   };
-  tags?: string[];
+  tags?: Array<string>;
 }
 
 export interface ProductFilters {

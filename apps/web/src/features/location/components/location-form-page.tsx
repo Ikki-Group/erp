@@ -1,15 +1,16 @@
-import { FormConfig, useAppForm } from '@/components/form'
-import { Page } from '@/components/layout/page'
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { LinkOptions, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
-import { locationApi } from '../api'
 import { toast } from 'sonner'
+import { locationApi } from '../api'
+import type { LinkOptions} from '@tanstack/react-router';
+import type { LocationDto } from '../dto'
 import { toastLabelMessage } from '@/lib/toast-message'
-import { CardSection } from '@/components/card/card-section'
 import { Separator } from '@/components/ui/separator'
-import { LocationDto } from '../dto'
+import { CardSection } from '@/components/card/card-section'
+import { Page } from '@/components/layout/page'
+import { FormConfig, useAppForm } from '@/components/form'
 
 const FormDto = z.object({
   name: z.string().min(1),

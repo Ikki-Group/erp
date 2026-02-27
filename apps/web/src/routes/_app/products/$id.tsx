@@ -1,5 +1,15 @@
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import {
+  AlertTriangleIcon,
+  FileDownIcon,
+  FileUpIcon,
+  PlusIcon,
+  TrendingUpIcon,
+} from 'lucide-react'
+import type {
+  DescriptionItem} from '@/components/common/data-display/description-list';
 import { Page } from '@/components/layout/page'
-import { Grid, Stack, Inline } from '@/components/common/layout/primitives'
+import { Grid, Inline, Stack } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -10,24 +20,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import {
-  DescriptionList,
-  DescriptionItem,
+  DescriptionList
 } from '@/components/common/data-display/description-list'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
-  AlertTriangleIcon,
-  TrendingUpIcon,
-  PlusIcon,
-  FileDownIcon,
-  FileUpIcon,
-} from 'lucide-react'
-import {
-  getProductById,
   formatCurrency,
   getCategoryLabel,
+  getProductById,
   getStatusLabel,
-  getUnitLabel,
   getStockStatus,
+  getUnitLabel,
 } from '@/features/products/mock-data'
 
 export const Route = createFileRoute('/_app/products/$id')({
@@ -70,7 +71,7 @@ function ProductDetailPage() {
     product.reorderPoint,
   )
 
-  const basicInfo: DescriptionItem[] = [
+  const basicInfo: Array<DescriptionItem> = [
     {
       term: 'Kode Produk',
       description: (
@@ -111,7 +112,7 @@ function ProductDetailPage() {
     },
   ]
 
-  const inventoryInfo: DescriptionItem[] = [
+  const inventoryInfo: Array<DescriptionItem> = [
     {
       term: 'Stok Saat Ini',
       description: (
@@ -171,7 +172,7 @@ function ProductDetailPage() {
     },
   ]
 
-  const pricingInfo: DescriptionItem[] = [
+  const pricingInfo: Array<DescriptionItem> = [
     {
       term: 'Harga Jual',
       description: (
@@ -208,7 +209,7 @@ function ProductDetailPage() {
     },
   ]
 
-  const additionalInfo: DescriptionItem[] = [
+  const additionalInfo: Array<DescriptionItem> = [
     ...(product.supplier
       ? [
           {
@@ -259,7 +260,7 @@ function ProductDetailPage() {
       : []),
   ]
 
-  const systemInfo: DescriptionItem[] = [
+  const systemInfo: Array<DescriptionItem> = [
     {
       term: 'Dibuat Pada',
       description: product.createdAt.toLocaleDateString('id-ID', {

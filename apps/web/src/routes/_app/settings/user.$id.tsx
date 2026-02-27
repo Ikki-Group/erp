@@ -1,6 +1,6 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { userApi } from '@/features/iam'
 import { UserFormPage } from '@/features/iam/components/user-form-page'
-import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_app/settings/user/$id')({
   component: RouteComponent,

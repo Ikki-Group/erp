@@ -1,5 +1,5 @@
-import { LocationFormPage } from '@/features/location/components/location-form-page'
 import { createFileRoute } from '@tanstack/react-router'
+import { LocationFormPage } from '@/features/location/components/location-form-page'
 
 export const Route = createFileRoute('/_app/settings/location/$id')({
   component: RouteComponent,

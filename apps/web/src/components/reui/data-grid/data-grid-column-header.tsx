@@ -1,8 +1,21 @@
 "use client";
 
-import { HTMLAttributes, memo, ReactNode, useMemo } from "react";
+import { memo, useMemo } from "react";
+import {
+  ArrowDownIcon,
+  ArrowLeftIcon,
+  ArrowLeftToLineIcon,
+  ArrowRightIcon,
+  ArrowRightToLineIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
+  PinOffIcon,
+  Settings2Icon,
+} from "lucide-react";
+import type { HTMLAttributes, ReactNode} from "react";
+import type { Column } from "@tanstack/react-table";
 import { useDataGrid } from "@/components/reui/data-grid/data-grid";
-import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,18 +32,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronsUpDownIcon,
-  CheckIcon,
-  ArrowLeftToLineIcon,
-  ArrowRightToLineIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  Settings2Icon,
-  PinOffIcon,
-} from "lucide-react";
 
 interface DataGridColumnHeaderProps<TData, TValue> extends HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
@@ -100,7 +101,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
     filter;
 
   const menuItems = useMemo(() => {
-    const items: ReactNode[] = [];
+    const items: Array<ReactNode> = [];
     let hasPreviousSection = false;
 
     // Filter section

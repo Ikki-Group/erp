@@ -1,4 +1,3 @@
-import type { QueryClient } from "@tanstack/react-query";
 import {
   createRouter as createTanStackRouter,
   parseSearchWith,
@@ -6,8 +5,9 @@ import {
 } from "@tanstack/react-router";
 import * as JSURL2 from "jsurl2";
 
-import { routeTree } from "@/routeTree.gen";
 import { queryClient } from "./query-client";
+import type { QueryClient } from "@tanstack/react-query";
+import { routeTree } from "@/routeTree.gen";
 
 export interface RouteContext {
   qc: QueryClient;

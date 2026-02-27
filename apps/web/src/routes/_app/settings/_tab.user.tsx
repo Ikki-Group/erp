@@ -1,17 +1,17 @@
+import { useQuery } from '@tanstack/react-query'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { createColumnHelper } from '@tanstack/react-table'
+import { PencilIcon } from 'lucide-react'
+import type { UserDto } from '@/features/iam/dto'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { Button } from '@/components/ui/button'
 import { userApi } from '@/features/iam'
-import { UserDto } from '@/features/iam/dto'
 import { getUserStatusBadge } from '@/features/iam/utils'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
-import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/user')({
   component: RouteComponent,

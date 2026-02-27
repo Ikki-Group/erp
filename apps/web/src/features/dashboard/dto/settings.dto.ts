@@ -1,5 +1,5 @@
-import { zPrimitive } from "@/lib/zod";
 import z from "zod";
+import { zPrimitive } from "@/lib/zod";
 
 export const SettingSummaryDto = z.object({
   users: zPrimitive.num,

@@ -1,10 +1,12 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { PlusIcon, SettingsIcon, UserIcon } from 'lucide-react'
 import { Page } from '@/components/layout/page'
 import {
+  Grid,
+  Inline,
   Section,
   SectionHeader,
-  Grid,
   Stack,
-  Inline,
 } from '@/components/common/layout/primitives'
 import {
   Card,
@@ -15,8 +17,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { createFileRoute } from '@tanstack/react-router'
-import { PlusIcon, SettingsIcon, UserIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/layouts/')({
   component: LayoutsPage,

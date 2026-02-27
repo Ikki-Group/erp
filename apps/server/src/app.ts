@@ -2,6 +2,7 @@ import { cors } from '@elysiajs/cors'
 import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
+import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
@@ -30,16 +31,6 @@ export const app = new Elysia({
   name: 'App',
   precompile: true,
 })
-  .use(cors())
-  .use(
-    elysiaLogger({
-      level: 'info',
-      format: 'dev',
-      logRequest: true,
-      scope: 'global',
-      category: 'request',
-    })
-  )
   .onError((ctx) => {
     let error: HttpError
     if (ctx.error instanceof HttpError) {
@@ -57,7 +48,18 @@ export const app = new Elysia({
     logger.withError(ctx.error).error(error.message)
     return error.toJSON()
   })
+  .use(cors())
+  .use(
+    elysiaLogger({
+      level: 'info',
+      format: 'dev',
+      logRequest: true,
+      scope: 'global',
+      category: 'request',
+    })
+  )
   .use(otel)
+  .use(createAuthPlugin(iamService))
   .use(iamRoute)
   .use(inventoryRoute)
   .use(locationsRoute)
