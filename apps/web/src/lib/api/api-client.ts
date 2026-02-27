@@ -1,27 +1,27 @@
-import ky from "ky";
+import ky from 'ky'
 
-import { useAuth } from "../auth";
-import { API_URL } from "@/config/constant";
+import { API_URL } from '@/config/constant'
+import { useAppState } from '@/hooks/use-app-state'
 
 const apiClient = ky.create({
   prefixUrl: API_URL,
   headers: {
-    "X-Platform": "web",
-    "X-Creator-Mail": "rizqynugroho88@gmail.com",
+    'X-Platform': 'web',
+    'X-Creator-Mail': 'rizqynugroho88@gmail.com',
   },
   hooks: {
     beforeRequest: [
-      (req) => {
-        const token = useAuth.getState().token;
+      req => {
+        const token = useAppState.getState().token
         if (token) {
-          req.headers.set("Authorization", `Bearer ${token}`);
+          req.headers.set('Authorization', `Bearer ${token}`)
         }
       },
     ],
   },
   retry: {
-    methods: ["get"],
+    methods: ['get'],
   },
-});
+})
 
-export { apiClient };
+export { apiClient }

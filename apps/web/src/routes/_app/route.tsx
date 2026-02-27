@@ -1,11 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { AppLayout } from '@/components/layout/app-layout'
 import { LoadingPage } from '@/components/common/loading-page'
-import { useAuth } from '@/lib/auth'
+import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {
-    const isAuthenticated = useAuth.getState().isAuthenticated()
+    const isAuthenticated = useAppState.getState().isAuthenticated()
     if (!isAuthenticated) {
       const url = new URL(window.location.href)
 

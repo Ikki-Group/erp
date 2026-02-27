@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import { authApi } from '@/features/iam'
-import { useAuth } from '@/lib/auth'
+import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_auth/login')({
   validateSearch: zodValidator(
@@ -107,13 +107,15 @@ function LoginForm() {
       password: '',
     },
     onSubmit: async ({ value }) => {
-      const res = await loginMutation.mutateAsync({
+      const {
+        data: { token, user },
+      } = await loginMutation.mutateAsync({
         body: {
           identifier: value.email,
           password: value.password,
         },
       })
-      useAuth.getState().setToken(res.data.token)
+      useAppState.getState().setToken(token, user)
       navigate({ to: redirectTo ?? '/' })
     },
   })
