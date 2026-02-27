@@ -2,66 +2,57 @@ import { Elysia } from 'elysia'
 
 import { UnauthorizedError } from '@/lib/error/http'
 
-import type { users } from '@/database/schema'
+import type { IamServiceModule, UserDetailDto } from '@/modules/iam'
 
-import type { IamServiceModule } from '@/modules/iam'
+class AuthContext {
+  constructor(public user: UserDetailDto | null) {}
 
-export const createAuthPlugin = (iamService: IamServiceModule) =>
-  new Elysia({ name: 'auth-plugin' })
-    .decorate('user', null as typeof users.$inferSelect | null)
-    .derive({ as: 'global' }, async ({ request: { headers } }) => {
-      const authorization = headers.get('authorization')
-      if (!authorization) {
-        return { user: null as typeof users.$inferSelect | null }
+  get isAuthenticated(): boolean {
+    return this.user !== null
+  }
+
+  get userId(): number {
+    if (!this.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
+    return this.user!.id
+  }
+}
+
+interface ReturnAuthDerive {
+  auth: AuthContext | null
+}
+
+export function createAuthPlugin(iamService: IamServiceModule) {
+  return new Elysia({ name: 'auth-plugin' })
+    .derive(async ({ request }) => {
+      let auth: AuthContext = new AuthContext(null)
+      let token = request.headers.get('authorization')
+
+      if (token) {
+        token = token.startsWith('Bearer ') ? token.slice(7) : token
+        const user = await iamService.auth.verifyToken(token)
+        auth = new AuthContext(user)
       }
 
-      const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : authorization
-      return { user: null }
-      // try {
-      //   const payload = iamService.auth.verifyToken(token)
-      //   const user = await iamService.user.findById(payload.sub)
-
-      //   if (!user || !user.isActive) {
-      //     return { user: null as typeof users.$inferSelect | null }
-      //   }
-
-      //   return { user }
-      // } catch {
-      //   return { user: null as typeof users.$inferSelect | null }
-      // }
-    })
-    .macro(({ onBeforeHandle }) => {
       return {
-        isAuth(enabled: boolean) {
-          if (!enabled) return
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onBeforeHandle(({ user }: any) => {
-            if (!user) {
-              throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
-            }
-          })
-        },
-        hasPermission(permission: string | { permission: string; locationId?: number }) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onBeforeHandle(async ({ user, query }: any) => {
-            // if (!user) {
-            //   throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
-            // }
-            // if (user.isRoot) return
-            // let perm: string
-            // let locId: number | undefined
-            // if (typeof permission === 'string') {
-            //   perm = permission
-            //   locId = query.locationId ? Number(query.locationId) : undefined
-            // } else {
-            //   perm = permission.permission
-            //   locId = permission.locationId
-            // }
-            // const userPermissions = await iamService.auth.getUserPermissions(user.id, locId)
-            // if (!userPermissions.includes('*') && !userPermissions.includes(perm)) {
-            //   throw new ForbiddenError(`Permission denied: ${perm}`, 'AUTH_FORBIDDEN')
-            // }
-          })
-        },
-      }
+        auth,
+      } satisfies ReturnAuthDerive
     })
+    .as('global')
+}
+
+export const authPluginMacro = new Elysia({ name: 'auth-plugin' })
+  .decorate('auth', null! as AuthContext)
+  .derive(({ auth }) => {
+    if (!auth) return
+    return {
+      auth,
+    }
+  })
+  .macro({
+    isAuthenticated: (enabled: boolean) => ({
+      resolve: ({ auth }) => {
+        if (enabled && !auth.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
+      },
+    }),
+  })
+  .as('global')
