@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1771591978248,
-      "tag": "0000_long_machine_man",
+      "when": 1772204835953,
+      "tag": "0000_third_wallow",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1771685648745,
-      "tag": "0001_silly_robin_chapel",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1771705216238,
-      "tag": "0002_clean_wendigo",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1771710892212,
-      "tag": "0003_true_jane_foster",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1771771301770,
-      "tag": "0004_groovy_thunderbolt",
+      "when": 1772208068121,
+      "tag": "0001_fuzzy_king_cobra",
       "breakpoints": true
     }
   ]

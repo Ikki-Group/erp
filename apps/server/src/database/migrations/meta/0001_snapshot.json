@@ -1,6 +1,6 @@
 {
-  "id": "f3925bb0-237b-4700-9d97-17744895b0bf",
-  "prevId": "8e032c1e-942c-4524-9c2a-e1e2fffa7fd6",
+  "id": "9fee5465-ce10-4e45-9db9-dd063bb0a3e5",
+  "prevId": "dbacc93e-a6d7-42d7-835f-1975b58a5fd2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -89,174 +89,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.uoms": {
-      "name": "uoms",
-      "schema": "",
-      "columns": {
-        "code": {
-          "name": "code",
-          "type": "varchar(50)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "isActive": {
-          "name": "isActive",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "createdBy": {
-          "name": "createdBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedBy": {
-          "name": "updatedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.location_materials": {
-      "name": "location_materials",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "locationId": {
-          "name": "locationId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "materialId": {
-          "name": "materialId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "stockAlertThreshold": {
-          "name": "stockAlertThreshold",
-          "type": "numeric(20, 6)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "weightedAvgCost": {
-          "name": "weightedAvgCost",
-          "type": "numeric(20, 6)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "isActive": {
-          "name": "isActive",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "createdBy": {
-          "name": "createdBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedBy": {
-          "name": "updatedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "location_materials_locationId_locations_id_fk": {
-          "name": "location_materials_locationId_locations_id_fk",
-          "tableFrom": "location_materials",
-          "tableTo": "locations",
-          "columnsFrom": [
-            "locationId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "location_materials_materialId_materials_id_fk": {
-          "name": "location_materials_materialId_materials_id_fk",
-          "tableFrom": "location_materials",
-          "tableTo": "materials",
-          "columnsFrom": [
-            "materialId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "location_materials_locationId_materialId_unique": {
-          "name": "location_materials_locationId_materialId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "locationId",
-            "materialId"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.material_categories": {
-      "name": "material_categories",
+    "public.materialCategories": {
+      "name": "materialCategories",
       "schema": "",
       "columns": {
         "id": {
@@ -273,16 +107,9 @@
         },
         "description": {
           "name": "description",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
-        },
-        "isActive": {
-          "name": "isActive",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -313,91 +140,6 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.material_uoms": {
-      "name": "material_uoms",
-      "schema": "",
-      "columns": {
-        "materialId": {
-          "name": "materialId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "uom": {
-          "name": "uom",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "isBase": {
-          "name": "isBase",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "createdBy": {
-          "name": "createdBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedBy": {
-          "name": "updatedBy",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "material_uoms_materialId_materials_id_fk": {
-          "name": "material_uoms_materialId_materials_id_fk",
-          "tableFrom": "material_uoms",
-          "tableTo": "materials",
-          "columnsFrom": [
-            "materialId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "material_uoms_uom_uoms_code_fk": {
-          "name": "material_uoms_uom_uoms_code_fk",
-          "tableFrom": "material_uoms",
-          "tableTo": "uoms",
-          "columnsFrom": [
-            "uom"
-          ],
-          "columnsTo": [
-            "code"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -414,12 +156,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "sku": {
-          "name": "sku",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "name": {
           "name": "name",
           "type": "varchar(255)",
@@ -428,14 +164,13 @@
         },
         "description": {
           "name": "description",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "type": {
-          "name": "type",
-          "type": "material_type",
-          "typeSchema": "public",
+        "sku": {
+          "name": "sku",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -443,7 +178,13 @@
           "name": "categoryId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "baseUomCode": {
+          "name": "baseUomCode",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         },
         "isActive": {
           "name": "isActive",
@@ -451,12 +192,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
-        },
-        "baseUom": {
-          "name": "baseUom",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -487,35 +222,42 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "materials_categoryId_material_categories_id_fk": {
-          "name": "materials_categoryId_material_categories_id_fk",
+        "materials_categoryId_materialCategories_id_fk": {
+          "name": "materials_categoryId_materialCategories_id_fk",
           "tableFrom": "materials",
-          "tableTo": "material_categories",
+          "tableTo": "materialCategories",
           "columnsFrom": [
             "categoryId"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
+          "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "materials_baseUom_uoms_code_fk": {
-          "name": "materials_baseUom_uoms_code_fk",
+        "materials_baseUomCode_uoms_code_fk": {
+          "name": "materials_baseUomCode_uoms_code_fk",
           "tableFrom": "materials",
           "tableTo": "uoms",
           "columnsFrom": [
-            "baseUom"
+            "baseUomCode"
           ],
           "columnsTo": [
             "code"
           ],
-          "onDelete": "restrict",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "materials_name_unique": {
+          "name": "materials_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        },
         "materials_sku_unique": {
           "name": "materials_sku_unique",
           "nullsNotDistinct": false,
@@ -524,6 +266,92 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.materialUomConversions": {
+      "name": "materialUomConversions",
+      "schema": "",
+      "columns": {
+        "materialId": {
+          "name": "materialId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fromUomCode": {
+          "name": "fromUomCode",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "toUomCode": {
+          "name": "toUomCode",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "multiplier": {
+          "name": "multiplier",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "materialUomConversions_materialId_materials_id_fk": {
+          "name": "materialUomConversions_materialId_materials_id_fk",
+          "tableFrom": "materialUomConversions",
+          "tableTo": "materials",
+          "columnsFrom": [
+            "materialId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "materialUomConversions_fromUomCode_uoms_code_fk": {
+          "name": "materialUomConversions_fromUomCode_uoms_code_fk",
+          "tableFrom": "materialUomConversions",
+          "tableTo": "uoms",
+          "columnsFrom": [
+            "fromUomCode"
+          ],
+          "columnsTo": [
+            "code"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "materialUomConversions_toUomCode_uoms_code_fk": {
+          "name": "materialUomConversions_toUomCode_uoms_code_fk",
+          "tableFrom": "materialUomConversions",
+          "tableTo": "uoms",
+          "columnsFrom": [
+            "toUomCode"
+          ],
+          "columnsTo": [
+            "code"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "materialUomConversions_materialId_fromUomCode_toUomCode_pk": {
+          "name": "materialUomConversions_materialId_fromUomCode_toUomCode_pk",
+          "columns": [
+            "materialId",
+            "fromUomCode",
+            "toUomCode"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -607,8 +435,53 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.user_role_locations": {
-      "name": "user_role_locations",
+    "public.uoms": {
+      "name": "uoms",
+      "schema": "",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "createdBy": {
+          "name": "createdBy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedBy": {
+          "name": "updatedBy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_assignments": {
+      "name": "user_assignments",
       "schema": "",
       "columns": {
         "userId": {
@@ -639,9 +512,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "user_role_locations_userId_users_id_fk": {
-          "name": "user_role_locations_userId_users_id_fk",
-          "tableFrom": "user_role_locations",
+        "user_assignments_userId_users_id_fk": {
+          "name": "user_assignments_userId_users_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
@@ -652,9 +525,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "user_role_locations_roleId_roles_id_fk": {
-          "name": "user_role_locations_roleId_roles_id_fk",
-          "tableFrom": "user_role_locations",
+        "user_assignments_roleId_roles_id_fk": {
+          "name": "user_assignments_roleId_roles_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "roles",
           "columnsFrom": [
             "roleId"
@@ -665,9 +538,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "user_role_locations_locationId_locations_id_fk": {
-          "name": "user_role_locations_locationId_locations_id_fk",
-          "tableFrom": "user_role_locations",
+        "user_assignments_locationId_locations_id_fk": {
+          "name": "user_assignments_locationId_locations_id_fk",
+          "tableFrom": "user_assignments",
           "tableTo": "locations",
           "columnsFrom": [
             "locationId"
@@ -680,15 +553,76 @@
         }
       },
       "compositePrimaryKeys": {
-        "user_role_locations_userId_locationId_pk": {
-          "name": "user_role_locations_userId_locationId_pk",
+        "user_assignments_userId_roleId_locationId_pk": {
+          "name": "user_assignments_userId_roleId_locationId_pk",
           "columns": [
             "userId",
+            "roleId",
             "locationId"
           ]
         }
       },
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_sessions": {
+      "name": "user_sessions",
+      "schema": "",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_sessions_userId_users_id_fk": {
+          "name": "user_sessions_userId_users_id_fk",
+          "tableFrom": "user_sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_sessions_token_unique": {
+          "name": "user_sessions_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -793,6 +727,14 @@
     }
   },
   "enums": {
+    "public.item_type": {
+      "name": "item_type",
+      "schema": "public",
+      "values": [
+        "raw",
+        "semi"
+      ]
+    },
     "public.location_type": {
       "name": "location_type",
       "schema": "public",

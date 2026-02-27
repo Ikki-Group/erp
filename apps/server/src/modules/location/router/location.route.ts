@@ -21,6 +21,7 @@ export function initLocationRoute(service: LocationService) {
           ...zHttp.pagination.shape,
           ...LocationFilterDto.shape,
         }),
+        auth: true,
       }
     )
     .get(
@@ -31,6 +32,7 @@ export function initLocationRoute(service: LocationService) {
       },
       {
         query: z.object({ id: zHttp.query.idRequired }),
+        auth: true,
       }
     )
     .post(
@@ -42,6 +44,7 @@ export function initLocationRoute(service: LocationService) {
       {
         body: LocationCreateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
     .put(
@@ -53,6 +56,7 @@ export function initLocationRoute(service: LocationService) {
       {
         body: LocationUpdateDto,
         response: zResponse.ok(zSchema.recordId),
+        auth: true,
       }
     )
 }
