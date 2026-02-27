@@ -38,7 +38,7 @@ interface RoleFormDialogProps {
   id?: number
 }
 
-export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
+export const RoleFormDialog = createCallable<RoleFormDialogProps>(props => {
   const { call, id } = props
   const isCreate = id === undefined
 
@@ -71,7 +71,7 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
       await toast
         .promise(
           promise,
-          toastLabelMessage(isCreate ? 'create' : 'update', 'role'),
+          toastLabelMessage(isCreate ? 'create' : 'update', 'role')
         )
         .unwrap()
 
@@ -85,24 +85,24 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
     <form.AppForm>
       <Dialog open={!call.ended} onOpenChange={() => call.end()}>
         <DialogContent>
-          <DialogHeader className="border-b pb-4">
+          <DialogHeader className='border-b pb-4'>
             <DialogTitle>Scrollable Content</DialogTitle>
           </DialogHeader>
-          <form.AppField name="name">
-            {(field) => (
-              <field.Base label="Role" required>
+          <form.AppField name='name'>
+            {field => (
+              <field.Base label='Role' required>
                 <field.Input
-                  placeholder="Masukkan nama role"
+                  placeholder='Masukkan nama role'
                   disabled={disabled}
                 />
               </field.Base>
             )}
           </form.AppField>
-          <form.AppField name="code">
-            {(field) => (
-              <field.Base label="Kode" required>
+          <form.AppField name='code'>
+            {field => (
+              <field.Base label='Kode' required>
                 <field.Input
-                  placeholder="Masukkan kode role"
+                  placeholder='Masukkan kode role'
                   disabled={disabled}
                 />
               </field.Base>

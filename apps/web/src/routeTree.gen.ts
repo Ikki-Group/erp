@@ -9,14 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SplatRouteImport } from './routes/$'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AppSplatRouteImport } from './routes/_app/$'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
+import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
@@ -41,11 +43,6 @@ import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settin
 import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
 import { Route as AppExamplesLayoutsOneRouteImport } from './routes/_app/examples/layouts/one'
 
-const SplatRoute = SplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -64,9 +61,19 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AppSplatRoute = AppSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsIndexRoute = AppMaterialsIndexRouteImport.update({
+  id: '/materials/',
+  path: '/materials/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
@@ -77,6 +84,11 @@ const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
 const AppProductsIdRoute = AppProductsIdRouteImport.update({
   id: '/products/$id',
   path: '/products/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsCategoryRoute = AppMaterialsCategoryRouteImport.update({
+  id: '/materials/category',
+  path: '/materials/category',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
@@ -203,13 +215,15 @@ const AppExamplesLayoutsOneRoute = AppExamplesLayoutsOneRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/$': typeof SplatRoute
+  '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/materials/category': typeof AppMaterialsCategoryRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
+  '/materials/': typeof AppMaterialsIndexRoute
   '/products/': typeof AppProductsIndexRoute
   '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
@@ -234,13 +248,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
-  '/$': typeof SplatRoute
+  '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/materials/category': typeof AppMaterialsCategoryRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
+  '/materials': typeof AppMaterialsIndexRoute
   '/products': typeof AppProductsIndexRoute
   '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
@@ -267,14 +283,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
-  '/$': typeof SplatRoute
+  '/_app/$': typeof AppSplatRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
+  '/_app/materials/category': typeof AppMaterialsCategoryRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
+  '/_app/materials/': typeof AppMaterialsIndexRoute
   '/_app/products/': typeof AppProductsIndexRoute
   '/_app/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/_app/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
@@ -306,8 +324,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/materials/category'
     | '/products/$id'
     | '/settings'
+    | '/materials/'
     | '/products/'
     | '/examples/layouts/one'
     | '/examples/layouts/two'
@@ -337,8 +357,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/materials/category'
     | '/products/$id'
     | '/settings'
+    | '/materials'
     | '/products'
     | '/examples/layouts/one'
     | '/examples/layouts/two'
@@ -364,14 +386,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
-    | '/$'
+    | '/_app/$'
     | '/_auth/login'
     | '/_app/'
     | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
+    | '/_app/materials/category'
     | '/_app/products/$id'
     | '/_app/settings/_tab'
+    | '/_app/materials/'
     | '/_app/products/'
     | '/_app/examples/layouts/one'
     | '/_app/examples/layouts/two'
@@ -398,18 +422,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
-  SplatRoute: typeof SplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/$': {
-      id: '/$'
-      path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof SplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -438,11 +454,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_app/$': {
+      id: '/_app/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof AppSplatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/products/': {
       id: '/_app/products/'
       path: '/products'
       fullPath: '/products/'
       preLoaderRoute: typeof AppProductsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/': {
+      id: '/_app/materials/'
+      path: '/materials'
+      fullPath: '/materials/'
+      preLoaderRoute: typeof AppMaterialsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/settings/_tab': {
@@ -457,6 +487,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$id'
       fullPath: '/products/$id'
       preLoaderRoute: typeof AppProductsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/category': {
+      id: '/_app/materials/category'
+      path: '/materials/category'
+      fullPath: '/materials/category'
+      preLoaderRoute: typeof AppMaterialsCategoryRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/page-new': {
@@ -640,12 +677,15 @@ const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppSplatRoute: typeof AppSplatRoute
   AppIndexRoute: typeof AppIndexRoute
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
+  AppMaterialsCategoryRoute: typeof AppMaterialsCategoryRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
+  AppMaterialsIndexRoute: typeof AppMaterialsIndexRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
   AppExamplesLayoutsOneRoute: typeof AppExamplesLayoutsOneRoute
   AppExamplesLayoutsTwoRoute: typeof AppExamplesLayoutsTwoRoute
@@ -667,12 +707,15 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppSplatRoute: AppSplatRoute,
   AppIndexRoute: AppIndexRoute,
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
+  AppMaterialsCategoryRoute: AppMaterialsCategoryRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
+  AppMaterialsIndexRoute: AppMaterialsIndexRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
   AppExamplesLayoutsOneRoute: AppExamplesLayoutsOneRoute,
   AppExamplesLayoutsTwoRoute: AppExamplesLayoutsTwoRoute,
@@ -712,7 +755,6 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
-  SplatRoute: SplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

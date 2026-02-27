@@ -7,21 +7,23 @@ import { ThemeProvider } from 'next-themes'
 import type { RouteContext } from '@/lib/tanstack-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
-import { useAuth } from '@/lib/auth'
 import { authApi } from '@/features/iam'
+import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createRootRouteWithContext<RouteContext>()({
   beforeLoad: async ({ context }) => {
-    const token = useAuth.getState().token
+    const token = useAppState.getState().token
 
     if (token) {
-      const isValid = await context.qc
+      const userData = await context.qc
         .ensureQueryData(authApi.me.query({}))
-        .then(() => true)
-        .catch(() => false)
+        .then(res => res.data)
+        .catch(() => null)
 
-      if (!isValid) {
-        useAuth.getState().clear()
+      if (userData) {
+        useAppState.getState().invalidateSessionData(userData)
+      } else {
+        useAppState.getState().clearToken()
       }
     }
   },

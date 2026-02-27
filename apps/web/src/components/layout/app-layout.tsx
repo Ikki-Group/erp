@@ -27,22 +27,25 @@ import {
 import { IkkiLogo } from '@/components/common/logo'
 import { ThemeSwitcher } from '@/components/common/theme'
 import { getAppMenu } from '@/config/app-menu'
-import { LocationSwitcher } from '@/features/locations/components/location-switcher'
+import { LocationSwitcher } from '@/features/location/components/location-switcher'
+import { useAppState } from '@/hooks/use-app-state'
 
 export function AppLayout() {
+  const { setSidebarOpen, sidebarOpen } = useAppState()
+
   return (
-    <SidebarProvider>
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <Sidebar>
-        <SidebarHeader className="border-b h-16">
+        <SidebarHeader className='border-b h-16'>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton size="lg" render={<Link to="/" />}>
+              <SidebarMenuButton size='lg' render={<Link to='/' />}>
                 <IkkiLogo />
-                <div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
-                  <span className="truncate font-semibold">
+                <div className='grid flex-1 text-left text-sm leading-tight gap-0.5'>
+                  <span className='truncate font-semibold'>
                     Ikki Management
                   </span>
-                  <span className="truncate text-xs">Backoffice</span>
+                  <span className='truncate text-xs'>Backoffice</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -56,7 +59,7 @@ export function AppLayout() {
       <SidebarInset>
         <Header />
         <Suspense fallback={<LoadingPage />}>
-          <main className="flex flex-1 flex-col h-full overflow-hidden @container">
+          <main className='flex flex-1 flex-col h-full overflow-hidden @container'>
             <Outlet />
           </main>
         </Suspense>
@@ -71,25 +74,25 @@ function SidebarMenus() {
   const menus = useMemo(() => getAppMenu(pathname), [pathname])
 
   return (
-    <SidebarGroup className="py-3">
-      <SidebarMenu className="gap-1.5">
-        {menus.map((menu) => {
+    <SidebarGroup className='py-3'>
+      <SidebarMenu className='gap-1.5'>
+        {menus.map(menu => {
           if (menu.children?.length) {
             return (
               <Collapsible
                 key={menu.href}
-                className="group/collapsible"
+                className='group/collapsible'
                 defaultOpen={menu.isActive}
                 title={menu.title}
               >
                 <SidebarMenuButton render={<CollapsibleTrigger />}>
                   {menu.icon && <menu.icon />}
                   <span>{menu.title}</span>
-                  <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                  <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90' />
                 </SidebarMenuButton>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {menu.children.map((subItem) => (
+                    {menu.children.map(subItem => (
                       <SidebarMenuSubItem key={subItem.href}>
                         <SidebarMenuSubButton
                           isActive={subItem.isActive}
@@ -124,13 +127,13 @@ function SidebarMenus() {
 
 function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear top-0 sticky bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/20">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger variant="outline" size="icon-lg" />
-        <Separator orientation="vertical" />
+    <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear top-0 sticky bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/20'>
+      <div className='flex items-center gap-2'>
+        <SidebarTrigger variant='outline' size='icon-lg' />
+        <Separator orientation='vertical' />
         <LocationSwitcher />
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className='ml-auto flex items-center gap-2'>
         <ThemeSwitcher />
       </div>
     </header>
