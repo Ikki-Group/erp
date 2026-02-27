@@ -32,9 +32,9 @@ export const MaterialCategoryCreateDto = z.object({
 
 export type MaterialCategoryCreateDto = z.infer<typeof MaterialCategoryCreateDto>
 
-export const MaterialUpdateDto = z.object({
+export const MaterialCategoryUpdateDto = z.object({
   id: zPrimitive.idNum,
   ...MaterialCategoryCreateDto.shape,
 })
 
-export type MaterialUpdateDto = z.infer<typeof MaterialUpdateDto>
+export type MaterialCategoryUpdateDto = z.infer<typeof MaterialCategoryUpdateDto>

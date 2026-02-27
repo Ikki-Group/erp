@@ -11,7 +11,12 @@ import {
 import { db } from '@/database'
 import { materialCategoryTable } from '@/database/schema'
 
-import type { MaterialCategoryDto, MaterialCategoryFilterDto } from '../dto'
+import type {
+  MaterialCategoryCreateDto,
+  MaterialCategoryDto,
+  MaterialCategoryFilterDto,
+  MaterialCategoryUpdateDto,
+} from '../dto'
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Material category with ID ${id} not found`),
@@ -63,11 +68,13 @@ export class MaterialCategoryService {
     return category
   }
 
-  async create(data: MaterialCategoryDto): Promise<MaterialCategoryDto> {
+  async create(data: MaterialCategoryCreateDto, createdBy = 1): Promise<MaterialCategoryDto> {
     const [category] = await db
       .insert(materialCategoryTable)
       .values({
         ...data,
+        createdBy,
+        updatedBy: createdBy,
       })
       .returning()
 
@@ -75,16 +82,17 @@ export class MaterialCategoryService {
     return category
   }
 
-  async update(id: number, data: MaterialCategoryDto): Promise<MaterialCategoryDto> {
+  async update(data: MaterialCategoryUpdateDto, updatedBy = 1): Promise<MaterialCategoryDto> {
     const [category] = await db
       .update(materialCategoryTable)
       .set({
         ...data,
+        updatedBy,
       })
-      .where(eq(materialCategoryTable.id, id))
+      .where(eq(materialCategoryTable.id, data.id))
       .returning()
 
-    if (!category) throw err.notFound(id)
+    if (!category) throw err.notFound(data.id)
     return category
   }
 
