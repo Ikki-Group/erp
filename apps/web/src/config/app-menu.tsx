@@ -38,6 +38,23 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
       icon: CirclePileIcon,
       isActive: pathname.startsWith('/materials'),
       isHide: false,
+      children: [
+        {
+          title: 'Daftar Bahan Baku',
+          href: '/materials',
+          isActive: pathname === '/materials',
+        },
+        {
+          title: 'Kategori',
+          href: '/materials/category',
+          isActive: pathname.startsWith('/materials/category'),
+        },
+        {
+          title: 'Satuan (UoM)',
+          href: '/materials/uom',
+          isActive: pathname.startsWith('/materials/uom'),
+        },
+      ],
     },
     {
       title: 'Pengaturan',
