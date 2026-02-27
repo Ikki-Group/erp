@@ -10,7 +10,7 @@ import {
 import { db } from '@/database'
 import { materialTable } from '@/database/schema'
 
-import type { MaterialDto, MaterialFilterDto } from '../dto'
+import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
 
 const err = {
   notFound: (id: number) => new Error(`Material with ID ${id} not found`),
@@ -76,7 +76,7 @@ export class MaterialService {
     return material
   }
 
-  async create(data: MaterialDto, createdBy = 1): Promise<MaterialDto> {
+  async create(data: MaterialCreateDto, createdBy = 1): Promise<MaterialDto> {
     await this.#checkConflict(data)
 
     const [material] = await db
@@ -92,7 +92,7 @@ export class MaterialService {
     return material
   }
 
-  async update(data: MaterialDto, updatedBy = 1): Promise<MaterialDto> {
+  async update(data: MaterialUpdateDto, updatedBy = 1): Promise<MaterialDto> {
     const material = await this.findById(data.id)
 
     await this.#checkConflict(data, material)

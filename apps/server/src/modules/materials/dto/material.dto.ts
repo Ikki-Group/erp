@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -10,7 +10,7 @@ export const MaterialDto = z.object({
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   categoryId: zPrimitive.idNum,
-  baseUomId: zPrimitive.idNum,
+  baseUomCode: zPrimitive.str,
   isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
 })
@@ -20,7 +20,7 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialFilterDto = z.object({
-  search: zPrimitive.str,
+  search: zHttp.query.search,
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
@@ -33,7 +33,7 @@ export const MaterialCreateDto = z.object({
     description: true,
     sku: true,
     categoryId: true,
-    baseUomId: true,
+    baseUomCode: true,
     isActive: true,
   }).shape,
 })
