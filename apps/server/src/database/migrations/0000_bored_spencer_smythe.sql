@@ -30,23 +30,22 @@ CREATE TABLE "materials" (
 	"name" varchar(255) NOT NULL,
 	"description" varchar(255),
 	"sku" varchar(255) NOT NULL,
-	"categoryId" integer NOT NULL,
+	"categoryId" integer,
 	"baseUomId" integer NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
-	"updatedBy" integer NOT NULL,
-	CONSTRAINT "materials_name_unique" UNIQUE("name"),
-	CONSTRAINT "materials_sku_unique" UNIQUE("sku")
+	"updatedBy" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "materialUomConversions" (
+CREATE TABLE "materialUoms" (
+	"isBase" boolean DEFAULT false NOT NULL,
 	"materialId" integer NOT NULL,
-	"fromUomId" integer NOT NULL,
-	"toUomId" integer NOT NULL,
-	"multiplier" numeric NOT NULL,
-	CONSTRAINT "materialUomConversions_materialId_fromUomId_toUomId_pk" PRIMARY KEY("materialId","fromUomId","toUomId")
+	"uomId" integer NOT NULL,
+	"conversionFactor" numeric(18, 6) NOT NULL,
+	CONSTRAINT "materialUoms_materialId_uomId_pk" PRIMARY KEY("materialId","uomId"),
+	CONSTRAINT "uom_base" UNIQUE("materialId","isBase")
 );
 --> statement-breakpoint
 CREATE TABLE "roles" (
@@ -104,11 +103,14 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 ALTER TABLE "materials" ADD CONSTRAINT "materials_categoryId_materialCategories_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."materialCategories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materials" ADD CONSTRAINT "materials_baseUomId_uoms_id_fk" FOREIGN KEY ("baseUomId") REFERENCES "public"."uoms"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_materialId_materials_id_fk" FOREIGN KEY ("materialId") REFERENCES "public"."materials"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_fromUomId_uoms_id_fk" FOREIGN KEY ("fromUomId") REFERENCES "public"."uoms"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_toUomId_uoms_id_fk" FOREIGN KEY ("toUomId") REFERENCES "public"."uoms"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materials" ADD CONSTRAINT "materials_baseUomId_uoms_id_fk" FOREIGN KEY ("baseUomId") REFERENCES "public"."uoms"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materialUoms" ADD CONSTRAINT "materialUoms_materialId_materials_id_fk" FOREIGN KEY ("materialId") REFERENCES "public"."materials"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materialUoms" ADD CONSTRAINT "materialUoms_uomId_uoms_id_fk" FOREIGN KEY ("uomId") REFERENCES "public"."uoms"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_roleId_roles_id_fk" FOREIGN KEY ("roleId") REFERENCES "public"."roles"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_locationId_locations_id_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "material_category_name" ON "materialCategories" USING btree (lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "material_name" ON "materials" USING btree (lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "material_sku" ON "materials" USING btree (lower("sku"));--> statement-breakpoint
+CREATE UNIQUE INDEX "uom_code" ON "uoms" USING btree (lower("code"));

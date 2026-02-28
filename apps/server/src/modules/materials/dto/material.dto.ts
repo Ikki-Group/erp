@@ -2,6 +2,8 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
+import { MaterialUomUpsertDto } from './material-uom.dto'
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
@@ -9,7 +11,7 @@ export const MaterialDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
-  categoryId: zPrimitive.idNum,
+  categoryId: zPrimitive.idNum.nullable(),
   baseUomId: zPrimitive.idNum,
   isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
@@ -36,6 +38,7 @@ export const MaterialCreateDto = z.object({
     baseUomId: true,
     isActive: true,
   }).shape,
+  conversions: MaterialUomUpsertDto.array(),
 })
 
 export type MaterialCreateDto = z.infer<typeof MaterialCreateDto>

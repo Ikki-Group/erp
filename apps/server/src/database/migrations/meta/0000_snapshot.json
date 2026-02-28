@@ -1,5 +1,5 @@
 {
-  "id": "498e57e0-9eb5-4d71-aa7f-5a9f746f957f",
+  "id": "d5250f43-24e1-49b9-9864-ed3c2ff656ac",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -138,7 +138,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "material_category_name": {
+          "name": "material_category_name",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -178,7 +194,7 @@
           "name": "categoryId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "baseUomId": {
           "name": "baseUomId",
@@ -220,7 +236,38 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "material_name": {
+          "name": "material_name",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "material_sku": {
+          "name": "material_sku",
+          "columns": [
+            {
+              "expression": "lower(\"sku\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "materials_categoryId_materialCategories_id_fk": {
           "name": "materials_categoryId_materialCategories_id_fk",
@@ -245,65 +292,51 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "materials_name_unique": {
-          "name": "materials_name_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
-        },
-        "materials_sku_unique": {
-          "name": "materials_sku_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sku"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.materialUomConversions": {
-      "name": "materialUomConversions",
+    "public.materialUoms": {
+      "name": "materialUoms",
       "schema": "",
       "columns": {
+        "isBase": {
+          "name": "isBase",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "materialId": {
           "name": "materialId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "fromUomId": {
-          "name": "fromUomId",
+        "uomId": {
+          "name": "uomId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "toUomId": {
-          "name": "toUomId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "multiplier": {
-          "name": "multiplier",
-          "type": "numeric",
+        "conversionFactor": {
+          "name": "conversionFactor",
+          "type": "numeric(18, 6)",
           "primaryKey": false,
           "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "materialUomConversions_materialId_materials_id_fk": {
-          "name": "materialUomConversions_materialId_materials_id_fk",
-          "tableFrom": "materialUomConversions",
+        "materialUoms_materialId_materials_id_fk": {
+          "name": "materialUoms_materialId_materials_id_fk",
+          "tableFrom": "materialUoms",
           "tableTo": "materials",
           "columnsFrom": [
             "materialId"
@@ -311,47 +344,42 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "materialUomConversions_fromUomId_uoms_id_fk": {
-          "name": "materialUomConversions_fromUomId_uoms_id_fk",
-          "tableFrom": "materialUomConversions",
+        "materialUoms_uomId_uoms_id_fk": {
+          "name": "materialUoms_uomId_uoms_id_fk",
+          "tableFrom": "materialUoms",
           "tableTo": "uoms",
           "columnsFrom": [
-            "fromUomId"
+            "uomId"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "materialUomConversions_toUomId_uoms_id_fk": {
-          "name": "materialUomConversions_toUomId_uoms_id_fk",
-          "tableFrom": "materialUomConversions",
-          "tableTo": "uoms",
-          "columnsFrom": [
-            "toUomId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "materialUomConversions_materialId_fromUomId_toUomId_pk": {
-          "name": "materialUomConversions_materialId_fromUomId_toUomId_pk",
+        "materialUoms_materialId_uomId_pk": {
+          "name": "materialUoms_materialId_uomId_pk",
           "columns": [
             "materialId",
-            "fromUomId",
-            "toUomId"
+            "uomId"
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "uom_base": {
+          "name": "uom_base",
+          "nullsNotDistinct": false,
+          "columns": [
+            "materialId",
+            "isBase"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -478,7 +506,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uom_code": {
+          "name": "uom_code",
+          "columns": [
+            {
+              "expression": "lower(\"code\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
