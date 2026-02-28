@@ -1,4 +1,4 @@
-import { boolean, integer, numeric, pgTable, primaryKey, serial, varchar } from 'drizzle-orm/pg-core'
+import { boolean, integer, numeric, pgTable, primaryKey, serial, unique, varchar } from 'drizzle-orm/pg-core'
 
 import { metafields } from './common'
 
@@ -33,6 +33,7 @@ export const materialTable = pgTable('materials', {
 export const materialUomConversionTable = pgTable(
   'materialUomConversions',
   {
+    isBase: boolean().default(false).notNull(),
     materialId: integer()
       .notNull()
       .references(() => materialTable.id),
@@ -44,5 +45,8 @@ export const materialUomConversionTable = pgTable(
       .references(() => uomTable.id),
     multiplier: numeric().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.materialId, t.fromUomId, t.toUomId] })]
+  (t) => [
+    primaryKey({ columns: [t.materialId, t.fromUomId, t.toUomId] }),
+    unique('uom_base').on(t.materialId, t.isBase),
+  ]
 )

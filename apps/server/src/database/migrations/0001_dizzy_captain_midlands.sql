@@ -1,0 +1,2 @@
+ALTER TABLE "materialUomConversions" ADD COLUMN "isBase" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "materialUomConversions" ADD CONSTRAINT "uom_base" UNIQUE("materialId","isBase");
