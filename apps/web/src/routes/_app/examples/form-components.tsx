@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import {
   Form,
   FormCheckbox,
+  FormCombobox,
   FormInput,
   FormSelect,
   FormSubmit,
@@ -59,13 +60,14 @@ function FormComponentsExample() {
       bio: '',
       country: '',
       role: '',
+      department: null as string | null,
       newsletter: false,
       terms: false,
       age: '',
     },
     onSubmit: async ({ value }) => {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       console.log('Form submitted:', value)
 
@@ -91,14 +93,14 @@ function FormComponentsExample() {
   ]
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <div className="space-y-6">
+    <div className='container mx-auto py-8 max-w-4xl'>
+      <div className='space-y-6'>
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className='text-3xl font-bold tracking-tight'>
             Form Components Example
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className='text-muted-foreground mt-2'>
             Demonstrasi penggunaan semua komponen form dengan Tanstack Form dan
             Zod validation
           </p>
@@ -116,18 +118,18 @@ function FormComponentsExample() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form form={form} className="space-y-6">
+            <Form form={form} className='space-y-6'>
               {/* Section: Personal Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Personal Information</h3>
+              <div className='space-y-4'>
+                <h3 className='text-lg font-semibold'>Personal Information</h3>
 
                 {/* FormInput - Text */}
                 <FormInput
                   form={form}
-                  name="fullName"
-                  label="Full Name"
-                  placeholder="John Doe"
-                  description="Masukkan nama lengkap Anda"
+                  name='fullName'
+                  label='Full Name'
+                  placeholder='John Doe'
+                  description='Masukkan nama lengkap Anda'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
@@ -144,11 +146,11 @@ function FormComponentsExample() {
                 {/* FormInput - Email */}
                 <FormInput
                   form={form}
-                  name="email"
-                  label="Email Address"
-                  type="email"
-                  placeholder="john.doe@example.com"
-                  description="Email akan digunakan untuk login"
+                  name='email'
+                  label='Email Address'
+                  type='email'
+                  placeholder='john.doe@example.com'
+                  description='Email akan digunakan untuk login'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
@@ -165,11 +167,11 @@ function FormComponentsExample() {
                 {/* FormInput - Phone */}
                 <FormInput
                   form={form}
-                  name="phone"
-                  label="Phone Number"
-                  type="tel"
-                  placeholder="08123456789"
-                  description="Nomor telepon aktif"
+                  name='phone'
+                  label='Phone Number'
+                  type='tel'
+                  placeholder='08123456789'
+                  description='Nomor telepon aktif'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
@@ -186,20 +188,20 @@ function FormComponentsExample() {
                 {/* FormInput - Number */}
                 <FormInput
                   form={form}
-                  name="age"
-                  label="Age"
-                  type="number"
-                  placeholder="25"
-                  description="Umur minimal 18 tahun"
+                  name='age'
+                  label='Age'
+                  type='number'
+                  placeholder='25'
+                  description='Umur minimal 18 tahun'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
                         .string()
                         .refine(
-                          (val) => !isNaN(Number(val)) && Number(val) >= 18,
+                          val => !isNaN(Number(val)) && Number(val) >= 18,
                           {
                             message: 'Umur minimal 18 tahun',
-                          },
+                          }
                         )
                         .safeParse(value)
                       return result.success
@@ -213,18 +215,18 @@ function FormComponentsExample() {
               <Separator />
 
               {/* Section: Additional Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">
+              <div className='space-y-4'>
+                <h3 className='text-lg font-semibold'>
                   Additional Information
                 </h3>
 
                 {/* FormTextarea */}
                 <FormTextarea
                   form={form}
-                  name="bio"
-                  label="Bio"
-                  placeholder="Ceritakan tentang diri Anda..."
-                  description="Minimal 10 karakter, maksimal 500 karakter"
+                  name='bio'
+                  label='Bio'
+                  placeholder='Ceritakan tentang diri Anda...'
+                  description='Minimal 10 karakter, maksimal 500 karakter'
                   rows={4}
                   validators={{
                     onChange: ({ value }: { value: any }) => {
@@ -243,11 +245,11 @@ function FormComponentsExample() {
                 {/* FormSelect - Country */}
                 <FormSelect
                   form={form}
-                  name="country"
-                  label="Country"
+                  name='country'
+                  label='Country'
                   options={countryOptions}
-                  placeholder="Pilih negara"
-                  description="Negara tempat tinggal"
+                  placeholder='Pilih negara'
+                  description='Negara tempat tinggal'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
@@ -264,11 +266,11 @@ function FormComponentsExample() {
                 {/* FormSelect - Role */}
                 <FormSelect
                   form={form}
-                  name="role"
-                  label="Role"
+                  name='role'
+                  label='Role'
                   options={roleOptions}
-                  placeholder="Pilih role"
-                  description="Role dalam sistem"
+                  placeholder='Pilih role'
+                  description='Role dalam sistem'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
@@ -281,33 +283,62 @@ function FormComponentsExample() {
                     },
                   }}
                 />
+
+                {/* FormCombobox - Department (Data Combobox Example) */}
+                <div className='space-y-1'>
+                  <FormCombobox
+                    form={form}
+                    name='department'
+                    label='Department'
+                    description="Cari departemen (Ketik 'it' atau 'hr')"
+                    placeholder='Pilih department...'
+                    queryKey={['departments']}
+                    queryFn={async search => {
+                      // Mock API delay
+                      await new Promise(resolve => setTimeout(resolve, 500))
+                      const mockData = [
+                        { id: '1', name: 'Information Technology' },
+                        { id: '2', name: 'Human Resources' },
+                        { id: '3', name: 'Finance' },
+                        { id: '4', name: 'Marketing' },
+                        { id: '5', name: 'Operations' },
+                      ]
+                      if (!search) return mockData
+                      return mockData.filter(d =>
+                        d.name.toLowerCase().includes(search.toLowerCase())
+                      )
+                    }}
+                    getLabel={item => item.name}
+                    getValue={item => item.id}
+                  />
+                </div>
               </div>
 
               <Separator />
 
               {/* Section: Preferences */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Preferences</h3>
+              <div className='space-y-4'>
+                <h3 className='text-lg font-semibold'>Preferences</h3>
 
                 {/* FormCheckbox - Newsletter */}
                 <FormCheckbox
                   form={form}
-                  name="newsletter"
-                  label="Subscribe to newsletter"
-                  description="Dapatkan update terbaru via email"
+                  name='newsletter'
+                  label='Subscribe to newsletter'
+                  description='Dapatkan update terbaru via email'
                 />
 
                 {/* FormCheckbox - Terms (Required) */}
                 <FormCheckbox
                   form={form}
-                  name="terms"
-                  label="I agree to the terms and conditions"
-                  description="Anda harus menyetujui syarat dan ketentuan untuk melanjutkan"
+                  name='terms'
+                  label='I agree to the terms and conditions'
+                  description='Anda harus menyetujui syarat dan ketentuan untuk melanjutkan'
                   validators={{
                     onChange: ({ value }: { value: any }) => {
                       const result = z
                         .boolean()
-                        .refine((val) => val === true, {
+                        .refine(val => val === true, {
                           message: 'Anda harus menyetujui syarat dan ketentuan',
                         })
                         .safeParse(value)
@@ -324,8 +355,8 @@ function FormComponentsExample() {
               {/* Submit Button */}
               <FormSubmit
                 form={form}
-                className="w-full"
-                loadingText="Menyimpan..."
+                className='w-full'
+                loadingText='Menyimpan...'
               >
                 Submit Form
               </FormSubmit>
@@ -339,10 +370,10 @@ function FormComponentsExample() {
             <CardTitle>Usage Examples</CardTitle>
             <CardDescription>Contoh kode untuk setiap komponen</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <h4 className="font-semibold">FormInput</h4>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+          <CardContent className='space-y-4'>
+            <div className='space-y-2'>
+              <h4 className='font-semibold'>FormInput</h4>
+              <pre className='bg-muted p-4 rounded-lg overflow-x-auto text-sm'>
                 {`<FormInput
   form={form}
   name="email"
@@ -354,9 +385,9 @@ function FormComponentsExample() {
               </pre>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-semibold">FormTextarea</h4>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+            <div className='space-y-2'>
+              <h4 className='font-semibold'>FormTextarea</h4>
+              <pre className='bg-muted p-4 rounded-lg overflow-x-auto text-sm'>
                 {`<FormTextarea
   form={form}
   name="bio"
@@ -367,9 +398,9 @@ function FormComponentsExample() {
               </pre>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-semibold">FormSelect</h4>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+            <div className='space-y-2'>
+              <h4 className='font-semibold'>FormSelect</h4>
+              <pre className='bg-muted p-4 rounded-lg overflow-x-auto text-sm'>
                 {`<FormSelect
   form={form}
   name="country"
@@ -383,9 +414,9 @@ function FormComponentsExample() {
               </pre>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-semibold">FormCheckbox</h4>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+            <div className='space-y-2'>
+              <h4 className='font-semibold'>FormCheckbox</h4>
+              <pre className='bg-muted p-4 rounded-lg overflow-x-auto text-sm'>
                 {`<FormCheckbox
   form={form}
   name="newsletter"
@@ -395,9 +426,9 @@ function FormComponentsExample() {
               </pre>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-semibold">FormSubmit</h4>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+            <div className='space-y-2'>
+              <h4 className='font-semibold'>FormSubmit</h4>
+              <pre className='bg-muted p-4 rounded-lg overflow-x-auto text-sm'>
                 {`<FormSubmit
   form={form}
   loadingText="Submitting..."
