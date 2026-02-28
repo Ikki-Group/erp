@@ -1,6 +1,7 @@
-import { boolean, integer, numeric, pgTable, primaryKey, serial, uniqueIndex, varchar } from 'drizzle-orm/pg-core'
+import { index, integer, numeric, pgTable, primaryKey, serial, uniqueIndex, varchar } from 'drizzle-orm/pg-core'
 
 import { lower, metafields } from './common'
+import { materialType } from './enum'
 
 export const materialCategoryTable = pgTable(
   'materialCategories',
@@ -30,11 +31,11 @@ export const materialTable = pgTable(
     name: varchar({ length: 255 }).notNull(),
     description: varchar({ length: 255 }),
     sku: varchar({ length: 255 }).notNull(),
+    type: materialType().notNull(),
     categoryId: integer().references(() => materialCategoryTable.id),
     baseUomId: integer()
       .notNull()
       .references(() => uomTable.id, { onDelete: 'restrict' }),
-    isActive: boolean().default(true).notNull(),
     ...metafields,
   },
   (t) => [uniqueIndex('material_name').on(lower(t.name)), uniqueIndex('material_sku').on(lower(t.sku))]
@@ -54,5 +55,5 @@ export const materialUomTable = pgTable(
       scale: 6,
     }).notNull(),
   },
-  (t) => [primaryKey({ columns: [t.materialId, t.uomId] })]
+  (t) => [primaryKey({ columns: [t.materialId, t.uomId] }), index('material_id_idx').on(t.materialId)]
 )

@@ -13,12 +13,16 @@ import { materialTable } from '@/database/schema'
 
 import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
 
+import type { MaterialUomService } from './material-uom.service'
+
 const err = {
   notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`),
   conflict: (sku: string) => new ConflictError(`Material with SKU ${sku} already exists`),
 }
 
 export class MaterialService {
+  constructor(private readonly materialUom: MaterialUomService) {}
+
   #buildWhere(filter: MaterialFilterDto) {
     const { search } = filter
     const conditions = []
@@ -80,32 +84,44 @@ export class MaterialService {
   async create(data: MaterialCreateDto, createdBy = 1): Promise<MaterialDto> {
     await this.#checkConflict(data)
 
-    const [material] = await db
-      .insert(materialTable)
-      .values({
-        ...data,
-        createdBy,
-        updatedBy: createdBy,
-      })
-      .returning()
+    const material = await db.transaction(async (tx) => {
+      const [material] = await tx
+        .insert(materialTable)
+        .values({
+          ...data,
+          createdBy,
+          updatedBy: createdBy,
+        })
+        .returning()
 
-    if (!material) throw new InternalServerError('Failed to create material')
+      if (!material) throw new InternalServerError('Failed to create material')
+
+      await this.materialUom.bulkUpsert(material.id, data.conversions, tx)
+      return material
+    })
+
     return material
   }
 
   async update(data: MaterialUpdateDto, updatedBy = 1): Promise<MaterialDto> {
     const material = await this.findById(data.id)
-
     await this.#checkConflict(data, material)
 
-    const [updatedMaterial] = await db
-      .update(materialTable)
-      .set({
-        ...data,
-        updatedBy,
-      })
-      .where(eq(materialTable.id, data.id))
-      .returning()
+    const updatedMaterial = await db.transaction(async (tx) => {
+      const [updatedMaterial] = await tx
+        .update(materialTable)
+        .set({
+          ...data,
+          updatedBy,
+        })
+        .where(eq(materialTable.id, data.id))
+        .returning()
+
+      if (!updatedMaterial) throw err.notFound(data.id)
+      await this.materialUom.bulkUpsert(updatedMaterial.id, data.conversions, tx)
+
+      return updatedMaterial
+    })
 
     if (!updatedMaterial) throw err.notFound(data.id)
     return updatedMaterial

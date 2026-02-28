@@ -4,12 +4,17 @@ import { MaterialService } from './material.service'
 import { UomService } from './uom.service'
 
 export class MaterialServiceModule {
-  constructor(
-    public readonly materialUom: MaterialUomService = new MaterialUomService(),
-    public readonly category: MaterialCategoryService = new MaterialCategoryService(),
-    public readonly material: MaterialService = new MaterialService(),
-    public readonly uom: UomService = new UomService()
-  ) {}
+  public readonly materialUom: MaterialUomService
+  public readonly category: MaterialCategoryService
+  public readonly material: MaterialService
+  public readonly uom: UomService
+
+  constructor() {
+    this.materialUom = new MaterialUomService()
+    this.category = new MaterialCategoryService()
+    this.material = new MaterialService(this.materialUom)
+    this.uom = new UomService()
+  }
 }
 
 export * from './material-category.service'

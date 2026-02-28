@@ -4,6 +4,8 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { MaterialUomUpsertDto } from './material-uom.dto'
 
+const MaterialType = z.enum(['raw', 'semi'])
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
@@ -11,9 +13,9 @@ export const MaterialDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
+  type: MaterialType,
   categoryId: zPrimitive.idNum.nullable(),
   baseUomId: zPrimitive.idNum,
-  isActive: zPrimitive.bool,
   ...zSchema.meta.shape,
 })
 
@@ -34,11 +36,11 @@ export const MaterialCreateDto = z.object({
     name: true,
     description: true,
     sku: true,
+    type: true,
     categoryId: true,
     baseUomId: true,
-    isActive: true,
   }).shape,
-  conversions: MaterialUomUpsertDto.array(),
+  conversions: MaterialUomUpsertDto.array().min(1),
 })
 
 export type MaterialCreateDto = z.infer<typeof MaterialCreateDto>

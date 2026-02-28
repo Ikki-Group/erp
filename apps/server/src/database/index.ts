@@ -20,7 +20,6 @@ export async function closeDatabase() {
 }
 
 export type Database = typeof db
-
 export type DBTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export * as schema from './schema'
