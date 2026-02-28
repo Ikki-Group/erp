@@ -24,6 +24,11 @@ const location = {
 }
 
 const material = {
+  list: 'materials/list',
+  detail: 'materials/detail',
+  create: 'materials/create',
+  update: 'materials/update',
+  remove: 'materials/remove',
   category: {
     list: 'materials/category/list',
     detail: 'materials/category/detail',
