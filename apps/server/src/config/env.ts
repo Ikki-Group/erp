@@ -24,6 +24,10 @@ const Env = z.object({
   // App
   APP_NAME: z.string().default('ikki-erp'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
+
+  // Upstash
+  UPSTASH_REDIS_REST_URL: z.string().url().describe('Upstash Redis REST URL'),
+  UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
 })
 
 const _env = Env.safeParse(Bun.env)

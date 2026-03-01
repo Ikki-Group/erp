@@ -7,9 +7,10 @@ import { Page } from '@/components/layout/page'
 import { toDateTimeStamp } from '@/lib/formatter'
 import { Button } from '@/components/ui/button'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { materialApi } from '@/features/material'
+import { MaterialBadgeProps, materialApi } from '@/features/material'
 import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableCard } from '@/components/card/data-table-card'
+import { BadgeDot } from '@/components/common/badge-dot'
 
 export const Route = createFileRoute('/_app/materials/')({
   component: RouteComponent,
@@ -37,6 +38,11 @@ const columns = [
   ch.accessor('description', {
     header: 'Deskripsi',
     cell: ({ row }) => row.original.description ?? '-',
+    enableSorting: false,
+  }),
+  ch.accessor('type', {
+    header: 'Jenis',
+    cell: ({ row }) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {

@@ -1,5 +1,5 @@
 import z from 'zod'
-import { MaterialDto, MaterialMutationDto } from '../dto'
+import { MaterialMutationDto, MaterialSelectDto } from '../dto'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
@@ -12,13 +12,13 @@ export const materialApi = {
       ...zHttp.pagination.shape,
       search: zHttp.search,
     }),
-    result: zHttp.paginated(MaterialDto.array()),
+    result: zHttp.paginated(MaterialSelectDto.array()),
   }),
   detail: apiFactory({
     method: 'get',
     url: endpoint.material.detail,
     params: zSchema.recordId,
-    result: zHttp.ok(MaterialDto),
+    result: zHttp.ok(MaterialSelectDto),
   }),
   create: apiFactory({
     method: 'post',

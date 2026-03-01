@@ -29,10 +29,15 @@ export function calculatePaginationMeta(pq: PaginationQuery, total: number): Pag
   }
 }
 
-export function withPagination<T extends PgSelect>(qb: T, pq: PaginationQuery) {
+export function getLimitOffset(pq: PaginationQuery) {
   const page = Math.max(1, pq.page)
   const limit = Math.max(1, pq.limit)
   const offset = (page - 1) * limit
 
+  return { limit, offset }
+}
+
+export function withPagination<T extends PgSelect>(qb: T, pq: PaginationQuery) {
+  const { limit, offset } = getLimitOffset(pq)
   return qb.limit(limit).offset(offset)
 }

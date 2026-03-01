@@ -1,38 +1,26 @@
 import { formOptions, useStore } from '@tanstack/react-form'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
 import { toast } from 'sonner'
 import { BoxesIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { materialApi } from '../api'
+import { useMemo } from 'react'
+import { materialApi, materialCategoryApi, uomApi } from '../api'
 import type { LinkOptions } from '@tanstack/react-router'
-import type { MaterialDto } from '../dto'
+import type { MaterialSelectDto } from '../dto'
 import { Page } from '@/components/layout/page'
 import {
   FormConfig,
   useAppForm,
   useTypedAppFormContext,
 } from '@/components/form'
-import { DataCombobox } from '@/components/ui/data-combobox'
 import { CardSection } from '@/components/card/card-section'
 import { Card } from '@/components/ui/card'
 import { Table } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { toastLabelMessage } from '@/lib/toast-message'
-
-const MOCK_CATEGORIES = [
-  { id: 1, name: 'Food' },
-  { id: 2, name: 'Beverage' },
-  { id: 3, name: 'Packaging' },
-]
-
-const MOCK_UOMS = [
-  { id: 1, name: 'Kilogram (kg)' },
-  { id: 2, name: 'Gram (g)' },
-  { id: 3, name: 'Liter (l)' },
-  { id: 4, name: 'Pcs' },
-]
+import { toOptions } from '@/lib/utils'
 
 const FormDto = z.object({
   name: z.string().min(1),
@@ -56,7 +44,18 @@ const fopts = formOptions({
   defaultValues: {} as FormDto,
 })
 
-function getDefaultValues(v?: MaterialDto): FormDto {
+function getDefaultValues(v?: MaterialSelectDto): FormDto {
+  const conversions: FormDto['conversions'] = []
+
+  if (v?.conversions.length) {
+    const [_, ...others] = v.conversions
+    conversions.push(
+      ...others.map(i => ({
+        uomId: i.uomId,
+        conversionFactor: i.conversionFactor,
+      }))
+    )
+  }
   return {
     name: v?.name ?? '',
     description: v?.description ?? '',
@@ -64,7 +63,7 @@ function getDefaultValues(v?: MaterialDto): FormDto {
     type: v?.type ?? 'raw',
     categoryId: v?.categoryId ?? null!,
     baseUomId: v?.baseUomId ?? null!,
-    conversions: v?.conversions ?? [],
+    conversions,
   }
 }
 
@@ -88,6 +87,11 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     ...fopts,
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
+      value.conversions = [
+        { uomId: value.baseUomId, conversionFactor: '1' },
+        ...value.conversions,
+      ]
+
       const promise = selectedMaterial.data?.data
         ? update.mutateAsync({
             body: {
@@ -114,7 +118,7 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   return (
     <form.AppForm>
       <FormConfig mode={mode} id={id} backTo={backTo}>
-        <Page size='sm'>
+        <Page size='md'>
           <Page.BlockHeader
             title={mode === 'create' ? 'Tambah Bahan Baku' : 'Edit Bahan Baku'}
             back={backTo}
@@ -135,6 +139,15 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
 
 function GeneralInformationCard() {
   const form = useTypedAppFormContext({ ...fopts })
+  const { data: categories } = useSuspenseQuery({
+    ...materialCategoryApi.list.query({ page: 1, limit: 100 }),
+    select: ({ data }) =>
+      toOptions(
+        data,
+        i => i.id,
+        i => i.name
+      ),
+  })
 
   return (
     <CardSection title='Informasi Bahan Baku'>
@@ -163,29 +176,8 @@ function GeneralInformationCard() {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <form.AppField name='categoryId'>
           {field => (
-            <field.Base label='Kategori' required>
-              <field.Control>
-                <DataCombobox
-                  value={
-                    field.state.value ? String(field.state.value) : undefined
-                  }
-                  onValueChange={val =>
-                    field.handleChange(val ? Number(val) : null)
-                  }
-                  placeholder='Cari kategori...'
-                  emptyText='Kategori tidak ditemukan'
-                  queryKey={['categories']}
-                  queryFn={async search => {
-                    await new Promise(resolve => setTimeout(resolve, 500))
-                    if (!search) return MOCK_CATEGORIES
-                    return MOCK_CATEGORIES.filter(c =>
-                      c.name.toLowerCase().includes(search.toLowerCase())
-                    )
-                  }}
-                  getLabel={item => item.name}
-                  getValue={item => String(item.id)}
-                />
-              </field.Control>
+            <field.Base label='Kategori'>
+              <field.Select placeholder='Pilih kategori' options={categories} />
             </field.Base>
           )}
         </form.AppField>
@@ -195,8 +187,8 @@ function GeneralInformationCard() {
               <field.Select
                 placeholder='Pilih tipe'
                 options={[
-                  { label: 'Bahan Mentah (Raw)', value: 'raw' },
-                  { label: 'Bahan Setengah Jadi (Semi)', value: 'semi' },
+                  { label: 'Bahan Mentah', value: 'raw' },
+                  { label: 'Bahan Setengah Jadi', value: 'semi' },
                 ]}
               />
             </field.Base>
@@ -209,6 +201,15 @@ function GeneralInformationCard() {
 
 function UomInformationSection() {
   const form = useTypedAppFormContext({ ...fopts })
+  const { data: uoms } = useSuspenseQuery({
+    ...uomApi.list.query({ page: 1, limit: 100 }),
+    select: ({ data }) =>
+      toOptions(
+        data,
+        i => i.id,
+        i => i.code
+      ),
+  })
 
   return (
     <Card size='sm'>
@@ -222,13 +223,7 @@ function UomInformationSection() {
         <form.AppField name='baseUomId'>
           {field => (
             <field.Base label='Satuan Utama' required>
-              <field.Select
-                placeholder='Pilih satuan utama'
-                options={MOCK_UOMS.map(u => ({
-                  label: u.name,
-                  value: u.id,
-                }))}
-              />
+              <field.Select placeholder='Pilih satuan utama' options={uoms} />
             </field.Base>
           )}
         </form.AppField>
@@ -240,8 +235,19 @@ function UomInformationSection() {
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const baseUomId = useStore(form.store, s => s.values.baseUomId)
-  const baseUomName =
-    MOCK_UOMS.find(u => u.id === Number(baseUomId))?.name || 'Satuan Utama'
+  const { data: uoms } = useSuspenseQuery({
+    ...uomApi.list.query({ page: 1, limit: 100 }),
+    select: ({ data }) =>
+      toOptions(
+        data,
+        i => i.id,
+        i => i.code
+      ),
+  })
+
+  const baseUom = useMemo(() => {
+    return uoms.find(u => u.value === baseUomId)
+  }, [baseUomId, uoms])
 
   return (
     <Card size='sm'>
@@ -256,7 +262,7 @@ function UomConversionsSection() {
           <Table className='table-fixed'>
             <Table.Header className='bg-muted'>
               <Table.Row>
-                <Table.Head>Detail Konversi</Table.Head>
+                <Table.Head className='w-[400px]'>Detail Konversi</Table.Head>
                 <Table.Head className='w-16 text-center'>Aksi</Table.Head>
               </Table.Row>
             </Table.Header>
@@ -277,30 +283,28 @@ function UomConversionsSection() {
                   }
                   return arrayField.state.value.map((_, i) => {
                     return (
+                      // eslint-disable-next-line @eslint-react/no-array-index-key
                       <Table.Row key={i}>
-                        <Table.Cell className='align-top pt-4'>
-                          <div className='flex items-center gap-3'>
-                            <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
+                        <Table.Cell>
+                          <div className='flex items-center gap-1.5'>
+                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
                               1
                             </div>
-                            <div className='w-full max-w-[200px]'>
+                            <div className='w-52'>
                               <form.AppField name={`conversions[${i}].uomId`}>
                                 {field => (
                                   <field.Select
                                     required
                                     placeholder='Pilih satuan...'
-                                    options={MOCK_UOMS.map(u => ({
-                                      label: u.name,
-                                      value: u.id,
-                                    }))}
+                                    options={uoms}
                                   />
                                 )}
                               </form.AppField>
                             </div>
-                            <div className='text-muted-foreground text-sm font-medium'>
+                            <div className='text-muted-foreground text-sm font-medium shrink-0'>
                               =
                             </div>
-                            <div className='w-full max-w-[200px]'>
+                            <div className='w-52'>
                               <form.AppField
                                 name={`conversions[${i}].conversionFactor`}
                               >
@@ -313,15 +317,15 @@ function UomConversionsSection() {
                                 )}
                               </form.AppField>
                             </div>
-                            <div className='flex h-10 px-3 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
-                              {baseUomName}
+                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
+                              {baseUom?.label || '-'}
                             </div>
                           </div>
                         </Table.Cell>
-                        <Table.Cell className='align-top pt-4 text-center'>
+                        <Table.Cell className='text-center'>
                           <Button
                             variant='destructive'
-                            size='icon-sm'
+                            size='icon'
                             type='button'
                             onClick={() => arrayField.removeValue(i)}
                           >

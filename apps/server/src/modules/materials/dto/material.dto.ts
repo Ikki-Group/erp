@@ -2,7 +2,8 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
-import { MaterialUomUpsertDto } from './material-uom.dto'
+import { MaterialCategoryDto } from './material-category.dto'
+import { MaterialUomDto, MaterialUomUpsertDto } from './material-uom.dto'
 
 const MaterialType = z.enum(['raw', 'semi'])
 
@@ -29,7 +30,17 @@ export const MaterialFilterDto = z.object({
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
+
+export const MaterialSelectDto = z.object({
+  ...MaterialDto.shape,
+  conversions: MaterialUomDto.array(),
+  category: MaterialCategoryDto.nullable(),
+})
+
+export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCreateDto = z.object({
   ...MaterialDto.pick({

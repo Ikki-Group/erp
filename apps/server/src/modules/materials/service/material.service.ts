@@ -3,6 +3,7 @@ import { and, count, eq, ilike, not, or } from 'drizzle-orm'
 import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
+  getLimitOffset,
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
@@ -11,7 +12,7 @@ import {
 import { db } from '@/database'
 import { materialTable } from '@/database/schema'
 
-import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
+import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialSelectDto, MaterialUpdateDto } from '../dto'
 
 import type { MaterialUomService } from './material-uom.service'
 
@@ -74,8 +75,36 @@ export class MaterialService {
     }
   }
 
-  async findById(id: number): Promise<MaterialDto> {
-    const [material] = await db.select().from(materialTable).where(eq(materialTable.id, id)).limit(1)
+  async findMaterialSelect(
+    filter: MaterialFilterDto,
+    pq: PaginationQuery
+  ): Promise<WithPaginationResult<MaterialSelectDto>> {
+    const { search } = filter
+    const { limit, offset } = getLimitOffset(pq)
+    const query = db.query.materialTable.findMany({
+      where: {
+        ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
+      },
+      with: {
+        category: true,
+        conversions: true,
+      },
+      limit,
+      offset,
+    })
+
+    const [data, total] = await Promise.all([query.execute(), this.count(filter)])
+    return {
+      data,
+      meta: calculatePaginationMeta(pq, total),
+    }
+  }
+
+  async findById(id: number): Promise<MaterialSelectDto> {
+    const material = await db.query.materialTable.findFirst({
+      where: { id },
+      with: { category: true, conversions: true },
+    })
 
     if (!material) throw err.notFound(id)
     return material

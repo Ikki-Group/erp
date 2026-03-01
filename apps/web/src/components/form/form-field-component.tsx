@@ -194,6 +194,9 @@ function FieldSelect<TValue extends StringOrNumber = string>({
           </Select.Trigger>
         </FieldControl>
         <Select.Content>
+          {options.length === 0 && (
+            <Select.Item disabled>Tidak ada opsi</Select.Item>
+          )}
           {options.map(option => (
             <Select.Item key={String(option.value)} value={option.value}>
               {option.label}
