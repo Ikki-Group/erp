@@ -29,5 +29,6 @@ userSchema
   .index({ email: 1 }, { name: 'email_idx', unique: true })
   .index({ username: 1 }, { name: 'username_idx', unique: true })
   .index({ _id: 1, 'assignments.roleId': 1 }, { name: 'role_idx', unique: true })
+  .index({ username: 'text', fullname: 'text', email: 'text' }, { name: 'search_idx' })
 
 export const UserModel = model(DB_NAME.USER, userSchema)

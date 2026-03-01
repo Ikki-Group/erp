@@ -1,8 +1,13 @@
+import type { PipelineStage } from 'mongoose'
+
+import { pipelineHelper } from '@/lib/db'
+import { PipelineBuilder } from '@/lib/db/pipeline-builder'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
 import { hashPassword } from '@/lib/password'
 
-import type { UserMutationDto, UserSelectDto } from '@/modules/iam/dto'
-import { UserModel } from '@/modules/iam/model'
+import { UserSelectDto, type UserFilterDto, type UserMutationDto } from '../dto'
+import { UserModel } from '../model'
 
 /* -------------------------------- CONSTANT -------------------------------- */
 
@@ -15,11 +20,28 @@ const err = {
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class UserService {
-  async handleList(): Promise<UserSelectDto> {
-    return []
+  async handleList(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserSelectDto>> {
+    const pb = PipelineBuilder.create()
+    const $match: PipelineStage.Match['$match'] = {}
+
+    if (filter.search) $match.$text = { $search: filter.search }
+    if (typeof filter.isActive === 'boolean') $match.isActive = filter.isActive
+
+    if (Object.keys($match).length > 0) pb.push(pipelineHelper.$match($match))
+
+    const result = pb.execPaginated({
+      model: UserModel,
+      schema: UserSelectDto.array(),
+      pq,
+      facetAfter: [pipelineHelper.$setId()],
+    })
+
+    return result
   }
 
-  async handleDetail() {}
+  async handleDetail(id: string) {
+    return
+  }
 
   async handleCreate(data: UserMutationDto) {
     const user = new UserModel({
@@ -33,9 +55,9 @@ export class UserService {
     return user
   }
 
-  async handleUpdate() {}
+  // async handleUpdate() {}
 
-  async handleRemove() {}
+  // async handleRemove() {}
 
   // #buildWhere(filter: UserFilterDto) {
   //   const { search, isActive } = filter

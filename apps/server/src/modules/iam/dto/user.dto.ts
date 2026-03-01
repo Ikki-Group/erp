@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -27,6 +27,13 @@ export const UserDto = z.object({
 export type UserDto = z.infer<typeof UserDto>
 
 /* --------------------------------- COMMON --------------------------------- */
+
+export const UserFilterDto = z.object({
+  search: zHttp.query.search,
+  isActive: zHttp.query.boolean,
+})
+
+export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 export const UserSelectDto = z.object({
   ...UserDto.omit({ passwordHash: true }).shape,

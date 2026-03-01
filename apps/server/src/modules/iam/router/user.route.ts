@@ -1,33 +1,32 @@
 import Elysia from 'elysia'
+import z from 'zod'
 
 // import { UserCreateDto, UserDetailDto, UserDto, UserUpdateDto } from '../schema'
 import { res } from '@/lib/utils/response.util'
-import { zHttp } from '@/lib/validation'
+import { zHttp, zResponse } from '@/lib/validation'
 
-import { UserMutationDto } from '@/modules/iam/dto'
-
+import { UserMutationDto, UserSelectDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
   return (
     new Elysia()
-      // .get(
-      //   '/list',
-      //   async function list({ query }) {
-      //     const { isActive, search, page, limit } = query
-      //     const result = await s.user.findPaginated({ isActive, search }, { page, limit })
-      //     return res.paginated(result)
-      //   },
-      //   {
-      //     query: z.object({
-      //       ...zHttp.pagination.shape,
-      //       search: zHttp.query.search,
-      //       isActive: zHttp.query.boolean,
-      //     }),
-      //     response: zResponse.paginated(UserDto.array()),
-      //     auth: true,
-      //   }
-      // )
+      .get(
+        '/list',
+        async function list({ query }) {
+          const result = await s.user.handleList(query, query)
+          return res.paginated(result)
+        },
+        {
+          query: z.object({
+            ...zHttp.pagination.shape,
+            search: zHttp.query.search,
+            isActive: zHttp.query.boolean,
+          }),
+          response: zResponse.paginated(UserSelectDto.array()),
+          auth: true,
+        }
+      )
       // .get(
       //   '/detail',
       //   async function detail({ query }) {
