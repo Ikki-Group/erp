@@ -2,6 +2,7 @@ import { index, integer, numeric, pgTable, primaryKey, serial, uniqueIndex, varc
 
 import { lower, metafields } from './common'
 import { materialType } from './enum'
+import { locations } from './locations'
 
 export const materialCategoryTable = pgTable(
   'materialCategories',
@@ -56,4 +57,18 @@ export const materialUomTable = pgTable(
     }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.materialId, t.uomId] }), index('material_id_idx').on(t.materialId)]
+)
+
+export const materialLocationTable = pgTable(
+  'materialLocations',
+  {
+    materialId: integer()
+      .notNull()
+      .references(() => materialTable.id, { onDelete: 'cascade' }),
+    locationId: integer()
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
+    ...metafields,
+  },
+  (t) => [primaryKey({ columns: [t.materialId, t.locationId] })]
 )

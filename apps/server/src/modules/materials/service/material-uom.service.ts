@@ -1,5 +1,7 @@
 import { eq, type InferInsertModel } from 'drizzle-orm'
 
+import { cache } from '@/lib/cache'
+
 import { db, type DBTransaction } from '@/database'
 import { materialUomTable } from '@/database/schema'
 
@@ -16,5 +18,12 @@ export class MaterialUomService {
     }))
 
     await (tx ?? db).insert(materialUomTable).values(values)
+    await cache.del(`material-uom-${materialId}`)
+  }
+
+  async findByMaterialId(materialId: number): Promise<MaterialUomUpsertDto[]> {
+    return cache.wrap(`material-uom-${materialId}`, () => {
+      return db.select().from(materialUomTable).where(eq(materialUomTable.materialId, materialId))
+    })
   }
 }

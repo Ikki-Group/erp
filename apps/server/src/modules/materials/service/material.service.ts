@@ -1,4 +1,6 @@
+import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
+import { mapAsync } from 'es-toolkit'
 
 import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
@@ -22,7 +24,10 @@ const err = {
 }
 
 export class MaterialService {
-  constructor(private readonly materialUom: MaterialUomService) {}
+  constructor(
+    private readonly materialUom: MaterialUomService
+    // private readonly categorySvc: MaterialCategoryService
+  ) {}
 
   #buildWhere(filter: MaterialFilterDto) {
     const { search } = filter
@@ -79,25 +84,50 @@ export class MaterialService {
     filter: MaterialFilterDto,
     pq: PaginationQuery
   ): Promise<WithPaginationResult<MaterialSelectDto>> {
-    const { search } = filter
-    const { limit, offset } = getLimitOffset(pq)
-    const query = db.query.materialTable.findMany({
-      where: {
-        ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
-      },
-      with: {
-        category: true,
-        conversions: true,
-      },
-      limit,
-      offset,
-    })
+    return record('findMaterialSelect', async () => {
+      const { search } = filter
+      const { limit, offset } = getLimitOffset(pq)
+      const query = db.query.materialTable.findMany({
+        where: {
+          ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
+        },
+        limit,
+        offset,
+      })
 
-    const [data, total] = await Promise.all([query.execute(), this.count(filter)])
-    return {
-      data,
-      meta: calculatePaginationMeta(pq, total),
-    }
+      const [data, total] = await Promise.all([query.execute(), this.count(filter)])
+      const result: MaterialSelectDto[] = await mapAsync(data, async (item): Promise<MaterialSelectDto> => {
+        return {
+          ...item,
+          conversions: [],
+          category: null,
+        }
+      })
+
+      return {
+        data: result,
+        meta: calculatePaginationMeta(pq, total),
+      }
+    })
+    // const { search } = filter
+    // const { limit, offset } = getLimitOffset(pq)
+    // const query = db.query.materialTable.findMany({
+    //   where: {
+    //     ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
+    //   },
+    //   with: {
+    //     category: true,
+    //     conversions: true,
+    //   },
+    //   limit,
+    //   offset,
+    // })
+
+    // const [data, total] = await Promise.all([query.execute(), this.count(filter)])
+    // return {
+    //   data,
+    //   meta: calculatePaginationMeta(pq, total),
+    // }
   }
 
   async findById(id: number): Promise<MaterialSelectDto> {
