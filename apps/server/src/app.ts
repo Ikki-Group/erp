@@ -2,27 +2,23 @@ import { cors } from '@elysiajs/cors'
 import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
-import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
-import { DashboardServiceModule, initDashboardRouteModule } from '@/modules/dashboard'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
-import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
-import { initMaterialsRouteModule, MaterialServiceModule } from '@/modules/materials'
 
 // Services
 const iamService = new IamServiceModule()
-const locationService = new LocationServiceModule()
-const dashboardService = new DashboardServiceModule(iamService, locationService)
-const materialService = new MaterialServiceModule()
+// const locationService = new LocationServiceModule()
+// const dashboardService = new DashboardServiceModule(iamService, locationService)
+// const materialService = new MaterialServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
-const locationsRoute = initLocationRouteModule(locationService)
-const dashboardRoute = initDashboardRouteModule(dashboardService)
-const materialsRoute = initMaterialsRouteModule(materialService)
+// const locationsRoute = initLocationRouteModule(locationService)
+// const dashboardRoute = initDashboardRouteModule(dashboardService)
+// const materialsRoute = initMaterialsRouteModule(materialService)
 
 export const app = new Elysia({
   name: 'App',
@@ -56,11 +52,11 @@ export const app = new Elysia({
     })
   )
   .use(otel)
-  .use(createAuthPlugin(iamService))
+  // .use(createAuthPlugin(iamService))
   .use(iamRoute)
-  .use(locationsRoute)
-  .use(dashboardRoute)
-  .use(materialsRoute)
+// .use(locationsRoute)
+// .use(dashboardRoute)
+// .use(materialsRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
 //   detail: { hide: true },

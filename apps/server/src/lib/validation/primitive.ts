@@ -1,4 +1,7 @@
+import { Types } from 'mongoose'
 import z from 'zod'
+
+import { tryParseObjectId } from '@/lib/db/utils'
 
 // Base types
 const str = z.string().trim()
@@ -14,8 +17,7 @@ const bool = z.boolean()
 const email = z.email()
 const uuid = z.uuidv7()
 
-const idNum = z.number().int().positive()
-const idNumCoerce = z.coerce.number().int().positive()
+const objId = z.preprocess(tryParseObjectId, z.instanceof(Types.ObjectId))
 
 // Domain-specific
 const codeUpper = z.string().trim().toUpperCase()
@@ -35,8 +37,6 @@ export const zPrimitive = {
   strNullable,
   num,
   numCoerce,
-  idNum,
-  idNumCoerce,
   date,
   bool,
   email,
@@ -44,4 +44,5 @@ export const zPrimitive = {
   codeUpper,
   password,
   username,
+  objId,
 }

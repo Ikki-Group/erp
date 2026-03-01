@@ -37,6 +37,7 @@ export function getLimitOffset(pq: PaginationQuery) {
   return { limit, offset }
 }
 
+/** @deprecated */
 export function withPagination<T extends PgSelect>(qb: T, pq: PaginationQuery) {
   const { limit, offset } = getLimitOffset(pq)
   return qb.limit(limit).offset(offset)

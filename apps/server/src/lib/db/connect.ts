@@ -8,6 +8,7 @@ interface ConnectionOptions extends MongoConnectOptions {
 mongoose.set('strictQuery', false)
 mongoose.set('transactionAsyncLocalStorage', true)
 mongoose.set('allowDiskUse', true)
+mongoose.pluralize(null)
 
 export async function connectDatabase({ uri, env, ...opts }: ConnectionOptions) {
   return mongoose
