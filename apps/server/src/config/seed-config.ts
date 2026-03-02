@@ -27,4 +27,4 @@ export const SEED_CONFIG = {
       type: 'warehouse',
     },
   ],
-}
+} as const
