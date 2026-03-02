@@ -7,16 +7,17 @@ import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
+import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 
 // Services
 const iamService = new IamServiceModule()
-// const locationService = new LocationServiceModule()
+const locationService = new LocationServiceModule()
 // const dashboardService = new DashboardServiceModule(iamService, locationService)
 // const materialService = new MaterialServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
-// const locationsRoute = initLocationRouteModule(locationService)
+const locationsRoute = initLocationRouteModule(locationService)
 // const dashboardRoute = initDashboardRouteModule(dashboardService)
 // const materialsRoute = initMaterialsRouteModule(materialService)
 
@@ -25,6 +26,7 @@ export const app = new Elysia({
   precompile: true,
 })
   .onError((ctx) => {
+    // eslint-disable-next-line no-console
     console.log(ctx.error)
     let error: HttpError
     if (ctx.error instanceof HttpError) {
@@ -55,7 +57,7 @@ export const app = new Elysia({
   .use(otel)
   // .use(createAuthPlugin(iamService))
   .use(iamRoute)
-// .use(locationsRoute)
+  .use(locationsRoute)
 // .use(dashboardRoute)
 // .use(materialsRoute)
 // Must be last

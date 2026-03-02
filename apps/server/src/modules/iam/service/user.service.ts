@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage, Types } from 'mongoose'
+import type { PipelineStage } from 'mongoose'
 
 import { PipelineBuilder, pipelineHelper } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
@@ -13,7 +13,7 @@ import { UserModel } from '../model'
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: Types.ObjectId) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
+  notFound: (id: ObjectId) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
   emailExist: (email: string) => new ConflictError(`Email ${email} already exists`, 'USER_EMAIL_ALREADY_EXISTS'),
   usernameExist: (username: string) =>
     new ConflictError(`Username ${username} already exists`, 'USER_USERNAME_ALREADY_EXISTS'),
@@ -27,7 +27,7 @@ export class UserService {
   // below and can also be used by other services (e.g. AuthService).
 
   /** Finds a single user document by its ID. Throws NotFoundError if missing. */
-  async findById(id: Types.ObjectId): Promise<UserDto> {
+  async findById(id: ObjectId): Promise<UserDto> {
     const result = await PipelineBuilder.create(UserModel)
       .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
       .execOne({ schema: UserDto })
@@ -44,8 +44,8 @@ export class UserService {
     if (!emailChanged && !usernameChanged) return
 
     const $or = [
-      ...(emailChanged ? [{ email: input.email.toLowerCase().trim() }] : []),
-      ...(usernameChanged ? [{ username: input.username.toLowerCase().trim() }] : []),
+      ...(emailChanged ? [{ email: input.email.toLowerCase() }] : []),
+      ...(usernameChanged ? [{ username: input.username.toLowerCase() }] : []),
     ]
 
     const conflict = await UserModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
@@ -86,7 +86,7 @@ export class UserService {
     })
   }
 
-  async handleCreate(data: UserMutationDto): Promise<{ id: Types.ObjectId }> {
+  async handleCreate(data: UserMutationDto): Promise<{ id: ObjectId }> {
     return record('UserService.handleCreate', async () => {
       const email = data.email.toLowerCase().trim()
       const username = data.username.toLowerCase().trim()
@@ -107,7 +107,7 @@ export class UserService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>): Promise<{ id: Types.ObjectId }> {
+  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>): Promise<{ id: ObjectId }> {
     return record('UserService.handleUpdate', async () => {
       const existing = await this.findById(id)
 
@@ -131,7 +131,7 @@ export class UserService {
     })
   }
 
-  async handleRemove(id: ObjectId): Promise<{ id: Types.ObjectId }> {
+  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
     return record('UserService.handleRemove', async () => {
       const result = await UserModel.findByIdAndDelete(id)
       if (!result) throw err.notFound(id)

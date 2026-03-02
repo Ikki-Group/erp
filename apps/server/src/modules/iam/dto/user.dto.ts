@@ -2,6 +2,8 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
+import { RoleDto } from './role.dto'
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const UserAssignmentDto = z.object({
@@ -40,6 +42,20 @@ export const UserSelectDto = z.object({
 })
 
 export type UserSelectDto = z.infer<typeof UserSelectDto>
+
+export const UserDetailDto = z.object({
+  ...UserSelectDto.shape,
+  assignments: z.array(
+    z.object({
+      ...UserAssignmentDto.shape,
+      // TODO
+      location: z.unknown(),
+      role: RoleDto,
+    })
+  ),
+})
+
+export type UserDetailDto = z.infer<typeof UserDetailDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 

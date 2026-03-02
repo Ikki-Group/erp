@@ -1,10 +1,11 @@
-// import Elysia from 'elysia'
+import Elysia from 'elysia'
 
-// import type { LocationServiceModule } from '../service'
-// import { initLocationRoute } from './location.route'
+import type { LocationServiceModule } from '../service'
 
-// export function initLocationRouteModule(service: LocationServiceModule) {
-//   const locationRouter = initLocationRoute(service.location)
+import { initLocationRoute } from './location.route'
 
-//   return new Elysia({ prefix: '/location', tags: ['locations'] }).group('', (g) => g.use(locationRouter))
-// }
+export function initLocationRouteModule(service: LocationServiceModule) {
+  const locationRouter = initLocationRoute(service.location)
+
+  return new Elysia({ prefix: '/location' }).use(locationRouter)
+}
