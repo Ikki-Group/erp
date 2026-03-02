@@ -12,7 +12,7 @@ export const UserSessionDto = z.object({
 export type UserSessionDto = z.infer<typeof UserSessionDto>
 
 export const SessionDataDto = z.object({
-  userId: zPrimitive.num,
+  userId: zPrimitive.objId,
   email: zPrimitive.email,
   username: zPrimitive.str,
 })

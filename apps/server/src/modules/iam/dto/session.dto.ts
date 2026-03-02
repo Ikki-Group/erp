@@ -10,3 +10,11 @@ export const SessionDto = z.object({
 })
 
 export type SessionDto = z.infer<typeof SessionDto>
+
+export const SessionDataDto = z.object({
+  userId: zPrimitive.objId,
+  email: zPrimitive.email,
+  username: zPrimitive.str,
+})
+
+export type SessionDataDto = z.infer<typeof SessionDataDto>

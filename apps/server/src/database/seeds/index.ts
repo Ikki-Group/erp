@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { seedLocations } from './locations.seed'
 import { seedRoles } from './roles.seed'
 import { seedUsers } from './users.seed'

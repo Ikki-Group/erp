@@ -10,17 +10,20 @@ import { otel } from '@/lib/otel'
 import { DashboardServiceModule, initDashboardRouteModule } from '@/modules/dashboard'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
+import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
 
 // Services
-const iamService = new IamServiceModule()
 const locationService = new LocationServiceModule()
+const iamService = new IamServiceModule(locationService)
 const dashboardService = new DashboardServiceModule(iamService, locationService)
+const toolService = new ToolServiceModule(iamService, locationService)
 // const materialService = new MaterialServiceModule()
 
 // Routes
-const iamRoute = initIamRouteModule(iamService)
 const locationsRoute = initLocationRouteModule(locationService)
+const iamRoute = initIamRouteModule(iamService)
 const dashboardRoute = initDashboardRouteModule(dashboardService)
+const toolRoute = initToolRouteModule(toolService)
 // const materialsRoute = initMaterialsRouteModule(materialService)
 
 export const app = new Elysia({
@@ -62,6 +65,7 @@ export const app = new Elysia({
   .use(iamRoute)
   .use(locationsRoute)
   .use(dashboardRoute)
+  .use(toolRoute)
 // .use(materialsRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {

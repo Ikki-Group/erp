@@ -10,7 +10,7 @@ const locationSchema = new Schema<LocationDto>({
   code: { type: String, required: true },
   name: { type: String, required: true },
   type: { type: String, enum: LocationType.options, required: true },
-  description: { type: String, required: true },
+  description: { type: String },
   isActive: { type: Boolean, default: true, required: true },
 }).add(MetadataSchema)
 

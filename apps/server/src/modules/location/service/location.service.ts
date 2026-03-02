@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
+import { cache } from '@/lib/cache'
 import { PipelineBuilder, pipelineHelper } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
@@ -16,7 +17,44 @@ const err = {
     new ConflictError(`Location name ${name} already exists`, 'LOCATION_NAME_ALREADY_EXISTS'),
 }
 
+const cacheKey = {
+  count: 'location.count',
+}
+
 export class LocationService {
+  async seed(data: Pick<LocationDto, 'id' | 'code' | 'name' | 'type' | 'createdBy'>[]): Promise<void> {
+    return record('LocationService.seed', async () => {
+      const at = new Date()
+
+      // Bulk upsert
+      const locations: LocationDto[] = data.map((d) => ({
+        ...d,
+        description: '',
+        isActive: true,
+        createdAt: at,
+        updatedAt: at,
+        createdBy: d.createdBy,
+        updatedBy: d.createdBy,
+      }))
+
+      await LocationModel.bulkWrite(
+        locations.map((l) => ({
+          replaceOne: {
+            filter: { code: l.code },
+            replacement: l,
+            upsert: true,
+          },
+        }))
+      )
+    })
+  }
+
+  async find(): Promise<LocationDto[]> {
+    return record('LocationService.find', async () => {
+      return PipelineBuilder.create(LocationModel).push(pipelineHelper.$setId()).exec({ schema: LocationDto.array() })
+    })
+  }
+
   async findById(id: ObjectId): Promise<LocationDto> {
     return record('LocationService.findById', async () => {
       const result = await PipelineBuilder.create(LocationModel)
@@ -29,7 +67,9 @@ export class LocationService {
 
   async count(): Promise<number> {
     return record('LocationService.count', async () => {
-      return LocationModel.countDocuments()
+      return cache.wrap(cacheKey.count, async () => {
+        return LocationModel.countDocuments()
+      })
     })
   }
 
@@ -88,6 +128,7 @@ export class LocationService {
       location.updatedBy = location._id
 
       await location.save()
+      void cache.del(cacheKey.count)
       return { id: location._id }
     })
   }
@@ -104,6 +145,7 @@ export class LocationService {
         updatedAt: new Date(),
       })
 
+      void cache.del(cacheKey.count)
       return { id }
     })
   }
@@ -112,6 +154,8 @@ export class LocationService {
     return record('LocationService.handleRemove', async () => {
       const result = await LocationModel.findByIdAndDelete(id)
       if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
       return { id }
     })
   }

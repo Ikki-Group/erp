@@ -2,6 +2,8 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
+import { LocationDto } from '@/modules/location'
+
 import { RoleDto } from './role.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -48,8 +50,7 @@ export const UserDetailDto = z.object({
   assignments: z.array(
     z.object({
       ...UserAssignmentDto.shape,
-      // TODO
-      location: z.unknown(),
+      location: LocationDto,
       role: RoleDto,
     })
   ),

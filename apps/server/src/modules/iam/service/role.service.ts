@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage, Types } from 'mongoose'
 
+import { cache } from '@/lib/cache'
 import { PipelineBuilder, pipelineHelper } from '@/lib/db'
 import { BadRequestError, ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
@@ -17,12 +18,48 @@ const err = {
   systemRole: () => new BadRequestError('Cannot mutate a system role', 'ROLE_IS_SYSTEM'),
 }
 
+const cacheKey = {
+  count: 'role.count',
+}
+
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class RoleService {
   /* ----------------------------- UTILITY METHODS ---------------------------- */
   // These are reusable internal helpers, consumed by handler methods below
   // and potentially by other services (e.g. AuthService, UserService).
+
+  async seed(data: Pick<RoleDto, 'id' | 'code' | 'name' | 'createdBy'>[]): Promise<void> {
+    return record('RoleService.seed', async () => {
+      const at = new Date()
+
+      // Bulk upsert
+      const roles: RoleDto[] = data.map((d) => ({
+        ...d,
+        isSystem: false,
+        createdAt: at,
+        updatedAt: at,
+        createdBy: d.createdBy,
+        updatedBy: d.createdBy,
+      }))
+
+      await RoleModel.bulkWrite(
+        roles.map((r) => ({
+          replaceOne: {
+            filter: { code: r.code },
+            replacement: r,
+            upsert: true,
+          },
+        }))
+      )
+    })
+  }
+
+  async find(): Promise<RoleDto[]> {
+    return record('RoleService.find', async () => {
+      return PipelineBuilder.create(RoleModel).push(pipelineHelper.$setId()).exec({ schema: RoleDto.array() })
+    })
+  }
 
   /** Finds a single role document by its ID. Throws NotFoundError if missing. */
   async findById(id: ObjectId): Promise<RoleDto> {
@@ -38,7 +75,9 @@ export class RoleService {
 
   async count(): Promise<number> {
     return record('RoleService.count', async () => {
-      return RoleModel.countDocuments()
+      return cache.wrap(cacheKey.count, async () => {
+        return RoleModel.countDocuments()
+      })
     })
   }
 
@@ -106,6 +145,7 @@ export class RoleService {
       role.updatedBy = role._id
 
       await role.save()
+      void cache.del(cacheKey.count)
       return { id: role._id }
     })
   }
@@ -129,6 +169,7 @@ export class RoleService {
         updatedAt: new Date(),
       })
 
+      void cache.del(cacheKey.count)
       return { id }
     })
   }
@@ -141,6 +182,8 @@ export class RoleService {
 
       const result = await RoleModel.findByIdAndDelete(id)
       if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
       return { id }
     })
   }
