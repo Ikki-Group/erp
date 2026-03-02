@@ -27,6 +27,12 @@ export class LocationService {
     })
   }
 
+  async count(): Promise<number> {
+    return record('LocationService.count', async () => {
+      return LocationModel.countDocuments()
+    })
+  }
+
   async #checkConflict(input: Pick<LocationMutationDto, 'code' | 'name'>, existing?: LocationDto): Promise<void> {
     const codeChanged = !existing || existing.code !== input.code
     const nameChanged = !existing || existing.name !== input.name

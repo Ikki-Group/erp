@@ -28,12 +28,20 @@ export class UserService {
 
   /** Finds a single user document by its ID. Throws NotFoundError if missing. */
   async findById(id: ObjectId): Promise<UserDto> {
-    const result = await PipelineBuilder.create(UserModel)
-      .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-      .execOne({ schema: UserDto })
+    return record('UserService.findById', async () => {
+      const result = await PipelineBuilder.create(UserModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: UserDto })
 
-    if (!result) throw err.notFound(id)
-    return result
+      if (!result) throw err.notFound(id)
+      return result
+    })
+  }
+
+  async count(): Promise<number> {
+    return record('UserService.count', async () => {
+      return UserModel.countDocuments()
+    })
   }
 
   /** Checks whether email or username is already taken, optionally excluding a user. */

@@ -26,12 +26,20 @@ export class RoleService {
 
   /** Finds a single role document by its ID. Throws NotFoundError if missing. */
   async findById(id: ObjectId): Promise<RoleDto> {
-    const result = await PipelineBuilder.create(RoleModel)
-      .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-      .execOne({ schema: RoleDto })
+    return record('RoleService.findById', async () => {
+      const result = await PipelineBuilder.create(RoleModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: RoleDto })
 
-    if (!result) throw err.notFound(id)
-    return result
+      if (!result) throw err.notFound(id)
+      return result
+    })
+  }
+
+  async count(): Promise<number> {
+    return record('RoleService.count', async () => {
+      return RoleModel.countDocuments()
+    })
   }
 
   /** Checks for code/name conflicts. Excludes the given existing role on update. */

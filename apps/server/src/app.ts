@@ -2,23 +2,25 @@ import { cors } from '@elysiajs/cors'
 import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
+import { requestIdPlugin } from '@/lib/elysia/request-id'
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
+import { DashboardServiceModule, initDashboardRouteModule } from '@/modules/dashboard'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 
 // Services
 const iamService = new IamServiceModule()
 const locationService = new LocationServiceModule()
-// const dashboardService = new DashboardServiceModule(iamService, locationService)
+const dashboardService = new DashboardServiceModule(iamService, locationService)
 // const materialService = new MaterialServiceModule()
 
 // Routes
 const iamRoute = initIamRouteModule(iamService)
 const locationsRoute = initLocationRouteModule(locationService)
-// const dashboardRoute = initDashboardRouteModule(dashboardService)
+const dashboardRoute = initDashboardRouteModule(dashboardService)
 // const materialsRoute = initMaterialsRouteModule(materialService)
 
 export const app = new Elysia({
@@ -55,10 +57,11 @@ export const app = new Elysia({
     })
   )
   .use(otel)
+  .use(requestIdPlugin())
   // .use(createAuthPlugin(iamService))
   .use(iamRoute)
   .use(locationsRoute)
-// .use(dashboardRoute)
+  .use(dashboardRoute)
 // .use(materialsRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
