@@ -20,6 +20,8 @@ export async function connectDatabase({ uri, env, ...opts }: ConnectionOptions) 
       ...opts,
     })
     .then((c) => {
+      // eslint-disable-next-line no-console
+      console.log(`Database connected`)
       return c
     })
 }
