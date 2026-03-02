@@ -1,65 +1,79 @@
-import { eq } from 'drizzle-orm'
+import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
+import { cache } from '@/lib/cache'
 import { logger } from '@/lib/logger'
-
-import { db, type DBTransaction } from '@/database'
-import { userSessions } from '@/database/schema'
 
 import { env } from '@/config/env'
 
-import type { SessionDataDto, UserDto, UserSessionDto } from '../schema'
+import { SessionDataDto, type SessionDto, type UserDto } from '../dto'
+import { SessionModel } from '../model'
+
+const cacheKey = {
+  byId: (id: ObjectId) => `session.byId.${id}`,
+}
 
 export class SessionService {
-  async createSession(user: UserDto, tx?: DBTransaction): Promise<UserSessionDto> {
-    const data: SessionDataDto = {
-      userId: user.id,
-      email: user.email,
-      username: user.username,
-    }
-
-    const token = jwt.sign(data, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    })
-
-    const [session] = await (tx || db)
-      .insert(userSessions)
-      .values({
-        token,
-        userId: user.id,
-        expiresAt: new Date(Date.now() + env.JWT_EXPIRES_IN),
+  async findById(id: ObjectId): Promise<SessionDto | null> {
+    return record('SessionService.findById', async () => {
+      return cache.wrap(cacheKey.byId(id), async () => {
+        return SessionModel.findById(id)
       })
-      .returning()
-
-    if (!session) {
-      throw new Error('Failed to create session')
-    }
-
-    return session
+    })
   }
 
-  async verifySession(token: string): Promise<UserSessionDto | null> {
-    try {
-      const valid = jwt.verify(token, env.JWT_SECRET) as SessionDataDto
-      const [session] = await db.select().from(userSessions).where(eq(userSessions.token, token)).limit(1).execute()
+  async createSession(user: UserDto): Promise<{ session: SessionDto; token: string }> {
+    return record('SessionService.createSession', async () => {
+      const createdAt = new Date()
+      const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
-      if (!session) {
-        return null
+      const session = new SessionModel({
+        userId: user.id,
+        createdAt,
+        expiredAt,
+      })
+
+      const data: SessionDataDto = {
+        id: session._id,
+        userId: user.id,
+        email: user.email,
+        username: user.username,
       }
 
-      if (session.expiresAt < new Date()) {
-        await this.deleteSession(session.token)
-        return null
-      }
+      const token = jwt.sign(data, env.JWT_SECRET, {
+        expiresIn: env.JWT_EXPIRES_IN,
+      })
 
-      return session
-    } catch (error) {
-      logger.withError(error).error('Failed to verify session')
-      return null
-    }
+      await session.save()
+      return { session, token }
+    })
   }
 
-  async deleteSession(token: string) {
-    await db.delete(userSessions).where(eq(userSessions.token, token)).execute()
+  async verifySession(token: string): Promise<SessionDto | null> {
+    return record('SessionService.verifySession', async () => {
+      try {
+        const valid = SessionDataDto.parse(jwt.verify(token, env.JWT_SECRET))
+        const session = await this.findById(valid.id)
+
+        if (!session) return null
+
+        if (session.expiredAt < new Date()) {
+          await this.deleteSession(session.id)
+          return null
+        }
+
+        return session
+      } catch (error) {
+        logger.withError(error).error('Failed to verify session')
+        return null
+      }
+    })
+  }
+
+  async deleteSession(id: ObjectId) {
+    return record('SessionService.deleteSession', async () => {
+      await SessionModel.findByIdAndDelete(id)
+      void cache.del(cacheKey.byId(id))
+    })
   }
 }

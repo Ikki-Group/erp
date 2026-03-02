@@ -1,3 +1,4 @@
-export { initIamRouteModule } from './router'
-// export * from './schema'
+export * from './dto'
+export * from './model'
+export * from './router'
 export * from './service'

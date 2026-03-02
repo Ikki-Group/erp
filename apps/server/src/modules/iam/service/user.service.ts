@@ -87,6 +87,19 @@ export class UserService {
     })
   }
 
+  async findByIdentifier(identifier: string): Promise<UserDto | null> {
+    return record('UserService.findByIdentifier', async () => {
+      const user = await PipelineBuilder.create(UserModel)
+        .push(
+          pipelineHelper.$match({ $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }] })
+        )
+        .push(pipelineHelper.$setId())
+        .execOne({ schema: UserDto })
+
+      return user
+    })
+  }
+
   async count(): Promise<number> {
     return record('UserService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
