@@ -1,193 +1,141 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, not, or } from 'drizzle-orm'
-import { mapAsync } from 'es-toolkit'
+import type { PipelineStage } from 'mongoose'
 
-import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
-import {
-  calculatePaginationMeta,
-  getLimitOffset,
-  withPagination,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@/lib/pagination'
+import { cache } from '@/lib/cache'
+import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
 
-import { db } from '@/database'
-import { materialTable } from '@/database/schema'
-
-import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialSelectDto, MaterialUpdateDto } from '../dto'
-
-import type { MaterialUomService } from './material-uom.service'
+import { MaterialDto, type MaterialFilterDto, type MaterialMutationDto } from '../dto'
+import { MaterialModel } from '../model'
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`),
-  conflict: (sku: string) => new ConflictError(`Material with SKU ${sku} already exists`),
+  notFound: (id: ObjectId) => new NotFoundError(`Material with ID ${id} not found`),
+  skuExist: (sku: string) => new ConflictError(`Material SKU ${sku} already exists`),
+  nameExist: (name: string) => new ConflictError(`Material name ${name} already exists`),
+}
+
+const cacheKey = {
+  count: 'material.count',
+  list: 'material.list',
 }
 
 export class MaterialService {
-  constructor(
-    private readonly materialUom: MaterialUomService
-    // private readonly categorySvc: MaterialCategoryService
-  ) {}
+  async #checkConflict(input: Pick<MaterialDto, 'sku' | 'name'>, existing?: MaterialDto): Promise<void> {
+    return record('MaterialService.#checkConflict', async () => {
+      const skuChanged = !existing || existing.sku !== input.sku
+      const nameChanged = !existing || existing.name !== input.name
 
-  #buildWhere(filter: MaterialFilterDto) {
-    const { search } = filter
-    const conditions = []
+      if (!skuChanged && !nameChanged) return
 
-    if (search) {
-      conditions.push(ilike(materialTable.sku, `%${search}%`))
-    }
+      const $or = [
+        ...(skuChanged ? [{ sku: input.sku.toUpperCase().trim() }] : []),
+        ...(nameChanged ? [{ name: input.name.trim() }] : []),
+      ]
+      const conflict = await MaterialModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
+        .select('sku name')
+        .lean()
 
-    return conditions.length > 0 ? and(...conditions) : undefined
+      if (!conflict) return
+      if (skuChanged && conflict.sku === input.sku.toUpperCase().trim()) throw err.skuExist(input.sku)
+      if (nameChanged && conflict.name === input.name.trim()) throw err.nameExist(input.name)
+    })
   }
 
-  async #checkConflict(data: Pick<MaterialDto, 'sku'>, selected?: MaterialDto): Promise<void> {
-    const conditions = []
-
-    if (!selected || selected.sku !== data.sku) {
-      conditions.push(eq(materialTable.sku, data.sku))
-    }
-
-    if (conditions.length === 0) return
-
-    const whereClause = selected ? and(or(...conditions), not(eq(materialTable.sku, selected.sku))) : or(...conditions)
-    const existing = await db.select({ sku: materialTable.sku }).from(materialTable).where(whereClause).limit(1)
-
-    if (existing.length === 0) return
-    throw err.conflict(data.sku)
+  async find(): Promise<MaterialDto[]> {
+    return record('MaterialService.find', async () => {
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(MaterialModel).push(pipelineHelper.$setId()).exec({ schema: MaterialDto.array() })
+      })
+    })
   }
 
-  async count(filter?: MaterialFilterDto): Promise<number> {
-    const qry = db.select({ total: count() }).from(materialTable).$dynamic()
-    if (filter) qry.where(this.#buildWhere(filter))
-    const [result] = await qry.execute()
-    return result?.total ?? 0
+  async findById(id: ObjectId): Promise<MaterialDto> {
+    return record('MaterialService.findById', async () => {
+      const result = await PipelineBuilder.create(MaterialModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: MaterialDto })
+
+      if (!result) throw err.notFound(id)
+      return result
+    })
   }
 
-  async find(filter: MaterialFilterDto): Promise<MaterialDto[]> {
-    const where = this.#buildWhere(filter)
-    return db.select().from(materialTable).where(where).orderBy(materialTable.sku)
+  async count(): Promise<number> {
+    return record('MaterialService.count', async () => {
+      return MaterialModel.countDocuments()
+    })
   }
 
-  async findPaginated(filter: MaterialFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<MaterialDto>> {
-    const where = this.#buildWhere(filter)
+  async handleList(filter: MaterialFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<MaterialDto>> {
+    return record('MaterialService.handleList', async () => {
+      const { search, type, categoryId } = filter
+      const $match: PipelineStage.Match['$match'] = {}
 
-    const query = db.select().from(materialTable).where(where).orderBy(materialTable.sku).$dynamic()
-    const [data, total] = await Promise.all([withPagination(query, pq).execute(), this.count(filter)])
+      if (search) $match.$text = { $search: search, $diacriticSensitive: true }
+      if (typeof type === 'string') $match.type = type
+      if (typeof categoryId === 'string') $match.categoryId = categoryId
 
-    return {
-      data,
-      meta: calculatePaginationMeta(pq, total),
-    }
+      const pb = PipelineBuilder.create(MaterialModel)
+      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
+
+      return pbWithFilter.execPaginated({
+        schema: MaterialDto.array(),
+        pq,
+        facetAfter: [pipelineHelper.$setId()],
+      })
+    })
   }
 
-  async findMaterialSelect(
-    filter: MaterialFilterDto,
-    pq: PaginationQuery
-  ): Promise<WithPaginationResult<MaterialSelectDto>> {
-    return record('findMaterialSelect', async () => {
-      const { search } = filter
-      const { limit, offset } = getLimitOffset(pq)
-      const query = db.query.materialTable.findMany({
-        where: {
-          ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
-        },
-        limit,
-        offset,
+  async handleDetail(id: ObjectId): Promise<MaterialDto> {
+    return record('MaterialService.handleDetail', async () => {
+      return this.findById(id)
+    })
+  }
+
+  async handleCreate(data: MaterialMutationDto): Promise<{ id: ObjectId }> {
+    return record('MaterialService.handleCreate', async () => {
+      await this.#checkConflict(data)
+
+      const material = new MaterialModel({
+        ...data,
       })
 
-      const [data, total] = await Promise.all([query.execute(), this.count(filter)])
-      const result: MaterialSelectDto[] = await mapAsync(data, async (item): Promise<MaterialSelectDto> => {
-        return {
-          ...item,
-          conversions: [],
-          category: null,
-        }
+      material.createdBy = material._id
+      material.updatedBy = material._id
+
+      await material.save()
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id: material._id }
+    })
+  }
+
+  async handleUpdate(id: ObjectId, data: MaterialMutationDto): Promise<{ id: ObjectId }> {
+    return record('MaterialService.handleUpdate', async () => {
+      const existing = await this.findById(id)
+      await this.#checkConflict(data, existing)
+
+      await MaterialModel.findByIdAndUpdate(id, {
+        ...data,
+        updatedBy: id,
+        updatedAt: new Date(),
       })
 
-      return {
-        data: result,
-        meta: calculatePaginationMeta(pq, total),
-      }
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
     })
-    // const { search } = filter
-    // const { limit, offset } = getLimitOffset(pq)
-    // const query = db.query.materialTable.findMany({
-    //   where: {
-    //     ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
-    //   },
-    //   with: {
-    //     category: true,
-    //     conversions: true,
-    //   },
-    //   limit,
-    //   offset,
-    // })
-
-    // const [data, total] = await Promise.all([query.execute(), this.count(filter)])
-    // return {
-    //   data,
-    //   meta: calculatePaginationMeta(pq, total),
-    // }
   }
 
-  async findById(id: number): Promise<MaterialSelectDto> {
-    const material = await db.query.materialTable.findFirst({
-      where: { id },
-      with: { category: true, conversions: true },
+  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+    return record('MaterialService.handleRemove', async () => {
+      const result = await MaterialModel.findByIdAndDelete(id)
+      if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
     })
-
-    if (!material) throw err.notFound(id)
-    return material
-  }
-
-  async create(data: MaterialCreateDto, createdBy = 1): Promise<MaterialDto> {
-    await this.#checkConflict(data)
-
-    const material = await db.transaction(async (tx) => {
-      const [material] = await tx
-        .insert(materialTable)
-        .values({
-          ...data,
-          createdBy,
-          updatedBy: createdBy,
-        })
-        .returning()
-
-      if (!material) throw new InternalServerError('Failed to create material')
-
-      await this.materialUom.bulkUpsert(material.id, data.conversions, tx)
-      return material
-    })
-
-    return material
-  }
-
-  async update(data: MaterialUpdateDto, updatedBy = 1): Promise<MaterialDto> {
-    const material = await this.findById(data.id)
-    await this.#checkConflict(data, material)
-
-    const updatedMaterial = await db.transaction(async (tx) => {
-      const [updatedMaterial] = await tx
-        .update(materialTable)
-        .set({
-          ...data,
-          updatedBy,
-        })
-        .where(eq(materialTable.id, data.id))
-        .returning()
-
-      if (!updatedMaterial) throw err.notFound(data.id)
-      await this.materialUom.bulkUpsert(updatedMaterial.id, data.conversions, tx)
-
-      return updatedMaterial
-    })
-
-    if (!updatedMaterial) throw err.notFound(data.id)
-    return updatedMaterial
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.findById(id)
-    await db.delete(materialTable).where(eq(materialTable.id, id))
   }
 }

@@ -23,17 +23,19 @@ const cacheKey = {
 
 export class MaterialCategoryService {
   async #checkConflict(input: Pick<MaterialCategoryDto, 'name'>, existing?: MaterialCategoryDto): Promise<void> {
-    const nameChanged = !existing || existing.name !== input.name
+    return record('MaterialCategoryService.#checkConflict', async () => {
+      const nameChanged = !existing || existing.name !== input.name
 
-    if (!nameChanged) return
+      if (!nameChanged) return
 
-    const $or = [...(nameChanged ? [{ name: input.name.toUpperCase().trim() }] : [])]
-    const conflict = await MaterialCategoryModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-      .select('name')
-      .lean()
+      const $or = [...(nameChanged ? [{ name: input.name.toUpperCase().trim() }] : [])]
+      const conflict = await MaterialCategoryModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
+        .select('name')
+        .lean()
 
-    if (!conflict) return
-    if (nameChanged && conflict.name === input.name.toUpperCase().trim()) throw err.nameExist(input.name)
+      if (!conflict) return
+      if (nameChanged && conflict.name === input.name.toUpperCase().trim()) throw err.nameExist(input.name)
+    })
   }
 
   async findById(id: ObjectId): Promise<MaterialCategoryDto> {

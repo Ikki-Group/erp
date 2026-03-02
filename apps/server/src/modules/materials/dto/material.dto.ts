@@ -3,21 +3,30 @@ import z from 'zod'
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { MaterialCategoryDto } from './material-category.dto'
-import { MaterialUomDto, MaterialUomUpsertDto } from './material-uom.dto'
 
-const MaterialType = z.enum(['raw', 'semi'])
+export const MaterialType = z.enum(['raw', 'semi'])
+export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
+export const MaterialConversionDto = z.object({
+  factor: zPrimitive.str,
+  uom: zPrimitive.str,
+})
+
+export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
+
 export const MaterialDto = z.object({
-  id: zPrimitive.idNum,
+  id: zPrimitive.objId,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   type: MaterialType,
-  categoryId: zPrimitive.idNum.nullable(),
-  baseUomId: zPrimitive.idNum,
-  ...zSchema.meta.shape,
+  categoryId: zPrimitive.objId.nullable(),
+  baseUom: zPrimitive.str,
+  locationIds: zPrimitive.objId.array(),
+  conversions: MaterialConversionDto.array(),
+  ...zSchema.metadata.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>
@@ -26,6 +35,8 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 
 export const MaterialFilterDto = z.object({
   search: zHttp.query.search,
+  type: MaterialType.optional(),
+  categoryId: zHttp.query.objId.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
@@ -34,7 +45,6 @@ export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
 export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
-  conversions: MaterialUomDto.array(),
   category: MaterialCategoryDto.nullable(),
 })
 
@@ -42,23 +52,16 @@ export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const MaterialCreateDto = z.object({
+export const MaterialMutationDto = z.object({
   ...MaterialDto.pick({
     name: true,
     description: true,
     sku: true,
     type: true,
     categoryId: true,
-    baseUomId: true,
+    baseUom: true,
+    conversions: true,
   }).shape,
-  conversions: MaterialUomUpsertDto.array().min(1),
 })
 
-export type MaterialCreateDto = z.infer<typeof MaterialCreateDto>
-
-export const MaterialUpdateDto = z.object({
-  id: zPrimitive.idNum,
-  ...MaterialCreateDto.shape,
-})
-
-export type MaterialUpdateDto = z.infer<typeof MaterialUpdateDto>
+export type MaterialMutationDto = z.infer<typeof MaterialMutationDto>

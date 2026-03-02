@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zResponse, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { MaterialCreateDto, MaterialFilterDto, MaterialSelectDto, MaterialUpdateDto } from '../dto'
+import { MaterialDto, MaterialFilterDto, MaterialMutationDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
 
 export function initMaterialRoute(s: MaterialServiceModule) {
@@ -14,7 +14,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     .get(
       '/list',
       async function list({ query }) {
-        const result = await s.material.findMaterialSelect(query, query)
+        const result = await s.material.handleList(query, query)
         return res.paginated(result)
       },
       {
@@ -22,30 +22,30 @@ export function initMaterialRoute(s: MaterialServiceModule) {
           ...zHttp.pagination.shape,
           ...MaterialFilterDto.shape,
         }),
-        response: zResponse.paginated(MaterialSelectDto.array()),
+        response: zResponse.paginated(MaterialDto.array()),
         auth: true,
       }
     )
     .get(
       '/detail',
       async function detail({ query }) {
-        const category = await s.material.findById(query.id)
+        const category = await s.material.handleDetail(query.id)
         return res.ok(category)
       },
       {
-        query: z.object({ id: zHttp.query.idRequired }),
-        response: zResponse.ok(MaterialSelectDto),
+        query: zHttp.recordId,
+        response: zResponse.ok(MaterialDto),
         auth: true,
       }
     )
     .post(
       '/create',
       async function create({ body }) {
-        const { id } = await s.material.create(body)
+        const { id } = await s.material.handleCreate(body)
         return res.created({ id })
       },
       {
-        body: MaterialCreateDto,
+        body: MaterialMutationDto,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -53,11 +53,14 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     .put(
       '/update',
       async function update({ body }) {
-        const { id } = await s.material.update(body)
+        const { id } = await s.material.handleUpdate(body.id, body)
         return res.ok({ id })
       },
       {
-        body: MaterialUpdateDto,
+        body: z.object({
+          id: zPrimitive.objId,
+          ...MaterialMutationDto.shape,
+        }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -65,11 +68,11 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     .delete(
       '/remove',
       async function remove({ query }) {
-        await s.material.remove(query.id)
+        await s.material.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
       {
-        query: zSchema.recordId,
+        query: zHttp.recordId,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
