@@ -4,7 +4,7 @@ import z from 'zod'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UserMutationDto, UserSelectDto } from '../dto'
+import { UserDetailDto, UserMutationDto, UserSelectDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -33,7 +33,7 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         query: zHttp.recordId,
-        response: zResponse.ok(UserSelectDto),
+        response: zResponse.ok(UserDetailDto),
         auth: true,
       }
     )

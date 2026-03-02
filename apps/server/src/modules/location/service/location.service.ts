@@ -19,6 +19,7 @@ const err = {
 
 const cacheKey = {
   count: 'location.count',
+  list: 'location.list',
 }
 
 export class LocationService {
@@ -51,7 +52,9 @@ export class LocationService {
 
   async find(): Promise<LocationDto[]> {
     return record('LocationService.find', async () => {
-      return PipelineBuilder.create(LocationModel).push(pipelineHelper.$setId()).exec({ schema: LocationDto.array() })
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(LocationModel).push(pipelineHelper.$setId()).exec({ schema: LocationDto.array() })
+      })
     })
   }
 
@@ -129,6 +132,7 @@ export class LocationService {
 
       await location.save()
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id: location._id }
     })
   }
@@ -146,6 +150,7 @@ export class LocationService {
       })
 
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id }
     })
   }
@@ -156,6 +161,7 @@ export class LocationService {
       if (!result) throw err.notFound(id)
 
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id }
     })
   }

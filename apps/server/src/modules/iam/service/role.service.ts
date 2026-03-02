@@ -20,6 +20,7 @@ const err = {
 
 const cacheKey = {
   count: 'role.count',
+  list: 'role.list',
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -57,7 +58,9 @@ export class RoleService {
 
   async find(): Promise<RoleDto[]> {
     return record('RoleService.find', async () => {
-      return PipelineBuilder.create(RoleModel).push(pipelineHelper.$setId()).exec({ schema: RoleDto.array() })
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(RoleModel).push(pipelineHelper.$setId()).exec({ schema: RoleDto.array() })
+      })
     })
   }
 
@@ -146,6 +149,7 @@ export class RoleService {
 
       await role.save()
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id: role._id }
     })
   }
@@ -170,6 +174,7 @@ export class RoleService {
       })
 
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id }
     })
   }
@@ -184,6 +189,7 @@ export class RoleService {
       if (!result) throw err.notFound(id)
 
       void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
       return { id }
     })
   }

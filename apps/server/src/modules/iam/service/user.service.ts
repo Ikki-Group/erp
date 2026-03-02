@@ -9,6 +9,8 @@ import { hashPassword } from '@/lib/password'
 
 import type { LocationServiceModule } from '@/modules/location'
 
+import { SEED_CONFIG } from '@/config/seed-config'
+
 import type { UserDetailDto, UserFilterDto, UserMutationDto } from '../dto'
 import { UserDto, UserSelectDto } from '../dto'
 import { UserModel } from '../model'
@@ -102,20 +104,33 @@ export class UserService {
       }
 
       const isRoot = userDoc.isRoot
-
       if (!isRoot && userDoc.assignments.length === 0) return userDetails
 
       const [roles, locations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
 
       if (isRoot) {
+        const roleSuperadmin = roles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
+
         userDetails.assignments = locations.map((l) => {
           return {
             isDefault: false,
+            locationId: l.id,
+            roleId: roleSuperadmin.id,
             location: l,
-            // role
+            role: roleSuperadmin,
+          }
+        })
+      } else {
+        userDetails.assignments = userDoc.assignments.map((a) => {
+          return {
+            ...a,
+            role: roles.find((r) => r.id.equals(a.roleId))!,
+            location: locations.find((l) => l.id.equals(a.locationId))!,
           }
         })
       }
+
+      return userDetails
     })
   }
 
@@ -165,9 +180,9 @@ export class UserService {
     })
   }
 
-  async handleDetail(id: ObjectId): Promise<UserSelectDto> {
+  async handleDetail(id: ObjectId): Promise<UserDetailDto> {
     return record('UserService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getDetailById(id)
     })
   }
 
