@@ -1,6 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
+import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
@@ -9,6 +10,7 @@ import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
   return new Elysia({ prefix: '/user' })
+    .use(authPluginMacro)
     .get(
       '/list',
       async function list({ query }) {

@@ -2,6 +2,7 @@ import { cors } from '@elysiajs/cors'
 import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
+import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 import { requestIdPlugin } from '@/lib/elysia/request-id'
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
@@ -61,7 +62,7 @@ export const app = new Elysia({
   )
   .use(otel)
   .use(requestIdPlugin())
-  // .use(createAuthPlugin(iamService))
+  .use(createAuthPlugin(iamService))
   .use(iamRoute)
   .use(locationsRoute)
   .use(dashboardRoute)

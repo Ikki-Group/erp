@@ -37,6 +37,7 @@ export class UserService {
     private readonly roleSvc: RoleService,
     private readonly locationSvc: LocationServiceModule
   ) {}
+
   /* ----------------------------- UTILITY METHODS ---------------------------- */
   // These are reusable internal helpers. They are consumed by handler methods
   // below and can also be used by other services (e.g. AuthService).
