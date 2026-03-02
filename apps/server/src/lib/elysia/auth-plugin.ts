@@ -19,14 +19,17 @@ class AuthContext {
 
 export function createAuthPlugin(iamService: IamServiceModule) {
   return new Elysia({ name: 'auth-plugin' })
-    .derive(async ({ request }): Promise<{ auth: AuthContext }> => {
+    .derive(async ({ request, set }): Promise<{ auth: AuthContext }> => {
       let auth: AuthContext = new AuthContext(null)
       let token = request.headers.get('authorization')
 
       if (token) {
         token = token.startsWith('Bearer ') ? token.slice(7) : token
         const user = await iamService.auth.verifyToken(token).catch(() => null)
-        auth = new AuthContext(user)
+        if (user) {
+          auth = new AuthContext(user)
+          set.headers['X-User-Id'] = user.id.toString()
+        }
       }
 
       return { auth }

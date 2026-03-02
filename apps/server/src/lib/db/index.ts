@@ -1,4 +1,6 @@
+export * from './conflict-checker'
 export * from './connect'
+export * from './metadata'
 export * from './pipeline-builder'
 export * from './pipeline-helper'
 export * from './schema'

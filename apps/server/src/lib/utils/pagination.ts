@@ -1,5 +1,3 @@
-import type { PgSelect } from 'drizzle-orm/pg-core'
-
 export interface PaginationQuery {
   page: number
   limit: number
@@ -35,10 +33,4 @@ export function getLimitOffset(pq: PaginationQuery) {
   const offset = (page - 1) * limit
 
   return { limit, offset }
-}
-
-/** @deprecated */
-export function withPagination<T extends PgSelect>(qb: T, pq: PaginationQuery) {
-  const { limit, offset } = getLimitOffset(pq)
-  return qb.limit(limit).offset(offset)
 }

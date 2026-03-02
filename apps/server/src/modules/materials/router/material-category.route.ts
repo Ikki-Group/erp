@@ -40,8 +40,8 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const { id } = await s.category.handleCreate(body)
+      async function create({ body, auth }) {
+        const { id } = await s.category.handleCreate(body, auth.userId)
         return res.created({ id }, 'MATERIAL_CATEGORY_CREATED')
       },
       {
@@ -52,8 +52,8 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const { id } = await s.category.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const { id } = await s.category.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id }, 'MATERIAL_CATEGORY_UPDATED')
       },
       {

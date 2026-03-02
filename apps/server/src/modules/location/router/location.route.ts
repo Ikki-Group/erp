@@ -1,6 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
+import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
@@ -9,6 +10,7 @@ import type { LocationService } from '../service/location.service'
 
 export function initLocationRoute(service: LocationService) {
   return new Elysia()
+    .use(authPluginMacro)
     .get(
       '/list',
       async function list({ query }) {
@@ -37,8 +39,8 @@ export function initLocationRoute(service: LocationService) {
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const { id } = await service.handleCreate(body)
+      async function create({ body, auth }) {
+        const { id } = await service.handleCreate(body, auth.userId)
         return res.created({ id }, 'LOCATION_CREATED')
       },
       {
@@ -49,8 +51,8 @@ export function initLocationRoute(service: LocationService) {
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const { id } = await service.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const { id } = await service.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id }, 'LOCATION_UPDATED')
       },
       {

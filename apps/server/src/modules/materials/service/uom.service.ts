@@ -2,9 +2,9 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { UomDto, type UomFilterDto, type UomMutationDto } from '../dto'
 import { UomModel } from '../model'
@@ -71,16 +71,14 @@ export class UomService {
     })
   }
 
-  async handleCreate(data: UomMutationDto): Promise<{ id: ObjectId }> {
+  async handleCreate(data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UomService.handleCreate', async () => {
       await this.#checkConflict(data)
 
       const uom = new UomModel({
         ...data,
+        ...stampCreate(actorId),
       })
-
-      uom.createdBy = uom._id
-      uom.updatedBy = uom._id
 
       await uom.save()
       void cache.del(cacheKey.count)
@@ -89,15 +87,14 @@ export class UomService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: UomMutationDto): Promise<{ id: ObjectId }> {
+  async handleUpdate(id: ObjectId, data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UomService.handleUpdate', async () => {
       const existing = await this.findById(id)
       await this.#checkConflict(data, existing)
 
       await UomModel.findByIdAndUpdate(id, {
         ...data,
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

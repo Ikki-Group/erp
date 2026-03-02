@@ -2,20 +2,21 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import { NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { LocationDto, type LocationFilterDto, type LocationMutationDto } from '../dto'
 import { LocationModel } from '../model'
 
 const err = {
   notFound: (id: ObjectId) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
-  codeExist: (code: string) =>
-    new ConflictError(`Location code ${code} already exists`, 'LOCATION_CODE_ALREADY_EXISTS'),
-  nameExist: (name: string) =>
-    new ConflictError(`Location name ${name} already exists`, 'LOCATION_NAME_ALREADY_EXISTS'),
 }
+
+const uniqueFields: ConflictField<Pick<LocationMutationDto, 'code' | 'name'>>[] = [
+  { field: 'code', message: 'Location code already exists', code: 'LOCATION_CODE_ALREADY_EXISTS' },
+  { field: 'name', message: 'Location name already exists', code: 'LOCATION_NAME_ALREADY_EXISTS' },
+]
 
 const cacheKey = {
   count: 'location.count',
@@ -25,17 +26,12 @@ const cacheKey = {
 export class LocationService {
   async seed(data: Pick<LocationDto, 'id' | 'code' | 'name' | 'type' | 'createdBy'>[]): Promise<void> {
     return record('LocationService.seed', async () => {
-      const at = new Date()
-
       // Bulk upsert
       const locations: LocationDto[] = data.map((d) => ({
         ...d,
         description: '',
         isActive: true,
-        createdAt: at,
-        updatedAt: at,
-        createdBy: d.createdBy,
-        updatedBy: d.createdBy,
+        ...stampCreate(d.createdBy),
       }))
 
       await LocationModel.bulkWrite(
@@ -76,23 +72,6 @@ export class LocationService {
     })
   }
 
-  async #checkConflict(input: Pick<LocationMutationDto, 'code' | 'name'>, existing?: LocationDto): Promise<void> {
-    const codeChanged = !existing || existing.code !== input.code
-    const nameChanged = !existing || existing.name !== input.name
-
-    if (!codeChanged && !nameChanged) return
-
-    const $or = [...(codeChanged ? [{ code: input.code }] : []), ...(nameChanged ? [{ name: input.name }] : [])]
-
-    const conflict = await LocationModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-      .select('code name')
-      .lean()
-
-    if (!conflict) return
-    if (codeChanged && conflict.code === input.code) throw err.codeExist(input.code)
-    if (nameChanged && conflict.name === input.name) throw err.nameExist(input.name)
-  }
-
   async handleList(filter: LocationFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<LocationDto>> {
     return record('LocationService.handleList', async () => {
       const { search, type, isActive } = filter
@@ -119,16 +98,14 @@ export class LocationService {
     })
   }
 
-  async handleCreate(data: LocationMutationDto): Promise<{ id: ObjectId }> {
+  async handleCreate(data: LocationMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('LocationService.handleCreate', async () => {
-      await this.#checkConflict(data)
+      await checkConflict({ model: LocationModel, fields: uniqueFields, input: data })
 
       const location = new LocationModel({
         ...data,
+        ...stampCreate(actorId),
       })
-
-      location.createdBy = location._id
-      location.updatedBy = location._id
 
       await location.save()
       void cache.del(cacheKey.count)
@@ -137,16 +114,15 @@ export class LocationService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: LocationMutationDto): Promise<{ id: ObjectId }> {
+  async handleUpdate(id: ObjectId, data: LocationMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('LocationService.handleUpdate', async () => {
       const { code, name } = data
       const existing = await this.findById(id)
-      await this.#checkConflict({ code, name }, existing)
+      await checkConflict({ model: LocationModel, fields: uniqueFields, input: { code, name }, existing })
 
       await LocationModel.findByIdAndUpdate(id, {
         ...data,
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

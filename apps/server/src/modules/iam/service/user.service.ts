@@ -2,11 +2,11 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import { NotFoundError } from '@/lib/error/http'
 import { hashPassword } from '@/lib/password'
 import { toLookupMap } from '@/lib/utils/collection.util'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import type { LocationDto, LocationServiceModule } from '@/modules/location'
 
@@ -22,10 +22,12 @@ import type { RoleService } from './role.service'
 
 const err = {
   notFound: (id: ObjectId) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
-  emailExist: (email: string) => new ConflictError(`Email ${email} already exists`, 'USER_EMAIL_ALREADY_EXISTS'),
-  usernameExist: (username: string) =>
-    new ConflictError(`Username ${username} already exists`, 'USER_USERNAME_ALREADY_EXISTS'),
 }
+
+const uniqueFields: ConflictField<Pick<UserMutationDto, 'email' | 'username'>>[] = [
+  { field: 'email', message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+  { field: 'username', message: 'Username already exists', code: 'USER_USERNAME_ALREADY_EXISTS' },
+]
 
 const cacheKey = {
   count: 'user.count',
@@ -40,33 +42,6 @@ export class UserService {
     private readonly roleSvc: RoleService,
     private readonly locationSvc: LocationServiceModule
   ) {}
-
-  /** Checks whether email or username is already taken, optionally excluding a user.
-   *  Expects input.email and input.username to be already normalized (lowercased/trimmed). */
-  async #checkConflict(
-    input: Pick<UserMutationDto, 'email' | 'username'>,
-    existing?: Pick<UserDto, 'id' | 'email' | 'username'>
-  ): Promise<void> {
-    return record('UserService.#checkConflict', async () => {
-      const emailChanged = !existing || existing.email !== input.email
-      const usernameChanged = !existing || existing.username !== input.username
-
-      if (!emailChanged && !usernameChanged) return
-
-      const $or = [
-        ...(emailChanged ? [{ email: input.email }] : []),
-        ...(usernameChanged ? [{ username: input.username }] : []),
-      ]
-
-      const conflict = await UserModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-        .select('email username')
-        .lean()
-
-      if (!conflict) return
-      if (emailChanged && conflict.email === input.email) throw err.emailExist(input.email)
-      if (usernameChanged && conflict.username === input.username) throw err.usernameExist(input.username)
-    })
-  }
 
   /** Pure mapping — no I/O. Resolves assignment refs into full detail objects.
    *  Accepts optional pre-built Maps for O(1) lookups (useful in batch/list contexts). */
@@ -109,8 +84,6 @@ export class UserService {
     data: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'isRoot' | 'createdBy'> & { password: string })[]
   ): Promise<void> {
     return record('UserService.seed', async () => {
-      const at = new Date()
-
       // Bulk upsert
       const users: UserDto[] = []
 
@@ -120,10 +93,7 @@ export class UserService {
           passwordHash: await hashPassword(d.password),
           isActive: true,
           assignments: [],
-          createdAt: at,
-          updatedAt: at,
-          createdBy: d.createdBy,
-          updatedBy: d.createdBy,
+          ...stampCreate(d.createdBy),
         })
       }
 
@@ -233,18 +203,16 @@ export class UserService {
     })
   }
 
-  async handleCreate(data: UserMutationDto): Promise<{ id: ObjectId }> {
+  async handleCreate(data: UserMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UserService.handleCreate', async () => {
       const { password, ...rest } = data
       const email = rest.email.toLowerCase().trim()
       const username = rest.username.toLowerCase().trim()
 
-      await this.#checkConflict({ email, username })
+      await checkConflict({ model: UserModel, fields: uniqueFields, input: { email, username } })
 
-      const user = new UserModel({ ...rest, email, username })
+      const user = new UserModel({ ...rest, email, username, ...stampCreate(actorId) })
       user.passwordHash = await hashPassword(password)
-      user.createdBy = user._id
-      user.updatedBy = user._id
 
       await user.save()
       void cache.del(cacheKey.count)
@@ -253,7 +221,7 @@ export class UserService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>): Promise<{ id: ObjectId }> {
+  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UserService.handleUpdate', async () => {
       // Lightweight query — only fields needed for conflict check
       const existing = await UserModel.findById(id).select('email username').lean()
@@ -263,10 +231,12 @@ export class UserService {
       const email = rest.email ? rest.email.toLowerCase().trim() : existing.email
       const username = rest.username ? rest.username.toLowerCase().trim() : existing.username
 
-      await this.#checkConflict(
-        { email, username },
-        { id: existing._id, email: existing.email, username: existing.username }
-      )
+      await checkConflict({
+        model: UserModel,
+        fields: uniqueFields,
+        input: { email, username },
+        existing: { id: existing._id, email: existing.email, username: existing.username },
+      })
 
       const passwordHash = password ? await hashPassword(password) : undefined
 
@@ -275,8 +245,7 @@ export class UserService {
         email,
         username,
         ...(passwordHash && { passwordHash }),
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

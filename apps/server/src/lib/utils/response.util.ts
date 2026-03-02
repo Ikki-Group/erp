@@ -1,4 +1,4 @@
-import type { WithPaginationResult } from './pagination.util'
+import type { WithPaginationResult } from './pagination'
 
 /**
  * Standard success response

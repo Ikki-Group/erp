@@ -1,7 +1,7 @@
 import type { Model, PipelineStage } from 'mongoose'
 import type { ZodError, ZodType } from 'zod'
 
-import type { PaginationMeta, PaginationQuery } from '@/lib/pagination'
+import type { PaginationMeta, PaginationQuery } from '@/lib/utils/pagination'
 
 type OptionalStage = PipelineStage | null | undefined | false
 type FacetStage = PipelineStage.FacetPipelineStage

@@ -2,9 +2,9 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { MaterialDto, type MaterialFilterDto, type MaterialMutationDto } from '../dto'
 import { MaterialModel } from '../model'
@@ -93,16 +93,14 @@ export class MaterialService {
     })
   }
 
-  async handleCreate(data: MaterialMutationDto): Promise<{ id: ObjectId }> {
+  async handleCreate(data: MaterialMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialService.handleCreate', async () => {
       await this.#checkConflict(data)
 
       const material = new MaterialModel({
         ...data,
+        ...stampCreate(actorId),
       })
-
-      material.createdBy = material._id
-      material.updatedBy = material._id
 
       await material.save()
       void cache.del(cacheKey.count)
@@ -111,15 +109,14 @@ export class MaterialService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: MaterialMutationDto): Promise<{ id: ObjectId }> {
+  async handleUpdate(id: ObjectId, data: MaterialMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialService.handleUpdate', async () => {
       const existing = await this.findById(id)
       await this.#checkConflict(data, existing)
 
       await MaterialModel.findByIdAndUpdate(id, {
         ...data,
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

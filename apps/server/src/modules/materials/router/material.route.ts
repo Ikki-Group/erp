@@ -40,8 +40,8 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const { id } = await s.material.handleCreate(body)
+      async function create({ body, auth }) {
+        const { id } = await s.material.handleCreate(body, auth.userId)
         return res.created({ id })
       },
       {
@@ -52,8 +52,8 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const { id } = await s.material.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const { id } = await s.material.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id })
       },
       {

@@ -2,9 +2,9 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage, Types } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
-import { BadRequestError, ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import { BadRequestError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { RoleDto, type RoleFilterDto, type RoleMutationDto } from '../dto'
 import { RoleModel } from '../model'
@@ -13,10 +13,13 @@ import { RoleModel } from '../model'
 
 const err = {
   notFound: (id: ObjectId) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
-  codeConflict: (code: string) => new ConflictError(`Role code ${code} already exists`, 'ROLE_CODE_ALREADY_EXISTS'),
-  nameConflict: (name: string) => new ConflictError(`Role name ${name} already exists`, 'ROLE_NAME_ALREADY_EXISTS'),
   systemRole: () => new BadRequestError('Cannot mutate a system role', 'ROLE_IS_SYSTEM'),
 }
+
+const uniqueFields: ConflictField<Pick<RoleMutationDto, 'code' | 'name'>>[] = [
+  { field: 'code', message: 'Role code already exists', code: 'ROLE_CODE_ALREADY_EXISTS' },
+  { field: 'name', message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
+]
 
 const cacheKey = {
   count: 'role.count',
@@ -32,16 +35,11 @@ export class RoleService {
 
   async seed(data: Pick<RoleDto, 'id' | 'code' | 'name' | 'createdBy'>[]): Promise<void> {
     return record('RoleService.seed', async () => {
-      const at = new Date()
-
       // Bulk upsert
       const roles: RoleDto[] = data.map((d) => ({
         ...d,
         isSystem: false,
-        createdAt: at,
-        updatedAt: at,
-        createdBy: d.createdBy,
-        updatedBy: d.createdBy,
+        ...stampCreate(d.createdBy),
       }))
 
       await RoleModel.bulkWrite(
@@ -84,27 +82,6 @@ export class RoleService {
     })
   }
 
-  /** Checks for code/name conflicts. Excludes the given existing role on update. */
-  async #checkConflict(input: Pick<RoleMutationDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
-    const codeChanged = !existing || existing.code !== input.code
-    const nameChanged = !existing || existing.name !== input.name
-
-    if (!codeChanged && !nameChanged) return
-
-    const $or = [
-      ...(codeChanged ? [{ code: input.code.toUpperCase().trim() }] : []),
-      ...(nameChanged ? [{ name: input.name.trim() }] : []),
-    ]
-
-    const conflict = await RoleModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-      .select('code name')
-      .lean()
-
-    if (!conflict) return
-    if (codeChanged && conflict.code === input.code.toUpperCase().trim()) throw err.codeConflict(input.code)
-    if (nameChanged && conflict.name === input.name.trim()) throw err.nameConflict(input.name)
-  }
-
   /* ------------------------------ HANDLER METHODS --------------------------- */
   // One handler per route endpoint. These call utility methods and orchestrate
   // the response. They are named after the HTTP action they serve.
@@ -132,20 +109,19 @@ export class RoleService {
     })
   }
 
-  async handleCreate(data: RoleMutationDto): Promise<{ id: Types.ObjectId }> {
+  async handleCreate(data: RoleMutationDto, actorId: ObjectId): Promise<{ id: Types.ObjectId }> {
     return record('RoleService.handleCreate', async () => {
       const code = data.code.toUpperCase().trim()
       const name = data.name.trim()
 
-      await this.#checkConflict({ code, name })
+      await checkConflict({ model: RoleModel, fields: uniqueFields, input: { code, name } })
 
       const role = new RoleModel({
         ...data,
         code,
         name,
+        ...stampCreate(actorId),
       })
-      role.createdBy = role._id
-      role.updatedBy = role._id
 
       await role.save()
       void cache.del(cacheKey.count)
@@ -154,7 +130,7 @@ export class RoleService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: Partial<RoleMutationDto>): Promise<{ id: Types.ObjectId }> {
+  async handleUpdate(id: ObjectId, data: Partial<RoleMutationDto>, actorId: ObjectId): Promise<{ id: Types.ObjectId }> {
     return record('RoleService.handleUpdate', async () => {
       const existing = await this.findById(id)
 
@@ -163,14 +139,13 @@ export class RoleService {
       const code = data.code ? data.code.toUpperCase().trim() : existing.code
       const name = data.name ? data.name.trim() : existing.name
 
-      await this.#checkConflict({ code, name }, existing)
+      await checkConflict({ model: RoleModel, fields: uniqueFields, input: { code, name }, existing })
 
       await RoleModel.findByIdAndUpdate(id, {
         ...data,
         code,
         name,
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

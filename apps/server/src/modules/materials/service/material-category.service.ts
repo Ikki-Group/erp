@@ -2,9 +2,9 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { MaterialCategoryDto, type MaterialCategoryFilterDto, type MaterialCategoryMutationDto } from '../dto'
 import { MaterialCategoryModel } from '../model'
@@ -84,16 +84,14 @@ export class MaterialCategoryService {
     })
   }
 
-  async handleCreate(data: MaterialCategoryMutationDto): Promise<{ id: ObjectId }> {
+  async handleCreate(data: MaterialCategoryMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialCategoryService.handleCreate', async () => {
       await this.#checkConflict(data)
 
       const category = new MaterialCategoryModel({
         ...data,
+        ...stampCreate(actorId),
       })
-
-      category.createdBy = category._id
-      category.updatedBy = category._id
 
       await category.save()
       void cache.del(cacheKey.count)
@@ -102,7 +100,7 @@ export class MaterialCategoryService {
     })
   }
 
-  async handleUpdate(id: ObjectId, data: MaterialCategoryMutationDto): Promise<{ id: ObjectId }> {
+  async handleUpdate(id: ObjectId, data: MaterialCategoryMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialCategoryService.handleUpdate', async () => {
       const existing = await this.findById(id)
       if (!existing) throw err.notFound(id)
@@ -110,8 +108,7 @@ export class MaterialCategoryService {
       await this.#checkConflict(data, existing)
       await MaterialCategoryModel.findByIdAndUpdate(id, {
         ...data,
-        updatedBy: id,
-        updatedAt: new Date(),
+        ...stampUpdate(actorId),
       })
 
       void cache.del(cacheKey.count)

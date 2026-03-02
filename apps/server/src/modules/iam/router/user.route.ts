@@ -41,8 +41,8 @@ export function initUserRoute(s: IamServiceModule) {
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const result = await s.user.handleCreate(body)
+      async function create({ body, auth }) {
+        const result = await s.user.handleCreate(body, auth.userId)
         return res.created(result, 'USER_CREATED')
       },
       {
@@ -53,8 +53,8 @@ export function initUserRoute(s: IamServiceModule) {
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const result = await s.user.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const result = await s.user.handleUpdate(body.id, body, auth.userId)
         return res.ok(result, 'USER_UPDATED')
       },
       {
