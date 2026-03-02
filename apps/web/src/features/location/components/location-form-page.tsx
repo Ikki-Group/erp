@@ -4,7 +4,7 @@ import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
 import { toast } from 'sonner'
 import { locationApi } from '../api'
-import type { LinkOptions} from '@tanstack/react-router';
+import type { LinkOptions } from '@tanstack/react-router'
 import type { LocationDto } from '../dto'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { Separator } from '@/components/ui/separator'
@@ -48,7 +48,7 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
   const navigate = useNavigate()
 
   const selectedLocation = useQuery({
-    ...locationApi.detail.query({ id: Number(id) }),
+    ...locationApi.detail.query({ id: id! }),
     enabled: !!id,
   })
 
@@ -74,25 +74,25 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
   return (
     <form.AppForm>
       <FormConfig mode={mode} id={id} backTo={backTo}>
-        <Page size="sm">
+        <Page size='sm'>
           <Page.BlockHeader
             title={isCreate ? 'Tambah Lokasi' : 'Edit Lokasi'}
             back={backTo}
           />
           <form.Form>
-            <Page.Content className="space-y-6">
-              <CardSection title="Informasi Lokasi">
-                <form.AppField name="name">
-                  {(field) => (
-                    <field.Base label="Nama Lokasi" required>
-                      <field.Input placeholder="Nama Lokasi" />
+            <Page.Content className='space-y-6'>
+              <CardSection title='Informasi Lokasi'>
+                <form.AppField name='name'>
+                  {field => (
+                    <field.Base label='Nama Lokasi' required>
+                      <field.Input placeholder='Nama Lokasi' />
                     </field.Base>
                   )}
                 </form.AppField>
-                <form.AppField name="code">
-                  {(field) => (
-                    <field.Base label="Kode Lokasi" required>
-                      <field.Input placeholder="Kode Lokasi" />
+                <form.AppField name='code'>
+                  {field => (
+                    <field.Base label='Kode Lokasi' required>
+                      <field.Input placeholder='Kode Lokasi' />
                     </field.Base>
                   )}
                 </form.AppField>
@@ -106,19 +106,19 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
                   </field.Base>
                 )}
               </form.AppField> */}
-                <form.AppField name="description">
-                  {(field) => (
-                    <field.Base label="Deskripsi" required>
-                      <field.Textarea placeholder="Deskripsi Lokasi..." />
+                <form.AppField name='description'>
+                  {field => (
+                    <field.Base label='Deskripsi' required>
+                      <field.Textarea placeholder='Deskripsi Lokasi...' />
                     </field.Base>
                   )}
                 </form.AppField>
                 <Separator />
-                <form.AppField name="isActive">
-                  {(field) => (
+                <form.AppField name='isActive'>
+                  {field => (
                     <field.Switch
-                      label="Status Aktif"
-                      description="Lokasi dapat diakses oleh pengguna"
+                      label='Status Aktif'
+                      description='Lokasi dapat diakses oleh pengguna'
                     />
                   )}
                 </form.AppField>

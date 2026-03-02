@@ -35,7 +35,7 @@ function getDefaultValues(v?: RoleDto): FormDto {
 }
 
 interface RoleFormDialogProps {
-  id?: number
+  id?: string
 }
 
 export const RoleFormDialog = createCallable<RoleFormDialogProps>(props => {
@@ -43,7 +43,7 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>(props => {
   const isCreate = id === undefined
 
   const selectedRole = useQuery({
-    ...roleApi.detail.query({ id: Number(id) }),
+    ...roleApi.detail.query({ id: id! }),
     enabled: !!props.id,
     refetchOnMount: true,
   })

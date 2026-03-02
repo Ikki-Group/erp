@@ -1,79 +1,84 @@
-import { queryOptions } from "@tanstack/react-query";
-import { apiClient } from "./api-client";
-import type { ZodType, z } from "zod";
-import type { KyInstance } from "ky";
+import { queryOptions } from '@tanstack/react-query'
+import { apiClient } from './api-client'
+import type { ZodType, z } from 'zod'
+import type { KyInstance } from 'ky'
 
-type HttpMethod = "get" | "post" | "put" | "delete";
+type HttpMethod = 'get' | 'post' | 'put' | 'delete'
 
 interface ApiFactoryConfig<
   TParams extends ZodType | undefined,
   TBody extends ZodType | undefined,
   TResult extends ZodType,
 > {
-  method: HttpMethod;
-  url: string;
-  keys?: ReadonlyArray<string>;
-  params?: TParams;
-  body?: TBody;
-  result: TResult;
-  client?: KyInstance;
+  method: HttpMethod
+  url: string
+  keys?: ReadonlyArray<string>
+  params?: TParams
+  body?: TBody
+  result: TResult
+  client?: KyInstance
 }
 /* ----------------------------------------
  * Type Utilities
  * --------------------------------------*/
-type IsDefined<T> = T extends undefined ? false : true;
-type Input<T> = T extends ZodType ? z.input<T> : never;
-type Output<T> = T extends ZodType ? z.output<T> : never;
+type IsDefined<T> = T extends undefined ? false : true
+type Input<T> = T extends ZodType ? z.input<T> : never
+type Output<T> = T extends ZodType ? z.output<T> : never
 
-type FetchArgs<P, B> =
-  IsDefined<P> extends true
-    ? IsDefined<B> extends true
-      ? { params: Input<P>; body: Input<B> }
-      : { params: Input<P> }
-    : IsDefined<B> extends true
-      ? { body: Input<B> }
-      : undefined;
+type FetchArgs<TParams, TBody> =
+  IsDefined<TParams> extends true
+    ? IsDefined<TBody> extends true
+      ? { params: Input<TParams>; body: Input<TBody> }
+      : { params: Input<TParams> }
+    : IsDefined<TBody> extends true
+      ? { body: Input<TBody> }
+      : undefined
 
 export function apiFactory<
   TParams extends ZodType | undefined,
   TBody extends ZodType | undefined,
   TResult extends ZodType,
->({ client = apiClient, keys = [], ...config }: ApiFactoryConfig<TParams, TBody, TResult>) {
-  type Args = FetchArgs<TParams, TBody>;
-  type Result = Output<TResult>;
-  type Params = Input<TParams>;
+>({
+  client = apiClient,
+  keys = [],
+  ...config
+}: ApiFactoryConfig<TParams, TBody, TResult>) {
+  type Args = FetchArgs<TParams, TBody>
+  type Result = Output<TResult>
+  type Params = Input<TParams>
 
   /* ----------------------------------------
    * fetch
    * --------------------------------------*/
   const fetch = async (args: Args): Promise<Result> => {
-    let params = (args as any)?.params;
-    let body = (args as any)?.body;
+    let params = (args as any)?.params
+    let body = (args as any)?.body
 
-    if (config.params) params = config.params.parse(params);
-    if (config.body) body = config.body.parse(body);
+    if (config.params) params = config.params.parse(params)
+    if (config.body) body = config.body.parse(body)
 
     const res = await client(config.url, {
       method: config.method,
       searchParams: params,
       json: body,
-    }).json();
+    }).json()
 
-    return config.result.parse(res) as Result;
-  };
+    return config.result.parse(res) as Result
+  }
 
   /* ----------------------------------------
    * React Query helpers
    * --------------------------------------*/
-  const queryKey = (params: Params | undefined) => [config.url, ...keys, params ?? null] as const;
+  const queryKey = (params: Params | undefined) =>
+    [config.url, ...keys, params ?? null] as const
 
   const query = (params: Params | undefined) =>
     queryOptions({
       queryKey: queryKey(params),
       queryFn: () => fetch((config.params ? { params } : undefined) as Args),
-    } as const);
+    } as const)
 
-  const mutationFn = (args: Args) => fetch(args);
+  const mutationFn = (args: Args) => fetch(args)
 
   return {
     fetch,
@@ -89,5 +94,5 @@ export function apiFactory<
       result: null as unknown as Result,
       args: null as unknown as Args,
     },
-  };
+  }
 }

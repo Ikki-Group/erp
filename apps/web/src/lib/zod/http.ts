@@ -1,22 +1,21 @@
-import z from "zod";
+import z from 'zod'
 
-import { zPrimitive } from "./primitive";
+import { zPrimitive } from './primitive'
 
 const paginationMeta = z.object({
   page: z.number(),
   limit: z.number(),
   total: z.number(),
   totalPages: z.number(),
-});
+})
 
-export type PaginationMeta = z.infer<typeof paginationMeta>;
+export type PaginationMeta = z.infer<typeof paginationMeta>
 
 export const zHttp = {
   boolean: z.boolean(),
-  search: zPrimitive.str.optional().transform((val) => val || undefined),
+  search: zPrimitive.str.optional().transform(val => val || undefined),
 
-  id: zPrimitive.num.positive(),
-  idOpt: zPrimitive.num.positive().optional(),
+  id: zPrimitive.str,
 
   pagination: z.object({
     page: zPrimitive.num.positive().default(1),
@@ -38,4 +37,4 @@ export const zHttp = {
       data: data,
       meta: paginationMeta,
     }),
-};
+}

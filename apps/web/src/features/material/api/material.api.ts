@@ -30,7 +30,7 @@ export const materialApi = {
     method: 'put',
     url: endpoint.material.update,
     body: z.object({
-      id: zPrimitive.num,
+      id: zPrimitive.str,
       ...MaterialMutationDto.shape,
     }),
     result: zHttp.ok(zSchema.recordId),

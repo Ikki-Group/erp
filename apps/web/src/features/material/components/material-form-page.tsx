@@ -27,11 +27,11 @@ const FormDto = z.object({
   description: z.string().min(1),
   sku: z.string().min(1),
   type: z.enum(['raw', 'semi']),
-  categoryId: z.number().nullable(),
-  baseUomId: z.number(),
+  categoryId: z.string().nullable(),
+  baseUomId: z.string(),
   conversions: z.array(
     z.object({
-      uomId: z.number(),
+      uomId: z.string(),
       conversionFactor: z.string().min(1),
     })
   ),
@@ -76,7 +76,7 @@ interface MaterialFormPageProps {
 export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   const navigate = useNavigate()
   const selectedMaterial = useQuery({
-    ...materialApi.detail.query({ id: Number(id) }),
+    ...materialApi.detail.query({ id: id! }),
     enabled: !!id,
   })
 

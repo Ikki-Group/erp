@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
-import type { UserDto } from '@/features/iam/dto'
+import type { UserSelectDto } from '@/features/iam/dto'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
@@ -21,17 +21,17 @@ function RouteComponent() {
   return <UserTable />
 }
 
-const ch = createColumnHelper<UserDto>()
+const ch = createColumnHelper<UserSelectDto>()
 const columns = [
   ch.accessor('fullname', {
     header: ({ column }) => (
-      <DataGridColumnHeader title="Nama" visibility={true} column={column} />
+      <DataGridColumnHeader title='Nama' visibility={true} column={column} />
     ),
     cell: ({ row }) => (
-      <Link to="/settings/user/$id" params={{ id: String(row.original.id) }}>
+      <Link to='/settings/user/$id' params={{ id: String(row.original.id) }}>
         <div>
-          <p className="underline">{row.original.fullname}</p>
-          <p className="text-muted-foreground italic">{row.original.email}</p>
+          <p className='underline'>{row.original.fullname}</p>
+          <p className='text-muted-foreground italic'>{row.original.email}</p>
         </div>
       </Link>
     ),
@@ -54,7 +54,7 @@ const columns = [
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
     cell: ({ row }) => (
-      <p className="text-nowrap">{toDateTimeStamp(row.original.createdAt)}</p>
+      <p className='text-nowrap'>{toDateTimeStamp(row.original.createdAt)}</p>
     ),
     enableSorting: false,
   }),
@@ -62,13 +62,14 @@ const columns = [
     id: 'action',
     cell: ({ row }) => {
       return (
-        <div className="flex items-center justify-center">
+        <div className='flex items-center justify-center'>
           <Button
-            variant="outline"
-            size="icon-sm"
+            variant='outline'
+            size='icon-sm'
+            nativeButton={false}
             render={
               <Link
-                to="/settings/user/$id"
+                to='/settings/user/$id'
                 params={{ id: String(row.original.id) }}
               />
             }
@@ -88,7 +89,7 @@ function UserTable() {
   const { data, isLoading } = useQuery(
     userApi.list.query({
       ...ds.pagination,
-    }),
+    })
   )
 
   const table = useDataTable({
@@ -101,15 +102,15 @@ function UserTable() {
 
   return (
     <DataTableCard
-      title="Daftar Pengguna"
+      title='Daftar Pengguna'
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
       action={
         <Button
-          size="sm"
+          size='sm'
           nativeButton={false}
-          render={<Link to="/settings/user/create" from={Route.fullPath} />}
+          render={<Link to='/settings/user/create' from={Route.fullPath} />}
         >
           Tambah Pengguna
         </Button>

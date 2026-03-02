@@ -1,19 +1,28 @@
 import z from 'zod'
 import { RoleDto } from './role.dto'
 import { LocationDto } from '@/features/location'
-import { zPrimitive, zSchema } from '@/lib/zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-export const UserDto = z.object({
-  id: zPrimitive.num,
+export const UserSelectDto = z.object({
+  id: zPrimitive.str,
   email: zPrimitive.str,
-  fullname: zPrimitive.str,
   username: zPrimitive.str,
+  fullname: zPrimitive.str,
   isRoot: zPrimitive.bool,
   isActive: zPrimitive.bool,
+  assignments: z.array(
+    z.object({
+      isDefault: zPrimitive.bool,
+      roleId: zPrimitive.str,
+      locationId: zPrimitive.str,
+      role: RoleDto,
+      location: LocationDto,
+    })
+  ),
   ...zSchema.meta.shape,
 })
 
-export type UserDto = z.infer<typeof UserDto>
+export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 export const UserMutationDto = z.object({
   email: zPrimitive.str,
@@ -32,17 +41,11 @@ export const UserMutationDto = z.object({
 
 export type UserMutationDto = z.infer<typeof UserMutationDto>
 
-export const UserDetailAssignmentDto = z.object({
-  isDefault: zPrimitive.bool,
-  role: RoleDto.pick({ id: true, name: true, code: true }),
-  location: LocationDto,
+/* --------------------------------- COMMON --------------------------------- */
+
+export const UserFilterDto = z.object({
+  search: zHttp.search,
+  isActive: zHttp.boolean,
 })
 
-export type UserDetailAssignmentDto = z.infer<typeof UserDetailAssignmentDto>
-
-export const UserDetailDto = z.object({
-  ...UserDto.shape,
-  assignments: z.array(UserDetailAssignmentDto),
-})
-
-export type UserDetailDto = z.infer<typeof UserDetailDto>
+export type UserFilterDto = z.infer<typeof UserFilterDto>

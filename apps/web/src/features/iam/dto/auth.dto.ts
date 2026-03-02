@@ -1,7 +1,7 @@
 import z from 'zod'
-import { UserDetailDto } from '../dto'
+import { UserSelectDto } from './user.dto'
 
 export const AuthResponseDto = z.object({
   token: z.string(),
-  user: UserDetailDto,
+  user: UserSelectDto,
 })

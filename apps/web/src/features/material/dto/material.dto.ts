@@ -5,19 +5,19 @@ export const MaterialType = z.enum(['raw', 'semi'])
 export type MaterialType = z.infer<typeof MaterialType>
 
 const MaterialUomDto = z.object({
-  materialId: zPrimitive.idNum,
-  uomId: zPrimitive.idNum,
+  materialId: zPrimitive.str,
+  uomId: zPrimitive.str,
   conversionFactor: zPrimitive.str,
 })
 
 export const MaterialDto = z.object({
-  id: zPrimitive.idNum,
+  id: zPrimitive.str,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   type: MaterialType,
-  categoryId: zPrimitive.idNum.nullable(),
-  baseUomId: zPrimitive.idNum,
+  categoryId: zPrimitive.str.nullable(),
+  baseUomId: zPrimitive.str,
   ...zSchema.meta.shape,
 })
 
@@ -35,11 +35,11 @@ export const MaterialMutationDto = z.object({
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   type: MaterialType,
-  categoryId: zPrimitive.idNum.nullable(),
-  baseUomId: zPrimitive.idNum,
+  categoryId: zPrimitive.str.nullable(),
+  baseUomId: zPrimitive.str,
   conversions: z.array(
     z.object({
-      uomId: zPrimitive.idNum,
+      uomId: zPrimitive.str,
       conversionFactor: zPrimitive.str,
     })
   ),

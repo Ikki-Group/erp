@@ -33,7 +33,7 @@ function getDefaultValues(v?: UomDto): FormDto {
 }
 
 interface UomFormDialogProps {
-  id?: number
+  id?: string
 }
 
 export const UomFormDialog = createCallable<UomFormDialogProps>(props => {
