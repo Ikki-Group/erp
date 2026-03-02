@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zResponse, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UomCreateDto, UomDto, UomFilterDto, UomUpdateDto } from '../dto'
+import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
 
 export function initMaterialUomRoute(s: MaterialServiceModule) {
@@ -14,7 +14,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .get(
       '/list',
       async function list({ query }) {
-        const result = await s.uom.findPaginated(query, query)
+        const result = await s.uom.handleList(query, query)
         return res.paginated(result)
       },
       {
@@ -29,11 +29,11 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .get(
       '/detail',
       async function detail({ query }) {
-        const category = await s.uom.findById(query.id)
+        const category = await s.uom.handleDetail(query.id)
         return res.ok(category)
       },
       {
-        query: z.object({ id: zHttp.query.idRequired }),
+        query: zHttp.recordId,
         response: zResponse.ok(UomDto),
         auth: true,
       }
@@ -41,11 +41,11 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .post(
       '/create',
       async function create({ body }) {
-        const { id } = await s.uom.create(body)
+        const { id } = await s.uom.handleCreate(body)
         return res.created({ id }, 'MATERIAL_CATEGORY_CREATED')
       },
       {
-        body: UomCreateDto,
+        body: UomMutationDto,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -53,11 +53,14 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .put(
       '/update',
       async function update({ body }) {
-        const { id } = await s.uom.update(body)
+        const { id } = await s.uom.handleUpdate(body.id, body)
         return res.ok({ id }, 'MATERIAL_CATEGORY_UPDATED')
       },
       {
-        body: UomUpdateDto,
+        body: z.object({
+          id: zPrimitive.objId,
+          ...UomMutationDto.shape,
+        }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -65,11 +68,11 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     .delete(
       '/remove',
       async function remove({ query }) {
-        await s.uom.remove(query.id)
+        await s.uom.handleRemove(query.id)
         return res.ok({ id: query.id }, 'MATERIAL_CATEGORY_DELETED')
       },
       {
-        query: z.object({ id: zHttp.query.idRequired }),
+        query: zHttp.recordId,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }

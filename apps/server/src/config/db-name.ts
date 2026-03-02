@@ -8,9 +8,9 @@ export const DB_NAME = {
   LOCATION: 'location',
 
   // Material
-  MATERIAL: 'material',
+  UOM: 'uom',
   MATERIAL_CATEGORY: 'material_category',
-  MATERIAL_UOM: 'material_uom',
+  MATERIAL: 'material',
 } as const
 
 export type DB_NAME = (typeof DB_NAME)[keyof typeof DB_NAME]

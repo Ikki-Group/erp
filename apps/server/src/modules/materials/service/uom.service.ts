@@ -1,118 +1,119 @@
-import { and, count, eq, ilike, not, or } from 'drizzle-orm'
+import { record } from '@elysiajs/opentelemetry'
+import type { PipelineStage } from 'mongoose'
 
-import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
-import {
-  calculatePaginationMeta,
-  withPagination,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@/lib/pagination'
+import { cache } from '@/lib/cache'
+import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
 
-import { db } from '@/database'
-import { uomTable } from '@/database/schema'
-
-import type { UomCreateDto, UomDto, UomFilterDto, UomUpdateDto } from '../dto'
+import { UomDto, type UomFilterDto, type UomMutationDto } from '../dto'
+import { UomModel } from '../model'
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`),
+  notFound: (id: ObjectId) => new NotFoundError(`UOM with ID ${id} not found`),
   conflict: (code: string) => new ConflictError(`UOM code ${code} already exists`),
 }
 
+const cacheKey = {
+  count: 'uom.count',
+  list: 'uom.list',
+}
+
 export class UomService {
-  #buildWhere(filter: UomFilterDto) {
-    const { search } = filter
-    const conditions = []
+  async #checkConflict(input: Pick<UomDto, 'code'>, existing?: UomDto): Promise<void> {
+    return record('UomService.#checkConflict', async () => {
+      const codeChanged = !existing || existing.code !== input.code
 
-    if (search) {
-      conditions.push(ilike(uomTable.code, `%${search}%`))
-    }
+      if (!codeChanged) return
 
-    return conditions.length > 0 ? and(...conditions) : undefined
+      const $or = [...(codeChanged ? [{ code: input.code.toUpperCase().trim() }] : [])]
+      const conflict = await UomModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
+        .select('code')
+        .lean()
+
+      if (!conflict) return
+      if (codeChanged && conflict.code === input.code.toUpperCase().trim()) throw err.conflict(input.code)
+    })
   }
 
-  async #checkConflict(data: Pick<UomDto, 'code'>, selected?: UomDto): Promise<void> {
-    const conditions = []
+  async findById(id: ObjectId): Promise<UomDto> {
+    return record('UomService.findById', async () => {
+      const result = await PipelineBuilder.create(UomModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: UomDto })
 
-    if (!selected || selected.code !== data.code) {
-      conditions.push(eq(uomTable.code, data.code))
-    }
-
-    if (conditions.length === 0) return
-
-    const whereClause = selected ? and(or(...conditions), not(eq(uomTable.code, selected.code))) : or(...conditions)
-    const existing = await db.select({ code: uomTable.code }).from(uomTable).where(whereClause).limit(1)
-
-    if (existing.length === 0) return
-    throw err.conflict(data.code)
+      if (!result) throw err.notFound(id)
+      return result
+    })
   }
 
-  async count(filter?: UomFilterDto): Promise<number> {
-    const qry = db.select({ total: count() }).from(uomTable).$dynamic()
-    if (filter) qry.where(this.#buildWhere(filter))
-    const [result] = await qry.execute()
-    return result?.total ?? 0
-  }
+  async handleList(filter: UomFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UomDto>> {
+    return record('UomService.handleList', async () => {
+      const { search } = filter
+      const $match: PipelineStage.Match['$match'] = {}
 
-  async find(filter: UomFilterDto): Promise<UomDto[]> {
-    const where = this.#buildWhere(filter)
-    return db.select().from(uomTable).where(where).orderBy(uomTable.code)
-  }
+      if (search) $match.$text = { $search: search, $diacriticSensitive: true }
 
-  async findPaginated(filter: UomFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UomDto>> {
-    const where = this.#buildWhere(filter)
+      const pb = PipelineBuilder.create(UomModel)
+      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
 
-    const query = db.select().from(uomTable).where(where).orderBy(uomTable.code).$dynamic()
-    const [data, total] = await Promise.all([withPagination(query, pq).execute(), this.count(filter)])
-
-    return {
-      data,
-      meta: calculatePaginationMeta(pq, total),
-    }
-  }
-
-  async findById(id: number): Promise<UomDto> {
-    const [uom] = await db.select().from(uomTable).where(eq(uomTable.id, id)).limit(1)
-
-    if (!uom) throw err.notFound(id)
-    return uom
-  }
-
-  async create(data: UomCreateDto, createdBy = 1): Promise<UomDto> {
-    await this.#checkConflict(data)
-
-    const [uom] = await db
-      .insert(uomTable)
-      .values({
-        ...data,
-        createdBy,
-        updatedBy: createdBy,
+      return pbWithFilter.execPaginated({
+        schema: UomDto.array(),
+        pq,
+        facetAfter: [pipelineHelper.$setId()],
       })
-      .returning()
-
-    if (!uom) throw new InternalServerError('Failed to create UOM')
-    return uom
+    })
   }
 
-  async update(data: UomUpdateDto, updatedBy = 1): Promise<UomDto> {
-    const uom = await this.findById(data.id)
+  async handleDetail(id: ObjectId): Promise<UomDto> {
+    return record('UomService.handleDetail', async () => {
+      return this.findById(id)
+    })
+  }
 
-    await this.#checkConflict(data, uom)
+  async handleCreate(data: UomMutationDto): Promise<{ id: ObjectId }> {
+    return record('UomService.handleCreate', async () => {
+      await this.#checkConflict(data)
 
-    const [updatedUom] = await db
-      .update(uomTable)
-      .set({
+      const uom = new UomModel({
         ...data,
-        updatedBy,
       })
-      .where(eq(uomTable.id, data.id))
-      .returning()
 
-    if (!updatedUom) throw err.notFound(uom.id)
-    return updatedUom
+      uom.createdBy = uom._id
+      uom.updatedBy = uom._id
+
+      await uom.save()
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id: uom._id }
+    })
   }
 
-  async remove(id: number): Promise<void> {
-    await this.findById(id)
-    await db.delete(uomTable).where(eq(uomTable.id, id))
+  async handleUpdate(id: ObjectId, data: UomMutationDto): Promise<{ id: ObjectId }> {
+    return record('UomService.handleUpdate', async () => {
+      const existing = await this.findById(id)
+      await this.#checkConflict(data, existing)
+
+      await UomModel.findByIdAndUpdate(id, {
+        ...data,
+        updatedBy: id,
+        updatedAt: new Date(),
+      })
+
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
+    })
+  }
+
+  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+    return record('UomService.handleRemove', async () => {
+      const result = await UomModel.findByIdAndDelete(id)
+      if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
+    })
   }
 }
