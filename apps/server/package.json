@@ -7,6 +7,7 @@
     "test": "bun run test:unit && bun run coverage",
     "test:unit": "bun test",
     "build": "bun build --minify-whitespace --minify-syntax --target bun --outfile ./dist/server.js ./src/server.ts",
+    "start": "bun run dist/server.js",
     "db:generate": "bunx --bun drizzle-kit generate",
     "db:migrate": "bunx --bun drizzle-kit migrate",
     "db:studio": "bunx --bun drizzle-kit studio",
