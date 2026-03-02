@@ -39,24 +39,20 @@ export const UserFilterDto = z.object({
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
+export const UserAssignmentDetailDto = z.object({
+  ...UserAssignmentDto.shape,
+  location: LocationDto,
+  role: RoleDto,
+})
+
+export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+
 export const UserSelectDto = z.object({
   ...UserDto.omit({ passwordHash: true }).shape,
+  assignments: z.array(UserAssignmentDetailDto),
 })
 
 export type UserSelectDto = z.infer<typeof UserSelectDto>
-
-export const UserDetailDto = z.object({
-  ...UserSelectDto.shape,
-  assignments: z.array(
-    z.object({
-      ...UserAssignmentDto.shape,
-      location: LocationDto,
-      role: RoleDto,
-    })
-  ),
-})
-
-export type UserDetailDto = z.infer<typeof UserDetailDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 

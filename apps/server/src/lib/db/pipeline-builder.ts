@@ -26,10 +26,16 @@ export interface PaginatedResult<TData> {
 export class AggregationValidationError extends Error {
   constructor(
     public readonly pipeline: readonly PipelineStage[],
-    public readonly zodError: ZodError
+    public readonly zodError: ZodError,
+    public readonly rawData?: unknown
   ) {
     super('Aggregation validation failed')
     this.name = 'AggregationValidationError'
+
+    console.error({
+      zodError,
+      rawData,
+    })
   }
 }
 
@@ -70,7 +76,7 @@ export class PipelineBuilder<TModel = any> {
 
   async #parseResult<TResult>(raw: unknown, schema: ZodType<TResult>): Promise<TResult> {
     const parsed = await schema.safeParseAsync(raw)
-    if (!parsed.success) throw new AggregationValidationError([...this.#stages], parsed.error)
+    if (!parsed.success) throw new AggregationValidationError([...this.#stages], parsed.error, raw)
     return parsed.data
   }
 

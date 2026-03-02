@@ -15,6 +15,8 @@ export const pipelineHelper = {
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
   $setId: ($set: PipelineStage.Set['$set'] = { id: '$_id' }) => ({ $set }),
 
+  $onlyId: () => ({ $project: { _id: 0, id: '$_id' } }),
+
   /** Add computed or static fields to documents. */
   $addFields: ($addFields: PipelineStage.AddFields['$addFields']) => ({ $addFields }),
 
