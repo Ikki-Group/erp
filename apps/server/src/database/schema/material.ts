@@ -1,47 +1,74 @@
-import { boolean, integer, numeric, pgTable, primaryKey, serial, varchar } from 'drizzle-orm/pg-core'
+import { index, integer, numeric, pgTable, primaryKey, serial, uniqueIndex, varchar } from 'drizzle-orm/pg-core'
 
-import { metafields } from './common'
+import { lower, metafields } from './common'
+import { materialType } from './enum'
+import { locations } from './locations'
 
-export const materialCategoryTable = pgTable('materialCategories', {
-  id: serial().primaryKey(),
-  name: varchar({ length: 255 }).notNull(),
-  description: varchar({ length: 255 }),
-  ...metafields,
-})
+export const materialCategoryTable = pgTable(
+  'materialCategories',
+  {
+    id: serial().primaryKey(),
+    name: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 255 }),
+    ...metafields,
+  },
+  (t) => [uniqueIndex('material_category_name').on(lower(t.name))]
+)
 
-export const uomTable = pgTable('uoms', {
-  code: varchar({ length: 255 }).notNull().primaryKey(),
-  ...metafields,
-})
+export const uomTable = pgTable(
+  'uoms',
+  {
+    id: serial().primaryKey(),
+    code: varchar({ length: 255 }).notNull(),
+    ...metafields,
+  },
+  (t) => [uniqueIndex('uom_code').on(lower(t.code))]
+)
 
-export const materialTable = pgTable('materials', {
-  id: serial().primaryKey(),
-  name: varchar({ length: 255 }).notNull().unique(),
-  description: varchar({ length: 255 }),
-  sku: varchar({ length: 255 }).notNull().unique(),
-  categoryId: integer()
-    .notNull()
-    .references(() => materialCategoryTable.id),
-  baseUomCode: varchar({ length: 255 })
-    .notNull()
-    .references(() => uomTable.code),
-  isActive: boolean().default(true).notNull(),
-  ...metafields,
-})
+export const materialTable = pgTable(
+  'materials',
+  {
+    id: serial().primaryKey(),
+    name: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 255 }),
+    sku: varchar({ length: 255 }).notNull(),
+    type: materialType().notNull(),
+    categoryId: integer().references(() => materialCategoryTable.id),
+    baseUomId: integer()
+      .notNull()
+      .references(() => uomTable.id, { onDelete: 'restrict' }),
+    ...metafields,
+  },
+  (t) => [uniqueIndex('material_name').on(lower(t.name)), uniqueIndex('material_sku').on(lower(t.sku))]
+)
 
-export const materialUomConversionTable = pgTable(
-  'materialUomConversions',
+export const materialUomTable = pgTable(
+  'materialUoms',
   {
     materialId: integer()
       .notNull()
-      .references(() => materialTable.id),
-    fromUomCode: varchar({ length: 255 })
+      .references(() => materialTable.id, { onDelete: 'cascade' }),
+    uomId: integer()
       .notNull()
-      .references(() => uomTable.code),
-    toUomCode: varchar({ length: 255 })
-      .notNull()
-      .references(() => uomTable.code),
-    multiplier: numeric().notNull(),
+      .references(() => uomTable.id, { onDelete: 'restrict' }),
+    conversionFactor: numeric({
+      precision: 18,
+      scale: 6,
+    }).notNull(),
   },
-  (t) => [primaryKey({ columns: [t.materialId, t.fromUomCode, t.toUomCode] })]
+  (t) => [primaryKey({ columns: [t.materialId, t.uomId] }), index('material_id_idx').on(t.materialId)]
+)
+
+export const materialLocationTable = pgTable(
+  'materialLocations',
+  {
+    materialId: integer()
+      .notNull()
+      .references(() => materialTable.id, { onDelete: 'cascade' }),
+    locationId: integer()
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
+    ...metafields,
+  },
+  (t) => [primaryKey({ columns: [t.materialId, t.locationId] })]
 )

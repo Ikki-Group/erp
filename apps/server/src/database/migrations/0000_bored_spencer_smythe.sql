@@ -15,7 +15,7 @@ CREATE TABLE "locations" (
 	CONSTRAINT "locations_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
-CREATE TABLE "masterialCategories" (
+CREATE TABLE "materialCategories" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"description" varchar(255),
@@ -25,28 +25,27 @@ CREATE TABLE "masterialCategories" (
 	"updatedBy" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "masterials" (
+CREATE TABLE "materials" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"description" varchar(255),
 	"sku" varchar(255) NOT NULL,
-	"categoryId" integer NOT NULL,
-	"baseUomCode" varchar(255) NOT NULL,
+	"categoryId" integer,
+	"baseUomId" integer NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
-	"updatedBy" integer NOT NULL,
-	CONSTRAINT "masterials_name_unique" UNIQUE("name"),
-	CONSTRAINT "masterials_sku_unique" UNIQUE("sku")
+	"updatedBy" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "materialUomConversions" (
+CREATE TABLE "materialUoms" (
+	"isBase" boolean DEFAULT false NOT NULL,
 	"materialId" integer NOT NULL,
-	"fromUomCode" varchar(255) NOT NULL,
-	"toUomCode" varchar(255) NOT NULL,
-	"multiplier" numeric NOT NULL,
-	CONSTRAINT "materialUomConversions_materialId_fromUomCode_toUomCode_pk" PRIMARY KEY("materialId","fromUomCode","toUomCode")
+	"uomId" integer NOT NULL,
+	"conversionFactor" numeric(18, 6) NOT NULL,
+	CONSTRAINT "materialUoms_materialId_uomId_pk" PRIMARY KEY("materialId","uomId"),
+	CONSTRAINT "uom_base" UNIQUE("materialId","isBase")
 );
 --> statement-breakpoint
 CREATE TABLE "roles" (
@@ -63,7 +62,8 @@ CREATE TABLE "roles" (
 );
 --> statement-breakpoint
 CREATE TABLE "uoms" (
-	"code" varchar(255) PRIMARY KEY NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" varchar(255) NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
@@ -102,12 +102,15 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_username_unique" UNIQUE("username")
 );
 --> statement-breakpoint
-ALTER TABLE "masterials" ADD CONSTRAINT "masterials_categoryId_masterialCategories_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."masterialCategories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "masterials" ADD CONSTRAINT "masterials_baseUomCode_uoms_code_fk" FOREIGN KEY ("baseUomCode") REFERENCES "public"."uoms"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_materialId_masterials_id_fk" FOREIGN KEY ("materialId") REFERENCES "public"."masterials"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_fromUomCode_uoms_code_fk" FOREIGN KEY ("fromUomCode") REFERENCES "public"."uoms"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "materialUomConversions" ADD CONSTRAINT "materialUomConversions_toUomCode_uoms_code_fk" FOREIGN KEY ("toUomCode") REFERENCES "public"."uoms"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materials" ADD CONSTRAINT "materials_categoryId_materialCategories_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."materialCategories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materials" ADD CONSTRAINT "materials_baseUomId_uoms_id_fk" FOREIGN KEY ("baseUomId") REFERENCES "public"."uoms"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materialUoms" ADD CONSTRAINT "materialUoms_materialId_materials_id_fk" FOREIGN KEY ("materialId") REFERENCES "public"."materials"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "materialUoms" ADD CONSTRAINT "materialUoms_uomId_uoms_id_fk" FOREIGN KEY ("uomId") REFERENCES "public"."uoms"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_roleId_roles_id_fk" FOREIGN KEY ("roleId") REFERENCES "public"."roles"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_locationId_locations_id_fk" FOREIGN KEY ("locationId") REFERENCES "public"."locations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "material_category_name" ON "materialCategories" USING btree (lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "material_name" ON "materials" USING btree (lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "material_sku" ON "materials" USING btree (lower("sku"));--> statement-breakpoint
+CREATE UNIQUE INDEX "uom_code" ON "uoms" USING btree (lower("code"));

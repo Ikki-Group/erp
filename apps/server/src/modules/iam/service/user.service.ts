@@ -1,308 +1,259 @@
-import { and, count, eq, ilike, not, or } from 'drizzle-orm'
+import { record } from '@elysiajs/opentelemetry'
+import type { PipelineStage } from 'mongoose'
 
-import { BadRequestError, ConflictError, NotFoundError } from '@/lib/error/http'
-import { logger } from '@/lib/logger'
-import {
-  calculatePaginationMeta,
-  withPagination,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@/lib/pagination'
-import { hashPassword } from '@/lib/utils/password.util'
+import { cache } from '@/lib/cache'
+import { PipelineBuilder, pipelineHelper } from '@/lib/db'
+import { ConflictError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
+import { hashPassword } from '@/lib/password'
 
-import { db } from '@/database'
-import { locations, roles, userAssignments, users } from '@/database/schema'
+import type { LocationServiceModule } from '@/modules/location'
 
-import type {
-  UserAssignedInputDto,
-  UserCreateDto,
-  UserDetailAssignmentDto,
-  UserDetailDto,
-  UserDto,
-  UserFilterDto,
-  UserUpdateDto,
-} from '../schema'
+import { SEED_CONFIG } from '@/config/seed-config'
 
-/* -------------------------------- CONSTANT -------------------------------- */
+import type { UserDetailDto, UserFilterDto, UserMutationDto } from '../dto'
+import { UserDto, UserSelectDto } from '../dto'
+import { UserModel } from '../model'
+
+import type { RoleService } from './role.service'
+
+/* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`),
-  emailExist: (email: string) => new ConflictError(`Email ${email} already exist`, 'USER_EMAIL_ALREADY_EXISTS'),
+  notFound: (id: ObjectId) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
+  emailExist: (email: string) => new ConflictError(`Email ${email} already exists`, 'USER_EMAIL_ALREADY_EXISTS'),
   usernameExist: (username: string) =>
-    new ConflictError(`Username ${username} already exist`, 'USER_USERNAME_ALREADY_EXISTS'),
+    new ConflictError(`Username ${username} already exists`, 'USER_USERNAME_ALREADY_EXISTS'),
+}
+
+const cacheKey = {
+  count: 'user.count',
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class UserService {
-  #buildWhere(filter: UserFilterDto) {
-    const { search, isActive } = filter
-    const conditions = []
+  constructor(
+    private readonly roleSvc: RoleService,
+    private readonly locationSvc: LocationServiceModule
+  ) {}
 
-    if (search) {
-      conditions.push(
-        or(
-          ilike(users.email, `%${search}%`),
-          ilike(users.username, `%${search}%`),
-          ilike(users.fullname, `%${search}%`)
-        )
-      )
-    }
+  /* ----------------------------- UTILITY METHODS ---------------------------- */
+  // These are reusable internal helpers. They are consumed by handler methods
+  // below and can also be used by other services (e.g. AuthService).
 
-    if (isActive !== undefined) {
-      conditions.push(eq(users.isActive, isActive))
-    }
+  async seed(
+    data: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'isRoot' | 'createdBy'> & { password: string })[]
+  ): Promise<void> {
+    return record('UserService.seed', async () => {
+      const at = new Date()
 
-    return conditions.length > 0 ? and(...conditions) : undefined
-  }
+      // Bulk upsert
+      const users: UserDto[] = []
 
-  #parseAssignedInput(assignments: UserAssignedInputDto[]): UserAssignedInputDto[] {
-    if (assignments.length === 0) return []
-
-    const defaultAssignment = assignments.filter((a) => a.isDefault)
-    if (defaultAssignment.length !== 1)
-      throw new BadRequestError('User only have one default role and location', 'USER_INVALID_DEFAULT_ASSIGNMENT')
-
-    // check duplicate location
-    const uniqueLocations = new Set(assignments.map((a) => a.locationId))
-    if (uniqueLocations.size !== assignments.length)
-      throw new BadRequestError('Duplicate location found', 'USER_DUPLICATE_LOCATION')
-
-    return assignments
-  }
-
-  async #checkConflict(input: { email: string; username: string }, selected?: UserDto): Promise<void> {
-    const excludeId = selected?.id
-    const conditions = []
-
-    if (!selected || selected.username !== input.username) {
-      conditions.push(eq(users.username, input.username))
-    }
-
-    if (!selected || selected.email !== input.email) {
-      conditions.push(eq(users.email, input.email))
-    }
-
-    if (conditions.length === 0) return
-
-    const whereClause = excludeId ? and(or(...conditions), not(eq(users.id, excludeId))) : or(...conditions)
-    const existing = await db
-      .select({ id: users.id, email: users.email, username: users.username })
-      .from(users)
-      .where(whereClause)
-      .limit(1)
-
-    if (existing.length === 0) return
-    logger.withMetadata({ existing, selected }).debug("Existing user's email or username is conflict")
-
-    const emailConflict = existing.some((u) => u.email === input.email)
-    const usernameConflict = existing.some((u) => u.username === input.username)
-
-    if (emailConflict) throw err.emailExist(input.email!)
-    if (usernameConflict) throw err.usernameExist(input.username!)
-  }
-
-  async #buildRootUser(user: UserDto): Promise<UserDetailDto> {
-    const [superAdminRole, allLocations] = await Promise.all([
-      db.query.roles.findFirst({
-        where: (r, { eq }) => eq(r.code, 'SUPERADMIN'),
-      }),
-      db.select().from(locations),
-    ])
-
-    if (!superAdminRole) {
-      throw new Error('SUPER_ADMIN role not found')
-    }
-
-    const assignments: UserDetailAssignmentDto[] = allLocations.map((location) => ({
-      userId: user.id,
-      roleId: superAdminRole.id,
-      locationId: location.id,
-      isDefault: false,
-
-      role: {
-        id: superAdminRole.id,
-        code: superAdminRole.code,
-        name: superAdminRole.name,
-      },
-
-      location,
-    }))
-
-    return {
-      ...user,
-      assignments,
-    }
-  }
-
-  async #buildNonRootUser(user: UserDto): Promise<UserDetailDto> {
-    const rows = await db
-      .select({
-        userId: userAssignments.userId,
-        roleId: userAssignments.roleId,
-        locationId: userAssignments.locationId,
-        isDefault: userAssignments.isDefault,
-
-        roleIdRef: roles.id,
-        roleCode: roles.code,
-        roleName: roles.name,
-
-        location: locations,
-      })
-      .from(userAssignments)
-      .innerJoin(roles, eq(roles.id, userAssignments.roleId))
-      .innerJoin(locations, eq(locations.id, userAssignments.locationId))
-      .where(eq(userAssignments.userId, user.id))
-
-    const assignments: UserDetailAssignmentDto[] = rows.map((row) => ({
-      userId: row.userId,
-      roleId: row.roleId,
-      locationId: row.locationId,
-      isDefault: row.isDefault,
-
-      role: {
-        id: row.roleIdRef,
-        code: row.roleCode,
-        name: row.roleName,
-      },
-
-      location: row.location,
-    }))
-
-    return {
-      ...user,
-      assignments,
-    }
-  }
-
-  async count(filter?: UserFilterDto): Promise<number> {
-    const qry = db.select({ total: count() }).from(users).$dynamic()
-    if (filter) qry.where(this.#buildWhere(filter))
-    const [result] = await qry.execute()
-    return result?.total ?? 0
-  }
-
-  async find(filter: UserFilterDto): Promise<UserDto[]> {
-    const where = this.#buildWhere(filter)
-    return db.select().from(users).where(where).orderBy(users.id)
-  }
-
-  async findPaginated(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserDto>> {
-    const where = this.#buildWhere(filter)
-
-    const [data, total] = await Promise.all([
-      withPagination(db.select().from(users).where(where).orderBy(users.id).$dynamic(), pq).execute(),
-      this.count(filter),
-    ])
-
-    return {
-      data,
-      meta: calculatePaginationMeta(pq, total),
-    }
-  }
-
-  async findById(id: number): Promise<UserDto> {
-    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
-
-    if (!user) throw err.notFound(id)
-    return user
-  }
-
-  async findDetailById(id: number): Promise<UserDetailDto> {
-    const user = await this.findById(id)
-
-    const result = user.isRoot ? await this.#buildRootUser(user) : await this.#buildNonRootUser(user)
-
-    // Sort by default
-    // Set isDefault fallback
-    if (result.assignments.length > 0) {
-      // Ensure default is exists
-      const defaultAssignment = result.assignments.find((a) => a.isDefault)
-      if (!defaultAssignment) {
-        result.assignments.sort((a, b) => a.location.id - b.location.id)
-        result.assignments[0]!.isDefault = true
-      }
-
-      result.assignments.sort((a, b) => (a.isDefault ? -1 : 0) - (b.isDefault ? -1 : 0))
-    }
-
-    return result
-  }
-
-  async create(input: UserCreateDto, createdBy = 1): Promise<UserDto> {
-    const { assignments, password, ...userData } = input
-
-    await this.#checkConflict(input)
-    const passwordHash = await hashPassword(password)
-
-    const user = await db.transaction(async (tx) => {
-      const [createdUser] = await tx
-        .insert(users)
-        .values({
-          ...userData,
-          passwordHash,
-          createdBy,
-          updatedBy: createdBy,
+      for (const d of data) {
+        users.push({
+          ...d,
+          passwordHash: await hashPassword(d.password),
+          isActive: true,
+          assignments: [],
+          createdAt: at,
+          updatedAt: at,
+          createdBy: d.createdBy,
+          updatedBy: d.createdBy,
         })
-        .returning()
-
-      if (!createdUser) throw new Error('Failed to create user')
-
-      const parsedAssignments = this.#parseAssignedInput(assignments)
-      if (parsedAssignments.length > 0) {
-        await tx.insert(userAssignments).values(
-          parsedAssignments.map((a) => ({
-            userId: createdUser.id,
-            roleId: a.roleId,
-            locationId: a.locationId,
-            isDefault: a.isDefault,
-          }))
-        )
       }
 
-      return createdUser
+      await UserModel.bulkWrite(
+        users.map((u) => ({
+          replaceOne: {
+            filter: { email: u.email },
+            replacement: u,
+            upsert: true,
+          },
+        }))
+      )
     })
-
-    const { passwordHash: _, ...result } = user
-    return result as UserDto
   }
 
-  async update(id: number, input: UserUpdateDto, updatedBy = 1): Promise<UserDto> {
-    const { assignments, id: _id, ...userData } = input
+  /** Finds a single user document by its ID. Throws NotFoundError if missing. */
+  async findById(id: ObjectId): Promise<UserDto> {
+    return record('UserService.findById', async () => {
+      const result = await PipelineBuilder.create(UserModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: UserDto })
 
-    const user = await this.findById(id)
-    await this.#checkConflict(input, user)
+      if (!result) throw err.notFound(id)
+      return result
+    })
+  }
 
-    const updated = await db.transaction(async (tx) => {
-      const [updatedUser] = await tx
-        .update(users)
-        .set({ ...userData, updatedBy })
-        .where(eq(users.id, id))
-        .returning()
-
-      if (!updatedUser) throw err.notFound(id)
-
-      const parsedAssignments = this.#parseAssignedInput(assignments)
-      if (parsedAssignments.length > 0) {
-        await tx.delete(userAssignments).where(eq(userAssignments.userId, id))
-        await tx.insert(userAssignments).values(
-          parsedAssignments.map((a) => ({
-            userId: id,
-            roleId: a.roleId,
-            locationId: a.locationId,
-            isDefault: a.isDefault,
-          }))
+  async findByIdentifier(identifier: string): Promise<UserDto | null> {
+    return record('UserService.findByIdentifier', async () => {
+      const user = await PipelineBuilder.create(UserModel)
+        .push(
+          pipelineHelper.$match({ $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }] })
         )
+        .push(pipelineHelper.$setId())
+        .execOne({ schema: UserDto })
+
+      return user
+    })
+  }
+
+  async count(): Promise<number> {
+    return record('UserService.count', async () => {
+      return cache.wrap(cacheKey.count, async () => {
+        return UserModel.countDocuments()
+      })
+    })
+  }
+
+  async getDetailById(id: ObjectId): Promise<UserDetailDto> {
+    return record('UserService.getDetailById', async () => {
+      const userDoc = await this.findById(id)
+      const userDetails: UserDetailDto = {
+        ...userDoc,
+        assignments: [],
       }
 
-      return updatedUser
-    })
+      const isRoot = userDoc.isRoot
+      if (!isRoot && userDoc.assignments.length === 0) return userDetails
 
-    const { passwordHash: _, ...result } = updated
-    return result as UserDto
+      const [roles, locations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
+
+      if (isRoot) {
+        const roleSuperadmin = roles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
+
+        userDetails.assignments = locations.map((l) => {
+          return {
+            isDefault: false,
+            locationId: l.id,
+            roleId: roleSuperadmin.id,
+            location: l,
+            role: roleSuperadmin,
+          }
+        })
+      } else {
+        userDetails.assignments = userDoc.assignments.map((a) => {
+          return {
+            ...a,
+            role: roles.find((r) => r.id.equals(a.roleId))!,
+            location: locations.find((l) => l.id.equals(a.locationId))!,
+          }
+        })
+      }
+
+      return userDetails
+    })
   }
 
-  async delete(id: number): Promise<void> {
-    await db.delete(users).where(eq(users.id, id))
+  /** Checks whether email or username is already taken, optionally excluding a user. */
+  async #checkConflict(input: Pick<UserMutationDto, 'email' | 'username'>, existing?: UserDto): Promise<void> {
+    return record('UserService.#checkConflict', async () => {
+      const emailChanged = !existing || existing.email !== input.email
+      const usernameChanged = !existing || existing.username !== input.username
+
+      if (!emailChanged && !usernameChanged) return
+
+      const $or = [
+        ...(emailChanged ? [{ email: input.email.toLowerCase() }] : []),
+        ...(usernameChanged ? [{ username: input.username.toLowerCase() }] : []),
+      ]
+
+      const conflict = await UserModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
+        .select('email username')
+        .lean()
+
+      if (!conflict) return
+      if (emailChanged && conflict.email === input.email.toLowerCase().trim()) throw err.emailExist(input.email)
+      if (usernameChanged && conflict.username === input.username.toLowerCase().trim())
+        throw err.usernameExist(input.username)
+    })
+  }
+
+  /* ------------------------------ HANDLER METHODS --------------------------- */
+  // One handler per route endpoint. These call utility methods and orchestrate
+  // the response. They are named after the HTTP action they serve.
+
+  async handleList(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserSelectDto>> {
+    return record('UserService.handleList', async () => {
+      const $match: PipelineStage.Match['$match'] = {}
+
+      if (filter.search) $match.$text = { $search: filter.search, $diacriticSensitive: true }
+      if (typeof filter.isActive === 'boolean') $match.isActive = filter.isActive
+
+      const pb = PipelineBuilder.create(UserModel)
+      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
+
+      return pbWithFilter.execPaginated({
+        schema: UserSelectDto.array(),
+        pq,
+        facetAfter: [pipelineHelper.$setId()],
+      })
+    })
+  }
+
+  async handleDetail(id: ObjectId): Promise<UserDetailDto> {
+    return record('UserService.handleDetail', async () => {
+      return this.getDetailById(id)
+    })
+  }
+
+  async handleCreate(data: UserMutationDto): Promise<{ id: ObjectId }> {
+    return record('UserService.handleCreate', async () => {
+      const email = data.email.toLowerCase().trim()
+      const username = data.username.toLowerCase().trim()
+
+      await this.#checkConflict({ email, username })
+
+      const user = new UserModel({
+        ...data,
+        email,
+        username,
+      })
+      user.passwordHash = await hashPassword(data.password)
+      user.createdBy = user._id
+      user.updatedBy = user._id
+
+      await user.save()
+      void cache.del(cacheKey.count)
+      return { id: user._id }
+    })
+  }
+
+  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>): Promise<{ id: ObjectId }> {
+    return record('UserService.handleUpdate', async () => {
+      const existing = await this.findById(id)
+
+      const email = data.email ? data.email.toLowerCase().trim() : existing.email
+      const username = data.username ? data.username.toLowerCase().trim() : existing.username
+
+      await this.#checkConflict({ email, username }, existing)
+
+      const passwordHash = data.password ? await hashPassword(data.password) : undefined
+
+      await UserModel.findByIdAndUpdate(id, {
+        ...data,
+        email,
+        username,
+        ...(passwordHash && { passwordHash }),
+        updatedBy: id,
+        updatedAt: new Date(),
+      })
+
+      void cache.del(cacheKey.count)
+      return { id }
+    })
+  }
+
+  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+    return record('UserService.handleRemove', async () => {
+      const result = await UserModel.findByIdAndDelete(id)
+      if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
+      return { id }
+    })
   }
 }

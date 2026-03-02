@@ -1,40 +1,20 @@
-import { eq } from 'drizzle-orm'
-
 import { UnauthorizedError } from '@/lib/error/http'
-import { verifyPassword } from '@/lib/utils/password.util'
+import { verifyPassword } from '@/lib/password'
 
-import { db } from '@/database'
-import { users } from '@/database/schema'
-
-import type { AuthResponseDto, LoginDto, UserDetailDto } from '../schema'
+import type { AuthResponseDto, LoginDto, UserDetailDto } from '../dto'
 
 import type { SessionService } from './session.service'
 import type { UserService } from './user.service'
 
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
-    private readonly sessionService: SessionService
+    private readonly userSvc: UserService,
+    private readonly sessionSvc: SessionService
   ) {}
-
-  async findUserByIdentifier(identifier: string): Promise<typeof users.$inferSelect | null> {
-    const [user] = await db.select().from(users).where(eq(users.email, identifier.toLowerCase())).limit(1).execute()
-
-    if (user) return user
-
-    const [userByUsername] = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, identifier.toLowerCase()))
-      .limit(1)
-      .execute()
-
-    return userByUsername ?? null
-  }
 
   async login(input: LoginDto): Promise<AuthResponseDto> {
     const { identifier, password } = input
-    const targetUser = await this.findUserByIdentifier(identifier)
+    const targetUser = await this.userSvc.findByIdentifier(identifier)
 
     if (!targetUser || !targetUser.isActive) {
       throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
@@ -45,26 +25,22 @@ export class AuthService {
       throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
     }
 
-    const [session, userWithAccess] = await db.transaction(async (tx) => {
-      const session = await this.sessionService.createSession(targetUser, tx)
-      const userWithAccess = await this.userService.findDetailById(targetUser.id)
-
-      return [session, userWithAccess]
-    })
+    const session = await this.sessionSvc.createSession(targetUser)
+    const userDetail = await this.userSvc.getDetailById(targetUser.id)
 
     return {
-      user: userWithAccess,
+      user: userDetail,
       token: session.token,
     }
   }
 
   async verifyToken(token: string): Promise<UserDetailDto> {
-    const session = await this.sessionService.verifySession(token)
+    const session = await this.sessionSvc.verifySession(token)
     if (!session) {
       throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
     }
 
-    const userWithAccess = await this.userService.findDetailById(session.userId)
+    const userWithAccess = await this.userSvc.getDetailById(session.userId)
     return userWithAccess
   }
 }

@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
+import { zHttp, zResponse, zSchema } from '@/lib/validation'
 
-import { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
+import { MaterialCreateDto, MaterialFilterDto, MaterialSelectDto, MaterialUpdateDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
 
 export function initMaterialRoute(s: MaterialServiceModule) {
@@ -14,7 +14,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     .get(
       '/list',
       async function list({ query }) {
-        const result = await s.material.findPaginated(query, query)
+        const result = await s.material.findMaterialSelect(query, query)
         return res.paginated(result)
       },
       {
@@ -22,7 +22,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
           ...zHttp.pagination.shape,
           ...MaterialFilterDto.shape,
         }),
-        response: zResponse.paginated(MaterialDto.array()),
+        response: zResponse.paginated(MaterialSelectDto.array()),
         auth: true,
       }
     )
@@ -33,8 +33,8 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         return res.ok(category)
       },
       {
-        query: z.object({ id: zPrimitive.idNum }),
-        response: zResponse.ok(MaterialDto),
+        query: z.object({ id: zHttp.query.idRequired }),
+        response: zResponse.ok(MaterialSelectDto),
         auth: true,
       }
     )

@@ -11,19 +11,15 @@ class AuthContext {
     return this.user !== null
   }
 
-  get userId(): number {
+  get userId(): ObjectId {
     if (!this.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
     return this.user!.id
   }
 }
 
-interface ReturnAuthDerive {
-  auth: AuthContext | null
-}
-
 export function createAuthPlugin(iamService: IamServiceModule) {
   return new Elysia({ name: 'auth-plugin' })
-    .derive(async ({ request }) => {
+    .derive(async ({ request }): Promise<{ auth: AuthContext }> => {
       let auth: AuthContext = new AuthContext(null)
       let token = request.headers.get('authorization')
 
@@ -33,9 +29,7 @@ export function createAuthPlugin(iamService: IamServiceModule) {
         auth = new AuthContext(user)
       }
 
-      return {
-        auth,
-      } satisfies ReturnAuthDerive
+      return { auth }
     })
     .as('global')
 }

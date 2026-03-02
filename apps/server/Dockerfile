@@ -13,5 +13,5 @@ RUN bun run build
 
 ENV NODE_ENV=production
 
-CMD [ "bun", "run", "dist/server.js" ]
+CMD [ "bun", "run", "start" ]
 EXPOSE 3000

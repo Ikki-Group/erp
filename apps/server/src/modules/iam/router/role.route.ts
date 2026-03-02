@@ -2,24 +2,23 @@ import Elysia from 'elysia'
 import z from 'zod'
 
 import { res } from '@/lib/utils/response.util'
-import { zHttp, zResponse, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../schema'
+import { RoleDto, RoleMutationDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
-export function initRoleRoute(service: IamServiceModule) {
-  return new Elysia()
+export function initRoleRoute(s: IamServiceModule) {
+  return new Elysia({ prefix: '/role' })
     .get(
       '/list',
       async function list({ query }) {
-        const { isSystem, search, page, limit } = query
-        const result = await service.role.findPaginated({ isSystem, search }, { page, limit })
+        const result = await s.role.handleList(query, query)
         return res.paginated(result)
       },
       {
         query: z.object({
           ...zHttp.pagination.shape,
-          ...RoleFilterDto.shape,
+          search: zHttp.query.search,
         }),
         response: zResponse.paginated(RoleDto.array()),
         auth: true,
@@ -28,11 +27,11 @@ export function initRoleRoute(service: IamServiceModule) {
     .get(
       '/detail',
       async function detail({ query }) {
-        const role = await service.role.findById(query.id)
+        const role = await s.role.handleDetail(query.id)
         return res.ok(role)
       },
       {
-        query: z.object({ id: zHttp.query.idRequired }),
+        query: zHttp.recordId,
         response: zResponse.ok(RoleDto),
         auth: true,
       }
@@ -40,36 +39,39 @@ export function initRoleRoute(service: IamServiceModule) {
     .post(
       '/create',
       async function create({ body }) {
-        const { id } = await service.role.create(body)
-        return res.created({ id }, 'ROLE_CREATED')
+        const result = await s.role.handleCreate(body)
+        return res.created(result, 'ROLE_CREATED')
       },
       {
-        body: RoleCreateDto,
-        response: zResponse.ok(zSchema.recordId),
+        body: RoleMutationDto,
+        response: zHttp.ok(zHttp.recordId),
         auth: true,
       }
     )
     .put(
       '/update',
       async function update({ body }) {
-        const { id } = await service.role.update(body.id, body)
-        return res.ok({ id }, 'ROLE_UPDATED')
+        const result = await s.role.handleUpdate(body.id, body)
+        return res.ok(result, 'ROLE_UPDATED')
       },
       {
-        body: RoleUpdateDto,
-        response: zResponse.ok(zSchema.recordId),
+        body: z.object({
+          id: zPrimitive.objId,
+          ...RoleMutationDto.partial().shape,
+        }),
+        response: zHttp.ok(zHttp.recordId),
         auth: true,
       }
     )
     .delete(
-      '/remove',
+      '/delete',
       async function remove({ body }) {
-        await service.role.delete(body.id)
-        return res.ok({ id: body.id }, 'ROLE_REMOVED')
+        const result = await s.role.handleRemove(body.id)
+        return res.ok(result, 'ROLE_DELETED')
       },
       {
-        body: z.object({ id: zHttp.query.idRequired }),
-        response: zResponse.ok(zSchema.recordId),
+        body: zSchema.recordId,
+        response: zHttp.ok(zHttp.recordId),
         auth: true,
       }
     )

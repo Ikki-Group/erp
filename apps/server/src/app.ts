@@ -3,6 +3,7 @@ import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
 import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
+import { requestIdPlugin } from '@/lib/elysia/request-id'
 import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
@@ -10,25 +11,29 @@ import { otel } from '@/lib/otel'
 import { DashboardServiceModule, initDashboardRouteModule } from '@/modules/dashboard'
 import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
-import { initMaterialsRouteModule, MaterialServiceModule } from '@/modules/materials'
+import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
 
 // Services
-const iamService = new IamServiceModule()
 const locationService = new LocationServiceModule()
+const iamService = new IamServiceModule(locationService)
 const dashboardService = new DashboardServiceModule(iamService, locationService)
-const materialService = new MaterialServiceModule()
+const toolService = new ToolServiceModule(iamService, locationService)
+// const materialService = new MaterialServiceModule()
 
 // Routes
-const iamRoute = initIamRouteModule(iamService)
 const locationsRoute = initLocationRouteModule(locationService)
+const iamRoute = initIamRouteModule(iamService)
 const dashboardRoute = initDashboardRouteModule(dashboardService)
-const materialsRoute = initMaterialsRouteModule(materialService)
+const toolRoute = initToolRouteModule(toolService)
+// const materialsRoute = initMaterialsRouteModule(materialService)
 
 export const app = new Elysia({
   name: 'App',
   precompile: true,
 })
   .onError((ctx) => {
+    // eslint-disable-next-line no-console
+    console.log(ctx.error)
     let error: HttpError
     if (ctx.error instanceof HttpError) {
       error = ctx.error
@@ -56,11 +61,13 @@ export const app = new Elysia({
     })
   )
   .use(otel)
+  .use(requestIdPlugin())
   .use(createAuthPlugin(iamService))
   .use(iamRoute)
   .use(locationsRoute)
   .use(dashboardRoute)
-  .use(materialsRoute)
+  .use(toolRoute)
+// .use(materialsRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
 //   detail: { hide: true },

@@ -18,7 +18,10 @@ import { Route as AppProductsIndexRouteImport } from './routes/_app/products/ind
 import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
+import { Route as AppMaterialsCreateRouteImport } from './routes/_app/materials/create'
 import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
+import { Route as AppMaterialsIdRouteImport } from './routes/_app/materials/$id'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
@@ -86,9 +89,24 @@ const AppProductsIdRoute = AppProductsIdRouteImport.update({
   path: '/products/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppMaterialsUomRoute = AppMaterialsUomRouteImport.update({
+  id: '/materials/uom',
+  path: '/materials/uom',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsCreateRoute = AppMaterialsCreateRouteImport.update({
+  id: '/materials/create',
+  path: '/materials/create',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMaterialsCategoryRoute = AppMaterialsCategoryRouteImport.update({
   id: '/materials/category',
   path: '/materials/category',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsIdRoute = AppMaterialsIdRouteImport.update({
+  id: '/materials/$id',
+  path: '/materials/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
@@ -220,7 +238,10 @@ export interface FileRoutesByFullPath {
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/materials/$id': typeof AppMaterialsIdRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
+  '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/materials/': typeof AppMaterialsIndexRoute
@@ -253,7 +274,10 @@ export interface FileRoutesByTo {
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/materials/$id': typeof AppMaterialsIdRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
+  '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/materials': typeof AppMaterialsIndexRoute
@@ -289,7 +313,10 @@ export interface FileRoutesById {
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
+  '/_app/materials/$id': typeof AppMaterialsIdRoute
   '/_app/materials/category': typeof AppMaterialsCategoryRoute
+  '/_app/materials/create': typeof AppMaterialsCreateRoute
+  '/_app/materials/uom': typeof AppMaterialsUomRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/materials/': typeof AppMaterialsIndexRoute
@@ -324,7 +351,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/materials/$id'
     | '/materials/category'
+    | '/materials/create'
+    | '/materials/uom'
     | '/products/$id'
     | '/settings'
     | '/materials/'
@@ -357,7 +387,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/materials/$id'
     | '/materials/category'
+    | '/materials/create'
+    | '/materials/uom'
     | '/products/$id'
     | '/settings'
     | '/materials'
@@ -392,7 +425,10 @@ export interface FileRouteTypes {
     | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
+    | '/_app/materials/$id'
     | '/_app/materials/category'
+    | '/_app/materials/create'
+    | '/_app/materials/uom'
     | '/_app/products/$id'
     | '/_app/settings/_tab'
     | '/_app/materials/'
@@ -489,11 +525,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/materials/uom': {
+      id: '/_app/materials/uom'
+      path: '/materials/uom'
+      fullPath: '/materials/uom'
+      preLoaderRoute: typeof AppMaterialsUomRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/create': {
+      id: '/_app/materials/create'
+      path: '/materials/create'
+      fullPath: '/materials/create'
+      preLoaderRoute: typeof AppMaterialsCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/materials/category': {
       id: '/_app/materials/category'
       path: '/materials/category'
       fullPath: '/materials/category'
       preLoaderRoute: typeof AppMaterialsCategoryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/$id': {
+      id: '/_app/materials/$id'
+      path: '/materials/$id'
+      fullPath: '/materials/$id'
+      preLoaderRoute: typeof AppMaterialsIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/page-new': {
@@ -682,7 +739,10 @@ interface AppRouteRouteChildren {
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
+  AppMaterialsIdRoute: typeof AppMaterialsIdRoute
   AppMaterialsCategoryRoute: typeof AppMaterialsCategoryRoute
+  AppMaterialsCreateRoute: typeof AppMaterialsCreateRoute
+  AppMaterialsUomRoute: typeof AppMaterialsUomRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppMaterialsIndexRoute: typeof AppMaterialsIndexRoute
@@ -712,7 +772,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
+  AppMaterialsIdRoute: AppMaterialsIdRoute,
   AppMaterialsCategoryRoute: AppMaterialsCategoryRoute,
+  AppMaterialsCreateRoute: AppMaterialsCreateRoute,
+  AppMaterialsUomRoute: AppMaterialsUomRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppMaterialsIndexRoute: AppMaterialsIndexRoute,

@@ -1,4 +1,5 @@
-import { integer, timestamp } from 'drizzle-orm/pg-core'
+import { sql, type SQL } from 'drizzle-orm'
+import { integer, timestamp, type AnyPgColumn } from 'drizzle-orm/pg-core'
 
 export const metafields = {
   createdAt: timestamp().defaultNow().notNull(),
@@ -12,6 +13,10 @@ export const metafields = {
 
 export const softDeleteMetafields = {
   deletedAt: timestamp(),
+}
+
+export function lower(email: AnyPgColumn): SQL {
+  return sql`lower(${email})`
 }
 
 // Type exports

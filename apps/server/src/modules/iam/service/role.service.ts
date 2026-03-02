@@ -1,146 +1,196 @@
-import { and, count, eq, ilike, not, or } from 'drizzle-orm'
+import { record } from '@elysiajs/opentelemetry'
+import type { PipelineStage, Types } from 'mongoose'
 
+import { cache } from '@/lib/cache'
+import { PipelineBuilder, pipelineHelper } from '@/lib/db'
 import { BadRequestError, ConflictError, NotFoundError } from '@/lib/error/http'
-import {
-  calculatePaginationMeta,
-  withPagination,
-  type PaginationQuery,
-  type WithPaginationResult,
-} from '@/lib/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/pagination'
 
-import { db } from '@/database'
-import { roles } from '@/database/schema'
+import { RoleDto, type RoleFilterDto, type RoleMutationDto } from '../dto'
+import { RoleModel } from '../model'
 
-import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../schema'
-
-/* -------------------------------- CONSTANT -------------------------------- */
+/* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`),
+  notFound: (id: ObjectId) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
   codeConflict: (code: string) => new ConflictError(`Role code ${code} already exists`, 'ROLE_CODE_ALREADY_EXISTS'),
   nameConflict: (name: string) => new ConflictError(`Role name ${name} already exists`, 'ROLE_NAME_ALREADY_EXISTS'),
+  systemRole: () => new BadRequestError('Cannot mutate a system role', 'ROLE_IS_SYSTEM'),
+}
+
+const cacheKey = {
+  count: 'role.count',
+  list: 'role.list',
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class RoleService {
-  #buildWhere(filter: RoleFilterDto) {
-    const { search, isSystem } = filter
-    const conditions = []
+  /* ----------------------------- UTILITY METHODS ---------------------------- */
+  // These are reusable internal helpers, consumed by handler methods below
+  // and potentially by other services (e.g. AuthService, UserService).
 
-    if (search) {
-      conditions.push(or(ilike(roles.code, `%${search}%`), ilike(roles.name, `%${search}%`)))
-    }
+  async seed(data: Pick<RoleDto, 'id' | 'code' | 'name' | 'createdBy'>[]): Promise<void> {
+    return record('RoleService.seed', async () => {
+      const at = new Date()
 
-    if (isSystem !== undefined) {
-      conditions.push(eq(roles.isSystem, isSystem))
-    }
+      // Bulk upsert
+      const roles: RoleDto[] = data.map((d) => ({
+        ...d,
+        isSystem: false,
+        createdAt: at,
+        updatedAt: at,
+        createdBy: d.createdBy,
+        updatedBy: d.createdBy,
+      }))
 
-    return conditions.length > 0 ? and(...conditions) : undefined
+      await RoleModel.bulkWrite(
+        roles.map((r) => ({
+          replaceOne: {
+            filter: { code: r.code },
+            replacement: r,
+            upsert: true,
+          },
+        }))
+      )
+    })
   }
 
-  async #checkConflict(input: Pick<RoleDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
-    const excludeId = existing?.id
-    const conditions = []
-
-    if (!existing || existing.code !== input.code) {
-      conditions.push(eq(roles.code, input.code))
-    }
-
-    if (!existing || existing.name !== input.name) {
-      conditions.push(eq(roles.name, input.name))
-    }
-
-    if (conditions.length === 0) return
-
-    const where = excludeId ? and(or(...conditions), not(eq(roles.id, excludeId))) : or(...conditions)
-
-    const found = await db
-      .select({ id: roles.id, code: roles.code, name: roles.name })
-      .from(roles)
-      .where(where)
-      .limit(2)
-
-    if (found.length === 0) return
-
-    const codeConflict = found.some((r) => r.code === input.code)
-    const nameConflict = found.some((r) => r.name === input.name)
-
-    if (codeConflict) throw err.codeConflict(input.code)
-    if (nameConflict) throw err.nameConflict(input.name)
-  }
-
-  async count(filter?: RoleFilterDto): Promise<number> {
-    const qry = db.select({ total: count() }).from(roles).$dynamic()
-    if (filter) qry.where(this.#buildWhere(filter))
-    const [result] = await qry.execute()
-    return result?.total ?? 0
-  }
-
-  async find(filter: RoleFilterDto): Promise<RoleDto[]> {
-    const where = this.#buildWhere(filter)
-    return db.select().from(roles).where(where).orderBy(roles.id)
-  }
-
-  async findPaginated(filter: RoleFilterDto, pagination: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
-    const where = this.#buildWhere(filter)
-
-    const query = db.select().from(roles).where(where).orderBy(roles.id).$dynamic()
-    const [data, total] = await Promise.all([withPagination(query, pagination).execute(), this.count(filter)])
-
-    return {
-      data,
-      meta: calculatePaginationMeta(pagination, total),
-    }
-  }
-
-  async findById(id: number): Promise<RoleDto> {
-    const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1)
-
-    if (!role) throw err.notFound(id)
-    return role
-  }
-
-  async create(input: RoleCreateDto, createdBy = 1): Promise<RoleDto> {
-    await this.#checkConflict(input)
-
-    const [role] = await db
-      .insert(roles)
-      .values({
-        ...input,
-        isSystem: input.isSystem ?? false,
-        createdBy,
-        updatedBy: createdBy,
+  async find(): Promise<RoleDto[]> {
+    return record('RoleService.find', async () => {
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(RoleModel).push(pipelineHelper.$setId()).exec({ schema: RoleDto.array() })
       })
-      .returning()
-
-    if (!role) throw new Error('Failed to create role')
-    return role
+    })
   }
 
-  async update(id: number, input: RoleUpdateDto, updatedBy = 1): Promise<RoleDto> {
-    const role = await this.findById(id)
-    if (role.isSystem) throw new BadRequestError("Can't update system role")
+  /** Finds a single role document by its ID. Throws NotFoundError if missing. */
+  async findById(id: ObjectId): Promise<RoleDto> {
+    return record('RoleService.findById', async () => {
+      const result = await PipelineBuilder.create(RoleModel)
+        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+        .execOne({ schema: RoleDto })
 
-    await this.#checkConflict(input, role)
+      if (!result) throw err.notFound(id)
+      return result
+    })
+  }
 
-    const [updatedRole] = await db
-      .update(roles)
-      .set({
-        ...input,
-        updatedBy,
+  async count(): Promise<number> {
+    return record('RoleService.count', async () => {
+      return cache.wrap(cacheKey.count, async () => {
+        return RoleModel.countDocuments()
       })
-      .where(eq(roles.id, id))
-      .returning()
-
-    if (!updatedRole) throw err.notFound(id)
-    return updatedRole
+    })
   }
 
-  async delete(id: number): Promise<void> {
-    const role = await this.findById(id)
-    if (role.isSystem) throw new BadRequestError("Can't delete system role")
+  /** Checks for code/name conflicts. Excludes the given existing role on update. */
+  async #checkConflict(input: Pick<RoleMutationDto, 'code' | 'name'>, existing?: RoleDto): Promise<void> {
+    const codeChanged = !existing || existing.code !== input.code
+    const nameChanged = !existing || existing.name !== input.name
 
-    await db.delete(roles).where(eq(roles.id, id))
+    if (!codeChanged && !nameChanged) return
+
+    const $or = [
+      ...(codeChanged ? [{ code: input.code.toUpperCase().trim() }] : []),
+      ...(nameChanged ? [{ name: input.name.trim() }] : []),
+    ]
+
+    const conflict = await RoleModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
+      .select('code name')
+      .lean()
+
+    if (!conflict) return
+    if (codeChanged && conflict.code === input.code.toUpperCase().trim()) throw err.codeConflict(input.code)
+    if (nameChanged && conflict.name === input.name.trim()) throw err.nameConflict(input.name)
+  }
+
+  /* ------------------------------ HANDLER METHODS --------------------------- */
+  // One handler per route endpoint. These call utility methods and orchestrate
+  // the response. They are named after the HTTP action they serve.
+
+  async handleList(filter: RoleFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
+    return record('RoleService.handleList', async () => {
+      const $match: PipelineStage.Match['$match'] = {}
+
+      if (filter.search) $match.$text = { $search: filter.search, $diacriticSensitive: true }
+
+      const pb = PipelineBuilder.create(RoleModel)
+      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
+
+      return pbWithFilter.execPaginated({
+        schema: RoleDto.array(),
+        pq,
+        facetAfter: [pipelineHelper.$setId()],
+      })
+    })
+  }
+
+  async handleDetail(id: ObjectId): Promise<RoleDto> {
+    return record('RoleService.handleDetail', async () => {
+      return this.findById(id)
+    })
+  }
+
+  async handleCreate(data: RoleMutationDto): Promise<{ id: Types.ObjectId }> {
+    return record('RoleService.handleCreate', async () => {
+      const code = data.code.toUpperCase().trim()
+      const name = data.name.trim()
+
+      await this.#checkConflict({ code, name })
+
+      const role = new RoleModel({
+        ...data,
+        code,
+        name,
+      })
+      role.createdBy = role._id
+      role.updatedBy = role._id
+
+      await role.save()
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id: role._id }
+    })
+  }
+
+  async handleUpdate(id: ObjectId, data: Partial<RoleMutationDto>): Promise<{ id: Types.ObjectId }> {
+    return record('RoleService.handleUpdate', async () => {
+      const existing = await this.findById(id)
+
+      if (existing.isSystem) throw err.systemRole()
+
+      const code = data.code ? data.code.toUpperCase().trim() : existing.code
+      const name = data.name ? data.name.trim() : existing.name
+
+      await this.#checkConflict({ code, name }, existing)
+
+      await RoleModel.findByIdAndUpdate(id, {
+        ...data,
+        code,
+        name,
+        updatedBy: id,
+        updatedAt: new Date(),
+      })
+
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
+    })
+  }
+
+  async handleRemove(id: ObjectId): Promise<{ id: Types.ObjectId }> {
+    return record('RoleService.handleRemove', async () => {
+      const existing = await this.findById(id)
+
+      if (existing.isSystem) throw err.systemRole()
+
+      const result = await RoleModel.findByIdAndDelete(id)
+      if (!result) throw err.notFound(id)
+
+      void cache.del(cacheKey.count)
+      void cache.del(cacheKey.list)
+      return { id }
+    })
   }
 }

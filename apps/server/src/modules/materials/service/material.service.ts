@@ -1,8 +1,11 @@
+import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, not, or } from 'drizzle-orm'
+import { mapAsync } from 'es-toolkit'
 
 import { ConflictError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import {
   calculatePaginationMeta,
+  getLimitOffset,
   withPagination,
   type PaginationQuery,
   type WithPaginationResult,
@@ -11,7 +14,9 @@ import {
 import { db } from '@/database'
 import { materialTable } from '@/database/schema'
 
-import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialUpdateDto } from '../dto'
+import type { MaterialCreateDto, MaterialDto, MaterialFilterDto, MaterialSelectDto, MaterialUpdateDto } from '../dto'
+
+import type { MaterialUomService } from './material-uom.service'
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`),
@@ -19,6 +24,11 @@ const err = {
 }
 
 export class MaterialService {
+  constructor(
+    private readonly materialUom: MaterialUomService
+    // private readonly categorySvc: MaterialCategoryService
+  ) {}
+
   #buildWhere(filter: MaterialFilterDto) {
     const { search } = filter
     const conditions = []
@@ -70,8 +80,61 @@ export class MaterialService {
     }
   }
 
-  async findById(id: number): Promise<MaterialDto> {
-    const [material] = await db.select().from(materialTable).where(eq(materialTable.id, id)).limit(1)
+  async findMaterialSelect(
+    filter: MaterialFilterDto,
+    pq: PaginationQuery
+  ): Promise<WithPaginationResult<MaterialSelectDto>> {
+    return record('findMaterialSelect', async () => {
+      const { search } = filter
+      const { limit, offset } = getLimitOffset(pq)
+      const query = db.query.materialTable.findMany({
+        where: {
+          ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
+        },
+        limit,
+        offset,
+      })
+
+      const [data, total] = await Promise.all([query.execute(), this.count(filter)])
+      const result: MaterialSelectDto[] = await mapAsync(data, async (item): Promise<MaterialSelectDto> => {
+        return {
+          ...item,
+          conversions: [],
+          category: null,
+        }
+      })
+
+      return {
+        data: result,
+        meta: calculatePaginationMeta(pq, total),
+      }
+    })
+    // const { search } = filter
+    // const { limit, offset } = getLimitOffset(pq)
+    // const query = db.query.materialTable.findMany({
+    //   where: {
+    //     ...(search ? { OR: [{ name: { like: `%${search}%` } }, { sku: { like: `%${search}%` } }] } : {}),
+    //   },
+    //   with: {
+    //     category: true,
+    //     conversions: true,
+    //   },
+    //   limit,
+    //   offset,
+    // })
+
+    // const [data, total] = await Promise.all([query.execute(), this.count(filter)])
+    // return {
+    //   data,
+    //   meta: calculatePaginationMeta(pq, total),
+    // }
+  }
+
+  async findById(id: number): Promise<MaterialSelectDto> {
+    const material = await db.query.materialTable.findFirst({
+      where: { id },
+      with: { category: true, conversions: true },
+    })
 
     if (!material) throw err.notFound(id)
     return material
@@ -80,32 +143,44 @@ export class MaterialService {
   async create(data: MaterialCreateDto, createdBy = 1): Promise<MaterialDto> {
     await this.#checkConflict(data)
 
-    const [material] = await db
-      .insert(materialTable)
-      .values({
-        ...data,
-        createdBy,
-        updatedBy: createdBy,
-      })
-      .returning()
+    const material = await db.transaction(async (tx) => {
+      const [material] = await tx
+        .insert(materialTable)
+        .values({
+          ...data,
+          createdBy,
+          updatedBy: createdBy,
+        })
+        .returning()
 
-    if (!material) throw new InternalServerError('Failed to create material')
+      if (!material) throw new InternalServerError('Failed to create material')
+
+      await this.materialUom.bulkUpsert(material.id, data.conversions, tx)
+      return material
+    })
+
     return material
   }
 
   async update(data: MaterialUpdateDto, updatedBy = 1): Promise<MaterialDto> {
     const material = await this.findById(data.id)
-
     await this.#checkConflict(data, material)
 
-    const [updatedMaterial] = await db
-      .update(materialTable)
-      .set({
-        ...data,
-        updatedBy,
-      })
-      .where(eq(materialTable.id, data.id))
-      .returning()
+    const updatedMaterial = await db.transaction(async (tx) => {
+      const [updatedMaterial] = await tx
+        .update(materialTable)
+        .set({
+          ...data,
+          updatedBy,
+        })
+        .where(eq(materialTable.id, data.id))
+        .returning()
+
+      if (!updatedMaterial) throw err.notFound(data.id)
+      await this.materialUom.bulkUpsert(updatedMaterial.id, data.conversions, tx)
+
+      return updatedMaterial
+    })
 
     if (!updatedMaterial) throw err.notFound(data.id)
     return updatedMaterial

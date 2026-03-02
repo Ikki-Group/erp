@@ -1,6 +1,6 @@
 {
-  "id": "9fee5465-ce10-4e45-9db9-dd063bb0a3e5",
-  "prevId": "dbacc93e-a6d7-42d7-835f-1975b58a5fd2",
+  "id": "1174c990-a47d-4e3b-be34-f5f685726eed",
+  "prevId": "d5250f43-24e1-49b9-9864-ed3c2ff656ac",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -138,7 +138,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "material_category_name": {
+          "name": "material_category_name",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -178,11 +194,11 @@
           "name": "categoryId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "baseUomCode": {
-          "name": "baseUomCode",
-          "type": "varchar(255)",
+        "baseUomId": {
+          "name": "baseUomId",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -220,7 +236,38 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "material_name": {
+          "name": "material_name",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "material_sku": {
+          "name": "material_sku",
+          "columns": [
+            {
+              "expression": "lower(\"sku\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "materials_categoryId_materialCategories_id_fk": {
           "name": "materials_categoryId_materialCategories_id_fk",
@@ -235,43 +282,28 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "materials_baseUomCode_uoms_code_fk": {
-          "name": "materials_baseUomCode_uoms_code_fk",
+        "materials_baseUomId_uoms_id_fk": {
+          "name": "materials_baseUomId_uoms_id_fk",
           "tableFrom": "materials",
           "tableTo": "uoms",
           "columnsFrom": [
-            "baseUomCode"
+            "baseUomId"
           ],
           "columnsTo": [
-            "code"
+            "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "materials_name_unique": {
-          "name": "materials_name_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
-        },
-        "materials_sku_unique": {
-          "name": "materials_sku_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sku"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.materialUomConversions": {
-      "name": "materialUomConversions",
+    "public.materialUoms": {
+      "name": "materialUoms",
       "schema": "",
       "columns": {
         "materialId": {
@@ -280,30 +312,24 @@
           "primaryKey": false,
           "notNull": true
         },
-        "fromUomCode": {
-          "name": "fromUomCode",
-          "type": "varchar(255)",
+        "uomId": {
+          "name": "uomId",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "toUomCode": {
-          "name": "toUomCode",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "multiplier": {
-          "name": "multiplier",
-          "type": "numeric",
+        "conversionFactor": {
+          "name": "conversionFactor",
+          "type": "numeric(18, 6)",
           "primaryKey": false,
           "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "materialUomConversions_materialId_materials_id_fk": {
-          "name": "materialUomConversions_materialId_materials_id_fk",
-          "tableFrom": "materialUomConversions",
+        "materialUoms_materialId_materials_id_fk": {
+          "name": "materialUoms_materialId_materials_id_fk",
+          "tableFrom": "materialUoms",
           "tableTo": "materials",
           "columnsFrom": [
             "materialId"
@@ -311,43 +337,29 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "materialUomConversions_fromUomCode_uoms_code_fk": {
-          "name": "materialUomConversions_fromUomCode_uoms_code_fk",
-          "tableFrom": "materialUomConversions",
+        "materialUoms_uomId_uoms_id_fk": {
+          "name": "materialUoms_uomId_uoms_id_fk",
+          "tableFrom": "materialUoms",
           "tableTo": "uoms",
           "columnsFrom": [
-            "fromUomCode"
+            "uomId"
           ],
           "columnsTo": [
-            "code"
+            "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "materialUomConversions_toUomCode_uoms_code_fk": {
-          "name": "materialUomConversions_toUomCode_uoms_code_fk",
-          "tableFrom": "materialUomConversions",
-          "tableTo": "uoms",
-          "columnsFrom": [
-            "toUomCode"
-          ],
-          "columnsTo": [
-            "code"
-          ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "materialUomConversions_materialId_fromUomCode_toUomCode_pk": {
-          "name": "materialUomConversions_materialId_fromUomCode_toUomCode_pk",
+        "materialUoms_materialId_uomId_pk": {
+          "name": "materialUoms_materialId_uomId_pk",
           "columns": [
             "materialId",
-            "fromUomCode",
-            "toUomCode"
+            "uomId"
           ]
         }
       },
@@ -439,10 +451,16 @@
       "name": "uoms",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
         "code": {
           "name": "code",
           "type": "varchar(255)",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "createdAt": {
@@ -472,7 +490,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uom_code": {
+          "name": "uom_code",
+          "columns": [
+            {
+              "expression": "lower(\"code\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

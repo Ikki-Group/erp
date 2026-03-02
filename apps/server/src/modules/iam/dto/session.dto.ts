@@ -2,17 +2,18 @@ import z from 'zod'
 
 import { zPrimitive } from '@/lib/validation'
 
-export const UserSessionDto = z.object({
-  token: zPrimitive.str,
-  userId: zPrimitive.num,
+export const SessionDto = z.object({
+  id: zPrimitive.objId,
+  userId: zPrimitive.objId,
   createdAt: zPrimitive.date,
-  expiresAt: zPrimitive.date,
+  expiredAt: zPrimitive.date,
 })
 
-export type UserSessionDto = z.infer<typeof UserSessionDto>
+export type SessionDto = z.infer<typeof SessionDto>
 
 export const SessionDataDto = z.object({
-  userId: zPrimitive.num,
+  id: zPrimitive.objId,
+  userId: zPrimitive.objId,
   email: zPrimitive.email,
   username: zPrimitive.str,
 })

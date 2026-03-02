@@ -2,6 +2,11 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
+import { MaterialCategoryDto } from './material-category.dto'
+import { MaterialUomDto, MaterialUomUpsertDto } from './material-uom.dto'
+
+const MaterialType = z.enum(['raw', 'semi'])
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
@@ -9,9 +14,9 @@ export const MaterialDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
-  categoryId: zPrimitive.idNum,
-  baseUomCode: zPrimitive.str,
-  isActive: zPrimitive.bool,
+  type: MaterialType,
+  categoryId: zPrimitive.idNum.nullable(),
+  baseUomId: zPrimitive.idNum,
   ...zSchema.meta.shape,
 })
 
@@ -25,17 +30,28 @@ export const MaterialFilterDto = z.object({
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
+
+export const MaterialSelectDto = z.object({
+  ...MaterialDto.shape,
+  conversions: MaterialUomDto.array(),
+  category: MaterialCategoryDto.nullable(),
+})
+
+export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCreateDto = z.object({
   ...MaterialDto.pick({
     name: true,
     description: true,
     sku: true,
+    type: true,
     categoryId: true,
-    baseUomCode: true,
-    isActive: true,
+    baseUomId: true,
   }).shape,
+  conversions: MaterialUomUpsertDto.array().min(1),
 })
 
 export type MaterialCreateDto = z.infer<typeof MaterialCreateDto>

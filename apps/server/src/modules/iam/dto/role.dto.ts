@@ -5,37 +5,29 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RoleDto = z.object({
-  id: zPrimitive.num,
+  id: zPrimitive.objId,
   code: zPrimitive.str,
   name: zPrimitive.str,
   isSystem: zPrimitive.bool,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type RoleDto = z.infer<typeof RoleDto>
 
-/* --------------------------------- FILTER --------------------------------- */
+/* --------------------------------- COMMON --------------------------------- */
 
 export const RoleFilterDto = z.object({
   search: zHttp.query.search,
-  isSystem: zHttp.query.boolean,
 })
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 
-export const RoleCreateDto = z.object({
-  code: zPrimitive.codeUpper,
+export const RoleMutationDto = z.object({
+  code: zPrimitive.str,
   name: zPrimitive.str,
-  isSystem: zPrimitive.bool.optional().default(false),
+  isSystem: zPrimitive.bool,
 })
 
-export type RoleCreateDto = z.infer<typeof RoleCreateDto>
-
-export const RoleUpdateDto = z.object({
-  ...zSchema.recordId.shape,
-  ...RoleCreateDto.shape,
-})
-
-export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+export type RoleMutationDto = z.infer<typeof RoleMutationDto>

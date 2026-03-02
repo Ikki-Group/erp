@@ -24,12 +24,24 @@ const location = {
 }
 
 const material = {
+  list: 'materials/list',
+  detail: 'materials/detail',
+  create: 'materials/create',
+  update: 'materials/update',
+  remove: 'materials/remove',
   category: {
     list: 'materials/category/list',
     detail: 'materials/category/detail',
     create: 'materials/category/create',
     update: 'materials/category/update',
     remove: 'materials/category/remove',
+  },
+  uom: {
+    list: 'materials/uom/list',
+    detail: 'materials/uom/detail',
+    create: 'materials/uom/create',
+    update: 'materials/uom/update',
+    remove: 'materials/uom/remove',
   },
 }
 

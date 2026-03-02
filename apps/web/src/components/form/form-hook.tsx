@@ -12,6 +12,7 @@ import {
 import {
   FieldBase,
   FieldCheckbox,
+  FieldCombobox,
   FieldInput,
   FieldInputPassword,
   FieldSelect,
@@ -43,6 +44,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
       Switch: FieldSwitch,
       Select: FieldSelect,
       Textarea: FieldTextarea,
+      Combobox: FieldCombobox,
 
       // Templates
       FieldBase: FieldBase,

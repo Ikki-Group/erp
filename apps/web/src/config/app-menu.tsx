@@ -1,11 +1,12 @@
+import type { LucideIcon } from 'lucide-react'
 import {
+  BoxIcon,
   CirclePileIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
   PackageIcon,
   Settings2Icon,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 
 export interface AppMenu {
   title: string
@@ -31,6 +32,30 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
       icon: PackageIcon,
       isActive: pathname.startsWith('/products'),
       isHide: false,
+    },
+    {
+      title: 'Inventory',
+      href: '/inventory',
+      icon: BoxIcon,
+      isActive: pathname.startsWith('/inventory'),
+      isHide: false,
+      children: [
+        {
+          title: 'Daftar Stok',
+          href: '/inventory',
+          isActive: pathname === '/inventory',
+        },
+        {
+          title: 'Mutasi Stok',
+          href: '/inventory/mutation',
+          isActive: pathname.startsWith('/inventory/mutation'),
+        },
+        {
+          title: 'Transfer Stok',
+          href: '/inventory/uom',
+          isActive: pathname.startsWith('/inventory/uom'),
+        },
+      ],
     },
     {
       title: 'Bahan Baku',

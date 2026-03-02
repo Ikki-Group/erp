@@ -5,6 +5,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const UomDto = z.object({
+  id: zPrimitive.idNum,
   code: zPrimitive.str,
   ...zSchema.meta.shape,
 })
@@ -30,8 +31,8 @@ export const UomCreateDto = z.object({
 export type UomCreateDto = z.infer<typeof UomCreateDto>
 
 export const UomUpdateDto = z.object({
-  code: zPrimitive.str,
-  ...UomCreateDto.omit({ code: true }).shape,
+  id: zPrimitive.idNum,
+  ...UomCreateDto.shape,
 })
 
 export type UomUpdateDto = z.infer<typeof UomUpdateDto>

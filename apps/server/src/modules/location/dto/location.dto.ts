@@ -5,19 +5,18 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* ---------------------------------- ENUM ---------------------------------- */
 
 export const LocationType = z.enum(['store', 'warehouse'])
-
 export type LocationType = z.infer<typeof LocationType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const LocationDto = z.object({
-  id: zPrimitive.num,
+  id: zPrimitive.objId,
   code: zPrimitive.codeUpper,
   name: zPrimitive.str,
   type: LocationType,
-  description: zPrimitive.strNullable,
+  description: zPrimitive.str,
   isActive: zPrimitive.bool,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type LocationDto = z.infer<typeof LocationDto>
@@ -34,7 +33,7 @@ export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const LocationCreateDto = z.object({
+export const LocationMutationDto = z.object({
   ...LocationDto.pick({
     code: true,
     name: true,
@@ -44,11 +43,4 @@ export const LocationCreateDto = z.object({
   }).shape,
 })
 
-export type LocationCreateDto = z.infer<typeof LocationCreateDto>
-
-export const LocationUpdateDto = z.object({
-  id: zPrimitive.num,
-  ...LocationCreateDto.shape,
-})
-
-export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
+export type LocationMutationDto = z.infer<typeof LocationMutationDto>

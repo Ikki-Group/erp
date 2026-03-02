@@ -7,35 +7,56 @@ import { zPrimitive } from './primitive'
  * Schemas for parsing query string values from HTTP requests
  */
 const query = {
+  objId: zPrimitive.objId,
+
   /** Converts string 'true'/'false' to boolean */
   boolean: z
     .enum(['true', 'false'])
     .transform((val) => val === 'true')
-    .optional(),
+    .optional()
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    .catch(undefined),
 
   /** Optional search string, returns undefined for empty strings */
   search: zPrimitive.str.optional().transform((val) => val || undefined),
-
-  /** Optional positive integer ID (for query params) */
-  id: zPrimitive.numCoerce.int().positive().optional(),
-
-  /** Required positive integer ID (for query/body params) */
-  idRequired: zPrimitive.numCoerce.int().positive(),
-
   num: zPrimitive.numCoerce,
-
-  schemaId: z.object({ id: zPrimitive.idNum }),
 }
 
-/**
- * Pagination query schema
- */
 const pagination = z.object({
   page: zPrimitive.numCoerce.int().positive().default(1),
   limit: zPrimitive.numCoerce.int().positive().max(100).default(10),
 })
 
+const paginationMeta = z.object({
+  page: z.number(),
+  limit: z.number(),
+  total: z.number(),
+  totalPages: z.number(),
+})
+
+const recordId = z.object({ id: zPrimitive.objId })
+
+function ok<T extends z.ZodTypeAny>(data: T) {
+  return z.object({
+    success: z.literal(true),
+    code: z.string(),
+    data,
+  })
+}
+
+function paginated<T extends z.ZodTypeAny>(data: T) {
+  return z.object({
+    success: z.literal(true),
+    code: z.string().default('OK'),
+    data,
+    meta: paginationMeta,
+  })
+}
+
 export const zHttp = {
   query,
   pagination,
+  recordId,
+  ok,
+  paginated,
 }
