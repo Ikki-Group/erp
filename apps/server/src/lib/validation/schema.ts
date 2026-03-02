@@ -11,7 +11,7 @@ const metadata = z.object({
 })
 
 const recordId = z.object({
-  id: zPrimitive.num,
+  id: zPrimitive.objId,
 })
 
 export const zSchema = {

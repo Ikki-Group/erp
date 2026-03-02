@@ -1,72 +1,27 @@
-import { isObjectIdOrHexString, Types, type HydratedDocument, type InferSchemaType, type PipelineStage } from 'mongoose'
+import { isObjectIdOrHexString, Types } from 'mongoose'
 
-import type { DB_NAME } from '@/config/db-name'
+import { BadRequestError } from '@/lib/error/http'
 
-type Hydrated<Schema> = HydratedDocument<InferSchemaType<Schema>>
-type HydratedSchema<Schema> = InferSchemaType<Schema>
-
-const DEFAULT_UNSET_FIELDS = ['_id', '__v']
-
-export const pipelineHelper = {
-  /** Match by MongoDB _id */
-  $matchId: (id: ObjectId) => ({ $match: { _id: id } }),
-
-  $match: ($match: PipelineStage.Match['$match']) => ({ $match }),
-
-  /** Set a normalized `id` field (default maps to _id) */
-  // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  $setId: ($set: PipelineStage.Set['$set'] = { id: '$_id' }) => ({ $set }),
-
-  /** Remove default or custom fields */
-  $unset: ($unset: PipelineStage.Unset['$unset'] = DEFAULT_UNSET_FIELDS) => ({
-    $unset,
-  }),
-
-  /** Default sort by updatedAt (descending) */
-  // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  $sort: ($sort: PipelineStage.Sort['$sort'] = { updatedAt: -1 }) => ({
-    $sort,
-  }),
-
-  /** Project only selected fields (excluding _id by default) */
-  $project: (...keys: string[]) => ({
-    $project: {
-      _id: 0,
-      ...Object.fromEntries(keys.map((key) => [key, 1])),
-    },
-  }),
-
-  /** Unwind arrays with optional preservation */
-  $unwind: (path: string, preserveNullAndEmptyArrays = false) => ({
-    $unwind: { path, preserveNullAndEmptyArrays },
-  }),
-
-  /** Standardized $lookup (common pattern) */
-  $lookup: ({
-    from,
-    localField,
-    foreignField,
-    as,
-    pipeline = [],
-  }: {
-    from: DB_NAME | (string & {})
-    localField: string
-    foreignField: string
-    as: string
-    pipeline?: Exclude<PipelineStage, PipelineStage.Merge | PipelineStage.Out>[]
-  }): PipelineStage.Lookup => ({
-    $lookup: { from, localField, foreignField, as, pipeline },
-  }),
+/** Returns an ObjectId if valid, otherwise null. Safe for optional cases. */
+export function tryParseObjectId(id: unknown): Types.ObjectId | null {
+  if (id instanceof Types.ObjectId) return id
+  if (typeof id === 'string' && isObjectIdOrHexString(id)) return new Types.ObjectId(id)
+  return null
 }
 
-export function tryParseObjectId(id: unknown): Types.ObjectId | null {
-  if (typeof id === 'string' && isObjectIdOrHexString(id)) {
-    return new Types.ObjectId(id)
-  }
+/** Parses an ObjectId or throws a ValidationError. Use in service layer for required IDs. */
+export function parseObjectId(id: unknown, errorCode = 'INVALID_OBJECT_ID'): Types.ObjectId {
+  const result = tryParseObjectId(id)
+  if (!result) throw new BadRequestError('Invalid or missing ObjectId', errorCode)
+  return result
+}
 
-  if (id instanceof Types.ObjectId) {
-    return id
-  }
+/** Type guard for ObjectId instances. */
+export function isObjectId(value: unknown): value is Types.ObjectId {
+  return value instanceof Types.ObjectId
+}
 
-  return null
+/** Converts a string or ObjectId to ObjectId. Alias for tryParseObjectId with a non-null assertion for pre-validated inputs. */
+export function toObjectId(id: string | Types.ObjectId): Types.ObjectId {
+  return id instanceof Types.ObjectId ? id : new Types.ObjectId(id)
 }

@@ -1,9 +1,12 @@
 import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { MongooseInstrumentation } from '@opentelemetry/instrumentation-mongoose'
 import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 
 export const otel = opentelemetry({
+  autoDetectResources: true,
   spanProcessors: [
     new BatchSpanProcessor(
       new OTLPTraceExporter({
@@ -15,6 +18,11 @@ export const otel = opentelemetry({
       })
     ),
   ],
+  // instrumentations: [new MongooseInstrumentation()],
   serviceName: Bun.env.APP_NAME || 'ikki-erp',
   sampler: new AlwaysOnSampler(),
+})
+
+registerInstrumentations({
+  instrumentations: [new MongooseInstrumentation()],
 })

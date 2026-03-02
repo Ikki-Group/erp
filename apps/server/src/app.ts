@@ -25,6 +25,7 @@ export const app = new Elysia({
   precompile: true,
 })
   .onError((ctx) => {
+    console.log(ctx.error)
     let error: HttpError
     if (ctx.error instanceof HttpError) {
       error = ctx.error
