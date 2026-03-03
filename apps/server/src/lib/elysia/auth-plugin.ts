@@ -12,7 +12,7 @@ class AuthContext {
     return this.user !== null
   }
 
-  get userId(): ObjectId {
+  get userId(): number {
     if (!this.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
     return this.user!.id
   }

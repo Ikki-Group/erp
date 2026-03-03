@@ -28,9 +28,6 @@ const Env = z.object({
   // Upstash
   UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
   UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
-
-  // MongoDB
-  MONGO_URI: z.url().describe('MongoDB connection string'),
 })
 
 const _env = Env.safeParse(Bun.env)

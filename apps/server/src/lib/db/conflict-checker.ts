@@ -1,6 +1,9 @@
-import type { Model } from 'mongoose'
+import { and, eq, ne, or, type SQL } from 'drizzle-orm'
+import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 import { ConflictError } from '@/lib/error/http'
+
+import { db } from '@/db'
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -9,6 +12,8 @@ import { ConflictError } from '@/lib/error/http'
 export interface ConflictField<TInput> {
   /** The field key to check for uniqueness. */
   field: keyof TInput & string
+  /** The corresponding Drizzle column reference. */
+  column: PgColumn
   /** Error message when this field conflicts. */
   message: string
   /** Optional error code (e.g. 'USER_EMAIL_ALREADY_EXISTS'). */
@@ -16,9 +21,10 @@ export interface ConflictField<TInput> {
 }
 
 export interface CheckConflictOptions<TInput> {
-  /** The Mongoose model to query against. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  model: Model<any>
+  /** The Drizzle table to query against. */
+  table: PgTable
+  /** The primary key column of the table (default serial `id`). */
+  pkColumn: PgColumn
   /** The fields to check for uniqueness, with per-field error config. */
   fields: ConflictField<TInput>[]
   /** The input values to check (already normalized). */
@@ -28,7 +34,7 @@ export interface CheckConflictOptions<TInput> {
    * 1. Skip unchanged fields
    * 2. Exclude the current record from the conflict query
    */
-  existing?: { id: ObjectId } & Partial<TInput>
+  existing?: { id: number } & Partial<TInput>
 }
 
 /* -------------------------------------------------------------------------- */
@@ -36,18 +42,18 @@ export interface CheckConflictOptions<TInput> {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Generic uniqueness conflict checker for Mongoose models.
+ * Generic uniqueness conflict checker for Drizzle tables.
  *
  * Compares each configured field against the database. On update, it skips
- * fields that haven't changed and excludes the current document from the query.
+ * fields that haven't changed and excludes the current record from the query.
  *
  * @example
- * // In a service:
  * await checkConflict({
- *   model: UserModel,
+ *   table: users,
+ *   pkColumn: users.id,
  *   fields: [
- *     { field: 'email', message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
- *     { field: 'username', message: 'Username already exists', code: 'USER_USERNAME_ALREADY_EXISTS' },
+ *     { field: 'email', column: users.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+ *     { field: 'username', column: users.username, message: 'Username already exists', code: 'USER_USERNAME_ALREADY_EXISTS' },
  *   ],
  *   input: { email, username },
  *   existing, // optional, pass on update
@@ -56,7 +62,7 @@ export interface CheckConflictOptions<TInput> {
 export async function checkConflict<TInput extends Record<string, unknown>>(
   opts: CheckConflictOptions<TInput>
 ): Promise<void> {
-  const { model, fields, input, existing } = opts
+  const { table, pkColumn, fields, input, existing } = opts
 
   // Determine which fields actually changed
   const changedFields = fields.filter((f) => {
@@ -66,19 +72,20 @@ export async function checkConflict<TInput extends Record<string, unknown>>(
 
   if (changedFields.length === 0) return
 
-  // Build $or query with only changed fields
-  const $or = changedFields.map((f) => ({ [f.field]: input[f.field] }))
-  const filter = existing ? { _id: { $ne: existing.id }, $or } : { $or }
+  // Build OR conditions with only changed fields
+  const orConditions: SQL[] = changedFields.map((f) => eq(f.column, input[f.field] as never))
 
-  // Select only the fields we need to check
-  const selectFields = changedFields.map((f) => f.field).join(' ')
-  const conflict = (await model.findOne(filter).select(selectFields).lean()) as Record<string, unknown> | null
+  // Combine: OR of field checks, AND exclude self on update
+  const whereClause = existing ? and(ne(pkColumn, existing.id), or(...orConditions)!) : or(...orConditions)!
+
+  const [conflict] = await db.select().from(table).where(whereClause).limit(1)
 
   if (!conflict) return
 
   // Throw the first matching conflict
+  const conflictRecord = conflict as Record<string, unknown>
   for (const f of changedFields) {
-    if (conflict[f.field] === input[f.field]) {
+    if (conflictRecord[f.field] === input[f.field]) {
       throw new ConflictError(f.message, f.code)
     }
   }

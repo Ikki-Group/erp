@@ -1,7 +1,7 @@
 /**
  * Creates a lookup Map from an array, keyed by a selected property.
  *
- * By default, the key is stringified (`.toString()`) so ObjectId keys
+ * By default, the key is stringified (`.toString()`) so numeric keys
  * work seamlessly with string-based lookups.
  *
  * @example

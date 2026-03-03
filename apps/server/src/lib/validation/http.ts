@@ -7,7 +7,8 @@ import { zPrimitive } from './primitive'
  * Schemas for parsing query string values from HTTP requests
  */
 const query = {
-  objId: zPrimitive.objId,
+  /** Coerces a query-string value to a positive integer ID */
+  id: zPrimitive.id,
 
   /** Converts string 'true'/'false' to boolean */
   boolean: z
@@ -34,7 +35,7 @@ const paginationMeta = z.object({
   totalPages: z.number(),
 })
 
-const recordId = z.object({ id: zPrimitive.objId })
+const recordId = z.object({ id: zPrimitive.id })
 
 function ok<T extends z.ZodTypeAny>(data: T) {
   return z.object({
