@@ -1,5 +1,0 @@
-export * from './common'
-export * from './enum'
-export * from './iam'
-export * from './locations'
-export * from './material'
