@@ -3,15 +3,15 @@ import z from 'zod'
 import { zPrimitive } from './primitive'
 
 const metadata = z.object({
-  createdBy: zPrimitive.objId,
-  updatedBy: zPrimitive.objId,
+  createdBy: zPrimitive.id,
+  updatedBy: zPrimitive.id,
   createdAt: zPrimitive.date,
   updatedAt: zPrimitive.date,
-  syncAt: zPrimitive.date.optional(),
+  syncAt: zPrimitive.date.optional().nullable(),
 })
 
 const recordId = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
 })
 
 export const zSchema = {

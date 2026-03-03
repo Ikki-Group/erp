@@ -12,9 +12,9 @@ import {
 
 export function Pattern() {
   return (
-    <div className="flex items-center justify-center">
+    <div className='flex items-center justify-center'>
       <Dialog>
-        <DialogTrigger render={<Button variant="outline" />}>
+        <DialogTrigger render={<Button variant='outline' />}>
           Sticky Footer
         </DialogTrigger>
         <DialogContent>
@@ -24,9 +24,9 @@ export function Pattern() {
               This is a dialog with scrollable content.
             </DialogDescription>
           </DialogHeader>
-          <div className="-mx-4 px-4 no-scrollbar max-h-[70vh] overflow-y-auto">
+          <div className='-mx-4 px-4 no-scrollbar max-h-[70vh] overflow-y-auto'>
             {Array.from({ length: 10 }).map((_, index) => (
-              <p key={index} className="mb-4 leading-normal">
+              <p key={index} className='mb-4 leading-normal'>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
                 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
                 enim ad minim veniam, quis nostrud exercitation ullamco laboris
@@ -38,7 +38,7 @@ export function Pattern() {
             ))}
           </div>
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>
+            <DialogClose render={<Button variant='outline' />}>
               Close
             </DialogClose>
           </DialogFooter>

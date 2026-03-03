@@ -9,7 +9,7 @@ function RouteComponent() {
   const { id } = Route.useParams()
   return (
     <LocationFormPage
-      mode="update"
+      mode='update'
       id={id}
       backTo={{
         from: Route.fullPath,

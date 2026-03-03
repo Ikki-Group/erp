@@ -1,6 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
+import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
@@ -9,6 +10,7 @@ import type { IamServiceModule } from '../service'
 
 export function initRoleRoute(s: IamServiceModule) {
   return new Elysia({ prefix: '/role' })
+    .use(authPluginMacro)
     .get(
       '/list',
       async function list({ query }) {
@@ -38,28 +40,28 @@ export function initRoleRoute(s: IamServiceModule) {
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const result = await s.role.handleCreate(body)
+      async function create({ body, auth }) {
+        const result = await s.role.handleCreate(body, auth.userId)
         return res.created(result, 'ROLE_CREATED')
       },
       {
         body: RoleMutationDto,
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const result = await s.role.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const result = await s.role.handleUpdate(body.id, body, auth.userId)
         return res.ok(result, 'ROLE_UPDATED')
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
+          id: zPrimitive.id,
           ...RoleMutationDto.partial().shape,
         }),
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
@@ -71,7 +73,7 @@ export function initRoleRoute(s: IamServiceModule) {
       },
       {
         body: zSchema.recordId,
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )

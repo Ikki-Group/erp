@@ -10,11 +10,11 @@ export type LocationType = z.infer<typeof LocationType>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const LocationDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   code: zPrimitive.codeUpper,
   name: zPrimitive.str,
   type: LocationType,
-  description: zPrimitive.str,
+  description: zPrimitive.str.nullable(),
   isActive: zPrimitive.bool,
   ...zSchema.metadata.shape,
 })

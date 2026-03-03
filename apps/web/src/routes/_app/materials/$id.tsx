@@ -5,7 +5,7 @@ import { MaterialFormPage } from '@/features/material/components/material-form-p
 export const Route = createFileRoute('/_app/materials/$id')({
   loader: async ({ context, params }) => {
     await context.qc.ensureQueryData(
-      materialApi.detail.query({ id: Number(params.id) })
+      materialApi.detail.query({ id: params.id })
     )
   },
   component: RouteComponent,

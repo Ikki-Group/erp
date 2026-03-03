@@ -67,6 +67,7 @@ export function DataCombobox<TItem>({
           placeholder={placeholder}
           className={className}
           showClear={!!value}
+          disabled={disabled}
         />
         {/* If we have a selected value but the input is empty or disconnected, 
             Base UI Combobox handles displaying the selected value's label mostly.

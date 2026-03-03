@@ -35,7 +35,7 @@ export function DataTableCard<TData extends object>({
       recordCount={recordCount}
       tableClassNames={{ edgeCell: 'px-5' }}
       isLoading={isLoading}
-      loadingMode="spinner"
+      loadingMode='spinner'
       tableLayout={{
         cellBorder: false,
         // cellBorder: true,
@@ -43,19 +43,19 @@ export function DataTableCard<TData extends object>({
       }}
       onRowClick={onRowClick}
     >
-      <Card className="w-full gap-0! py-3.5" size="sm">
-        <CardHeader className="flex items-center justify-between px-3.5 border-b">
+      <Card className='w-full gap-0! py-3.5' size='sm'>
+        <CardHeader className='flex items-center justify-between px-3.5 border-b'>
           <CardTitle>{title}</CardTitle>
           {action && <CardAction>{action}</CardAction>}
         </CardHeader>
-        <div className="w-full">
+        <div className='w-full'>
           <ScrollArea>
             <DataGridTable />
-            <ScrollBar orientation="horizontal" />
+            <ScrollBar orientation='horizontal' />
           </ScrollArea>
         </div>
-        <CardFooter className="px-3.5 border-t">
-          <DataGridPagination className="py-0" />
+        <CardFooter className='px-3.5 border-t'>
+          <DataGridPagination className='py-0' />
         </CardFooter>
       </Card>
     </DataGrid>

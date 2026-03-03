@@ -1,15 +1,14 @@
 import { Fragment } from 'react'
-import {
-  flexRender
-} from '@tanstack/react-table'
+import { flexRender } from '@tanstack/react-table'
 import { cva } from 'class-variance-authority'
 import type {
   Cell,
   Column,
   Header,
   HeaderGroup,
-  Row} from '@tanstack/react-table';
-import type { CSSProperties, ReactNode } from 'react';
+  Row,
+} from '@tanstack/react-table'
+import type { CSSProperties, ReactNode } from 'react'
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 
 import { cn } from '@/lib/utils'
@@ -56,14 +55,14 @@ function DataGridTableBase({ children }: { children: ReactNode }) {
 
   return (
     <table
-      data-slot="data-grid-table"
+      data-slot='data-grid-table'
       className={cn(
         'text-foreground text-sm w-full min-w-full caption-bottom text-left align-middle font-normal rtl:text-right',
         props.tableLayout?.width === 'auto' ? 'table-auto' : 'table-fixed',
         !props.tableLayout?.columnsResizable && '',
         !props.tableLayout?.columnsDraggable &&
           'border-separate border-spacing-0',
-        props.tableClassNames?.base,
+        props.tableClassNames?.base
       )}
       style={
         props.tableLayout?.columnsResizable
@@ -83,7 +82,7 @@ function DataGridTableHead({ children }: { children: ReactNode }) {
     <thead
       className={cn(
         props.tableClassNames?.header,
-        props.tableLayout?.headerSticky && props.tableClassNames?.headerSticky,
+        props.tableLayout?.headerSticky && props.tableClassNames?.headerSticky
       )}
     >
       {children}
@@ -109,7 +108,7 @@ function DataGridTableHeadRow<TData>({
         props.tableLayout?.cellBorder && '*:last:border-e-0',
         props.tableLayout?.stripped && 'bg-transparent',
         props.tableLayout?.headerBackground === false && 'bg-transparent',
-        props.tableClassNames?.headerRow,
+        props.tableClassNames?.headerRow
       )}
     >
       {children}
@@ -171,7 +170,7 @@ function DataGridTableHeadRowCell<TData>({
         column.getIndex() === 0 ||
           column.getIndex() === header.headerGroup.headers.length - 1
           ? props.tableClassNames?.edgeCell
-          : '',
+          : ''
       )}
     >
       {children}
@@ -200,7 +199,7 @@ function DataGridTableHeadRowCellResize<TData>({
 }
 
 function DataGridTableRowSpacer() {
-  return <tbody aria-hidden="true" className="h-2"></tbody>
+  return <tbody aria-hidden='true' className='h-2'></tbody>
 }
 
 function DataGridTableBody({ children }: { children: ReactNode }) {
@@ -212,7 +211,7 @@ function DataGridTableBody({ children }: { children: ReactNode }) {
         '[&_tr:last-child]:border-0',
         props.tableLayout?.rowRounded && '[&_td:first-child]:rounded-l-lg',
         props.tableLayout?.rowRounded && '[&_td:last-child]:rounded-r-lg',
-        props.tableClassNames?.body,
+        props.tableClassNames?.body
       )}
     >
       {children}
@@ -235,7 +234,7 @@ function DataGridTableBodyRowSkeleton({ children }: { children: ReactNode }) {
         props.tableLayout?.stripped &&
           'odd:bg-muted/90 odd:hover:bg-muted hover:bg-transparent',
         table.options.enableRowSelection && '*:first:relative',
-        props.tableClassNames?.bodyRow,
+        props.tableClassNames?.bodyRow
       )}
     >
       {children}
@@ -276,7 +275,7 @@ function DataGridTableBodyRowSkeletonCell<TData>({
         column.getIndex() === 0 ||
           column.getIndex() === table.getVisibleFlatColumns().length - 1
           ? props.tableClassNames?.edgeCell
-          : '',
+          : ''
       )}
     >
       {children}
@@ -317,7 +316,7 @@ function DataGridTableBodyRow<TData>({
         props.tableLayout?.stripped &&
           'odd:bg-muted/90 odd:hover:bg-muted hover:bg-transparent',
         table.options.enableRowSelection && '*:first:relative',
-        props.tableClassNames?.bodyRow,
+        props.tableClassNames?.bodyRow
       )}
     >
       {children}
@@ -331,13 +330,13 @@ function DataGridTableBodyRowExpandded<TData>({ row }: { row: Row<TData> }) {
   return (
     <tr
       className={cn(
-        props.tableLayout?.rowBorder && '[&:not(:last-child)>td]:border-b',
+        props.tableLayout?.rowBorder && '[&:not(:last-child)>td]:border-b'
       )}
     >
       <td colSpan={row.getVisibleCells().length}>
         {table
           .getAllColumns()
-          .find((column) => column.columnDef.meta?.expandedContent)
+          .find(column => column.columnDef.meta?.expandedContent)
           ?.columnDef.meta?.expandedContent?.(row.original)}
       </td>
     </tr>
@@ -398,7 +397,7 @@ function DataGridTableBodyRowCell<TData>({
         column.getIndex() === 0 ||
           column.getIndex() === row.getVisibleCells().length - 1
           ? props.tableClassNames?.edgeCell
-          : '',
+          : ''
       )}
     >
       {children}
@@ -414,7 +413,7 @@ function DataGridTableEmpty() {
     <tr>
       <td
         colSpan={totalColumns}
-        className="text-muted-foreground text-sm py-6 text-center"
+        className='text-muted-foreground text-sm py-6 text-center'
       >
         {props.emptyMessage || 'No data available'}
       </td>
@@ -426,26 +425,26 @@ function DataGridTableLoader() {
   const { props } = useDataGrid()
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-      <div className="text-muted-foreground bg-card rounded-lg text-sm flex items-center gap-2 border px-4 py-2 leading-none font-medium">
+    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <div className='text-muted-foreground bg-card rounded-lg text-sm flex items-center gap-2 border px-4 py-2 leading-none font-medium'>
         <svg
-          className="text-muted-foreground -ml-1 h-5 w-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
+          className='text-muted-foreground -ml-1 h-5 w-5 animate-spin'
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
         >
           <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="3"
+            className='opacity-25'
+            cx='12'
+            cy='12'
+            r='10'
+            stroke='currentColor'
+            strokeWidth='3'
           ></circle>
           <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            className='opacity-75'
+            fill='currentColor'
+            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
           ></path>
         </svg>
         {props.loadingMessage || 'Loading...'}
@@ -460,14 +459,14 @@ function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
       <div
         className={cn(
           'bg-primary absolute start-0 top-0 bottom-0 hidden w-0.5',
-          row.getIsSelected() && 'block',
+          row.getIsSelected() && 'block'
         )}
       ></div>
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="align-[inherit]"
+        onCheckedChange={value => row.toggleSelected(!!value)}
+        aria-label='Select row'
+        className='align-[inherit]'
       />
     </>
   )
@@ -484,9 +483,9 @@ function DataGridTableRowSelectAll() {
       checked={isAllSelected}
       indeterminate={isSomeSelected && !isAllSelected}
       disabled={isLoading || recordCount === 0}
-      onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      aria-label="Select all"
-      className="align-[inherit]"
+      onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
+      aria-label='Select all'
+      className='align-[inherit]'
     />
   )
 }
@@ -512,7 +511,7 @@ function DataGridTable<TData>() {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                       {props.tableLayout?.columnsResizable &&
                         column.getCanResize() && (
@@ -552,26 +551,26 @@ function DataGridTable<TData>() {
         ) : isLoading && props.loadingMode === 'spinner' ? (
           // Show spinner loading immediately
           <tr>
-            <td colSpan={table.getVisibleFlatColumns().length} className="p-8">
-              <div className="flex items-center justify-center">
+            <td colSpan={table.getVisibleFlatColumns().length} className='p-8'>
+              <div className='flex items-center justify-center'>
                 <svg
-                  className="text-muted-foreground mr-3 -ml-1 h-5 w-5 animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+                  className='text-muted-foreground mr-3 -ml-1 h-5 w-5 animate-spin'
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
                 >
                   <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
+                    className='opacity-25'
+                    cx='12'
+                    cy='12'
+                    r='10'
+                    stroke='currentColor'
+                    strokeWidth='4'
                   ></circle>
                   <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    className='opacity-75'
+                    fill='currentColor'
+                    d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                   ></path>
                 </svg>
                 {props.loadingMessage || 'Loading...'}
@@ -591,7 +590,7 @@ function DataGridTable<TData>() {
                         <DataGridTableBodyRowCell cell={cell} key={colIndex}>
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext(),
+                            cell.getContext()
                           )}
                         </DataGridTableBodyRowCell>
                       )

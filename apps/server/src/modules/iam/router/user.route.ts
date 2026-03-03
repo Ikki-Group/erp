@@ -5,7 +5,7 @@ import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UserDetailDto, UserMutationDto, UserSelectDto } from '../dto'
+import { UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -35,34 +35,34 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         query: zHttp.recordId,
-        response: zResponse.ok(UserDetailDto),
+        response: zResponse.ok(UserSelectDto),
         auth: true,
       }
     )
     .post(
       '/create',
-      async function create({ body }) {
-        const result = await s.user.handleCreate(body)
+      async function create({ body, auth }) {
+        const result = await s.user.handleCreate(body, auth.userId)
         return res.created(result, 'USER_CREATED')
       },
       {
-        body: UserMutationDto,
-        response: zHttp.ok(zHttp.recordId),
+        body: UserCreateDto,
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
     .put(
       '/update',
-      async function update({ body }) {
-        const result = await s.user.handleUpdate(body.id, body)
+      async function update({ body, auth }) {
+        const result = await s.user.handleUpdate(body.id, body, auth.userId)
         return res.ok(result, 'USER_UPDATED')
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
-          ...UserMutationDto.shape,
+          id: zPrimitive.id,
+          ...UserUpdateDto.shape,
         }),
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
@@ -74,7 +74,7 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         body: zSchema.recordId,
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )

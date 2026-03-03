@@ -1,9 +1,11 @@
-import { Types } from 'mongoose'
 import z from 'zod'
 
-import { tryParseObjectId } from '@/lib/db/utils'
+/* -------------------------------------------------------------------------- */
+/*                          Primitive Zod Schemas                             */
+/* -------------------------------------------------------------------------- */
 
-// Base types
+// ─── Base Types ───────────────────────────────────────────────────────────────
+
 const str = z.string().trim()
 const strNullable = z
   .string()
@@ -17,9 +19,11 @@ const bool = z.boolean()
 const email = z.email()
 const uuid = z.uuidv7()
 
-const objId = z.preprocess(tryParseObjectId, z.instanceof(Types.ObjectId))
+/** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
+const id = z.coerce.number().int().positive()
 
-// Domain-specific
+// ─── Domain-specific ──────────────────────────────────────────────────────────
+
 const codeUpper = z.string().trim().toUpperCase()
 const password = z
   .string()
@@ -41,8 +45,8 @@ export const zPrimitive = {
   bool,
   email,
   uuid,
+  id,
   codeUpper,
   password,
   username,
-  objId,
 }

@@ -7,13 +7,13 @@ const config = {
   printWidth: 80,
   singleQuote: true,
   jsxSingleQuote: true,
-  trailingComma: "es5",
-  endOfLine: "lf",
-  arrowParens: "avoid",
-  quoteProps: "as-needed",
+  trailingComma: 'es5',
+  endOfLine: 'lf',
+  arrowParens: 'avoid',
+  quoteProps: 'as-needed',
   bracketSameLine: false,
   bracketSpacing: true,
-  htmlWhitespaceSensitivity: "strict",
-};
+  htmlWhitespaceSensitivity: 'strict',
+}
 
-export default config;
+export default config

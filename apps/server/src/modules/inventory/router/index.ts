@@ -2,13 +2,12 @@ import Elysia from 'elysia'
 
 import type { InventoryServiceModule } from '../service'
 
-import { buildItemCategoryRoute } from './item-category.route'
-import { buildItemLocationsRoute } from './item-locations.route'
-import { buildItemRoute } from './item.route'
+import { initStockSummaryRoute } from './stock-summary.route'
+import { initStockTransactionRoute } from './stock-transaction.route'
 
-export function initInventoryRouteModule(serviceModule: InventoryServiceModule) {
-  return new Elysia({ prefix: '/inventory' })
-    .use(buildItemCategoryRoute(serviceModule.category))
-    .use(buildItemRoute(serviceModule.item))
-    .use(buildItemLocationsRoute(serviceModule.location))
+export function initInventoryRouteModule(service: InventoryServiceModule) {
+  const transactionRouter = initStockTransactionRoute(service)
+  const summaryRouter = initStockSummaryRoute(service)
+
+  return new Elysia({ prefix: '/inventory' }).use(transactionRouter).use(summaryRouter)
 }

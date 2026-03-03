@@ -7,6 +7,6 @@ export const Route = createFileRoute('/_app/settings/location/create')({
 
 function RouteComponent() {
   return (
-    <LocationFormPage mode="create" backTo={{ to: '/settings/location' }} />
+    <LocationFormPage mode='create' backTo={{ to: '/settings/location' }} />
   )
 }

@@ -35,7 +35,7 @@ function getDefaultValues(v?: MaterialCategoryDto): FormDto {
 }
 
 interface MaterialCategoryFormDialogProps {
-  id?: number
+  id?: string
 }
 
 export const MaterialCategoryFormDialog =
@@ -44,7 +44,7 @@ export const MaterialCategoryFormDialog =
     const isCreate = id === undefined
 
     const selectedCategory = useQuery({
-      ...materialCategoryApi.detail.query({ id: Number(id) }),
+      ...materialCategoryApi.detail.query({ id: id! }),
       enabled: !!props.id,
       refetchOnMount: true,
     })

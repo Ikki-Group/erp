@@ -1,7 +1,7 @@
 import { UnauthorizedError } from '@/lib/error/http'
 import { verifyPassword } from '@/lib/password'
 
-import type { AuthResponseDto, LoginDto, UserDetailDto } from '../dto'
+import type { AuthResponseDto, LoginDto, UserSelectDto } from '../dto'
 
 import type { SessionService } from './session.service'
 import type { UserService } from './user.service'
@@ -34,7 +34,7 @@ export class AuthService {
     }
   }
 
-  async verifyToken(token: string): Promise<UserDetailDto> {
+  async verifyToken(token: string): Promise<UserSelectDto> {
     const session = await this.sessionSvc.verifySession(token)
     if (!session) {
       throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')

@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { zPrimitive } from '@/lib/validation'
 
-import { UserDetailDto } from '@/modules/iam/dto/user.dto'
+import { UserSelectDto } from '@/modules/iam/dto/user.dto'
 
 export const LoginDto = z.object({
   identifier: zPrimitive.str,
@@ -12,7 +12,7 @@ export const LoginDto = z.object({
 export type LoginDto = z.infer<typeof LoginDto>
 
 export const AuthResponseDto = z.object({
-  user: UserDetailDto,
+  user: UserSelectDto,
   token: zPrimitive.str,
 })
 

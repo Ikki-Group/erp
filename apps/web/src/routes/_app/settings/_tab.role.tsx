@@ -30,7 +30,7 @@ const ch = createColumnHelper<RoleDto>()
 const columns = [
   ch.accessor('name', {
     header: ({ column }) => (
-      <DataGridColumnHeader title="Role" visibility={true} column={column} />
+      <DataGridColumnHeader title='Role' visibility={true} column={column} />
     ),
     cell: ({ row }) => row.original.name,
     enableSorting: false,
@@ -38,7 +38,7 @@ const columns = [
   }),
   ch.accessor('code', {
     header: ({ column }) => (
-      <DataGridColumnHeader title="Kode" visibility={true} column={column} />
+      <DataGridColumnHeader title='Kode' visibility={true} column={column} />
     ),
     cell: ({ row }) => row.original.code,
     enableSorting: false,
@@ -55,10 +55,10 @@ const columns = [
     cell: ({ row }) => {
       if (row.original.isSystem) return null
       return (
-        <div className="flex items-center justify-center">
+        <div className='flex items-center justify-center'>
           <Button
-            variant="ghost"
-            size="icon-sm"
+            variant='ghost'
+            size='icon-sm'
             onClick={() => RoleFormDialog.upsert({ id: row.original.id })}
           >
             <PencilIcon />
@@ -78,7 +78,7 @@ function RolesTable() {
   const { data, isLoading } = useQuery(
     roleApi.list.query({
       ...ds.pagination,
-    }),
+    })
   )
 
   const table = useDataTable({
@@ -91,12 +91,12 @@ function RolesTable() {
 
   return (
     <DataTableCard
-      title="Daftar Role"
+      title='Daftar Role'
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
       action={
-        <Button size="sm" onClick={() => RoleFormDialog.upsert({})}>
+        <Button size='sm' onClick={() => RoleFormDialog.upsert({})}>
           Tambah Role
         </Button>
       }

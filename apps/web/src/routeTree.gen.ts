@@ -19,6 +19,7 @@ import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/i
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
 import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
+import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
 import { Route as AppMaterialsCreateRouteImport } from './routes/_app/materials/create'
 import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
 import { Route as AppMaterialsIdRouteImport } from './routes/_app/materials/$id'
@@ -92,6 +93,11 @@ const AppProductsIdRoute = AppProductsIdRouteImport.update({
 const AppMaterialsUomRoute = AppMaterialsUomRouteImport.update({
   id: '/materials/uom',
   path: '/materials/uom',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsStockRoute = AppMaterialsStockRouteImport.update({
+  id: '/materials/stock',
+  path: '/materials/stock',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialsCreateRoute = AppMaterialsCreateRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/materials/$id': typeof AppMaterialsIdRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
   '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/materials/$id': typeof AppMaterialsIdRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
   '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/_app/materials/$id': typeof AppMaterialsIdRoute
   '/_app/materials/category': typeof AppMaterialsCategoryRoute
   '/_app/materials/create': typeof AppMaterialsCreateRoute
+  '/_app/materials/stock': typeof AppMaterialsStockRoute
   '/_app/materials/uom': typeof AppMaterialsUomRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/materials/$id'
     | '/materials/category'
     | '/materials/create'
+    | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
     | '/settings'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/materials/$id'
     | '/materials/category'
     | '/materials/create'
+    | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
     | '/settings'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/_app/materials/$id'
     | '/_app/materials/category'
     | '/_app/materials/create'
+    | '/_app/materials/stock'
     | '/_app/materials/uom'
     | '/_app/products/$id'
     | '/_app/settings/_tab'
@@ -530,6 +542,13 @@ declare module '@tanstack/react-router' {
       path: '/materials/uom'
       fullPath: '/materials/uom'
       preLoaderRoute: typeof AppMaterialsUomRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/stock': {
+      id: '/_app/materials/stock'
+      path: '/materials/stock'
+      fullPath: '/materials/stock'
+      preLoaderRoute: typeof AppMaterialsStockRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/materials/create': {
@@ -742,6 +761,7 @@ interface AppRouteRouteChildren {
   AppMaterialsIdRoute: typeof AppMaterialsIdRoute
   AppMaterialsCategoryRoute: typeof AppMaterialsCategoryRoute
   AppMaterialsCreateRoute: typeof AppMaterialsCreateRoute
+  AppMaterialsStockRoute: typeof AppMaterialsStockRoute
   AppMaterialsUomRoute: typeof AppMaterialsUomRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
@@ -775,6 +795,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialsIdRoute: AppMaterialsIdRoute,
   AppMaterialsCategoryRoute: AppMaterialsCategoryRoute,
   AppMaterialsCreateRoute: AppMaterialsCreateRoute,
+  AppMaterialsStockRoute: AppMaterialsStockRoute,
   AppMaterialsUomRoute: AppMaterialsUomRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,

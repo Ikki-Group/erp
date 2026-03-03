@@ -50,11 +50,11 @@ function ProductsPage() {
   // Filter states
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | 'all'>(
-    'all',
+    'all'
   )
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all')
   const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'critical'>(
-    'all',
+    'all'
   )
 
   // Pagination state
@@ -68,26 +68,26 @@ function ProductsPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
-        (p) =>
+        p =>
           p.name.toLowerCase().includes(query) ||
           p.code.toLowerCase().includes(query) ||
-          p.description?.toLowerCase().includes(query),
+          p.description?.toLowerCase().includes(query)
       )
     }
 
     // Category filter
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter((p) => p.category === categoryFilter)
+      filtered = filtered.filter(p => p.category === categoryFilter)
     }
 
     // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.status === statusFilter)
+      filtered = filtered.filter(p => p.status === statusFilter)
     }
 
     // Stock filter
     if (stockFilter !== 'all') {
-      filtered = filtered.filter((p) => {
+      filtered = filtered.filter(p => {
         const status = getStockStatus(p.stock, p.minStock, p.reorderPoint)
         return status === stockFilter
       })
@@ -107,16 +107,16 @@ function ProductsPage() {
   // Calculate statistics
   const stats = useMemo(() => {
     const total = MOCK_PRODUCTS.length
-    const active = MOCK_PRODUCTS.filter((p) => p.status === 'active').length
+    const active = MOCK_PRODUCTS.filter(p => p.status === 'active').length
     const lowStock = MOCK_PRODUCTS.filter(
-      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'low',
+      p => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'low'
     ).length
     const critical = MOCK_PRODUCTS.filter(
-      (p) => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'critical',
+      p => getStockStatus(p.stock, p.minStock, p.reorderPoint) === 'critical'
     ).length
     const totalValue = MOCK_PRODUCTS.reduce(
       (sum, p) => sum + p.stock * p.price,
-      0,
+      0
     )
 
     return { total, active, lowStock, critical, totalValue }
@@ -142,31 +142,31 @@ function ProductsPage() {
     stockFilter !== 'all'
 
   return (
-    <Page size="xl">
+    <Page size='xl'>
       <Page.BlockHeader
-        title="Produk"
-        description="Kelola katalog produk, inventori, dan harga Anda"
+        title='Produk'
+        description='Kelola katalog produk, inventori, dan harga Anda'
         action={
-          <Button size="sm" variant="outline" className="h-8 gap-2">
-            <PlusIcon className="h-4 w-4" />
+          <Button size='sm' variant='outline' className='h-8 gap-2'>
+            <PlusIcon className='h-4 w-4' />
             Tambah Produk
           </Button>
         }
       />
 
       <Page.Content>
-        <Stack gap="lg">
+        <Stack gap='lg'>
           {/* Statistics Cards */}
-          <Grid cols={4} gap="md">
+          <Grid cols={4} gap='md'>
             <Card>
               <CardContent>
-                <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">
+                <Stack gap='sm'>
+                  <p className='text-xs text-muted-foreground font-medium'>
                     Total Produk
                   </p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold">{stats.total}</p>
-                    <Badge variant="outline" className="text-xs">
+                  <div className='flex items-baseline gap-2'>
+                    <p className='text-3xl font-bold'>{stats.total}</p>
+                    <Badge variant='outline' className='text-xs'>
                       {stats.active} aktif
                     </Badge>
                   </div>
@@ -176,17 +176,17 @@ function ProductsPage() {
 
             <Card>
               <CardContent>
-                <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">
+                <Stack gap='sm'>
+                  <p className='text-xs text-muted-foreground font-medium'>
                     Nilai Inventori
                   </p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold">
+                  <div className='flex items-baseline gap-2'>
+                    <p className='text-3xl font-bold'>
                       {formatCurrency(stats.totalValue).replace('Rp', '')}
                     </p>
-                    <Inline gap="sm" align="center">
-                      <TrendingUpIcon className="h-4 w-4 text-green-500" />
-                      <span className="text-xs text-green-600 font-medium">
+                    <Inline gap='sm' align='center'>
+                      <TrendingUpIcon className='h-4 w-4 text-green-500' />
+                      <span className='text-xs text-green-600 font-medium'>
                         +12.5%
                       </span>
                     </Inline>
@@ -197,17 +197,17 @@ function ProductsPage() {
 
             <Card>
               <CardContent>
-                <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">
+                <Stack gap='sm'>
+                  <p className='text-xs text-muted-foreground font-medium'>
                     Stok Rendah
                   </p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-orange-600">
+                  <div className='flex items-baseline gap-2'>
+                    <p className='text-3xl font-bold text-orange-600'>
                       {stats.lowStock}
                     </p>
                     <Badge
-                      variant="outline"
-                      className="text-xs border-orange-500 text-orange-700"
+                      variant='outline'
+                      className='text-xs border-orange-500 text-orange-700'
                     >
                       Perlu perhatian
                     </Badge>
@@ -218,17 +218,17 @@ function ProductsPage() {
 
             <Card>
               <CardContent>
-                <Stack gap="sm">
-                  <p className="text-xs text-muted-foreground font-medium">
+                <Stack gap='sm'>
+                  <p className='text-xs text-muted-foreground font-medium'>
                     Stok Kritis
                   </p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-red-600">
+                  <div className='flex items-baseline gap-2'>
+                    <p className='text-3xl font-bold text-red-600'>
                       {stats.critical}
                     </p>
-                    <Inline gap="sm" align="center">
-                      <AlertTriangleIcon className="h-4 w-4 text-red-500" />
-                      <span className="text-xs text-red-600 font-medium">
+                    <Inline gap='sm' align='center'>
+                      <AlertTriangleIcon className='h-4 w-4 text-red-500' />
+                      <span className='text-xs text-red-600 font-medium'>
                         Mendesak
                       </span>
                     </Inline>
@@ -241,7 +241,7 @@ function ProductsPage() {
           {/* Filters */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
                   <CardTitle>Filter</CardTitle>
                   <CardDescription>
@@ -250,116 +250,116 @@ function ProductsPage() {
                 </div>
                 {hasActiveFilters && (
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant='ghost'
+                    size='sm'
                     onClick={clearFilters}
-                    className="text-muted-foreground"
+                    className='text-muted-foreground'
                   >
-                    <XIcon className="h-4 w-4" />
+                    <XIcon className='h-4 w-4' />
                     Hapus Filter
                   </Button>
                 )}
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
                 {/* Search */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Cari</label>
-                  <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Cari</label>
+                  <div className='relative'>
+                    <SearchIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                     <Input
-                      placeholder="Cari produk..."
+                      placeholder='Cari produk...'
                       value={searchQuery}
-                      onChange={(e) => {
+                      onChange={e => {
                         setSearchQuery(e.target.value)
                         handleFilterChange()
                       }}
-                      className="pl-9"
+                      className='pl-9'
                     />
                   </div>
                 </div>
 
                 {/* Category Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Kategori</label>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Kategori</label>
                   <Select
                     value={categoryFilter}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       setCategoryFilter(value as ProductCategory | 'all')
                       handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Semua Kategori" />
+                      <SelectValue placeholder='Semua Kategori' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Semua Kategori</SelectItem>
-                      <SelectItem value="raw-material">Bahan Baku</SelectItem>
-                      <SelectItem value="semi-finished">
+                      <SelectItem value='all'>Semua Kategori</SelectItem>
+                      <SelectItem value='raw-material'>Bahan Baku</SelectItem>
+                      <SelectItem value='semi-finished'>
                         Setengah Jadi
                       </SelectItem>
-                      <SelectItem value="finished-goods">
+                      <SelectItem value='finished-goods'>
                         Barang Jadi
                       </SelectItem>
-                      <SelectItem value="consumable">Habis Pakai</SelectItem>
+                      <SelectItem value='consumable'>Habis Pakai</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Status Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Status</label>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Status</label>
                   <Select
                     value={statusFilter}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       setStatusFilter(value as ProductStatus | 'all')
                       handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Semua Status" />
+                      <SelectValue placeholder='Semua Status' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="active">Aktif</SelectItem>
-                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                      <SelectItem value="discontinued">Dihentikan</SelectItem>
+                      <SelectItem value='all'>Semua Status</SelectItem>
+                      <SelectItem value='active'>Aktif</SelectItem>
+                      <SelectItem value='inactive'>Tidak Aktif</SelectItem>
+                      <SelectItem value='discontinued'>Dihentikan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Stock Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Level Stok</label>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Level Stok</label>
                   <Select
                     value={stockFilter}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       setStockFilter(value as 'all' | 'low' | 'critical')
                       handleFilterChange()
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Semua Level" />
+                      <SelectValue placeholder='Semua Level' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Semua Level</SelectItem>
-                      <SelectItem value="low">Stok Rendah</SelectItem>
-                      <SelectItem value="critical">Stok Kritis</SelectItem>
+                      <SelectItem value='all'>Semua Level</SelectItem>
+                      <SelectItem value='low'>Stok Rendah</SelectItem>
+                      <SelectItem value='critical'>Stok Kritis</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               {/* Results count */}
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
+              <div className='mt-4 pt-4 border-t'>
+                <p className='text-sm text-muted-foreground'>
                   Menampilkan{' '}
-                  <span className="font-medium">
+                  <span className='font-medium'>
                     {paginatedProducts.length}
                   </span>{' '}
                   dari{' '}
-                  <span className="font-medium">{filteredProducts.length}</span>{' '}
+                  <span className='font-medium'>{filteredProducts.length}</span>{' '}
                   produk
                   {hasActiveFilters && ' (terfilter)'}
                 </p>
@@ -368,46 +368,46 @@ function ProductsPage() {
           </Card>
 
           {/* Products List - Desktop Table */}
-          <Card className="hidden md:block">
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50 border-b">
+          <Card className='hidden md:block'>
+            <CardContent className='p-0'>
+              <div className='overflow-x-auto'>
+                <table className='w-full'>
+                  <thead className='bg-muted/50 border-b'>
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-left text-xs font-medium text-muted-foreground'>
                         Kode
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-left text-xs font-medium text-muted-foreground'>
                         Nama Produk
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-left text-xs font-medium text-muted-foreground'>
                         Kategori
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-left text-xs font-medium text-muted-foreground'>
                         Stok
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-right text-xs font-medium text-muted-foreground'>
                         Harga
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-left text-xs font-medium text-muted-foreground'>
                         Status
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
+                      <th className='px-4 py-3 text-right text-xs font-medium text-muted-foreground'>
                         Aksi
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className='divide-y'>
                     {paginatedProducts.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-4 py-12 text-center">
-                          <Stack gap="md" align="center">
-                            <PackageIcon className="h-12 w-12 text-muted-foreground" />
+                        <td colSpan={7} className='px-4 py-12 text-center'>
+                          <Stack gap='md' align='center'>
+                            <PackageIcon className='h-12 w-12 text-muted-foreground' />
                             <div>
-                              <p className="font-medium">
+                              <p className='font-medium'>
                                 Produk tidak ditemukan
                               </p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className='text-sm text-muted-foreground'>
                                 Coba sesuaikan filter Anda
                               </p>
                             </div>
@@ -415,16 +415,16 @@ function ProductsPage() {
                         </td>
                       </tr>
                     ) : (
-                      paginatedProducts.map((product) => {
+                      paginatedProducts.map(product => {
                         const stockStatus = getStockStatus(
                           product.stock,
                           product.minStock,
-                          product.reorderPoint,
+                          product.reorderPoint
                         )
                         return (
                           <tr
                             key={product.id}
-                            className="hover:bg-muted/30 transition-colors cursor-pointer"
+                            className='hover:bg-muted/30 transition-colors cursor-pointer'
                             onClick={() =>
                               navigate({
                                 to: '/products/$id',
@@ -432,30 +432,30 @@ function ProductsPage() {
                               })
                             }
                           >
-                            <td className="px-4 py-3">
-                              <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                            <td className='px-4 py-3'>
+                              <code className='text-xs font-mono bg-muted px-2 py-1 rounded'>
                                 {product.code}
                               </code>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               <div>
-                                <p className="font-medium text-sm">
+                                <p className='font-medium text-sm'>
                                   {product.name}
                                 </p>
                                 {product.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-1">
+                                  <p className='text-xs text-muted-foreground line-clamp-1'>
                                     {product.description}
                                   </p>
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3">
-                              <Badge variant="outline" className="text-xs">
+                            <td className='px-4 py-3'>
+                              <Badge variant='outline' className='text-xs'>
                                 {getCategoryLabel(product.category)}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
+                            <td className='px-4 py-3'>
+                              <div className='flex items-center gap-2'>
                                 <span
                                   className={`text-sm font-medium ${
                                     stockStatus === 'critical'
@@ -467,7 +467,7 @@ function ProductsPage() {
                                 >
                                   {product.stock}
                                 </span>
-                                <span className="text-xs text-muted-foreground">
+                                <span className='text-xs text-muted-foreground'>
                                   {product.unit}
                                 </span>
                                 {stockStatus !== 'normal' && (
@@ -481,12 +481,12 @@ function ProductsPage() {
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-right">
-                              <p className="text-sm font-medium">
+                            <td className='px-4 py-3 text-right'>
+                              <p className='text-sm font-medium'>
                                 {formatCurrency(product.price)}
                               </p>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               <Badge
                                 variant={
                                   product.status === 'active'
@@ -503,30 +503,30 @@ function ProductsPage() {
                               </Badge>
                             </td>
                             <td
-                              className="px-4 py-3"
-                              onClick={(e) => e.stopPropagation()}
+                              className='px-4 py-3'
+                              onClick={e => e.stopPropagation()}
                             >
-                              <Inline gap="sm" justify="end">
+                              <Inline gap='sm' justify='end'>
                                 <Link
-                                  to="/products/$id"
+                                  to='/products/$id'
                                   params={{ id: product.id }}
                                 >
                                   <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-xs"
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-7 text-xs'
                                   >
                                     Lihat
                                   </Button>
                                 </Link>
                                 <Link
-                                  to="/products/$id"
+                                  to='/products/$id'
                                   params={{ id: product.id }}
                                 >
                                   <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-xs"
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-7 text-xs'
                                   >
                                     Ubah
                                   </Button>
@@ -544,15 +544,15 @@ function ProductsPage() {
           </Card>
 
           {/* Products List - Mobile Cards */}
-          <div className="md:hidden space-y-4">
+          <div className='md:hidden space-y-4'>
             {paginatedProducts.length === 0 ? (
               <Card>
                 <CardContent>
-                  <Stack gap="md" align="center">
-                    <PackageIcon className="h-12 w-12 text-muted-foreground" />
-                    <div className="text-center">
-                      <p className="font-medium">Produk tidak ditemukan</p>
-                      <p className="text-sm text-muted-foreground">
+                  <Stack gap='md' align='center'>
+                    <PackageIcon className='h-12 w-12 text-muted-foreground' />
+                    <div className='text-center'>
+                      <p className='font-medium'>Produk tidak ditemukan</p>
+                      <p className='text-sm text-muted-foreground'>
                         Coba sesuaikan filter Anda
                       </p>
                     </div>
@@ -560,16 +560,16 @@ function ProductsPage() {
                 </CardContent>
               </Card>
             ) : (
-              paginatedProducts.map((product) => {
+              paginatedProducts.map(product => {
                 const stockStatus = getStockStatus(
                   product.stock,
                   product.minStock,
-                  product.reorderPoint,
+                  product.reorderPoint
                 )
                 return (
                   <Card
                     key={product.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className='cursor-pointer hover:shadow-md transition-shadow'
                     onClick={() =>
                       navigate({
                         to: '/products/$id',
@@ -578,13 +578,13 @@ function ProductsPage() {
                     }
                   >
                     <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base truncate">
+                      <div className='flex items-start justify-between gap-2'>
+                        <div className='flex-1 min-w-0'>
+                          <CardTitle className='text-base truncate'>
                             {product.name}
                           </CardTitle>
-                          <CardDescription className="mt-1">
-                            <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                          <CardDescription className='mt-1'>
+                            <code className='text-xs bg-muted px-2 py-0.5 rounded'>
                               {product.code}
                             </code>
                           </CardDescription>
@@ -604,21 +604,21 @@ function ProductsPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <Stack gap="sm">
-                        <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">
+                      <Stack gap='sm'>
+                        <Inline justify='between' align='center'>
+                          <span className='text-sm text-muted-foreground'>
                             Kategori
                           </span>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant='outline' className='text-xs'>
                             {getCategoryLabel(product.category)}
                           </Badge>
                         </Inline>
 
-                        <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">
+                        <Inline justify='between' align='center'>
+                          <span className='text-sm text-muted-foreground'>
                             Stok
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             <span
                               className={`text-sm font-medium ${
                                 stockStatus === 'critical'
@@ -642,28 +642,28 @@ function ProductsPage() {
                           </div>
                         </Inline>
 
-                        <Inline justify="between" align="center">
-                          <span className="text-sm text-muted-foreground">
+                        <Inline justify='between' align='center'>
+                          <span className='text-sm text-muted-foreground'>
                             Harga
                           </span>
-                          <span className="text-sm font-bold">
+                          <span className='text-sm font-bold'>
                             {formatCurrency(product.price)}
                           </span>
                         </Inline>
 
                         <div
-                          className="pt-2 mt-2 border-t"
-                          onClick={(e) => e.stopPropagation()}
+                          className='pt-2 mt-2 border-t'
+                          onClick={e => e.stopPropagation()}
                         >
-                          <Inline gap="sm" justify="end">
+                          <Inline gap='sm' justify='end'>
                             <Link
-                              to="/products/$id"
+                              to='/products/$id'
                               params={{ id: product.id }}
                             >
                               <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1"
+                                variant='outline'
+                                size='sm'
+                                className='flex-1'
                               >
                                 Lihat Detail
                               </Button>
@@ -682,33 +682,33 @@ function ProductsPage() {
           {totalPages > 1 && (
             <Card>
               <CardContent>
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Halaman <span className="font-medium">{currentPage}</span>{' '}
-                    dari <span className="font-medium">{totalPages}</span>
+                <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+                  <p className='text-sm text-muted-foreground'>
+                    Halaman <span className='font-medium'>{currentPage}</span>{' '}
+                    dari <span className='font-medium'>{totalPages}</span>
                   </p>
 
-                  <Inline gap="sm">
+                  <Inline gap='sm'>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
                     >
                       Pertama
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
-                      <ChevronLeftIcon className="h-4 w-4" />
+                      <ChevronLeftIcon className='h-4 w-4' />
                       Sebelumnya
                     </Button>
 
                     {/* Page numbers */}
-                    <div className="hidden sm:flex items-center gap-1">
+                    <div className='hidden sm:flex items-center gap-1'>
                       {Array.from(
                         { length: Math.min(5, totalPages) },
                         (_, i) => {
@@ -729,31 +729,31 @@ function ProductsPage() {
                               variant={
                                 currentPage === pageNum ? 'default' : 'outline'
                               }
-                              size="sm"
+                              size='sm'
                               onClick={() => setCurrentPage(pageNum)}
-                              className="w-9"
+                              className='w-9'
                             >
                               {pageNum}
                             </Button>
                           )
-                        },
+                        }
                       )}
                     </div>
 
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        setCurrentPage(p => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages}
                     >
                       Next
-                      <ChevronRightIcon className="h-4 w-4" />
+                      <ChevronRightIcon className='h-4 w-4' />
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={() => setCurrentPage(totalPages)}
                       disabled={currentPage === totalPages}
                     >

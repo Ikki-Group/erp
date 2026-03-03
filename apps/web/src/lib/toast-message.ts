@@ -9,7 +9,7 @@ type CrudOperation = 'update' | 'delete' | 'create' | 'read'
 
 export function toastLabelMessage(
   operation: CrudOperation,
-  label: string,
+  label: string
 ): ToastMessages {
   switch (operation) {
     case 'update':

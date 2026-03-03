@@ -6,7 +6,7 @@ import {
   ShieldEllipsisIcon,
   UsersIcon,
 } from 'lucide-react'
-import type { CardStatProps } from '@/components/card/card-stat';
+import type { CardStatProps } from '@/components/card/card-stat'
 import { CardStat } from '@/components/card/card-stat'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
@@ -24,28 +24,28 @@ function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Pengaturan"
-        description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
+        title='Pengaturan'
+        description='Kelola preferensi, pengguna, dan konfigurasi sistem Anda.'
       />
-      <Page.Content className="flex flex-wrap gap-4">
-        {MOCK_STATS.map((stat) => (
+      <Page.Content className='flex flex-wrap gap-4'>
+        {MOCK_STATS.map(stat => (
           <CardStat key={stat.title} {...stat} />
         ))}
       </Page.Content>
       <Separator />
       <Page.Content>
-        <Tabs className="mb-4">
+        <Tabs className='mb-4'>
           <Tabs.List>
-            <Tabs.Trigger value="tab-1">Pengguna</Tabs.Trigger>
-            <Tabs.Trigger value="tab-2">Role</Tabs.Trigger>
-            <Tabs.Trigger value="tab-3">Lokasi</Tabs.Trigger>
+            <Tabs.Trigger value='tab-1'>Pengguna</Tabs.Trigger>
+            <Tabs.Trigger value='tab-2'>Role</Tabs.Trigger>
+            <Tabs.Trigger value='tab-3'>Lokasi</Tabs.Trigger>
           </Tabs.List>
-          <Tabs.Content value="tab-1">Content 1</Tabs.Content>
-          <Tabs.Content value="tab-2">Content 2</Tabs.Content>
-          <Tabs.Content value="tab-3">Content 3</Tabs.Content>
+          <Tabs.Content value='tab-1'>Content 1</Tabs.Content>
+          <Tabs.Content value='tab-2'>Content 2</Tabs.Content>
+          <Tabs.Content value='tab-3'>Content 3</Tabs.Content>
         </Tabs>
-        <Card className="py-0 gap-0 border">
-          <Card.Header className="border-b pt-4">
+        <Card className='py-0 gap-0 border'>
+          <Card.Header className='border-b pt-4'>
             <Card.Title>Data Pengguna</Card.Title>
             <Card.Description>Kelola data pengguna sistem.</Card.Description>
             <Card.Action>
@@ -55,7 +55,7 @@ function RouteComponent() {
               </Button>
             </Card.Action>
           </Card.Header>
-          <Card.Content className="px-2">
+          <Card.Content className='px-2'>
             <Table>
               <Table.Header>
                 <Table.Row>
@@ -63,11 +63,11 @@ function RouteComponent() {
                   <Table.Head>Email</Table.Head>
                   <Table.Head>Role</Table.Head>
                   <Table.Head>Status</Table.Head>
-                  <Table.Head className="text-right">Aksi</Table.Head>
+                  <Table.Head className='text-right'>Aksi</Table.Head>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {MOCK_USERS.map((user) => (
+                {MOCK_USERS.map(user => (
                   <Table.Row key={user.id}>
                     <Table.Cell>{user.name}</Table.Cell>
                     <Table.Cell>{user.email}</Table.Cell>
@@ -77,13 +77,13 @@ function RouteComponent() {
                         variant={
                           user.role === 'Admin' ? 'default' : 'secondary'
                         }
-                        className="font-normal"
+                        className='font-normal'
                       >
                         {user.role}
                       </Badge>
                     </Table.Cell>
-                    <Table.Cell className="text-right">
-                      <Button variant="ghost" size="icon">
+                    <Table.Cell className='text-right'>
+                      <Button variant='ghost' size='icon'>
                         <MoreHorizontalIcon />
                       </Button>
                     </Table.Cell>
@@ -93,7 +93,7 @@ function RouteComponent() {
             </Table>
           </Card.Content>
           <Card.Footer>
-            <Button variant="outline">Lihat Semua</Button>
+            <Button variant='outline'>Lihat Semua</Button>
           </Card.Footer>
         </Card>
       </Page.Content>

@@ -4,8 +4,8 @@ import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
 import { toast } from 'sonner'
 import { userApi } from '../api'
-import type { LinkOptions} from '@tanstack/react-router';
-import type { UserDto } from '../dto'
+import type { LinkOptions } from '@tanstack/react-router'
+import type { UserSelectDto } from '../dto'
 import { Separator } from '@/components/ui/separator'
 import { Card } from '@/components/ui/card'
 import { Page } from '@/components/layout/page'
@@ -29,7 +29,7 @@ const FormDto = z.object({
     z.object({
       locationId: z.string(),
       roleId: z.string(),
-    }),
+    })
   ),
 })
 
@@ -40,7 +40,7 @@ const fopts = formOptions({
   defaultValues: {} as FormDto,
 })
 
-function getDefaultValues(v?: UserDto): FormDto {
+function getDefaultValues(v?: UserSelectDto): FormDto {
   return {
     email: v?.email ?? '',
     fullname: v?.fullname ?? '',
@@ -61,7 +61,7 @@ interface UserFormPageProps {
 export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   const navigate = useNavigate()
   const selectedUser = useQuery({
-    ...userApi.detail.query({ id: Number(id) }),
+    ...userApi.detail.query({ id: id! }),
     enabled: !!id,
   })
 
@@ -97,13 +97,13 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   return (
     <form.AppForm>
       <FormConfig mode={mode} id={id} backTo={backTo}>
-        <Page size="sm">
+        <Page size='sm'>
           <Page.BlockHeader
             title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
             back={backTo}
           />
           <form.Form>
-            <Page.Content className="gap-6 flex flex-col">
+            <Page.Content className='gap-6 flex flex-col'>
               <UserInformationCard />
               <StatusAndRoleCard />
               {/* <RoleAndLocationCard /> */}
@@ -121,36 +121,36 @@ function UserInformationCard() {
   const isCreate = useFormConfig().mode === 'create'
 
   return (
-    <CardSection title="Informasi Akun">
-      <form.AppField name="fullname">
-        {(field) => (
-          <field.Base label="Nama Lengkap" required>
-            <field.Input placeholder="John Doe" />
+    <CardSection title='Informasi Akun'>
+      <form.AppField name='fullname'>
+        {field => (
+          <field.Base label='Nama Lengkap' required>
+            <field.Input placeholder='John Doe' />
           </field.Base>
         )}
       </form.AppField>
-      <form.AppField name="email">
-        {(field) => (
-          <field.Base label="Email" required>
-            <field.Input type="email" placeholder="user@example.com" />
+      <form.AppField name='email'>
+        {field => (
+          <field.Base label='Email' required>
+            <field.Input type='email' placeholder='user@example.com' />
           </field.Base>
         )}
       </form.AppField>
-      <form.AppField name="username">
-        {(field) => (
-          <field.Base label="Username" required>
-            <field.Input placeholder="username" />
+      <form.AppField name='username'>
+        {field => (
+          <field.Base label='Username' required>
+            <field.Input placeholder='username' />
           </field.Base>
         )}
       </form.AppField>
       {isCreate && (
-        <form.AppField name="password">
-          {(field) => (
-            <field.Base label="Password" required>
+        <form.AppField name='password'>
+          {field => (
+            <field.Base label='Password' required>
               <field.Input
-                type="password"
-                autoComplete="off"
-                placeholder="••••••••"
+                type='password'
+                autoComplete='off'
+                placeholder='••••••••'
               />
             </field.Base>
           )}
@@ -164,25 +164,25 @@ function StatusAndRoleCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <Card size="sm">
-      <Card.Header className="border-b">
+    <Card size='sm'>
+      <Card.Header className='border-b'>
         <Card.Title>Status & Hak Akses</Card.Title>
       </Card.Header>
-      <Card.Content className="space-y-2">
-        <form.AppField name="isActive">
-          {(field) => (
+      <Card.Content className='space-y-2'>
+        <form.AppField name='isActive'>
+          {field => (
             <field.Switch
-              label="Status Aktif"
-              description="Pengguna dapat login ke sistem"
+              label='Status Aktif'
+              description='Pengguna dapat login ke sistem'
             />
           )}
         </form.AppField>
         <Separator />
-        <form.AppField name="isRoot">
-          {(field) => (
+        <form.AppField name='isRoot'>
+          {field => (
             <field.Switch
-              label="Super Admin"
-              description="Akses penuh ke semua fitur dan lokasi"
+              label='Super Admin'
+              description='Akses penuh ke semua fitur dan lokasi'
             />
           )}
         </form.AppField>

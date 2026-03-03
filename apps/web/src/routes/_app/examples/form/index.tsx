@@ -21,13 +21,13 @@ function FormPage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Create Product"
-        description="Add a new product to your inventory."
+        title='Create Product'
+        description='Add a new product to your inventory.'
         action={
           <>
-            <Button variant="outline">Cancel</Button>
-            <Button size="sm">
-              <SaveIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline'>Cancel</Button>
+            <Button size='sm'>
+              <SaveIcon className='mr-2 h-4 w-4' />
               Save Product
             </Button>
           </>
@@ -35,8 +35,8 @@ function FormPage() {
       />
 
       <Page.Content>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-6 md:col-span-2">
+        <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+          <div className='space-y-6 md:col-span-2'>
             <Card>
               <CardHeader>
                 <CardTitle>General Information</CardTitle>
@@ -44,15 +44,15 @@ function FormPage() {
                   Product details and identification.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
+              <CardContent className='space-y-4'>
+                <div className='grid gap-2'>
                   <Label>Product Name</Label>
-                  <Input placeholder="e.g. Wireless Headphones" />
+                  <Input placeholder='e.g. Wireless Headphones' />
                 </div>
 
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Description</Label>
-                  <Textarea placeholder="Product description..." />
+                  <Textarea placeholder='Product description...' />
                 </div>
               </CardContent>
             </Card>
@@ -61,29 +61,29 @@ function FormPage() {
               <CardHeader>
                 <CardTitle>Pricing</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+              <CardContent className='grid gap-4 md:grid-cols-2'>
+                <div className='grid gap-2'>
                   <Label>Base Price</Label>
-                  <Input type="number" placeholder="0.00" />
+                  <Input type='number' placeholder='0.00' />
                 </div>
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Sale Price</Label>
-                  <Input type="number" placeholder="0.00" />
+                  <Input type='number' placeholder='0.00' />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className='space-y-6'>
             <Card>
               <CardHeader>
                 <CardTitle>Status</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Status select placeholder */}
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Status</Label>
-                  <select className="bg-background w-full rounded-md border p-2">
+                  <select className='bg-background w-full rounded-md border p-2'>
                     <option>Draft</option>
                     <option>Active</option>
                     <option>Archived</option>
@@ -96,10 +96,10 @@ function FormPage() {
               <CardHeader>
                 <CardTitle>Organization</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
+              <CardContent className='space-y-4'>
+                <div className='grid gap-2'>
                   <Label>Category</Label>
-                  <select className="bg-background w-full rounded-md border p-2">
+                  <select className='bg-background w-full rounded-md border p-2'>
                     <option>Select category...</option>
                     <option>Electronics</option>
                     <option>Clothing</option>

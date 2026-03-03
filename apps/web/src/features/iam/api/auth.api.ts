@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { UserDetailDto } from '@/features/iam/dto'
+import { UserSelectDto } from '@/features/iam/dto'
 import { AuthResponseDto } from '@/features/iam/dto/auth.dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp } from '@/lib/zod'
@@ -17,6 +17,6 @@ export const authApi = {
   me: apiFactory({
     method: 'get',
     url: 'iam/auth/me',
-    result: zHttp.ok(UserDetailDto),
+    result: zHttp.ok(UserSelectDto),
   }),
 }

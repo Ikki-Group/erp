@@ -20,7 +20,8 @@ import type {
   ColumnDef,
   PaginationState,
   Row,
-  SortingState} from '@tanstack/react-table';
+  SortingState,
+} from '@tanstack/react-table'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
@@ -275,16 +276,16 @@ function ActionsCell({ row }: { row: Row<IData> }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button className="size-7" size="icon" variant="ghost">
+          <Button className='size-7' size='icon' variant='ghost'>
             <MoreHorizontalIcon />
           </Button>
         }
       />
-      <DropdownMenuContent side="bottom" align="start">
+      <DropdownMenuContent side='bottom' align='start'>
         <DropdownMenuItem onClick={() => {}}>Edit</DropdownMenuItem>
         <DropdownMenuItem onClick={handleCopyId}>Copy ID</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => {}}>
+        <DropdownMenuItem variant='destructive' onClick={() => {}}>
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -304,7 +305,7 @@ export function Pattern() {
   const [selectedStatuses, setSelectedStatuses] = useState<Array<string>>([])
 
   const filteredData = useMemo(() => {
-    return demoData.filter((item) => {
+    return demoData.filter(item => {
       // Filter by status
       const matchesStatus =
         !selectedStatuses?.length || selectedStatuses.includes(item.status)
@@ -328,15 +329,15 @@ export function Pattern() {
         acc[item.status] = (acc[item.status] || 0) + 1
         return acc
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     )
   }, [])
 
   const handleStatusChange = (checked: boolean, value: string) => {
     setSelectedStatuses(
       (
-        prev = [], // Default to an empty array
-      ) => (checked ? [...prev, value] : prev.filter((v) => v !== value)),
+        prev = [] // Default to an empty array
+      ) => (checked ? [...prev, value] : prev.filter(v => v !== value))
     )
   }
 
@@ -360,15 +361,15 @@ export function Pattern() {
         id: 'name',
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="User"
+            title='User'
             visibility={true}
             column={column}
           />
         ),
         cell: ({ row }) => {
           return (
-            <div className="flex items-center gap-3">
-              <Avatar className="size-8">
+            <div className='flex items-center gap-3'>
+              <Avatar className='size-8'>
                 <AvatarImage
                   src={row.original.avatar}
                   alt={row.original.name}
@@ -376,15 +377,15 @@ export function Pattern() {
                 <AvatarFallback>
                   {row.original.name
                     .split(' ')
-                    .map((n) => n[0])
+                    .map(n => n[0])
                     .join('')}
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-px">
-                <div className="text-foreground font-medium">
+              <div className='space-y-px'>
+                <div className='text-foreground font-medium'>
                   {row.original.name}
                 </div>
-                <div className="text-muted-foreground">
+                <div className='text-muted-foreground'>
                   {row.original.email}
                 </div>
               </div>
@@ -401,20 +402,20 @@ export function Pattern() {
         id: 'location',
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="Location"
+            title='Location'
             visibility={true}
             column={column}
           />
         ),
         cell: ({ row }) => {
           return (
-            <div className="flex items-center gap-1.5">
+            <div className='flex items-center gap-1.5'>
               <img
                 src={`https://flagcdn.com/${row.original.flag.toLowerCase()}.svg`}
                 alt={row.original.flag}
-                className="size-4 rounded-full object-cover"
+                className='size-4 rounded-full object-cover'
               />
-              <div className="text-foreground font-medium">
+              <div className='text-foreground font-medium'>
                 {row.original.location}
               </div>
             </div>
@@ -434,14 +435,14 @@ export function Pattern() {
         id: 'role',
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="Role"
+            title='Role'
             visibility={true}
             column={column}
           />
         ),
         cell: ({ row }) => {
           return (
-            <div className="text-foreground font-medium">
+            <div className='text-foreground font-medium'>
               {row.original.role}
             </div>
           )
@@ -456,14 +457,14 @@ export function Pattern() {
         id: 'joined',
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="Joined"
+            title='Joined'
             visibility={true}
             column={column}
           />
         ),
         cell: ({ row }) => {
           return (
-            <div className="text-foreground font-medium">
+            <div className='text-foreground font-medium'>
               {row.original.joined}
             </div>
           )
@@ -478,7 +479,7 @@ export function Pattern() {
         id: 'status',
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="Status"
+            title='Status'
             visibility={true}
             column={column}
           />
@@ -487,13 +488,13 @@ export function Pattern() {
           const status = row.original.status
 
           if (status == 'Active') {
-            return <Badge variant="success-outline">Approved</Badge>
+            return <Badge variant='success-outline'>Approved</Badge>
           } else if (status == 'Blocked') {
-            return <Badge variant="destructive-outline">Blocked</Badge>
+            return <Badge variant='destructive-outline'>Blocked</Badge>
           } else if (status == 'Inactive') {
-            return <Badge variant="info-outline">Inactive</Badge>
+            return <Badge variant='info-outline'>Inactive</Badge>
           } else {
-            return <Badge variant="warning-outline">Pending</Badge>
+            return <Badge variant='warning-outline'>Pending</Badge>
           }
         },
         size: 100,
@@ -511,11 +512,11 @@ export function Pattern() {
         enableResizing: false,
       },
     ],
-    [],
+    []
   )
 
   const [columnOrder, setColumnOrder] = useState<Array<string>>(
-    columns.map((column) => column.id as string),
+    columns.map(column => column.id as string)
   )
 
   const table = useReactTable({
@@ -549,26 +550,26 @@ export function Pattern() {
         columnsVisibility: true,
       }}
     >
-      <Card className="w-full gap-3 py-3.5">
-        <CardHeader className="justify-between px-3.5">
-          <div className="flex items-center gap-2.5">
-            <InputGroup className="w-48">
-              <InputGroupAddon align="inline-start">
+      <Card className='w-full gap-3 py-3.5'>
+        <CardHeader className='justify-between px-3.5'>
+          <div className='flex items-center gap-2.5'>
+            <InputGroup className='w-48'>
+              <InputGroupAddon align='inline-start'>
                 <SearchIcon />
               </InputGroupAddon>
 
               <InputGroupInput
-                placeholder="Search..."
+                placeholder='Search...'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
 
               {searchQuery.length > 0 && (
-                <InputGroupAddon align="inline-end">
+                <InputGroupAddon align='inline-end'>
                   <InputGroupButton
-                    aria-label="Copy"
-                    title="Copy"
-                    size="icon-xs"
+                    aria-label='Copy'
+                    title='Copy'
+                    size='icon-xs'
                     onClick={() => setSearchQuery('')}
                   >
                     <XIcon />
@@ -579,38 +580,38 @@ export function Pattern() {
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant="outline">
+                  <Button variant='outline'>
                     <FunnelIcon />
                     Status
                     {selectedStatuses.length > 0 && (
-                      <Badge size="sm" variant="info-outline">
+                      <Badge size='sm' variant='info-outline'>
                         {selectedStatuses.length}
                       </Badge>
                     )}
                   </Button>
                 }
               />
-              <PopoverContent className="w-40" align="start">
-                <div className="space-y-3">
-                  <div className="text-muted-foreground text-xs font-medium">
+              <PopoverContent className='w-40' align='start'>
+                <div className='space-y-3'>
+                  <div className='text-muted-foreground text-xs font-medium'>
                     Filters
                   </div>
-                  <div className="space-y-3">
-                    {Object.keys(statusCounts).map((status) => (
-                      <div key={status} className="flex items-center gap-2.5">
+                  <div className='space-y-3'>
+                    {Object.keys(statusCounts).map(status => (
+                      <div key={status} className='flex items-center gap-2.5'>
                         <Checkbox
                           id={status}
                           checked={selectedStatuses.includes(status)}
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={checked =>
                             handleStatusChange(checked === true, status)
                           }
                         />
                         <Label
                           htmlFor={status}
-                          className="flex grow items-center justify-between gap-1.5 font-normal"
+                          className='flex grow items-center justify-between gap-1.5 font-normal'
                         >
                           {status}
-                          <span className="text-muted-foreground">
+                          <span className='text-muted-foreground'>
                             {statusCounts[status]}
                           </span>
                         </Label>
@@ -628,13 +629,13 @@ export function Pattern() {
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent className="border-y px-0">
+        <CardContent className='border-y px-0'>
           <ScrollArea>
             <DataGridTable />
-            <ScrollBar orientation="horizontal" />
+            <ScrollBar orientation='horizontal' />
           </ScrollArea>
         </CardContent>
-        <CardFooter className="border-none bg-transparent! px-3.5 py-0">
+        <CardFooter className='border-none bg-transparent! px-3.5 py-0'>
           <DataGridPagination />
         </CardFooter>
       </Card>

@@ -24,24 +24,32 @@ const location = {
 }
 
 const material = {
-  list: 'materials/list',
-  detail: 'materials/detail',
-  create: 'materials/create',
-  update: 'materials/update',
-  remove: 'materials/remove',
+  list: 'material/list',
+  detail: 'material/detail',
+  create: 'material/create',
+  update: 'material/update',
+  remove: 'material/remove',
   category: {
-    list: 'materials/category/list',
-    detail: 'materials/category/detail',
-    create: 'materials/category/create',
-    update: 'materials/category/update',
-    remove: 'materials/category/remove',
+    list: 'material/category/list',
+    detail: 'material/category/detail',
+    create: 'material/category/create',
+    update: 'material/category/update',
+    remove: 'material/category/remove',
   },
   uom: {
-    list: 'materials/uom/list',
-    detail: 'materials/uom/detail',
-    create: 'materials/uom/create',
-    update: 'materials/uom/update',
-    remove: 'materials/uom/remove',
+    list: 'material/uom/list',
+    detail: 'material/uom/detail',
+    create: 'material/uom/create',
+    update: 'material/uom/update',
+    remove: 'material/uom/remove',
+  },
+  location: {
+    assign: 'material/location/assign',
+    unassign: 'material/location/unassign',
+    byMaterial: 'material/location/by-material',
+    stock: 'material/location/stock',
+    config: 'material/location/config',
+    stockUpdate: 'material/location/stock/update',
   },
 }
 

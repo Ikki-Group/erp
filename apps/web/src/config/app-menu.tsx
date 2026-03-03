@@ -1,4 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
 import {
   BoxIcon,
   CirclePileIcon,
@@ -7,6 +6,7 @@ import {
   PackageIcon,
   Settings2Icon,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export interface AppMenu {
   title: string
@@ -68,6 +68,11 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
           title: 'Daftar Bahan Baku',
           href: '/materials',
           isActive: pathname === '/materials',
+        },
+        {
+          title: 'Stok per Lokasi',
+          href: '/materials/stock',
+          isActive: pathname.startsWith('/materials/stock'),
         },
         {
           title: 'Kategori',

@@ -1,18 +1,17 @@
-import type { HydratedDocument, InferSchemaType } from 'mongoose'
+import type { db } from '@/db'
 
-import type { MetadataSchema } from './schema'
+/* -------------------------------------------------------------------------- */
+/*                             Drizzle utility types                          */
+/* -------------------------------------------------------------------------- */
 
-/** A Mongoose hydrated document (has methods, virtuals, _id, etc.) */
-export type Hydrated<Schema> = HydratedDocument<InferSchemaType<Schema>>
+/** The main Drizzle database instance type. */
+export type Database = typeof db
 
-/** Infers the plain TypeScript type from a Mongoose Schema. No methods or virtuals. */
-export type InferSchema<Schema> = InferSchemaType<Schema>
-
-/** @deprecated Use `InferSchema<T>` instead. Kept for backwards compatibility. */
-export type HydratedSchema<Schema> = InferSchemaType<Schema>
-
-/** Inferred type of the shared MetadataSchema. Always stays in sync with the schema definition. */
-export type IMetadataSchema = InferSchemaType<typeof MetadataSchema>
+/** A transaction context (same shape as `db` but scoped). */
+export type DBTx = Parameters<Parameters<Database['transaction']>[0]>[0]
 
 /** Shorthand for T | null */
 export type Nullable<T> = T | null
+
+/** Extract the column types of a table for select/insert operations. */
+export type InferTable<T extends Record<string, unknown>> = T extends Record<string, unknown> ? T : never

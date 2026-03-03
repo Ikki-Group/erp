@@ -27,12 +27,12 @@ const FormDto = z.object({
   description: z.string().min(1),
   sku: z.string().min(1),
   type: z.enum(['raw', 'semi']),
-  categoryId: z.number().nullable(),
-  baseUomId: z.number(),
+  categoryId: z.string().nullable(),
+  baseUom: z.string(),
   conversions: z.array(
     z.object({
-      uomId: z.number(),
-      conversionFactor: z.string().min(1),
+      uom: z.string(),
+      factor: z.string().min(1),
     })
   ),
 })
@@ -51,8 +51,8 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     const [_, ...others] = v.conversions
     conversions.push(
       ...others.map(i => ({
-        uomId: i.uomId,
-        conversionFactor: i.conversionFactor,
+        uom: i.uom,
+        factor: i.factor,
       }))
     )
   }
@@ -62,7 +62,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
     categoryId: v?.categoryId ?? null!,
-    baseUomId: v?.baseUomId ?? null!,
+    baseUom: v?.baseUom ?? null!,
     conversions,
   }
 }
@@ -76,7 +76,7 @@ interface MaterialFormPageProps {
 export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   const navigate = useNavigate()
   const selectedMaterial = useQuery({
-    ...materialApi.detail.query({ id: Number(id) }),
+    ...materialApi.detail.query({ id: id! }),
     enabled: !!id,
   })
 
@@ -88,7 +88,7 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
       value.conversions = [
-        { uomId: value.baseUomId, conversionFactor: '1' },
+        { uom: value.baseUom, factor: '1' },
         ...value.conversions,
       ]
 
@@ -220,7 +220,7 @@ function UomInformationSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <form.AppField name='baseUomId'>
+        <form.AppField name='baseUom'>
           {field => (
             <field.Base label='Satuan Utama' required>
               <field.Select placeholder='Pilih satuan utama' options={uoms} />
@@ -234,7 +234,7 @@ function UomInformationSection() {
 
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
-  const baseUomId = useStore(form.store, s => s.values.baseUomId)
+  const baseUomId = useStore(form.store, s => s.values.baseUom)
   const { data: uoms } = useSuspenseQuery({
     ...uomApi.list.query({ page: 1, limit: 100 }),
     select: ({ data }) =>
@@ -262,7 +262,7 @@ function UomConversionsSection() {
           <Table className='table-fixed'>
             <Table.Header className='bg-muted'>
               <Table.Row>
-                <Table.Head className='w-[400px]'>Detail Konversi</Table.Head>
+                <Table.Head className='w-100'>Detail Konversi</Table.Head>
                 <Table.Head className='w-16 text-center'>Aksi</Table.Head>
               </Table.Row>
             </Table.Header>
@@ -291,7 +291,7 @@ function UomConversionsSection() {
                               1
                             </div>
                             <div className='w-52'>
-                              <form.AppField name={`conversions[${i}].uomId`}>
+                              <form.AppField name={`conversions[${i}].uom`}>
                                 {field => (
                                   <field.Select
                                     required
@@ -305,9 +305,7 @@ function UomConversionsSection() {
                               =
                             </div>
                             <div className='w-52'>
-                              <form.AppField
-                                name={`conversions[${i}].conversionFactor`}
-                              >
+                              <form.AppField name={`conversions[${i}].factor`}>
                                 {field => (
                                   <field.Input
                                     required
@@ -347,8 +345,8 @@ function UomConversionsSection() {
           className='w-fit'
           onClick={() => {
             form.pushFieldValue('conversions', {
-              uomId: null!,
-              conversionFactor: '',
+              uom: null!,
+              factor: '',
             })
           }}
         >

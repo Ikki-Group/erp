@@ -1,23 +1,17 @@
-import { ItemCategoryService } from './item-category.service'
-import { ItemLocationsService } from './item-locations.service'
-import { ItemUnitConversionService } from './item-unit-conversions.service'
-import { ItemService } from './item.service'
+import type { MaterialServiceModule } from '@/modules/materials/service'
+
+import { StockSummaryService } from './stock-summary.service'
+import { StockTransactionService } from './stock-transaction.service'
 
 export class InventoryServiceModule {
-  public category: ItemCategoryService
-  public item: ItemService
-  public unitConversion: ItemUnitConversionService
-  public location: ItemLocationsService
+  public readonly transaction: StockTransactionService
+  public readonly summary: StockSummaryService
 
-  constructor() {
-    this.category = new ItemCategoryService()
-    this.item = new ItemService()
-    this.unitConversion = new ItemUnitConversionService()
-    this.location = new ItemLocationsService()
+  constructor(materialServiceModule: MaterialServiceModule) {
+    this.transaction = new StockTransactionService(materialServiceModule.mLocation)
+    this.summary = new StockSummaryService(materialServiceModule.mLocation)
   }
 }
 
-export { ItemCategoryService } from './item-category.service'
-export { ItemLocationsService } from './item-locations.service'
-export { ItemUnitConversionService } from './item-unit-conversions.service'
-export { ItemService } from './item.service'
+export { StockSummaryService } from './stock-summary.service'
+export { StockTransactionService } from './stock-transaction.service'
