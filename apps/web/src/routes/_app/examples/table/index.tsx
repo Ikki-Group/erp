@@ -63,7 +63,7 @@ const columns: Array<ColumnDef<Payment>> = [
   {
     accessorKey: 'id',
     header: 'Transaction ID',
-    cell: ({ row }) => <div className="font-mono">{row.getValue('id')}</div>,
+    cell: ({ row }) => <div className='font-mono'>{row.getValue('id')}</div>,
   },
   {
     accessorKey: 'email',
@@ -73,13 +73,13 @@ const columns: Array<ColumnDef<Payment>> = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const status = row.getValue('status')
-      return <div className="capitalize">{status}</div>
+      const status = row.getValue<string>('status')
+      return <div className='capitalize'>{status}</div>
     },
   },
   {
     accessorKey: 'amount',
-    header: () => <div className="text-right">Amount</div>,
+    header: () => <div className='text-right'>Amount</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue('amount'))
       const formatted = new Intl.NumberFormat('en-US', {
@@ -87,7 +87,7 @@ const columns: Array<ColumnDef<Payment>> = [
         currency: 'USD',
       }).format(amount)
 
-      return <div className="text-right font-medium">{formatted}</div>
+      return <div className='text-right font-medium'>{formatted}</div>
     },
   },
   {
@@ -104,20 +104,20 @@ function TablePage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Transactions"
-        description="Manage and view all your transactions in one place."
+        title='Transactions'
+        description='Manage and view all your transactions in one place.'
         action={
           <>
-            <Button variant="outline" size="sm">
-              <FileUpIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <FileUpIcon className='mr-2 h-4 w-4' />
               Export
             </Button>
-            <Button variant="outline" size="sm">
-              <FileDownIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <FileDownIcon className='mr-2 h-4 w-4' />
               Import
             </Button>
-            <Button size="sm">
-              <PlusIcon className="mr-2 h-4 w-4" />
+            <Button size='sm'>
+              <PlusIcon className='mr-2 h-4 w-4' />
               Add Transaction
             </Button>
           </>
@@ -128,8 +128,8 @@ function TablePage() {
         <DataTable
           columns={columns}
           data={data}
-          searchKey="email"
-          searchPlaceholder="Filter emails..."
+          searchKey='email'
+          searchPlaceholder='Filter emails...'
         />
       </Page.Content>
     </Page>
