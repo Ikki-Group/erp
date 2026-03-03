@@ -6,8 +6,7 @@ import {
   PlusIcon,
   TrendingUpIcon,
 } from 'lucide-react'
-import type {
-  DescriptionItem} from '@/components/common/data-display/description-list';
+import type { DescriptionItem } from '@/components/common/data-display/description-list'
 import { Page } from '@/components/layout/page'
 import { Grid, Inline, Stack } from '@/components/common/layout/primitives'
 import { Button } from '@/components/ui/button'
@@ -19,9 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  DescriptionList
-} from '@/components/common/data-display/description-list'
+import { DescriptionList } from '@/components/common/data-display/description-list'
 import {
   formatCurrency,
   getCategoryLabel,
@@ -46,11 +43,11 @@ function ProductDetailPage() {
         <Page.Content>
           <Card>
             <CardContent>
-              <Stack gap="md" align="center">
-                <AlertTriangleIcon className="h-12 w-12 text-muted-foreground" />
-                <div className="text-center">
-                  <h3 className="font-medium">Produk Tidak Ditemukan</h3>
-                  <p className="text-sm text-muted-foreground">
+              <Stack gap='md' align='center'>
+                <AlertTriangleIcon className='h-12 w-12 text-muted-foreground' />
+                <div className='text-center'>
+                  <h3 className='font-medium'>Produk Tidak Ditemukan</h3>
+                  <p className='text-sm text-muted-foreground'>
                     Produk yang Anda cari tidak ditemukan.
                   </p>
                 </div>
@@ -68,26 +65,26 @@ function ProductDetailPage() {
   const stockStatus = getStockStatus(
     product.stock,
     product.minStock,
-    product.reorderPoint,
+    product.reorderPoint
   )
 
   const basicInfo: Array<DescriptionItem> = [
     {
       term: 'Kode Produk',
       description: (
-        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+        <code className='bg-muted px-2 py-1 rounded text-sm font-mono'>
           {product.code}
         </code>
       ),
     },
     {
       term: 'Nama Produk',
-      description: <span className="font-medium">{product.name}</span>,
+      description: <span className='font-medium'>{product.name}</span>,
     },
     {
       term: 'Kategori',
       description: (
-        <Badge variant="outline">{getCategoryLabel(product.category)}</Badge>
+        <Badge variant='outline'>{getCategoryLabel(product.category)}</Badge>
       ),
     },
     {
@@ -116,7 +113,7 @@ function ProductDetailPage() {
     {
       term: 'Stok Saat Ini',
       description: (
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <span
             className={`text-lg font-bold ${
               stockStatus === 'critical'
@@ -128,12 +125,12 @@ function ProductDetailPage() {
           >
             {product.stock}
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className='text-sm text-muted-foreground'>
             {getUnitLabel(product.unit)}
           </span>
           {stockStatus !== 'normal' && (
             <Badge
-              variant="outline"
+              variant='outline'
               className={
                 stockStatus === 'critical'
                   ? 'border-red-500 text-red-700'
@@ -165,7 +162,7 @@ function ProductDetailPage() {
     {
       term: 'Nilai Stok',
       description: (
-        <span className="font-bold text-lg">
+        <span className='font-bold text-lg'>
           {formatCurrency(product.stock * product.price)}
         </span>
       ),
@@ -176,7 +173,7 @@ function ProductDetailPage() {
     {
       term: 'Harga Jual',
       description: (
-        <span className="text-lg font-bold">
+        <span className='text-lg font-bold'>
           {formatCurrency(product.price)}
         </span>
       ),
@@ -188,21 +185,21 @@ function ProductDetailPage() {
     {
       term: 'Margin Keuntungan',
       description: (
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-green-600">
+        <div className='flex items-center gap-2'>
+          <span className='font-medium text-green-600'>
             {(((product.price - product.cost) / product.price) * 100).toFixed(
-              1,
+              1
             )}
             %
           </span>
-          <TrendingUpIcon className="h-4 w-4 text-green-500" />
+          <TrendingUpIcon className='h-4 w-4 text-green-500' />
         </div>
       ),
     },
     {
       term: 'Keuntungan per Unit',
       description: (
-        <span className="font-medium">
+        <span className='font-medium'>
           {formatCurrency(product.price - product.cost)}
         </span>
       ),
@@ -223,7 +220,7 @@ function ProductDetailPage() {
           {
             term: 'Barcode',
             description: (
-              <code className="bg-muted px-2 py-1 rounded text-sm">
+              <code className='bg-muted px-2 py-1 rounded text-sm'>
                 {product.barcode}
               </code>
             ),
@@ -235,7 +232,7 @@ function ProductDetailPage() {
           {
             term: 'SKU',
             description: (
-              <code className="bg-muted px-2 py-1 rounded text-sm">
+              <code className='bg-muted px-2 py-1 rounded text-sm'>
                 {product.sku}
               </code>
             ),
@@ -284,22 +281,22 @@ function ProductDetailPage() {
   ]
 
   return (
-    <Page size="lg">
+    <Page size='lg'>
       <Page.BlockHeader
-        title="Produk"
-        description="Kelola katalog produk, inventori, dan harga Anda"
+        title='Produk'
+        description='Kelola katalog produk, inventori, dan harga Anda'
         action={
           <>
-            <Button variant="outline" size="sm">
-              <FileUpIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <FileUpIcon className='mr-2 h-4 w-4' />
               Export
             </Button>
-            <Button variant="outline" size="sm">
-              <FileDownIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <FileDownIcon className='mr-2 h-4 w-4' />
               Import
             </Button>
-            <Button size="sm">
-              <PlusIcon className="mr-2 h-4 w-4" />
+            <Button size='sm'>
+              <PlusIcon className='mr-2 h-4 w-4' />
               Tambah Produk
             </Button>
           </>
@@ -307,7 +304,7 @@ function ProductDetailPage() {
       />
 
       <Page.Content>
-        <Stack gap="lg">
+        <Stack gap='lg'>
           {/* Stock Alert */}
           {stockStatus !== 'normal' && (
             <Card
@@ -318,7 +315,7 @@ function ProductDetailPage() {
               }
             >
               <CardContent>
-                <Inline gap="md" align="center">
+                <Inline gap='md' align='center'>
                   <AlertTriangleIcon
                     className={`h-5 w-5 ${
                       stockStatus === 'critical'
@@ -353,9 +350,9 @@ function ProductDetailPage() {
                     </p>
                   </div>
                   <Button
-                    size="sm"
+                    size='sm'
                     variant={stockStatus === 'critical' ? 'default' : 'outline'}
-                    className="ml-auto"
+                    className='ml-auto'
                   >
                     Buat Purchase Order
                   </Button>
@@ -375,7 +372,7 @@ function ProductDetailPage() {
                 <DescriptionList
                   items={basicInfo}
                   columns={1}
-                  className="sm:grid-cols-2"
+                  className='sm:grid-cols-2'
                 />
               </CardContent>
             </Card>
@@ -387,7 +384,7 @@ function ProductDetailPage() {
                 <CardDescription>Detail harga jual dan biaya</CardDescription>
               </CardHeader>
               <CardContent>
-                <DescriptionList items={pricingInfo} variant="bordered" />
+                <DescriptionList items={pricingInfo} variant='bordered' />
               </CardContent>
             </Card>
           </Grid>
@@ -402,7 +399,7 @@ function ProductDetailPage() {
               <DescriptionList
                 items={inventoryInfo}
                 columns={1}
-                className="sm:grid-cols-2 lg:grid-cols-3"
+                className='sm:grid-cols-2 lg:grid-cols-3'
               />
             </CardContent>
           </Card>
@@ -420,7 +417,7 @@ function ProductDetailPage() {
                 <DescriptionList
                   items={additionalInfo}
                   columns={1}
-                  className="sm:grid-cols-2"
+                  className='sm:grid-cols-2'
                 />
               </CardContent>
             </Card>
@@ -433,9 +430,9 @@ function ProductDetailPage() {
                 <CardTitle>Tag</CardTitle>
               </CardHeader>
               <CardContent>
-                <Inline gap="sm" wrap>
-                  {product.tags.map((tag) => (
-                    <Badge key={tag} variant="outline">
+                <Inline gap='sm' wrap>
+                  {product.tags.map(tag => (
+                    <Badge key={tag} variant='outline'>
                       {tag}
                     </Badge>
                   ))}
@@ -454,7 +451,7 @@ function ProductDetailPage() {
               <DescriptionList
                 items={systemInfo}
                 columns={1}
-                className="sm:grid-cols-2"
+                className='sm:grid-cols-2'
               />
             </CardContent>
           </Card>

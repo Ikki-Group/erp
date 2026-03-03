@@ -2,9 +2,9 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeftIcon } from 'lucide-react'
 import { cva } from 'class-variance-authority'
 import { Button } from '../ui/button'
-import type { VariantProps } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority'
 import type { ComponentProps } from 'react'
-import type { LinkOptions } from '@tanstack/react-router';
+import type { LinkOptions } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 
 const pageVariants = cva('w-full mx-auto flex-1 flex py-6 flex-col gap-4', {
@@ -46,7 +46,7 @@ function Description({ className, ...props }: ComponentProps<'p'>) {
       {...props}
       className={cn(
         'text-muted-foreground text-sm truncate leading-relaxed',
-        className,
+        className
       )}
     />
   )
@@ -55,8 +55,8 @@ function Description({ className, ...props }: ComponentProps<'p'>) {
 function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
   return (
     <Button
-      variant="outline"
-      size="icon-sm"
+      variant='outline'
+      size='icon-sm'
       className={cn('shrink-0', className)}
       nativeButton={false}
       {...props}
@@ -115,30 +115,30 @@ function BlockHeader({
     <Header
       className={cn(
         'items-start gap-x-2',
-        border ? 'border-b pb-6 mb-2' : 'mb-4',
+        border ? 'border-b pb-6 mb-2' : 'mb-4'
       )}
     >
       {back && (
         <div>
           {typeof back === 'function' ? (
-            <BackButton type="button" onClick={back} />
+            <BackButton type='button' onClick={back} />
           ) : (
             <BackButton render={<Link {...back} />} />
           )}
         </div>
       )}
-      <div className="flex flex-wrap gap-y-4 grow gap-x-8">
-        <div className="flex flex-col grow gap-0.5">
-          <Title className="grow">{title}</Title>
+      <div className='flex flex-wrap gap-y-4 grow gap-x-8'>
+        <div className='flex flex-col grow gap-0.5'>
+          <Title className='grow'>{title}</Title>
           {description && (
-            <Description className="text-wrap">{description}</Description>
+            <Description className='text-wrap'>{description}</Description>
           )}
         </div>
         {action && (
           <Actions
             className={cn(
               'items-end gap-1 flex flex-wrap justify-start',
-              !!description && '',
+              !!description && ''
             )}
           >
             {action}

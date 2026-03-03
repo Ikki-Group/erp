@@ -13,20 +13,20 @@ function DetailPage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Order #ORD-2024-001"
-        description="Placed on January 23, 2024"
+        title='Order #ORD-2024-001'
+        description='Placed on January 23, 2024'
         action={
           <>
-            <Button variant="outline" size="sm">
-              <PrinterIcon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <PrinterIcon className='mr-2 h-4 w-4' />
               Print
             </Button>
-            <Button variant="outline" size="sm">
-              <Edit2Icon className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm'>
+              <Edit2Icon className='mr-2 h-4 w-4' />
               Edit
             </Button>
-            <Button variant="destructive" size="sm">
-              <Trash2Icon className="mr-2 h-4 w-4" />
+            <Button variant='destructive' size='sm'>
+              <Trash2Icon className='mr-2 h-4 w-4' />
               Delete
             </Button>
           </>
@@ -34,41 +34,41 @@ function DetailPage() {
       />
 
       <Page.Content>
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="space-y-6 md:col-span-2">
+        <div className='grid gap-6 md:grid-cols-3'>
+          <div className='space-y-6 md:col-span-2'>
             <Card>
               <CardHeader>
                 <CardTitle>Order Details</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className='grid gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
+                    <h4 className='text-sm font-semibold text-muted-foreground'>
                       Customer
                     </h4>
                     <p>Sofia Davis</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className='text-sm text-muted-foreground'>
                       sofia@example.com
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
+                    <h4 className='text-sm font-semibold text-muted-foreground'>
                       Phone
                     </h4>
                     <p>+1 202-555-0136</p>
                   </div>
                 </div>
                 <Separator />
-                <div className="grid grid-cols-2 gap-4">
+                <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
+                    <h4 className='text-sm font-semibold text-muted-foreground'>
                       Shipping Address
                     </h4>
                     <p>1234 Main St.</p>
                     <p>Anytown, CA 12345</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">
+                    <h4 className='text-sm font-semibold text-muted-foreground'>
                       Billing Address
                     </h4>
                     <p>Same as shipping</p>
@@ -82,35 +82,35 @@ function DetailPage() {
                 <CardTitle>Order Items</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative w-full overflow-auto">
-                  <table className="w-full caption-bottom text-sm">
-                    <thead className="[&_tr]:border-b">
-                      <tr className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
-                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                <div className='relative w-full overflow-auto'>
+                  <table className='w-full caption-bottom text-sm'>
+                    <thead className='[&_tr]:border-b'>
+                      <tr className='hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors'>
+                        <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground'>
                           Product
                         </th>
-                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                        <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground'>
                           Quantity
                         </th>
-                        <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">
+                        <th className='h-12 px-4 text-right align-middle font-medium text-muted-foreground'>
                           Amount
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="[&_tr:last-child]:border-0">
-                      <tr className="hover:bg-muted/50 border-b transition-colors">
-                        <td className="p-4 align-middle font-medium">
+                    <tbody className='[&_tr:last-child]:border-0'>
+                      <tr className='hover:bg-muted/50 border-b transition-colors'>
+                        <td className='p-4 align-middle font-medium'>
                           Glimmer Lamps
                         </td>
-                        <td className="p-4 align-middle">2</td>
-                        <td className="p-4 text-right align-middle">$250.00</td>
+                        <td className='p-4 align-middle'>2</td>
+                        <td className='p-4 text-right align-middle'>$250.00</td>
                       </tr>
-                      <tr className="hover:bg-muted/50 border-b transition-colors">
-                        <td className="p-4 align-middle font-medium">
+                      <tr className='hover:bg-muted/50 border-b transition-colors'>
+                        <td className='p-4 align-middle font-medium'>
                           Aqua Filters
                         </td>
-                        <td className="p-4 align-middle">1</td>
-                        <td className="p-4 text-right align-middle">$49.00</td>
+                        <td className='p-4 align-middle'>1</td>
+                        <td className='p-4 text-right align-middle'>$49.00</td>
                       </tr>
                     </tbody>
                   </table>
@@ -119,18 +119,18 @@ function DetailPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className='space-y-6'>
             <Card>
               <CardHeader>
                 <CardTitle>Payment Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                <div className='flex items-center justify-between'>
                   <span>Total</span>
-                  <span className="text-lg font-bold">$299.00</span>
+                  <span className='text-lg font-bold'>$299.00</span>
                 </div>
-                <Separator className="my-4" />
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                <Separator className='my-4' />
+                <div className='text-sm text-muted-foreground flex items-center gap-2'>
                   <span>Paid with Visa ending in 4242</span>
                 </div>
               </CardContent>
@@ -141,18 +141,18 @@ function DetailPage() {
                 <CardTitle>History</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-4">
-                  <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
-                    <div className="bg-primary absolute -left-1.25 top-0 h-2 w-2 rounded-full" />
-                    <p className="text-sm font-medium">Order Placed</p>
-                    <p className="text-xs text-muted-foreground">
+                <ul className='space-y-4'>
+                  <li className='border-muted relative border-l-2 pb-4 pl-6 last:pb-0'>
+                    <div className='bg-primary absolute -left-1.25 top-0 h-2 w-2 rounded-full' />
+                    <p className='text-sm font-medium'>Order Placed</p>
+                    <p className='text-xs text-muted-foreground'>
                       Jan 23, 2024 - 10:00 AM
                     </p>
                   </li>
-                  <li className="border-muted relative border-l-2 pb-4 pl-6 last:pb-0">
-                    <div className="bg-muted-foreground absolute -left-1.25 top-0 h-2 w-2 rounded-full" />
-                    <p className="text-sm font-medium">Payment Confirmed</p>
-                    <p className="text-xs text-muted-foreground">
+                  <li className='border-muted relative border-l-2 pb-4 pl-6 last:pb-0'>
+                    <div className='bg-muted-foreground absolute -left-1.25 top-0 h-2 w-2 rounded-full' />
+                    <p className='text-sm font-medium'>Payment Confirmed</p>
+                    <p className='text-xs text-muted-foreground'>
                       Jan 23, 2024 - 10:05 AM
                     </p>
                   </li>

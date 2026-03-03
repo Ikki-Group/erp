@@ -6,7 +6,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 
-export default defineConfig((c) => {
+export default defineConfig(c => {
   const isDev = c.command === 'serve'
   return {
     plugins: [

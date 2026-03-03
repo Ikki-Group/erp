@@ -13,15 +13,15 @@ function RouteComponent() {
     <Page>
       <Page.BlockHeader
         border
-        title="Pengaturan Akun"
+        title='Pengaturan Akun'
         back={{ from: '/', to: '/settings/user' }}
-        description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
+        description='Kelola preferensi, pengguna, dan konfigurasi sistem Anda.'
         action={
           <>
-            <Button variant="destructive" size="icon">
+            <Button variant='destructive' size='icon'>
               <Trash2Icon />
             </Button>
-            <Button variant="outline">Tambah Pengguna</Button>
+            <Button variant='outline'>Tambah Pengguna</Button>
             <Button>Tambah Pengguna</Button>
           </>
         }

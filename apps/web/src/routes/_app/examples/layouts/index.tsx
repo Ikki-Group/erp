@@ -12,8 +12,8 @@ const ROUTES = [
 
 function RouteComponent() {
   return (
-    <div className="flex flex-col gap-4 p-6">
-      {ROUTES.map((route) => (
+    <div className='flex flex-col gap-4 p-6'>
+      {ROUTES.map(route => (
         <Button key={route.id} render={<route.Link />} nativeButton={false}>
           {route.id}
         </Button>

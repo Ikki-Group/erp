@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 
 import { cn } from '@/lib/utils'
@@ -40,11 +40,11 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
     sizes: [5, 10, 25, 50, 100],
     sizesLabel: 'Show',
     sizesDescription: 'per page',
-    sizesSkeleton: <Skeleton className="h-8 w-44" />,
+    sizesSkeleton: <Skeleton className='h-8 w-44' />,
     moreLimit: 5,
     more: false,
     info: '{from} - {to} of {count}',
-    infoSkeleton: <Skeleton className="h-8 w-60" />,
+    infoSkeleton: <Skeleton className='h-8 w-60' />,
     rowsPerPageLabel: 'Rows per page',
     previousPageLabel: 'Go to previous page',
     nextPageLabel: 'Go to next page',
@@ -78,7 +78,7 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
     Math.floor(pageIndex / paginationMoreLimit) * paginationMoreLimit
   const currentGroupEnd = Math.min(
     currentGroupStart + paginationMoreLimit,
-    pageCount,
+    pageCount
   )
 
   // Render page buttons based on the current group
@@ -88,8 +88,8 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
       buttons.push(
         <Button
           key={i}
-          size="icon-sm"
-          variant="ghost"
+          size='icon-sm'
+          variant='ghost'
           className={cn(btnBaseClasses, 'text-muted-foreground', {
             'bg-accent text-accent-foreground': pageIndex === i,
           })}
@@ -100,7 +100,7 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
           }}
         >
           {i + 1}
-        </Button>,
+        </Button>
       )
     }
     return buttons
@@ -111,9 +111,9 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
     if (currentGroupStart > 0) {
       return (
         <Button
-          size="icon-sm"
+          size='icon-sm'
           className={btnBaseClasses}
-          variant="ghost"
+          variant='ghost'
           onClick={() => table.setPageIndex(currentGroupStart - 1)}
         >
           {mergedProps.ellipsisText}
@@ -129,8 +129,8 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
       return (
         <Button
           className={btnBaseClasses}
-          variant="ghost"
-          size="icon-sm"
+          variant='ghost'
+          size='icon-sm'
           onClick={() => table.setPageIndex(currentGroupEnd)}
         >
           {mergedProps.ellipsisText}
@@ -142,31 +142,31 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
 
   return (
     <div
-      data-slot="data-grid-pagination"
+      data-slot='data-grid-pagination'
       className={cn(
         'flex grow flex-col flex-wrap items-center justify-between gap-2.5 py-2.5 sm:flex-row sm:py-0',
-        mergedProps?.className,
+        mergedProps?.className
       )}
     >
-      <div className="order-2 flex flex-wrap items-center space-x-2.5 pb-2.5 sm:order-1 sm:pb-0">
+      <div className='order-2 flex flex-wrap items-center space-x-2.5 pb-2.5 sm:order-1 sm:pb-0'>
         {isLoading ? (
           mergedProps?.sizesSkeleton
         ) : (
           <>
-            <div className="text-muted-foreground text-sm">
+            <div className='text-muted-foreground text-sm'>
               {mergedProps.rowsPerPageLabel}
             </div>
             <Select
               value={`${pageSize}`}
-              onValueChange={(value) => {
+              onValueChange={value => {
                 const newPageSize = Number(value)
                 table.setPageSize(newPageSize)
               }}
             >
-              <SelectTrigger className="w-17" size="sm">
+              <SelectTrigger className='w-17' size='sm'>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent side="top" className="min-w-18">
+              <SelectContent side='top' className='min-w-18'>
                 {mergedProps?.sizes?.map((size: number) => (
                   <SelectItem key={size} value={`${size}`}>
                     {size}
@@ -177,27 +177,27 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
           </>
         )}
       </div>
-      <div className="order-1 flex flex-col items-center justify-center gap-2.5 pt-2.5 sm:order-2 sm:flex-row sm:justify-end sm:pt-0">
+      <div className='order-1 flex flex-col items-center justify-center gap-2.5 pt-2.5 sm:order-2 sm:flex-row sm:justify-end sm:pt-0'>
         {isLoading ? (
           mergedProps?.infoSkeleton
         ) : (
           <>
-            <div className="text-muted-foreground text-sm order-2 text-nowrap sm:order-1">
+            <div className='text-muted-foreground text-sm order-2 text-nowrap sm:order-1'>
               {paginationInfo}
             </div>
             {pageCount > 1 && (
-              <div className="order-1 flex items-center space-x-1 sm:order-2">
+              <div className='order-1 flex items-center space-x-1 sm:order-2'>
                 <Button
-                  size="icon-sm"
-                  variant="ghost"
+                  size='icon-sm'
+                  variant='ghost'
                   className={btnArrowClasses}
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
-                  <span className="sr-only">
+                  <span className='sr-only'>
                     {mergedProps.previousPageLabel}
                   </span>
-                  <ChevronLeftIcon className="size-4" />
+                  <ChevronLeftIcon className='size-4' />
                 </Button>
 
                 {renderEllipsisPrevButton()}
@@ -207,14 +207,14 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
                 {renderEllipsisNextButton()}
 
                 <Button
-                  size="icon-sm"
-                  variant="ghost"
+                  size='icon-sm'
+                  variant='ghost'
                   className={btnArrowClasses}
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
-                  <span className="sr-only">{mergedProps.nextPageLabel}</span>
-                  <ChevronRightIcon className="size-4" />
+                  <span className='sr-only'>{mergedProps.nextPageLabel}</span>
+                  <ChevronRightIcon className='size-4' />
                 </Button>
               </div>
             )}

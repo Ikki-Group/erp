@@ -1,32 +1,36 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import type { OnChangeFn } from "@tanstack/react-table";
-import type { DataTableFilters, DataTablePagination } from "@/types/data-table-types";
+import type { OnChangeFn } from '@tanstack/react-table'
+import type {
+  DataTableFilters,
+  DataTablePagination,
+} from '@/types/data-table-types'
 
 const DEFAULT_PAGINATION: DataTablePagination = {
   page: 1,
   limit: 10,
-};
+}
 
 export interface DataTableState<F extends DataTableFilters = {}> {
-  pagination: DataTablePagination;
-  setPagination: OnChangeFn<DataTablePagination>;
+  pagination: DataTablePagination
+  setPagination: OnChangeFn<DataTablePagination>
 
-  search: string;
-  setSearch: OnChangeFn<string>;
+  search: string
+  setSearch: OnChangeFn<string>
 
-  filters: F;
-  setFilters: OnChangeFn<F>;
+  filters: F
+  setFilters: OnChangeFn<F>
 }
 
 export function useDataTableState<
   F extends DataTableFilters = DataTableFilters,
 >(): DataTableState<F> {
-  const [pagination, setPagination] = useState<DataTablePagination>(DEFAULT_PAGINATION);
+  const [pagination, setPagination] =
+    useState<DataTablePagination>(DEFAULT_PAGINATION)
 
-  const [search, setSearch] = useState<string>("");
+  const [search, setSearch] = useState<string>('')
 
-  const [filters, setFilters] = useState<F>({} as F);
+  const [filters, setFilters] = useState<F>({} as F)
 
   return {
     pagination,
@@ -35,5 +39,5 @@ export function useDataTableState<
     setSearch,
     filters,
     setFilters,
-  };
+  }
 }

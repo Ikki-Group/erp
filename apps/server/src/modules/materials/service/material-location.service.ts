@@ -6,7 +6,7 @@ import { ConflictError, NotFoundError } from '@/lib/error/http'
 import { toLookupMap } from '@/lib/utils/collection.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import type { LocationService } from '@/modules/location/service/location.service'
+import type { LocationService } from '@/modules/location'
 
 import { DB_NAME } from '@/config/db-name'
 
@@ -173,6 +173,8 @@ export class MaterialLocationService {
 
       const lookupMaterial = pipelineHelper.$lookup({
         from: DB_NAME.MATERIAL,
+        localField: 'materialId',
+        foreignField: '_id',
         as: 'material',
         let: { materialId: '$materialId' },
         pipeline: [

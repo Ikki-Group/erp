@@ -65,14 +65,12 @@ function ComplexFormPage() {
   }
 
   const removeItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id))
+    setItems(items.filter(item => item.id !== id))
   }
 
   const updateItem = (id: string, field: keyof InvoiceItem, value: any) => {
     setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
+      items.map(item => (item.id === id ? { ...item, [field]: value } : item))
     )
   }
 
@@ -88,42 +86,42 @@ function ComplexFormPage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Complex Form"
-        description="Create a new invoice for a client."
+        title='Complex Form'
+        description='Create a new invoice for a client.'
       />
 
       <Page.Content>
-        <div className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className='space-y-6'>
+          <div className='grid gap-6 md:grid-cols-2'>
             <Card>
               <CardHeader>
                 <CardTitle>Client Details</CardTitle>
                 <CardDescription>Bill to information.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
+              <CardContent className='space-y-4'>
+                <div className='grid gap-2'>
                   <Label>Client</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder='Select client' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="acme">Acme Corp</SelectItem>
-                      <SelectItem value="globex">Globex Inc</SelectItem>
-                      <SelectItem value="soylent">Soylent Corp</SelectItem>
+                      <SelectItem value='acme'>Acme Corp</SelectItem>
+                      <SelectItem value='globex'>Globex Inc</SelectItem>
+                      <SelectItem value='soylent'>Soylent Corp</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Email</Label>
-                  <Input placeholder="client@example.com" />
+                  <Input placeholder='client@example.com' />
                 </div>
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Address</Label>
-                  <Input placeholder="Street Address" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="City" />
-                    <Input placeholder="Postal Code" />
+                  <Input placeholder='Street Address' />
+                  <div className='grid grid-cols-2 gap-2'>
+                    <Input placeholder='City' />
+                    <Input placeholder='Postal Code' />
                   </div>
                 </div>
               </CardContent>
@@ -134,33 +132,33 @@ function ComplexFormPage() {
                 <CardTitle>Invoice Details</CardTitle>
                 <CardDescription>Payment terms and dates.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+              <CardContent className='space-y-4'>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='grid gap-2'>
                     <Label>Invoice Date</Label>
-                    <Input type="date" />
+                    <Input type='date' />
                   </div>
-                  <div className="grid gap-2">
+                  <div className='grid gap-2'>
                     <Label>Due Date</Label>
-                    <Input type="date" />
+                    <Input type='date' />
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Currency</Label>
-                  <Select defaultValue="usd">
+                  <Select defaultValue='usd'>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
+                      <SelectValue placeholder='Select currency' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="usd">USD ($)</SelectItem>
-                      <SelectItem value="eur">EUR (€)</SelectItem>
-                      <SelectItem value="gbp">GBP (£)</SelectItem>
+                      <SelectItem value='usd'>USD ($)</SelectItem>
+                      <SelectItem value='eur'>EUR (€)</SelectItem>
+                      <SelectItem value='gbp'>GBP (£)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
+                <div className='grid gap-2'>
                   <Label>Notes</Label>
-                  <Input placeholder="Optional notes for the client..." />
+                  <Input placeholder='Optional notes for the client...' />
                 </div>
               </CardContent>
             </Card>
@@ -168,83 +166,83 @@ function ComplexFormPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex justify-between items-center">
+              <CardTitle className='flex justify-between items-center'>
                 <span>Items</span>
-                <Button size="sm" variant="outline" onClick={addItem}>
-                  <PlusIcon className="h-4 w-4 mr-2" />
+                <Button size='sm' variant='outline' onClick={addItem}>
+                  <PlusIcon className='h-4 w-4 mr-2' />
                   Add Item
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className='p-0'>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-25">Quantity</TableHead>
-                    <TableHead className="w-37.5">Unit Price</TableHead>
-                    <TableHead className="w-37.5 text-right">Amount</TableHead>
-                    <TableHead className="w-12.5"></TableHead>
+                    <TableHead className='w-[40%]'>Description</TableHead>
+                    <TableHead className='w-25'>Quantity</TableHead>
+                    <TableHead className='w-37.5'>Unit Price</TableHead>
+                    <TableHead className='w-37.5 text-right'>Amount</TableHead>
+                    <TableHead className='w-12.5'></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map(item => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Input
                           value={item.description}
-                          onChange={(e) =>
+                          onChange={e =>
                             updateItem(item.id, 'description', e.target.value)
                           }
-                          placeholder="Item description"
-                          className="border-0 shadow-none focus-visible:ring-0 px-0 h-auto font-medium"
+                          placeholder='Item description'
+                          className='border-0 shadow-none focus-visible:ring-0 px-0 h-auto font-medium'
                         />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
+                          type='number'
                           value={item.quantity}
-                          onChange={(e) =>
+                          onChange={e =>
                             updateItem(
                               item.id,
                               'quantity',
-                              parseFloat(e.target.value) || 0,
+                              parseFloat(e.target.value) || 0
                             )
                           }
-                          className="h-8 w-20"
+                          className='h-8 w-20'
                         />
                       </TableCell>
                       <TableCell>
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        <div className='relative'>
+                          <span className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm'>
                             $
                           </span>
                           <Input
-                            type="number"
+                            type='number'
                             value={item.unitPrice}
-                            onChange={(e) =>
+                            onChange={e =>
                               updateItem(
                                 item.id,
                                 'unitPrice',
-                                parseFloat(e.target.value) || 0,
+                                parseFloat(e.target.value) || 0
                               )
                             }
-                            className="h-8 w-32 pl-6"
+                            className='h-8 w-32 pl-6'
                           />
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className='text-right font-medium'>
                         ${(item.quantity * item.unitPrice).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         {items.length > 1 && (
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-destructive hover:text-destructive'
                             onClick={() => removeItem(item.id)}
                           >
-                            <Trash2Icon className="h-4 w-4" />
+                            <Trash2Icon className='h-4 w-4' />
                           </Button>
                         )}
                       </TableCell>
@@ -253,16 +251,16 @@ function ComplexFormPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <div className="p-6 bg-muted/20 border-t flex flex-col items-end gap-2">
-              <div className="flex justify-between w-75 text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+            <div className='p-6 bg-muted/20 border-t flex flex-col items-end gap-2'>
+              <div className='flex justify-between w-75 text-sm'>
+                <span className='text-muted-foreground'>Subtotal</span>
                 <span>${calculateSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between w-75 text-sm">
-                <span className="text-muted-foreground">Tax (10%)</span>
+              <div className='flex justify-between w-75 text-sm'>
+                <span className='text-muted-foreground'>Tax (10%)</span>
                 <span>${(calculateSubtotal() * 0.1).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between w-75 text-lg font-bold mt-2">
+              <div className='flex justify-between w-75 text-lg font-bold mt-2'>
                 <span>Total</span>
                 <span>${calculateTotal().toFixed(2)}</span>
               </div>

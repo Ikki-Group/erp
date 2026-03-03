@@ -14,7 +14,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-
 interface DataTableTableProps extends ComponentProps<'table'> {}
 
 export function DataTableTable({ children, ...props }: DataTableTableProps) {
@@ -24,9 +23,9 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
   return (
     <table {...props}>
       <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
+        {table.getHeaderGroups().map(headerGroup => (
           <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
+            {headerGroup.headers.map(header => {
               const canSort = header.column.getCanSort()
               const isSorted = header.column.getIsSorted()
 
@@ -40,7 +39,7 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
                   }}
                   className={cn(
                     header.column.columnDef.meta?.className,
-                    'bg-muted/30',
+                    'bg-muted/30'
                   )}
                   onClick={
                     canSort
@@ -49,19 +48,19 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
                   }
                 >
                   {header.isPlaceholder ? null : (
-                    <div className="flex items-center gap-2">
+                    <div className='flex items-center gap-2'>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                       {canSort && (
-                        <span className="ml-auto">
+                        <span className='ml-auto'>
                           {isSorted === 'asc' ? (
-                            <ArrowUpIcon className="h-4 w-4" />
+                            <ArrowUpIcon className='h-4 w-4' />
                           ) : isSorted === 'desc' ? (
-                            <ArrowDownIcon className="h-4 w-4" />
+                            <ArrowDownIcon className='h-4 w-4' />
                           ) : (
-                            <ChevronsUpDownIcon className="h-4 w-4 opacity-50" />
+                            <ChevronsUpDownIcon className='h-4 w-4 opacity-50' />
                           )}
                         </span>
                       )}
@@ -77,20 +76,20 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
         {isLoading ? (
           Array.from({ length: pageSize }).map((_, i) => (
             <TableRow key={`skeleton-${i}`}>
-              {table.getVisibleFlatColumns().map((column) => (
+              {table.getVisibleFlatColumns().map(column => (
                 <TableCell
                   key={column.id}
                   style={{
                     ...getCommonPinningStyles({ column }),
                   }}
                 >
-                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className='h-4 w-full' />
                 </TableCell>
               ))}
             </TableRow>
           ))
         ) : table.getRowModel().rows?.length ? (
-          table.getRowModel().rows.map((row) => (
+          table.getRowModel().rows.map(row => (
             <TableRow
               key={row.id}
               data-state={row.getIsSelected() && 'selected'}
@@ -101,7 +100,7 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
               // onClick={() => onRowClick?.(row.original)}
               // onDoubleClick={() => onRowDoubleClick?.(row.original)}
             >
-              {row.getVisibleCells().map((cell) => (
+              {row.getVisibleCells().map(cell => (
                 <TableCell
                   key={cell.id}
                   style={{
@@ -119,7 +118,7 @@ export function DataTableTable({ children, ...props }: DataTableTableProps) {
           <TableRow>
             <TableCell
               colSpan={table.getAllColumns().length}
-              className="h-24 text-center text-muted-foreground"
+              className='h-24 text-center text-muted-foreground'
             >
               {/* {emptyMessage} */}
               No results.

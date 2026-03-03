@@ -48,12 +48,12 @@ const MOCK_DB = generateMockData(500) // Large dataset simulation
 
 // --- Mock Server Action ---
 const searchIngredients = async (query: string): Promise<Array<Ingredient>> => {
-  await new Promise((resolve) => setTimeout(resolve, 500)) // Network latency
+  await new Promise(resolve => setTimeout(resolve, 500)) // Network latency
   if (!query) return MOCK_DB.slice(0, 20)
   return MOCK_DB.filter(
-    (item) =>
+    item =>
       item.name.toLowerCase().includes(query.toLowerCase()) ||
-      item.category.toLowerCase().includes(query.toLowerCase()),
+      item.category.toLowerCase().includes(query.toLowerCase())
   ).slice(0, 20) // Limit results
 }
 
@@ -63,33 +63,35 @@ export const Route = createFileRoute('/_app/examples/search/')({
 
 function SearchDialogPage() {
   const [selectedSingle, setSelectedSingle] = useState<Ingredient | null>(null)
-  const [selectedMultiple, setSelectedMultiple] = useState<Array<Ingredient>>([])
+  const [selectedMultiple, setSelectedMultiple] = useState<Array<Ingredient>>(
+    []
+  )
 
   return (
     <Page>
       <Page.BlockHeader
-        title="Search & Select Dialog"
-        description="Optimized dialogs for searching and selecting from large server-side datasets."
+        title='Search & Select Dialog'
+        description='Optimized dialogs for searching and selecting from large server-side datasets.'
       />
 
       <Page.Content>
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className='grid gap-8 md:grid-cols-2'>
           {/* Example 1: Single Selection */}
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <div>
-              <h3 className="text-lg font-medium">Single Selection</h3>
-              <p className="text-muted-foreground text-sm">
+              <h3 className='text-lg font-medium'>Single Selection</h3>
+              <p className='text-muted-foreground text-sm'>
                 Pick a single ingredient to substitute.
               </p>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className='flex flex-col gap-2'>
               <Label>Selected Ingredient</Label>
-              <div className="flex items-center gap-2">
+              <div className='flex items-center gap-2'>
                 <Input
                   readOnly
                   value={selectedSingle ? selectedSingle.name : ''}
-                  placeholder="No ingredient selected"
+                  placeholder='No ingredient selected'
                 />
                 <SingleSelectDialog
                   selectedId={selectedSingle?.id}
@@ -100,54 +102,54 @@ function SearchDialogPage() {
           </div>
 
           {/* Example 2: Multiple Selection */}
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <div>
-              <h3 className="text-lg font-medium">Multiple Selection</h3>
-              <p className="text-muted-foreground text-sm">
+              <h3 className='text-lg font-medium'>Multiple Selection</h3>
+              <p className='text-muted-foreground text-sm'>
                 Build a recipe by selecting multiple ingredients.
               </p>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className='flex flex-col gap-2'>
               <Label>Recipe Ingredients</Label>
-              <div className="border rounded-md p-4 min-h-25 space-y-2">
+              <div className='border rounded-md p-4 min-h-25 space-y-2'>
                 {selectedMultiple.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">
+                  <p className='text-muted-foreground text-sm'>
                     No ingredients added yet.
                   </p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMultiple.map((item) => (
+                  <div className='flex flex-wrap gap-2'>
+                    {selectedMultiple.map(item => (
                       <Badge
                         key={item.id}
-                        variant="secondary"
-                        className="pl-2 pr-1 py-1"
+                        variant='secondary'
+                        className='pl-2 pr-1 py-1'
                       >
                         {item.name}
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 ml-1 hover:bg-transparent"
+                          variant='ghost'
+                          size='icon'
+                          className='h-4 w-4 ml-1 hover:bg-transparent'
                           onClick={() =>
-                            setSelectedMultiple((prev) =>
-                              prev.filter((i) => i.id !== item.id),
+                            setSelectedMultiple(prev =>
+                              prev.filter(i => i.id !== item.id)
                             )
                           }
                         >
-                          <XIcon className="h-3 w-3" />
+                          <XIcon className='h-3 w-3' />
                         </Button>
                       </Badge>
                     ))}
                   </div>
                 )}
-                <div className="pt-2">
+                <div className='pt-2'>
                   <MultiSelectDialog
-                    selectedIds={selectedMultiple.map((i) => i.id)}
-                    onConfirm={(items) => {
+                    selectedIds={selectedMultiple.map(i => i.id)}
+                    onConfirm={items => {
                       // Merge to avoid duplicates if re-opening (though logic handles ID check)
-                      const newIds = new Set(items.map((i) => i.id))
+                      const newIds = new Set(items.map(i => i.id))
                       const unique = [
-                        ...selectedMultiple.filter((i) => !newIds.has(i.id)),
+                        ...selectedMultiple.filter(i => !newIds.has(i.id)),
                         ...items,
                       ]
                       setSelectedMultiple(unique)
@@ -203,46 +205,46 @@ function SingleSelectDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="icon">
-            <SearchIcon className="h-4 w-4" />
+          <Button variant='outline' size='icon'>
+            <SearchIcon className='h-4 w-4' />
           </Button>
         }
       />
-      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-125">
+      <DialogContent className='p-0 gap-0 overflow-hidden sm:max-w-125'>
         <Command shouldFilter={false}>
-          <div className="flex items-center border-b px-3">
-            <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <div className='flex items-center border-b px-3'>
+            <SearchIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
             <Input
-              className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0 px-0"
-              placeholder="Search ingredients..."
+              className='flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0 px-0'
+              placeholder='Search ingredients...'
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
             />
             {loading && (
-              <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+              <Loader2Icon className='h-4 w-4 animate-spin text-muted-foreground' />
             )}
           </div>
-          <CommandList className="max-h-75 overflow-y-auto p-1">
+          <CommandList className='max-h-75 overflow-y-auto p-1'>
             {results.length === 0 && !loading && (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className='py-6 text-center text-sm text-muted-foreground'>
                 No ingredients found.
               </div>
             )}
-            {results.map((item) => (
+            {results.map(item => (
               <CommandItem
                 key={item.id}
                 value={item.id + item.name} // Hack for cmdk unique value requirement
                 onSelect={() => handleSelect(item)}
-                className="flex items-center justify-between cursor-pointer p-2"
+                className='flex items-center justify-between cursor-pointer p-2'
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">{item.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                <div className='flex flex-col'>
+                  <span className='font-medium'>{item.name}</span>
+                  <span className='text-xs text-muted-foreground'>
                     {item.category} • {item.stock} {item.unit} in stock
                   </span>
                 </div>
                 {item.id === selectedId && (
-                  <CheckIcon className="h-4 w-4 text-primary" />
+                  <CheckIcon className='h-4 w-4 text-primary' />
                 )}
               </CommandItem>
             ))}
@@ -266,7 +268,7 @@ function MultiSelectDialog({
   const [results, setResults] = useState<Array<Ingredient>>([])
   const [loading, setLoading] = useState(false)
   const [tempSelected, setTempSelected] = useState<Set<string>>(
-    new Set(selectedIds),
+    new Set(selectedIds)
   )
   const [selectedItemsMap, setSelectedItemsMap] = useState<
     Map<string, Ingredient>
@@ -320,8 +322,8 @@ function MultiSelectDialog({
     // Let's simplify: return objects we know about.
 
     const items = Array.from(tempSelected)
-      .map((id) => {
-        return selectedItemsMap.get(id) || results.find((r) => r.id === id)
+      .map(id => {
+        return selectedItemsMap.get(id) || results.find(r => r.id === id)
       })
       .filter(Boolean) as Array<Ingredient>
 
@@ -334,44 +336,44 @@ function MultiSelectDialog({
       <DialogTrigger
         render={
           <Button>
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className='mr-2 h-4 w-4' />
             Add Ingredients
           </Button>
         }
       />
-      <DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-150 h-125 flex flex-col">
-        <div className="p-4 border-b flex flex-col gap-1 bg-muted/10">
+      <DialogContent className='p-0 gap-0 overflow-hidden sm:max-w-150 h-125 flex flex-col'>
+        <div className='p-4 border-b flex flex-col gap-1 bg-muted/10'>
           <DialogTitle>Add Ingredients</DialogTitle>
           <DialogDescription>
             Search and select multiple items.
           </DialogDescription>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center border-b px-3 py-2">
-            <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <div className='flex items-center border-b px-3 py-2'>
+            <SearchIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
             <Input
-              className="flex h-10 w-full rounded-md bg-transparent text-sm outline-none border-0 focus-visible:ring-0 px-0"
-              placeholder="Search..."
+              className='flex h-10 w-full rounded-md bg-transparent text-sm outline-none border-0 focus-visible:ring-0 px-0'
+              placeholder='Search...'
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
               autoFocus
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-1 relative">
+          <div className='flex-1 overflow-y-auto p-1 relative'>
             {loading && (
-              <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 text-muted-foreground text-sm">
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> Loading...
+              <div className='absolute inset-0 bg-background/50 flex items-center justify-center z-10 text-muted-foreground text-sm'>
+                <Loader2Icon className='mr-2 h-4 w-4 animate-spin' /> Loading...
               </div>
             )}
             {results.length === 0 && !loading && (
-              <div className="py-10 text-center text-sm text-muted-foreground">
+              <div className='py-10 text-center text-sm text-muted-foreground'>
                 No items found.
               </div>
             )}
-            <div className="grid gap-1 p-1">
-              {results.map((item) => {
+            <div className='grid gap-1 p-1'>
+              {results.map(item => {
                 const isSelected = tempSelected.has(item.id)
                 return (
                   <div
@@ -382,9 +384,9 @@ function MultiSelectDialog({
                                     ${isSelected ? 'bg-primary/5 border-primary/20' : 'hover:bg-accent border-transparent'}
                                 `}
                   >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium text-sm">{item.name}</span>
-                      <span className="text-xs text-muted-foreground">
+                    <div className='flex flex-col gap-0.5'>
+                      <span className='font-medium text-sm'>{item.name}</span>
+                      <span className='text-xs text-muted-foreground'>
                         {item.category} •{' '}
                         <span
                           className={item.stock < 10 ? 'text-destructive' : ''}
@@ -396,7 +398,7 @@ function MultiSelectDialog({
                     <div
                       className={`h-5 w-5 rounded-full border flex items-center justify-center ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/30'}`}
                     >
-                      {isSelected && <CheckIcon className="h-3 w-3" />}
+                      {isSelected && <CheckIcon className='h-3 w-3' />}
                     </div>
                   </div>
                 )
@@ -405,13 +407,13 @@ function MultiSelectDialog({
           </div>
         </div>
 
-        <DialogFooter className="p-4 border-t bg-muted/10">
-          <div className="flex items-center justify-between w-full">
-            <span className="text-sm text-muted-foreground">
+        <DialogFooter className='p-4 border-t bg-muted/10'>
+          <div className='flex items-center justify-between w-full'>
+            <span className='text-sm text-muted-foreground'>
               {tempSelected.size} selected
             </span>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
+            <div className='flex gap-2'>
+              <Button variant='outline' onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleConfirm}>Confirm Selection</Button>

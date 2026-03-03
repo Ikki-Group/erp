@@ -43,6 +43,14 @@ const material = {
     update: 'material/uom/update',
     remove: 'material/uom/remove',
   },
+  location: {
+    assign: 'material/location/assign',
+    unassign: 'material/location/unassign',
+    byMaterial: 'material/location/by-material',
+    stock: 'material/location/stock',
+    config: 'material/location/config',
+    stockUpdate: 'material/location/stock/update',
+  },
 }
 
 export const endpoint = {

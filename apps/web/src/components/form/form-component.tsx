@@ -10,7 +10,7 @@ function Form(props: ComponentProps<'form'>) {
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={e => {
         e.stopPropagation()
         e.preventDefault()
         form.handleSubmit()
@@ -26,12 +26,12 @@ function FormSimpleActions() {
   const navigate = useNavigate()
 
   return (
-    <Card size="sm" className="px-3 flex items-end ring-0">
-      <div className="flex gap-2 max-w-72 w-full">
+    <Card size='sm' className='px-3 flex items-end ring-0'>
+      <div className='flex gap-2 max-w-72 w-full'>
         <Button
-          variant="outline"
-          type="button"
-          className="flex-1"
+          variant='outline'
+          type='button'
+          className='flex-1'
           onClick={() => {
             if (backTo) {
               navigate({
@@ -47,13 +47,13 @@ function FormSimpleActions() {
           Batal
         </Button>
         <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
+          selector={state => [state.canSubmit, state.isSubmitting]}
         >
           {([canSubmit, isSubmitting]) => (
             <Button
-              type="submit"
+              type='submit'
               disabled={!canSubmit || isSubmitting}
-              className="flex-1 "
+              className='flex-1 '
             >
               {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
@@ -72,12 +72,10 @@ function FormDialogActions({ onCancel }: FormDialogActionsProps) {
   const form = useFormContext()
   return (
     <>
-      <Button variant="outline" type="button" onClick={onCancel}>
+      <Button variant='outline' type='button' onClick={onCancel}>
         Batal
       </Button>
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting]}
-      >
+      <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <Button
             type={'button'}

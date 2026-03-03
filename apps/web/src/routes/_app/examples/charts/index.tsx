@@ -13,8 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type {
-  ChartConfig} from '@/components/ui/chart';
+import type { ChartConfig } from '@/components/ui/chart'
 import { Page } from '@/components/layout/page'
 import {
   ChartCard,
@@ -120,39 +119,39 @@ function ChartsPage() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Data Visualization"
-        description="Interactive charts with filtering, legends, and advanced layouts."
+        title='Data Visualization'
+        description='Interactive charts with filtering, legends, and advanced layouts.'
       />
       <Page.Content>
         <ChartGrid>
           {/* 1. Interactive Revenue Chart */}
           <ChartCard
-            title="Revenue & Profit"
-            description="Financial performance over time."
+            title='Revenue & Profit'
+            description='Financial performance over time.'
             action={
               <Select
                 value={timeRange}
-                onValueChange={(val) => val && setTimeRange(val)}
+                onValueChange={val => val && setTimeRange(val)}
               >
                 <SelectTrigger
-                  className="w-30 h-8 text-xs font-medium"
-                  aria-label="Select time range"
+                  className='w-30 h-8 text-xs font-medium'
+                  aria-label='Select time range'
                 >
-                  <SelectValue placeholder="Last 3 months" />
+                  <SelectValue placeholder='Last 3 months' />
                 </SelectTrigger>
-                <SelectContent align="end">
-                  <SelectItem value="90d">Last 6 months</SelectItem>
-                  <SelectItem value="30d">Last 2 months</SelectItem>
-                  <SelectItem value="1y">Year to Date</SelectItem>
+                <SelectContent align='end'>
+                  <SelectItem value='90d'>Last 6 months</SelectItem>
+                  <SelectItem value='30d'>Last 2 months</SelectItem>
+                  <SelectItem value='1y'>Year to Date</SelectItem>
                 </SelectContent>
               </Select>
             }
             footer={
               <ChartFooterContent
-                trend="up"
-                trendValue="Trending up by 5.2% this month"
-                trendIcon={<TrendingUpIcon className="h-4 w-4" />}
-                description="Jan - Jun 2024"
+                trend='up'
+                trendValue='Trending up by 5.2% this month'
+                trendIcon={<TrendingUpIcon className='h-4 w-4' />}
+                description='Jan - Jun 2024'
               />
             }
           >
@@ -163,59 +162,59 @@ function ChartsPage() {
                 margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id='fillRevenue' x1='0' y1='0' x2='0' y2='1'>
                     <stop
-                      offset="5%"
-                      stopColor="var(--color-revenue)"
+                      offset='5%'
+                      stopColor='var(--color-revenue)'
                       stopOpacity={0.8}
                     />
                     <stop
-                      offset="95%"
-                      stopColor="var(--color-revenue)"
+                      offset='95%'
+                      stopColor='var(--color-revenue)'
                       stopOpacity={0.1}
                     />
                   </linearGradient>
-                  <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id='fillProfit' x1='0' y1='0' x2='0' y2='1'>
                     <stop
-                      offset="5%"
-                      stopColor="var(--color-profit)"
+                      offset='5%'
+                      stopColor='var(--color-profit)'
                       stopOpacity={0.8}
                     />
                     <stop
-                      offset="95%"
-                      stopColor="var(--color-profit)"
+                      offset='95%'
+                      stopColor='var(--color-profit)'
                       stopOpacity={0.1}
                     />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey='month'
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(value) => value.slice(0, 3)}
+                  tickFormatter={value => value.slice(0, 3)}
                 />
                 <ChartTooltip
                   cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
+                  content={<ChartTooltipContent indicator='dot' />}
                 />
                 <ChartLegend content={<ChartLegendContent />} />
                 <Area
-                  dataKey="profit"
-                  type="natural"
-                  fill="url(#fillProfit)"
+                  dataKey='profit'
+                  type='natural'
+                  fill='url(#fillProfit)'
                   fillOpacity={0.4}
-                  stroke="var(--color-profit)"
-                  stackId="a"
+                  stroke='var(--color-profit)'
+                  stackId='a'
                 />
                 <Area
-                  dataKey="revenue"
-                  type="natural"
-                  fill="url(#fillRevenue)"
+                  dataKey='revenue'
+                  type='natural'
+                  fill='url(#fillRevenue)'
                   fillOpacity={0.4}
-                  stroke="var(--color-revenue)"
-                  stackId="a"
+                  stroke='var(--color-revenue)'
+                  stackId='a'
                 />
               </AreaChart>
             </ChartContainer>
@@ -223,20 +222,20 @@ function ChartsPage() {
 
           {/* 2. Order Status Distribution */}
           <ChartCard
-            title="Order Status"
-            description="real-time order distribution"
+            title='Order Status'
+            description='real-time order distribution'
             footer={
               <ChartFooterContent
-                trend="up"
-                trendValue="Completion rate is up 2.4%"
-                trendIcon={<TrendingUpIcon className="h-4 w-4" />}
-                description="Based on recent 400 orders"
+                trend='up'
+                trendValue='Completion rate is up 2.4%'
+                trendIcon={<TrendingUpIcon className='h-4 w-4' />}
+                description='Based on recent 400 orders'
               />
             }
           >
             <ChartContainer
               config={statusConfig}
-              className="mx-auto aspect-square max-h-[300px]"
+              className='mx-auto aspect-square max-h-[300px]'
             >
               <PieChart>
                 <ChartTooltip
@@ -245,8 +244,8 @@ function ChartsPage() {
                 />
                 <Pie
                   data={statusData}
-                  dataKey="count"
-                  nameKey="status"
+                  dataKey='count'
+                  nameKey='status'
                   innerRadius={60}
                   strokeWidth={5}
                 >
@@ -257,13 +256,13 @@ function ChartsPage() {
                           <text
                             x={viewBox.cx}
                             y={viewBox.cy}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
+                            textAnchor='middle'
+                            dominantBaseline='middle'
                           >
                             <tspan
                               x={viewBox.cx}
                               y={viewBox.cy}
-                              className="fill-foreground text-3xl font-bold"
+                              className='fill-foreground text-3xl font-bold'
                             >
                               {statusData
                                 .reduce((acc, cur) => acc + cur.count, 0)
@@ -272,7 +271,7 @@ function ChartsPage() {
                             <tspan
                               x={viewBox.cx}
                               y={(viewBox.cy || 0) + 24}
-                              className="fill-muted-foreground text-xs"
+                              className='fill-muted-foreground text-xs'
                             >
                               Total Orders
                             </tspan>
@@ -283,8 +282,8 @@ function ChartsPage() {
                   />
                 </Pie>
                 <ChartLegend
-                  content={<ChartLegendContent nameKey="status" />}
-                  className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+                  content={<ChartLegendContent nameKey='status' />}
+                  className='-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center'
                 />
               </PieChart>
             </ChartContainer>
@@ -292,15 +291,15 @@ function ChartsPage() {
 
           {/* 3. Consolidated Performance (Multi-Location Bar Chart) */}
           <ChartCard
-            className="col-span-2"
-            title="Consolidated Performance"
-            description="Comparing total output across all major locations."
+            className='col-span-2'
+            title='Consolidated Performance'
+            description='Comparing total output across all major locations.'
             footer={
               <ChartFooterContent
-                trend="up"
-                trendValue="Jakarta leading by 15% in Q2"
-                trendIcon={<TrendingUpIcon className="h-4 w-4" />}
-                description="Showing total output for all branches"
+                trend='up'
+                trendValue='Jakarta leading by 15% in Q2'
+                trendIcon={<TrendingUpIcon className='h-4 w-4' />}
+                description='Showing total output for all branches'
               />
             }
           >
@@ -308,25 +307,25 @@ function ChartsPage() {
               <BarChart accessibilityLayer data={consolidationData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey='month'
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
+                  tickFormatter={value => value.slice(0, 3)}
                 />
                 <YAxis tickLine={false} axisLine={false} tickMargin={10} />
                 <ChartTooltip
                   cursor={false}
-                  content={<ChartTooltipContent indicator="dashed" />}
+                  content={<ChartTooltipContent indicator='dashed' />}
                 />
                 <ChartLegend content={<ChartLegendContent />} />
-                <Bar dataKey="jakarta" fill="var(--color-jakarta)" radius={4} />
+                <Bar dataKey='jakarta' fill='var(--color-jakarta)' radius={4} />
                 <Bar
-                  dataKey="surabaya"
-                  fill="var(--color-surabaya)"
+                  dataKey='surabaya'
+                  fill='var(--color-surabaya)'
                   radius={4}
                 />
-                <Bar dataKey="bali" fill="var(--color-bali)" radius={4} />
+                <Bar dataKey='bali' fill='var(--color-bali)' radius={4} />
               </BarChart>
             </ChartContainer>
           </ChartCard>

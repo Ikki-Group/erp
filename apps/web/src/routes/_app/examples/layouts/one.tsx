@@ -10,10 +10,10 @@ export const Route = createFileRoute('/_app/examples/layouts/one')({
 function RouteComponent() {
   return (
     <Page>
-      <Page.Header className="items-center">
-        <Page.Title className="grow">Page One</Page.Title>
+      <Page.Header className='items-center'>
+        <Page.Title className='grow'>Page One</Page.Title>
         <Page.Actions>
-          <Button variant="outline">Tambah Data</Button>
+          <Button variant='outline'>Tambah Data</Button>
           <Button>Tambah Data</Button>
         </Page.Actions>
       </Page.Header>
