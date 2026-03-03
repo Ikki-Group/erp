@@ -1,38 +1,60 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage } from 'mongoose'
+import { and, count, eq, inArray, or } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
-import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import {
+  checkConflict,
+  paginate,
+  searchFilter,
+  sortBy,
+  stampCreate,
+  stampUpdate,
+  takeFirst,
+  takeFirstOrThrow,
+  type ConflictField,
+} from '@/lib/db'
 import { NotFoundError } from '@/lib/error/http'
 import { hashPassword } from '@/lib/password'
-import { toLookupMap } from '@/lib/utils/collection.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import type { LocationDto, LocationServiceModule } from '@/modules/location'
+import type { LocationServiceModule } from '@/modules/location'
 
 import { SEED_CONFIG } from '@/config/seed-config'
+import { db } from '@/db'
+import { locations, roles, userAssignments, users } from '@/db/schema'
 
-import type { RoleDto, UserAssignmentDetailDto, UserFilterDto, UserMutationDto, UserSelectDto } from '../dto'
-import { UserDto } from '../dto'
-import { UserModel } from '../model'
+import type {
+  UserAssignmentDetailDto,
+  UserCreateDto,
+  UserDto,
+  UserFilterDto,
+  UserSelectDto,
+  UserUpdateDto,
+} from '../dto'
 
 import type { RoleService } from './role.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: ObjectId) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
+const _err = {
+  notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
 }
 
-const uniqueFields: ConflictField<Pick<UserMutationDto, 'email' | 'username'>>[] = [
-  { field: 'email', message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
-  { field: 'username', message: 'Username already exists', code: 'USER_USERNAME_ALREADY_EXISTS' },
+const uniqueFields: ConflictField<'email' | 'username'>[] = [
+  { field: 'email', column: users.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+  {
+    field: 'username',
+    column: users.username,
+    message: 'Username already exists',
+    code: 'USER_USERNAME_ALREADY_EXISTS',
+  },
 ]
 
 const cacheKey = {
   count: 'user.count',
   list: 'user.list',
-  byId: (id: ObjectId) => `user.byId.${id}`,
+  byId: (id: number) => `user.byId.${id}`,
+  byIdentifier: (identifier: string) => `user.byIdentifier.${identifier}`,
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -43,227 +65,399 @@ export class UserService {
     private readonly locationSvc: LocationServiceModule
   ) {}
 
-  /** Pure mapping — no I/O. Resolves assignment refs into full detail objects.
-   *  Accepts optional pre-built Maps for O(1) lookups (useful in batch/list contexts). */
-  #resolveAssignments(
-    user: UserDto,
-    roles: RoleDto[],
-    locations: LocationDto[],
-    roleMap?: Map<string, RoleDto>,
-    locationMap?: Map<string, LocationDto>
-  ): UserAssignmentDetailDto[] {
-    if (user.isRoot) {
-      const superadmin = roles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
-      return locations.map((l) => ({
-        isDefault: false,
-        locationId: l.id,
-        roleId: superadmin.id,
-        location: l,
-        role: superadmin,
-      }))
-    }
-
-    if (user.assignments.length === 0) return []
-
-    // Use Maps when provided (batch), fall back to building one (single)
-    const rMap = roleMap ?? toLookupMap(roles, 'id')
-    const lMap = locationMap ?? toLookupMap(locations, 'id')
-
-    return user.assignments.map((a) => ({
-      ...a,
-      role: rMap.get(a.roleId.toString())!,
-      location: lMap.get(a.locationId.toString())!,
-    }))
-  }
-
-  /* ----------------------------- UTILITY METHODS ---------------------------- */
-  // These are reusable internal helpers. They are consumed by handler methods
-  // below and can also be used by other services (e.g. AuthService).
-
-  async seed(
-    data: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'isRoot' | 'createdBy'> & { password: string })[]
-  ): Promise<void> {
+  /**
+   * Seed users.
+   */
+  async seed(data: (UserCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
     return record('UserService.seed', async () => {
-      // Bulk upsert
-      const users: UserDto[] = []
-
       for (const d of data) {
-        users.push({
-          ...d,
-          passwordHash: await hashPassword(d.password),
-          isActive: true,
-          assignments: [],
-          ...stampCreate(d.createdBy),
-        })
-      }
+        const { password, assignments, ...rest } = d
+        const metadata = stampCreate(d.createdBy)
+        const passwordHash = await hashPassword(password)
 
-      await UserModel.bulkWrite(
-        users.map((u) => ({
-          replaceOne: {
-            filter: { email: u.email },
-            replacement: u,
-            upsert: true,
-          },
-        }))
-      )
+        const [inserted] = await db
+          .insert(users)
+          .values({
+            ...rest,
+            passwordHash,
+            ...metadata,
+          })
+          .onConflictDoUpdate({
+            target: users.email,
+            set: {
+              username: d.username,
+              fullname: d.fullname,
+              passwordHash,
+              updatedAt: metadata.updatedAt,
+              updatedBy: metadata.updatedBy,
+            },
+          })
+          .returning({ id: users.id })
+
+        if (inserted && assignments?.length > 0) {
+          await db.delete(userAssignments).where(eq(userAssignments.userId, inserted.id))
+          await db.insert(userAssignments).values(
+            assignments.map((a) => ({
+              ...a,
+              userId: inserted.id,
+              ...metadata,
+            }))
+          )
+        }
+      }
     })
   }
 
-  /** Finds a single user document by its ID. Throws NotFoundError if missing. */
-  async findById(id: ObjectId): Promise<UserDto> {
+  /**
+   * Basic user lookup by ID.
+   */
+  async findById(id: number): Promise<UserDto> {
     return record('UserService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await PipelineBuilder.create(UserModel)
-          .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-          .execOne({ schema: UserDto })
-
-        if (!result) throw err.notFound(id)
-        return result
+        const result = await db.select().from(users).where(eq(users.id, id))
+        return takeFirstOrThrow(result, `User with ID ${id} not found`, 'USER_NOT_FOUND')
       })
     })
   }
 
+  /**
+   * Find user by email or username.
+   */
   async findByIdentifier(identifier: string): Promise<UserDto | null> {
     return record('UserService.findByIdentifier', async () => {
-      const user = await PipelineBuilder.create(UserModel)
-        .push(
-          pipelineHelper.$match({ $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }] })
-        )
-        .push(pipelineHelper.$setId())
-        .execOne({ schema: UserDto })
-
-      return user
+      const lower = identifier.toLowerCase()
+      return cache.wrap(cacheKey.byIdentifier(lower), async () => {
+        const result = await db
+          .select()
+          .from(users)
+          .where(or(eq(users.email, lower), eq(users.username, lower)))
+        return takeFirst(result)
+      })
     })
   }
 
+  /**
+   * Returns total count of users.
+   */
   async count(): Promise<number> {
     return record('UserService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        return UserModel.countDocuments()
+        const result = await db.select({ val: count() }).from(users)
+        return result[0]?.val ?? 0
       })
     })
   }
 
-  async getAssignments(user: UserDto): Promise<UserAssignmentDetailDto[]> {
-    return record('UserService.getAssignments', async () => {
-      const [roles, locations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
-      return this.#resolveAssignments(user, roles, locations)
-    })
+  /**
+   * Fetches assignments for a user with joined role and location data.
+   * Uses explicit joins to avoid relational query type issues.
+   */
+  private async fetchAssignments(userId: number): Promise<UserAssignmentDetailDto[]> {
+    const rows = await db
+      .select({
+        id: userAssignments.id,
+        locationId: userAssignments.locationId,
+        roleId: userAssignments.roleId,
+        isDefault: userAssignments.isDefault,
+        role: {
+          id: roles.id,
+          code: roles.code,
+          name: roles.name,
+          isSystem: roles.isSystem,
+          createdBy: roles.createdBy,
+          updatedBy: roles.updatedBy,
+          createdAt: roles.createdAt,
+          updatedAt: roles.updatedAt,
+        },
+        location: {
+          id: locations.id,
+          code: locations.code,
+          name: locations.name,
+          type: locations.type,
+          description: locations.description,
+          isActive: locations.isActive,
+          createdBy: locations.createdBy,
+          updatedBy: locations.updatedBy,
+          createdAt: locations.createdAt,
+          updatedAt: locations.updatedAt,
+        },
+      })
+      .from(userAssignments)
+      .innerJoin(roles, eq(userAssignments.roleId, roles.id))
+      .innerJoin(locations, eq(userAssignments.locationId, locations.id))
+      .where(eq(userAssignments.userId, userId))
+
+    return rows
   }
 
-  async getDetailById(id: ObjectId): Promise<UserSelectDto> {
+  /**
+   * Batch fetch assignments for multiple users.
+   */
+  private async fetchAssignmentsBatch(userIds: number[]): Promise<Map<number, UserAssignmentDetailDto[]>> {
+    if (userIds.length === 0) return new Map()
+
+    const rows = await db
+      .select({
+        userId: userAssignments.userId,
+        id: userAssignments.id,
+        locationId: userAssignments.locationId,
+        roleId: userAssignments.roleId,
+        isDefault: userAssignments.isDefault,
+        role: {
+          id: roles.id,
+          code: roles.code,
+          name: roles.name,
+          isSystem: roles.isSystem,
+          createdBy: roles.createdBy,
+          updatedBy: roles.updatedBy,
+          createdAt: roles.createdAt,
+          updatedAt: roles.updatedAt,
+        },
+        location: {
+          id: locations.id,
+          code: locations.code,
+          name: locations.name,
+          type: locations.type,
+          description: locations.description,
+          isActive: locations.isActive,
+          createdBy: locations.createdBy,
+          updatedBy: locations.updatedBy,
+          createdAt: locations.createdAt,
+          updatedAt: locations.updatedAt,
+        },
+      })
+      .from(userAssignments)
+      .innerJoin(roles, eq(userAssignments.roleId, roles.id))
+      .innerJoin(locations, eq(userAssignments.locationId, locations.id))
+      .where(inArray(userAssignments.userId, userIds))
+
+    const map = new Map<number, UserAssignmentDetailDto[]>()
+    for (const row of rows) {
+      const { userId, ...assignment } = row
+      const existing = map.get(userId) ?? []
+      existing.push(assignment)
+      map.set(userId, existing)
+    }
+
+    return map
+  }
+
+  /**
+   * Resolves a user ID to a full select object including assignments.
+   */
+  async getDetailById(id: number): Promise<UserSelectDto> {
     return record('UserService.getDetailById', async () => {
-      const userDoc = await this.findById(id)
-      const userDetails: UserSelectDto = {
-        ...userDoc,
-        assignments: await this.getAssignments(userDoc),
+      const user = await this.findById(id)
+
+      // If user is root, they automatically have access to ALL locations as SUPERADMIN
+      if (user.isRoot) {
+        const [allRoles, allLocations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
+        const superadmin = allRoles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
+
+        const rootAssignments: UserAssignmentDetailDto[] = allLocations.map((l) => ({
+          id: 0, // Virtual ID for root assignment
+          isDefault: false,
+          locationId: l.id,
+          roleId: superadmin.id,
+          location: l,
+          role: superadmin,
+        }))
+
+        return {
+          ...user,
+          assignments: rootAssignments,
+        }
       }
 
-      return userDetails
+      const assignments = await this.fetchAssignments(id)
+
+      return {
+        ...user,
+        assignments,
+      }
     })
   }
 
-  /* ------------------------------ HANDLER METHODS --------------------------- */
-  // One handler per route endpoint. These call utility methods and orchestrate
-  // the response. They are named after the HTTP action they serve.
-
+  /**
+   * Handler for listing users with pagination.
+   */
   async handleList(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserSelectDto>> {
     return record('UserService.handleList', async () => {
-      const $match: PipelineStage.Match['$match'] = {}
+      const { search, isActive } = filter
 
-      if (filter.search) $match.$text = { $search: filter.search, $diacriticSensitive: true }
-      if (typeof filter.isActive === 'boolean') $match.isActive = filter.isActive
+      const where = and(
+        searchFilter(users.fullname, search),
+        typeof isActive === 'boolean' ? eq(users.isActive, isActive) : undefined
+      )
 
-      const pb = PipelineBuilder.create(UserModel)
-      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
-
-      const { data: users, meta } = await pbWithFilter.execPaginated({
-        schema: UserDto.array(),
+      // Fetch paginated users using standard select query
+      const result = await paginate<UserDto>({
+        data: ({ limit, offset }) =>
+          db.select().from(users).where(where).orderBy(sortBy(users.updatedAt, 'desc')).limit(limit).offset(offset),
         pq,
-        facetAfter: [pipelineHelper.$setId()],
+        countQuery: db.select({ count: count() }).from(users).where(where),
       })
 
-      // Build lookup maps ONCE for the entire page
-      const [roles, locations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
-      const roleMap = toLookupMap(roles, 'id')
-      const locationMap = toLookupMap(locations, 'id')
+      // Batch-fetch assignments for all users in the page
+      const userIds = result.data.map((u) => u.id)
+      const assignmentMap = await this.fetchAssignmentsBatch(userIds)
 
-      const data: UserSelectDto[] = users.map((u) => ({
-        ...u,
-        assignments: this.#resolveAssignments(u, roles, locations, roleMap, locationMap),
-      }))
+      // Build full UserSelectDto with assignments
+      const data: UserSelectDto[] = await Promise.all(
+        result.data.map(async (u) => {
+          // Root users get dynamically expanded assignments
+          if (u.isRoot) {
+            return this.getDetailById(u.id)
+          }
+          return {
+            ...u,
+            assignments: assignmentMap.get(u.id) ?? [],
+          }
+        })
+      )
 
-      return { data, meta }
+      return { data, meta: result.meta }
     })
   }
 
-  async handleDetail(id: ObjectId): Promise<UserSelectDto> {
+  /**
+   * Detail handler.
+   */
+  async handleDetail(id: number): Promise<UserSelectDto> {
     return record('UserService.handleDetail', async () => {
       return this.getDetailById(id)
     })
   }
 
-  async handleCreate(data: UserMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Create user handler.
+   */
+  async handleCreate(data: UserCreateDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleCreate', async () => {
-      const { password, ...rest } = data
+      const { password, assignments, ...rest } = data
       const email = rest.email.toLowerCase().trim()
       const username = rest.username.toLowerCase().trim()
 
-      await checkConflict({ model: UserModel, fields: uniqueFields, input: { email, username } })
+      await checkConflict({
+        table: users,
+        pkColumn: users.id,
+        fields: uniqueFields,
+        input: { email, username },
+      })
 
-      const user = new UserModel({ ...rest, email, username, ...stampCreate(actorId) })
-      user.passwordHash = await hashPassword(password)
+      const passwordHash = await hashPassword(password)
+      const metadata = stampCreate(actorId)
 
-      await user.save()
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
-      return { id: user._id }
+      const inserted = await db.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(users)
+          .values({
+            ...rest,
+            email,
+            username,
+            passwordHash,
+            ...metadata,
+          })
+          .returning({ id: users.id })
+
+        if (user && assignments?.length > 0) {
+          await tx.insert(userAssignments).values(
+            assignments.map((a) => ({
+              ...a,
+              userId: user.id,
+              ...metadata,
+            }))
+          )
+        }
+
+        return user
+      })
+
+      if (!inserted) throw new Error('Failed to create user')
+
+      void this.clearCache(inserted.id, email, username)
+      return inserted
     })
   }
 
-  async handleUpdate(id: ObjectId, data: Partial<UserMutationDto>, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Update user handler.
+   */
+  async handleUpdate(id: number, data: UserUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleUpdate', async () => {
-      // Lightweight query — only fields needed for conflict check
-      const existing = await UserModel.findById(id).select('email username').lean()
-      if (!existing) throw err.notFound(id)
+      const existing = await this.findById(id)
 
-      const { password, ...rest } = data
+      const { password, assignments, ...rest } = data
       const email = rest.email ? rest.email.toLowerCase().trim() : existing.email
       const username = rest.username ? rest.username.toLowerCase().trim() : existing.username
 
       await checkConflict({
-        model: UserModel,
+        table: users,
+        pkColumn: users.id,
         fields: uniqueFields,
         input: { email, username },
-        existing: { id: existing._id, email: existing.email, username: existing.username },
+        existing,
       })
 
       const passwordHash = password ? await hashPassword(password) : undefined
+      const metadata = stampUpdate(actorId)
 
-      await UserModel.findByIdAndUpdate(id, {
-        ...rest,
-        email,
-        username,
-        ...(passwordHash && { passwordHash }),
-        ...stampUpdate(actorId),
+      await db.transaction(async (tx) => {
+        await tx
+          .update(users)
+          .set({
+            ...rest,
+            email,
+            username,
+            ...(passwordHash && { passwordHash }),
+            ...metadata,
+          })
+          .where(eq(users.id, id))
+
+        if (assignments) {
+          const createMetadata = stampCreate(actorId)
+          await tx.delete(userAssignments).where(eq(userAssignments.userId, id))
+          if (assignments.length > 0) {
+            await tx.insert(userAssignments).values(
+              assignments.map((a) => ({
+                ...a,
+                userId: id,
+                ...createMetadata,
+              }))
+            )
+          }
+        }
       })
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
-      void cache.del(cacheKey.byId(id))
+      void this.clearCache(id, email, username)
       return { id }
     })
   }
 
-  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Remove user handler.
+   */
+  async handleRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleRemove', async () => {
-      const result = await UserModel.findByIdAndDelete(id)
-      if (!result) throw err.notFound(id)
+      const existing = await this.findById(id)
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
-      void cache.del(cacheKey.byId(id))
+      await db.delete(users).where(eq(users.id, id))
+
+      void this.clearCache(id, existing.email, existing.username)
       return { id }
     })
+  }
+
+  /**
+   * Helper to clear caches.
+   */
+  private async clearCache(id: number, email: string, username: string) {
+    await Promise.all([
+      cache.del(cacheKey.count),
+      cache.del(cacheKey.list),
+      cache.del(cacheKey.byId(id)),
+      cache.del(cacheKey.byIdentifier(email)),
+      cache.del(cacheKey.byIdentifier(username)),
+    ])
   }
 }

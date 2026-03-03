@@ -7,7 +7,7 @@ const metadata = z.object({
   updatedBy: zPrimitive.id,
   createdAt: zPrimitive.date,
   updatedAt: zPrimitive.date,
-  syncAt: zPrimitive.date.optional(),
+  syncAt: zPrimitive.date.optional().nullable(),
 })
 
 const recordId = z.object({

@@ -8,23 +8,24 @@ import { RoleDto } from './role.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
+/** Represents a user-role-location assignment (from the `user_assignments` junction table). */
 export const UserAssignmentDto = z.object({
-  locationId: zPrimitive.objId,
-  roleId: zPrimitive.objId,
+  id: zPrimitive.id,
+  locationId: zPrimitive.id,
+  roleId: zPrimitive.id,
   isDefault: zPrimitive.bool,
 })
 
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
 export const UserDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   email: zPrimitive.email,
   username: zPrimitive.username,
   fullname: zPrimitive.str,
   passwordHash: zPrimitive.str,
   isRoot: zPrimitive.bool,
   isActive: zPrimitive.bool,
-  assignments: UserAssignmentDto.array(),
   ...zSchema.metadata.shape,
 })
 
@@ -56,16 +57,27 @@ export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 
-export const UserMutationDto = z.object({
-  ...UserDto.pick({
-    email: true,
-    username: true,
-    fullname: true,
-    isActive: true,
-    isRoot: true,
-    assignments: true,
-  }).shape,
+export const UserCreateDto = z.object({
+  email: zPrimitive.email,
+  username: zPrimitive.username,
+  fullname: zPrimitive.str,
   password: zPrimitive.password,
+  isActive: zPrimitive.bool,
+  isRoot: zPrimitive.bool,
+  /** Assignment list to create in the junction table */
+  assignments: z
+    .array(
+      z.object({
+        roleId: zPrimitive.id,
+        locationId: zPrimitive.id,
+        isDefault: zPrimitive.bool.default(false),
+      })
+    )
+    .default([]),
 })
 
-export type UserMutationDto = z.infer<typeof UserMutationDto>
+export type UserCreateDto = z.infer<typeof UserCreateDto>
+
+export const UserUpdateDto = UserCreateDto.partial()
+
+export type UserUpdateDto = z.infer<typeof UserUpdateDto>

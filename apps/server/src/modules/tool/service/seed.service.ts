@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
-import mongoose, { Types } from 'mongoose'
 
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 
 import { SEED_CONFIG } from '@/config/seed-config'
+import { db } from '@/db'
 
 export class SeedService {
   constructor(
@@ -14,38 +14,43 @@ export class SeedService {
 
   async seed(): Promise<void> {
     return record('SeedService.seed', async () => {
-      await mongoose.connection.transaction(async (tx) => {
+      // Use Drizzle transaction for the entire seed process
+      await db.transaction(async () => {
+        const SYSTEM_ACTOR_ID = 1
+
+        // 1. Seed Roles
         await this.iamSvc.role.seed([
           {
-            id: new Types.ObjectId(SEED_CONFIG.ROLE_SUPERADMIN_ID),
-            code: 'SUPERADMIN',
+            code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
             name: 'Administrator',
-            createdBy: new Types.ObjectId(SEED_CONFIG.USER_SUPERADMIN_ID),
+            createdBy: SYSTEM_ACTOR_ID,
           },
         ])
+
+        // 2. Seed Users
+        await this.iamSvc.user.seed([
+          {
+            email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
+            username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
+            fullname: 'Administrator',
+            password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
+            isRoot: true,
+            isActive: true,
+            createdBy: SYSTEM_ACTOR_ID,
+            assignments: [],
+          },
+        ])
+
+        // 3. Seed Locations
+        await this.locationSvc.location.seed(
+          SEED_CONFIG.LOCATIONS.map((l) => ({
+            code: l.code,
+            name: l.name,
+            type: l.type,
+            createdBy: SYSTEM_ACTOR_ID,
+          }))
+        )
       })
-
-      await this.iamSvc.user.seed([
-        {
-          id: new Types.ObjectId(SEED_CONFIG.USER_SUPERADMIN_ID),
-          email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
-          username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
-          fullname: 'Administrator',
-          password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-          isRoot: true,
-          createdBy: new Types.ObjectId(SEED_CONFIG.USER_SUPERADMIN_ID),
-        },
-      ])
-
-      await this.locationSvc.location.seed(
-        SEED_CONFIG.LOCATIONS.map((l) => ({
-          id: new Types.ObjectId(l.id),
-          code: l.code,
-          name: l.name,
-          type: l.type,
-          createdBy: new Types.ObjectId(SEED_CONFIG.USER_SUPERADMIN_ID),
-        }))
-      )
     })
   }
 }

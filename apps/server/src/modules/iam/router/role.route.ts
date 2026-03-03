@@ -46,7 +46,7 @@ export function initRoleRoute(s: IamServiceModule) {
       },
       {
         body: RoleMutationDto,
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
@@ -58,10 +58,10 @@ export function initRoleRoute(s: IamServiceModule) {
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
+          id: zPrimitive.id,
           ...RoleMutationDto.partial().shape,
         }),
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )
@@ -73,7 +73,7 @@ export function initRoleRoute(s: IamServiceModule) {
       },
       {
         body: zSchema.recordId,
-        response: zHttp.ok(zHttp.recordId),
+        response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
     )

@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RoleDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
   isSystem: zPrimitive.bool,
@@ -17,7 +17,11 @@ export type RoleDto = z.infer<typeof RoleDto>
 /* --------------------------------- COMMON --------------------------------- */
 
 export const RoleFilterDto = z.object({
-  search: zHttp.query.search,
+  search: z
+    .string()
+    .trim()
+    .optional()
+    .transform((val) => val || undefined),
 })
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>

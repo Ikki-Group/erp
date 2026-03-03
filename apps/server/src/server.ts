@@ -1,6 +1,5 @@
 import { configure, getConsoleSink } from '@logtape/logtape'
 
-import { connectDatabase } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
 import { env } from '@/config/env'
@@ -22,11 +21,6 @@ async function main() {
         lowestLevel: 'debug',
       },
     ],
-  })
-
-  await connectDatabase({
-    uri: env.MONGO_URI,
-    env: env.NODE_ENV,
   })
 
   const app = await import('@/app').then((mod) => mod.app)

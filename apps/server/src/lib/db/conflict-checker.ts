@@ -9,9 +9,16 @@ import { db } from '@/db'
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 
-export interface ConflictField<TInput> {
+/**
+ * Extracts field keys from either:
+ *  - A string union: `'code' | 'name'`
+ *  - An object type: `Pick<SomeDto, 'code' | 'name'>`
+ */
+type FieldKeys<T> = T extends string ? T : keyof T & string
+
+export interface ConflictField<T = string> {
   /** The field key to check for uniqueness. */
-  field: keyof TInput & string
+  field: FieldKeys<T>
   /** The corresponding Drizzle column reference. */
   column: PgColumn
   /** Error message when this field conflicts. */
@@ -20,21 +27,21 @@ export interface ConflictField<TInput> {
   code?: string
 }
 
-export interface CheckConflictOptions<TInput> {
+export interface CheckConflictOptions<T = string> {
   /** The Drizzle table to query against. */
   table: PgTable
   /** The primary key column of the table (default serial `id`). */
   pkColumn: PgColumn
   /** The fields to check for uniqueness, with per-field error config. */
-  fields: ConflictField<TInput>[]
-  /** The input values to check (already normalized). */
-  input: TInput
+  fields: ConflictField<T>[]
+  /** The input values to check (already normalized). Keyed by field names. */
+  input: Record<FieldKeys<T>, unknown>
   /**
    * When updating, pass the existing record to:
    * 1. Skip unchanged fields
    * 2. Exclude the current record from the conflict query
    */
-  existing?: { id: number } & Partial<TInput>
+  existing?: { id: number } & Partial<Record<FieldKeys<T>, unknown>>
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,9 +66,7 @@ export interface CheckConflictOptions<TInput> {
  *   existing, // optional, pass on update
  * })
  */
-export async function checkConflict<TInput extends Record<string, unknown>>(
-  opts: CheckConflictOptions<TInput>
-): Promise<void> {
+export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<void> {
   const { table, pkColumn, fields, input, existing } = opts
 
   // Determine which fields actually changed

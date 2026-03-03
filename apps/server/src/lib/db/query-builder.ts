@@ -1,5 +1,5 @@
 import { asc, desc, ilike, type SQL } from 'drizzle-orm'
-import type { PgColumn, PgSelect } from 'drizzle-orm/pg-core'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
@@ -7,12 +7,21 @@ import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/paginati
 /*                              PAGINATED QUERY                               */
 /* -------------------------------------------------------------------------- */
 
-interface PaginateOptions {
-  /** The base Drizzle select query (before applying limit/offset). */
+interface PaginateOptions<TResult> {
+  /**
+   * A function that receives `{ limit, offset }` and returns the data query promise.
+   * This allows the caller to apply limit/offset directly on any Drizzle query type
+   * (select, relational, etc.) without type compatibility issues.
+   *
+   * @example
+   * data: ({ limit, offset }) =>
+   *   db.select().from(users).where(where).orderBy(...).limit(limit).offset(offset)
+   */
+  data: (params: { limit: number; offset: number }) => Promise<TResult[]>
 
-  query: PgSelect
   /** Pagination parameters (page, limit). */
   pq: PaginationQuery
+
   /**
    * A separate count query that returns the total matching rows.
    * Pass a `db.select({ count: count() }).from(table).where(...)` query.
@@ -21,14 +30,12 @@ interface PaginateOptions {
 }
 
 /**
- * Applies pagination (limit + offset) to a Drizzle query and returns
- * both the data and pagination metadata.
+ * Runs data + count queries in parallel and returns paginated result.
  *
  * @example
- * const where = search ? ilike(users.email, `%${search}%`) : undefined
- *
  * const result = await paginate({
- *   query: db.select().from(users).where(where).orderBy(desc(users.updatedAt)),
+ *   data: ({ limit, offset }) =>
+ *     db.select().from(users).where(where).orderBy(desc(users.updatedAt)).limit(limit).offset(offset),
  *   pq: { page: 1, limit: 10 },
  *   countQuery: db.select({ count: count() }).from(users).where(where),
  * })
@@ -36,21 +43,21 @@ interface PaginateOptions {
  * // result.meta = { total, page, limit, totalPages }
  */
 export async function paginate<TResult>({
-  query,
+  data: dataFn,
   pq,
   countQuery,
-}: PaginateOptions): Promise<WithPaginationResult<TResult>> {
+}: PaginateOptions<TResult>): Promise<WithPaginationResult<TResult>> {
   const page = Math.max(1, pq.page)
   const limit = Math.max(1, pq.limit)
   const offset = (page - 1) * limit
 
   // Run data + count in parallel
-  const [data, countResult] = await Promise.all([query.limit(limit).offset(offset), countQuery])
+  const [data, countResult] = await Promise.all([dataFn({ limit, offset }), countQuery])
 
   const total = countResult[0]?.count ?? 0
 
   return {
-    data: data as unknown as TResult[],
+    data,
     meta: {
       total,
       page,

@@ -33,7 +33,7 @@ export function initLocationRoute(service: LocationService) {
         return res.ok(location)
       },
       {
-        query: z.object({ id: zHttp.query.objId }),
+        query: z.object({ id: zHttp.query.id }),
         auth: true,
       }
     )
@@ -57,7 +57,7 @@ export function initLocationRoute(service: LocationService) {
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
+          id: zPrimitive.id,
           ...LocationMutationDto.shape,
         }),
         response: zResponse.ok(zSchema.recordId),
