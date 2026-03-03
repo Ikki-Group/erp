@@ -1,6 +1,7 @@
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
+import { locations } from './location'
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -41,14 +42,22 @@ export const userAssignments = pgTable(
   'user_assignments',
   {
     ...pk,
-    userId: uuid().notNull(),
-    roleId: uuid().notNull(),
-    locationId: uuid().notNull(),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    roleId: integer()
+      .notNull()
+      .references(() => roles.id, { onDelete: 'restrict' }),
+    locationId: integer()
+      .notNull()
+      .references(() => locations.id, { onDelete: 'restrict' }),
     isDefault: boolean().notNull().default(false),
+    ...metadata,
   },
   (t) => [
+    // Composite unique: a user can only have ONE assignment per role+location combo
     uniqueIndex('user_assignments_user_role_location_idx').on(t.userId, t.roleId, t.locationId),
-    index('user_assignments_user_idx').on(t.userId),
+    // Standalone indexes for reverse lookups (composite unique already covers userId-leading queries)
     index('user_assignments_role_idx').on(t.roleId),
     index('user_assignments_location_idx').on(t.locationId),
   ]
@@ -60,7 +69,9 @@ export const sessions = pgTable(
   'sessions',
   {
     ...pk,
-    userId: uuid().notNull(),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     createdAt: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     expiredAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
   },

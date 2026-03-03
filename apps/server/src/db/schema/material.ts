@@ -1,6 +1,7 @@
-import { index, integer, numeric, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { materialTypeEnum, metadata, pk } from './_helpers'
+import { locations } from './location'
 
 // ─── UOM (Unit of Measure) ────────────────────────────────────────────────────
 
@@ -37,15 +38,15 @@ export const materials = pgTable(
     description: text(),
     sku: text().notNull(),
     type: materialTypeEnum().notNull(),
-    categoryId: uuid(),
+    categoryId: integer().references(() => materialCategories.id, { onDelete: 'set null' }),
     baseUom: text().notNull(),
     ...metadata,
   },
   (t) => [
     uniqueIndex('materials_name_idx').on(t.name),
     uniqueIndex('materials_sku_idx').on(t.sku),
-    index('materials_type_idx').on(t.type),
     index('materials_category_idx').on(t.categoryId),
+    // Removed: materials_type_idx — enum with only 2 values, low selectivity
   ]
 )
 
@@ -57,13 +58,17 @@ export const materialConversions = pgTable(
   'material_conversions',
   {
     ...pk,
-    materialId: uuid().notNull(),
+    materialId: integer()
+      .notNull()
+      .references(() => materials.id, { onDelete: 'cascade' }),
     uom: text().notNull(),
     factor: numeric({ precision: 18, scale: 6 }).notNull(),
+    ...metadata,
   },
   (t) => [
+    // Unique: one conversion per UOM per material
     uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uom),
-    index('material_conversions_material_idx').on(t.materialId),
+    // Removed: material_conversions_material_idx — redundant, covered by composite unique above
   ]
 )
 
@@ -74,8 +79,12 @@ export const materialLocations = pgTable(
   'material_locations',
   {
     ...pk,
-    materialId: uuid().notNull(),
-    locationId: uuid().notNull(),
+    materialId: integer()
+      .notNull()
+      .references(() => materials.id, { onDelete: 'cascade' }),
+    locationId: integer()
+      .notNull()
+      .references(() => locations.id, { onDelete: 'restrict' }),
 
     // Per-location configuration
     minStock: integer().notNull().default(0),
@@ -90,8 +99,10 @@ export const materialLocations = pgTable(
     ...metadata,
   },
   (t) => [
+    // Unique: one entry per material per location
     uniqueIndex('material_locations_material_location_idx').on(t.materialId, t.locationId),
+    // Standalone index for "list all materials at location X" queries
     index('material_locations_location_idx').on(t.locationId),
-    index('material_locations_material_idx').on(t.materialId),
+    // Removed: material_locations_material_idx — redundant, covered by composite unique above
   ]
 )

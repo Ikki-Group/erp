@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { locationTypeEnum, metadata, pk } from './_helpers'
 
@@ -18,7 +18,7 @@ export const locations = pgTable(
   (t) => [
     uniqueIndex('locations_code_idx').on(t.code),
     uniqueIndex('locations_name_idx').on(t.name),
-    index('locations_type_idx').on(t.type),
-    index('locations_is_active_idx').on(t.isActive),
+    // Removed: locations_type_idx — enum with only 2 values, low selectivity
+    // Removed: locations_is_active_idx — boolean column, PostgreSQL almost never uses it
   ]
 )
