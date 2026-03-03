@@ -23,12 +23,10 @@ const materialLocationSchema = new Schema<MaterialLocationDto>({
   maxStock: { type: Number, default: null },
   reorderPoint: { type: Number, default: 0 },
 
-  // Stock tracking
-  stockStart: { type: Number, default: 0 },
-  stockAdjustment: { type: Number, default: 0 },
-  stockSell: { type: Number, default: 0 },
-  stockPurchase: { type: Number, default: 0 },
-  stockEnd: { type: Number, default: 0 },
+  // Current stock snapshot (maintained by inventory module)
+  currentQty: { type: Number, default: 0 },
+  currentAvgCost: { type: Number, default: 0 },
+  currentValue: { type: Number, default: 0 },
 }).add(MetadataSchema)
 
 materialLocationSchema

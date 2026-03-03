@@ -16,7 +16,6 @@ import {
   type MaterialLocationAssignDto,
   type MaterialLocationConfigDto,
   type MaterialLocationFilterDto,
-  type MaterialLocationStockUpdateDto,
   type MaterialLocationUnassignDto,
   type MaterialLocationWithLocationDto,
 } from '../dto'
@@ -27,6 +26,11 @@ import type { MaterialService } from './material.service'
 const err = {
   notFound: (id: ObjectId) =>
     new NotFoundError(`Material-Location assignment with ID ${id} not found`, 'MATERIAL_LOCATION_NOT_FOUND'),
+  notAssigned: (materialId: ObjectId, locationId: ObjectId) =>
+    new NotFoundError(
+      `Material ${materialId} is not assigned to location ${locationId}`,
+      'MATERIAL_NOT_ASSIGNED_TO_LOCATION'
+    ),
   alreadyAssigned: (materialId: ObjectId, locationId: ObjectId) =>
     new ConflictError(
       `Material ${materialId} is already assigned to location ${locationId}`,
@@ -41,6 +45,18 @@ export class MaterialLocationService {
   ) {}
 
   /* ─────────────────────── INTERNAL QUERIES ─────────────────────── */
+
+  /** Get a specific material-location assignment */
+  async findOne(materialId: ObjectId, locationId: ObjectId): Promise<MaterialLocationDto> {
+    return record('MaterialLocationService.findOne', async () => {
+      const result = await PipelineBuilder.create(MaterialLocationModel)
+        .push(pipelineHelper.$match({ materialId, locationId }), pipelineHelper.$setId())
+        .execOne({ schema: MaterialLocationDto })
+
+      if (!result) throw err.notAssigned(materialId, locationId)
+      return result
+    })
+  }
 
   /** Get all assignments for a specific material */
   async findByMaterialId(materialId: ObjectId): Promise<MaterialLocationDto[]> {
@@ -244,34 +260,19 @@ export class MaterialLocationService {
     })
   }
 
-  /* ──────────────────── HANDLER: UPDATE STOCK ──────────────────── */
+  /* ──────────────── INVENTORY STOCK SYNC (called by inventory module) ──────────────── */
 
   /**
-   * Update stock values (adjustment, sell, purchase) and recalculate stockEnd.
-   * stockEnd = stockStart + stockPurchase + stockAdjustment - stockSell
+   * Update current stock snapshot. Called by the inventory module after recording a transaction.
    */
-  async handleUpdateStock(data: MaterialLocationStockUpdateDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
-    return record('MaterialLocationService.handleUpdateStock', async () => {
-      const { id, ...stockUpdates } = data
-
-      const existing = await MaterialLocationModel.findById(id)
-      if (!existing) throw err.notFound(id)
-
-      // Apply updates
-      if (stockUpdates.stockAdjustment !== undefined) existing.stockAdjustment = stockUpdates.stockAdjustment
-      if (stockUpdates.stockSell !== undefined) existing.stockSell = stockUpdates.stockSell
-      if (stockUpdates.stockPurchase !== undefined) existing.stockPurchase = stockUpdates.stockPurchase
-
-      // Recalculate stockEnd
-      existing.stockEnd = existing.stockStart + existing.stockPurchase + existing.stockAdjustment - existing.stockSell
-
-      // Apply metadata
-      const stamp = stampUpdate(actorId)
-      existing.updatedBy = stamp.updatedBy
-      existing.updatedAt = stamp.updatedAt
-
-      await existing.save()
-      return { id }
+  async updateCurrentStock(
+    materialId: ObjectId,
+    locationId: ObjectId,
+    stock: { currentQty: number; currentAvgCost: number; currentValue: number },
+    actorId: ObjectId
+  ): Promise<void> {
+    return record('MaterialLocationService.updateCurrentStock', async () => {
+      await MaterialLocationModel.findOneAndUpdate({ materialId, locationId }, { ...stock, ...stampUpdate(actorId) })
     })
   }
 }

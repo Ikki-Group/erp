@@ -16,12 +16,10 @@ export const MaterialLocationDto = z.object({
   maxStock: zPrimitive.num.nullable().default(null),
   reorderPoint: zPrimitive.num.default(0),
 
-  // Stock tracking
-  stockStart: zPrimitive.num.default(0),
-  stockAdjustment: zPrimitive.num.default(0),
-  stockSell: zPrimitive.num.default(0),
-  stockPurchase: zPrimitive.num.default(0),
-  stockEnd: zPrimitive.num.default(0),
+  // Current stock snapshot (maintained by inventory module)
+  currentQty: zPrimitive.num.default(0),
+  currentAvgCost: zPrimitive.num.default(0),
+  currentValue: zPrimitive.num.default(0),
 
   ...zSchema.metadata.shape,
 })
@@ -49,11 +47,9 @@ export const MaterialLocationStockDto = z.object({
   minStock: zPrimitive.num,
   maxStock: zPrimitive.num.nullable(),
   reorderPoint: zPrimitive.num,
-  stockStart: zPrimitive.num,
-  stockAdjustment: zPrimitive.num,
-  stockSell: zPrimitive.num,
-  stockPurchase: zPrimitive.num,
-  stockEnd: zPrimitive.num,
+  currentQty: zPrimitive.num,
+  currentAvgCost: zPrimitive.num,
+  currentValue: zPrimitive.num,
 })
 
 export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
@@ -94,13 +90,3 @@ export const MaterialLocationConfigDto = z.object({
 })
 
 export type MaterialLocationConfigDto = z.infer<typeof MaterialLocationConfigDto>
-
-/** Update stock values */
-export const MaterialLocationStockUpdateDto = z.object({
-  id: zPrimitive.objId,
-  stockAdjustment: zPrimitive.num.optional(),
-  stockSell: zPrimitive.num.optional(),
-  stockPurchase: zPrimitive.num.optional(),
-})
-
-export type MaterialLocationStockUpdateDto = z.infer<typeof MaterialLocationStockUpdateDto>

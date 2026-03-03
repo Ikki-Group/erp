@@ -10,7 +10,6 @@ import {
   MaterialLocationConfigDto,
   MaterialLocationFilterDto,
   MaterialLocationStockDto,
-  MaterialLocationStockUpdateDto,
   MaterialLocationUnassignDto,
   MaterialLocationWithLocationDto,
 } from '../dto'
@@ -93,21 +92,6 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           body: MaterialLocationConfigDto,
-          response: zResponse.ok(zSchema.recordId),
-          auth: true,
-          detail: { tags: ['Material Location'] },
-        }
-      )
-
-      /* ─────── Update stock values ─────── */
-      .put(
-        '/stock/update',
-        async function stockUpdate({ body, auth }) {
-          const result = await s.mLocation.handleUpdateStock(body, auth.userId)
-          return res.ok(result)
-        },
-        {
-          body: MaterialLocationStockUpdateDto,
           response: zResponse.ok(zSchema.recordId),
           auth: true,
           detail: { tags: ['Material Location'] },
