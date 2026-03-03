@@ -4,7 +4,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RoleDto = z.object({
-  id: zPrimitive.str,
+  id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
   isSystem: zPrimitive.bool,

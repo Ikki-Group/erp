@@ -20,7 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 interface MaterialLocationAssignDialogProps {
-  locationId: string
+  locationId: number
   locationName: string
 }
 
@@ -30,7 +30,7 @@ export const MaterialLocationAssignDialog =
     const queryClient = useQueryClient()
 
     const [search, setSearch] = useState('')
-    const [selected, setSelected] = useState<Array<string>>([])
+    const [selected, setSelected] = useState<Array<number>>([])
     const debouncedSearch = useDebounce(search, 300)
 
     const { data, isLoading } = useQuery(
@@ -50,7 +50,7 @@ export const MaterialLocationAssignDialog =
       },
     })
 
-    function toggleSelected(id: string) {
+    function toggleSelected(id: number) {
       setSelected(prev =>
         prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
       )

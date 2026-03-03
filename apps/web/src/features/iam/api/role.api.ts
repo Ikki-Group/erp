@@ -30,7 +30,7 @@ export const roleApi = {
     method: 'put',
     url: endpoint.iam.role.update,
     body: z.object({
-      id: zPrimitive.str,
+      id: zPrimitive.id,
       ...RoleMutationDto.shape,
     }),
     result: zHttp.ok(zSchema.recordId),

@@ -31,7 +31,7 @@ export const userApi = {
     method: 'put',
     url: endpoint.iam.user.update,
     body: z.object({
-      id: zPrimitive.str,
+      id: zPrimitive.id,
       ...UserMutationDto.omit({ password: true }).shape,
     }),
     result: zHttp.ok(zSchema.recordId),

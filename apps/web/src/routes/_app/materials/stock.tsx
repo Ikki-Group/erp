@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  ArrowUpDownIcon,
   MapPinIcon,
   MoreHorizontalIcon,
   PackageIcon,
@@ -40,6 +39,8 @@ function RouteComponent() {
   const [locationId, setLocationId] = useState<string | null>(null)
   const [locationName, setLocationName] = useState<string>('')
 
+  const numericLocationId = locationId ? Number(locationId) : null
+
   return (
     <Page>
       <Page.BlockHeader
@@ -55,7 +56,6 @@ function RouteComponent() {
               value={locationId}
               onValueChange={val => {
                 setLocationId(val)
-                // Reset name if cleared
                 if (!val) setLocationName('')
               }}
               placeholder='Cari lokasi...'
@@ -68,22 +68,24 @@ function RouteComponent() {
                 return res.data
               }}
               getLabel={item => {
-                // Set name for the assign dialog
-                if (item.id === locationId) {
+                if (String(item.id) === locationId) {
                   setLocationName(item.name)
                 }
                 return `${item.name} (${item.code})`
               }}
-              getValue={item => item.id}
+              getValue={item => String(item.id)}
             />
           </div>
         </div>
 
         {/* Stock Table */}
-        {locationId ? (
+        {numericLocationId ? (
           <>
             <MaterialLocationAssignDialog.Root />
-            <StockTable locationId={locationId} locationName={locationName} />
+            <StockTable
+              locationId={numericLocationId}
+              locationName={locationName}
+            />
           </>
         ) : (
           <div className='flex flex-col items-center justify-center py-20 text-muted-foreground gap-3'>
@@ -112,18 +114,17 @@ function StockTable({
   locationId,
   locationName,
 }: {
-  locationId: string
+  locationId: number
   locationName: string
 }) {
   const queryClient = useQueryClient()
   const ds = useDataTableState()
 
-  // Edit sheet state
+  // Edit sheet state (config only, stock updates use inventory transactions)
   const [editSheet, setEditSheet] = useState<{
     open: boolean
-    mode: 'config' | 'stock'
     data: MaterialLocationStockDto | null
-  }>({ open: false, mode: 'config', data: null })
+  }>({ open: false, data: null })
 
   const { data, isLoading } = useQuery(
     materialLocationApi.stock.query({
@@ -158,13 +159,6 @@ function StockTable({
     [unassignMutation]
   )
 
-  const openEditSheet = useCallback(
-    (mode: 'config' | 'stock', row: MaterialLocationStockDto) => {
-      setEditSheet({ open: true, mode, data: row })
-    },
-    []
-  )
-
   const columns = [
     ch.accessor('materialName', {
       header: 'Bahan Baku',
@@ -186,56 +180,10 @@ function StockTable({
       enableSorting: false,
       size: 90,
     }),
-    ch.accessor('stockStart', {
-      header: 'Stok Awal',
-      cell: ({ row }) => row.original.stockStart,
-      enableSorting: false,
-      size: 100,
-    }),
-    ch.accessor('stockPurchase', {
-      header: 'Pembelian',
-      cell: ({ row }) => (
-        <span className='text-emerald-600 dark:text-emerald-400'>
-          +{row.original.stockPurchase}
-        </span>
-      ),
-      enableSorting: false,
-      size: 100,
-    }),
-    ch.accessor('stockAdjustment', {
-      header: 'Adjustment',
+    ch.accessor('currentQty', {
+      header: 'Stok Saat Ini',
       cell: ({ row }) => {
-        const val = row.original.stockAdjustment
-        return (
-          <span
-            className={
-              val >= 0
-                ? 'text-blue-600 dark:text-blue-400'
-                : 'text-amber-600 dark:text-amber-400'
-            }
-          >
-            {val >= 0 ? '+' : ''}
-            {val}
-          </span>
-        )
-      },
-      enableSorting: false,
-      size: 110,
-    }),
-    ch.accessor('stockSell', {
-      header: 'Penjualan',
-      cell: ({ row }) => (
-        <span className='text-rose-600 dark:text-rose-400'>
-          -{row.original.stockSell}
-        </span>
-      ),
-      enableSorting: false,
-      size: 100,
-    }),
-    ch.accessor('stockEnd', {
-      header: 'Stok Akhir',
-      cell: ({ row }) => {
-        const val = row.original.stockEnd
+        const val = row.original.currentQty
         const min = row.original.minStock
         const isLow = val <= min
         return (
@@ -256,7 +204,27 @@ function StockTable({
         )
       },
       enableSorting: false,
-      size: 120,
+      size: 130,
+    }),
+    ch.accessor('currentAvgCost', {
+      header: 'Harga Rata-rata',
+      cell: ({ row }) => (
+        <span className='tabular-nums'>
+          {row.original.currentAvgCost.toLocaleString('id-ID')}
+        </span>
+      ),
+      enableSorting: false,
+      size: 140,
+    }),
+    ch.accessor('currentValue', {
+      header: 'Nilai Stok',
+      cell: ({ row }) => (
+        <span className='tabular-nums font-medium'>
+          {row.original.currentValue.toLocaleString('id-ID')}
+        </span>
+      ),
+      enableSorting: false,
+      size: 140,
     }),
     ch.display({
       id: 'action',
@@ -270,16 +238,10 @@ function StockTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
             <DropdownMenuItem
-              onClick={() => openEditSheet('config', row.original)}
+              onClick={() => setEditSheet({ open: true, data: row.original })}
             >
               <SettingsIcon className='size-4 mr-2' />
               Konfigurasi Stok
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => openEditSheet('stock', row.original)}
-            >
-              <ArrowUpDownIcon className='size-4 mr-2' />
-              Update Stok
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -333,7 +295,6 @@ function StockTable({
       <MaterialLocationEditSheet
         open={editSheet.open}
         onOpenChange={open => setEditSheet(prev => ({ ...prev, open }))}
-        mode={editSheet.mode}
         data={editSheet.data}
       />
     </>

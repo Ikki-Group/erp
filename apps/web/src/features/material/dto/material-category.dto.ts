@@ -2,7 +2,7 @@ import z from 'zod'
 import { zPrimitive, zSchema } from '@/lib/zod'
 
 export const MaterialCategoryDto = z.object({
-  id: zPrimitive.str,
+  id: zPrimitive.id,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   ...zSchema.meta.shape,

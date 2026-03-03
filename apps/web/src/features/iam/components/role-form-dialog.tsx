@@ -35,7 +35,7 @@ function getDefaultValues(v?: RoleDto): FormDto {
 }
 
 interface RoleFormDialogProps {
-  id?: string
+  id?: number
 }
 
 export const RoleFormDialog = createCallable<RoleFormDialogProps>(props => {

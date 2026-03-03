@@ -35,7 +35,7 @@ function getDefaultValues(v?: MaterialCategoryDto): FormDto {
 }
 
 interface MaterialCategoryFormDialogProps {
-  id?: string
+  id?: number
 }
 
 export const MaterialCategoryFormDialog =

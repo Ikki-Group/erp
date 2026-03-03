@@ -49,7 +49,6 @@ const material = {
     byMaterial: 'material/location/by-material',
     stock: 'material/location/stock',
     config: 'material/location/config',
-    stockUpdate: 'material/location/stock/update',
   },
 }
 

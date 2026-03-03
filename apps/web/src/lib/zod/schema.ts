@@ -5,12 +5,13 @@ import { zPrimitive } from './primitive'
 const meta = z.object({
   createdAt: zPrimitive.date,
   updatedAt: zPrimitive.date,
-  createdBy: zPrimitive.str,
-  updatedBy: zPrimitive.str,
+  createdBy: zPrimitive.id,
+  updatedBy: zPrimitive.id,
+  syncAt: zPrimitive.date.optional().nullable(),
 })
 
 const recordId = z.object({
-  id: zPrimitive.str,
+  id: zPrimitive.id,
 })
 
 export const zSchema = {

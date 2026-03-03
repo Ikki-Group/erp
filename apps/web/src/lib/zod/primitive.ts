@@ -11,6 +11,9 @@ const strNullable = z
 const num = z.number()
 const numCoerce = z.coerce.number()
 
+/** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
+const id = z.coerce.number().int().positive()
+
 const date = z.coerce.date()
 const bool = z.boolean()
 const email = z.email()
@@ -22,6 +25,7 @@ export const zPrimitive = {
   strNullable,
   num,
   numCoerce,
+  id,
   date,
   bool,
   email,

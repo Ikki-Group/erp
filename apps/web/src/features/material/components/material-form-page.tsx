@@ -61,7 +61,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     description: v?.description ?? '',
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
-    categoryId: v?.categoryId ?? null!,
+    categoryId: v?.categoryId != null ? String(v.categoryId) : null,
     baseUom: v?.baseUom ?? null!,
     conversions,
   }
@@ -69,7 +69,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
 
 interface MaterialFormPageProps {
   mode: 'create' | 'update'
-  id?: string
+  id?: number
   backTo?: LinkOptions
 }
 
@@ -92,17 +92,20 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
         ...value.conversions,
       ]
 
+      const payload = {
+        ...value,
+        categoryId: value.categoryId ? Number(value.categoryId) : null,
+      }
+
       const promise = selectedMaterial.data?.data
         ? update.mutateAsync({
             body: {
               id: selectedMaterial.data.data.id,
-              ...value,
+              ...payload,
             },
           })
         : create.mutateAsync({
-            body: {
-              ...value,
-            },
+            body: payload,
           })
 
       await toast
@@ -144,7 +147,7 @@ function GeneralInformationCard() {
     select: ({ data }) =>
       toOptions(
         data,
-        i => i.id,
+        i => String(i.id),
         i => i.name
       ),
   })
@@ -206,7 +209,7 @@ function UomInformationSection() {
     select: ({ data }) =>
       toOptions(
         data,
-        i => i.id,
+        i => String(i.id),
         i => i.code
       ),
   })
@@ -246,7 +249,7 @@ function UomConversionsSection() {
   })
 
   const baseUom = useMemo(() => {
-    return uoms.find(u => u.value === baseUomId)
+    return uoms.find(u => String(u.value) === baseUomId)
   }, [baseUomId, uoms])
 
   return (

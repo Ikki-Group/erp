@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { UserSelectDto } from '@/features/iam/dto'
 
-type Location = Array<string> | null
+type Location = Array<number> | null
 
 interface AppState {
   token: string
