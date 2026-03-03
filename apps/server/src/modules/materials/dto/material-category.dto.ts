@@ -5,7 +5,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialCategoryDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   ...zSchema.metadata.shape,

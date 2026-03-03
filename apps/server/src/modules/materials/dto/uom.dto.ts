@@ -5,7 +5,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const UomDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   code: zPrimitive.str,
   ...zSchema.metadata.shape,
 })

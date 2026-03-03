@@ -10,9 +10,9 @@ export type TransactionType = z.infer<typeof TransactionType>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const StockTransactionDto = z.object({
-  id: zPrimitive.objId,
-  materialId: zPrimitive.objId,
-  locationId: zPrimitive.objId,
+  id: zPrimitive.id,
+  materialId: zPrimitive.id,
+  locationId: zPrimitive.id,
 
   type: TransactionType,
   date: zPrimitive.date,
@@ -25,8 +25,8 @@ export const StockTransactionDto = z.object({
   totalCost: zPrimitive.num,
 
   // Transfer-specific
-  counterpartLocationId: zPrimitive.objId.nullable().default(null),
-  transferId: zPrimitive.objId.nullable().default(null),
+  counterpartLocationId: zPrimitive.id.nullable().default(null),
+  transferId: zPrimitive.strNullable.default(null),
 
   // Running snapshot after this transaction
   runningQty: zPrimitive.num,
@@ -51,8 +51,8 @@ export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockTransactionFilterDto = z.object({
-  locationId: zHttp.query.objId,
-  materialId: zHttp.query.objId.optional(),
+  locationId: zHttp.query.id,
+  materialId: zHttp.query.id.optional(),
   type: TransactionType.optional(),
   search: zHttp.query.search,
   dateFrom: z.coerce.date().optional(),
@@ -65,20 +65,20 @@ export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto
 
 /** Single item within a purchase transaction */
 const PurchaseItemDto = z.object({
-  materialId: zPrimitive.objId,
+  materialId: zPrimitive.id,
   qty: zPrimitive.num.positive('Quantity must be positive'),
   unitCost: zPrimitive.num.nonnegative('Unit cost must be non-negative'),
 })
 
 /** Single item within a transfer transaction */
 const TransferItemDto = z.object({
-  materialId: zPrimitive.objId,
+  materialId: zPrimitive.id,
   qty: zPrimitive.num.positive('Quantity must be positive'),
 })
 
 /** Single item within an adjustment transaction */
 const AdjustmentItemDto = z.object({
-  materialId: zPrimitive.objId,
+  materialId: zPrimitive.id,
   qty: zPrimitive.num.refine((v) => v !== 0, 'Quantity must not be zero'),
   unitCost: zPrimitive.num.nonnegative().optional(),
 })
@@ -87,7 +87,7 @@ const AdjustmentItemDto = z.object({
 
 /** Create purchase transactions (multiple materials at one location) */
 export const PurchaseTransactionDto = z.object({
-  locationId: zPrimitive.objId,
+  locationId: zPrimitive.id,
   date: zPrimitive.date,
   referenceNo: zPrimitive.str,
   notes: zPrimitive.strNullable.optional(),
@@ -98,8 +98,8 @@ export type PurchaseTransactionDto = z.infer<typeof PurchaseTransactionDto>
 
 /** Create transfer transactions (multiple materials between two locations) */
 export const TransferTransactionDto = z.object({
-  sourceLocationId: zPrimitive.objId,
-  destinationLocationId: zPrimitive.objId,
+  sourceLocationId: zPrimitive.id,
+  destinationLocationId: zPrimitive.id,
   date: zPrimitive.date,
   referenceNo: zPrimitive.str,
   notes: zPrimitive.strNullable.optional(),
@@ -110,7 +110,7 @@ export type TransferTransactionDto = z.infer<typeof TransferTransactionDto>
 
 /** Create adjustment transactions (multiple materials at one location) */
 export const AdjustmentTransactionDto = z.object({
-  locationId: zPrimitive.objId,
+  locationId: zPrimitive.id,
   date: zPrimitive.date,
   referenceNo: zPrimitive.str,
   notes: zPrimitive.strNullable.optional(),

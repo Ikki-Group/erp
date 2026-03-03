@@ -58,7 +58,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
+          id: zPrimitive.id,
           ...MaterialCategoryMutationDto.shape,
         }),
         response: zResponse.ok(zSchema.recordId),

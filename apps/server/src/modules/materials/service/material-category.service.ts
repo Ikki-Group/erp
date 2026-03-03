@@ -1,126 +1,205 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage } from 'mongoose'
+import { count, eq } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
-import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import {
+  checkConflict,
+  paginate,
+  searchFilter,
+  sortBy,
+  stampCreate,
+  stampUpdate,
+  takeFirstOrThrow,
+  type ConflictField,
+} from '@/lib/db'
 import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { MaterialCategoryDto, type MaterialCategoryFilterDto, type MaterialCategoryMutationDto } from '../dto'
-import { MaterialCategoryModel } from '../model'
+import { db } from '@/db'
+import { materialCategories } from '@/db/schema'
+
+import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
+
+/* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: ObjectId) =>
+  notFound: (id: number) =>
     new NotFoundError(`Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND'),
 }
 
-const uniqueFields: ConflictField<Pick<MaterialCategoryMutationDto, 'name'>>[] = [
-  { field: 'name', message: 'Material category name already exists', code: 'MATERIAL_CATEGORY_NAME_ALREADY_EXISTS' },
+const uniqueFields: ConflictField<'name'>[] = [
+  {
+    field: 'name',
+    column: materialCategories.name,
+    message: 'Material category name already exists',
+    code: 'MATERIAL_CATEGORY_NAME_ALREADY_EXISTS',
+  },
 ]
 
 const cacheKey = {
   count: 'materialCategory.count',
   list: 'materialCategory.list',
+  byId: (id: number) => `materialCategory.byId.${id}`,
 }
 
+/* ----------------------------- IMPLEMENTATION ----------------------------- */
+
 export class MaterialCategoryService {
+  /**
+   * Returns all material categories, cached.
+   */
   async find(): Promise<MaterialCategoryDto[]> {
     return record('MaterialCategoryService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return PipelineBuilder.create(MaterialCategoryModel)
-          .push(pipelineHelper.$setId())
-          .exec({ schema: MaterialCategoryDto.array() })
+        return db.select().from(materialCategories).orderBy(materialCategories.name)
       })
     })
   }
 
-  async findById(id: ObjectId): Promise<MaterialCategoryDto> {
+  /**
+   * Finds a single material category by ID. Throws if not found.
+   */
+  async findById(id: number): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.findById', async () => {
-      const result = await PipelineBuilder.create(MaterialCategoryModel)
-        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-        .execOne({ schema: MaterialCategoryDto })
-
-      if (!result) throw err.notFound(id)
-      return result
+      return cache.wrap(cacheKey.byId(id), async () => {
+        const result = await db.select().from(materialCategories).where(eq(materialCategories.id, id))
+        return takeFirstOrThrow(result, `Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND')
+      })
     })
   }
 
+  /**
+   * Returns total count of material categories, cached.
+   */
   async count(): Promise<number> {
     return record('MaterialCategoryService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        return MaterialCategoryModel.countDocuments()
+        const result = await db.select({ val: count() }).from(materialCategories)
+        return result[0]?.val ?? 0
       })
     })
   }
 
+  /**
+   * Fetches paginated list of material categories.
+   */
   async handleList(
     filter: MaterialCategoryFilterDto,
     pq: PaginationQuery
   ): Promise<WithPaginationResult<MaterialCategoryDto>> {
     return record('MaterialCategoryService.handleList', async () => {
       const { search } = filter
-      const $match: PipelineStage.Match['$match'] = {}
+      const where = searchFilter(materialCategories.name, search)
 
-      if (search) $match.$text = { $search: search, $diacriticSensitive: true }
-
-      const pb = PipelineBuilder.create(MaterialCategoryModel)
-      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
-
-      return pbWithFilter.execPaginated({
-        schema: MaterialCategoryDto.array(),
+      return paginate<MaterialCategoryDto>({
+        data: ({ limit, offset }) =>
+          db
+            .select()
+            .from(materialCategories)
+            .where(where)
+            .orderBy(sortBy(materialCategories.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
-        facetAfter: [pipelineHelper.$setId()],
+        countQuery: db.select({ count: count() }).from(materialCategories).where(where),
       })
     })
   }
 
-  async handleDetail(id: ObjectId): Promise<MaterialCategoryDto> {
+  /**
+   * Serves material category detail.
+   */
+  async handleDetail(id: number): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.handleDetail', async () => {
       return this.findById(id)
     })
   }
 
-  async handleCreate(data: MaterialCategoryMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Creates a new material category. Invalidates cache.
+   */
+  async handleCreate(data: MaterialCategoryMutationDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleCreate', async () => {
-      await checkConflict({ model: MaterialCategoryModel, fields: uniqueFields, input: { name: data.name } })
+      const name = data.name.trim()
 
-      const category = new MaterialCategoryModel({
-        ...data,
-        ...stampCreate(actorId),
+      await checkConflict({
+        table: materialCategories,
+        pkColumn: materialCategories.id,
+        fields: uniqueFields,
+        input: { name },
       })
 
-      await category.save()
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
-      return { id: category._id }
+      const [inserted] = await db
+        .insert(materialCategories)
+        .values({
+          ...data,
+          name,
+          ...stampCreate(actorId),
+        })
+        .returning({ id: materialCategories.id })
+
+      if (!inserted) throw new Error('Failed to create material category')
+
+      void this.clearCache()
+      return inserted
     })
   }
 
-  async handleUpdate(id: ObjectId, data: MaterialCategoryMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Updates existing material category. Invalidates cache.
+   */
+  async handleUpdate(id: number, data: Partial<MaterialCategoryMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleUpdate', async () => {
       const existing = await this.findById(id)
-      if (!existing) throw err.notFound(id)
 
-      await checkConflict({ model: MaterialCategoryModel, fields: uniqueFields, input: { name: data.name }, existing })
-      await MaterialCategoryModel.findByIdAndUpdate(id, {
-        ...data,
-        ...stampUpdate(actorId),
+      const name = data.name ? data.name.trim() : existing.name
+
+      await checkConflict({
+        table: materialCategories,
+        pkColumn: materialCategories.id,
+        fields: uniqueFields,
+        input: { name },
+        existing,
       })
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
+      await db
+        .update(materialCategories)
+        .set({
+          ...data,
+          name,
+          ...stampUpdate(actorId),
+        })
+        .where(eq(materialCategories.id, id))
+
+      void this.clearCache(id)
       return { id }
     })
   }
 
-  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Removes material category. Invalidates cache.
+   */
+  async handleRemove(id: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleRemove', async () => {
-      const result = await MaterialCategoryModel.findByIdAndDelete(id)
-      if (!result) throw err.notFound(id)
+      const result = await db
+        .delete(materialCategories)
+        .where(eq(materialCategories.id, id))
+        .returning({ id: materialCategories.id })
+      if (result.length === 0) throw err.notFound(id)
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
+      void this.clearCache(id)
       return { id }
     })
+  }
+
+  /**
+   * Clears relevant material category caches.
+   */
+  private async clearCache(id?: number) {
+    await Promise.all([
+      cache.del(cacheKey.count),
+      cache.del(cacheKey.list),
+      id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
+    ])
   }
 }

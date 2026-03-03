@@ -17,14 +17,14 @@ export const MaterialConversionDto = z.object({
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 export const MaterialDto = z.object({
-  id: zPrimitive.objId,
+  id: zPrimitive.id,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
   type: MaterialType,
-  categoryId: zPrimitive.objId.nullable(),
+  categoryId: zPrimitive.id.nullable(),
   baseUom: zPrimitive.str,
-  locationIds: zPrimitive.objId.array(),
+  locationIds: zPrimitive.id.array(),
   conversions: MaterialConversionDto.array(),
   ...zSchema.metadata.shape,
 })
@@ -36,7 +36,7 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 export const MaterialFilterDto = z.object({
   search: zHttp.query.search,
   type: MaterialType.optional(),
-  categoryId: zHttp.query.objId.optional(),
+  categoryId: zHttp.query.id.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>

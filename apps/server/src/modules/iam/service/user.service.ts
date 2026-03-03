@@ -255,7 +255,7 @@ export class UserService {
         const superadmin = allRoles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
 
         const rootAssignments: UserAssignmentDetailDto[] = allLocations.map((l) => ({
-          id: 0, // Virtual ID for root assignment
+          id: l.id, // Virtual ID for root assignment (must be > 0 due to zPrimitive.id)
           isDefault: false,
           locationId: l.id,
           roleId: superadmin.id,

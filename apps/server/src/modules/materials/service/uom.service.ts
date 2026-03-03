@@ -1,113 +1,185 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage } from 'mongoose'
+import { count, eq } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
-import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import {
+  checkConflict,
+  paginate,
+  searchFilter,
+  sortBy,
+  stampCreate,
+  stampUpdate,
+  takeFirstOrThrow,
+  type ConflictField,
+} from '@/lib/db'
+import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { UomDto, type UomFilterDto, type UomMutationDto } from '../dto'
-import { UomModel } from '../model'
+import { db } from '@/db'
+import { uoms } from '@/db/schema'
+
+import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
+
+/* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: ObjectId) => new NotFoundError(`UOM with ID ${id} not found`),
-  conflict: (code: string) => new ConflictError(`UOM code ${code} already exists`),
+  notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`),
 }
 
-const uniqueFields: ConflictField<Pick<UomMutationDto, 'code'>>[] = [
-  { field: 'code', message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
+const uniqueFields: ConflictField<'code'>[] = [
+  { field: 'code', column: uoms.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
 ]
 
 const cacheKey = {
   count: 'uom.count',
   list: 'uom.list',
+  byId: (id: number) => `uom.byId.${id}`,
 }
 
+/* ----------------------------- IMPLEMENTATION ----------------------------- */
+
 export class UomService {
+  /**
+   * Returns all UOMs, cached.
+   */
   async find(): Promise<UomDto[]> {
     return record('UomService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return PipelineBuilder.create(UomModel).push(pipelineHelper.$setId()).exec({ schema: UomDto.array() })
+        return db.select().from(uoms).orderBy(uoms.code)
       })
     })
   }
 
-  async findById(id: ObjectId): Promise<UomDto> {
+  /**
+   * Finds a single UOM by ID. Throws if not found.
+   */
+  async findById(id: number): Promise<UomDto> {
     return record('UomService.findById', async () => {
-      const result = await PipelineBuilder.create(UomModel)
-        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-        .execOne({ schema: UomDto })
-
-      if (!result) throw err.notFound(id)
-      return result
+      return cache.wrap(cacheKey.byId(id), async () => {
+        const result = await db.select().from(uoms).where(eq(uoms.id, id))
+        return takeFirstOrThrow(result, `UOM with ID ${id} not found`)
+      })
     })
   }
 
+  /**
+   * Returns total count of UOMs, cached.
+   */
+  async count(): Promise<number> {
+    return record('UomService.count', async () => {
+      return cache.wrap(cacheKey.count, async () => {
+        const result = await db.select({ val: count() }).from(uoms)
+        return result[0]?.val ?? 0
+      })
+    })
+  }
+
+  /**
+   * Fetches paginated list of UOMs.
+   */
   async handleList(filter: UomFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UomDto>> {
     return record('UomService.handleList', async () => {
       const { search } = filter
-      const $match: PipelineStage.Match['$match'] = {}
+      const where = searchFilter(uoms.code, search)
 
-      if (search) $match.$text = { $search: search, $diacriticSensitive: true }
-
-      const pb = PipelineBuilder.create(UomModel)
-      const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
-
-      return pbWithFilter.execPaginated({
-        schema: UomDto.array(),
+      return paginate<UomDto>({
+        data: ({ limit, offset }) =>
+          db.select().from(uoms).where(where).orderBy(sortBy(uoms.updatedAt, 'desc')).limit(limit).offset(offset),
         pq,
-        facetAfter: [pipelineHelper.$setId()],
+        countQuery: db.select({ count: count() }).from(uoms).where(where),
       })
     })
   }
 
-  async handleDetail(id: ObjectId): Promise<UomDto> {
+  /**
+   * Serves UOM detail.
+   */
+  async handleDetail(id: number): Promise<UomDto> {
     return record('UomService.handleDetail', async () => {
       return this.findById(id)
     })
   }
 
-  async handleCreate(data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Creates a new UOM. Invalidates cache.
+   */
+  async handleCreate(data: UomMutationDto, actorId: number): Promise<{ id: number }> {
     return record('UomService.handleCreate', async () => {
-      await checkConflict({ model: UomModel, fields: uniqueFields, input: { code: data.code } })
+      const code = data.code.toUpperCase().trim()
 
-      const uom = new UomModel({
-        ...data,
-        ...stampCreate(actorId),
+      await checkConflict({
+        table: uoms,
+        pkColumn: uoms.id,
+        fields: uniqueFields,
+        input: { code },
       })
 
-      await uom.save()
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
-      return { id: uom._id }
+      const [inserted] = await db
+        .insert(uoms)
+        .values({
+          code,
+          ...stampCreate(actorId),
+        })
+        .returning({ id: uoms.id })
+
+      if (!inserted) throw new Error('Failed to create UOM')
+
+      void this.clearCache()
+      return inserted
     })
   }
 
-  async handleUpdate(id: ObjectId, data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Updates existing UOM. Invalidates cache.
+   */
+  async handleUpdate(id: number, data: Partial<UomMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('UomService.handleUpdate', async () => {
       const existing = await this.findById(id)
 
-      await checkConflict({ model: UomModel, fields: uniqueFields, input: { code: data.code }, existing })
+      const code = data.code ? data.code.toUpperCase().trim() : existing.code
 
-      await UomModel.findByIdAndUpdate(id, {
-        ...data,
-        ...stampUpdate(actorId),
+      await checkConflict({
+        table: uoms,
+        pkColumn: uoms.id,
+        fields: uniqueFields,
+        input: { code },
+        existing,
       })
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
+      await db
+        .update(uoms)
+        .set({
+          code,
+          ...stampUpdate(actorId),
+        })
+        .where(eq(uoms.id, id))
+
+      void this.clearCache(id)
       return { id }
     })
   }
 
-  async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
+  /**
+   * Removes UOM. Invalidates cache.
+   */
+  async handleRemove(id: number): Promise<{ id: number }> {
     return record('UomService.handleRemove', async () => {
-      const result = await UomModel.findByIdAndDelete(id)
-      if (!result) throw err.notFound(id)
+      const result = await db.delete(uoms).where(eq(uoms.id, id)).returning({ id: uoms.id })
+      if (result.length === 0) throw err.notFound(id)
 
-      void cache.del(cacheKey.count)
-      void cache.del(cacheKey.list)
+      void this.clearCache(id)
       return { id }
     })
+  }
+
+  /**
+   * Clears relevant UOM caches.
+   */
+  private async clearCache(id?: number) {
+    await Promise.all([
+      cache.del(cacheKey.count),
+      cache.del(cacheKey.list),
+      id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
+    ])
   }
 }

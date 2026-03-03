@@ -1,37 +1,36 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage } from 'mongoose'
+import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
-import { toLookupMap } from '@/lib/utils/collection.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import type { LocationService } from '@/modules/location'
+import type { LocationServiceModule } from '@/modules/location'
 
-import { DB_NAME } from '@/config/db-name'
+import { db } from '@/db'
+import { locations, materialLocations, materials } from '@/db/schema'
 
-import {
+import type {
+  MaterialLocationAssignDto,
+  MaterialLocationConfigDto,
   MaterialLocationDto,
+  MaterialLocationFilterDto,
   MaterialLocationStockDto,
-  type MaterialLocationAssignDto,
-  type MaterialLocationConfigDto,
-  type MaterialLocationFilterDto,
-  type MaterialLocationUnassignDto,
-  type MaterialLocationWithLocationDto,
+  MaterialLocationUnassignDto,
+  MaterialLocationWithLocationDto,
 } from '../dto'
-import { MaterialLocationModel } from '../model'
 
 import type { MaterialService } from './material.service'
 
 const err = {
-  notFound: (id: ObjectId) =>
+  notFound: (id: number) =>
     new NotFoundError(`Material-Location assignment with ID ${id} not found`, 'MATERIAL_LOCATION_NOT_FOUND'),
-  notAssigned: (materialId: ObjectId, locationId: ObjectId) =>
+  notAssigned: (materialId: number, locationId: number) =>
     new NotFoundError(
       `Material ${materialId} is not assigned to location ${locationId}`,
       'MATERIAL_NOT_ASSIGNED_TO_LOCATION'
     ),
-  alreadyAssigned: (materialId: ObjectId, locationId: ObjectId) =>
+  alreadyAssigned: (materialId: number, locationId: number) =>
     new ConflictError(
       `Material ${materialId} is already assigned to location ${locationId}`,
       'MATERIAL_LOCATION_ALREADY_ASSIGNED'
@@ -41,38 +40,52 @@ const err = {
 export class MaterialLocationService {
   constructor(
     private readonly materialSvc: MaterialService,
-    private readonly locationSvc: LocationService
+    private readonly locationSvc: LocationServiceModule
   ) {}
 
   /* ─────────────────────── INTERNAL QUERIES ─────────────────────── */
 
   /** Get a specific material-location assignment */
-  async findOne(materialId: ObjectId, locationId: ObjectId): Promise<MaterialLocationDto> {
+  async findOne(materialId: number, locationId: number): Promise<MaterialLocationDto> {
     return record('MaterialLocationService.findOne', async () => {
-      const result = await PipelineBuilder.create(MaterialLocationModel)
-        .push(pipelineHelper.$match({ materialId, locationId }), pipelineHelper.$setId())
-        .execOne({ schema: MaterialLocationDto })
+      const [result] = await db
+        .select()
+        .from(materialLocations)
+        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
 
       if (!result) throw err.notAssigned(materialId, locationId)
-      return result
+      return {
+        ...result,
+        currentQty: Number(result.currentQty),
+        currentAvgCost: Number(result.currentAvgCost),
+        currentValue: Number(result.currentValue),
+      }
     })
   }
 
   /** Get all assignments for a specific material */
-  async findByMaterialId(materialId: ObjectId): Promise<MaterialLocationDto[]> {
+  async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByMaterialId', async () => {
-      return PipelineBuilder.create(MaterialLocationModel)
-        .push(pipelineHelper.$match({ materialId }), pipelineHelper.$setId())
-        .exec({ schema: MaterialLocationDto.array() })
+      const results = await db.select().from(materialLocations).where(eq(materialLocations.materialId, materialId))
+      return results.map((r) => ({
+        ...r,
+        currentQty: Number(r.currentQty),
+        currentAvgCost: Number(r.currentAvgCost),
+        currentValue: Number(r.currentValue),
+      }))
     })
   }
 
   /** Get all assignments for a specific location */
-  async findByLocationId(locationId: ObjectId): Promise<MaterialLocationDto[]> {
+  async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByLocationId', async () => {
-      return PipelineBuilder.create(MaterialLocationModel)
-        .push(pipelineHelper.$match({ locationId }), pipelineHelper.$setId())
-        .exec({ schema: MaterialLocationDto.array() })
+      const results = await db.select().from(materialLocations).where(eq(materialLocations.locationId, locationId))
+      return results.map((r) => ({
+        ...r,
+        currentQty: Number(r.currentQty),
+        currentAvgCost: Number(r.currentAvgCost),
+        currentValue: Number(r.currentValue),
+      }))
     })
   }
 
@@ -82,12 +95,12 @@ export class MaterialLocationService {
    * Assign multiple materials to a location (batch).
    * Skips any that are already assigned (upsert-like).
    */
-  async handleAssign(data: MaterialLocationAssignDto, actorId: ObjectId): Promise<{ assignedCount: number }> {
+  async handleAssign(data: MaterialLocationAssignDto, actorId: number): Promise<{ assignedCount: number }> {
     return record('MaterialLocationService.handleAssign', async () => {
       const { locationId, materialIds } = data
 
       // Validate location exists
-      await this.locationSvc.findById(locationId)
+      await this.locationSvc.location.findById(locationId)
 
       // Validate all materials exist
       for (const materialId of materialIds) {
@@ -95,31 +108,25 @@ export class MaterialLocationService {
       }
 
       // Find already assigned
-      const existing = await MaterialLocationModel.find({
-        locationId,
-        materialId: { $in: materialIds },
-      }).select('materialId')
+      const existing = await db
+        .select({ materialId: materialLocations.materialId })
+        .from(materialLocations)
+        .where(and(eq(materialLocations.locationId, locationId), inArray(materialLocations.materialId, materialIds)))
 
-      const existingMaterialIds = new Set(existing.map((e) => e.materialId.toString()))
-      const newMaterialIds = materialIds.filter((mId) => !existingMaterialIds.has(mId.toString()))
+      const existingMaterialIds = new Set(existing.map((e) => e.materialId))
+      const newMaterialIds = materialIds.filter((mId) => !existingMaterialIds.has(mId))
 
       if (newMaterialIds.length === 0) return { assignedCount: 0 }
 
-      const docs = newMaterialIds.map(
-        (materialId) =>
-          new MaterialLocationModel({
-            materialId,
-            locationId,
-            ...stampCreate(actorId),
-          })
-      )
+      const metadata = stampCreate(actorId)
 
-      await MaterialLocationModel.bulkSave(docs)
+      const docs = newMaterialIds.map((materialId) => ({
+        materialId,
+        locationId,
+        ...metadata,
+      }))
 
-      // Sync locationIds on the Material documents
-      for (const materialId of newMaterialIds) {
-        await this.materialSvc.addLocationId(materialId, locationId)
-      }
+      await db.insert(materialLocations).values(docs)
 
       return { assignedCount: newMaterialIds.length }
     })
@@ -128,17 +135,18 @@ export class MaterialLocationService {
   /**
    * Unassign a material from a location.
    */
-  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: ObjectId }> {
+  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: number }> {
     return record('MaterialLocationService.handleUnassign', async () => {
       const { materialId, locationId } = data
 
-      const result = await MaterialLocationModel.findOneAndDelete({ materialId, locationId })
-      if (!result) throw err.notFound(materialId)
+      const [result] = await db
+        .delete(materialLocations)
+        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
+        .returning({ id: materialLocations.id })
 
-      // Remove locationId from the Material document
-      await this.materialSvc.removeLocationId(materialId, locationId)
+      if (!result) throw err.notAssigned(materialId, locationId)
 
-      return { id: result._id }
+      return { id: result.id }
     })
   }
 
@@ -147,24 +155,27 @@ export class MaterialLocationService {
   /**
    * List all locations assigned to a material, enriched with location details.
    */
-  async handleLocationsByMaterial(materialId: ObjectId): Promise<MaterialLocationWithLocationDto[]> {
+  async handleLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
     return record('MaterialLocationService.handleLocationsByMaterial', async () => {
       // Validate material exists
       await this.materialSvc.findById(materialId)
 
-      const assignments = await this.findByMaterialId(materialId)
-      if (assignments.length === 0) return []
-
-      const locations = await this.locationSvc.find()
-      const locationMap = toLookupMap(locations, 'id')
-
-      return assignments
-        .map((a) => {
-          const location = locationMap.get(a.locationId.toString())
-          if (!location) return null
-          return { ...a, location }
+      const assignments = await db
+        .select({
+          assignment: materialLocations,
+          location: locations,
         })
-        .filter(Boolean) as MaterialLocationWithLocationDto[]
+        .from(materialLocations)
+        .innerJoin(locations, eq(materialLocations.locationId, locations.id))
+        .where(eq(materialLocations.materialId, materialId))
+
+      return assignments.map((row) => ({
+        ...row.assignment,
+        currentQty: Number(row.assignment.currentQty),
+        currentAvgCost: Number(row.assignment.currentAvgCost),
+        currentValue: Number(row.assignment.currentValue),
+        location: row.location,
+      }))
     })
   }
 
@@ -172,7 +183,7 @@ export class MaterialLocationService {
 
   /**
    * List materials at a specific location with stock data (paginated).
-   * Uses $lookup to join material data.
+   * Joining with material data.
    */
   async handleStockByLocation(
     filter: MaterialLocationFilterDto,
@@ -182,62 +193,54 @@ export class MaterialLocationService {
       const { locationId, search } = filter
 
       // Validate location exists
-      await this.locationSvc.findById(locationId)
+      await this.locationSvc.location.findById(locationId)
 
-      // Build the aggregation pipeline
-      const matchStage: PipelineStage.Match['$match'] = { locationId }
+      const searchCondition = search
+        ? or(ilike(materials.name, `%${search}%`), ilike(materials.sku, `%${search}%`))
+        : undefined
 
-      const lookupMaterial = pipelineHelper.$lookup({
-        from: DB_NAME.MATERIAL,
-        localField: 'materialId',
-        foreignField: '_id',
-        as: 'material',
-        let: { materialId: '$materialId' },
-        pipeline: [
-          { $match: { $expr: { $eq: ['$_id', '$$materialId'] } } },
-          { $project: { name: 1, sku: 1, baseUom: 1 } },
-        ],
-      })
+      const where = and(eq(materialLocations.locationId, locationId), searchCondition)
 
-      const pb = PipelineBuilder.create(MaterialLocationModel)
-        .push(pipelineHelper.$match(matchStage))
-        .push(lookupMaterial)
-        .push(pipelineHelper.$unwind('$material'))
-
-      // Apply search filter on material name/sku after lookup
-      const pbWithSearch = search
-        ? pb.push(
-            pipelineHelper.$match({
-              $or: [
-                { 'material.name': { $regex: search, $options: 'i' } },
-                { 'material.sku': { $regex: search, $options: 'i' } },
-              ],
+      const result = await paginate({
+        data: ({ limit, offset }) =>
+          db
+            .select({
+              id: materialLocations.id,
+              materialId: materialLocations.materialId,
+              locationId: materialLocations.locationId,
+              materialName: materials.name,
+              materialSku: materials.sku,
+              baseUom: materials.baseUom,
+              minStock: materialLocations.minStock,
+              maxStock: materialLocations.maxStock,
+              reorderPoint: materialLocations.reorderPoint,
+              currentQty: materialLocations.currentQty,
+              currentAvgCost: materialLocations.currentAvgCost,
+              currentValue: materialLocations.currentValue,
             })
-          )
-        : pb
-
-      const StockProjection = {
-        $set: {
-          id: '$_id',
-          materialName: '$material.name',
-          materialSku: '$material.sku',
-          baseUom: '$material.baseUom',
-        },
-      }
-
-      const CleanupProjection: PipelineStage.FacetPipelineStage = {
-        $project: {
-          _id: 0,
-          __v: 0,
-          material: 0,
-        },
-      }
-
-      return pbWithSearch.execPaginated({
-        schema: MaterialLocationStockDto.array(),
+            .from(materialLocations)
+            .innerJoin(materials, eq(materialLocations.materialId, materials.id))
+            .where(where)
+            .orderBy(sortBy(materialLocations.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
-        facetAfter: [StockProjection, CleanupProjection],
+        countQuery: db
+          .select({ count: count() })
+          .from(materialLocations)
+          .innerJoin(materials, eq(materialLocations.materialId, materials.id))
+          .where(where),
       })
+
+      // Convert numeric strings back to numbers for DTO compliance
+      const data = result.data.map((stock) => ({
+        ...stock,
+        currentQty: Number(stock.currentQty),
+        currentAvgCost: Number(stock.currentAvgCost),
+        currentValue: Number(stock.currentValue),
+      }))
+
+      return { data, meta: result.meta }
     })
   }
 
@@ -246,17 +249,21 @@ export class MaterialLocationService {
   /**
    * Update per-location config (minStock, maxStock, reorderPoint).
    */
-  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
+  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialLocationService.handleUpdateConfig', async () => {
       const { id, ...update } = data
 
-      const result = await MaterialLocationModel.findByIdAndUpdate(id, {
-        ...update,
-        ...stampUpdate(actorId),
-      })
+      const [result] = await db
+        .update(materialLocations)
+        .set({
+          ...update,
+          ...stampUpdate(actorId),
+        })
+        .where(eq(materialLocations.id, id))
+        .returning({ id: materialLocations.id })
 
       if (!result) throw err.notFound(id)
-      return { id }
+      return { id: result.id }
     })
   }
 
@@ -266,13 +273,21 @@ export class MaterialLocationService {
    * Update current stock snapshot. Called by the inventory module after recording a transaction.
    */
   async updateCurrentStock(
-    materialId: ObjectId,
-    locationId: ObjectId,
+    materialId: number,
+    locationId: number,
     stock: { currentQty: number; currentAvgCost: number; currentValue: number },
-    actorId: ObjectId
+    actorId: number
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
-      await MaterialLocationModel.findOneAndUpdate({ materialId, locationId }, { ...stock, ...stampUpdate(actorId) })
+      await db
+        .update(materialLocations)
+        .set({
+          currentQty: stock.currentQty.toString(),
+          currentAvgCost: stock.currentAvgCost.toString(),
+          currentValue: stock.currentValue.toString(),
+          ...stampUpdate(actorId),
+        })
+        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
     })
   }
 }

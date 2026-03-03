@@ -5,9 +5,9 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const StockSummaryDto = z.object({
-  id: zPrimitive.objId,
-  materialId: zPrimitive.objId,
-  locationId: zPrimitive.objId,
+  id: zPrimitive.id,
+  materialId: zPrimitive.id,
+  locationId: zPrimitive.id,
   date: zPrimitive.date,
 
   // Opening balance
@@ -51,8 +51,8 @@ export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockSummaryFilterDto = z.object({
-  locationId: zHttp.query.objId,
-  materialId: zHttp.query.objId.optional(),
+  locationId: zHttp.query.id,
+  materialId: zHttp.query.id.optional(),
   dateFrom: z.coerce.date(),
   dateTo: z.coerce.date(),
 })
@@ -63,7 +63,7 @@ export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 
 /** Generate daily summary for a specific date + location */
 export const GenerateSummaryDto = z.object({
-  locationId: zPrimitive.objId,
+  locationId: zPrimitive.id,
   date: zPrimitive.date,
 })
 

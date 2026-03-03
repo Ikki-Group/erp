@@ -1,16 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { PipelineStage } from 'mongoose'
+import { and, count, desc, eq, gte, lt, lte, sum } from 'drizzle-orm'
 
-import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
+import { paginate, stampCreate, stampUpdate } from '@/lib/db'
 import { toWibDateKey, toWibDayBounds } from '@/lib/utils/date.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
-import { DB_NAME } from '@/config/db-name'
+import { db } from '@/db'
+import { materials, stockSummaries, stockTransactions } from '@/db/schema'
 
-import { StockSummarySelectDto, type GenerateSummaryDto, type StockSummaryFilterDto } from '../dto'
-import { StockSummaryModel, StockTransactionModel } from '../model'
+import type { GenerateSummaryDto, StockSummaryFilterDto, StockSummarySelectDto } from '../dto'
 
 export class StockSummaryService {
   constructor(private readonly mLocationSvc: MaterialLocationService) {}
@@ -28,47 +28,80 @@ export class StockSummaryService {
     return record('StockSummaryService.handleByLocation', async () => {
       const { locationId, materialId, dateFrom, dateTo } = filter
 
-      const $match: PipelineStage.Match['$match'] = {
-        locationId,
-        date: {
-          $gte: toWibDateKey(dateFrom),
-          $lte: toWibDateKey(dateTo),
-        },
-      }
-      if (materialId) $match.materialId = materialId
+      const where = and(
+        eq(stockSummaries.locationId, locationId),
+        materialId === undefined ? undefined : eq(stockSummaries.materialId, materialId),
+        gte(stockSummaries.date, toWibDateKey(dateFrom)),
+        lte(stockSummaries.date, toWibDateKey(dateTo))
+      )
 
-      const lookupMaterial = pipelineHelper.$lookup({
-        from: DB_NAME.MATERIAL,
-        localField: 'materialId',
-        foreignField: '_id',
-        as: 'material',
-        let: { materialId: '$materialId' },
-        pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$materialId'] } } }, { $project: { name: 1, sku: 1 } }],
-      })
-
-      const pb = PipelineBuilder.create(StockSummaryModel)
-        .push(pipelineHelper.$match($match))
-        .push(pipelineHelper.$sort({ date: -1 }))
-        .push(lookupMaterial)
-        .push(pipelineHelper.$unwind('$material'))
-
-      const Projection = {
-        $set: {
-          id: '$_id',
-          materialName: '$material.name',
-          materialSku: '$material.sku',
-        },
-      }
-
-      const Cleanup: PipelineStage.FacetPipelineStage = {
-        $project: { _id: 0, __v: 0, material: 0 },
-      }
-
-      return pb.execPaginated({
-        schema: StockSummarySelectDto.array(),
+      const result = await paginate({
+        data: ({ limit, offset }) =>
+          db
+            .select({
+              id: stockSummaries.id,
+              materialId: stockSummaries.materialId,
+              locationId: stockSummaries.locationId,
+              date: stockSummaries.date,
+              openingQty: stockSummaries.openingQty,
+              openingAvgCost: stockSummaries.openingAvgCost,
+              openingValue: stockSummaries.openingValue,
+              purchaseQty: stockSummaries.purchaseQty,
+              purchaseValue: stockSummaries.purchaseValue,
+              transferInQty: stockSummaries.transferInQty,
+              transferInValue: stockSummaries.transferInValue,
+              transferOutQty: stockSummaries.transferOutQty,
+              transferOutValue: stockSummaries.transferOutValue,
+              adjustmentQty: stockSummaries.adjustmentQty,
+              adjustmentValue: stockSummaries.adjustmentValue,
+              sellQty: stockSummaries.sellQty,
+              sellValue: stockSummaries.sellValue,
+              closingQty: stockSummaries.closingQty,
+              closingAvgCost: stockSummaries.closingAvgCost,
+              closingValue: stockSummaries.closingValue,
+              createdAt: stockSummaries.createdAt,
+              updatedAt: stockSummaries.updatedAt,
+              createdBy: stockSummaries.createdBy,
+              updatedBy: stockSummaries.updatedBy,
+              syncAt: stockSummaries.syncAt,
+              materialName: materials.name,
+              materialSku: materials.sku,
+            })
+            .from(stockSummaries)
+            .innerJoin(materials, eq(stockSummaries.materialId, materials.id))
+            .where(where)
+            .orderBy(desc(stockSummaries.date))
+            .limit(limit)
+            .offset(offset),
         pq,
-        facetAfter: [Projection, Cleanup],
+        countQuery: db
+          .select({ count: count() })
+          .from(stockSummaries)
+          .innerJoin(materials, eq(stockSummaries.materialId, materials.id))
+          .where(where),
       })
+
+      const data = result.data.map((r) => ({
+        ...r,
+        openingQty: Number(r.openingQty),
+        openingAvgCost: Number(r.openingAvgCost),
+        openingValue: Number(r.openingValue),
+        purchaseQty: Number(r.purchaseQty),
+        purchaseValue: Number(r.purchaseValue),
+        transferInQty: Number(r.transferInQty),
+        transferInValue: Number(r.transferInValue),
+        transferOutQty: Number(r.transferOutQty),
+        transferOutValue: Number(r.transferOutValue),
+        adjustmentQty: Number(r.adjustmentQty),
+        adjustmentValue: Number(r.adjustmentValue),
+        sellQty: Number(r.sellQty),
+        sellValue: Number(r.sellValue),
+        closingQty: Number(r.closingQty),
+        closingAvgCost: Number(r.closingAvgCost),
+        closingValue: Number(r.closingValue),
+      }))
+
+      return { data, meta: result.meta }
     })
   }
 
@@ -78,7 +111,7 @@ export class StockSummaryService {
    * Generate or regenerate daily summary for all materials at a location.
    * Aggregates transactions within the WIB day and computes opening/closing balances.
    */
-  async handleGenerate(data: GenerateSummaryDto, actorId: ObjectId): Promise<{ generatedCount: number }> {
+  async handleGenerate(data: GenerateSummaryDto, actorId: number): Promise<{ generatedCount: number }> {
     return record('StockSummaryService.handleGenerate', async () => {
       const { locationId, date } = data
       const dateKey = toWibDateKey(date)
@@ -94,113 +127,162 @@ export class StockSummaryService {
         const { materialId } = assignment
 
         // Get previous day's closing (= today's opening)
-        const previousSummary = await StockSummaryModel.findOne({
-          materialId,
-          locationId,
-          date: { $lt: dateKey },
-        }).sort({ date: -1 })
+        const [previousSummary] = await db
+          .select({ closingQty: stockSummaries.closingQty, closingAvgCost: stockSummaries.closingAvgCost })
+          .from(stockSummaries)
+          .where(
+            and(
+              eq(stockSummaries.materialId, materialId),
+              eq(stockSummaries.locationId, locationId),
+              lt(stockSummaries.date, dateKey)
+            )
+          )
+          .orderBy(desc(stockSummaries.date))
+          .limit(1)
 
-        const openingQty = previousSummary?.closingQty ?? 0
-        const openingAvgCost = previousSummary?.closingAvgCost ?? 0
+        const openingQty = previousSummary ? Number(previousSummary.closingQty) : 0
+        const openingAvgCost = previousSummary ? Number(previousSummary.closingAvgCost) : 0
         const openingValue = openingQty * openingAvgCost
 
         // Aggregate transactions for this material+location on this WIB day
-        const [movements] = await StockTransactionModel.aggregate([
-          {
-            $match: {
-              materialId,
-              locationId,
-              date: { $gte: start, $lt: end },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              purchaseQty: { $sum: { $cond: [{ $eq: ['$type', 'purchase'] }, '$qty', 0] } },
-              purchaseValue: { $sum: { $cond: [{ $eq: ['$type', 'purchase'] }, '$totalCost', 0] } },
-              transferInQty: { $sum: { $cond: [{ $eq: ['$type', 'transfer_in'] }, '$qty', 0] } },
-              transferInValue: { $sum: { $cond: [{ $eq: ['$type', 'transfer_in'] }, '$totalCost', 0] } },
-              transferOutQty: { $sum: { $cond: [{ $eq: ['$type', 'transfer_out'] }, '$qty', 0] } },
-              transferOutValue: { $sum: { $cond: [{ $eq: ['$type', 'transfer_out'] }, '$totalCost', 0] } },
-              adjustmentQty: { $sum: { $cond: [{ $eq: ['$type', 'adjustment'] }, '$qty', 0] } },
-              adjustmentValue: { $sum: { $cond: [{ $eq: ['$type', 'adjustment'] }, '$totalCost', 0] } },
-              sellQty: { $sum: { $cond: [{ $eq: ['$type', 'sell'] }, '$qty', 0] } },
-              sellValue: { $sum: { $cond: [{ $eq: ['$type', 'sell'] }, '$totalCost', 0] } },
-            },
-          },
-        ])
+        const movements = await db
+          .select({
+            type: stockTransactions.type,
+            qty: sum(stockTransactions.qty),
+            totalCost: sum(stockTransactions.totalCost),
+          })
+          .from(stockTransactions)
+          .where(
+            and(
+              eq(stockTransactions.materialId, materialId),
+              eq(stockTransactions.locationId, locationId),
+              gte(stockTransactions.date, start),
+              lt(stockTransactions.date, end)
+            )
+          )
+          .groupBy(stockTransactions.type)
 
-        const purchaseQty = movements?.purchaseQty ?? 0
-        const purchaseValue = movements?.purchaseValue ?? 0
-        const transferInQty = movements?.transferInQty ?? 0
-        const transferInValue = movements?.transferInValue ?? 0
-        const transferOutQty = movements?.transferOutQty ?? 0
-        const transferOutValue = movements?.transferOutValue ?? 0
-        const adjustmentQty = movements?.adjustmentQty ?? 0
-        const adjustmentValue = movements?.adjustmentValue ?? 0
-        const sellQty = movements?.sellQty ?? 0
-        const sellValue = movements?.sellValue ?? 0
+        let purchaseQty = 0,
+          purchaseValue = 0
+        let transferInQty = 0,
+          transferInValue = 0
+        let transferOutQty = 0,
+          transferOutValue = 0
+        let adjustmentQty = 0,
+          adjustmentValue = 0
+        let sellQty = 0,
+          sellValue = 0
+
+        for (const m of movements) {
+          const mQty = Number(m.qty ?? 0)
+          const mTotalCost = Number(m.totalCost ?? 0)
+
+          switch (m.type) {
+            case 'purchase': {
+              purchaseQty += mQty
+              purchaseValue += mTotalCost
+              break
+            }
+            case 'transfer_in': {
+              transferInQty += mQty
+              transferInValue += mTotalCost
+              break
+            }
+            case 'transfer_out': {
+              transferOutQty += mQty
+              transferOutValue += mTotalCost
+              break
+            }
+            case 'adjustment': {
+              adjustmentQty += mQty
+              adjustmentValue += mTotalCost
+              break
+            }
+            case 'sell': {
+              sellQty += mQty
+              sellValue += mTotalCost
+              break
+            }
+          }
+        }
 
         // Calculate closing balance
         const closingQty = openingQty + purchaseQty + transferInQty - transferOutQty + adjustmentQty - sellQty
 
         // Get the last transaction's running avg cost for the day, or use opening if no transactions
-        const lastTransaction = await StockTransactionModel.findOne({
-          materialId,
-          locationId,
-          date: { $gte: start, $lt: end },
-        }).sort({ _id: -1 })
+        const [lastTransaction] = await db
+          .select({ runningAvgCost: stockTransactions.runningAvgCost })
+          .from(stockTransactions)
+          .where(
+            and(
+              eq(stockTransactions.materialId, materialId),
+              eq(stockTransactions.locationId, locationId),
+              gte(stockTransactions.date, start),
+              lt(stockTransactions.date, end)
+            )
+          )
+          .orderBy(desc(stockTransactions.id))
+          .limit(1)
 
-        const closingAvgCost = lastTransaction?.runningAvgCost ?? openingAvgCost
+        const closingAvgCost = lastTransaction ? Number(lastTransaction.runningAvgCost) : openingAvgCost
         const closingValue = closingQty * closingAvgCost
 
-        // Upsert summary
-        const stamp = await StockSummaryModel.findOne({ materialId, locationId, date: dateKey })
-        if (stamp) {
-          await StockSummaryModel.findByIdAndUpdate(stamp._id, {
-            openingQty,
-            openingAvgCost,
-            openingValue,
-            purchaseQty,
-            purchaseValue,
-            transferInQty,
-            transferInValue,
-            transferOutQty,
-            transferOutValue,
-            adjustmentQty,
-            adjustmentValue,
-            sellQty,
-            sellValue,
-            closingQty,
-            closingAvgCost,
-            closingValue,
-            ...stampUpdate(actorId),
-          })
-        } else {
-          const doc = new StockSummaryModel({
+        // Check if summary exists for this day
+        const [existing] = await db
+          .select({ id: stockSummaries.id })
+          .from(stockSummaries)
+          .where(
+            and(
+              eq(stockSummaries.materialId, materialId),
+              eq(stockSummaries.locationId, locationId),
+              eq(stockSummaries.date, dateKey)
+            )
+          )
+          .limit(1)
+
+        await (existing ? db
+            .update(stockSummaries)
+            .set({
+              openingQty: openingQty.toString(),
+              openingAvgCost: openingAvgCost.toString(),
+              openingValue: openingValue.toString(),
+              purchaseQty: purchaseQty.toString(),
+              purchaseValue: purchaseValue.toString(),
+              transferInQty: transferInQty.toString(),
+              transferInValue: transferInValue.toString(),
+              transferOutQty: transferOutQty.toString(),
+              transferOutValue: transferOutValue.toString(),
+              adjustmentQty: adjustmentQty.toString(),
+              adjustmentValue: adjustmentValue.toString(),
+              sellQty: sellQty.toString(),
+              sellValue: sellValue.toString(),
+              closingQty: closingQty.toString(),
+              closingAvgCost: closingAvgCost.toString(),
+              closingValue: closingValue.toString(),
+              ...stampUpdate(actorId),
+            })
+            .where(eq(stockSummaries.id, existing.id)) : db.insert(stockSummaries).values({
             materialId,
             locationId,
             date: dateKey,
-            openingQty,
-            openingAvgCost,
-            openingValue,
-            purchaseQty,
-            purchaseValue,
-            transferInQty,
-            transferInValue,
-            transferOutQty,
-            transferOutValue,
-            adjustmentQty,
-            adjustmentValue,
-            sellQty,
-            sellValue,
-            closingQty,
-            closingAvgCost,
-            closingValue,
+            openingQty: openingQty.toString(),
+            openingAvgCost: openingAvgCost.toString(),
+            openingValue: openingValue.toString(),
+            purchaseQty: purchaseQty.toString(),
+            purchaseValue: purchaseValue.toString(),
+            transferInQty: transferInQty.toString(),
+            transferInValue: transferInValue.toString(),
+            transferOutQty: transferOutQty.toString(),
+            transferOutValue: transferOutValue.toString(),
+            adjustmentQty: adjustmentQty.toString(),
+            adjustmentValue: adjustmentValue.toString(),
+            sellQty: sellQty.toString(),
+            sellValue: sellValue.toString(),
+            closingQty: closingQty.toString(),
+            closingAvgCost: closingAvgCost.toString(),
+            closingValue: closingValue.toString(),
             ...stampCreate(actorId),
-          })
-          await doc.save()
-        }
+          }));
 
         generatedCount++
       }

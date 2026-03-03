@@ -58,7 +58,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       },
       {
         body: z.object({
-          id: zPrimitive.objId,
+          id: zPrimitive.id,
           ...UomMutationDto.shape,
         }),
         response: zResponse.ok(zSchema.recordId),
