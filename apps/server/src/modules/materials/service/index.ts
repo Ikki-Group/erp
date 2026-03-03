@@ -10,6 +10,6 @@ export class MaterialServiceModule {
   constructor() {
     this.category = new MaterialCategoryService()
     this.uom = new UomService()
-    this.material = new MaterialService()
+    this.material = new MaterialService(this.category)
   }
 }

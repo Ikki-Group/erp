@@ -2,8 +2,8 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { MaterialCategoryDto, type MaterialCategoryFilterDto, type MaterialCategoryMutationDto } from '../dto'
@@ -12,9 +12,11 @@ import { MaterialCategoryModel } from '../model'
 const err = {
   notFound: (id: ObjectId) =>
     new NotFoundError(`Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND'),
-  nameExist: (name: string) =>
-    new ConflictError(`Material category name ${name} already exists`, 'MATERIAL_CATEGORY_NAME_ALREADY_EXISTS'),
 }
+
+const uniqueFields: ConflictField<Pick<MaterialCategoryMutationDto, 'name'>>[] = [
+  { field: 'name', message: 'Material category name already exists', code: 'MATERIAL_CATEGORY_NAME_ALREADY_EXISTS' },
+]
 
 const cacheKey = {
   count: 'materialCategory.count',
@@ -22,19 +24,13 @@ const cacheKey = {
 }
 
 export class MaterialCategoryService {
-  async #checkConflict(input: Pick<MaterialCategoryDto, 'name'>, existing?: MaterialCategoryDto): Promise<void> {
-    return record('MaterialCategoryService.#checkConflict', async () => {
-      const nameChanged = !existing || existing.name !== input.name
-
-      if (!nameChanged) return
-
-      const $or = [...(nameChanged ? [{ name: input.name.toUpperCase().trim() }] : [])]
-      const conflict = await MaterialCategoryModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-        .select('name')
-        .lean()
-
-      if (!conflict) return
-      if (nameChanged && conflict.name === input.name.toUpperCase().trim()) throw err.nameExist(input.name)
+  async find(): Promise<MaterialCategoryDto[]> {
+    return record('MaterialCategoryService.find', async () => {
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(MaterialCategoryModel)
+          .push(pipelineHelper.$setId())
+          .exec({ schema: MaterialCategoryDto.array() })
+      })
     })
   }
 
@@ -86,7 +82,7 @@ export class MaterialCategoryService {
 
   async handleCreate(data: MaterialCategoryMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialCategoryService.handleCreate', async () => {
-      await this.#checkConflict(data)
+      await checkConflict({ model: MaterialCategoryModel, fields: uniqueFields, input: { name: data.name } })
 
       const category = new MaterialCategoryModel({
         ...data,
@@ -105,7 +101,7 @@ export class MaterialCategoryService {
       const existing = await this.findById(id)
       if (!existing) throw err.notFound(id)
 
-      await this.#checkConflict(data, existing)
+      await checkConflict({ model: MaterialCategoryModel, fields: uniqueFields, input: { name: data.name }, existing })
       await MaterialCategoryModel.findByIdAndUpdate(id, {
         ...data,
         ...stampUpdate(actorId),

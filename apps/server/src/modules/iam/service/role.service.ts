@@ -38,7 +38,7 @@ export class RoleService {
       // Bulk upsert
       const roles: RoleDto[] = data.map((d) => ({
         ...d,
-        isSystem: false,
+        isSystem: true,
         ...stampCreate(d.createdBy),
       }))
 

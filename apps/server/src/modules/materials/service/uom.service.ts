@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
@@ -14,25 +14,21 @@ const err = {
   conflict: (code: string) => new ConflictError(`UOM code ${code} already exists`),
 }
 
+const uniqueFields: ConflictField<Pick<UomMutationDto, 'code'>>[] = [
+  { field: 'code', message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
+]
+
 const cacheKey = {
   count: 'uom.count',
   list: 'uom.list',
 }
 
 export class UomService {
-  async #checkConflict(input: Pick<UomDto, 'code'>, existing?: UomDto): Promise<void> {
-    return record('UomService.#checkConflict', async () => {
-      const codeChanged = !existing || existing.code !== input.code
-
-      if (!codeChanged) return
-
-      const $or = [...(codeChanged ? [{ code: input.code.toUpperCase().trim() }] : [])]
-      const conflict = await UomModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-        .select('code')
-        .lean()
-
-      if (!conflict) return
-      if (codeChanged && conflict.code === input.code.toUpperCase().trim()) throw err.conflict(input.code)
+  async find(): Promise<UomDto[]> {
+    return record('UomService.find', async () => {
+      return cache.wrap(cacheKey.list, async () => {
+        return PipelineBuilder.create(UomModel).push(pipelineHelper.$setId()).exec({ schema: UomDto.array() })
+      })
     })
   }
 
@@ -73,7 +69,7 @@ export class UomService {
 
   async handleCreate(data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UomService.handleCreate', async () => {
-      await this.#checkConflict(data)
+      await checkConflict({ model: UomModel, fields: uniqueFields, input: { code: data.code } })
 
       const uom = new UomModel({
         ...data,
@@ -90,7 +86,8 @@ export class UomService {
   async handleUpdate(id: ObjectId, data: UomMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('UomService.handleUpdate', async () => {
       const existing = await this.findById(id)
-      await this.#checkConflict(data, existing)
+
+      await checkConflict({ model: UomModel, fields: uniqueFields, input: { code: data.code }, existing })
 
       await UomModel.findByIdAndUpdate(id, {
         ...data,

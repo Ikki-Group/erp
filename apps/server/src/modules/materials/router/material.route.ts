@@ -5,7 +5,7 @@ import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { MaterialDto, MaterialFilterDto, MaterialMutationDto } from '../dto'
+import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
 
 export function initMaterialRoute(s: MaterialServiceModule) {
@@ -22,7 +22,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
           ...zHttp.pagination.shape,
           ...MaterialFilterDto.shape,
         }),
-        response: zResponse.paginated(MaterialDto.array()),
+        response: zResponse.paginated(MaterialSelectDto.array()),
         auth: true,
       }
     )
@@ -34,7 +34,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       },
       {
         query: zHttp.recordId,
-        response: zResponse.ok(MaterialDto),
+        response: zResponse.ok(MaterialSelectDto),
         auth: true,
       }
     )

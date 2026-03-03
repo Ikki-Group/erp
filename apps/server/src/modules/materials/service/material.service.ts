@@ -2,45 +2,33 @@ import { record } from '@elysiajs/opentelemetry'
 import type { PipelineStage } from 'mongoose'
 
 import { cache } from '@/lib/cache'
-import { PipelineBuilder, pipelineHelper, stampCreate, stampUpdate } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
+import { checkConflict, PipelineBuilder, pipelineHelper, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
+import { NotFoundError } from '@/lib/error/http'
+import { toLookupMap } from '@/lib/utils/collection.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { MaterialDto, type MaterialFilterDto, type MaterialMutationDto } from '../dto'
+import { MaterialDto, type MaterialFilterDto, type MaterialMutationDto, type MaterialSelectDto } from '../dto'
 import { MaterialModel } from '../model'
+
+import type { MaterialCategoryService } from './material-category.service'
 
 const err = {
   notFound: (id: ObjectId) => new NotFoundError(`Material with ID ${id} not found`),
-  skuExist: (sku: string) => new ConflictError(`Material SKU ${sku} already exists`),
-  nameExist: (name: string) => new ConflictError(`Material name ${name} already exists`),
 }
+
+const uniqueFields: ConflictField<Pick<MaterialMutationDto, 'sku' | 'name'>>[] = [
+  { field: 'sku', message: 'Material SKU already exists', code: 'MATERIAL_SKU_ALREADY_EXISTS' },
+  { field: 'name', message: 'Material name already exists', code: 'MATERIAL_NAME_ALREADY_EXISTS' },
+]
 
 const cacheKey = {
   count: 'material.count',
   list: 'material.list',
+  byId: (id: ObjectId) => `material.byId.${id}`,
 }
 
 export class MaterialService {
-  async #checkConflict(input: Pick<MaterialDto, 'sku' | 'name'>, existing?: MaterialDto): Promise<void> {
-    return record('MaterialService.#checkConflict', async () => {
-      const skuChanged = !existing || existing.sku !== input.sku
-      const nameChanged = !existing || existing.name !== input.name
-
-      if (!skuChanged && !nameChanged) return
-
-      const $or = [
-        ...(skuChanged ? [{ sku: input.sku.toUpperCase().trim() }] : []),
-        ...(nameChanged ? [{ name: input.name.trim() }] : []),
-      ]
-      const conflict = await MaterialModel.findOne(existing ? { _id: { $ne: existing.id }, $or } : { $or })
-        .select('sku name')
-        .lean()
-
-      if (!conflict) return
-      if (skuChanged && conflict.sku === input.sku.toUpperCase().trim()) throw err.skuExist(input.sku)
-      if (nameChanged && conflict.name === input.name.trim()) throw err.nameExist(input.name)
-    })
-  }
+  constructor(private readonly categorySvc: MaterialCategoryService) {}
 
   async find(): Promise<MaterialDto[]> {
     return record('MaterialService.find', async () => {
@@ -52,12 +40,14 @@ export class MaterialService {
 
   async findById(id: ObjectId): Promise<MaterialDto> {
     return record('MaterialService.findById', async () => {
-      const result = await PipelineBuilder.create(MaterialModel)
-        .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
-        .execOne({ schema: MaterialDto })
+      return cache.wrap(cacheKey.byId(id), async () => {
+        const result = await PipelineBuilder.create(MaterialModel)
+          .push(pipelineHelper.$matchId(id), pipelineHelper.$setId())
+          .execOne({ schema: MaterialDto })
 
-      if (!result) throw err.notFound(id)
-      return result
+        if (!result) throw err.notFound(id)
+        return result
+      })
     })
   }
 
@@ -67,7 +57,7 @@ export class MaterialService {
     })
   }
 
-  async handleList(filter: MaterialFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<MaterialDto>> {
+  async handleList(filter: MaterialFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<MaterialSelectDto>> {
     return record('MaterialService.handleList', async () => {
       const { search, type, categoryId } = filter
       const $match: PipelineStage.Match['$match'] = {}
@@ -79,23 +69,37 @@ export class MaterialService {
       const pb = PipelineBuilder.create(MaterialModel)
       const pbWithFilter = Object.keys($match).length > 0 ? pb.push(pipelineHelper.$match($match)) : pb
 
-      return pbWithFilter.execPaginated({
+      const { data: materials, meta } = await pbWithFilter.execPaginated({
         schema: MaterialDto.array(),
         pq,
         facetAfter: [pipelineHelper.$setId()],
       })
+
+      const categoryMap = toLookupMap(await this.categorySvc.find(), 'id')
+
+      const data: MaterialSelectDto[] = materials.map((m) => ({
+        ...m,
+        category: m.categoryId ? categoryMap.get(m.categoryId.toString())! : null,
+      }))
+
+      return { data, meta }
     })
   }
 
-  async handleDetail(id: ObjectId): Promise<MaterialDto> {
+  async handleDetail(id: ObjectId): Promise<MaterialSelectDto> {
     return record('MaterialService.handleDetail', async () => {
-      return this.findById(id)
+      const material = await this.findById(id)
+      const category = material.categoryId ? await this.categorySvc.findById(material.categoryId) : null
+      return {
+        ...material,
+        category,
+      }
     })
   }
 
   async handleCreate(data: MaterialMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialService.handleCreate', async () => {
-      await this.#checkConflict(data)
+      await checkConflict({ model: MaterialModel, fields: uniqueFields, input: { sku: data.sku, name: data.name } })
 
       const material = new MaterialModel({
         ...data,
@@ -112,7 +116,12 @@ export class MaterialService {
   async handleUpdate(id: ObjectId, data: MaterialMutationDto, actorId: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialService.handleUpdate', async () => {
       const existing = await this.findById(id)
-      await this.#checkConflict(data, existing)
+      await checkConflict({
+        model: MaterialModel,
+        fields: uniqueFields,
+        input: { sku: data.sku, name: data.name },
+        existing,
+      })
 
       await MaterialModel.findByIdAndUpdate(id, {
         ...data,
@@ -121,6 +130,7 @@ export class MaterialService {
 
       void cache.del(cacheKey.count)
       void cache.del(cacheKey.list)
+      void cache.del(cacheKey.byId(id))
       return { id }
     })
   }
@@ -132,6 +142,7 @@ export class MaterialService {
 
       void cache.del(cacheKey.count)
       void cache.del(cacheKey.list)
+      void cache.del(cacheKey.byId(id))
       return { id }
     })
   }

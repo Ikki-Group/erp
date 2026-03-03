@@ -42,7 +42,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       '/create',
       async function create({ body, auth }) {
         const { id } = await s.category.handleCreate(body, auth.userId)
-        return res.created({ id }, 'MATERIAL_CATEGORY_CREATED')
+        return res.created({ id })
       },
       {
         body: MaterialCategoryMutationDto,
@@ -54,7 +54,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.category.handleUpdate(body.id, body, auth.userId)
-        return res.ok({ id }, 'MATERIAL_CATEGORY_UPDATED')
+        return res.ok({ id })
       },
       {
         body: z.object({
@@ -69,7 +69,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       '/remove',
       async function remove({ query }) {
         await s.category.handleRemove(query.id)
-        return res.ok({ id: query.id }, 'MATERIAL_CATEGORY_DELETED')
+        return res.ok({ id: query.id })
       },
       {
         query: zHttp.recordId,
