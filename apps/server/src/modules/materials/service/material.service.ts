@@ -135,6 +135,26 @@ export class MaterialService {
     })
   }
 
+  /* ──────────────── LOCATION ID SYNC HELPERS ──────────────── */
+
+  /** Add a locationId to the material's locationIds array */
+  async addLocationId(materialId: ObjectId, locationId: ObjectId): Promise<void> {
+    await MaterialModel.findByIdAndUpdate(materialId, {
+      $addToSet: { locationIds: locationId },
+    })
+    void cache.del(cacheKey.list)
+    void cache.del(cacheKey.byId(materialId))
+  }
+
+  /** Remove a locationId from the material's locationIds array */
+  async removeLocationId(materialId: ObjectId, locationId: ObjectId): Promise<void> {
+    await MaterialModel.findByIdAndUpdate(materialId, {
+      $pull: { locationIds: locationId },
+    })
+    void cache.del(cacheKey.list)
+    void cache.del(cacheKey.byId(materialId))
+  }
+
   async handleRemove(id: ObjectId): Promise<{ id: ObjectId }> {
     return record('MaterialService.handleRemove', async () => {
       const result = await MaterialModel.findByIdAndDelete(id)

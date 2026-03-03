@@ -19,7 +19,7 @@ const locationService = new LocationServiceModule()
 const iamService = new IamServiceModule(locationService)
 const dashboardService = new DashboardServiceModule(iamService, locationService)
 const toolService = new ToolServiceModule(iamService, locationService)
-const materialService = new MaterialServiceModule()
+const materialService = new MaterialServiceModule(locationService)
 
 // Routes
 const locationsRoute = initLocationRouteModule(locationService)
