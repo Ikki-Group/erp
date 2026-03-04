@@ -47,6 +47,8 @@ export const products = pgTable(
       .references(() => locations.id, { onDelete: 'restrict' }),
     categoryId: integer().references(() => productCategories.id, { onDelete: 'set null' }),
     status: productStatusEnum().notNull().default('active'),
+    // Fallback price when a sales-type-specific price is missing
+    basePrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
     ...metadata,
   },
   (t) => [
@@ -74,8 +76,6 @@ export const productVariants = pgTable(
       .references(() => products.id, { onDelete: 'cascade' }),
     name: text().notNull(),
     isDefault: boolean().notNull().default(false),
-    // Fallback price when a sales-type-specific price is missing
-    basePrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
     ...metadata,
   },
   (t) => [

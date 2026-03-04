@@ -231,10 +231,9 @@ export class ProductService {
 
       await this.checkScopedConflict(data.locationId, { sku, name })
 
-      // Determine variants: use provided or create default
       const inputVariants = data.variants?.length
         ? data.variants
-        : [{ name: DEFAULT_VARIANT_NAME, isDefault: true, basePrice: '0', prices: [] }]
+        : [{ name: DEFAULT_VARIANT_NAME, isDefault: true, prices: [] }]
 
       this.validateDefaultVariant(inputVariants)
 
@@ -250,6 +249,7 @@ export class ProductService {
             locationId: data.locationId,
             categoryId: data.categoryId,
             status: data.status,
+            basePrice: data.basePrice,
             ...metadata,
           })
           .returning({ id: products.id })
@@ -263,7 +263,6 @@ export class ProductService {
               productId: product.id,
               name: variant.name.trim(),
               isDefault: variant.isDefault ?? false,
-              basePrice: variant.basePrice,
               ...metadata,
             })
             .returning({ id: productVariants.id })
@@ -314,6 +313,7 @@ export class ProductService {
             locationId: data.locationId,
             categoryId: data.categoryId,
             status: data.status,
+            basePrice: data.basePrice,
             ...updateMeta,
           })
           .where(eq(products.id, id))
@@ -330,7 +330,6 @@ export class ProductService {
                 productId: id,
                 name: variant.name.trim(),
                 isDefault: variant.isDefault ?? false,
-                basePrice: variant.basePrice,
                 ...createMeta,
               })
               .returning({ id: productVariants.id })
