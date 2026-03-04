@@ -18,6 +18,7 @@ interface DataTableCardProps<TData extends object> {
   isLoading?: boolean
   recordCount?: number
   action?: ReactNode
+  toolbar?: ReactNode
   onRowClick?: (row: TData) => void
 }
 
@@ -26,6 +27,7 @@ export function DataTableCard<TData extends object>({
   table,
   isLoading,
   action,
+  toolbar,
   recordCount = 0,
   onRowClick,
 }: DataTableCardProps<TData>) {
@@ -48,6 +50,9 @@ export function DataTableCard<TData extends object>({
           <CardTitle>{title}</CardTitle>
           {action && <CardAction>{action}</CardAction>}
         </CardHeader>
+        {toolbar && (
+          <div className='px-3.5 py-4 border-b bg-muted/20'>{toolbar}</div>
+        )}
         <div className='w-full'>
           <ScrollArea>
             <DataGridTable />

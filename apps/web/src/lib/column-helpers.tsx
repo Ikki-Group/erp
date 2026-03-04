@@ -1,3 +1,4 @@
+import { createColumnHelper } from '@tanstack/react-table'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
 import { toDateTimeStamp } from '@/lib/formatter'
@@ -5,6 +6,18 @@ import { toDateTimeStamp } from '@/lib/formatter'
 /* -------------------------------------------------------------------------- */
 /*  Column Helper Utilities                                                   */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Type-safe helper for creating table columns.
+ * @example
+ * ```ts
+ * const ch = createColumnHelper<User>()
+ * const columns = [
+ *   ch.accessor('id', textColumn({ header: 'ID' })),
+ * ]
+ * ```
+ */
+export { createColumnHelper }
 
 type ColumnOptions = {
   size?: number

@@ -27,6 +27,8 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { InputPassword } from '@/components/ui/input-password'
 import { DataCombobox } from '@/components/ui/data-combobox'
+import { InputNumber } from '@/components/ui/input-number'
+import { InputCurrency } from '@/components/ui/input-currency'
 import { cn } from '@/lib/utils'
 
 interface BaseFieldProps {
@@ -255,25 +257,13 @@ function FieldCombobox<TItem>({
 /* -------------------------------------------------------------------------- */
 
 interface FieldNumberProps
-  extends
-    Omit<ComponentProps<typeof Input>, 'type' | 'value' | 'onChange'>,
-    BaseFieldProps {
-  /** Minimum value */
-  min?: number
-  /** Maximum value */
-  max?: number
-  /** Step increment */
-  step?: number | 'any'
-}
+  extends ComponentProps<typeof InputNumber>, BaseFieldProps {}
 
 function FieldNumber({
   label,
   description,
   required,
   className,
-  min,
-  max,
-  step = 'any',
   ...props
 }: FieldNumberProps) {
   const field = useFieldContext<number | null>()
@@ -286,24 +276,44 @@ function FieldNumber({
       className={className}
     >
       <FieldControl>
-        <Input
-          type='number'
-          inputMode='decimal'
-          min={min}
-          max={max}
-          step={step}
-          value={field.state.value ?? ''}
-          onChange={e => {
-            const raw = e.target.value
-            if (raw === '') {
-              field.handleChange(null as unknown as number)
-              return
-            }
-            const parsed = Number(raw)
-            if (!Number.isNaN(parsed)) {
-              field.handleChange(parsed)
-            }
-          }}
+        <InputNumber
+          value={field.state.value}
+          onChange={val => field.handleChange(val)}
+          onBlur={field.handleBlur}
+          {...props}
+        />
+      </FieldControl>
+    </FieldBase>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  FieldCurrency                                                             */
+/* -------------------------------------------------------------------------- */
+
+interface FieldCurrencyProps
+  extends ComponentProps<typeof InputCurrency>, BaseFieldProps {}
+
+function FieldCurrency({
+  label,
+  description,
+  required,
+  className,
+  ...props
+}: FieldCurrencyProps) {
+  const field = useFieldContext<number | null>()
+
+  return (
+    <FieldBase
+      label={label}
+      description={description}
+      required={required}
+      className={className}
+    >
+      <FieldControl>
+        <InputCurrency
+          value={field.state.value}
+          onChange={val => field.handleChange(val)}
           onBlur={field.handleBlur}
           {...props}
         />
@@ -383,5 +393,6 @@ export {
   FieldTextarea,
   FieldCombobox,
   FieldNumber,
+  FieldCurrency,
   FieldDatePicker,
 }
