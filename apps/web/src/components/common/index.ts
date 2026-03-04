@@ -14,6 +14,3 @@ export {
   ChartGrid,
   ChartFooterContent,
 } from './data-display/chart-card'
-
-// Templates
-export { DataTable } from './templates/DataTable'

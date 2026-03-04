@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
 import { useFieldContext } from './form-hook-context'
 import {
   Field,
@@ -9,15 +11,23 @@ import {
 import type { ComponentProps } from 'react'
 import type { Option, StringOrNumber } from '@/types/common'
 import type { DataComboboxProps } from '@/components/ui/data-combobox'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { InputPassword } from '@/components/ui/input-password'
 import { DataCombobox } from '@/components/ui/data-combobox'
+import { cn } from '@/lib/utils'
 
 interface BaseFieldProps {
   label?: string
@@ -240,6 +250,129 @@ function FieldCombobox<TItem>({
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/*  FieldNumber                                                               */
+/* -------------------------------------------------------------------------- */
+
+interface FieldNumberProps
+  extends
+    Omit<ComponentProps<typeof Input>, 'type' | 'value' | 'onChange'>,
+    BaseFieldProps {
+  /** Minimum value */
+  min?: number
+  /** Maximum value */
+  max?: number
+  /** Step increment */
+  step?: number | 'any'
+}
+
+function FieldNumber({
+  label,
+  description,
+  required,
+  className,
+  min,
+  max,
+  step = 'any',
+  ...props
+}: FieldNumberProps) {
+  const field = useFieldContext<number | null>()
+
+  return (
+    <FieldBase
+      label={label}
+      description={description}
+      required={required}
+      className={className}
+    >
+      <FieldControl>
+        <Input
+          type='number'
+          inputMode='decimal'
+          min={min}
+          max={max}
+          step={step}
+          value={field.state.value ?? ''}
+          onChange={e => {
+            const raw = e.target.value
+            if (raw === '') {
+              field.handleChange(null as unknown as number)
+              return
+            }
+            const parsed = Number(raw)
+            if (!Number.isNaN(parsed)) {
+              field.handleChange(parsed)
+            }
+          }}
+          onBlur={field.handleBlur}
+          {...props}
+        />
+      </FieldControl>
+    </FieldBase>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  FieldDatePicker                                                           */
+/* -------------------------------------------------------------------------- */
+
+interface FieldDatePickerProps extends BaseFieldProps {
+  placeholder?: string
+  disabled?: boolean
+  /** Date format string (date-fns) */
+  dateFormat?: string
+}
+
+function FieldDatePicker({
+  label,
+  description,
+  required,
+  className,
+  placeholder = 'Pilih tanggal',
+  disabled,
+  dateFormat = 'dd-MM-yyyy',
+}: FieldDatePickerProps) {
+  const field = useFieldContext<Date | null>()
+
+  return (
+    <FieldBase
+      label={label}
+      description={description}
+      required={required}
+      className={className}
+    >
+      <Popover>
+        <FieldControl>
+          <PopoverTrigger
+            render={
+              <Button
+                variant='outline'
+                className={cn(
+                  'w-full justify-start text-left font-normal',
+                  !field.state.value && 'text-muted-foreground'
+                )}
+                disabled={disabled}
+              />
+            }
+          >
+            <CalendarIcon className='mr-2 size-4' />
+            {field.state.value
+              ? format(field.state.value, dateFormat)
+              : placeholder}
+          </PopoverTrigger>
+        </FieldControl>
+        <PopoverContent className='w-auto p-0' align='start'>
+          <Calendar
+            mode='single'
+            selected={field.state.value ?? undefined}
+            onSelect={date => field.handleChange(date ?? null)}
+          />
+        </PopoverContent>
+      </Popover>
+    </FieldBase>
+  )
+}
+
 export {
   FieldBase,
   FieldInput,
@@ -249,4 +382,6 @@ export {
   FieldSelect,
   FieldTextarea,
   FieldCombobox,
+  FieldNumber,
+  FieldDatePicker,
 }
