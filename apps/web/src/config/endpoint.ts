@@ -54,8 +54,31 @@ const material = {
   },
 }
 
+const product = {
+  list: 'product/list',
+  detail: 'product/detail',
+  create: 'product/create',
+  update: 'product/update',
+  remove: 'product/remove',
+  category: {
+    list: 'product/category/list',
+    detail: 'product/category/detail',
+    create: 'product/category/create',
+    update: 'product/category/update',
+    remove: 'product/category/remove',
+  },
+  salesType: {
+    list: 'product/sales-type/list',
+    detail: 'product/sales-type/detail',
+    create: 'product/sales-type/create',
+    update: 'product/sales-type/update',
+    remove: 'product/sales-type/remove',
+  },
+}
+
 export const endpoint = {
   iam,
   location,
   material,
+  product,
 }
