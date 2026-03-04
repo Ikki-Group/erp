@@ -11,6 +11,7 @@ export const locationApi = {
     params: z.object({
       ...zHttp.pagination.shape,
       search: zHttp.search,
+      isActive: zHttp.boolean.optional(),
     }),
     result: zHttp.paginated(LocationDto.array()),
   }),

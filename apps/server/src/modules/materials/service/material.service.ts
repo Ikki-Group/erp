@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
+import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
 import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
@@ -144,16 +144,43 @@ export class MaterialService {
 
   async handleList(filter: MaterialFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<MaterialSelectDto>> {
     return record('MaterialService.handleList', async () => {
-      const { search, type, categoryId } = filter
+      const { search, type, categoryId, locationIds, excludeLocationIds } = filter
 
       const searchCondition = search
         ? or(ilike(materials.name, `%${search}%`), ilike(materials.sku, `%${search}%`))
         : undefined
 
+      const locationCondition = locationIds?.length
+        ? exists(
+            db
+              .select()
+              .from(materialLocations)
+              .where(
+                and(eq(materialLocations.materialId, materials.id), inArray(materialLocations.locationId, locationIds))
+              )
+          )
+        : undefined
+
+      const excludeLocationCondition = excludeLocationIds?.length
+        ? notExists(
+            db
+              .select()
+              .from(materialLocations)
+              .where(
+                and(
+                  eq(materialLocations.materialId, materials.id),
+                  inArray(materialLocations.locationId, excludeLocationIds)
+                )
+              )
+          )
+        : undefined
+
       const where = and(
         searchCondition,
         type ? eq(materials.type, type) : undefined,
-        categoryId === undefined ? undefined : eq(materials.categoryId, categoryId)
+        categoryId === undefined ? undefined : eq(materials.categoryId, categoryId),
+        locationCondition,
+        excludeLocationCondition
       )
 
       const result = await paginate({

@@ -12,6 +12,7 @@ export const userApi = {
     params: z.object({
       ...zHttp.pagination.shape,
       search: zHttp.search,
+      isActive: zHttp.boolean.optional(),
     }),
     result: zHttp.paginated(UserSelectDto.array()),
   }),

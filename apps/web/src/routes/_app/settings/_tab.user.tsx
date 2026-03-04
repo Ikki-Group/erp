@@ -6,6 +6,7 @@ import type { UserSelectDto } from '@/features/iam/dto'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { userApi } from '@/features/iam'
 import { getUserStatusBadge } from '@/features/iam/utils'
@@ -85,10 +86,12 @@ const columns = [
 ]
 
 function UserTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<{ isActive?: boolean }>()
   const { data, isLoading } = useQuery(
     userApi.list.query({
       ...ds.pagination,
+      search: ds.search,
+      ...ds.filters,
     })
   )
 
@@ -106,6 +109,27 @@ function UserTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[
+            {
+              type: 'search',
+              placeholder: 'Cari user (nama, email, username)...',
+            },
+            {
+              type: 'select',
+              key: 'isActive',
+              placeholder: 'Status',
+              options: [
+                { label: 'Semua', value: '' },
+                { label: 'Aktif', value: 'true' },
+                { label: 'Non-Aktif', value: 'false' },
+              ],
+            },
+          ]}
+        />
+      }
       action={
         <Button
           size='sm'
