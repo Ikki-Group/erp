@@ -66,20 +66,26 @@ function FormSimpleActions() {
 
 interface FormDialogActionsProps {
   onCancel: () => void
+  disabled?: boolean
 }
 
-function FormDialogActions({ onCancel }: FormDialogActionsProps) {
+function FormDialogActions({ onCancel, disabled }: FormDialogActionsProps) {
   const form = useFormContext()
   return (
     <>
-      <Button variant='outline' type='button' onClick={onCancel}>
+      <Button
+        variant='outline'
+        type='button'
+        onClick={onCancel}
+        disabled={disabled}
+      >
         Batal
       </Button>
       <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <Button
             type={'button'}
-            disabled={!canSubmit || isSubmitting}
+            disabled={!canSubmit || isSubmitting || disabled}
             onClick={() => form.handleSubmit()}
           >
             {isSubmitting ? 'Menyimpan...' : 'Simpan'}
