@@ -20,10 +20,10 @@ import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
 const locationService = new LocationServiceModule()
 const iamService = new IamServiceModule(locationService)
 const dashboardService = new DashboardServiceModule(iamService, locationService)
-const toolService = new ToolServiceModule(iamService, locationService)
 const materialService = new MaterialServiceModule(locationService)
 const inventoryService = new InventoryServiceModule(materialService)
 const productService = new ProductServiceModule()
+const toolService = new ToolServiceModule(iamService, locationService, productService)
 
 // Routes
 const locationsRoute = initLocationRouteModule(locationService)

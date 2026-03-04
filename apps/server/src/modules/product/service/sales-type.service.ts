@@ -112,6 +112,32 @@ export class SalesTypeService {
   }
 
   /**
+   * Seeds sales types
+   */
+  async seed(data: (SalesTypeMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
+    return record('SalesTypeService.seed', async () => {
+      for (const d of data) {
+        const metadata = stampCreate(d.createdBy)
+
+        await db
+          .insert(salesTypes)
+          .values({
+            ...d,
+            ...metadata,
+          })
+          .onConflictDoUpdate({
+            target: salesTypes.code,
+            set: {
+              name: d.name,
+              updatedAt: metadata.updatedAt,
+              updatedBy: metadata.updatedBy,
+            },
+          })
+      }
+    })
+  }
+
+  /**
    * Creates a new sales type. Invalidates cache.
    */
   async handleCreate(data: SalesTypeMutationDto, actorId: number): Promise<{ id: number }> {
