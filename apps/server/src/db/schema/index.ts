@@ -6,14 +6,16 @@ import { roles, sessions, userAssignments, users } from './iam'
 import { stockSummaries, stockTransactions } from './inventory'
 import { locations } from './location'
 import { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
+import { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
-export { locationTypeEnum, materialTypeEnum, transactionTypeEnum } from './_helpers'
+export { locationTypeEnum, materialTypeEnum, productStatusEnum, transactionTypeEnum } from './_helpers'
 export { roles, sessions, userAssignments, users } from './iam'
 export { stockSummaries, stockTransactions } from './inventory'
 export { locations } from './location'
 export { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
+export { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)
@@ -38,6 +40,11 @@ export const relations = defineRelations(
     materialLocations,
     stockTransactions,
     stockSummaries,
+    salesTypes,
+    productCategories,
+    products,
+    productVariants,
+    variantPrices,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -82,6 +89,7 @@ export const relations = defineRelations(
         alias: 'location',
       }),
       stockSummaries: r.many.stockSummaries(),
+      products: r.many.products(),
     },
 
     // ─── Material ─────────────────────────────────────────────────────
@@ -146,6 +154,47 @@ export const relations = defineRelations(
       location: r.one.locations({
         from: r.stockSummaries.locationId,
         to: r.locations.id,
+      }),
+    },
+
+    // ─── Product ──────────────────────────────────────────────────────
+
+    salesTypes: {
+      variantPrices: r.many.variantPrices(),
+    },
+
+    productCategories: {
+      products: r.many.products(),
+    },
+
+    products: {
+      location: r.one.locations({
+        from: r.products.locationId,
+        to: r.locations.id,
+      }),
+      category: r.one.productCategories({
+        from: r.products.categoryId,
+        to: r.productCategories.id,
+      }),
+      variants: r.many.productVariants(),
+    },
+
+    productVariants: {
+      product: r.one.products({
+        from: r.productVariants.productId,
+        to: r.products.id,
+      }),
+      prices: r.many.variantPrices(),
+    },
+
+    variantPrices: {
+      variant: r.one.productVariants({
+        from: r.variantPrices.variantId,
+        to: r.productVariants.id,
+      }),
+      salesType: r.one.salesTypes({
+        from: r.variantPrices.salesTypeId,
+        to: r.salesTypes.id,
       }),
     },
   })

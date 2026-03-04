@@ -13,6 +13,7 @@ import { IamServiceModule, initIamRouteModule } from '@/modules/iam'
 import { initInventoryRouteModule, InventoryServiceModule } from '@/modules/inventory'
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 import { initMaterialsRouteModule, MaterialServiceModule } from '@/modules/materials'
+import { initProductRouteModule, ProductServiceModule } from '@/modules/product'
 import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
 
 // Services
@@ -22,6 +23,7 @@ const dashboardService = new DashboardServiceModule(iamService, locationService)
 const toolService = new ToolServiceModule(iamService, locationService)
 const materialService = new MaterialServiceModule(locationService)
 const inventoryService = new InventoryServiceModule(materialService)
+const productService = new ProductServiceModule()
 
 // Routes
 const locationsRoute = initLocationRouteModule(locationService)
@@ -30,6 +32,7 @@ const dashboardRoute = initDashboardRouteModule(dashboardService)
 const toolRoute = initToolRouteModule(toolService)
 const materialsRoute = initMaterialsRouteModule(materialService)
 const inventoryRoute = initInventoryRouteModule(inventoryService)
+const productRoute = initProductRouteModule(productService)
 
 export const app = new Elysia({
   name: 'App',
@@ -73,6 +76,7 @@ export const app = new Elysia({
   .use(toolRoute)
   .use(materialsRoute)
   .use(inventoryRoute)
+  .use(productRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
 //   detail: { hide: true },

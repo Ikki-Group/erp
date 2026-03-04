@@ -50,3 +50,5 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'adjustment',
   'sell',
 ])
+
+export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived'])
