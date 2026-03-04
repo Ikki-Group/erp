@@ -5,6 +5,8 @@ const iam = {
     create: 'iam/user/create',
     update: 'iam/user/update',
     remove: 'iam/user/remove',
+    changePassword: 'iam/user/change-password',
+    adminUpdatePassword: 'iam/user/admin-update-password',
   },
   role: {
     list: 'iam/role/list',

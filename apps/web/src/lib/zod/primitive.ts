@@ -18,6 +18,17 @@ const date = z.coerce.date()
 const bool = z.boolean()
 const email = z.email()
 const uuid = z.uuidv7()
+const password = z
+  .string()
+  .trim()
+  .min(8, 'Password must be at least 8 characters')
+  .max(100, 'Password must not exceed 100 characters')
+
+const username = z
+  .string()
+  .trim()
+  .min(3, 'Username must be at least 3 characters')
+  .max(50, 'Username must not exceed 50 characters')
 
 export const zPrimitive = {
   str,
@@ -30,4 +41,6 @@ export const zPrimitive = {
   bool,
   email,
   uuid,
+  password,
+  username,
 }

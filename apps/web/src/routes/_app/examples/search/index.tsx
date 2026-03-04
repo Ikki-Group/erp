@@ -268,13 +268,14 @@ function MultiSelectDialog({
   const [results, setResults] = useState<Array<Ingredient>>([])
   const [loading, setLoading] = useState(false)
   const [tempSelected, setTempSelected] = useState<Set<string>>(
-    new Set(selectedIds)
+    () => new Set(selectedIds)
   )
   const [selectedItemsMap, setSelectedItemsMap] = useState<
     Map<string, Ingredient>
-  >(new Map()) // Keep track of item objects
+  >(() => new Map()) // Keep track of item objects
 
   useEffect(() => {
+    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
     setTempSelected(new Set(selectedIds))
   }, [selectedIds, open])
 

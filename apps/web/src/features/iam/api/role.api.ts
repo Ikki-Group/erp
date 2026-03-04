@@ -31,13 +31,14 @@ export const roleApi = {
     url: endpoint.iam.role.update,
     body: z.object({
       id: zPrimitive.id,
-      ...RoleMutationDto.shape,
+      ...RoleMutationDto.partial().shape,
     }),
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({
     method: 'delete',
     url: endpoint.iam.role.remove,
-    result: zHttp.ok(RoleDto),
+    body: zSchema.recordId,
+    result: zHttp.ok(zSchema.recordId),
   }),
 }

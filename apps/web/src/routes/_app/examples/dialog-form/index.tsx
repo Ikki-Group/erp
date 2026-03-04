@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute } from '@tanstack/react-router'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -91,7 +93,6 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     // @ts-ignore
     validatorAdapter: zodValidator(),
     validators: {
-      // @ts-ignore
       onChange: taskSchema,
     },
     onSubmit: async ({ value }) => {
