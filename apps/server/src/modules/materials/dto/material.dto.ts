@@ -3,6 +3,7 @@ import z from 'zod'
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { MaterialCategoryDto } from './material-category.dto'
+import { UomDto } from './uom.dto'
 
 export const MaterialType = z.enum(['raw', 'semi'])
 export type MaterialType = z.infer<typeof MaterialType>
@@ -11,7 +12,7 @@ export type MaterialType = z.infer<typeof MaterialType>
 
 export const MaterialConversionDto = z.object({
   toBaseFactor: zPrimitive.str,
-  uom: zPrimitive.str,
+  uomId: zPrimitive.id,
 })
 
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
@@ -23,7 +24,8 @@ export const MaterialDto = z.object({
   sku: zPrimitive.str,
   type: MaterialType,
   categoryId: zPrimitive.id.nullable(),
-  baseUom: zPrimitive.str,
+  baseUomId: zPrimitive.id,
+
   locationIds: zPrimitive.id.array(),
   conversions: MaterialConversionDto.array(),
   ...zSchema.metadata.shape,
@@ -48,6 +50,7 @@ export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
   category: MaterialCategoryDto.nullable(),
+  uom: UomDto.nullable(),
 })
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
@@ -61,7 +64,7 @@ export const MaterialMutationDto = z.object({
     sku: true,
     type: true,
     categoryId: true,
-    baseUom: true,
+    baseUomId: true,
     conversions: true,
   }).shape,
 })

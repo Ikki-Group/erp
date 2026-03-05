@@ -35,10 +35,10 @@ const FormDto = z.object({
   sku: z.string().min(1),
   type: MaterialType,
   categoryId: z.string().nullable(),
-  baseUom: z.string(),
+  baseUomId: z.string(),
   conversions: z.array(
     z.object({
-      uom: z.string(),
+      uomId: z.string(),
       toBaseFactor: z.string().min(1),
     })
   ),
@@ -58,7 +58,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     const [_, ...others] = v.conversions
     conversions.push(
       ...others.map(i => ({
-        uom: i.uom,
+        uomId: String(i.uomId),
         toBaseFactor: i.toBaseFactor,
       }))
     )
@@ -69,8 +69,12 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
     categoryId: v?.categoryId != null ? String(v.categoryId) : null,
-    baseUom: v?.baseUom ?? '',
-    conversions,
+    baseUomId: v?.baseUomId != null ? String(v.baseUomId) : '',
+    conversions:
+      v?.conversions.map(c => ({
+        uomId: String(c.uomId),
+        toBaseFactor: c.toBaseFactor,
+      })) ?? [],
   }
 }
 
@@ -95,12 +99,17 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
       value.conversions = [
-        { uom: value.baseUom, toBaseFactor: '1' },
+        { uomId: value.baseUomId, toBaseFactor: '1' },
         ...value.conversions,
       ]
 
       const payload = {
         ...value,
+        baseUomId: Number(value.baseUomId),
+        conversions: value.conversions.map(c => ({
+          ...c,
+          uomId: Number(c.uomId),
+        })),
         categoryId: value.categoryId ? Number(value.categoryId) : null,
       }
 
@@ -245,7 +254,7 @@ function UomInformationSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <form.AppField name='baseUom'>
+        <form.AppField name='baseUomId'>
           {field => (
             <field.Base label='Satuan Utama' required>
               <field.Select placeholder='Pilih satuan utama' options={uoms} />
@@ -259,7 +268,8 @@ function UomInformationSection() {
 
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
-  const baseUomId = useStore(form.store, s => s.values.baseUom)
+  const baseUomIdValue = useStore(form.store, s => s.values.baseUomId)
+
   const { data: uoms } = useSuspenseQuery({
     ...uomApi.list.query({ page: 1, limit: 100 }),
     select: ({ data }) =>
@@ -271,8 +281,8 @@ function UomConversionsSection() {
   })
 
   const baseUom = useMemo(() => {
-    return uoms.find(u => String(u.value) === baseUomId)
-  }, [baseUomId, uoms])
+    return uoms.find(u => String(u.value) === baseUomIdValue)
+  }, [baseUomIdValue, uoms])
 
   return (
     <Card size='sm'>
@@ -283,7 +293,7 @@ function UomConversionsSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content className='flex flex-col gap-4'>
-        {!baseUomId ? (
+        {!baseUomIdValue ? (
           <ConversionAlertBaseUomNotSet />
         ) : (
           <>
@@ -345,7 +355,9 @@ function UomConversionsSection() {
                                   1
                                 </div>
                                 <div className='flex-1 max-w-[200px]'>
-                                  <form.AppField name={`conversions[${i}].uom`}>
+                                  <form.AppField
+                                    name={`conversions[${i}].uomId`}
+                                  >
                                     {field => (
                                       <field.Select
                                         required
@@ -366,6 +378,7 @@ function UomConversionsSection() {
                                       <field.Number
                                         required
                                         placeholder='Faktor'
+                                        decimalScale={10}
                                       />
                                     )}
                                   </form.AppField>
@@ -401,7 +414,7 @@ function UomConversionsSection() {
               className='w-fit'
               onClick={() => {
                 form.pushFieldValue('conversions', {
-                  uom: '',
+                  uomId: '',
                   toBaseFactor: '1',
                 })
               }}

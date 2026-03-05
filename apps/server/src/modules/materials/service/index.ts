@@ -14,7 +14,7 @@ export class MaterialServiceModule {
   constructor(locationServiceModule: LocationServiceModule) {
     this.category = new MaterialCategoryService()
     this.uom = new UomService()
-    this.material = new MaterialService(this.category)
+    this.material = new MaterialService(this.category, this.uom)
     this.mLocation = new MaterialLocationService(this.material, locationServiceModule)
   }
 }

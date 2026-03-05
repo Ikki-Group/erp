@@ -1,5 +1,6 @@
 import z from 'zod'
 import { MaterialCategoryDto } from './material-category.dto'
+import { UomDto } from './uom.dto'
 import { zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
@@ -10,7 +11,7 @@ export type MaterialType = z.infer<typeof MaterialType>
 /* --------------------------------- ENTITY --------------------------------- */
 
 const MaterialConversionDto = z.object({
-  uom: zPrimitive.str,
+  uomId: zPrimitive.id,
   toBaseFactor: zPrimitive.str,
 })
 
@@ -21,7 +22,8 @@ export const MaterialDto = z.object({
   sku: zPrimitive.str,
   type: MaterialType,
   categoryId: zPrimitive.id.nullable(),
-  baseUom: zPrimitive.str,
+  baseUomId: zPrimitive.id,
+
   locationIds: zPrimitive.id.array(),
   conversions: z.array(MaterialConversionDto),
   ...zSchema.meta.shape,
@@ -34,6 +36,7 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
   category: MaterialCategoryDto.nullable(),
+  uom: UomDto.nullable(),
 })
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
@@ -47,7 +50,7 @@ export const MaterialMutationDto = z.object({
     sku: true,
     type: true,
     categoryId: true,
-    baseUom: true,
+    baseUomId: true,
     conversions: true,
   }).shape,
 })

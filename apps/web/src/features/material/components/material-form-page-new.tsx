@@ -82,13 +82,14 @@ const UOM_CONFIGS = [
 /* -------------------------------------------------------------------------- */
 
 const ConversionSchema = z.object({
-  uom: z.string().min(1, 'Unit is required'),
+  uomId: z.number().positive('Unit is required'),
   toBaseFactor: z.number().positive('Factor must be positive'),
 })
 
 const MaterialFormSchema = z.object({
   name: z.string().min(1, 'Material name is required'),
-  baseUom: z.string().min(1, 'Base unit is required'),
+  baseUomId: z.number().positive('Base unit is required'),
+
   conversions: z.array(ConversionSchema),
 })
 
@@ -98,7 +99,7 @@ const formOpts = formOptions({
   validators: { onSubmit: MaterialFormSchema },
   defaultValues: {
     name: '',
-    baseUom: '',
+    baseUomId: 0,
     conversions: [],
   } as MaterialFormValues,
 })
@@ -129,7 +130,7 @@ export function MaterialFormPageNew() {
   const uoms = useMemo(() => {
     return UOM_CONFIGS.map(u => ({
       label: u.code,
-      value: u.code,
+      value: Number(u.id),
       category: u.category,
     }))
   }, [])
@@ -246,7 +247,7 @@ function Step1BasicInfo({ uoms }: { uoms: Array<any> }) {
           )}
         </form.AppField>
 
-        <form.AppField name='baseUom'>
+        <form.AppField name='baseUomId'>
           {field => (
             <field.Base
               label='Base Unit'
@@ -276,11 +277,11 @@ function Step1BasicInfo({ uoms }: { uoms: Array<any> }) {
 
 function Step2Conversions({ uoms }: { uoms: Array<any> }) {
   const form = useTypedAppFormContext({ ...formOpts })
-  const baseUom = useStore(form.store, s => s.values.baseUom)
+  const baseUomIdVal = useStore(form.store, s => s.values.baseUomId)
 
   const selectedBaseUom = useMemo(
-    () => uoms.find(u => u.value === baseUom),
-    [baseUom, uoms]
+    () => uoms.find(u => u.value === baseUomIdVal),
+    [baseUomIdVal, uoms]
   )
 
   return (
@@ -292,7 +293,7 @@ function Step2Conversions({ uoms }: { uoms: Array<any> }) {
         </h3>
       </div>
       <div className='p-6'>
-        {!baseUom ? (
+        {!baseUomIdVal ? (
           <div className='text-center py-12 text-muted-foreground'>
             <PackageIcon className='size-12 mx-auto mb-4 opacity-20' />
             <p>Please select a base unit in the first step.</p>
@@ -326,8 +327,8 @@ function Step3Preview({ uoms }: { uoms: Array<any> }) {
   const values = useStore(form.store, s => s.values)
 
   const baseUom = useMemo(
-    () => uoms.find(u => u.value === values.baseUom),
-    [values.baseUom, uoms]
+    () => uoms.find(u => u.value === values.baseUomId),
+    [values.baseUomId, uoms]
   )
 
   return (
@@ -404,7 +405,7 @@ function UomConversionEditor({
           className='h-8 border-dashed'
           onClick={() => {
             form.pushFieldValue('conversions', {
-              uom: '',
+              uomId: 0,
               toBaseFactor: 1,
             })
           }}
@@ -432,7 +433,7 @@ function UomConversionEditor({
                   </div>
 
                   <div className='w-32'>
-                    <form.AppField name={`conversions[${i}].uom`}>
+                    <form.AppField name={`conversions[${i}].uomId`}>
                       {field => (
                         <field.Select
                           options={availableUoms}
@@ -499,7 +500,8 @@ function ConversionSafeguard({
     if (!conversion?.uom || !conversion?.toBaseFactor) return null
 
     // Check against typical conversions in mock data
-    const config = UOM_CONFIGS.find(u => u.code === conversion.uom)
+    const config = UOM_CONFIGS.find(u => Number(u.id) === conversion.uomId)
+
     if (!config || !config.typicalConversions) return null
 
     const typical = (config.typicalConversions as any)[baseUom.value]
@@ -528,7 +530,7 @@ function ConversionPreview({
   values: MaterialFormValues
   uoms: Array<any>
 }) {
-  const baseUom = uoms.find(u => u.value === values.baseUom)
+  const baseUom = uoms.find(u => u.value === values.baseUomId)
 
   return (
     <div className='space-y-3'>
@@ -539,17 +541,20 @@ function ConversionPreview({
       ) : (
         values.conversions.map((c, i) => (
           <div
-            key={c.uom || i}
+            key={c.uomId || i}
             className='flex flex-col gap-2 p-4 rounded-lg border bg-background shadow-sm'
           >
             <div className='flex items-center justify-between text-sm font-medium'>
               <span className='flex items-center gap-2'>
-                <Badge variant='secondary'>1 {c.uom}</Badge>
+                <Badge variant='secondary'>
+                  1 {uoms.find(u => u.value === c.uomId)?.label || '?'}
+                </Badge>
                 <ArrowRightIcon className='size-3 text-muted-foreground' />
                 <Badge variant='default'>
                   {c.toBaseFactor} {baseUom?.label}
                 </Badge>
               </span>
+
               <span className='text-muted-foreground font-mono'>
                 Factor: {c.toBaseFactor}x
               </span>
@@ -561,8 +566,9 @@ function ConversionPreview({
                   className='text-[11px] bg-muted/30 p-2 rounded flex flex-col items-center'
                 >
                   <span className='text-muted-foreground'>
-                    {val} {c.uom}
+                    {val} {uoms.find(u => u.value === c.uomId)?.label || '?'}
                   </span>
+
                   <span className='font-bold text-primary'>
                     {val * c.toBaseFactor} {baseUom?.label}
                   </span>
@@ -578,35 +584,41 @@ function ConversionPreview({
 
 function QuantityWithUomInput({ values }: { values: MaterialFormValues }) {
   const [qty, setQty] = useState<number>(1)
-  const [selectedUom, setSelectedUom] = useState<string>(values.baseUom || '')
+  const [selectedUomId, setSelectedUomId] = useState<number>(
+    values.baseUomId || 0
+  )
 
   const currentUom = useMemo(() => {
-    if (selectedUom === values.baseUom)
-      return { label: values.baseUom, factor: 1 }
-    const conv = values.conversions.find(c => c.uom === selectedUom)
-    return conv ? { label: conv.uom, factor: conv.toBaseFactor } : null
-  }, [selectedUom, values])
+    if (selectedUomId === values.baseUomId)
+      return { label: baseUom?.label, factor: 1 }
+    const conv = values.conversions.find(c => c.uomId === selectedUomId)
+    const uomLabel = uoms.find(u => u.value === c?.uomId)?.label
+    return conv ? { label: uomLabel, factor: conv.toBaseFactor } : null
+  }, [selectedUomId, values, baseUom, uoms])
 
   const internalQty = (qty || 0) * (currentUom?.factor || 0)
 
   const uomOptions = useMemo(() => {
     const opts = []
-    if (values.baseUom)
-      opts.push({ label: values.baseUom, value: values.baseUom })
+    if (values.baseUomId) {
+      const uom = uoms.find(u => u.value === values.baseUomId)
+      if (uom) opts.push({ label: uom.label, value: uom.value })
+    }
     values.conversions.forEach(c => {
-      opts.push({ label: c.uom, value: c.uom })
+      const uom = uoms.find(u => u.value === c.uomId)
+      if (uom) opts.push({ label: uom.label, value: uom.value })
     })
     return opts
-  }, [values])
+  }, [values, uoms])
 
   useMemo(() => {
-    if (values.baseUom && !uomOptions.find(o => o.value === selectedUom)) {
-      setSelectedUom(values.baseUom)
+    if (values.baseUomId && !uomOptions.find(o => o.value === selectedUomId)) {
+      setSelectedUomId(values.baseUomId)
     }
-  }, [values.baseUom, uomOptions, selectedUom])
+  }, [values.baseUomId, uomOptions, selectedUomId])
 
   const handleUomChange = (val: string) => {
-    setSelectedUom(val)
+    setSelectedUomId(Number(val))
   }
 
   return (
@@ -636,13 +648,13 @@ function QuantityWithUomInput({ values }: { values: MaterialFormValues }) {
           <label className='text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-tighter'>
             Select Unit
           </label>
-          <Select value={selectedUom} onValueChange={handleUomChange}>
+          <Select value={String(selectedUomId)} onValueChange={handleUomChange}>
             <SelectTrigger className='h-12 font-medium bg-background'>
               <SelectValue placeholder='Unit' />
             </SelectTrigger>
             <SelectContent>
               {uomOptions.map(o => (
-                <SelectItem key={o.value} value={o.value}>
+                <SelectItem key={o.value} value={String(o.value)}>
                   {o.label}
                 </SelectItem>
               ))}
@@ -667,7 +679,7 @@ function QuantityWithUomInput({ values }: { values: MaterialFormValues }) {
           <p className='text-2xl font-black text-primary tabular-nums'>
             {internalQty.toLocaleString()}{' '}
             <span className='text-sm font-bold text-muted-foreground ml-1'>
-              {values.baseUom}
+              {baseUom?.label || ''}
             </span>
           </p>
         </div>

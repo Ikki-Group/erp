@@ -1,16 +1,21 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { PencilIcon } from 'lucide-react'
+import { MapPinIcon, PackageIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { MaterialSelectDto } from '@/features/material'
+import {
+  MaterialAssignToLocationDialog,
+  MaterialBadgeProps,
+  materialApi,
+} from '@/features/material'
 import { Page } from '@/components/layout/page'
-import { toDateTimeStamp } from '@/lib/formatter'
 import { Button } from '@/components/ui/button'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { MaterialBadgeProps, materialApi } from '@/features/material'
 import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
+import { Badge } from '@/components/ui/badge'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 export const Route = createFileRoute('/_app/materials/')({
   component: RouteComponent,
@@ -30,25 +35,89 @@ function RouteComponent() {
 const ch = createColumnHelper<MaterialSelectDto>()
 
 const columns = [
+  ch.accessor('sku', {
+    header: 'SKU',
+    cell: ({ row }) => (
+      <span className='font-mono text-xs font-semibold'>
+        {row.original.sku}
+      </span>
+    ),
+    size: 120,
+  }),
   ch.accessor('name', {
     header: 'Bahan Baku',
-    cell: ({ row }) => row.original.name,
-    enableSorting: false,
+    cell: ({ row }) => (
+      <div className='flex flex-col gap-1'>
+        <span className='font-medium'>{row.original.name}</span>
+        {row.original.description && (
+          <span className='text-xs text-muted-foreground line-clamp-1'>
+            {row.original.description}
+          </span>
+        )}
+      </div>
+    ),
+    size: 250,
   }),
-  ch.accessor('description', {
-    header: 'Deskripsi',
-    cell: ({ row }) => row.original.description ?? '-',
-    enableSorting: false,
+  ch.accessor('category.name', {
+    header: 'Kategori',
+    cell: ({ row }) => (
+      <Badge variant='outline' className='bg-muted/50 rounded-sm font-normal'>
+        {row.original.category?.name ?? 'Tanpa Kategori'}
+      </Badge>
+    ),
+    size: 150,
   }),
   ch.accessor('type', {
     header: 'Jenis',
     cell: ({ row }) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
-    enableSorting: false,
+    size: 150,
   }),
-  ch.accessor('createdAt', {
-    header: 'Dibuat Pada',
-    cell: ({ row }) => toDateTimeStamp(row.original.createdAt),
-    enableSorting: false,
+  ch.accessor('uom.code', {
+    header: 'Satuan',
+    cell: ({ row }) => (
+      <div className='flex items-center gap-2'>
+        <PackageIcon className='size-3.5 text-muted-foreground' />
+        <span className='text-sm capitalize'>
+          {row.original.uom?.code ?? '-'}
+        </span>
+      </div>
+    ),
+    size: 120,
+  }),
+
+  ch.accessor('locationIds', {
+    header: 'Lokasi',
+    cell: ({ row }) => {
+      const count = row.original.locationIds.length
+      return (
+        <div className='flex items-center justify-between gap-2 group'>
+          <div className='flex items-center gap-2'>
+            <MapPinIcon className='size-3.5 text-muted-foreground' />
+            <span
+              className={
+                count > 0 ? 'text-sm' : 'text-sm text-muted-foreground'
+              }
+            >
+              {count} Lokasi
+            </span>
+          </div>
+          <Button
+            size='icon'
+            variant='ghost'
+            className='size-7 opacity-0 group-hover:opacity-100 transition-opacity'
+            onClick={() =>
+              MaterialAssignToLocationDialog.call({
+                materialId: row.original.id,
+                materialName: row.original.name,
+              })
+            }
+          >
+            <PlusIcon className='size-3.5' />
+          </Button>
+        </div>
+      )
+    },
+    size: 120,
   }),
   ch.display({
     id: 'action',
@@ -58,7 +127,8 @@ const columns = [
         <div className='flex items-center justify-center'>
           <Button
             variant='ghost'
-            size='icon-sm'
+            size='icon'
+            className='size-8'
             nativeButton={false}
             render={
               <Link
@@ -68,7 +138,7 @@ const columns = [
               />
             }
           >
-            <PencilIcon />
+            <PencilIcon className='size-4' />
           </Button>
         </div>
       )
@@ -85,6 +155,7 @@ function MaterialTable() {
   const { data, isLoading } = useQuery(
     materialApi.list.query({
       ...ds.pagination,
+      search: ds.search,
     })
   )
 
@@ -97,20 +168,29 @@ function MaterialTable() {
   })
 
   return (
-    <DataTableCard
-      title='Daftar Bahan Baku'
-      table={table}
-      isLoading={isLoading}
-      recordCount={data?.meta.total || 0}
-      action={
-        <Button
-          size='sm'
-          nativeButton={false}
-          render={<Link from={Route.fullPath} to='/materials/create' />}
-        >
-          Tambah Bahan Baku
-        </Button>
-      }
-    />
+    <>
+      <DataTableCard
+        title='Daftar Bahan Baku'
+        table={table}
+        isLoading={isLoading}
+        recordCount={data?.meta.total || 0}
+        toolbar={
+          <DataGridFilter
+            ds={ds}
+            options={[{ type: 'search', placeholder: 'Cari bahan baku...' }]}
+          />
+        }
+        action={
+          <Button
+            size='sm'
+            nativeButton={false}
+            render={<Link from={Route.fullPath} to='/materials/create' />}
+          >
+            Tambah Bahan Baku
+          </Button>
+        }
+      />
+      <MaterialAssignToLocationDialog.Root />
+    </>
   )
 }

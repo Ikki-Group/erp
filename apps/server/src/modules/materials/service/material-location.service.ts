@@ -8,7 +8,7 @@ import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/paginati
 import type { LocationServiceModule } from '@/modules/location'
 
 import { db } from '@/db'
-import { locations, materialLocations, materials } from '@/db/schema'
+import { locations, materialLocations, materials, uoms } from '@/db/schema'
 
 import type {
   MaterialLocationAssignDto,
@@ -210,16 +210,19 @@ export class MaterialLocationService {
               locationId: materialLocations.locationId,
               materialName: materials.name,
               materialSku: materials.sku,
-              baseUom: materials.baseUom,
+              baseUomId: materials.baseUomId,
               minStock: materialLocations.minStock,
               maxStock: materialLocations.maxStock,
               reorderPoint: materialLocations.reorderPoint,
               currentQty: materialLocations.currentQty,
               currentAvgCost: materialLocations.currentAvgCost,
               currentValue: materialLocations.currentValue,
+              uom: uoms,
             })
             .from(materialLocations)
             .innerJoin(materials, eq(materialLocations.materialId, materials.id))
+            .innerJoin(uoms, eq(materials.baseUomId, uoms.id))
+
             .where(where)
             .orderBy(sortBy(materialLocations.updatedAt, 'desc'))
             .limit(limit)

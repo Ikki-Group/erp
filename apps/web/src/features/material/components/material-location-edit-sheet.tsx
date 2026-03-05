@@ -118,7 +118,7 @@ function ConfigForm({
           <div className='rounded-md border p-2.5'>
             <p className='text-xs text-muted-foreground'>Kuantitas</p>
             <p className='text-sm font-semibold'>
-              {data.currentQty} {data.baseUom}
+              {data.currentQty} {data.uom?.code ?? '-'}
             </p>
           </div>
           <div className='rounded-md border p-2.5'>

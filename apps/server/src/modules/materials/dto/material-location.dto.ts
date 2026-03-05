@@ -4,6 +4,8 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { LocationDto } from '@/modules/location/dto'
 
+import { UomDto } from './uom.dto'
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
@@ -36,6 +38,7 @@ export const MaterialLocationWithLocationDto = z.object({
 
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 
+/* ... */
 /** Stock view — used in "stock list per location" */
 export const MaterialLocationStockDto = z.object({
   id: zPrimitive.id,
@@ -43,7 +46,8 @@ export const MaterialLocationStockDto = z.object({
   locationId: zPrimitive.id,
   materialName: zPrimitive.str,
   materialSku: zPrimitive.str,
-  baseUom: zPrimitive.str,
+  baseUomId: zPrimitive.id,
+  uom: UomDto.nullable(),
   minStock: zPrimitive.num,
   maxStock: zPrimitive.num.nullable(),
   reorderPoint: zPrimitive.num,

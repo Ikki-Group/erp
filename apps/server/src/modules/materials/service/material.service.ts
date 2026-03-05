@@ -15,9 +15,11 @@ import type {
   MaterialFilterDto,
   MaterialMutationDto,
   MaterialSelectDto,
+  UomDto,
 } from '../dto'
 
 import type { MaterialCategoryService } from './material-category.service'
+import type { UomService } from './uom.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -44,7 +46,10 @@ const cacheKey = {
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class MaterialService {
-  constructor(private readonly categorySvc: MaterialCategoryService) {}
+  constructor(
+    private readonly categorySvc: MaterialCategoryService,
+    private readonly uomSvc: UomService
+  ) {}
 
   /**
    * Helper to fetch full material detail including conversions and locationIds
@@ -56,9 +61,10 @@ export class MaterialService {
 
     const [conversions, locations] = await Promise.all([
       db
-        .select({ toBaseFactor: materialConversions.toBaseFactor, uom: materialConversions.uom })
+        .select({ toBaseFactor: materialConversions.toBaseFactor, uomId: materialConversions.uomId })
         .from(materialConversions)
         .where(eq(materialConversions.materialId, id)),
+
       db
         .select({ locationId: materialLocations.locationId })
         .from(materialLocations)
@@ -77,32 +83,33 @@ export class MaterialService {
    */
   private async getMaterialsBatchWithRelations(
     ids: number[]
-  ): Promise<Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>> {
+  ): Promise<Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>> {
     if (ids.length === 0)
-      return new Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>()
+      return new Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>()
 
     const [conversions, locations] = await Promise.all([
       db
         .select({
           materialId: materialConversions.materialId,
           toBaseFactor: materialConversions.toBaseFactor,
-          uom: materialConversions.uom,
+          uomId: materialConversions.uomId,
         })
         .from(materialConversions)
         .where(inArray(materialConversions.materialId, ids)),
+
       db
         .select({ materialId: materialLocations.materialId, locationId: materialLocations.locationId })
         .from(materialLocations)
         .where(inArray(materialLocations.materialId, ids)),
     ])
 
-    const map = new Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>()
+    const map = new Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>()
     for (const id of ids) {
       map.set(id, { conversions: [], locationIds: [] })
     }
 
     for (const c of conversions) {
-      map.get(c.materialId)!.conversions.push({ toBaseFactor: c.toBaseFactor, uom: c.uom })
+      map.get(c.materialId)!.conversions.push({ toBaseFactor: c.toBaseFactor, uomId: c.uomId })
     }
 
     for (const l of locations) {
@@ -202,9 +209,14 @@ export class MaterialService {
       const relationsMap = await this.getMaterialsBatchWithRelations(materialIds)
 
       const categoriesMap = new Map<number, MaterialCategoryDto>()
-      const allCategories = await this.categorySvc.find()
+      const uomsMap = new Map<number, UomDto>()
+      const [allCategories, allUoms] = await Promise.all([this.categorySvc.find(), this.uomSvc.find()])
+
       for (const cat of allCategories) {
         categoriesMap.set(cat.id, cat)
+      }
+      for (const uom of allUoms) {
+        uomsMap.set(uom.id, uom)
       }
 
       const data: MaterialSelectDto[] = result.data.map((m) => ({
@@ -212,6 +224,7 @@ export class MaterialService {
         conversions: relationsMap.get(m.id)!.conversions,
         locationIds: relationsMap.get(m.id)!.locationIds,
         category: m.categoryId ? (categoriesMap.get(m.categoryId) ?? null) : null,
+        uom: uomsMap.get(m.baseUomId) ?? null,
       }))
 
       return { data, meta: result.meta }
@@ -221,10 +234,15 @@ export class MaterialService {
   async handleDetail(id: number): Promise<MaterialSelectDto> {
     return record('MaterialService.handleDetail', async () => {
       const material = await this.findById(id)
-      const category = material.categoryId ? await this.categorySvc.findById(material.categoryId) : null
+      const [category, uom] = await Promise.all([
+        material.categoryId ? this.categorySvc.findById(material.categoryId) : null,
+        this.uomSvc.findById(material.baseUomId).catch(() => null),
+      ])
+
       return {
         ...material,
         category,
+        uom,
       }
     })
   }
@@ -258,7 +276,7 @@ export class MaterialService {
           await tx.insert(materialConversions).values(
             data.conversions.map((c) => ({
               materialId: material.id,
-              uom: c.uom,
+              uomId: c.uomId,
               toBaseFactor: c.toBaseFactor,
               ...metadata,
             }))
@@ -310,7 +328,7 @@ export class MaterialService {
             await tx.insert(materialConversions).values(
               data.conversions.map((c) => ({
                 materialId: id,
-                uom: c.uom,
+                uomId: c.uomId,
                 toBaseFactor: c.toBaseFactor,
                 ...createMetadata,
               }))
