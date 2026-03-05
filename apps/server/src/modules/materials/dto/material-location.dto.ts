@@ -69,9 +69,9 @@ export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-/** Assign materials to a location (batch) */
+/** Assign materials to locations (batch) */
 export const MaterialLocationAssignDto = z.object({
-  locationId: zPrimitive.id,
+  locationIds: zPrimitive.id.array().min(1),
   materialIds: zPrimitive.id.array().min(1),
 })
 

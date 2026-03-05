@@ -92,43 +92,55 @@ export class MaterialLocationService {
   /* ──────────────────── HANDLER: ASSIGNMENTS ──────────────────── */
 
   /**
-   * Assign multiple materials to a location (batch).
+   * Assign multiple materials to multiple locations (batch).
    * Skips any that are already assigned (upsert-like).
    */
   async handleAssign(data: MaterialLocationAssignDto, actorId: number): Promise<{ assignedCount: number }> {
     return record('MaterialLocationService.handleAssign', async () => {
-      const { locationId, materialIds } = data
+      const { locationIds, materialIds } = data
 
-      // Validate location exists
-      await this.locationSvc.location.findById(locationId)
-
-      // Validate all materials exist
-      for (const materialId of materialIds) {
-        await this.materialSvc.findById(materialId)
+      // 1. Validate all locations exist
+      for (const locId of locationIds) {
+        await this.locationSvc.location.findById(locId)
       }
 
-      // Find already assigned
+      // 2. Validate all materials exist
+      for (const mId of materialIds) {
+        await this.materialSvc.findById(mId)
+      }
+
+      // 3. Find already assigned combinations
       const existing = await db
-        .select({ materialId: materialLocations.materialId })
+        .select({
+          materialId: materialLocations.materialId,
+          locationId: materialLocations.locationId,
+        })
         .from(materialLocations)
-        .where(and(eq(materialLocations.locationId, locationId), inArray(materialLocations.materialId, materialIds)))
+        .where(
+          and(inArray(materialLocations.locationId, locationIds), inArray(materialLocations.materialId, materialIds))
+        )
 
-      const existingMaterialIds = new Set(existing.map((e) => e.materialId))
-      const newMaterialIds = materialIds.filter((mId) => !existingMaterialIds.has(mId))
-
-      if (newMaterialIds.length === 0) return { assignedCount: 0 }
-
+      const existingSet = new Set(existing.map((e) => `${e.locationId}-${e.materialId}`))
       const metadata = stampCreate(actorId)
+      const docs: (typeof materialLocations.$inferInsert)[] = []
 
-      const docs = newMaterialIds.map((materialId) => ({
-        materialId,
-        locationId,
-        ...metadata,
-      }))
+      for (const locationId of locationIds) {
+        for (const materialId of materialIds) {
+          if (!existingSet.has(`${locationId}-${materialId}`)) {
+            docs.push({
+              materialId,
+              locationId,
+              ...metadata,
+            })
+          }
+        }
+      }
+
+      if (docs.length === 0) return { assignedCount: 0 }
 
       await db.insert(materialLocations).values(docs)
 
-      return { assignedCount: newMaterialIds.length }
+      return { assignedCount: docs.length }
     })
   }
 
