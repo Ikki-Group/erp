@@ -56,7 +56,7 @@ export class MaterialService {
 
     const [conversions, locations] = await Promise.all([
       db
-        .select({ factor: materialConversions.factor, uom: materialConversions.uom })
+        .select({ toBaseFactor: materialConversions.toBaseFactor, uom: materialConversions.uom })
         .from(materialConversions)
         .where(eq(materialConversions.materialId, id)),
       db
@@ -75,15 +75,17 @@ export class MaterialService {
   /**
    * Batch fetch full material details including conversions and locationIds
    */
-  private async getMaterialsBatchWithRelations(ids: number[]) {
+  private async getMaterialsBatchWithRelations(
+    ids: number[]
+  ): Promise<Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>> {
     if (ids.length === 0)
-      return new Map<number, { conversions: { factor: string; uom: string }[]; locationIds: number[] }>()
+      return new Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>()
 
     const [conversions, locations] = await Promise.all([
       db
         .select({
           materialId: materialConversions.materialId,
-          factor: materialConversions.factor,
+          toBaseFactor: materialConversions.toBaseFactor,
           uom: materialConversions.uom,
         })
         .from(materialConversions)
@@ -94,13 +96,13 @@ export class MaterialService {
         .where(inArray(materialLocations.materialId, ids)),
     ])
 
-    const map = new Map<number, { conversions: { factor: string; uom: string }[]; locationIds: number[] }>()
+    const map = new Map<number, { conversions: { toBaseFactor: string; uom: string }[]; locationIds: number[] }>()
     for (const id of ids) {
       map.set(id, { conversions: [], locationIds: [] })
     }
 
     for (const c of conversions) {
-      map.get(c.materialId)!.conversions.push({ factor: c.factor, uom: c.uom })
+      map.get(c.materialId)!.conversions.push({ toBaseFactor: c.toBaseFactor, uom: c.uom })
     }
 
     for (const l of locations) {
@@ -257,7 +259,7 @@ export class MaterialService {
             data.conversions.map((c) => ({
               materialId: material.id,
               uom: c.uom,
-              factor: c.factor,
+              toBaseFactor: c.toBaseFactor,
               ...metadata,
             }))
           )
@@ -309,7 +311,7 @@ export class MaterialService {
               data.conversions.map((c) => ({
                 materialId: id,
                 uom: c.uom,
-                factor: c.factor,
+                toBaseFactor: c.toBaseFactor,
                 ...createMetadata,
               }))
             )

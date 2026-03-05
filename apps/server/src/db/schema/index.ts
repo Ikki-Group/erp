@@ -7,6 +7,7 @@ import { stockSummaries, stockTransactions } from './inventory'
 import { locations } from './location'
 import { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
 import { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+import { recipeItems, recipes } from './recipe'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ export { stockSummaries, stockTransactions } from './inventory'
 export { locations } from './location'
 export { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
 export { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+export { recipeItems, recipes } from './recipe'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)
@@ -45,6 +47,8 @@ export const relations = defineRelations(
     products,
     productVariants,
     variantPrices,
+    recipes,
+    recipeItems,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -107,6 +111,8 @@ export const relations = defineRelations(
       materialLocations: r.many.materialLocations(),
       stockTransactions: r.many.stockTransactions(),
       stockSummaries: r.many.stockSummaries(),
+      recipe: r.many.recipes(),
+      recipeItems: r.many.recipeItems(),
     },
 
     materialConversions: {
@@ -185,6 +191,7 @@ export const relations = defineRelations(
         to: r.products.id,
       }),
       prices: r.many.variantPrices(),
+      recipe: r.many.recipes(),
     },
 
     variantPrices: {
@@ -195,6 +202,31 @@ export const relations = defineRelations(
       salesType: r.one.salesTypes({
         from: r.variantPrices.salesTypeId,
         to: r.salesTypes.id,
+      }),
+    },
+
+    // ─── Recipe ───────────────────────────────────────────────────────
+
+    recipes: {
+      material: r.one.materials({
+        from: r.recipes.materialId,
+        to: r.materials.id,
+      }),
+      productVariant: r.one.productVariants({
+        from: r.recipes.productVariantId,
+        to: r.productVariants.id,
+      }),
+      items: r.many.recipeItems(),
+    },
+
+    recipeItems: {
+      recipe: r.one.recipes({
+        from: r.recipeItems.recipeId,
+        to: r.recipes.id,
+      }),
+      material: r.one.materials({
+        from: r.recipeItems.materialId,
+        to: r.materials.id,
       }),
     },
   })

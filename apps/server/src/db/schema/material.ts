@@ -62,7 +62,7 @@ export const materialConversions = pgTable(
       .notNull()
       .references(() => materials.id, { onDelete: 'cascade' }),
     uom: text().notNull(),
-    factor: numeric({ precision: 18, scale: 6 }).notNull(),
+    toBaseFactor: numeric({ precision: 18, scale: 6 }).notNull(),
     ...metadata,
   },
   (t) => [
