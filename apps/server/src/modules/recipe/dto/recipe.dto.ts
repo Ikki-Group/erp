@@ -9,7 +9,7 @@ export const RecipeItemDto = z.object({
   recipeId: zPrimitive.id,
   materialId: zPrimitive.id,
   qty: zPrimitive.str,
-  uom: zPrimitive.str,
+  uomId: zPrimitive.id,
   ...zSchema.metadata.shape,
 })
 
@@ -47,7 +47,7 @@ export type RecipeDetailDto = z.infer<typeof RecipeDetailDto>
 export const RecipeItemMutationDto = z.object({
   materialId: zPrimitive.id,
   qty: zPrimitive.str,
-  uom: zPrimitive.str,
+  uomId: zPrimitive.id,
 })
 
 export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>

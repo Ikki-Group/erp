@@ -5,7 +5,7 @@ import { stampCreate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 
 import { db } from '@/db'
-import { materials, recipeItems, recipes } from '@/db/schema'
+import { materials, recipeItems, recipes, uoms } from '@/db/schema'
 
 import type { RecipeDetailDto, RecipeUpsertDto } from '../dto'
 
@@ -51,10 +51,11 @@ export class RecipeService {
           item: recipeItems,
           materialName: materials.name,
           materialSku: materials.sku,
-          materialBaseUom: materials.baseUom,
+          materialBaseUom: uoms.code,
         })
         .from(recipeItems)
         .innerJoin(materials, eq(recipeItems.materialId, materials.id))
+        .innerJoin(uoms, eq(materials.baseUomId, uoms.id))
         .where(eq(recipeItems.recipeId, id))
 
       return {
@@ -126,7 +127,7 @@ export class RecipeService {
               recipeId,
               materialId: item.materialId,
               qty: item.qty,
-              uom: item.uom,
+              uomId: item.uomId,
               ...metadata,
             }))
           )

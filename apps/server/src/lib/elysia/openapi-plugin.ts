@@ -30,7 +30,6 @@ export const openapiPlugin = openapi({
   documentation: {
     // openapi: '3.2.0',
     openapi: '3.0.0',
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     'x-tagGroups': [
       {

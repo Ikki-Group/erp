@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { check, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
-import { materials } from './material'
+import { materials, uoms } from './material'
 import { productVariants } from './product'
 
 // ─── Recipes ──────────────────────────────────────────────────────────────────
@@ -57,7 +57,9 @@ export const recipeItems = pgTable(
     // Quantity of the material needed
     qty: numeric({ precision: 18, scale: 4 }).notNull(),
     // UOM used for this ingredient in the recipe (should match baseUom or be convertible)
-    uom: text().notNull(),
+    uomId: integer()
+      .notNull()
+      .references(() => uoms.id),
 
     ...metadata,
   },

@@ -1,4 +1,5 @@
 import Elysia, { t } from 'elysia'
+import z from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
@@ -23,27 +24,27 @@ export function buildRecipeRouter(service: RecipeService) {
           productVariantId: t.Optional(t.Numeric()),
         }),
         response: zResponse.ok(RecipeDetailDto),
-        isAuth: true,
+        auth: true,
       }
     )
 
     .post(
       '/',
-      async ({ body, user }) => {
-        const data = await service.handleUpsert(body, user.id)
+      async ({ body, auth }) => {
+        const data = await service.handleUpsert(body, auth.userId)
+
         return res.created(data, 'Recipe saved successfully')
       },
       {
         body: RecipeUpsertDto,
-        response: {
-          201: zResponse.ok(t.Object({ id: t.Number() })),
-        },
+        response: zResponse.ok(z.object({ id: z.number() })),
+
         detail: {
           summary: 'Upsert Recipe',
           description:
             'Create or fully replace a recipe for a target. This will delete all existing recipe items for the target and insert the new ones.',
         },
-        isAuth: true,
+        auth: true,
       }
     )
 
@@ -57,14 +58,13 @@ export function buildRecipeRouter(service: RecipeService) {
         params: t.Object({
           id: t.Numeric(),
         }),
-        response: {
-          200: zResponse.ok(t.Object({ id: t.Number() })),
-        },
+        response: zResponse.ok(z.object({ id: z.number() })),
+
         detail: {
           summary: 'Delete Recipe',
           description: 'Delete a recipe entirely along with its items',
         },
-        isAuth: true,
+        auth: true,
       }
     )
 }
