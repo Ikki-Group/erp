@@ -20,13 +20,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface MaterialAssignToLocationDialogProps {
-  materialId: number
+  materialIds: Array<number>
   materialName: string
 }
 
 export const MaterialAssignToLocationDialog =
   createCallable<MaterialAssignToLocationDialogProps>(props => {
-    const { call, materialId, materialName } = props
+    const { call, materialIds, materialName } = props
     const queryClient = useQueryClient()
 
     const [search, setSearch] = useState('')
@@ -43,9 +43,11 @@ export const MaterialAssignToLocationDialog =
       })
     )
 
-    // 2. Fetch already assigned locations for this material
+    // 2. Fetch already assigned locations for this material (only if single material)
     const { data: assignedLocations, isLoading: isLoadingAssigned } = useQuery({
-      ...materialLocationApi.byMaterial.query({ id: materialId }),
+      ...materialLocationApi.byMaterial.query({ id: materialIds[0] }),
+
+      enabled: materialIds.length === 1,
     })
 
     const assignedIds = useMemo(() => {
@@ -78,7 +80,7 @@ export const MaterialAssignToLocationDialog =
         assignMutation.mutateAsync({
           body: {
             locationId: locId,
-            materialIds: [materialId],
+            materialIds,
           },
         })
       )
