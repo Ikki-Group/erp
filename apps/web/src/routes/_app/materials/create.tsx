@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MaterialFormPage } from '@/features/material/components/material-form-page'
-import { MaterialFormPageNew } from '@/features/material/components/material-form-page-new'
 
 export const Route = createFileRoute('/_app/materials/create')({
   component: RouteComponent,
@@ -16,6 +15,4 @@ function RouteComponent() {
       }}
     />
   )
-
-  return <MaterialFormPageNew />
 }
