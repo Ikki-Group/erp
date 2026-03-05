@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
+import type { MaterialServiceModule } from '@/modules/materials'
 import type { ProductServiceModule } from '@/modules/product'
 
 import { SEED_CONFIG } from '@/config/seed-config'
@@ -11,7 +12,8 @@ export class SeedService {
   constructor(
     private readonly iamSvc: IamServiceModule,
     private readonly locationSvc: LocationServiceModule,
-    private readonly productSvc: ProductServiceModule
+    private readonly productSvc: ProductServiceModule,
+    private readonly materialSvc: MaterialServiceModule
   ) {}
 
   async seed(): Promise<void> {
@@ -58,6 +60,14 @@ export class SeedService {
           SEED_CONFIG.SALES_TYPES.map((st) => ({
             code: st.code,
             name: st.name,
+            createdBy: SYSTEM_ACTOR_ID,
+          }))
+        )
+
+        // 5. Seed UOMs
+        await this.materialSvc.uom.seed(
+          SEED_CONFIG.UOMS.map((u) => ({
+            code: u.code,
             createdBy: SYSTEM_ACTOR_ID,
           }))
         )

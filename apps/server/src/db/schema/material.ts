@@ -70,11 +70,7 @@ export const materialConversions = pgTable(
     toBaseFactor: numeric({ precision: 18, scale: 6 }).notNull(),
     ...metadata,
   },
-  (t) => [
-    // Unique: one conversion per UOM per material
-    uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uomId),
-    // Removed: material_conversions_material_idx — redundant, covered by composite unique above
-  ]
+  (t) => [uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uomId)]
 )
 
 // ─── Material Locations ───────────────────────────────────────────────────────

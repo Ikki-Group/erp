@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "ab7c4b99-eef2-4291-a0df-5ca096f5f304",
+  "id": "cb1a8f20-89f1-4554-b355-f037ed665f52",
   "prevIds": [
-    "0afe0695-5761-47e7-8b1c-21e7fe7b5bce"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -434,14 +434,14 @@
       "table": "material_conversions"
     },
     {
-      "type": "text",
+      "type": "integer",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "uom",
+      "name": "uomId",
       "entityType": "columns",
       "schema": "public",
       "table": "material_conversions"
@@ -785,14 +785,14 @@
       "table": "materials"
     },
     {
-      "type": "text",
+      "type": "integer",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "baseUom",
+      "name": "baseUomId",
       "entityType": "columns",
       "schema": "public",
       "table": "materials"
@@ -2925,7 +2925,7 @@
           "opclass": null
         },
         {
-          "value": "uom",
+          "value": "uomId",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -3050,6 +3050,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "materials_category_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "materials"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "baseUomId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "materials_base_uom_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "materials"
@@ -3802,6 +3823,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "uomId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "uoms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "material_conversions_uomId_uoms_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "material_conversions"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "materialId"
       ],
       "schemaTo": "public",
@@ -3846,6 +3884,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "materials_categoryId_material_categories_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "materials"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "baseUomId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "uoms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "materials_baseUomId_uoms_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "materials"
@@ -4354,7 +4409,5 @@
       "table": "recipes"
     }
   ],
-  "renames": [
-    "public.material_conversions.factor->public.material_conversions.toBaseFactor"
-  ]
+  "renames": []
 }

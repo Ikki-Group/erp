@@ -182,4 +182,32 @@ export class UomService {
       id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
     ])
   }
+
+  /**
+   * Seed UOMs by skipping already existing ones.
+   */
+  async seed(data: { code: string; createdBy: number }[]): Promise<void> {
+    return record('UomService.seed', async () => {
+      const existing = await db.select({ code: uoms.code }).from(uoms)
+      const existingCodes = new Set(existing.map((e) => e.code))
+
+      const newUoms = data
+        .map((d) => ({
+          ...d,
+          code: d.code.toUpperCase().trim(),
+        }))
+        .filter((d) => !existingCodes.has(d.code))
+
+      if (newUoms.length === 0) return
+
+      await db.insert(uoms).values(
+        newUoms.map((d) => ({
+          ...d,
+          ...stampCreate(d.createdBy),
+        }))
+      )
+
+      void this.clearCache()
+    })
+  }
 }

@@ -16,6 +16,8 @@ import { initMaterialsRouteModule, MaterialServiceModule } from '@/modules/mater
 import { initProductRouteModule, ProductServiceModule } from '@/modules/product'
 import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
 
+import { env } from './config/env'
+
 // Services
 const locationService = new LocationServiceModule()
 const iamService = new IamServiceModule(locationService)
@@ -23,7 +25,7 @@ const dashboardService = new DashboardServiceModule(iamService, locationService)
 const materialService = new MaterialServiceModule(locationService)
 const inventoryService = new InventoryServiceModule(materialService)
 const productService = new ProductServiceModule()
-const toolService = new ToolServiceModule(iamService, locationService, productService)
+const toolService = new ToolServiceModule(iamService, locationService, productService, materialService)
 
 // Routes
 const locationsRoute = initLocationRouteModule(locationService)
@@ -33,6 +35,10 @@ const toolRoute = initToolRouteModule(toolService)
 const materialsRoute = initMaterialsRouteModule(materialService)
 const inventoryRoute = initInventoryRouteModule(inventoryService)
 const productRoute = initProductRouteModule(productService)
+
+if (env.NODE_ENV === 'development' && Bun.env.ENABLE_SEED === 'true') {
+  await toolService.seed.seed()
+}
 
 export const app = new Elysia({
   name: 'App',

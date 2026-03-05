@@ -1,1 +1,0 @@
-ALTER TABLE "material_conversions" RENAME COLUMN "factor" TO "toBaseFactor";
