@@ -3,11 +3,17 @@ import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
 import { toast } from 'sonner'
-import { BoxesIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  PlusIcon,
+  Trash2Icon,
+  Wand2Icon,
+} from 'lucide-react'
 import { useMemo } from 'react'
 import { materialApi, materialCategoryApi, uomApi } from '../api'
-import type { LinkOptions } from '@tanstack/react-router'
+import { MaterialType } from '../dto'
 import type { MaterialSelectDto } from '../dto'
+import type { LinkOptions } from '@tanstack/react-router'
 import { Page } from '@/components/layout/page'
 import {
   FormConfig,
@@ -21,18 +27,19 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { toOptions } from '@/lib/utils'
+import { generateSku } from '@/lib/sku'
 
 const FormDto = z.object({
   name: z.string().min(1),
   description: z.string(),
   sku: z.string().min(1),
-  type: z.enum(['raw', 'semi']),
+  type: MaterialType,
   categoryId: z.string().nullable(),
   baseUom: z.string(),
   conversions: z.array(
     z.object({
       uom: z.string(),
-      factor: z.string().min(1),
+      toBaseFactor: z.string().min(1),
     })
   ),
 })
@@ -52,7 +59,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     conversions.push(
       ...others.map(i => ({
         uom: i.uom,
-        factor: i.factor,
+        toBaseFactor: i.toBaseFactor,
       }))
     )
   }
@@ -62,7 +69,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
     categoryId: v?.categoryId != null ? String(v.categoryId) : null,
-    baseUom: v?.baseUom ?? null!,
+    baseUom: v?.baseUom ?? '',
     conversions,
   }
 }
@@ -88,7 +95,7 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
       value.conversions = [
-        { uom: value.baseUom, factor: '1' },
+        { uom: value.baseUom, toBaseFactor: '1' },
         ...value.conversions,
       ]
 
@@ -164,7 +171,22 @@ function GeneralInformationCard() {
       <form.AppField name='sku'>
         {field => (
           <field.Base label='SKU' required>
-            <field.Input placeholder='Contoh: SKU-001' />
+            <div className='flex items-center gap-2'>
+              <field.Input placeholder='Contoh: SKU-001' />
+              <Button
+                variant='outline'
+                size='icon'
+                type='button'
+                className='shrink-0'
+                title='Generate SKU otomatis'
+                onClick={() => {
+                  const name = form.getFieldValue('name')
+                  field.setValue(generateSku('MAT', name))
+                }}
+              >
+                <Wand2Icon className='size-4' />
+              </Button>
+            </div>
           </field.Base>
         )}
       </form.AppField>
@@ -261,115 +283,154 @@ function UomConversionsSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content className='flex flex-col gap-4'>
-        <div className='border rounded-md overflow-hidden'>
-          <Table className='table-fixed'>
-            <Table.Header className='bg-muted'>
-              <Table.Row>
-                <Table.Head className='w-100'>Satuan</Table.Head>
-                <Table.Head className='w-100'>Konversi</Table.Head>
-                <Table.Head className='w-16 text-center'>Aksi</Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              <form.AppField name='conversions' mode='array'>
-                {arrayField => {
-                  if (arrayField.state.value.length <= 0) {
-                    return (
-                      <Table.Row>
-                        <Table.Cell colSpan={2} className='text-center h-32'>
-                          <div className='flex flex-col items-center justify-center gap-2 text-muted-foreground'>
-                            <BoxesIcon className='size-8 opacity-50' />
-                            <p>Belum ada konversi satuan yang ditambahkan</p>
+        {!baseUomId ? (
+          <ConversionAlertBaseUomNotSet />
+        ) : (
+          <>
+            <div className='border rounded-md overflow-hidden'>
+              <Table className='table-fixed'>
+                <Table.Header className='bg-muted'>
+                  <Table.Row>
+                    <Table.Head className='w-full'>Satuan Konversi</Table.Head>
+                    <Table.Head className='w-20 text-center'>Aksi</Table.Head>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {/* Default Row (1x = 1x) */}
+                  <Table.Row className='bg-muted/30'>
+                    <Table.Cell>
+                      <div className='flex items-center gap-2 opacity-80'>
+                        <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold'>
+                          1
+                        </div>
+                        <div className='flex-1 max-w-[200px]'>
+                          <div className='flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground'>
+                            {baseUom?.label || 'Satuan Dasar'}
                           </div>
-                        </Table.Cell>
-                      </Table.Row>
-                    )
-                  }
-                  return arrayField.state.value.map((_, i) => {
-                    return (
-                      // eslint-disable-next-line @eslint-react/no-array-index-key
-                      <Table.Row key={i}>
-                        <Table.Cell>
-                          <div className='flex items-center gap-1.5'>
-                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
-                              1
-                            </div>
-                            <div className='w-52'>
-                              <form.AppField name={`conversions[${i}].uom`}>
-                                {field => (
-                                  <field.Select
-                                    required
-                                    placeholder='Pilih satuan...'
-                                    options={uoms}
-                                  />
-                                )}
-                              </form.AppField>
-                            </div>
-                            <div className='text-muted-foreground text-sm font-medium shrink-0'>
-                              =
-                            </div>
-                            <div className='w-52'>
-                              <form.AppField name={`conversions[${i}].factor`}>
-                                {field => (
-                                  <field.Input
-                                    required
-                                    type='number'
-                                    placeholder='Faktor (Contoh: 1000)'
-                                  />
-                                )}
-                              </form.AppField>
-                            </div>
-                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
-                              {baseUom?.label || '-'}
-                            </div>
+                        </div>
+                        <div className='text-muted-foreground text-sm font-bold px-1'>
+                          =
+                        </div>
+                        <div className='flex-1 max-w-[200px]'>
+                          <div className='flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground font-mono'>
+                            1
                           </div>
-                        </Table.Cell>
-                        <Table.Cell className='text-center'>
-                          <Button
-                            variant='destructive'
-                            size='icon'
-                            type='button'
-                            onClick={() => arrayField.removeValue(i)}
-                          >
-                            <Trash2Icon />
-                          </Button>
-                        </Table.Cell>
-                      </Table.Row>
-                    )
-                  })
-                }}
-              </form.AppField>
-            </Table.Body>
-          </Table>
-        </div>
-        <Button
-          variant='outline'
-          size='sm'
-          type='button'
-          className='w-fit'
-          onClick={() => {
-            form.pushFieldValue('conversions', {
-              uom: null!,
-              factor: '',
-            })
-          }}
-        >
-          <PlusIcon className='mr-2 size-4' />
-          Tambah Konversi Satuan
-        </Button>
+                        </div>
+                        <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8'>
+                          {baseUom?.label || '-'}
+                        </div>
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell className='text-center'>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        disabled
+                        className='opacity-30'
+                      >
+                        <Trash2Icon className='size-4' />
+                      </Button>
+                    </Table.Cell>
+                  </Table.Row>
+
+                  <form.AppField name='conversions' mode='array'>
+                    {arrayField => {
+                      return arrayField.state.value.map((_, i) => {
+                        return (
+                          // eslint-disable-next-line @eslint-react/no-array-index-key
+                          <Table.Row key={i}>
+                            <Table.Cell>
+                              <div className='flex items-center gap-2'>
+                                <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold'>
+                                  1
+                                </div>
+                                <div className='flex-1 max-w-[200px]'>
+                                  <form.AppField name={`conversions[${i}].uom`}>
+                                    {field => (
+                                      <field.Select
+                                        required
+                                        placeholder='Pilih satuan...'
+                                        options={uoms}
+                                      />
+                                    )}
+                                  </form.AppField>
+                                </div>
+                                <div className='text-muted-foreground text-sm font-bold px-1'>
+                                  =
+                                </div>
+                                <div className='flex-1 max-w-[200px]'>
+                                  <form.AppField
+                                    name={`conversions[${i}].toBaseFactor`}
+                                  >
+                                    {field => (
+                                      <field.Number
+                                        required
+                                        placeholder='Faktor'
+                                      />
+                                    )}
+                                  </form.AppField>
+                                </div>
+                                <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8'>
+                                  {baseUom?.label || '-'}
+                                </div>
+                              </div>
+                            </Table.Cell>
+                            <Table.Cell className='text-center'>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                type='button'
+                                className='text-destructive hover:bg-destructive/10'
+                                onClick={() => arrayField.removeValue(i)}
+                              >
+                                <Trash2Icon className='size-4' />
+                              </Button>
+                            </Table.Cell>
+                          </Table.Row>
+                        )
+                      })
+                    }}
+                  </form.AppField>
+                </Table.Body>
+              </Table>
+            </div>
+            <Button
+              variant='outline'
+              size='sm'
+              type='button'
+              className='w-fit'
+              onClick={() => {
+                form.pushFieldValue('conversions', {
+                  uom: '',
+                  toBaseFactor: '1',
+                })
+              }}
+            >
+              <PlusIcon className='mr-2 size-4' />
+              Tambah Konversi Satuan
+            </Button>
+          </>
+        )}
       </Card.Content>
     </Card>
   )
 }
 
-/**
- * Flow conversion
- * User membeli 1kg gula dan ingin membuat beberapa konversi satuan (gram, miligram, dll)
- *
- * Base UOM = miligram (satuan terkecil penggunaan)
- *
- * Input dimulai dari base UOM
- * 1mg = 1 mg
- * 1gr = 1000 mg
- * 1kg = 1000000 mg
- */
+function ConversionAlertBaseUomNotSet() {
+  return (
+    <div className='flex flex-col items-center justify-center gap-3 text-muted-foreground bg-muted/30 rounded-lg border border-dashed py-12'>
+      <div className='size-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center'>
+        <AlertTriangleIcon className='size-6 text-yellow-600 dark:text-yellow-500' />
+      </div>
+      <div className='text-center space-y-1'>
+        <p className='font-semibold text-foreground'>
+          Satuan Dasar Belum Dipilih
+        </p>
+        <p className='text-sm max-w-[280px]'>
+          Silakan pilih satuan dasar pada bagian di atas terlebih dahulu untuk
+          menambahkan konversi.
+        </p>
+      </div>
+    </div>
+  )
+}

@@ -7,15 +7,15 @@ export const Route = createFileRoute('/_app/materials/create')({
 })
 
 function RouteComponent() {
-  // return (
-  //   <MaterialFormPage
-  //     mode='create'
-  //     backTo={{
-  //       from: Route.fullPath,
-  //       to: '/materials',
-  //     }}
-  //   />
-  // )
+  return (
+    <MaterialFormPage
+      mode='create'
+      backTo={{
+        from: Route.fullPath,
+        to: '/materials',
+      }}
+    />
+  )
 
   return <MaterialFormPageNew />
 }

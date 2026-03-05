@@ -3,15 +3,13 @@ import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
-  BarChart3Icon,
-  DollarSignIcon,
   InfoIcon,
   LayersIcon,
   PackageIcon,
   PlusIcon,
-  Settings2Icon,
   StarIcon,
   Trash2Icon,
+  Wand2Icon,
 } from 'lucide-react'
 import z from 'zod'
 import { useMemo, useState } from 'react'
@@ -27,10 +25,8 @@ import {
   useTypedAppFormContext,
 } from '@/components/form'
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import {
@@ -43,6 +39,7 @@ import {
 } from '@/components/ui/table'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { cn, toOptions } from '@/lib/utils'
+import { generateSku } from '@/lib/sku'
 
 const FormDto = z.object({
   name: z.string().min(1, 'Nama produk wajib diisi'),
@@ -212,7 +209,22 @@ function MainInfoCard() {
         <form.AppField name='sku'>
           {field => (
             <field.Base label='SKU' required>
-              <field.Input placeholder='SKU-001' />
+              <div className='flex items-center gap-2'>
+                <field.Input placeholder='SKU-001' />
+                <Button
+                  variant='outline'
+                  size='icon'
+                  type='button'
+                  className='shrink-0'
+                  title='Generate SKU otomatis'
+                  onClick={() => {
+                    const name = form.getFieldValue('name')
+                    field.setValue(generateSku('PRD', name))
+                  }}
+                >
+                  <Wand2Icon className='size-4' />
+                </Button>
+              </div>
             </field.Base>
           )}
         </form.AppField>

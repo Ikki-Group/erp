@@ -11,7 +11,7 @@ export type MaterialType = z.infer<typeof MaterialType>
 
 const MaterialConversionDto = z.object({
   uom: zPrimitive.str,
-  factor: zPrimitive.str,
+  toBaseFactor: zPrimitive.str,
 })
 
 export const MaterialDto = z.object({
