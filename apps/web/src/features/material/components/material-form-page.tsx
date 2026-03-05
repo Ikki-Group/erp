@@ -24,7 +24,7 @@ import { toOptions } from '@/lib/utils'
 
 const FormDto = z.object({
   name: z.string().min(1),
-  description: z.string().min(1),
+  description: z.string(),
   sku: z.string().min(1),
   type: z.enum(['raw', 'semi']),
   categoryId: z.string().nullable(),
@@ -170,7 +170,7 @@ function GeneralInformationCard() {
       </form.AppField>
       <form.AppField name='description'>
         {field => (
-          <field.Base label='Deskripsi' required>
+          <field.Base label='Deskripsi'>
             <field.Textarea placeholder='Masukkan deskripsi bahan baku' />
           </field.Base>
         )}
@@ -186,9 +186,9 @@ function GeneralInformationCard() {
         </form.AppField>
         <form.AppField name='type'>
           {field => (
-            <field.Base label='Tipe Bahan Baku' required>
+            <field.Base label='Jenis Bahan Baku' required>
               <field.Select
-                placeholder='Pilih tipe'
+                placeholder='Pilih jenis bahan baku'
                 options={[
                   { label: 'Bahan Mentah', value: 'raw' },
                   { label: 'Bahan Setengah Jadi', value: 'semi' },
@@ -217,7 +217,7 @@ function UomInformationSection() {
   return (
     <Card size='sm'>
       <Card.Header className='border-b'>
-        <Card.Title>Satuan Dasar (Base UOM)</Card.Title>
+        <Card.Title>Satuan Dasar</Card.Title>
         <Card.Description>
           Satuan terkecil yang digunakan untuk mengukur bahan baku ini
         </Card.Description>
@@ -265,7 +265,8 @@ function UomConversionsSection() {
           <Table className='table-fixed'>
             <Table.Header className='bg-muted'>
               <Table.Row>
-                <Table.Head className='w-100'>Detail Konversi</Table.Head>
+                <Table.Head className='w-100'>Satuan</Table.Head>
+                <Table.Head className='w-100'>Konversi</Table.Head>
                 <Table.Head className='w-16 text-center'>Aksi</Table.Head>
               </Table.Row>
             </Table.Header>
@@ -360,3 +361,15 @@ function UomConversionsSection() {
     </Card>
   )
 }
+
+/**
+ * Flow conversion
+ * User membeli 1kg gula dan ingin membuat beberapa konversi satuan (gram, miligram, dll)
+ *
+ * Base UOM = miligram (satuan terkecil penggunaan)
+ *
+ * Input dimulai dari base UOM
+ * 1mg = 1 mg
+ * 1gr = 1000 mg
+ * 1kg = 1000000 mg
+ */
