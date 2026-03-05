@@ -10,10 +10,12 @@ export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-const MaterialConversionDto = z.object({
-  uomId: zPrimitive.id,
+export const MaterialConversionDto = z.object({
   toBaseFactor: zPrimitive.str,
+  uomId: zPrimitive.id,
 })
+
+export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 export const MaterialDto = z.object({
   id: zPrimitive.id,
@@ -25,8 +27,8 @@ export const MaterialDto = z.object({
   baseUomId: zPrimitive.id,
 
   locationIds: zPrimitive.id.array(),
-  conversions: z.array(MaterialConversionDto),
-  ...zSchema.meta.shape,
+  conversions: MaterialConversionDto.array(),
+  ...zSchema.metadata.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>

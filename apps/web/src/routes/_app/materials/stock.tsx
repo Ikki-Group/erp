@@ -172,14 +172,15 @@ function StockTable({
       ),
       enableSorting: false,
     }),
-    ch.accessor('baseUom', {
+    ch.accessor('uom', {
       header: 'Satuan',
       cell: ({ row }) => (
-        <Badge variant='secondary'>{row.original.baseUom}</Badge>
+        <Badge variant='secondary'>{row.original.uom?.code ?? '-'}</Badge>
       ),
       enableSorting: false,
       size: 90,
     }),
+
     ch.accessor('currentQty', {
       header: 'Stok Saat Ini',
       cell: ({ row }) => {

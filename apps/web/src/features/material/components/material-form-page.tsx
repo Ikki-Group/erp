@@ -30,16 +30,16 @@ import { toOptions } from '@/lib/utils'
 import { generateSku } from '@/lib/sku'
 
 const FormDto = z.object({
-  name: z.string().min(1),
-  description: z.string(),
-  sku: z.string().min(1),
+  name: z.string().min(1, 'Nama bahan baku harus diisi'),
+  description: z.string().optional(),
+  sku: z.string().min(1, 'SKU harus diisi'),
   type: MaterialType,
-  categoryId: z.string().nullable(),
-  baseUomId: z.string(),
+  categoryId: z.number().nullable(),
+  baseUomId: z.number().min(1, 'Satuan dasar harus dipilih'),
   conversions: z.array(
     z.object({
-      uomId: z.string(),
-      toBaseFactor: z.string().min(1),
+      uomId: z.number().min(1, 'Satuan harus dipilih'),
+      toBaseFactor: z.coerce.string<string>(),
     })
   ),
 })
@@ -58,7 +58,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     const [_, ...others] = v.conversions
     conversions.push(
       ...others.map(i => ({
-        uomId: String(i.uomId),
+        uomId: i.uomId,
         toBaseFactor: i.toBaseFactor,
       }))
     )
@@ -68,11 +68,11 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     description: v?.description ?? '',
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
-    categoryId: v?.categoryId != null ? String(v.categoryId) : null,
-    baseUomId: v?.baseUomId != null ? String(v.baseUomId) : '',
+    categoryId: v?.categoryId ?? null,
+    baseUomId: v?.baseUomId ?? null!,
     conversions:
       v?.conversions.map(c => ({
-        uomId: String(c.uomId),
+        uomId: c.uomId,
         toBaseFactor: c.toBaseFactor,
       })) ?? [],
   }
@@ -98,19 +98,23 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     ...fopts,
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
-      value.conversions = [
-        { uomId: value.baseUomId, toBaseFactor: '1' },
-        ...value.conversions,
+      // Add base UOM conversion (1:1) to the payload sent to server
+      const conversions = [
+        { uomId: Number(value.baseUomId), toBaseFactor: '1' },
+        ...value.conversions.map(c => ({
+          uomId: Number(c.uomId),
+          toBaseFactor: String(c.toBaseFactor),
+        })),
       ]
 
       const payload = {
-        ...value,
+        name: value.name,
+        description: value.description || null,
+        sku: value.sku,
+        type: value.type,
         baseUomId: Number(value.baseUomId),
-        conversions: value.conversions.map(c => ({
-          ...c,
-          uomId: Number(c.uomId),
-        })),
         categoryId: value.categoryId ? Number(value.categoryId) : null,
+        conversions,
       }
 
       const promise = selectedMaterial.data?.data
@@ -240,7 +244,7 @@ function UomInformationSection() {
     select: ({ data }) =>
       toOptions(
         data,
-        i => String(i.id),
+        i => i.id,
         i => i.code
       ),
   })
@@ -281,7 +285,7 @@ function UomConversionsSection() {
   })
 
   const baseUom = useMemo(() => {
-    return uoms.find(u => String(u.value) === baseUomIdValue)
+    return uoms.find(u => u.value === baseUomIdValue)
   }, [baseUomIdValue, uoms])
 
   return (
@@ -414,8 +418,8 @@ function UomConversionsSection() {
               className='w-fit'
               onClick={() => {
                 form.pushFieldValue('conversions', {
-                  uomId: '',
-                  toBaseFactor: '1',
+                  uomId: null!,
+                  toBaseFactor: '',
                 })
               }}
             >
