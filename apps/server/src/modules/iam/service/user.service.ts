@@ -13,8 +13,8 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import { hashPassword } from '@/lib/password'
+import { NotFoundError, UnauthorizedError } from '@/lib/error/http'
+import { hashPassword, verifyPassword } from '@/lib/password'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import type { LocationServiceModule } from '@/modules/location'
@@ -24,7 +24,9 @@ import { db } from '@/db'
 import { locations, roles, userAssignments, users } from '@/db/schema'
 
 import type {
+  UserAdminUpdatePasswordDto,
   UserAssignmentDetailDto,
+  UserChangePasswordDto,
   UserCreateDto,
   UserDto,
   UserFilterDto,
@@ -445,6 +447,53 @@ export class UserService {
 
       void this.clearCache(id, existing.email, existing.username)
       return { id }
+    })
+  }
+
+  /**
+   * Handle change password for CURRENT user.
+   */
+  async handleChangePassword(userId: number, data: UserChangePasswordDto): Promise<{ id: number }> {
+    return record('UserService.handleChangePassword', async () => {
+      const { oldPassword, newPassword } = data
+      const user = await this.findById(userId)
+
+      const isValid = await verifyPassword(oldPassword, user.passwordHash)
+      if (!isValid) {
+        throw new UnauthorizedError('Invalid old password', 'USER_INVALID_OLD_PASSWORD')
+      }
+
+      const passwordHash = await hashPassword(newPassword)
+      const metadata = stampUpdate(userId)
+
+      await db
+        .update(users)
+        .set({ passwordHash, ...metadata })
+        .where(eq(users.id, userId))
+
+      void this.clearCache(userId, user.email, user.username)
+      return { id: userId }
+    })
+  }
+
+  /**
+   * Handle password update by ADMIN (bypass old password check).
+   */
+  async handleAdminUpdatePassword(actorId: number, data: UserAdminUpdatePasswordDto): Promise<{ id: number }> {
+    return record('UserService.handleAdminUpdatePassword', async () => {
+      const { id: targetUserId, password } = data
+      const targetUser = await this.findById(targetUserId)
+
+      const passwordHash = await hashPassword(password)
+      const metadata = stampUpdate(actorId)
+
+      await db
+        .update(users)
+        .set({ passwordHash, ...metadata })
+        .where(eq(users.id, targetUserId))
+
+      void this.clearCache(targetUserId, targetUser.email, targetUser.username)
+      return { id: targetUserId }
     })
   }
 

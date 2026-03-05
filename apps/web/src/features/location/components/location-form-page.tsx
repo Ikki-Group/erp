@@ -39,7 +39,7 @@ const fopts = formOptions({
 
 interface LocationFormPageProps {
   mode: 'create' | 'update'
-  id?: string
+  id?: number
   backTo?: LinkOptions
 }
 

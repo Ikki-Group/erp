@@ -1,11 +1,12 @@
-import Elysia from 'elysia'
-import z from 'zod'
+import { Elysia } from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/lib/elysia/auth-plugin'
+import { ForbiddenError } from '@/lib/error/http'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
+import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -74,6 +75,31 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         body: zSchema.recordId,
+        response: zResponse.ok(zSchema.recordId),
+        auth: true,
+      }
+    )
+    .put(
+      '/change-password',
+      async function changePassword({ body, auth }) {
+        const result = await s.user.handleChangePassword(auth.userId, body)
+        return res.ok(result, 'USER_PASSWORD_CHANGED')
+      },
+      {
+        body: UserChangePasswordDto,
+        response: zResponse.ok(zSchema.recordId),
+        auth: true,
+      }
+    )
+    .put(
+      '/admin-update-password',
+      async function adminUpdatePassword({ body, auth }) {
+        if (!auth.user?.isRoot) throw new ForbiddenError('Forbidden', 'AUTH_FORBIDDEN')
+        const result = await s.user.handleAdminUpdatePassword(auth.userId, body)
+        return res.ok(result, 'USER_PASSWORD_UPDATED_BY_ADMIN')
+      },
+      {
+        body: UserAdminUpdatePasswordDto,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }

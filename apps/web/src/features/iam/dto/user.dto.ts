@@ -3,43 +3,29 @@ import { RoleDto } from './role.dto'
 import { LocationDto } from '@/features/location'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-export const UserSelectDto = z.object({
-  id: zPrimitive.str,
-  email: zPrimitive.str,
-  username: zPrimitive.str,
+/* --------------------------------- ENTITY --------------------------------- */
+
+/** Represents a user-role-location assignment (from the `user_assignments` junction table). */
+export const UserAssignmentDto = z.object({
+  id: zPrimitive.id,
+  locationId: zPrimitive.id,
+  roleId: zPrimitive.id,
+  isDefault: zPrimitive.bool,
+})
+
+export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
+
+export const UserDto = z.object({
+  id: zPrimitive.id,
+  email: zPrimitive.email,
+  username: zPrimitive.username,
   fullname: zPrimitive.str,
   isRoot: zPrimitive.bool,
   isActive: zPrimitive.bool,
-  assignments: z.array(
-    z.object({
-      isDefault: zPrimitive.bool,
-      roleId: zPrimitive.str,
-      locationId: zPrimitive.str,
-      role: RoleDto,
-      location: LocationDto,
-    })
-  ),
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
-export type UserSelectDto = z.infer<typeof UserSelectDto>
-
-export const UserMutationDto = z.object({
-  email: zPrimitive.str,
-  username: zPrimitive.str,
-  fullname: zPrimitive.str,
-  isRoot: zPrimitive.bool,
-  isActive: zPrimitive.bool,
-  password: zPrimitive.str,
-  assignments: z.array(
-    z.object({
-      locationId: zPrimitive.str,
-      roleId: zPrimitive.str,
-    })
-  ),
-})
-
-export type UserMutationDto = z.infer<typeof UserMutationDto>
+export type UserDto = z.infer<typeof UserDto>
 
 /* --------------------------------- COMMON --------------------------------- */
 
@@ -49,3 +35,61 @@ export const UserFilterDto = z.object({
 })
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
+
+export const UserAssignmentDetailDto = z.object({
+  ...UserAssignmentDto.shape,
+  location: LocationDto,
+  role: RoleDto,
+})
+
+export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+
+export const UserSelectDto = z.object({
+  ...UserDto.shape,
+  assignments: z.array(UserAssignmentDetailDto),
+})
+
+export type UserSelectDto = z.infer<typeof UserSelectDto>
+
+/* --------------------------------- MUTATION --------------------------------- */
+
+export const UserCreateDto = z.object({
+  email: zPrimitive.email,
+  username: zPrimitive.username,
+  fullname: zPrimitive.str,
+  password: zPrimitive.password,
+  isActive: zPrimitive.bool,
+  isRoot: zPrimitive.bool,
+  /** Assignment list to create in the junction table */
+  assignments: z
+    .array(
+      z.object({
+        roleId: zPrimitive.id,
+        locationId: zPrimitive.id,
+        isDefault: zPrimitive.bool.default(false),
+      })
+    )
+    .default([]),
+})
+
+export type UserCreateDto = z.infer<typeof UserCreateDto>
+
+export const UserUpdateDto = UserCreateDto.partial()
+
+export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+
+export const UserChangePasswordDto = z.object({
+  oldPassword: zPrimitive.password,
+  newPassword: zPrimitive.password,
+})
+
+export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
+
+export const UserAdminUpdatePasswordDto = z.object({
+  id: zPrimitive.id,
+  password: zPrimitive.password,
+})
+
+export type UserAdminUpdatePasswordDto = z.infer<
+  typeof UserAdminUpdatePasswordDto
+>

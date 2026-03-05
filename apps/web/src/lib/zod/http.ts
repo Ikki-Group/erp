@@ -15,7 +15,7 @@ export const zHttp = {
   boolean: z.boolean(),
   search: zPrimitive.str.optional().transform(val => val || undefined),
 
-  id: zPrimitive.str,
+  id: zPrimitive.id,
 
   pagination: z.object({
     page: zPrimitive.num.positive().default(1),

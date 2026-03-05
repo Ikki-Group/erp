@@ -1,4 +1,13 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../ui/card'
 import type { ComponentProps } from 'react'
+
 import { cn } from '@/lib/utils'
 
 function FormLayout({ className, ...props }: ComponentProps<'div'>) {
@@ -65,9 +74,40 @@ function FormActions({ className, ...props }: ComponentProps<'div'>) {
   )
 }
 
+function FormCardSection({
+  className,
+  title,
+  description,
+  children,
+  footer,
+  ...props
+}: ComponentProps<typeof Card> & {
+  title?: string
+  description?: string
+  footer?: React.ReactNode
+}) {
+  return (
+    <Card className={cn('overflow-hidden', className)} size='sm' {...props}>
+      {(title || description) && (
+        <CardHeader className='border-b'>
+          {title && <CardTitle>{title}</CardTitle>}
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+      )}
+      <CardContent className='pt-6'>
+        <div className='flex flex-col gap-6'>{children}</div>
+      </CardContent>
+      {footer && (
+        <CardFooter className='border-t bg-muted/30'>{footer}</CardFooter>
+      )}
+    </Card>
+  )
+}
+
 FormLayout.Content = FormContent
 FormLayout.Grid = FormGrid
 FormLayout.Section = FormSection
 FormLayout.Actions = FormActions
+FormLayout.CardSection = FormCardSection
 
 export { FormLayout }

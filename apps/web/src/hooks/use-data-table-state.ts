@@ -11,26 +11,26 @@ const DEFAULT_PAGINATION: DataTablePagination = {
   limit: 10,
 }
 
-export interface DataTableState<F extends DataTableFilters = {}> {
+export interface DataTableState<TFilter extends DataTableFilters = {}> {
   pagination: DataTablePagination
   setPagination: OnChangeFn<DataTablePagination>
 
   search: string
   setSearch: OnChangeFn<string>
 
-  filters: F
-  setFilters: OnChangeFn<F>
+  filters: TFilter
+  setFilters: OnChangeFn<TFilter>
 }
 
 export function useDataTableState<
-  F extends DataTableFilters = DataTableFilters,
->(): DataTableState<F> {
+  TFilter extends DataTableFilters = DataTableFilters,
+>(): DataTableState<TFilter> {
   const [pagination, setPagination] =
     useState<DataTablePagination>(DEFAULT_PAGINATION)
 
   const [search, setSearch] = useState<string>('')
 
-  const [filters, setFilters] = useState<F>({} as F)
+  const [filters, setFilters] = useState<TFilter>({} as TFilter)
 
   return {
     pagination,

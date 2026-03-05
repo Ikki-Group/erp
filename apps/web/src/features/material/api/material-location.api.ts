@@ -2,13 +2,20 @@ import z from 'zod'
 import {
   MaterialLocationAssignDto,
   MaterialLocationConfigDto,
+  MaterialLocationDto,
   MaterialLocationStockDto,
-  MaterialLocationStockUpdateDto,
   MaterialLocationUnassignDto,
 } from '../dto'
+import { LocationDto } from '@/features/location'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+/** Enriched view with location details — used in "locations assigned to material" */
+const MaterialLocationWithLocationDto = z.object({
+  ...MaterialLocationDto.shape,
+  location: LocationDto,
+})
 
 export const materialLocationApi = {
   /** Paginated stock list for a specific location */
@@ -17,7 +24,7 @@ export const materialLocationApi = {
     url: endpoint.material.location.stock,
     params: z.object({
       ...zHttp.pagination.shape,
-      locationId: zPrimitive.str,
+      locationId: zPrimitive.id,
       search: zHttp.search,
     }),
     result: zHttp.paginated(MaterialLocationStockDto.array()),
@@ -39,19 +46,19 @@ export const materialLocationApi = {
     result: zHttp.ok(zSchema.recordId),
   }),
 
+  /** List locations assigned to a material */
+  byMaterial: apiFactory({
+    method: 'get',
+    url: endpoint.material.location.byMaterial,
+    params: zSchema.recordId,
+    result: zHttp.ok(MaterialLocationWithLocationDto.array()),
+  }),
+
   /** Update per-location config */
   updateConfig: apiFactory({
     method: 'put',
     url: endpoint.material.location.config,
     body: MaterialLocationConfigDto,
-    result: zHttp.ok(zSchema.recordId),
-  }),
-
-  /** Update stock values */
-  updateStock: apiFactory({
-    method: 'put',
-    url: endpoint.material.location.stockUpdate,
-    body: MaterialLocationStockUpdateDto,
     result: zHttp.ok(zSchema.recordId),
   }),
 }

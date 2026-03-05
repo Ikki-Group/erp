@@ -35,7 +35,10 @@ function Title({ className, ...props }: ComponentProps<'h1'>) {
   return (
     <h1
       {...props}
-      className={cn('text-xl font-semibold tracking-tight truncate', className)}
+      className={cn(
+        'text-2xl font-semibold tracking-tight truncate',
+        className
+      )}
     />
   )
 }
@@ -74,28 +77,6 @@ function Content({ className, ...props }: ComponentProps<'div'>) {
   return <div {...props} className={cn('px-4', className)} />
 }
 
-// interface SimpleHeaderProps {
-//   title: string
-//   description?: string
-//   back?: LinkOptions
-//   action?: React.ReactNode
-// }
-
-// function SimpleHeader({ title, description, back, action }: SimpleHeaderProps) {
-//   return (
-//     <Header className="flex-wrap gap-y-4 flex items-center">
-//       {back && (
-//         <BackButton className="self-start" render={<Link {...back} />} />
-//       )}
-//       <div className="flex-1 space-y-1">
-//         <Title>{title}</Title>
-//         {description && <Description>{description}</Description>}
-//       </div>
-//       {action && <Actions>{action}</Actions>}
-//     </Header>
-//   )
-// }
-
 interface BlockHeaderProps {
   title: string
   description?: string
@@ -113,13 +94,10 @@ function BlockHeader({
 }: BlockHeaderProps) {
   return (
     <Header
-      className={cn(
-        'items-start gap-x-2',
-        border ? 'border-b pb-6 mb-2' : 'mb-4'
-      )}
+      className={cn('items-start', border ? 'border-b pb-6 mb-2' : 'mb-2')}
     >
       {back && (
-        <div>
+        <div className='lg:mr-2'>
           {typeof back === 'function' ? (
             <BackButton type='button' onClick={back} />
           ) : (

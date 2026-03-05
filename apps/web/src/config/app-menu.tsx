@@ -32,6 +32,23 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
       icon: PackageIcon,
       isActive: pathname.startsWith('/products'),
       isHide: false,
+      children: [
+        {
+          title: 'Daftar Produk',
+          href: '/products',
+          isActive: pathname === '/products',
+        },
+        {
+          title: 'Kategori',
+          href: '/products/category',
+          isActive: pathname === '/products/category',
+        },
+        {
+          title: 'Tipe Penjualan',
+          href: '/products/sales-type',
+          isActive: pathname === '/products/sales-type',
+        },
+      ],
     },
     {
       title: 'Inventory',

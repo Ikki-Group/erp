@@ -54,7 +54,7 @@ function getDefaultValues(v?: UserSelectDto): FormDto {
 
 interface UserFormPageProps {
   mode: 'create' | 'update'
-  id?: string
+  id?: number
   backTo?: LinkOptions
 }
 

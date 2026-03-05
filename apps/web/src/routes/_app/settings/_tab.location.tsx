@@ -5,6 +5,7 @@ import { PencilIcon } from 'lucide-react'
 import type { LocationDto } from '@/features/location'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -79,10 +80,12 @@ const columns = [
 ]
 
 function LocationsTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<{ isActive?: boolean }>()
   const { data, isLoading } = useQuery(
     locationApi.list.query({
       ...ds.pagination,
+      search: ds.search,
+      ...ds.filters,
     })
   )
 
@@ -100,6 +103,24 @@ function LocationsTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[
+            { type: 'search', placeholder: 'Cari lokasi (nama, kode)...' },
+            {
+              type: 'select',
+              key: 'isActive',
+              placeholder: 'Status',
+              options: [
+                { label: 'Semua', value: '' },
+                { label: 'Aktif', value: 'true' },
+                { label: 'Non-Aktif', value: 'false' },
+              ],
+            },
+          ]}
+        />
+      }
       action={
         <Button
           size='sm'

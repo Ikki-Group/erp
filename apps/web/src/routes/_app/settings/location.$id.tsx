@@ -10,7 +10,7 @@ function RouteComponent() {
   return (
     <LocationFormPage
       mode='update'
-      id={id}
+      id={Number(id)}
       backTo={{
         from: Route.fullPath,
         to: '/settings/location',

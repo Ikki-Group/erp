@@ -81,3 +81,17 @@ export type UserCreateDto = z.infer<typeof UserCreateDto>
 export const UserUpdateDto = UserCreateDto.partial()
 
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+
+export const UserChangePasswordDto = z.object({
+  oldPassword: zPrimitive.password,
+  newPassword: zPrimitive.password,
+})
+
+export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
+
+export const UserAdminUpdatePasswordDto = z.object({
+  id: zPrimitive.id,
+  password: zPrimitive.password,
+})
+
+export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { PencilIcon } from 'lucide-react'
+import { KeyRoundIcon, PencilIcon } from 'lucide-react'
 import type { UserSelectDto } from '@/features/iam/dto'
 import { DataTableCard } from '@/components/card/data-table-card'
+import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { userApi } from '@/features/iam'
 import { getUserStatusBadge } from '@/features/iam/utils'
@@ -18,7 +20,12 @@ export const Route = createFileRoute('/_app/settings/_tab/user')({
 })
 
 function RouteComponent() {
-  return <UserTable />
+  return (
+    <>
+      <UserPasswordDialog.Root />
+      <UserTable />
+    </>
+  )
 }
 
 const ch = createColumnHelper<UserSelectDto>()
@@ -61,17 +68,23 @@ const columns = [
   ch.display({
     id: 'action',
     cell: ({ row }) => {
+      const { id, username } = row.original
       return (
-        <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-center gap-2'>
+          <Button
+            variant='outline'
+            size='icon-sm'
+            onClick={() => UserPasswordDialog.call({ id, username })}
+            title='Ubah Password'
+          >
+            <KeyRoundIcon />
+          </Button>
           <Button
             variant='outline'
             size='icon-sm'
             nativeButton={false}
             render={
-              <Link
-                to='/settings/user/$id'
-                params={{ id: String(row.original.id) }}
-              />
+              <Link to='/settings/user/$id' params={{ id: String(id) }} />
             }
           >
             <PencilIcon />
@@ -79,16 +92,18 @@ const columns = [
         </div>
       )
     },
-    size: 60,
+    size: 100,
     enablePinning: true,
   }),
 ]
 
 function UserTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<{ isActive?: boolean }>()
   const { data, isLoading } = useQuery(
     userApi.list.query({
       ...ds.pagination,
+      search: ds.search,
+      ...ds.filters,
     })
   )
 
@@ -106,6 +121,27 @@ function UserTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[
+            {
+              type: 'search',
+              placeholder: 'Cari user (nama, email, username)...',
+            },
+            {
+              type: 'select',
+              key: 'isActive',
+              placeholder: 'Status',
+              options: [
+                { label: 'Semua', value: '' },
+                { label: 'Aktif', value: 'true' },
+                { label: 'Non-Aktif', value: 'false' },
+              ],
+            },
+          ]}
+        />
+      }
       action={
         <Button
           size='sm'

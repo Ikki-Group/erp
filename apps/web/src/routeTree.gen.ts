@@ -17,6 +17,9 @@ import { Route as AppSplatRouteImport } from './routes/_app/$'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
 import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
+import { Route as AppProductsSalesTypeRouteImport } from './routes/_app/products/sales-type'
+import { Route as AppProductsCreateRouteImport } from './routes/_app/products/create'
+import { Route as AppProductsCategoryRouteImport } from './routes/_app/products/category'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
 import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
 import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
@@ -83,6 +86,21 @@ const AppMaterialsIndexRoute = AppMaterialsIndexRouteImport.update({
 const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
   id: '/settings/_tab',
   path: '/settings',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProductsSalesTypeRoute = AppProductsSalesTypeRouteImport.update({
+  id: '/products/sales-type',
+  path: '/products/sales-type',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProductsCreateRoute = AppProductsCreateRouteImport.update({
+  id: '/products/create',
+  path: '/products/create',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProductsCategoryRoute = AppProductsCategoryRouteImport.update({
+  id: '/products/category',
+  path: '/products/category',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductsIdRoute = AppProductsIdRouteImport.update({
@@ -250,6 +268,9 @@ export interface FileRoutesByFullPath {
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
+  '/products/category': typeof AppProductsCategoryRoute
+  '/products/create': typeof AppProductsCreateRoute
+  '/products/sales-type': typeof AppProductsSalesTypeRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/materials/': typeof AppMaterialsIndexRoute
   '/products/': typeof AppProductsIndexRoute
@@ -287,6 +308,9 @@ export interface FileRoutesByTo {
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
+  '/products/category': typeof AppProductsCategoryRoute
+  '/products/create': typeof AppProductsCreateRoute
+  '/products/sales-type': typeof AppProductsSalesTypeRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/materials': typeof AppMaterialsIndexRoute
   '/products': typeof AppProductsIndexRoute
@@ -327,6 +351,9 @@ export interface FileRoutesById {
   '/_app/materials/stock': typeof AppMaterialsStockRoute
   '/_app/materials/uom': typeof AppMaterialsUomRoute
   '/_app/products/$id': typeof AppProductsIdRoute
+  '/_app/products/category': typeof AppProductsCategoryRoute
+  '/_app/products/create': typeof AppProductsCreateRoute
+  '/_app/products/sales-type': typeof AppProductsSalesTypeRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/materials/': typeof AppMaterialsIndexRoute
   '/_app/products/': typeof AppProductsIndexRoute
@@ -366,6 +393,9 @@ export interface FileRouteTypes {
     | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
+    | '/products/category'
+    | '/products/create'
+    | '/products/sales-type'
     | '/settings'
     | '/materials/'
     | '/products/'
@@ -403,6 +433,9 @@ export interface FileRouteTypes {
     | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
+    | '/products/category'
+    | '/products/create'
+    | '/products/sales-type'
     | '/settings'
     | '/materials'
     | '/products'
@@ -442,6 +475,9 @@ export interface FileRouteTypes {
     | '/_app/materials/stock'
     | '/_app/materials/uom'
     | '/_app/products/$id'
+    | '/_app/products/category'
+    | '/_app/products/create'
+    | '/_app/products/sales-type'
     | '/_app/settings/_tab'
     | '/_app/materials/'
     | '/_app/products/'
@@ -528,6 +564,27 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsTabRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/products/sales-type': {
+      id: '/_app/products/sales-type'
+      path: '/products/sales-type'
+      fullPath: '/products/sales-type'
+      preLoaderRoute: typeof AppProductsSalesTypeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/products/create': {
+      id: '/_app/products/create'
+      path: '/products/create'
+      fullPath: '/products/create'
+      preLoaderRoute: typeof AppProductsCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/products/category': {
+      id: '/_app/products/category'
+      path: '/products/category'
+      fullPath: '/products/category'
+      preLoaderRoute: typeof AppProductsCategoryRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/products/$id': {
@@ -764,6 +821,9 @@ interface AppRouteRouteChildren {
   AppMaterialsStockRoute: typeof AppMaterialsStockRoute
   AppMaterialsUomRoute: typeof AppMaterialsUomRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
+  AppProductsCategoryRoute: typeof AppProductsCategoryRoute
+  AppProductsCreateRoute: typeof AppProductsCreateRoute
+  AppProductsSalesTypeRoute: typeof AppProductsSalesTypeRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppMaterialsIndexRoute: typeof AppMaterialsIndexRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
@@ -798,6 +858,9 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialsStockRoute: AppMaterialsStockRoute,
   AppMaterialsUomRoute: AppMaterialsUomRoute,
   AppProductsIdRoute: AppProductsIdRoute,
+  AppProductsCategoryRoute: AppProductsCategoryRoute,
+  AppProductsCreateRoute: AppProductsCreateRoute,
+  AppProductsSalesTypeRoute: AppProductsSalesTypeRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppMaterialsIndexRoute: AppMaterialsIndexRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,

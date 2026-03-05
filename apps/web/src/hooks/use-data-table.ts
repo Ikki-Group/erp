@@ -29,9 +29,9 @@ function useBaseDataTable<TData>({
   state = {},
   ...props
 }: UseDataTableProps<TData>): Table<TData> {
-  const [columnOrder, setColumnOrder] = useState<Array<string>>(
-    columns.map(column => column.id as string)
-  )
+  // const [columnOrder, setColumnOrder] = useState<Array<string>>(
+  //   columns.map(column => column.id as string)
+  // )
 
   const pagination: PaginationState = useMemo(() => {
     const { page, limit } = ds.pagination
@@ -58,12 +58,12 @@ function useBaseDataTable<TData>({
     state: {
       pagination,
       globalFilter: ds.search,
-      columnOrder,
+      // columnOrder,
       ...state,
     },
     onGlobalFilterChange: ds.setSearch,
     onPaginationChange,
-    onColumnOrderChange: setColumnOrder,
+    // onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

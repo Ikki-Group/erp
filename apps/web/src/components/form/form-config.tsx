@@ -4,10 +4,11 @@ import type { LinkOptions } from '@tanstack/react-router'
 
 export type FormConfigProps = {
   mode: 'create' | 'update'
-  id?: string
+  id?: number
   backTo?: LinkOptions
 }
 
+// eslint-disable-next-line @eslint-react/naming-convention/context-name
 const Ctx = createContext<FormConfigProps | null>(null)
 
 export function FormConfig({

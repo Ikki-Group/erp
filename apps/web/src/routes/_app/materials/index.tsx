@@ -2,7 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import type { MaterialDto } from '@/features/material'
+import type { MaterialSelectDto } from '@/features/material'
 import { Page } from '@/components/layout/page'
 import { toDateTimeStamp } from '@/lib/formatter'
 import { Button } from '@/components/ui/button'
@@ -27,7 +27,7 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<MaterialDto>()
+const ch = createColumnHelper<MaterialSelectDto>()
 
 const columns = [
   ch.accessor('name', {

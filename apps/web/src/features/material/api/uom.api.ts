@@ -30,7 +30,7 @@ export const uomApi = {
     method: 'put',
     url: endpoint.material.uom.update,
     body: z.object({
-      id: zPrimitive.str,
+      id: zPrimitive.id,
       ...UomMutationDto.shape,
     }),
     result: zHttp.ok(zSchema.recordId),

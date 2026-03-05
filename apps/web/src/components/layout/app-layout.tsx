@@ -28,6 +28,7 @@ import { IkkiLogo } from '@/components/common/logo'
 import { ThemeSwitcher } from '@/components/common/theme'
 import { getAppMenu } from '@/config/app-menu'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
+import { UserSection } from '@/features/iam/components/user-section'
 import { useAppState } from '@/hooks/use-app-state'
 
 export function AppLayout() {
@@ -54,7 +55,9 @@ export function AppLayout() {
         <SidebarContent>
           <SidebarMenus />
         </SidebarContent>
-        <SidebarFooter>{/* <UserSection /> */}</SidebarFooter>
+        <SidebarFooter>
+          <UserSection />
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <Header />

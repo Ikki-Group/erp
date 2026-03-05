@@ -30,14 +30,15 @@ export const roleApi = {
     method: 'put',
     url: endpoint.iam.role.update,
     body: z.object({
-      id: zPrimitive.str,
-      ...RoleMutationDto.shape,
+      id: zPrimitive.id,
+      ...RoleMutationDto.partial().shape,
     }),
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({
     method: 'delete',
     url: endpoint.iam.role.remove,
-    result: zHttp.ok(RoleDto),
+    body: zSchema.recordId,
+    result: zHttp.ok(zSchema.recordId),
   }),
 }
