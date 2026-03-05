@@ -205,7 +205,7 @@ function FieldSelect<TValue extends StringOrNumber = string>({
             <Select.Value placeholder={placeholder} />
           </Select.Trigger>
         </FieldControl>
-        <Select.Content>
+        <Select.Content alignItemWithTrigger={false}>
           {options.length === 0 && (
             <Select.Item disabled>Tidak ada opsi</Select.Item>
           )}

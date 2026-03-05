@@ -73,19 +73,12 @@ export const MaterialAssignToLocationDialog =
     async function handleAssign() {
       if (selected.length === 0) return
 
-      // Since the API takes one locationId at a time for batch materialIds,
-      // and we have one materialId and batch locationIds,
-      // we need to call assign for each location.
-      const promises = selected.map(locId =>
-        assignMutation.mutateAsync({
-          body: {
-            locationId: locId,
-            materialIds,
-          },
-        })
-      )
-
-      const promise = Promise.all(promises)
+      const promise = assignMutation.mutateAsync({
+        body: {
+          locationIds: selected,
+          materialIds,
+        },
+      })
 
       await toast.promise(promise, {
         loading: 'Menghubungkan ke lokasi...',

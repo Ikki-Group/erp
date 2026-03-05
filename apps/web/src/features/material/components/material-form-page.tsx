@@ -34,11 +34,11 @@ const FormDto = z.object({
   description: z.string().optional(),
   sku: z.string().min(1, 'SKU harus diisi'),
   type: MaterialType,
-  categoryId: z.number().nullable(),
-  baseUomId: z.number().min(1, 'Satuan dasar harus dipilih'),
+  categoryId: z.coerce.number<number>().nullable(),
+  baseUomId: z.coerce.number<number>().min(1, 'Satuan dasar harus dipilih'),
   conversions: z.array(
     z.object({
-      uomId: z.number().min(1, 'Satuan harus dipilih'),
+      uomId: z.coerce.number<number>().min(1, 'Satuan harus dipilih'),
       toBaseFactor: z.coerce.string<string>(),
     })
   ),

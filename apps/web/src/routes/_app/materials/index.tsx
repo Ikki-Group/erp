@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { MapPinIcon, PackageIcon, PencilIcon, PlusIcon } from 'lucide-react'
+import { MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import type { MaterialSelectDto } from '@/features/material'
@@ -19,6 +19,7 @@ import { BadgeDot } from '@/components/common/badge-dot'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_app/materials/')({
   component: RouteComponent,
@@ -116,7 +117,6 @@ function MaterialTable() {
         header: 'Satuan',
         cell: ({ row }) => (
           <div className='flex items-center gap-2'>
-            <PackageIcon className='size-3.5 text-muted-foreground' />
             <span className='text-sm capitalize'>
               {row.original.uom?.code ?? '-'}
             </span>
@@ -134,9 +134,10 @@ function MaterialTable() {
               <div className='flex items-center gap-2'>
                 <MapPinIcon className='size-3.5 text-muted-foreground' />
                 <span
-                  className={
+                  className={cn(
+                    'text-nowrap',
                     count > 0 ? 'text-sm' : 'text-sm text-muted-foreground'
-                  }
+                  )}
                 >
                   {count} Lokasi
                 </span>
