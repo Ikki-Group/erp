@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
-import { productApi } from '@/features/product'
 import type { ProductSelectDto } from '@/features/product'
+import { productApi } from '@/features/product'
 
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { toDateTimeStamp } from '@/lib/formatter'
+import { toCurrency, toDateTimeStamp } from '@/lib/formatter'
 
 export const Route = createFileRoute('/_app/products/')({
   component: RouteComponent,
@@ -47,6 +47,11 @@ const columns = [
         </span>
       </div>
     ),
+  }),
+  ch.accessor('basePrice', {
+    header: 'Harga',
+    cell: ({ row }) => toCurrency(row.original.basePrice),
+    size: 100,
   }),
   ch.accessor('status', {
     header: 'Status',

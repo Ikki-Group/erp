@@ -26,7 +26,6 @@ export const ProductVariantDto = z.object({
   productId: zPrimitive.id,
   name: zPrimitive.str,
   isDefault: zPrimitive.bool,
-  basePrice: zPrimitive.str,
   prices: VariantPriceDto.array(),
   ...zSchema.meta.shape,
 })
@@ -40,6 +39,7 @@ export const ProductDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
+  basePrice: zPrimitive.str,
   locationId: zPrimitive.id,
   categoryId: zPrimitive.id.nullable(),
   status: ProductStatus,
@@ -81,7 +81,6 @@ export type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 export const ProductVariantMutationDto = z.object({
   name: zPrimitive.str,
   isDefault: zPrimitive.bool.optional().default(false),
-  basePrice: zPrimitive.str,
   prices: VariantPriceMutationDto.array(),
 })
 
@@ -94,6 +93,7 @@ export const ProductMutationDto = z.object({
     name: true,
     description: true,
     sku: true,
+    basePrice: true,
     locationId: true,
     categoryId: true,
     status: true,
