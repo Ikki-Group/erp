@@ -1,7 +1,7 @@
 import z from 'zod'
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
-import { zPrimitive, zSchema } from '@/lib/zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -42,6 +42,18 @@ export const MaterialSelectDto = z.object({
 })
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
+
+/* --------------------------------- FILTER --------------------------------- */
+
+export const MaterialFilterDto = z.object({
+  search: zHttp.query.search,
+  type: MaterialType.optional(),
+  categoryId: zHttp.query.id.optional(),
+  locationIds: zHttp.query.ids,
+  excludeLocationIds: zHttp.query.ids,
+})
+
+export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 

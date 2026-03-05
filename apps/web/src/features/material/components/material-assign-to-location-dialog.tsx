@@ -39,7 +39,7 @@ export const MaterialAssignToLocationDialog =
         page: 1,
         limit: 100,
         search: debouncedSearch || undefined,
-        isActive: true,
+        isActive: 'true' as any,
       })
     )
 

@@ -3,13 +3,16 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import type { MaterialSelectDto } from '@/features/material'
+import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
 
 import {
   MaterialAssignToLocationDialog,
   MaterialBadgeProps,
   materialApi,
 } from '@/features/material'
+import { materialCategoryApi } from '@/features/material/api/material-category.api'
+import { locationApi } from '@/features/location'
+
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -39,12 +42,18 @@ function RouteComponent() {
 const ch = createColumnHelper<MaterialSelectDto>()
 
 function MaterialTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<MaterialFilterDto>()
   const [rowSelection, setRowSelection] = useState({})
+
+  const { data: categories } = useQuery(
+    materialCategoryApi.list.query({ limit: 100 })
+  )
+  const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
   const { data, isLoading } = useQuery(
     materialApi.list.query({
       ...ds.pagination,
+      ...ds.filters,
       search: ds.search,
     })
   )
@@ -193,9 +202,11 @@ function MaterialTable() {
     []
   )
 
+  const emptyData = useMemo(() => [], [])
+
   const table = useDataTable({
     columns: columns,
-    data: data?.data ?? [],
+    data: data?.data ?? emptyData,
     pageCount: data?.meta.totalPages ?? 0,
     rowCount: data?.meta.total ?? 0,
     ds,
@@ -207,7 +218,9 @@ function MaterialTable() {
     getRowId: row => String(row.id),
   })
 
-  const selectedRows = table.getFilteredSelectedRowModel().flatRows
+  const selectedRows = isLoading
+    ? []
+    : table.getFilteredSelectedRowModel().flatRows
   const selectedIds = selectedRows.map(row => row.original.id)
 
   return (
@@ -220,7 +233,38 @@ function MaterialTable() {
         toolbar={
           <DataGridFilter
             ds={ds}
-            options={[{ type: 'search', placeholder: 'Cari bahan baku...' }]}
+            options={[
+              { type: 'search', placeholder: 'Cari bahan baku...' },
+              {
+                type: 'select',
+                key: 'type',
+                placeholder: 'Semua Jenis',
+                options: [
+                  { label: 'Raw', value: 'raw' },
+                  { label: 'Semi', value: 'semi' },
+                ],
+              },
+              {
+                type: 'select',
+                key: 'categoryId',
+                placeholder: 'Semua Kategori',
+                options:
+                  categories?.data.map(c => ({
+                    label: c.name,
+                    value: c.id,
+                  })) ?? [],
+              },
+              {
+                type: 'select',
+                key: 'locationIds',
+                placeholder: 'Semua Lokasi',
+                options:
+                  locations?.data.map(l => ({
+                    label: l.name,
+                    value: l.id,
+                  })) ?? [],
+              },
+            ]}
           />
         }
         action={

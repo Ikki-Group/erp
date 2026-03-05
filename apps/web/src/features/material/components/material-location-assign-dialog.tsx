@@ -73,7 +73,7 @@ export const MaterialLocationAssignDialog =
 
       const promise = assignMutation.mutateAsync({
         body: {
-          locationId,
+          locationIds: [locationId],
           materialIds: selected,
         },
       })
