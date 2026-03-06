@@ -1,6 +1,7 @@
 import { formOptions, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { zodValidator } from '@tanstack/zod-form-adapter'
 import { ChefHatIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
@@ -8,8 +9,6 @@ import type { z } from 'zod'
 
 import type { RecipeSelectDto } from '@/features/recipe'
 import type { LinkOptions } from '@tanstack/react-router'
-import type { MaterialSelectDto } from '@/features/material'
-import { Page } from '@/components/layout/page'
 import {
   FormConfig,
   useAppForm,
@@ -19,16 +18,16 @@ import { CardSection } from '@/components/card/card-section'
 import { Card } from '@/components/ui/card'
 import { Table } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { Page } from '@/components/layout/page'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-import { materialApi, uomApi } from '@/features/material'
+import { materialApi, MaterialPickerDialog, uomApi } from '@/features/material'
 import { RecipeMutationDto, recipeApi } from '@/features/recipe'
-import { DataCombobox } from '@/components/ui/data-combobox'
 
 type RecipeMutation = z.infer<typeof RecipeMutationDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: RecipeMutationDto as any },
+  validators: { onSubmit: zodValidator(RecipeMutationDto) },
   defaultValues: {
     materialId: null,
     productId: null,
@@ -236,6 +235,8 @@ function RecipeInstructionsCard() {
 function RecipeItemsSection() {
   const form = useTypedAppFormContext({ ...fopts })
 
+  const items = useStore(form.store, s => s.values.items)
+
   return (
     <Card size='sm'>
       <Card.Header className='border-b flex-row items-center justify-between py-4'>
@@ -245,24 +246,29 @@ function RecipeItemsSection() {
             Daftar bahan yang dibutuhkan untuk resep ini
           </Card.Description>
         </div>
-        <Button
-          variant='outline'
-          size='sm'
-          type='button'
-          onClick={() => {
-            form.pushFieldValue('items', {
-              materialId: null as any,
+        <MaterialPickerDialog
+          selectedIds={
+            items.map((i: any) => i.materialId).filter(Boolean) as Array<number>
+          }
+          onConfirm={materials => {
+            const currentItems = form.getFieldValue('items')
+            const newItems = materials.map((m, idx) => ({
+              materialId: m.id,
               qty: '',
               scrapPercentage: '0',
-              uomId: null as any,
+              uomId: m.baseUomId,
               notes: '',
-              sortOrder: form.getFieldValue('items').length,
-            })
+              sortOrder: currentItems.length + idx,
+            }))
+            form.setFieldValue('items', [...currentItems, ...newItems])
           }}
-        >
-          <PlusIcon className='mr-2 size-4' />
-          Tambah Bahan
-        </Button>
+          trigger={
+            <Button variant='outline' size='sm' type='button'>
+              <PlusIcon className='mr-2 size-4' />
+              Tambah Bahan
+            </Button>
+          }
+        />
       </Card.Header>
       <Card.Content className='p-0'>
         <Table>
@@ -289,22 +295,25 @@ function RecipeItemsSection() {
                         <div className='flex flex-col items-center gap-2'>
                           <ChefHatIcon className='size-8 opacity-20' />
                           <p>Belum ada bahan baku yang ditambahkan.</p>
-                          <Button
-                            variant='link'
-                            size='sm'
-                            onClick={() =>
-                              arrayField.pushValue({
-                                materialId: null as any,
+                          <MaterialPickerDialog
+                            selectedIds={[] as Array<number>}
+                            onConfirm={materials => {
+                              const newItems = materials.map((m, idx) => ({
+                                materialId: m.id,
                                 qty: '',
                                 scrapPercentage: '0',
-                                uomId: null as any,
+                                uomId: m.baseUomId,
                                 notes: '',
-                                sortOrder: 0,
-                              })
+                                sortOrder: idx,
+                              }))
+                              form.setFieldValue('items', newItems)
+                            }}
+                            trigger={
+                              <Button variant='link' size='sm' type='button'>
+                                Tambah bahan pertama
+                              </Button>
                             }
-                          >
-                            Tambah bahan pertama
-                          </Button>
+                          />
                         </div>
                       </Table.Cell>
                     </Table.Row>
@@ -313,7 +322,7 @@ function RecipeItemsSection() {
 
                 return arrayField.state.value.map((_, i) => (
                   <RecipeItemRow
-                    key={i}
+                    key={`${i}`}
                     index={i}
                     onRemove={() => arrayField.removeValue(i)}
                   />
@@ -367,38 +376,32 @@ function RecipeItemRow({
   return (
     <Table.Row className='group'>
       <Table.Cell className='align-top pt-4'>
-        <form.AppField name={`items[${index}].materialId` as any}>
-          {field => (
-            <DataCombobox<MaterialSelectDto>
-              value={field.state.value ? String(field.state.value) : null}
-              onValueChange={val => {
-                field.handleChange(val ? Number(val) : (null as any))
-                form.setFieldValue(`items[${index}].uomId` as any, null as any)
-              }}
-              placeholder='Pilih Bahan...'
-              queryKey={['materials', 'search']}
-              queryFn={async s => {
-                const res = await materialApi.list.fetch({
-                  params: { search: s, limit: 20 },
-                })
-                return res.data
-              }}
-              getLabel={m => `${m.sku} - ${m.name}`}
-              getValue={m => String(m.id)}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name={`items[${index}].notes` as any}>
-          {field => (
-            <textarea
-              className='mt-2 w-full bg-transparent border-none resize-none text-xs text-muted-foreground focus:ring-0 p-0 ml-1'
-              placeholder='Catatan khusus (opsional)...'
-              value={field.state.value || ''}
-              onChange={e => field.handleChange(e.target.value)}
-              rows={1}
-            />
-          )}
-        </form.AppField>
+        <div className='flex flex-col gap-0.5 ml-1 pt-0.5'>
+          <span className='font-medium text-sm'>
+            {materialDetail?.data ? (
+              `${materialDetail.data.sku} - ${materialDetail.data.name}`
+            ) : (
+              <span className='text-muted-foreground animate-pulse'>
+                Memuat...
+              </span>
+            )}
+          </span>
+          <form.AppField name={`items[${index}].notes` as any}>
+            {field => (
+              <textarea
+                className='w-full bg-transparent border-none resize-none text-[11px] text-muted-foreground focus:ring-0 p-0 placeholder:italic'
+                placeholder='Tambahkan catatan (pilihan)...'
+                value={field.state.value || ''}
+                onChange={e => {
+                  field.handleChange(e.target.value)
+                  e.target.style.height = 'inherit'
+                  e.target.style.height = `${e.target.scrollHeight}px`
+                }}
+                rows={1}
+              />
+            )}
+          </form.AppField>
+        </div>
       </Table.Cell>
       <Table.Cell className='align-top pt-4'>
         <div className='flex items-center gap-1'>
