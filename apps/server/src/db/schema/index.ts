@@ -6,7 +6,15 @@ import { roles, sessions, userAssignments, users } from './iam'
 import { stockSummaries, stockTransactions } from './inventory'
 import { locations } from './location'
 import { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
-import { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+import {
+  productCategories,
+  productExternalMappings,
+  productPrices,
+  products,
+  productVariants,
+  salesTypes,
+  variantPrices,
+} from './product'
 import { recipeItems, recipes } from './recipe'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
@@ -16,7 +24,15 @@ export { roles, sessions, userAssignments, users } from './iam'
 export { stockSummaries, stockTransactions } from './inventory'
 export { locations } from './location'
 export { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
-export { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+export {
+  productCategories,
+  productExternalMappings,
+  productPrices,
+  products,
+  productVariants,
+  salesTypes,
+  variantPrices,
+} from './product'
 export { recipeItems, recipes } from './recipe'
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -45,8 +61,10 @@ export const relations = defineRelations(
     salesTypes,
     productCategories,
     products,
+    productPrices,
     productVariants,
     variantPrices,
+    productExternalMappings,
     recipes,
     recipeItems,
   },
@@ -167,6 +185,7 @@ export const relations = defineRelations(
 
     salesTypes: {
       variantPrices: r.many.variantPrices(),
+      productPrices: r.many.productPrices(),
     },
 
     productCategories: {
@@ -183,6 +202,19 @@ export const relations = defineRelations(
         to: r.productCategories.id,
       }),
       variants: r.many.productVariants(),
+      prices: r.many.productPrices(),
+      externalMappings: r.many.productExternalMappings(),
+    },
+
+    productPrices: {
+      product: r.one.products({
+        from: r.productPrices.productId,
+        to: r.products.id,
+      }),
+      salesType: r.one.salesTypes({
+        from: r.productPrices.salesTypeId,
+        to: r.salesTypes.id,
+      }),
     },
 
     productVariants: {
@@ -192,6 +224,7 @@ export const relations = defineRelations(
       }),
       prices: r.many.variantPrices(),
       recipe: r.many.recipes(),
+      externalMappings: r.many.productExternalMappings(),
     },
 
     variantPrices: {
@@ -202,6 +235,17 @@ export const relations = defineRelations(
       salesType: r.one.salesTypes({
         from: r.variantPrices.salesTypeId,
         to: r.salesTypes.id,
+      }),
+    },
+
+    productExternalMappings: {
+      product: r.one.products({
+        from: r.productExternalMappings.productId,
+        to: r.products.id,
+      }),
+      variant: r.one.productVariants({
+        from: r.productExternalMappings.variantId,
+        to: r.productVariants.id,
       }),
     },
 

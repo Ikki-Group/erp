@@ -7,13 +7,14 @@ import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { db } from '@/db'
-import { products, productVariants, variantPrices } from '@/db/schema'
+import { productPrices, products, productVariants, variantPrices } from '@/db/schema'
 
 import type {
   ProductCategoryDto,
   ProductDto,
   ProductFilterDto,
   ProductMutationDto,
+  ProductPriceDto,
   ProductSelectDto,
   ProductVariantDto,
   VariantPriceDto,
@@ -41,6 +42,28 @@ export class ProductService {
   constructor(private readonly categorySvc: ProductCategoryService) {}
 
   // ─── Private Helpers ──────────────────────────────────────────────────────
+
+  /**
+   * Fetches product-level prices (for non-variant products with sales type pricing).
+   */
+  private async getProductPrices(productId: number): Promise<ProductPriceDto[]> {
+    return db.select().from(productPrices).where(eq(productPrices.productId, productId))
+  }
+
+  /**
+   * Batch-fetches product-level prices for multiple products.
+   */
+  private async getProductPricesBatch(productIds: number[]) {
+    if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
+
+    const prices = await db.select().from(productPrices).where(inArray(productPrices.productId, productIds))
+
+    const map = new Map<number, ProductPriceDto[]>()
+    for (const id of productIds) map.set(id, [])
+    for (const p of prices) map.get(p.productId)!.push(p)
+
+    return map
+  }
 
   /**
    * Fetches variants + prices for a single product.
@@ -104,8 +127,6 @@ export class ProductService {
 
   /**
    * Checks uniqueness of SKU and name scoped to a location.
-   * The generic `checkConflict` doesn't support scoped uniqueness,
-   * so we implement it manually here.
    */
   private async checkScopedConflict(locationId: number, input: { sku: string; name: string }, excludeId?: number) {
     const conditions = [
@@ -152,8 +173,10 @@ export class ProductService {
         const [result] = await db.select().from(products).where(eq(products.id, id)).limit(1)
         if (!result) throw err.notFound(id)
 
-        const variants = await this.getVariantsWithPrices(id)
-        return { ...result, variants }
+        const variants = result.hasVariants ? await this.getVariantsWithPrices(id) : []
+        const prices = !result.hasVariants && result.hasSalesTypePricing ? await this.getProductPrices(id) : []
+
+        return { ...result, variants, prices }
       })
     })
   }
@@ -199,6 +222,7 @@ export class ProductService {
 
       const productIds = result.data.map((p) => p.id)
       const variantsMap = await this.getVariantsBatch(productIds)
+      const pricesMap = await this.getProductPricesBatch(productIds)
 
       const categoriesMap = new Map<number, ProductCategoryDto>()
       const allCategories = await this.categorySvc.find()
@@ -209,6 +233,7 @@ export class ProductService {
       const data: ProductSelectDto[] = result.data.map((p) => ({
         ...p,
         variants: variantsMap.get(p.id) ?? [],
+        prices: pricesMap.get(p.id) ?? [],
         category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
       }))
 
@@ -231,13 +256,18 @@ export class ProductService {
 
       await this.checkScopedConflict(data.locationId, { sku, name })
 
-      const inputVariants = data.variants?.length
-        ? data.variants
-        : [{ name: DEFAULT_VARIANT_NAME, isDefault: true, prices: [] }]
+      // Prepare variants (only when hasVariants = true)
+      const inputVariants = data.hasVariants
+        ? data.variants?.length
+          ? data.variants
+          : [{ name: DEFAULT_VARIANT_NAME, isDefault: true, prices: [], basePrice: '0' }]
+        : []
 
-      this.validateDefaultVariant(inputVariants)
+      if (inputVariants.length > 0) {
+        this.validateDefaultVariant(inputVariants)
+      }
 
-      const metadata = stampCreate(actorId)
+      const meta = stampCreate(actorId)
 
       const inserted = await db.transaction(async (tx) => {
         const [product] = await tx
@@ -250,30 +280,47 @@ export class ProductService {
             categoryId: data.categoryId,
             status: data.status,
             basePrice: data.basePrice,
-            ...metadata,
+            hasVariants: data.hasVariants,
+            hasSalesTypePricing: data.hasSalesTypePricing,
+            ...meta,
           })
           .returning({ id: products.id })
 
         if (!product) throw new Error('Failed to create product')
 
+        // Insert product-level prices (when !hasVariants && hasSalesTypePricing)
+        if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
+          await tx.insert(productPrices).values(
+            data.prices.map((p) => ({
+              productId: product.id,
+              salesTypeId: p.salesTypeId,
+              price: p.price,
+              ...meta,
+            }))
+          )
+        }
+
+        // Insert variants + variant prices (when hasVariants)
         for (const variant of inputVariants) {
           const [insertedVariant] = await tx
             .insert(productVariants)
             .values({
               productId: product.id,
               name: variant.name.trim(),
+              sku: variant.sku?.trim() || null,
               isDefault: variant.isDefault ?? false,
-              ...metadata,
+              basePrice: variant.basePrice ?? '0',
+              ...meta,
             })
             .returning({ id: productVariants.id })
 
-          if (insertedVariant && variant.prices.length > 0) {
+          if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
             await tx.insert(variantPrices).values(
               variant.prices.map((p) => ({
                 variantId: insertedVariant.id,
                 salesTypeId: p.salesTypeId,
                 price: p.price,
-                ...metadata,
+                ...meta,
               }))
             )
           }
@@ -314,12 +361,28 @@ export class ProductService {
             categoryId: data.categoryId,
             status: data.status,
             basePrice: data.basePrice,
+            hasVariants: data.hasVariants,
+            hasSalesTypePricing: data.hasSalesTypePricing,
             ...updateMeta,
           })
           .where(eq(products.id, id))
 
+        // Replace product-level prices
+        await tx.delete(productPrices).where(eq(productPrices.productId, id))
+
+        if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
+          await tx.insert(productPrices).values(
+            data.prices.map((p) => ({
+              productId: id,
+              salesTypeId: p.salesTypeId,
+              price: p.price,
+              ...createMeta,
+            }))
+          )
+        }
+
         // Replace variants if provided (delete-and-recreate strategy)
-        if (data.variants) {
+        if (data.hasVariants && data.variants) {
           // Delete existing variants (cascade deletes variant_prices)
           await tx.delete(productVariants).where(eq(productVariants.productId, id))
 
@@ -329,12 +392,14 @@ export class ProductService {
               .values({
                 productId: id,
                 name: variant.name.trim(),
+                sku: variant.sku?.trim() || null,
                 isDefault: variant.isDefault ?? false,
+                basePrice: variant.basePrice ?? '0',
                 ...createMeta,
               })
               .returning({ id: productVariants.id })
 
-            if (insertedVariant && variant.prices.length > 0) {
+            if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
               await tx.insert(variantPrices).values(
                 variant.prices.map((p) => ({
                   variantId: insertedVariant.id,
@@ -345,6 +410,9 @@ export class ProductService {
               )
             }
           }
+        } else if (!data.hasVariants) {
+          // If switching from variants → no variants, clean up existing variants
+          await tx.delete(productVariants).where(eq(productVariants.productId, id))
         }
       })
 
