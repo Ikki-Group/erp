@@ -70,7 +70,7 @@ export const recipeItems = pgTable(
     // UOM used for this ingredient in the recipe (should match baseUom or be convertible)
     uomId: integer()
       .notNull()
-      .references(() => uoms.id),
+      .references(() => uoms.id, { onDelete: 'restrict' }),
 
     // Optional instructions for specific item (e.g. "Finely chopped")
     notes: text(),
