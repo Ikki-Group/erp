@@ -76,9 +76,18 @@ const product = {
   },
 }
 
+const recipe = {
+  list: 'recipe/list',
+  detail: 'recipe/detail',
+  create: 'recipe/create',
+  update: 'recipe/update',
+  remove: 'recipe/remove',
+}
+
 export const endpoint = {
   iam,
   location,
   material,
   product,
+  recipe,
 }
