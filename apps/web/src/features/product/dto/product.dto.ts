@@ -44,6 +44,20 @@ export const ProductVariantDto = z.object({
 
 export type ProductVariantDto = z.infer<typeof ProductVariantDto>
 
+export const ProductExternalMappingDto = z.object({
+  id: zPrimitive.id,
+  productId: zPrimitive.id,
+  variantId: zPrimitive.id.nullable(),
+  provider: zPrimitive.str,
+  externalId: zPrimitive.str,
+  lastSyncedAt: z.date().nullable(),
+  ...zSchema.meta.shape,
+})
+
+export type ProductExternalMappingDto = z.infer<
+  typeof ProductExternalMappingDto
+>
+
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const ProductDto = z.object({
@@ -59,6 +73,7 @@ export const ProductDto = z.object({
   hasSalesTypePricing: zPrimitive.bool,
   variants: ProductVariantDto.array(),
   prices: ProductPriceDto.array(),
+  externalMappings: ProductExternalMappingDto.array(),
   ...zSchema.meta.shape,
 })
 
@@ -71,6 +86,8 @@ export const ProductFilterDto = z.object({
   status: ProductStatus.optional(),
   categoryId: zHttp.id.optional(),
   locationId: zHttp.id.optional(),
+  isExternal: zHttp.boolean,
+  provider: z.string().optional(),
 })
 
 export type ProductFilterDto = z.infer<typeof ProductFilterDto>

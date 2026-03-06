@@ -36,19 +36,30 @@ const ch = createColumnHelper<ProductSelectDto>()
 const columns = [
   ch.accessor('sku', {
     header: 'SKU',
-    cell: ({ row }) => row.original.sku,
-    size: 120,
+    cell: ({ row }) => <p className='font-mono text-sm'>{row.original.sku}</p>,
+    minSize: 140,
   }),
   ch.accessor('name', {
     header: 'Nama Produk',
     cell: ({ row }) => (
-      <div className='flex flex-col'>
-        <span className='font-medium'>{row.original.name}</span>
+      <div className='flex flex-col gap-0.5'>
+        <div className='flex items-center gap-2'>
+          <span className='font-medium'>{row.original.name}</span>
+          {row.original.externalMappings.some(m => m.provider === 'moka') && (
+            <Badge
+              variant='outline'
+              className='h-4 px-1 text-[10px] bg-orange-50 text-orange-600 border-orange-200'
+            >
+              MOKA
+            </Badge>
+          )}
+        </div>
         <span className='text-xs text-muted-foreground'>
           {row.original.category?.name ?? 'Tanpa Kategori'}
         </span>
       </div>
     ),
+    minSize: 300,
   }),
   ch.accessor('basePrice', {
     header: 'Harga',
@@ -161,6 +172,15 @@ function ProductTable() {
                 { label: 'Aktif', value: 'active' },
                 { label: 'Non-Aktif', value: 'inactive' },
                 { label: 'Arsip', value: 'archived' },
+              ],
+            },
+            {
+              type: 'select',
+              key: 'isExternal',
+              placeholder: 'Semua Tipe',
+              options: [
+                { label: 'Internal Only', value: 'false' },
+                { label: 'Moka/External Only', value: 'true' },
               ],
             },
             {
