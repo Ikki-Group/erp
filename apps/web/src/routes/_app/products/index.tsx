@@ -3,13 +3,15 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
-import type { ProductSelectDto } from '@/features/product'
-import { productApi } from '@/features/product'
+import type { ProductFilterDto, ProductSelectDto } from '@/features/product'
+import { productApi, productCategoryApi } from '@/features/product'
+import { locationApi } from '@/features/location'
 
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toCurrency, toDateTimeStamp } from '@/lib/formatter'
@@ -117,10 +119,18 @@ const columns = [
 ]
 
 function ProductTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<ProductFilterDto>()
+
+  const { data: categories } = useQuery(
+    productCategoryApi.list.query({ limit: 100 })
+  )
+  const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
+
   const { data, isLoading } = useQuery(
     productApi.list.query({
       ...ds.pagination,
+      ...ds.filters,
+      search: ds.search,
     })
   )
 
@@ -138,6 +148,44 @@ function ProductTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[
+            { type: 'search', placeholder: 'Cari produk...' },
+            {
+              type: 'select',
+              key: 'status',
+              placeholder: 'Semua Status',
+              options: [
+                { label: 'Aktif', value: 'active' },
+                { label: 'Non-Aktif', value: 'inactive' },
+                { label: 'Arsip', value: 'archived' },
+              ],
+            },
+            {
+              type: 'select',
+              key: 'categoryId',
+              placeholder: 'Semua Kategori',
+              options:
+                categories?.data.map(c => ({
+                  label: c.name,
+                  value: c.id,
+                })) ?? [],
+            },
+            {
+              type: 'select',
+              key: 'locationId',
+              placeholder: 'Semua Lokasi',
+              options:
+                locations?.data.map(l => ({
+                  label: l.name,
+                  value: l.id,
+                })) ?? [],
+            },
+          ]}
+        />
+      }
       action={
         <Button size='sm' render={<Link to='/products/create' />}>
           <PlusIcon className='mr-2 size-4' />
