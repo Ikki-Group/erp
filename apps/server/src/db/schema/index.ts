@@ -204,6 +204,7 @@ export const relations = defineRelations(
       variants: r.many.productVariants(),
       prices: r.many.productPrices(),
       externalMappings: r.many.productExternalMappings(),
+      recipe: r.many.recipes(),
     },
 
     productPrices: {
@@ -256,6 +257,10 @@ export const relations = defineRelations(
         from: r.recipes.materialId,
         to: r.materials.id,
       }),
+      product: r.one.products({
+        from: r.recipes.productId,
+        to: r.products.id,
+      }),
       productVariant: r.one.productVariants({
         from: r.recipes.productVariantId,
         to: r.productVariants.id,
@@ -271,6 +276,10 @@ export const relations = defineRelations(
       material: r.one.materials({
         from: r.recipeItems.materialId,
         to: r.materials.id,
+      }),
+      uom: r.one.uoms({
+        from: r.recipeItems.uomId,
+        to: r.uoms.id,
       }),
     },
   })

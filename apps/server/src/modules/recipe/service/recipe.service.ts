@@ -1,140 +1,245 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { stampCreate } from '@/lib/db'
+import { cache } from '@/lib/cache'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { db } from '@/db'
-import { materials, recipeItems, recipes, uoms } from '@/db/schema'
+import { recipeItems, recipes } from '@/db/schema'
 
-import type { RecipeDetailDto, RecipeUpsertDto } from '../dto'
+import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
-  notFoundByTarget: () => new NotFoundError('Recipe for the requested target not found', 'RECIPE_NOT_FOUND'),
+}
+
+const cacheKey = {
+  count: 'recipe.count',
+  list: 'recipe.list',
+  byId: (id: number) => `recipe.byId.${id}`,
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class RecipeService {
+  // ─── Private Helpers ──────────────────────────────────────────────────────
+
+  private async getRecipeItems(recipeId: number) {
+    return db.select().from(recipeItems).where(eq(recipeItems.recipeId, recipeId)).orderBy(recipeItems.sortOrder)
+  }
+
   // ─── Public Reads ─────────────────────────────────────────────────────────
 
-  async getRecipeByTarget(target: { materialId?: number; productVariantId?: number }): Promise<RecipeDetailDto> {
-    return record('RecipeService.getRecipeByTarget', async () => {
-      let condition
-      if (target.materialId) {
-        condition = eq(recipes.materialId, target.materialId)
-      } else if (target.productVariantId) {
-        condition = eq(recipes.productVariantId, target.productVariantId)
-      } else {
-        throw new Error('Must provide either materialId or productVariantId')
-      }
+  async findById(id: number): Promise<RecipeDto> {
+    return record('RecipeService.findById', async () => {
+      return cache.wrap(cacheKey.byId(id), async () => {
+        const [result] = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1)
+        if (!result) throw err.notFound(id)
 
-      const [recipe] = await db.select().from(recipes).where(condition).limit(1)
+        const items = await this.getRecipeItems(id)
 
-      if (!recipe) throw err.notFoundByTarget()
-
-      return this.handleDetail(recipe.id)
+        return { ...result, items }
+      })
     })
   }
 
-  async handleDetail(id: number): Promise<RecipeDetailDto> {
-    return record('RecipeService.handleDetail', async () => {
-      const [recipe] = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1)
-
-      if (!recipe) throw err.notFound(id)
-
-      const items = await db
-        .select({
-          item: recipeItems,
-          materialName: materials.name,
-          materialSku: materials.sku,
-          materialBaseUom: uoms.code,
-        })
-        .from(recipeItems)
-        .innerJoin(materials, eq(recipeItems.materialId, materials.id))
-        .innerJoin(uoms, eq(materials.baseUomId, uoms.id))
-        .where(eq(recipeItems.recipeId, id))
-
-      return {
-        ...recipe,
-        items: items.map((i) => ({
-          ...i.item,
-          materialName: i.materialName,
-          materialSku: i.materialSku,
-          materialBaseUom: i.materialBaseUom,
-        })),
-      }
+  async count(): Promise<number> {
+    return record('RecipeService.count', async () => {
+      return cache.wrap(cacheKey.count, async () => {
+        const result = await db.select({ val: count() }).from(recipes)
+        return result[0]?.val ?? 0
+      })
     })
   }
 
   // ─── Public Handlers ──────────────────────────────────────────────────────
 
-  async handleUpsert(data: RecipeUpsertDto, actorId: number): Promise<{ id: number }> {
-    return record('RecipeService.handleUpsert', async () => {
-      return await db.transaction(async (tx) => {
-        let condition
-        if (data.materialId) {
-          condition = eq(recipes.materialId, data.materialId)
-        } else if (data.productVariantId) {
-          condition = eq(recipes.productVariantId, data.productVariantId)
-        } else {
-          throw new ConflictError('Must provide either materialId or productVariantId', 'INVALID_RECIPE_TARGET')
-        }
+  async handleList(filter: RecipeFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<RecipeSelectDto>> {
+    return record('RecipeService.handleList', async () => {
+      const { materialId, productId, productVariantId, isActive } = filter
 
-        const [existing] = await tx.select().from(recipes).where(condition).limit(1)
+      const where = and(
+        materialId === undefined ? undefined : eq(recipes.materialId, materialId),
+        productId === undefined ? undefined : eq(recipes.productId, productId),
+        productVariantId === undefined ? undefined : eq(recipes.productVariantId, productVariantId),
+        isActive === undefined ? undefined : eq(recipes.isActive, isActive)
+      )
 
-        const metadata = stampCreate(actorId)
-        let recipeId: number
+      const result = await paginate({
+        data: ({ limit, offset }) =>
+          db.select().from(recipes).where(where).orderBy(sortBy(recipes.updatedAt, 'desc')).limit(limit).offset(offset),
+        pq,
+        countQuery: db.select({ count: count() }).from(recipes).where(where),
+      })
 
-        if (existing) {
-          // Update
-          const [updated] = await tx
-            .update(recipes)
-            .set({
-              targetQty: data.targetQty,
-              instructions: data.instructions,
-            })
-            .where(eq(recipes.id, existing.id))
-            .returning({ id: recipes.id })
+      const recipeIds = result.data.map((r) => r.id)
 
-          recipeId = updated!.id
+      const allItems =
+        recipeIds.length > 0
+          ? await db
+              .select()
+              .from(recipeItems)
+              .where(inArray(recipeItems.recipeId, recipeIds))
+              .orderBy(recipeItems.sortOrder)
+          : []
 
-          // Delete all old items to completely replace them
-          await tx.delete(recipeItems).where(eq(recipeItems.recipeId, recipeId))
-        } else {
-          // Create
-          const [created] = await tx
-            .insert(recipes)
-            .values({
-              materialId: data.materialId,
-              productVariantId: data.productVariantId,
-              targetQty: data.targetQty,
-              instructions: data.instructions,
-              ...metadata,
-            })
-            .returning({ id: recipes.id })
+      const itemsByRecipe = new Map<number, typeof allItems>()
+      for (const item of allItems) {
+        const list = itemsByRecipe.get(item.recipeId) || []
+        list.push(item)
+        itemsByRecipe.set(item.recipeId, list)
+      }
 
-          recipeId = created!.id
-        }
+      const data: RecipeSelectDto[] = result.data.map((r) => ({
+        ...r,
+        items: itemsByRecipe.get(r.id) || [],
+      }))
 
-        // Insert new items
-        if (data.items.length > 0) {
+      return { data, meta: result.meta }
+    })
+  }
+
+  async handleDetail(id: number): Promise<RecipeSelectDto> {
+    return record('RecipeService.handleDetail', async () => {
+      return this.findById(id)
+    })
+  }
+
+  private async checkTargetConflict(
+    target: { materialId?: number | null; productId?: number | null; productVariantId?: number | null },
+    excludeId?: number
+  ) {
+    const conditions = []
+
+    if (target.materialId) conditions.push(eq(recipes.materialId, target.materialId))
+    if (target.productId) conditions.push(eq(recipes.productId, target.productId))
+    if (target.productVariantId) conditions.push(eq(recipes.productVariantId, target.productVariantId))
+
+    if (conditions.length !== 1) {
+      throw new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET')
+    }
+
+    if (excludeId) {
+      const { ne } = await import('drizzle-orm')
+      conditions.push(ne(recipes.id, excludeId))
+    }
+
+    const [conflict] = await db
+      .select({ id: recipes.id })
+      .from(recipes)
+      .where(and(...conditions))
+      .limit(1)
+
+    if (conflict) {
+      throw new ConflictError('A recipe already exists for this target', 'RECIPE_TARGET_ALREADY_EXISTS')
+    }
+  }
+
+  async handleCreate(data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
+    return record('RecipeService.handleCreate', async () => {
+      await this.checkTargetConflict({
+        materialId: data.materialId,
+        productId: data.productId,
+        productVariantId: data.productVariantId,
+      })
+
+      const meta = stampCreate(actorId)
+
+      const inserted = await db.transaction(async (tx) => {
+        const [recipe] = await tx
+          .insert(recipes)
+          .values({
+            materialId: data.materialId ?? null,
+            productId: data.productId ?? null,
+            productVariantId: data.productVariantId ?? null,
+            targetQty: data.targetQty,
+            isActive: data.isActive,
+            instructions: data.instructions,
+            ...meta,
+          })
+          .returning({ id: recipes.id })
+
+        if (!recipe) throw new Error('Failed to create recipe')
+
+        if (data.items?.length) {
           await tx.insert(recipeItems).values(
             data.items.map((item) => ({
-              recipeId,
+              recipeId: recipe.id,
               materialId: item.materialId,
               qty: item.qty,
+              scrapPercentage: item.scrapPercentage,
               uomId: item.uomId,
-              ...metadata,
+              notes: item.notes,
+              sortOrder: item.sortOrder,
+              ...meta,
             }))
           )
         }
 
-        return { id: recipeId }
+        return recipe
       })
+
+      void this.clearCache()
+      return inserted
+    })
+  }
+
+  async handleUpdate(id: number, data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
+    return record('RecipeService.handleUpdate', async () => {
+      const existing = await this.findById(id)
+
+      const target = {
+        materialId: data.materialId === undefined ? existing.materialId : data.materialId,
+        productId: data.productId === undefined ? existing.productId : data.productId,
+        productVariantId: data.productVariantId === undefined ? existing.productVariantId : data.productVariantId,
+      }
+
+      await this.checkTargetConflict(target, id)
+
+      const updateMeta = stampUpdate(actorId)
+      const createMeta = stampCreate(actorId)
+
+      const updated = await db.transaction(async (tx) => {
+        await tx
+          .update(recipes)
+          .set({
+            materialId: data.materialId === undefined ? existing.materialId : data.materialId,
+            productId: data.productId === undefined ? existing.productId : data.productId,
+            productVariantId: data.productVariantId === undefined ? existing.productVariantId : data.productVariantId,
+            targetQty: data.targetQty,
+            isActive: data.isActive,
+            instructions: data.instructions,
+            ...updateMeta,
+          })
+          .where(eq(recipes.id, id))
+
+        // Recreate items
+        await tx.delete(recipeItems).where(eq(recipeItems.recipeId, id))
+
+        if (data.items?.length) {
+          await tx.insert(recipeItems).values(
+            data.items.map((item) => ({
+              recipeId: id,
+              materialId: item.materialId,
+              qty: item.qty,
+              scrapPercentage: item.scrapPercentage,
+              uomId: item.uomId,
+              notes: item.notes ?? null,
+              sortOrder: item.sortOrder,
+              ...createMeta,
+            }))
+          )
+        }
+
+        return { id }
+      })
+
+      void this.clearCache(id)
+      return updated
     })
   }
 
@@ -143,7 +248,18 @@ export class RecipeService {
       const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id })
       if (result.length === 0) throw err.notFound(id)
 
+      void this.clearCache(id)
       return { id }
     })
+  }
+
+  // ─── Cache ────────────────────────────────────────────────────────────────
+
+  private async clearCache(id?: number) {
+    await Promise.all([
+      cache.del(cacheKey.count),
+      cache.del(cacheKey.list),
+      id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
+    ])
   }
 }
