@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
+import { and, count, eq, exists, ilike, inArray, not, or } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
 import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
@@ -7,18 +7,19 @@ import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { db } from '@/db'
-import { productPrices, products, productVariants, variantPrices } from '@/db/schema'
+import { productExternalMappings, productPrices, products, productVariants, variantPrices } from '@/db/schema'
 
+import type { ProductCategoryDto } from '../dto/product-category.dto'
 import type {
-  ProductCategoryDto,
   ProductDto,
+  ProductExternalMappingDto,
   ProductFilterDto,
   ProductMutationDto,
   ProductPriceDto,
   ProductSelectDto,
   ProductVariantDto,
   VariantPriceDto,
-} from '../dto'
+} from '../dto/product.dto'
 
 import type { ProductCategoryService } from './product-category.service'
 
@@ -126,6 +127,30 @@ export class ProductService {
   }
 
   /**
+   * Loads product external mappings in batch.
+   */
+  private async getProductExternalMappingsBatch(
+    productIds: number[]
+  ): Promise<Map<number, ProductExternalMappingDto[]>> {
+    if (productIds.length === 0) return new Map()
+
+    const mappings = await db
+      .select()
+      .from(productExternalMappings)
+      .where(inArray(productExternalMappings.productId, productIds))
+
+    const map = new Map<number, ProductExternalMappingDto[]>()
+    for (const id of productIds) {
+      map.set(id, [])
+    }
+    for (const m of mappings) {
+      map.get(m.productId)!.push(m)
+    }
+
+    return map
+  }
+
+  /**
    * Checks uniqueness of SKU and name scoped to a location.
    */
   private async checkScopedConflict(locationId: number, input: { sku: string; name: string }, excludeId?: number) {
@@ -175,8 +200,12 @@ export class ProductService {
 
         const variants = result.hasVariants ? await this.getVariantsWithPrices(id) : []
         const prices = !result.hasVariants && result.hasSalesTypePricing ? await this.getProductPrices(id) : []
+        const mappings = await db
+          .select()
+          .from(productExternalMappings)
+          .where(eq(productExternalMappings.productId, id))
 
-        return { ...result, variants, prices }
+        return { ...result, variants, prices, externalMappings: mappings }
       })
     })
   }
@@ -194,17 +223,34 @@ export class ProductService {
 
   async handleList(filter: ProductFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<ProductSelectDto>> {
     return record('ProductService.handleList', async () => {
-      const { search, status, categoryId, locationId } = filter
+      const { search, status, categoryId, locationId, isExternal, provider } = filter
 
       const searchCondition = search
         ? or(ilike(products.name, `%${search}%`), ilike(products.sku, `%${search}%`))
         : undefined
 
+      const externalCondition =
+        isExternal !== undefined || provider !== undefined
+          ? exists(
+              db
+                .select({ id: productExternalMappings.id })
+                .from(productExternalMappings)
+                .where(
+                  and(
+                    eq(productExternalMappings.productId, products.id),
+                    provider ? eq(productExternalMappings.provider, provider) : undefined
+                  )
+                )
+            )
+          : undefined
+
+      // Invert if isExternal = false
       const where = and(
         searchCondition,
         status ? eq(products.status, status) : undefined,
         categoryId === undefined ? undefined : eq(products.categoryId, categoryId),
-        locationId === undefined ? undefined : eq(products.locationId, locationId)
+        locationId === undefined ? undefined : eq(products.locationId, locationId),
+        externalCondition ? (isExternal === false ? not(externalCondition) : externalCondition) : undefined
       )
 
       const result = await paginate({
@@ -223,6 +269,7 @@ export class ProductService {
       const productIds = result.data.map((p) => p.id)
       const variantsMap = await this.getVariantsBatch(productIds)
       const pricesMap = await this.getProductPricesBatch(productIds)
+      const mappingsMap = await this.getProductExternalMappingsBatch(productIds)
 
       const categoriesMap = new Map<number, ProductCategoryDto>()
       const allCategories = await this.categorySvc.find()
@@ -234,6 +281,7 @@ export class ProductService {
         ...p,
         variants: variantsMap.get(p.id) ?? [],
         prices: pricesMap.get(p.id) ?? [],
+        externalMappings: mappingsMap.get(p.id) ?? [],
         category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
       }))
 
