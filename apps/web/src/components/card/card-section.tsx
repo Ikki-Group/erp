@@ -6,6 +6,14 @@ interface CardSectionProps extends Omit<ComponentProps<'div'>, 'title'> {
   description?: string
 }
 
+/**
+ * Render a compact Card section with a header (title and optional description) and content area.
+ *
+ * @param title - The header title text displayed in the card
+ * @param description - Optional subtext displayed beneath the title in the header
+ * @param children - Content rendered inside the card's body
+ * @returns The Card section React element
+ */
 export function CardSection({
   title,
   description,

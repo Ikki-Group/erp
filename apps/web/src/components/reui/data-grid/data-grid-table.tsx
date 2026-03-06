@@ -456,6 +456,14 @@ function DataGridTableLoader() {
   )
 }
 
+/**
+ * Renders a per-row selection control with a checkbox and a left-side selection indicator.
+ *
+ * The checkbox is bound to the row's selection state and toggles selection when changed.
+ *
+ * @param row - The table row whose selection state is displayed and controlled
+ * @returns A React fragment containing a checkbox bound to the row's selection state and a left-side visual indicator shown when the row is selected
+ */
 function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
   return (
     <>
