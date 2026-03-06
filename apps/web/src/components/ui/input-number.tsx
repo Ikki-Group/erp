@@ -29,6 +29,60 @@ export interface InputNumberProps extends Omit<
   ref?: React.Ref<HTMLInputElement>
 }
 
+/**
+ * Format a numeric value using Indonesian number formatting (e.g., "1.234,56").
+ *
+ * Converts string inputs by removing non-numeric characters except leading `-` and the decimal separator, then formats the resulting number. For `null`, `undefined`, empty string, or unparseable input, returns an empty string.
+ *
+ * @param value - The number or numeric string to format. Strings are sanitized before parsing.
+ * @param allowDecimal - Whether to allow fractional digits in the output.
+ * @param decimalScale - Maximum number of fraction digits to include when decimals are allowed.
+ * @returns The formatted number string in `id-ID` locale, or an empty string for absent or invalid input.
+ */
+function formatNumber(
+  value: number | string | null | undefined,
+  allowDecimal: boolean,
+  decimalScale: number
+): string {
+  if (value === null || value === undefined || value === '') return ''
+
+  const num =
+    typeof value === 'string' ? Number(value.replace(/[^0-9.-]/g, '')) : value
+  if (isNaN(num)) return ''
+
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: allowDecimal ? decimalScale : 0,
+    useGrouping: true,
+  }).format(num)
+}
+
+/**
+ * Convert an Indonesian-formatted numeric string (e.g., "1.234,56") into a dot-decimal numeric string ("1234.56").
+ *
+ * @param value - Numeric string using dots as thousands separators and a comma as the decimal separator
+ * @returns The normalized numeric string with thousands separators removed and the decimal comma replaced by a dot
+ */
+function parseNumber(value: string): string {
+  return value
+    .replace(/\./g, '') // Remove thousands separator
+    .replace(/,/g, '.') // Replace decimal separator
+}
+
+/**
+ * A controlled numeric text input that displays values formatted for the Indonesian locale while allowing natural in-progress typing.
+ *
+ * The component accepts a numeric `value` and emits parsed numeric values (or `null`) via `onChange`; while the field is focused it preserves the raw typed string to avoid disruptive reformatting, and when not focused it shows the localized formatted number.
+ *
+ * @param value - The current numeric value to display; use `null` for an empty field.
+ * @param onChange - Callback invoked with the parsed number or `null` when the input changes.
+ * @param allowDecimal - Whether decimals are permitted (defaults to `true`).
+ * @param decimalScale - Maximum number of decimal places allowed when typing (defaults to `2`).
+ * @param max - Optional upper bound for allowed values; used only to determine whether negative input is permitted indirectly.
+ * @param min - Optional lower bound for allowed values; used only to determine whether negative input is permitted indirectly.
+ * @param ref - Ref forwarded to the underlying input element.
+ * @returns The rendered Input element configured for numeric entry with localized formatting and typing-aware behavior.
+ */
 export function InputNumber({
   className,
   value,
@@ -40,49 +94,60 @@ export function InputNumber({
   ref,
   ...props
 }: InputNumberProps) {
-  const [inputValue, setInputValue] = React.useState<string>(
-    value?.toString() ?? ''
-  )
-  const prevValueRef = React.useRef(value)
+  // Local state to track the value being typed
+  const [isTyping, setIsTyping] = React.useState(false)
+  const [typingValue, setTypingValue] = React.useState('')
 
-  if (value !== prevValueRef.current) {
-    const stringValue = value?.toString() ?? ''
-    if (stringValue !== inputValue) {
-      setInputValue(stringValue)
-    }
-    prevValueRef.current = value
-  }
+  // Determine which value to display
+  const displayValue = React.useMemo(() => {
+    if (isTyping) return typingValue
+    return formatNumber(value, allowDecimal, decimalScale)
+  }, [isTyping, typingValue, value, allowDecimal, decimalScale])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value
+    const raw = e.target.value
 
-    // Replace comma with dot for decimal separator consistency
-    val = val.replace(',', '.')
+    // Allow typing leading minus
+    if (raw === '-' && (min === undefined || min < 0)) {
+      setTypingValue('-')
+      setIsTyping(true)
+      return
+    }
 
-    // Allow only numbers and one decimal point
+    // Basic cleaning: allow digits, dots (will be removed), and one comma (will be changed to dot)
+    const cleanRaw = parseNumber(raw)
+
+    // Only proceed if it looks like a valid partial number
     const regex = allowDecimal ? /^-?\d*\.?\d*$/ : /^-?\d*$/
-
-    if (
-      val === '' ||
-      (val === '-' && (min === undefined || min < 0)) ||
-      regex.test(val)
-    ) {
-      // Limit decimal places
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (allowDecimal && val.includes('.') && decimalScale !== undefined) {
-        const parts = val.split('.')
-        const decimalPart = parts[1]
-        if (decimalPart && decimalPart.length > decimalScale) return
+    if (cleanRaw === '' || regex.test(cleanRaw)) {
+      // Check decimal scale
+      if (allowDecimal && cleanRaw.includes('.')) {
+        const parts = cleanRaw.split('.')
+        if (parts[1] && parts[1].length > decimalScale) return
       }
 
-      setInputValue(val)
+      const numericValue =
+        cleanRaw === '' || cleanRaw === '-' ? null : Number(cleanRaw)
 
-      const numericValue = val === '' || val === '-' ? null : Number(val)
+      setTypingValue(raw)
+      setIsTyping(true)
 
       if (onChange) {
         onChange(numericValue)
       }
     }
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsTyping(false)
+    setTypingValue('')
+    props.onBlur?.(e)
+  }
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsTyping(true)
+    setTypingValue(formatNumber(value, allowDecimal, decimalScale))
+    props.onFocus?.(e)
   }
 
   return (
@@ -92,8 +157,10 @@ export function InputNumber({
       type='text'
       inputMode={allowDecimal ? 'decimal' : 'numeric'}
       className={cn('tabular-nums', className)}
-      value={inputValue}
+      value={displayValue}
       onChange={handleChange}
+      onBlur={handleBlur}
+      onFocus={handleFocus}
     />
   )
 }

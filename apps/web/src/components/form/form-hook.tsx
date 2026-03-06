@@ -26,6 +26,8 @@ import { Form, FormDialogActions, FormSimpleActions } from './form-component'
 
 export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
   createFormHook({
+    fieldContext,
+    formContext,
     fieldComponents: {
       // Primitive
       FieldSet,
@@ -61,6 +63,4 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } =
       SimpleActions: FormSimpleActions,
       DialogActions: FormDialogActions,
     },
-    fieldContext,
-    formContext,
   })

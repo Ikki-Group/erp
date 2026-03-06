@@ -3,11 +3,17 @@ import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import z from 'zod'
 import { toast } from 'sonner'
-import { BoxesIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  PlusIcon,
+  Trash2Icon,
+  Wand2Icon,
+} from 'lucide-react'
 import { useMemo } from 'react'
 import { materialApi, materialCategoryApi, uomApi } from '../api'
-import type { LinkOptions } from '@tanstack/react-router'
+import { MaterialType } from '../dto'
 import type { MaterialSelectDto } from '../dto'
+import type { LinkOptions } from '@tanstack/react-router'
 import { Page } from '@/components/layout/page'
 import {
   FormConfig,
@@ -21,18 +27,19 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { toOptions } from '@/lib/utils'
+import { generateSku } from '@/lib/sku'
 
 const FormDto = z.object({
-  name: z.string().min(1),
-  description: z.string(),
-  sku: z.string().min(1),
-  type: z.enum(['raw', 'semi']),
-  categoryId: z.string().nullable(),
-  baseUom: z.string(),
+  name: z.string().min(1, 'Nama bahan baku harus diisi'),
+  description: z.string().optional(),
+  sku: z.string().min(1, 'SKU harus diisi'),
+  type: MaterialType,
+  categoryId: z.coerce.number<number>().nullable(),
+  baseUomId: z.coerce.number<number>().min(1, 'Satuan dasar harus dipilih'),
   conversions: z.array(
     z.object({
-      uom: z.string(),
-      factor: z.string().min(1),
+      uomId: z.coerce.number<number>().min(1, 'Satuan harus dipilih'),
+      toBaseFactor: z.coerce.string<string>(),
     })
   ),
 })
@@ -44,6 +51,14 @@ const fopts = formOptions({
   defaultValues: {} as FormDto,
 })
 
+/**
+ * Builds initial form values from an optional existing material selection.
+ *
+ * Copies available fields from `v` into a FormDto-shaped object; missing fields are replaced with sensible defaults (empty strings, `'raw'` type, or `null` for nullable IDs).
+ *
+ * @param v - Optional existing material data to derive default values from
+ * @returns A FormDto populated from `v` when present, otherwise containing empty/default values. Conversions are copied from `v.conversions` when available.
+ */
 function getDefaultValues(v?: MaterialSelectDto): FormDto {
   const conversions: FormDto['conversions'] = []
 
@@ -51,8 +66,8 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     const [_, ...others] = v.conversions
     conversions.push(
       ...others.map(i => ({
-        uom: i.uom,
-        factor: i.factor,
+        uomId: i.uomId,
+        toBaseFactor: i.toBaseFactor,
       }))
     )
   }
@@ -61,9 +76,13 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
     description: v?.description ?? '',
     sku: v?.sku ?? '',
     type: v?.type ?? 'raw',
-    categoryId: v?.categoryId != null ? String(v.categoryId) : null,
-    baseUom: v?.baseUom ?? null!,
-    conversions,
+    categoryId: v?.categoryId ?? null,
+    baseUomId: v?.baseUomId ?? null!,
+    conversions:
+      v?.conversions.map(c => ({
+        uomId: c.uomId,
+        toBaseFactor: c.toBaseFactor,
+      })) ?? [],
   }
 }
 
@@ -73,6 +92,13 @@ interface MaterialFormPageProps {
   backTo?: LinkOptions
 }
 
+/**
+ * Render the material creation/editing page with form fields for general information, base unit selection, unit conversions, and submission handling.
+ *
+ * The component initializes form default values (optionally from an existing material), handles create/update mutations, constructs the payload including a mandatory base-UOM conversion (1:1), displays sections for general information, base UOM, and conversions, and navigates back when submission completes if `backTo` is provided.
+ *
+ * @returns The page element containing the material form, including GeneralInformationCard, UomInformationSection, UomConversionsSection, and standard form actions.
+ */
 export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   const navigate = useNavigate()
   const selectedMaterial = useQuery({
@@ -87,14 +113,23 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
     ...fopts,
     defaultValues: getDefaultValues(selectedMaterial.data?.data),
     onSubmit: async ({ value }) => {
-      value.conversions = [
-        { uom: value.baseUom, factor: '1' },
-        ...value.conversions,
+      // Add base UOM conversion (1:1) to the payload sent to server
+      const conversions = [
+        { uomId: Number(value.baseUomId), toBaseFactor: '1' },
+        ...value.conversions.map(c => ({
+          uomId: Number(c.uomId),
+          toBaseFactor: String(c.toBaseFactor),
+        })),
       ]
 
       const payload = {
-        ...value,
+        name: value.name,
+        description: value.description || null,
+        sku: value.sku,
+        type: value.type,
+        baseUomId: Number(value.baseUomId),
         categoryId: value.categoryId ? Number(value.categoryId) : null,
+        conversions,
       }
 
       const promise = selectedMaterial.data?.data
@@ -140,6 +175,13 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   )
 }
 
+/**
+ * Render the "Informasi Bahan Baku" form section with inputs for name, SKU, description, category, and material type.
+ *
+ * The SKU field includes a button that generates a SKU from the current name. Category options are loaded from the material categories query.
+ *
+ * @returns A JSX element containing the form fields for material general information, including a SKU generator button and category/type selects.
+ */
 function GeneralInformationCard() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: categories } = useSuspenseQuery({
@@ -164,7 +206,22 @@ function GeneralInformationCard() {
       <form.AppField name='sku'>
         {field => (
           <field.Base label='SKU' required>
-            <field.Input placeholder='Contoh: SKU-001' />
+            <div className='flex items-center gap-2'>
+              <field.Input placeholder='Contoh: SKU-001' />
+              <Button
+                variant='outline'
+                size='icon'
+                type='button'
+                className='shrink-0'
+                title='Generate SKU otomatis'
+                onClick={() => {
+                  const name = form.getFieldValue('name')
+                  field.setValue(generateSku('MAT', name))
+                }}
+              >
+                <Wand2Icon className='size-4' />
+              </Button>
+            </div>
           </field.Base>
         )}
       </form.AppField>
@@ -202,6 +259,11 @@ function GeneralInformationCard() {
   )
 }
 
+/**
+ * Render the "Satuan Dasar" form section for selecting the material's base unit of measure.
+ *
+ * @returns The JSX element for the card containing a `baseUomId` select field and its description.
+ */
 function UomInformationSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: uoms } = useSuspenseQuery({
@@ -209,7 +271,7 @@ function UomInformationSection() {
     select: ({ data }) =>
       toOptions(
         data,
-        i => String(i.id),
+        i => i.id,
         i => i.code
       ),
   })
@@ -223,7 +285,7 @@ function UomInformationSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <form.AppField name='baseUom'>
+        <form.AppField name='baseUomId'>
           {field => (
             <field.Base label='Satuan Utama' required>
               <field.Select placeholder='Pilih satuan utama' options={uoms} />
@@ -235,9 +297,21 @@ function UomInformationSection() {
   )
 }
 
+/**
+ * Render the "Konversi Satuan" section for the material form.
+ *
+ * Displays a hint when the base unit is not selected; otherwise shows a table
+ * containing the immutable base-unit row (1 = 1) and an editable list of other
+ * conversions where each row maps 1 `uom` to a numeric `toBaseFactor`. Rows
+ * can be added or removed and values are bound to the form's `conversions`
+ * array and `baseUomId` field.
+ *
+ * @returns A JSX element containing the UOM conversions UI for the material form.
+ */
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
-  const baseUomId = useStore(form.store, s => s.values.baseUom)
+  const baseUomIdValue = useStore(form.store, s => s.values.baseUomId)
+
   const { data: uoms } = useSuspenseQuery({
     ...uomApi.list.query({ page: 1, limit: 100 }),
     select: ({ data }) =>
@@ -249,8 +323,8 @@ function UomConversionsSection() {
   })
 
   const baseUom = useMemo(() => {
-    return uoms.find(u => String(u.value) === baseUomId)
-  }, [baseUomId, uoms])
+    return uoms.find(u => u.value === baseUomIdValue)
+  }, [baseUomIdValue, uoms])
 
   return (
     <Card size='sm'>
@@ -261,115 +335,164 @@ function UomConversionsSection() {
         </Card.Description>
       </Card.Header>
       <Card.Content className='flex flex-col gap-4'>
-        <div className='border rounded-md overflow-hidden'>
-          <Table className='table-fixed'>
-            <Table.Header className='bg-muted'>
-              <Table.Row>
-                <Table.Head className='w-100'>Satuan</Table.Head>
-                <Table.Head className='w-100'>Konversi</Table.Head>
-                <Table.Head className='w-16 text-center'>Aksi</Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              <form.AppField name='conversions' mode='array'>
-                {arrayField => {
-                  if (arrayField.state.value.length <= 0) {
-                    return (
-                      <Table.Row>
-                        <Table.Cell colSpan={2} className='text-center h-32'>
-                          <div className='flex flex-col items-center justify-center gap-2 text-muted-foreground'>
-                            <BoxesIcon className='size-8 opacity-50' />
-                            <p>Belum ada konversi satuan yang ditambahkan</p>
+        {!baseUomIdValue ? (
+          <ConversionAlertBaseUomNotSet />
+        ) : (
+          <>
+            <div className='border rounded-md overflow-hidden'>
+              <Table className='table-fixed'>
+                <Table.Header className='bg-muted'>
+                  <Table.Row>
+                    <Table.Head className='w-full'>Satuan Konversi</Table.Head>
+                    <Table.Head className='w-20 text-center'>Aksi</Table.Head>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {/* Default Row (1x = 1x) */}
+                  <Table.Row className='bg-muted/30'>
+                    <Table.Cell>
+                      <div className='flex items-center gap-2 opacity-80'>
+                        <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold'>
+                          1
+                        </div>
+                        <div className='flex-1 max-w-[200px]'>
+                          <div className='flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground'>
+                            {baseUom?.label || 'Satuan Dasar'}
                           </div>
-                        </Table.Cell>
-                      </Table.Row>
-                    )
-                  }
-                  return arrayField.state.value.map((_, i) => {
-                    return (
-                      // eslint-disable-next-line @eslint-react/no-array-index-key
-                      <Table.Row key={i}>
-                        <Table.Cell>
-                          <div className='flex items-center gap-1.5'>
-                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
-                              1
-                            </div>
-                            <div className='w-52'>
-                              <form.AppField name={`conversions[${i}].uom`}>
-                                {field => (
-                                  <field.Select
-                                    required
-                                    placeholder='Pilih satuan...'
-                                    options={uoms}
-                                  />
-                                )}
-                              </form.AppField>
-                            </div>
-                            <div className='text-muted-foreground text-sm font-medium shrink-0'>
-                              =
-                            </div>
-                            <div className='w-52'>
-                              <form.AppField name={`conversions[${i}].factor`}>
-                                {field => (
-                                  <field.Input
-                                    required
-                                    type='number'
-                                    placeholder='Faktor (Contoh: 1000)'
-                                  />
-                                )}
-                              </form.AppField>
-                            </div>
-                            <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-sm font-medium'>
-                              {baseUom?.label || '-'}
-                            </div>
+                        </div>
+                        <div className='text-muted-foreground text-sm font-bold px-1'>
+                          =
+                        </div>
+                        <div className='flex-1 max-w-[200px]'>
+                          <div className='flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground font-mono'>
+                            1
                           </div>
-                        </Table.Cell>
-                        <Table.Cell className='text-center'>
-                          <Button
-                            variant='destructive'
-                            size='icon'
-                            type='button'
-                            onClick={() => arrayField.removeValue(i)}
-                          >
-                            <Trash2Icon />
-                          </Button>
-                        </Table.Cell>
-                      </Table.Row>
-                    )
-                  })
-                }}
-              </form.AppField>
-            </Table.Body>
-          </Table>
-        </div>
-        <Button
-          variant='outline'
-          size='sm'
-          type='button'
-          className='w-fit'
-          onClick={() => {
-            form.pushFieldValue('conversions', {
-              uom: null!,
-              factor: '',
-            })
-          }}
-        >
-          <PlusIcon className='mr-2 size-4' />
-          Tambah Konversi Satuan
-        </Button>
+                        </div>
+                        <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8'>
+                          {baseUom?.label || '-'}
+                        </div>
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell className='text-center'>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        disabled
+                        className='opacity-30'
+                      >
+                        <Trash2Icon className='size-4' />
+                      </Button>
+                    </Table.Cell>
+                  </Table.Row>
+
+                  <form.AppField name='conversions' mode='array'>
+                    {arrayField => {
+                      return arrayField.state.value.map((_, i) => {
+                        return (
+                          // eslint-disable-next-line @eslint-react/no-array-index-key
+                          <Table.Row key={i}>
+                            <Table.Cell>
+                              <div className='flex items-center gap-2'>
+                                <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold'>
+                                  1
+                                </div>
+                                <div className='flex-1 max-w-[200px]'>
+                                  <form.AppField
+                                    name={`conversions[${i}].uomId`}
+                                  >
+                                    {field => (
+                                      <field.Select
+                                        required
+                                        placeholder='Pilih satuan...'
+                                        options={uoms}
+                                      />
+                                    )}
+                                  </form.AppField>
+                                </div>
+                                <div className='text-muted-foreground text-sm font-bold px-1'>
+                                  =
+                                </div>
+                                <div className='flex-1 max-w-[200px]'>
+                                  <form.AppField
+                                    name={`conversions[${i}].toBaseFactor`}
+                                  >
+                                    {field => (
+                                      <field.Number
+                                        required
+                                        placeholder='Faktor'
+                                        decimalScale={10}
+                                      />
+                                    )}
+                                  </form.AppField>
+                                </div>
+                                <div className='flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8'>
+                                  {baseUom?.label || '-'}
+                                </div>
+                              </div>
+                            </Table.Cell>
+                            <Table.Cell className='text-center'>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                type='button'
+                                className='text-destructive hover:bg-destructive/10'
+                                onClick={() => arrayField.removeValue(i)}
+                              >
+                                <Trash2Icon className='size-4' />
+                              </Button>
+                            </Table.Cell>
+                          </Table.Row>
+                        )
+                      })
+                    }}
+                  </form.AppField>
+                </Table.Body>
+              </Table>
+            </div>
+            <Button
+              variant='outline'
+              size='sm'
+              type='button'
+              className='w-fit'
+              onClick={() => {
+                form.pushFieldValue('conversions', {
+                  uomId: null!,
+                  toBaseFactor: '',
+                })
+              }}
+            >
+              <PlusIcon className='mr-2 size-4' />
+              Tambah Konversi Satuan
+            </Button>
+          </>
+        )}
       </Card.Content>
     </Card>
   )
 }
 
 /**
- * Flow conversion
- * User membeli 1kg gula dan ingin membuat beberapa konversi satuan (gram, miligram, dll)
+ * Displays a centered warning card indicating the base unit of measure has not been selected.
  *
- * Base UOM = miligram (satuan terkecil penggunaan)
+ * Renders a muted, bordered alert with an icon, title "Satuan Dasar Belum Dipilih", and explanatory text instructing the user to select the base unit before adding conversions.
  *
- * Input dimulai dari base UOM
- * 1mg = 1 mg
- * 1gr = 1000 mg
- * 1kg = 1000000 mg
+ * @returns The alert JSX element shown when no base UOM is set.
  */
+function ConversionAlertBaseUomNotSet() {
+  return (
+    <div className='flex flex-col items-center justify-center gap-3 text-muted-foreground bg-muted/30 rounded-lg border border-dashed py-12'>
+      <div className='size-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center'>
+        <AlertTriangleIcon className='size-6 text-yellow-600 dark:text-yellow-500' />
+      </div>
+      <div className='text-center space-y-1'>
+        <p className='font-semibold text-foreground'>
+          Satuan Dasar Belum Dipilih
+        </p>
+        <p className='text-sm max-w-[280px]'>
+          Silakan pilih satuan dasar pada bagian di atas terlebih dahulu untuk
+          menambahkan konversi.
+        </p>
+      </div>
+    </div>
+  )
+}

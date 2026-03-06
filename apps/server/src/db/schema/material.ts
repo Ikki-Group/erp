@@ -39,13 +39,16 @@ export const materials = pgTable(
     sku: text().notNull(),
     type: materialTypeEnum().notNull(),
     categoryId: integer().references(() => materialCategories.id, { onDelete: 'set null' }),
-    baseUom: text().notNull(),
+    baseUomId: integer()
+      .notNull()
+      .references(() => uoms.id, { onDelete: 'restrict' }),
     ...metadata,
   },
   (t) => [
     uniqueIndex('materials_name_idx').on(t.name),
     uniqueIndex('materials_sku_idx').on(t.sku),
     index('materials_category_idx').on(t.categoryId),
+    index('materials_base_uom_idx').on(t.baseUomId),
     // Removed: materials_type_idx — enum with only 2 values, low selectivity
   ]
 )
@@ -61,15 +64,13 @@ export const materialConversions = pgTable(
     materialId: integer()
       .notNull()
       .references(() => materials.id, { onDelete: 'cascade' }),
-    uom: text().notNull(),
-    factor: numeric({ precision: 18, scale: 6 }).notNull(),
+    uomId: integer()
+      .notNull()
+      .references(() => uoms.id, { onDelete: 'restrict' }),
+    toBaseFactor: numeric({ precision: 18, scale: 6 }).notNull(),
     ...metadata,
   },
-  (t) => [
-    // Unique: one conversion per UOM per material
-    uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uom),
-    // Removed: material_conversions_material_idx — redundant, covered by composite unique above
-  ]
+  (t) => [uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uomId)]
 )
 
 // ─── Material Locations ───────────────────────────────────────────────────────

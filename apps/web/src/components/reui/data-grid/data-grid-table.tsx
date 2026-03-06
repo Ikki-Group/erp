@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @eslint-react/no-array-index-key */
+/* eslint-disable no-shadow */
 import { Fragment } from 'react'
 import { flexRender } from '@tanstack/react-table'
 import { cva } from 'class-variance-authority'
@@ -453,12 +456,20 @@ function DataGridTableLoader() {
   )
 }
 
+/**
+ * Renders a per-row selection control with a checkbox and a left-side selection indicator.
+ *
+ * The checkbox is bound to the row's selection state and toggles selection when changed.
+ *
+ * @param row - The table row whose selection state is displayed and controlled
+ * @returns A React fragment containing a checkbox bound to the row's selection state and a left-side visual indicator shown when the row is selected
+ */
 function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
   return (
     <>
       <div
         className={cn(
-          'bg-primary absolute start-0 top-0 bottom-0 hidden w-0.5',
+          'bg-primary absolute inset-s-0 top-0 bottom-0 hidden w-0.5',
           row.getIsSelected() && 'block'
         )}
       ></div>

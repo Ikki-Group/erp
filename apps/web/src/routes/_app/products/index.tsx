@@ -3,13 +3,15 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
-import type { ProductSelectDto } from '@/features/product'
-import { productApi } from '@/features/product'
+import type { ProductFilterDto, ProductSelectDto } from '@/features/product'
+import { productApi, productCategoryApi } from '@/features/product'
+import { locationApi } from '@/features/location'
 
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toCurrency, toDateTimeStamp } from '@/lib/formatter'
@@ -34,19 +36,30 @@ const ch = createColumnHelper<ProductSelectDto>()
 const columns = [
   ch.accessor('sku', {
     header: 'SKU',
-    cell: ({ row }) => row.original.sku,
-    size: 120,
+    cell: ({ row }) => <p className='font-mono text-sm'>{row.original.sku}</p>,
+    minSize: 140,
   }),
   ch.accessor('name', {
     header: 'Nama Produk',
     cell: ({ row }) => (
-      <div className='flex flex-col'>
-        <span className='font-medium'>{row.original.name}</span>
+      <div className='flex flex-col gap-0.5'>
+        <div className='flex items-center gap-2'>
+          <span className='font-medium'>{row.original.name}</span>
+          {row.original.externalMappings.some(m => m.provider === 'moka') && (
+            <Badge
+              variant='outline'
+              className='h-4 px-1 text-[10px] bg-orange-50 text-orange-600 border-orange-200'
+            >
+              MOKA
+            </Badge>
+          )}
+        </div>
         <span className='text-xs text-muted-foreground'>
           {row.original.category?.name ?? 'Tanpa Kategori'}
         </span>
       </div>
     ),
+    minSize: 300,
   }),
   ch.accessor('basePrice', {
     header: 'Harga',
@@ -75,9 +88,12 @@ const columns = [
   }),
   ch.accessor('variants', {
     header: 'Varian',
-    cell: ({ row }) => (
-      <span className='text-sm'>{row.original.variants.length} Varian</span>
-    ),
+    cell: ({ row }) =>
+      row.original.hasVariants ? (
+        <span className='text-sm'>{row.original.variants.length} Varian</span>
+      ) : (
+        <span className='text-xs text-muted-foreground'>-</span>
+      ),
     size: 100,
   }),
   ch.accessor('createdAt', {
@@ -113,11 +129,28 @@ const columns = [
   }),
 ]
 
+/**
+ * Renders the product listing page with a searchable, filterable data table and actions.
+ *
+ * The table shows SKU, name, price, status, variant count, creation date, and edit actions.
+ * The toolbar provides search plus filters for status, external type, category, and location.
+ * Includes an action button to navigate to the product creation page.
+ *
+ * @returns The rendered product table page as a JSX element.
+ */
 function ProductTable() {
-  const ds = useDataTableState()
+  const ds = useDataTableState<ProductFilterDto>()
+
+  const { data: categories } = useQuery(
+    productCategoryApi.list.query({ limit: 100 })
+  )
+  const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
+
   const { data, isLoading } = useQuery(
     productApi.list.query({
       ...ds.pagination,
+      ...ds.filters,
+      search: ds.search,
     })
   )
 
@@ -135,6 +168,53 @@ function ProductTable() {
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[
+            { type: 'search', placeholder: 'Cari produk...' },
+            {
+              type: 'select',
+              key: 'status',
+              placeholder: 'Semua Status',
+              options: [
+                { label: 'Aktif', value: 'active' },
+                { label: 'Non-Aktif', value: 'inactive' },
+                { label: 'Arsip', value: 'archived' },
+              ],
+            },
+            {
+              type: 'select',
+              key: 'isExternal',
+              placeholder: 'Semua Tipe',
+              options: [
+                { label: 'Internal Only', value: 'false' },
+                { label: 'Moka/External Only', value: 'true' },
+              ],
+            },
+            {
+              type: 'select',
+              key: 'categoryId',
+              placeholder: 'Semua Kategori',
+              options:
+                categories?.data.map(c => ({
+                  label: c.name,
+                  value: c.id,
+                })) ?? [],
+            },
+            {
+              type: 'select',
+              key: 'locationId',
+              placeholder: 'Semua Lokasi',
+              options:
+                locations?.data.map(l => ({
+                  label: l.name,
+                  value: l.id,
+                })) ?? [],
+            },
+          ]}
+        />
+      }
       action={
         <Button size='sm' render={<Link to='/products/create' />}>
           <PlusIcon className='mr-2 size-4' />

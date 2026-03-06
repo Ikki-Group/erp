@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "a7f9a0a2-0c45-44d6-804d-a5c51713b71b",
+  "id": "4d4abf9b-d2e7-44bc-a17b-7797ac4e667a",
   "prevIds": [
-    "84cf9897-317e-4621-a355-0e3885ad9c07"
+    "cb1a8f20-89f1-4554-b355-f037ed665f52"
   ],
   "ddl": [
     {
@@ -84,6 +84,18 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "product_external_mappings",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "product_prices",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "product_variants",
       "entityType": "tables",
       "schema": "public"
@@ -91,6 +103,18 @@
     {
       "isRlsEnabled": false,
       "name": "products",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "recipe_items",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "recipes",
       "entityType": "tables",
       "schema": "public"
     },
@@ -422,14 +446,14 @@
       "table": "material_conversions"
     },
     {
-      "type": "text",
+      "type": "integer",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "uom",
+      "name": "uomId",
       "entityType": "columns",
       "schema": "public",
       "table": "material_conversions"
@@ -442,7 +466,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "factor",
+      "name": "toBaseFactor",
       "entityType": "columns",
       "schema": "public",
       "table": "material_conversions"
@@ -773,14 +797,14 @@
       "table": "materials"
     },
     {
-      "type": "text",
+      "type": "integer",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "baseUom",
+      "name": "baseUomId",
       "entityType": "columns",
       "schema": "public",
       "table": "materials"
@@ -965,6 +989,279 @@
       "name": "id",
       "entityType": "columns",
       "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "productId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "variantId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "externalId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "externalData",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "lastSyncedAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "createdBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updatedBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "syncAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "productId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "salesTypeId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "numeric(18,4)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "price",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "createdBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updatedBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "syncAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
       "table": "product_variants"
     },
     {
@@ -989,6 +1286,19 @@
       "generated": null,
       "identity": null,
       "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "product_variants"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sku",
       "entityType": "columns",
       "schema": "public",
       "table": "product_variants"
@@ -1176,6 +1486,45 @@
       "table": "products"
     },
     {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "hasVariants",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "products"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "hasSalesTypePricing",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "products"
+    },
+    {
+      "type": "numeric(18,4)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "basePrice",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "products"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1239,6 +1588,266 @@
       "entityType": "columns",
       "schema": "public",
       "table": "products"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "recipeId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materialId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "numeric(18,4)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "qty",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "uomId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "createdBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updatedBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "syncAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materialId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "productVariantId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "numeric(18,4)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'1'",
+      "generated": null,
+      "identity": null,
+      "name": "targetQty",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "instructions",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "createdBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updatedBy",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "syncAt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "recipes"
     },
     {
       "type": "serial",
@@ -2653,7 +3262,7 @@
           "opclass": null
         },
         {
-          "value": "uom",
+          "value": "uomId",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -2786,6 +3395,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "baseUomId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "materials_base_uom_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "materials"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "name",
           "isExpression": false,
           "asc": true,
@@ -2802,6 +3432,160 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "product_categories"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "provider",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "externalId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_ext_map_provider_ext_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "provider",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "productId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "variantId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_ext_map_provider_product_variant_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "productId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_ext_map_product_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "provider",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_ext_map_provider_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "productId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "salesTypeId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_prices_product_sales_type_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "salesTypeId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_prices_sales_type_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_prices"
     },
     {
       "nameExplicit": true,
@@ -2827,6 +3611,34 @@
       "method": "btree",
       "concurrently": false,
       "name": "product_variants_product_name_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "product_variants"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "productId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "sku",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"sku\" IS NOT NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "product_variants_sku_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "product_variants"
@@ -2928,6 +3740,97 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "products"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "products_status_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "products"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipeId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "materialId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "recipe_items_recipe_material_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "materialId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"materialId\" IS NOT NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "recipes_material_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "productVariantId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"productVariantId\" IS NOT NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "recipes_product_variant_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "recipes"
     },
     {
       "nameExplicit": true,
@@ -3460,6 +4363,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "uomId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "uoms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "material_conversions_uomId_uoms_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "material_conversions"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "materialId"
       ],
       "schemaTo": "public",
@@ -3511,6 +4431,91 @@
     {
       "nameExplicit": false,
       "columns": [
+        "baseUomId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "uoms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "materials_baseUomId_uoms_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "materials"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "productId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "products",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "product_external_mappings_productId_products_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "variantId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "product_variants",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "product_external_mappings_variantId_product_variants_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "product_external_mappings"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "productId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "products",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "product_prices_productId_products_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "salesTypeId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "sales_types",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "product_prices_salesTypeId_sales_types_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "product_prices"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "productId"
       ],
       "schemaTo": "public",
@@ -3558,6 +4563,91 @@
       "entityType": "fks",
       "schema": "public",
       "table": "products"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "recipeId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "recipe_items_recipeId_recipes_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materialId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "materials",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "recipe_items_materialId_materials_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "uomId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "uoms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "recipe_items_uomId_uoms_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materialId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "materials",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "recipes_materialId_materials_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "recipes"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "productVariantId"
+      ],
+      "schemaTo": "public",
+      "tableTo": "product_variants",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "recipes_productVariantId_product_variants_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "recipes"
     },
     {
       "nameExplicit": false,
@@ -3811,6 +4901,26 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "product_external_mappings_pkey",
+      "schema": "public",
+      "table": "product_external_mappings",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "product_prices_pkey",
+      "schema": "public",
+      "table": "product_prices",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "product_variants_pkey",
       "schema": "public",
       "table": "product_variants",
@@ -3824,6 +4934,26 @@
       "name": "products_pkey",
       "schema": "public",
       "table": "products",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "recipe_items_pkey",
+      "schema": "public",
+      "table": "recipe_items",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "recipes_pkey",
+      "schema": "public",
+      "table": "recipes",
       "entityType": "pks"
     },
     {
@@ -3915,6 +5045,13 @@
       "schema": "public",
       "table": "variant_prices",
       "entityType": "pks"
+    },
+    {
+      "value": "num_nonnulls(\"materialId\", \"productVariantId\") = 1",
+      "name": "recipe_target_chk",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "recipes"
     }
   ],
   "renames": []

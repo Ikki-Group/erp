@@ -14,7 +14,10 @@ import { initInventoryRouteModule, InventoryServiceModule } from '@/modules/inve
 import { initLocationRouteModule, LocationServiceModule } from '@/modules/location'
 import { initMaterialsRouteModule, MaterialServiceModule } from '@/modules/materials'
 import { initProductRouteModule, ProductServiceModule } from '@/modules/product'
+import { initRecipeRouteModule, RecipeServiceModule } from '@/modules/recipe'
 import { initToolRouteModule, ToolServiceModule } from '@/modules/tool'
+
+import { env } from './config/env'
 
 // Services
 const locationService = new LocationServiceModule()
@@ -23,7 +26,8 @@ const dashboardService = new DashboardServiceModule(iamService, locationService)
 const materialService = new MaterialServiceModule(locationService)
 const inventoryService = new InventoryServiceModule(materialService)
 const productService = new ProductServiceModule()
-const toolService = new ToolServiceModule(iamService, locationService, productService)
+const recipeService = new RecipeServiceModule()
+const toolService = new ToolServiceModule(iamService, locationService, productService, materialService)
 
 // Routes
 const locationsRoute = initLocationRouteModule(locationService)
@@ -33,6 +37,11 @@ const toolRoute = initToolRouteModule(toolService)
 const materialsRoute = initMaterialsRouteModule(materialService)
 const inventoryRoute = initInventoryRouteModule(inventoryService)
 const productRoute = initProductRouteModule(productService)
+const recipeRoute = initRecipeRouteModule(recipeService)
+
+if (env.NODE_ENV === 'development' && Bun.env.ENABLE_SEED === 'true') {
+  await toolService.seed.seed()
+}
 
 export const app = new Elysia({
   name: 'App',
@@ -77,6 +86,7 @@ export const app = new Elysia({
   .use(materialsRoute)
   .use(inventoryRoute)
   .use(productRoute)
+  .use(recipeRoute)
 // Must be last
 // .get('/', () => redirect('/openapi'), {
 //   detail: { hide: true },

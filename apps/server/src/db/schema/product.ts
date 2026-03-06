@@ -1,4 +1,5 @@
-import { boolean, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { boolean, index, integer, jsonb, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk, productStatusEnum } from './_helpers'
 import { locations } from './location'
@@ -32,8 +33,16 @@ export const productCategories = pgTable(
 )
 
 // ─── Products ─────────────────────────────────────────────────────────────────
-// A product belongs to exactly one outlet (location).
-// Must always have at least one variant (enforced at application layer).
+// Core product entity. A product belongs to exactly one outlet (location).
+//
+// Pricing resolution (determined by hasVariants × hasSalesTypePricing):
+//
+//  hasVariants │ hasSalesTypePricing │ Price source
+//  ──────────────┼──────────────────────┼──────────────────────────────────────
+//  false       │ false                │ products.basePrice
+//  false       │ true                 │ product_prices → products.basePrice
+//  true        │ false                │ product_variants.basePrice
+//  true        │ true                 │ variant_prices → variants.basePrice → products.basePrice
 
 export const products = pgTable(
   'products',
@@ -47,8 +56,17 @@ export const products = pgTable(
       .references(() => locations.id, { onDelete: 'restrict' }),
     categoryId: integer().references(() => productCategories.id, { onDelete: 'set null' }),
     status: productStatusEnum().notNull().default('active'),
-    // Fallback price when a sales-type-specific price is missing
+
+    // ── Feature Flags ──────────────────────────────────────────────────
+    // Whether this product uses variants (sizes, flavors, etc.)
+    hasVariants: boolean().notNull().default(false),
+    // Whether per-sales-type pricing is enabled
+    hasSalesTypePricing: boolean().notNull().default(false),
+
+    // ── Pricing ────────────────────────────────────────────────────────
+    // Ultimate fallback price, always present.
     basePrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+
     ...metadata,
   },
   (t) => [
@@ -59,13 +77,38 @@ export const products = pgTable(
     // Standalone indexes for reverse lookups
     index('products_location_idx').on(t.locationId),
     index('products_category_idx').on(t.categoryId),
+    index('products_status_idx').on(t.status),
+  ]
+)
+
+// ─── Product Prices ───────────────────────────────────────────────────────────
+// Product-level per-sales-type pricing.
+// Used when hasVariants = false AND hasSalesTypePricing = true.
+// Falls back to products.basePrice if no row exists for a given sales type.
+
+export const productPrices = pgTable(
+  'product_prices',
+  {
+    ...pk,
+    productId: integer()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    salesTypeId: integer()
+      .notNull()
+      .references(() => salesTypes.id, { onDelete: 'restrict' }),
+    price: numeric({ precision: 18, scale: 4 }).notNull(),
+    ...metadata,
+  },
+  (t) => [
+    // One price per product per sales type
+    uniqueIndex('product_prices_product_sales_type_idx').on(t.productId, t.salesTypeId),
+    index('product_prices_sales_type_idx').on(t.salesTypeId),
   ]
 )
 
 // ─── Product Variants ─────────────────────────────────────────────────────────
-// Every product has ≥1 variant. If product is created without variants,
-// the service layer creates a default variant (isDefault = true).
-// "At least one variant" is enforced at the application layer.
+// Only relevant when products.hasVariants = true.
+// Each variant can have its own SKU and base price.
 
 export const productVariants = pgTable(
   'product_variants',
@@ -75,19 +118,26 @@ export const productVariants = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     name: text().notNull(),
+    sku: text(),
     isDefault: boolean().notNull().default(false),
+    // Variant's own base price — used when hasSalesTypePricing = false
+    basePrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
     ...metadata,
   },
   (t) => [
     // One variant name per product
     uniqueIndex('product_variants_product_name_idx').on(t.productId, t.name),
+    // Variant SKU uniqueness scoped per product (partial — only where sku is not null)
+    uniqueIndex('product_variants_sku_idx')
+      .on(t.productId, t.sku)
+      .where(sql`${t.sku} IS NOT NULL`),
   ]
 )
 
 // ─── Variant Prices ───────────────────────────────────────────────────────────
-// Fully normalized pricing: one row per variant × sales type.
-// No JSON fields. Price existence for every salesType is enforced at the
-// application layer.
+// Variant-level per-sales-type pricing.
+// Used when hasVariants = true AND hasSalesTypePricing = true.
+// Falls back to variant.basePrice → product.basePrice.
 
 export const variantPrices = pgTable(
   'variant_prices',
@@ -105,7 +155,39 @@ export const variantPrices = pgTable(
   (t) => [
     // One price per variant per sales type
     uniqueIndex('variant_prices_variant_sales_type_idx').on(t.variantId, t.salesTypeId),
-    // Reverse lookup: all prices for a given sales type
     index('variant_prices_sales_type_idx').on(t.salesTypeId),
+  ]
+)
+
+// ─── Product External Mappings ────────────────────────────────────────────────
+// Generic mapping table for external POS/marketplace integrations (Moka, GrabFood, etc.).
+// Links an external entity to either a product or a specific variant.
+// productId is always set; variantId is set only for variant-level mappings.
+
+export const productExternalMappings = pgTable(
+  'product_external_mappings',
+  {
+    ...pk,
+    productId: integer()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    variantId: integer().references(() => productVariants.id, { onDelete: 'cascade' }),
+    // Integration provider key (e.g., 'moka', 'grabfood', 'shopeefood')
+    provider: text().notNull(),
+    // The ID of this item in the external system
+    externalId: text().notNull(),
+    // Optional raw data snapshot from the external system (for debugging/audit)
+    externalData: jsonb(),
+    // Last time this mapping was synced
+    lastSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
+    ...metadata,
+  },
+  (t) => [
+    // Each external entity maps to exactly one internal entity
+    uniqueIndex('product_ext_map_provider_ext_id_idx').on(t.provider, t.externalId),
+    // Each internal product/variant has at most one mapping per provider
+    uniqueIndex('product_ext_map_provider_product_variant_idx').on(t.provider, t.productId, t.variantId),
+    index('product_ext_map_product_idx').on(t.productId),
+    index('product_ext_map_provider_idx').on(t.provider),
   ]
 )

@@ -1,4 +1,5 @@
 import z from 'zod'
+import { UomDto } from './uom.dto'
 import { zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -32,7 +33,8 @@ export const MaterialLocationStockDto = z.object({
   locationId: zPrimitive.id,
   materialName: zPrimitive.str,
   materialSku: zPrimitive.str,
-  baseUom: zPrimitive.str,
+  baseUomId: zPrimitive.id,
+  uom: UomDto.nullable(),
   minStock: zPrimitive.num,
   maxStock: zPrimitive.num.nullable(),
   reorderPoint: zPrimitive.num,
@@ -45,9 +47,9 @@ export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-/** Assign materials to a location (batch) */
+/** Assign materials to locations (batch) */
 export const MaterialLocationAssignDto = z.object({
-  locationId: zPrimitive.id,
+  locationIds: zPrimitive.id.array().min(1),
   materialIds: zPrimitive.id.array().min(1),
 })
 

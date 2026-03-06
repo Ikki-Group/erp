@@ -1,6 +1,7 @@
 import z from 'zod'
 import { MaterialCategoryDto } from './material-category.dto'
-import { zPrimitive, zSchema } from '@/lib/zod'
+import { UomDto } from './uom.dto'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -9,10 +10,12 @@ export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-const MaterialConversionDto = z.object({
-  uom: zPrimitive.str,
-  factor: zPrimitive.str,
+export const MaterialConversionDto = z.object({
+  toBaseFactor: zPrimitive.str,
+  uomId: zPrimitive.id,
 })
+
+export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 export const MaterialDto = z.object({
   id: zPrimitive.id,
@@ -21,10 +24,11 @@ export const MaterialDto = z.object({
   sku: zPrimitive.str,
   type: MaterialType,
   categoryId: zPrimitive.id.nullable(),
-  baseUom: zPrimitive.str,
+  baseUomId: zPrimitive.id,
+
   locationIds: zPrimitive.id.array(),
-  conversions: z.array(MaterialConversionDto),
-  ...zSchema.meta.shape,
+  conversions: MaterialConversionDto.array(),
+  ...zSchema.metadata.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>
@@ -34,9 +38,22 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
   category: MaterialCategoryDto.nullable(),
+  uom: UomDto.nullable(),
 })
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
+
+/* --------------------------------- FILTER --------------------------------- */
+
+export const MaterialFilterDto = z.object({
+  search: zHttp.query.search,
+  type: MaterialType.optional(),
+  categoryId: zHttp.query.id.optional(),
+  locationIds: zHttp.query.ids,
+  excludeLocationIds: zHttp.query.ids,
+})
+
+export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
@@ -47,7 +64,7 @@ export const MaterialMutationDto = z.object({
     sku: true,
     type: true,
     categoryId: true,
-    baseUom: true,
+    baseUomId: true,
     conversions: true,
   }).shape,
 })

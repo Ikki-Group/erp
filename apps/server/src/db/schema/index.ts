@@ -6,7 +6,16 @@ import { roles, sessions, userAssignments, users } from './iam'
 import { stockSummaries, stockTransactions } from './inventory'
 import { locations } from './location'
 import { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
-import { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+import {
+  productCategories,
+  productExternalMappings,
+  productPrices,
+  products,
+  productVariants,
+  salesTypes,
+  variantPrices,
+} from './product'
+import { recipeItems, recipes } from './recipe'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -15,7 +24,16 @@ export { roles, sessions, userAssignments, users } from './iam'
 export { stockSummaries, stockTransactions } from './inventory'
 export { locations } from './location'
 export { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
-export { productCategories, products, productVariants, salesTypes, variantPrices } from './product'
+export {
+  productCategories,
+  productExternalMappings,
+  productPrices,
+  products,
+  productVariants,
+  salesTypes,
+  variantPrices,
+} from './product'
+export { recipeItems, recipes } from './recipe'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)
@@ -43,8 +61,12 @@ export const relations = defineRelations(
     salesTypes,
     productCategories,
     products,
+    productPrices,
     productVariants,
     variantPrices,
+    productExternalMappings,
+    recipes,
+    recipeItems,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -107,6 +129,8 @@ export const relations = defineRelations(
       materialLocations: r.many.materialLocations(),
       stockTransactions: r.many.stockTransactions(),
       stockSummaries: r.many.stockSummaries(),
+      recipe: r.many.recipes(),
+      recipeItems: r.many.recipeItems(),
     },
 
     materialConversions: {
@@ -161,6 +185,7 @@ export const relations = defineRelations(
 
     salesTypes: {
       variantPrices: r.many.variantPrices(),
+      productPrices: r.many.productPrices(),
     },
 
     productCategories: {
@@ -177,6 +202,20 @@ export const relations = defineRelations(
         to: r.productCategories.id,
       }),
       variants: r.many.productVariants(),
+      prices: r.many.productPrices(),
+      externalMappings: r.many.productExternalMappings(),
+      recipe: r.many.recipes(),
+    },
+
+    productPrices: {
+      product: r.one.products({
+        from: r.productPrices.productId,
+        to: r.products.id,
+      }),
+      salesType: r.one.salesTypes({
+        from: r.productPrices.salesTypeId,
+        to: r.salesTypes.id,
+      }),
     },
 
     productVariants: {
@@ -185,6 +224,8 @@ export const relations = defineRelations(
         to: r.products.id,
       }),
       prices: r.many.variantPrices(),
+      recipe: r.many.recipes(),
+      externalMappings: r.many.productExternalMappings(),
     },
 
     variantPrices: {
@@ -195,6 +236,50 @@ export const relations = defineRelations(
       salesType: r.one.salesTypes({
         from: r.variantPrices.salesTypeId,
         to: r.salesTypes.id,
+      }),
+    },
+
+    productExternalMappings: {
+      product: r.one.products({
+        from: r.productExternalMappings.productId,
+        to: r.products.id,
+      }),
+      variant: r.one.productVariants({
+        from: r.productExternalMappings.variantId,
+        to: r.productVariants.id,
+      }),
+    },
+
+    // ─── Recipe ───────────────────────────────────────────────────────
+
+    recipes: {
+      material: r.one.materials({
+        from: r.recipes.materialId,
+        to: r.materials.id,
+      }),
+      product: r.one.products({
+        from: r.recipes.productId,
+        to: r.products.id,
+      }),
+      productVariant: r.one.productVariants({
+        from: r.recipes.productVariantId,
+        to: r.productVariants.id,
+      }),
+      items: r.many.recipeItems(),
+    },
+
+    recipeItems: {
+      recipe: r.one.recipes({
+        from: r.recipeItems.recipeId,
+        to: r.recipes.id,
+      }),
+      material: r.one.materials({
+        from: r.recipeItems.materialId,
+        to: r.materials.id,
+      }),
+      uom: r.one.uoms({
+        from: r.recipeItems.uomId,
+        to: r.uoms.id,
       }),
     },
   })

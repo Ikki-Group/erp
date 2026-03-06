@@ -68,12 +68,17 @@ export const MaterialLocationAssignDialog =
       })
     }
 
+    /**
+     * Send the selected material IDs to be assigned to the dialog's location, show a toast for progress/result, and close the dialog on completion.
+     *
+     * If no materials are selected the function returns immediately.
+     */
     async function handleAssign() {
       if (selected.length === 0) return
 
       const promise = assignMutation.mutateAsync({
         body: {
-          locationId,
+          locationIds: [locationId],
           materialIds: selected,
         },
       })

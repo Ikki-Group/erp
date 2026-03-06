@@ -1,5 +1,6 @@
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
+import type { MaterialServiceModule } from '@/modules/materials'
 import type { ProductServiceModule } from '@/modules/product'
 
 import { SeedService } from './seed.service'
@@ -7,7 +8,12 @@ import { SeedService } from './seed.service'
 export class ToolServiceModule {
   public readonly seed: SeedService
 
-  constructor(iamSvc: IamServiceModule, locationSvc: LocationServiceModule, productSvc: ProductServiceModule) {
-    this.seed = new SeedService(iamSvc, locationSvc, productSvc)
+  constructor(
+    iamSvc: IamServiceModule,
+    locationSvc: LocationServiceModule,
+    productSvc: ProductServiceModule,
+    materialSvc: MaterialServiceModule
+  ) {
+    this.seed = new SeedService(iamSvc, locationSvc, productSvc, materialSvc)
   }
 }
