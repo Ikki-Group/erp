@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @eslint-react/no-array-index-key */
+/* eslint-disable no-shadow */
 import { Fragment } from 'react'
 import { flexRender } from '@tanstack/react-table'
 import { cva } from 'class-variance-authority'
@@ -458,7 +461,7 @@ function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
     <>
       <div
         className={cn(
-          'bg-primary absolute start-0 top-0 bottom-0 hidden w-0.5',
+          'bg-primary absolute inset-s-0 top-0 bottom-0 hidden w-0.5',
           row.getIsSelected() && 'block'
         )}
       ></div>

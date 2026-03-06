@@ -29,7 +29,6 @@ import { Route as AppMaterialsIdRouteImport } from './routes/_app/materials/$id'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
-import { Route as AppExamplesTableIndexRouteImport } from './routes/_app/examples/table/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
 import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
 import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
@@ -147,11 +146,6 @@ const AppExamplesFormComponentsRoute =
 const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
   id: '/examples/data-table',
   path: '/examples/data-table',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesTableIndexRoute = AppExamplesTableIndexRouteImport.update({
-  id: '/examples/table/',
-  path: '/examples/table/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppExamplesSearchIndexRoute = AppExamplesSearchIndexRouteImport.update({
@@ -293,7 +287,6 @@ export interface FileRoutesByFullPath {
   '/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
   '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search/': typeof AppExamplesSearchIndexRoute
-  '/examples/table/': typeof AppExamplesTableIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
@@ -333,7 +326,6 @@ export interface FileRoutesByTo {
   '/examples/layouts': typeof AppExamplesLayoutsIndexRoute
   '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search': typeof AppExamplesSearchIndexRoute
-  '/examples/table': typeof AppExamplesTableIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -376,7 +368,6 @@ export interface FileRoutesById {
   '/_app/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
   '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
-  '/_app/examples/table/': typeof AppExamplesTableIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -418,7 +409,6 @@ export interface FileRouteTypes {
     | '/examples/layouts/'
     | '/examples/page-layouts/'
     | '/examples/search/'
-    | '/examples/table/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -458,7 +448,6 @@ export interface FileRouteTypes {
     | '/examples/layouts'
     | '/examples/page-layouts'
     | '/examples/search'
-    | '/examples/table'
   id:
     | '__root__'
     | '/_app'
@@ -500,7 +489,6 @@ export interface FileRouteTypes {
     | '/_app/examples/layouts/'
     | '/_app/examples/page-layouts/'
     | '/_app/examples/search/'
-    | '/_app/examples/table/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -648,13 +636,6 @@ declare module '@tanstack/react-router' {
       path: '/examples/data-table'
       fullPath: '/examples/data-table'
       preLoaderRoute: typeof AppExamplesDataTableRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/table/': {
-      id: '/_app/examples/table/'
-      path: '/examples/table'
-      fullPath: '/examples/table/'
-      preLoaderRoute: typeof AppExamplesTableIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/examples/search/': {
@@ -843,7 +824,6 @@ interface AppRouteRouteChildren {
   AppExamplesLayoutsIndexRoute: typeof AppExamplesLayoutsIndexRoute
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
   AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
-  AppExamplesTableIndexRoute: typeof AppExamplesTableIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -880,7 +860,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesLayoutsIndexRoute: AppExamplesLayoutsIndexRoute,
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
   AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
-  AppExamplesTableIndexRoute: AppExamplesTableIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

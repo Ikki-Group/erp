@@ -75,9 +75,12 @@ const columns = [
   }),
   ch.accessor('variants', {
     header: 'Varian',
-    cell: ({ row }) => (
-      <span className='text-sm'>{row.original.variants.length} Varian</span>
-    ),
+    cell: ({ row }) =>
+      row.original.hasVariants ? (
+        <span className='text-sm'>{row.original.variants.length} Varian</span>
+      ) : (
+        <span className='text-xs text-muted-foreground'>-</span>
+      ),
     size: 100,
   }),
   ch.accessor('createdAt', {

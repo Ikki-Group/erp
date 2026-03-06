@@ -3,8 +3,6 @@ import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
-  InfoIcon,
-  LayersIcon,
   PackageIcon,
   PlusIcon,
   StarIcon,
@@ -29,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -49,26 +48,40 @@ const FormDto = z.object({
   locationId: z.number(),
   categoryId: z.string().nullable(),
   status: z.enum(['active', 'inactive', 'archived']),
-  variants: z.array(
-    z.object({
-      _id: z.string(),
-      id: z.number().optional(),
-      name: z.string().min(1, 'Nama varian wajib diisi'),
-      isDefault: z.boolean(),
-      prices: z.array(
-        z.object({
-          salesTypeId: z.number(),
-          price: z.number().min(0),
-        })
-      ),
-    })
-  ),
+  hasVariants: z.boolean().default(false),
+  hasSalesTypePricing: z.boolean().default(false),
+  prices: z
+    .array(
+      z.object({
+        salesTypeId: z.number(),
+        price: z.number().min(0),
+      })
+    )
+    .default([]),
+  variants: z
+    .array(
+      z.object({
+        _id: z.string(),
+        id: z.number().optional(),
+        name: z.string().min(1, 'Nama varian wajib diisi'),
+        sku: z.string().optional(),
+        basePrice: z.number().min(0).default(0),
+        isDefault: z.boolean(),
+        prices: z.array(
+          z.object({
+            salesTypeId: z.number(),
+            price: z.number().min(0),
+          })
+        ),
+      })
+    )
+    .default([]),
 })
 
 type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: FormDto },
+  validators: { onSubmit: FormDto as any },
   defaultValues: {} as FormDto,
 })
 
@@ -81,23 +94,26 @@ function getDefaultValues(v?: ProductSelectDto): FormDto {
     locationId: v?.locationId ?? 1,
     categoryId: v?.categoryId != null ? String(v.categoryId) : null,
     status: v?.status ?? 'active',
-    variants: v?.variants.map(varnt => ({
-      _id: String(varnt.id),
-      id: varnt.id,
-      name: varnt.name,
-      isDefault: varnt.isDefault,
-      prices: varnt.prices.map(p => ({
+    hasVariants: v?.hasVariants ?? false,
+    hasSalesTypePricing: v?.hasSalesTypePricing ?? false,
+    prices:
+      v?.prices.map(p => ({
         salesTypeId: p.salesTypeId,
         price: Number(p.price),
-      })),
-    })) ?? [
-      {
-        _id: 'default',
-        name: 'Default',
-        isDefault: true,
-        prices: [],
-      },
-    ],
+      })) ?? [],
+    variants:
+      v?.variants.map(varnt => ({
+        _id: String(varnt.id),
+        id: varnt.id,
+        name: varnt.name,
+        sku: varnt.sku ?? undefined,
+        basePrice: Number(varnt.basePrice),
+        isDefault: varnt.isDefault,
+        prices: varnt.prices.map(p => ({
+          salesTypeId: p.salesTypeId,
+          price: Number(p.price),
+        })),
+      })) ?? [],
   }
 }
 
@@ -114,10 +130,8 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
     enabled: !!id,
   })
 
-  // State to manage whether advanced pricing is active
   const [isAdvancedPricing, setIsAdvancedPricing] = useState(false)
 
-  // Use useMemo to sync state with loaded data once
   useMemo(() => {
     if (selectedProduct.data?.data) {
       const hasPrices = selectedProduct.data.data.variants.some(
@@ -138,13 +152,23 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
         ...value,
         basePrice: String(value.basePrice),
         categoryId: value.categoryId ? Number(value.categoryId) : null,
-        variants: value.variants.map(({ _id, id: _vId, prices, ...v }) => ({
-          ...v,
-          // If advanced pricing is off, we clear specific prices
-          prices: isAdvancedPricing
-            ? prices.map(p => ({ ...p, price: String(p.price) }))
+        hasVariants: value.hasVariants,
+        hasSalesTypePricing: value.hasSalesTypePricing,
+        prices:
+          value.hasSalesTypePricing && !value.hasVariants
+            ? value.prices.map(p => ({ ...p, price: String(p.price) }))
             : [],
-        })),
+        variants: value.hasVariants
+          ? value.variants.map(
+              ({ _id, id: _vId, prices, basePrice, ...v }) => ({
+                ...v,
+                basePrice: String(basePrice),
+                prices: value.hasSalesTypePricing
+                  ? prices.map(p => ({ ...p, price: String(p.price) }))
+                  : [],
+              })
+            )
+          : [],
       }
 
       const promise = id
@@ -164,28 +188,19 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
   return (
     <form.AppForm>
       <FormConfig mode={mode} id={id} backTo={backTo}>
-        <Page size='lg'>
+        <Page size='md'>
           <Page.BlockHeader
             title={mode === 'create' ? 'Tambah Produk' : 'Edit Produk'}
-            description='Kelola data produk, varian, dan harga dalam satu interface terpadu.'
             back={backTo ?? { to: '/products' }}
           />
           <form.Form>
-            <Page.Content className='grid grid-cols-1 lg:grid-cols-12 gap-6'>
-              {/* Main Column */}
-              <div className='lg:col-span-8 flex flex-col gap-6'>
-                <MainInfoCard />
-                <VariantsTableCard
-                  isAdvancedPricing={isAdvancedPricing}
-                  onToggleAdvancedPricing={setIsAdvancedPricing}
-                />
-              </div>
-
-              {/* Sidebar */}
-              <div className='lg:col-span-4 flex flex-col gap-6'>
-                <SidebarCard />
-                <form.SimpleActions />
-              </div>
+            <Page.Content className='flex flex-col gap-6'>
+              <ProductInfoCard />
+              <VariantsSection
+                isAdvancedPricing={isAdvancedPricing}
+                onToggleAdvancedPricing={setIsAdvancedPricing}
+              />
+              <form.SimpleActions />
             </Page.Content>
           </form.Form>
         </Page>
@@ -194,11 +209,21 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
   )
 }
 
-function MainInfoCard() {
+function ProductInfoCard() {
   const form = useTypedAppContext()
+  const { data: categories } = useSuspenseQuery({
+    ...productCategoryApi.list.query({ page: 1, limit: 100 }),
+    select: ({ data }) =>
+      toOptions(
+        data,
+        i => String(i.id),
+        i => i.name
+      ),
+  })
+
   return (
-    <CardSection title='Informasi Utama'>
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
+    <CardSection title='Informasi Produk'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
         <form.AppField name='name'>
           {field => (
             <field.Base label='Nama Produk' required className='md:col-span-2'>
@@ -232,32 +257,21 @@ function MainInfoCard() {
       <form.AppField name='description'>
         {field => (
           <field.Base label='Deskripsi'>
-            <field.Textarea
-              placeholder='Tuliskan deskripsi produk...'
-              className='min-h-[100px]'
-            />
+            <field.Textarea placeholder='Tuliskan deskripsi produk...' />
           </field.Base>
         )}
       </form.AppField>
-    </CardSection>
-  )
-}
 
-function SidebarCard() {
-  const form = useTypedAppContext()
-  const { data: categories } = useSuspenseQuery({
-    ...productCategoryApi.list.query({ page: 1, limit: 100 }),
-    select: ({ data }) =>
-      toOptions(
-        data,
-        i => String(i.id),
-        i => i.name
-      ),
-  })
+      <Separator />
 
-  return (
-    <div className='flex flex-col gap-6 text-sm'>
-      <CardSection title='Atribut Produk'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        <form.AppField name='categoryId'>
+          {field => (
+            <field.Base label='Kategori'>
+              <field.Select placeholder='Pilih kategori' options={categories} />
+            </field.Base>
+          )}
+        </form.AppField>
         <form.AppField name='status'>
           {field => (
             <field.Base label='Status' required>
@@ -272,19 +286,10 @@ function SidebarCard() {
             </field.Base>
           )}
         </form.AppField>
-
-        <form.AppField name='categoryId'>
-          {field => (
-            <field.Base label='Kategori'>
-              <field.Select placeholder='Pilih kategori' options={categories} />
-            </field.Base>
-          )}
-        </form.AppField>
-
         <form.AppField name='basePrice'>
           {field => (
             <field.Base
-              label='Harga Dasar (Fallback)'
+              label='Harga Dasar'
               required
               description='Harga default jika harga khusus tidak diaktifkan.'
             >
@@ -292,23 +297,12 @@ function SidebarCard() {
             </field.Base>
           )}
         </form.AppField>
-      </CardSection>
-
-      <Card className='bg-primary/5 border-primary/20'>
-        <Card.Content className='p-4 flex gap-3'>
-          <InfoIcon className='size-5 text-primary shrink-0' />
-          <p className='text-xs leading-relaxed'>
-            <strong>Tips:</strong> Gunakan tabel varian untuk mengelola
-            perbedaan tipe produk (misal: Ukuran S/M/L). Aktifkan "Harga Khusus"
-            jika ingin membedakan harga Gofood/Takeaway.
-          </p>
-        </Card.Content>
-      </Card>
-    </div>
+      </div>
+    </CardSection>
   )
 }
 
-function VariantsTableCard({
+function VariantsSection({
   isAdvancedPricing,
   onToggleAdvancedPricing,
 }: {
@@ -321,21 +315,172 @@ function VariantsTableCard({
   })
 
   return (
-    <Card className='overflow-hidden shadow-sm border-muted-foreground/10'>
-      <Card.Header className='bg-muted/30 px-6 py-4 border-b flex flex-row items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <div className='bg-background p-2 rounded-lg border shadow-xs'>
-            <LayersIcon className='size-4 text-primary' />
-          </div>
-          <div>
-            <Card.Title className='text-base'>Manajemen Varian</Card.Title>
-            <Card.Description className='text-xs'>
-              Kelola variasi dan matriks harga produk.
-            </Card.Description>
+    <Card size='sm'>
+      <Card.Header className='border-b'>
+        <Card.Title>Manajemen Varian</Card.Title>
+        <Card.Description>
+          Kelola variasi dan matriks harga produk.
+        </Card.Description>
+      </Card.Header>
+
+      <Card.Content className='flex flex-col gap-4'>
+        <div className='border rounded-md overflow-hidden'>
+          <div className='overflow-x-auto'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow className='hover:bg-transparent'>
+                  <TableHead className='w-[60px] text-center'>Def.</TableHead>
+                  <TableHead className='min-w-[200px]'>Nama Varian</TableHead>
+                  {isAdvancedPricing ? (
+                    salesTypes.data.map(st => (
+                      <TableHead
+                        key={st.id}
+                        className='min-w-[140px] text-right'
+                      >
+                        {st.name}
+                      </TableHead>
+                    ))
+                  ) : (
+                    <TableHead className='text-right'>
+                      Informasi Harga
+                    </TableHead>
+                  )}
+                  <TableHead className='w-[50px]'></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <form.AppField name='variants' mode='array'>
+                  {arrayField => {
+                    if (arrayField.state.value.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell
+                            colSpan={
+                              isAdvancedPricing ? 3 + salesTypes.data.length : 4
+                            }
+                            className='h-32 text-center text-muted-foreground'
+                          >
+                            <div className='flex flex-col items-center gap-2'>
+                              <PackageIcon className='size-8 opacity-20' />
+                              <span className='text-xs'>
+                                Belum ada varian. Klik "Tambah Varian" untuk
+                                memulai.
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }
+
+                    return arrayField.state.value.map((variant, i) => (
+                      <TableRow
+                        key={variant._id}
+                        className={cn(variant.isDefault && 'bg-primary/5')}
+                      >
+                        <TableCell className='text-center'>
+                          <button
+                            type='button'
+                            onClick={() => {
+                              arrayField.state.value.forEach((_, idx) => {
+                                form.setFieldValue(
+                                  `variants[${idx}].isDefault`,
+                                  false
+                                )
+                              })
+                              form.setFieldValue(
+                                `variants[${i}].isDefault`,
+                                true
+                              )
+                            }}
+                            className={cn(
+                              'size-8 rounded-full flex items-center justify-center transition-all border outline-none',
+                              variant.isDefault
+                                ? 'bg-orange-500 border-orange-600 text-white shadow-sm'
+                                : 'bg-background border-muted text-muted-foreground hover:border-primary/50'
+                            )}
+                          >
+                            <StarIcon
+                              className={cn(
+                                'size-4',
+                                variant.isDefault && 'fill-current'
+                              )}
+                            />
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <form.AppField name={`variants[${i}].name`}>
+                            {field => (
+                              <input
+                                value={field.state.value}
+                                onChange={e =>
+                                  field.handleChange(e.target.value)
+                                }
+                                placeholder='Nama varian (e.g. Regular)'
+                                className='w-full bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-muted-foreground/50 outline-none'
+                              />
+                            )}
+                          </form.AppField>
+                        </TableCell>
+
+                        {isAdvancedPricing ? (
+                          salesTypes.data.map(st => (
+                            <TableCell key={st.id} className='text-right'>
+                              <VariantPriceCell
+                                variantIndex={i}
+                                salesTypeId={st.id}
+                              />
+                            </TableCell>
+                          ))
+                        ) : (
+                          <TableCell className='text-right'>
+                            <span className='text-xs text-muted-foreground italic'>
+                              Mengikuti Harga Dasar
+                            </span>
+                          </TableCell>
+                        )}
+
+                        <TableCell>
+                          {arrayField.state.value.length > 1 && (
+                            <Button
+                              variant='ghost'
+                              size='icon-sm'
+                              className='text-muted-foreground hover:text-destructive'
+                              onClick={() => arrayField.removeValue(i)}
+                            >
+                              <Trash2Icon className='size-4' />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  }}
+                </form.AppField>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
-        <div className='flex items-center gap-6'>
+        <div className='flex items-center justify-between'>
+          <Button
+            variant='outline'
+            size='sm'
+            type='button'
+            className='w-fit'
+            onClick={() => {
+              const currentVariants = form.getFieldValue('variants')
+              form.pushFieldValue('variants', {
+                _id: `new-${Date.now()}`,
+                name: '',
+                basePrice: 0,
+                isDefault: currentVariants.length === 0,
+                prices: [],
+              })
+            }}
+          >
+            <PlusIcon className='mr-2 size-4' />
+            Tambah Varian
+          </Button>
+
           <div className='flex items-center gap-2'>
             <Switch
               id='advanced-pricing'
@@ -349,149 +494,6 @@ function VariantsTableCard({
               Harga Khusus Penjualan
             </Label>
           </div>
-          <Button
-            size='sm'
-            type='button'
-            className='h-8 px-3'
-            onClick={() => {
-              const currentVariants = form.getFieldValue('variants')
-              form.pushFieldValue('variants', {
-                _id: `new-${Date.now()}`,
-                name: '',
-                isDefault: currentVariants.length === 0,
-                prices: [],
-              })
-            }}
-          >
-            <PlusIcon className='mr-1.5 size-3.5' />
-            Tambah Varian
-          </Button>
-        </div>
-      </Card.Header>
-
-      <Card.Content className='p-0'>
-        <div className='overflow-x-auto'>
-          <Table>
-            <TableHeader className='bg-muted/10'>
-              <TableRow className='hover:bg-transparent'>
-                <TableHead className='w-[60px] text-center'>Def.</TableHead>
-                <TableHead className='min-w-[200px]'>Nama Varian</TableHead>
-                {isAdvancedPricing ? (
-                  salesTypes.data.map(st => (
-                    <TableHead key={st.id} className='min-w-[140px] text-right'>
-                      {st.name}
-                    </TableHead>
-                  ))
-                ) : (
-                  <TableHead className='text-right'>Informasi Harga</TableHead>
-                )}
-                <TableHead className='w-[50px]'></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <form.AppField name='variants' mode='array'>
-                {arrayField => {
-                  if (arrayField.state.value.length === 0) {
-                    return (
-                      <TableRow>
-                        <TableCell
-                          colSpan={
-                            isAdvancedPricing ? 3 + salesTypes.data.length : 4
-                          }
-                          className='h-32 text-center text-muted-foreground'
-                        >
-                          <div className='flex flex-col items-center gap-2'>
-                            <PackageIcon className='size-8 opacity-20' />
-                            <span className='text-xs'>
-                              Belum ada varian. Klik "Tambah Varian" untuk
-                              memulai.
-                            </span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  }
-
-                  return arrayField.state.value.map((variant, i) => (
-                    <TableRow
-                      key={variant._id}
-                      className={cn(variant.isDefault && 'bg-primary/5')}
-                    >
-                      <TableCell className='text-center'>
-                        <button
-                          type='button'
-                          onClick={() => {
-                            arrayField.state.value.forEach((_, idx) => {
-                              form.setFieldValue(
-                                `variants[${idx}].isDefault`,
-                                false
-                              )
-                            })
-                            form.setFieldValue(`variants[${i}].isDefault`, true)
-                          }}
-                          className={cn(
-                            'size-8 rounded-full flex items-center justify-center transition-all border outline-none',
-                            variant.isDefault
-                              ? 'bg-orange-500 border-orange-600 text-white shadow-sm'
-                              : 'bg-background border-muted text-muted-foreground hover:border-primary/50'
-                          )}
-                        >
-                          <StarIcon
-                            className={cn(
-                              'size-4',
-                              variant.isDefault && 'fill-current'
-                            )}
-                          />
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <form.AppField name={`variants[${i}].name`}>
-                          {field => (
-                            <input
-                              value={field.state.value}
-                              onChange={e => field.handleChange(e.target.value)}
-                              placeholder='Nama varian (e.g. Regular)'
-                              className='w-full bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-muted-foreground/50 outline-none'
-                            />
-                          )}
-                        </form.AppField>
-                      </TableCell>
-
-                      {isAdvancedPricing ? (
-                        salesTypes.data.map(st => (
-                          <TableCell key={st.id} className='text-right'>
-                            <VariantPriceCell
-                              variantIndex={i}
-                              salesTypeId={st.id}
-                            />
-                          </TableCell>
-                        ))
-                      ) : (
-                        <TableCell className='text-right'>
-                          <span className='text-xs text-muted-foreground italic'>
-                            Mengikuti Harga Dasar
-                          </span>
-                        </TableCell>
-                      )}
-
-                      <TableCell>
-                        {arrayField.state.value.length > 1 && (
-                          <Button
-                            variant='ghost'
-                            size='icon-sm'
-                            className='text-muted-foreground hover:text-destructive'
-                            onClick={() => arrayField.removeValue(i)}
-                          >
-                            <Trash2Icon className='size-4' />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                }}
-              </form.AppField>
-            </TableBody>
-          </Table>
         </div>
       </Card.Content>
     </Card>
