@@ -63,6 +63,13 @@ export const MaterialAssignToLocationDialog =
       },
     })
 
+    /**
+     * Toggle a location's selection state unless that location is already assigned.
+     *
+     * If the given location ID is not in the current selection it will be added; if it is present it will be removed. If the location is already assigned, the selection is left unchanged.
+     *
+     * @param id - The location ID to toggle in the current selection
+     */
     function toggleSelected(id: number) {
       if (assignedIds.has(id)) return // Already assigned
       setSelected(prev =>
@@ -70,6 +77,11 @@ export const MaterialAssignToLocationDialog =
       )
     }
 
+    /**
+     * Assigns the currently selected locations to the provided materials, shows toast feedback, and closes the dialog.
+     *
+     * Performs the assignment mutation for the selected location IDs and material IDs, displays a toast promise reflecting loading, success, and error states, and then ends the modal call.
+     */
     async function handleAssign() {
       if (selected.length === 0) return
 

@@ -55,7 +55,17 @@ export function MaterialLocationEditSheet({
   )
 }
 
-/* ─────────── Config Form Component ─────────── */
+/**
+ * Renders a configuration form for a material location's stock settings.
+ *
+ * Presents current stock summary (quantity, average cost, value) and inputs for
+ * `minStock`, `maxStock`, and `reorderPoint`. Submitting the form updates the
+ * material location's configuration and closes the form.
+ *
+ * @param data - The material location stock data to display and edit.
+ * @param onClose - Callback invoked to close the form/sheet after successful submit or when canceled.
+ * @returns The JSX element containing the configuration form and controls.
+ */
 
 function ConfigForm({
   data,

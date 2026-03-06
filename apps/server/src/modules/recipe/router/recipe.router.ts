@@ -8,6 +8,12 @@ import { zResponse } from '@/lib/validation'
 import { RecipeDetailDto, RecipeUpsertDto } from '../dto'
 import type { RecipeService } from '../service'
 
+/**
+ * Create an Elysia router exposing authenticated endpoints to fetch, upsert, and delete recipes under the `/recipes` prefix.
+ *
+ * @param service - Service implementing recipe operations used by the router's handlers
+ * @returns An Elysia router configured with GET `/` (fetch by target), POST `/` (upsert recipe), and DELETE `/:id` (delete recipe) routes
+ */
 export function buildRecipeRouter(service: RecipeService) {
   return new Elysia({ prefix: '/recipes', tags: ['Recipe'], detail: { security: [{ BearerAuth: [] }] } })
     .use(authPluginMacro)

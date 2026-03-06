@@ -51,6 +51,14 @@ const fopts = formOptions({
   defaultValues: {} as FormDto,
 })
 
+/**
+ * Builds initial form values from an optional existing material selection.
+ *
+ * Copies available fields from `v` into a FormDto-shaped object; missing fields are replaced with sensible defaults (empty strings, `'raw'` type, or `null` for nullable IDs).
+ *
+ * @param v - Optional existing material data to derive default values from
+ * @returns A FormDto populated from `v` when present, otherwise containing empty/default values. Conversions are copied from `v.conversions` when available.
+ */
 function getDefaultValues(v?: MaterialSelectDto): FormDto {
   const conversions: FormDto['conversions'] = []
 
@@ -84,6 +92,13 @@ interface MaterialFormPageProps {
   backTo?: LinkOptions
 }
 
+/**
+ * Render the material creation/editing page with form fields for general information, base unit selection, unit conversions, and submission handling.
+ *
+ * The component initializes form default values (optionally from an existing material), handles create/update mutations, constructs the payload including a mandatory base-UOM conversion (1:1), displays sections for general information, base UOM, and conversions, and navigates back when submission completes if `backTo` is provided.
+ *
+ * @returns The page element containing the material form, including GeneralInformationCard, UomInformationSection, UomConversionsSection, and standard form actions.
+ */
 export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   const navigate = useNavigate()
   const selectedMaterial = useQuery({
@@ -160,6 +175,13 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   )
 }
 
+/**
+ * Render the "Informasi Bahan Baku" form section with inputs for name, SKU, description, category, and material type.
+ *
+ * The SKU field includes a button that generates a SKU from the current name. Category options are loaded from the material categories query.
+ *
+ * @returns A JSX element containing the form fields for material general information, including a SKU generator button and category/type selects.
+ */
 function GeneralInformationCard() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: categories } = useSuspenseQuery({
@@ -237,6 +259,11 @@ function GeneralInformationCard() {
   )
 }
 
+/**
+ * Render the "Satuan Dasar" form section for selecting the material's base unit of measure.
+ *
+ * @returns The JSX element for the card containing a `baseUomId` select field and its description.
+ */
 function UomInformationSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: uoms } = useSuspenseQuery({
@@ -270,6 +297,17 @@ function UomInformationSection() {
   )
 }
 
+/**
+ * Render the "Konversi Satuan" section for the material form.
+ *
+ * Displays a hint when the base unit is not selected; otherwise shows a table
+ * containing the immutable base-unit row (1 = 1) and an editable list of other
+ * conversions where each row maps 1 `uom` to a numeric `toBaseFactor`. Rows
+ * can be added or removed and values are bound to the form's `conversions`
+ * array and `baseUomId` field.
+ *
+ * @returns A JSX element containing the UOM conversions UI for the material form.
+ */
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const baseUomIdValue = useStore(form.store, s => s.values.baseUomId)
@@ -433,6 +471,13 @@ function UomConversionsSection() {
   )
 }
 
+/**
+ * Displays a centered warning card indicating the base unit of measure has not been selected.
+ *
+ * Renders a muted, bordered alert with an icon, title "Satuan Dasar Belum Dipilih", and explanatory text instructing the user to select the base unit before adding conversions.
+ *
+ * @returns The alert JSX element shown when no base UOM is set.
+ */
 function ConversionAlertBaseUomNotSet() {
   return (
     <div className='flex flex-col items-center justify-center gap-3 text-muted-foreground bg-muted/30 rounded-lg border border-dashed py-12'>

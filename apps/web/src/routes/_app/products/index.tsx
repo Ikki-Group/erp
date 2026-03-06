@@ -129,6 +129,15 @@ const columns = [
   }),
 ]
 
+/**
+ * Renders the product listing page with a searchable, filterable data table and actions.
+ *
+ * The table shows SKU, name, price, status, variant count, creation date, and edit actions.
+ * The toolbar provides search plus filters for status, external type, category, and location.
+ * Includes an action button to navigate to the product creation page.
+ *
+ * @returns The rendered product table page as a JSX element.
+ */
 function ProductTable() {
   const ds = useDataTableState<ProductFilterDto>()
 

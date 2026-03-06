@@ -30,7 +30,14 @@ export interface InputNumberProps extends Omit<
 }
 
 /**
- * Formats a number to Indonesian standard: 1.234,56
+ * Format a numeric value using Indonesian number formatting (e.g., "1.234,56").
+ *
+ * Converts string inputs by removing non-numeric characters except leading `-` and the decimal separator, then formats the resulting number. For `null`, `undefined`, empty string, or unparseable input, returns an empty string.
+ *
+ * @param value - The number or numeric string to format. Strings are sanitized before parsing.
+ * @param allowDecimal - Whether to allow fractional digits in the output.
+ * @param decimalScale - Maximum number of fraction digits to include when decimals are allowed.
+ * @returns The formatted number string in `id-ID` locale, or an empty string for absent or invalid input.
  */
 function formatNumber(
   value: number | string | null | undefined,
@@ -51,7 +58,10 @@ function formatNumber(
 }
 
 /**
- * Parses Indonesian formatted string to standard number string: "1.234,56" -> "1234.56"
+ * Convert an Indonesian-formatted numeric string (e.g., "1.234,56") into a dot-decimal numeric string ("1234.56").
+ *
+ * @param value - Numeric string using dots as thousands separators and a comma as the decimal separator
+ * @returns The normalized numeric string with thousands separators removed and the decimal comma replaced by a dot
  */
 function parseNumber(value: string): string {
   return value
@@ -59,6 +69,20 @@ function parseNumber(value: string): string {
     .replace(/,/g, '.') // Replace decimal separator
 }
 
+/**
+ * A controlled numeric text input that displays values formatted for the Indonesian locale while allowing natural in-progress typing.
+ *
+ * The component accepts a numeric `value` and emits parsed numeric values (or `null`) via `onChange`; while the field is focused it preserves the raw typed string to avoid disruptive reformatting, and when not focused it shows the localized formatted number.
+ *
+ * @param value - The current numeric value to display; use `null` for an empty field.
+ * @param onChange - Callback invoked with the parsed number or `null` when the input changes.
+ * @param allowDecimal - Whether decimals are permitted (defaults to `true`).
+ * @param decimalScale - Maximum number of decimal places allowed when typing (defaults to `2`).
+ * @param max - Optional upper bound for allowed values; used only to determine whether negative input is permitted indirectly.
+ * @param min - Optional lower bound for allowed values; used only to determine whether negative input is permitted indirectly.
+ * @param ref - Ref forwarded to the underlying input element.
+ * @returns The rendered Input element configured for numeric entry with localized formatting and typing-aware behavior.
+ */
 export function InputNumber({
   className,
   value,

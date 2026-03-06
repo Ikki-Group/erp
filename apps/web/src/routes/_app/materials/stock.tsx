@@ -110,6 +110,15 @@ function RouteComponent() {
 
 const ch = createColumnHelper<MaterialLocationStockDto>()
 
+/**
+ * Renders a paginated stock table and actions for a specific location.
+ *
+ * Displays material inventory rows for the given location and provides UI to assign materials, open stock configuration, and unassign materials.
+ *
+ * @param locationId - Numeric identifier of the selected location whose stock will be displayed
+ * @param locationName - Human-readable name of the selected location (used in dialogs/actions)
+ * @returns The stock table UI and related dialogs for managing material-location assignments
+ */
 function StockTable({
   locationId,
   locationName,

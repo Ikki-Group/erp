@@ -41,6 +41,15 @@ function RouteComponent() {
 
 const ch = createColumnHelper<MaterialSelectDto>()
 
+/**
+ * Render the materials management table with filtering, selection, and location-assignment controls.
+ *
+ * Renders a pageable, selectable data table of materials with columns for SKU, name, category, type,
+ * unit, locations, and actions. Includes toolbar filters (search, type, category, location), row and
+ * page selection, per-row and bulk "assign to location" actions, and controls to create or edit materials.
+ *
+ * @returns A React element containing the materials table, its filters, action buttons, and the assignment dialog root.
+ */
 function MaterialTable() {
   const ds = useDataTableState<MaterialFilterDto>()
   const [rowSelection, setRowSelection] = useState({})
