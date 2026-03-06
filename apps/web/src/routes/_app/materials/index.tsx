@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
+import { ChefHatIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
@@ -183,11 +183,30 @@ function MaterialTable() {
         header: '',
         cell: ({ row }) => {
           return (
-            <div className='flex items-center justify-center'>
+            <div className='flex items-center justify-center gap-1'>
+              {row.original.type === 'semi' && (
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='size-8 text-primary hover:text-primary hover:bg-primary/10'
+                  title='Kelola Resep'
+                  nativeButton={false}
+                  render={
+                    <Link
+                      from={Route.fullPath}
+                      to='/materials/$id/recipe'
+                      params={{ id: String(row.original.id) }}
+                    />
+                  }
+                >
+                  <ChefHatIcon className='size-4' />
+                </Button>
+              )}
               <Button
                 variant='ghost'
                 size='icon'
                 className='size-8'
+                title='Edit Bahan Baku'
                 nativeButton={false}
                 render={
                   <Link
