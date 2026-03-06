@@ -2,10 +2,10 @@ name: Deploy web to Cloudflare Pages
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [main, dev]
-  #   paths:
-  #     - "apps/web/**"
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
 
 env:
   CLOUDFLARE_PROJECT_MAIN: ikki-erp
@@ -23,11 +23,11 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        working-directory: apps/web
+        working-directory: web
         run: bun install
 
       - name: Build
-        working-directory: apps/web
+        working-directory: web
         run: bun run build
 
       - name: Determine Cloudflare project
