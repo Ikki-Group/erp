@@ -84,10 +84,17 @@ const recipe = {
   remove: 'recipe/remove',
 }
 
+const inventory = {
+  summary: {
+    ledger: 'inventory/summary/ledger',
+  },
+}
+
 export const endpoint = {
   iam,
   location,
   material,
   product,
   recipe,
+  inventory,
 }

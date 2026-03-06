@@ -23,6 +23,7 @@ import { Route as AppProductsCategoryRouteImport } from './routes/_app/products/
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
 import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
 import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
+import { Route as AppMaterialsLedgerRouteImport } from './routes/_app/materials/ledger'
 import { Route as AppMaterialsCreateRouteImport } from './routes/_app/materials/create'
 import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
@@ -116,6 +117,11 @@ const AppMaterialsUomRoute = AppMaterialsUomRouteImport.update({
 const AppMaterialsStockRoute = AppMaterialsStockRouteImport.update({
   id: '/materials/stock',
   path: '/materials/stock',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMaterialsLedgerRoute = AppMaterialsLedgerRouteImport.update({
+  id: '/materials/ledger',
+  path: '/materials/ledger',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialsCreateRoute = AppMaterialsCreateRouteImport.update({
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
   '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByTo {
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/materials/category': typeof AppMaterialsCategoryRoute
   '/materials/create': typeof AppMaterialsCreateRoute
+  '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
   '/products/$id': typeof AppProductsIdRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
   '/_app/materials/category': typeof AppMaterialsCategoryRoute
   '/_app/materials/create': typeof AppMaterialsCreateRoute
+  '/_app/materials/ledger': typeof AppMaterialsLedgerRoute
   '/_app/materials/stock': typeof AppMaterialsStockRoute
   '/_app/materials/uom': typeof AppMaterialsUomRoute
   '/_app/products/$id': typeof AppProductsIdRoute
@@ -389,6 +398,7 @@ export interface FileRouteTypes {
     | '/examples/page-new'
     | '/materials/category'
     | '/materials/create'
+    | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/examples/page-new'
     | '/materials/category'
     | '/materials/create'
+    | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
     | '/products/$id'
@@ -471,6 +482,7 @@ export interface FileRouteTypes {
     | '/_app/examples/page-new'
     | '/_app/materials/category'
     | '/_app/materials/create'
+    | '/_app/materials/ledger'
     | '/_app/materials/stock'
     | '/_app/materials/uom'
     | '/_app/products/$id'
@@ -606,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/materials/stock'
       fullPath: '/materials/stock'
       preLoaderRoute: typeof AppMaterialsStockRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/materials/ledger': {
+      id: '/_app/materials/ledger'
+      path: '/materials/ledger'
+      fullPath: '/materials/ledger'
+      preLoaderRoute: typeof AppMaterialsLedgerRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/materials/create': {
@@ -817,6 +836,7 @@ interface AppRouteRouteChildren {
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
   AppMaterialsCategoryRoute: typeof AppMaterialsCategoryRoute
   AppMaterialsCreateRoute: typeof AppMaterialsCreateRoute
+  AppMaterialsLedgerRoute: typeof AppMaterialsLedgerRoute
   AppMaterialsStockRoute: typeof AppMaterialsStockRoute
   AppMaterialsUomRoute: typeof AppMaterialsUomRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
@@ -854,6 +874,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
   AppMaterialsCategoryRoute: AppMaterialsCategoryRoute,
   AppMaterialsCreateRoute: AppMaterialsCreateRoute,
+  AppMaterialsLedgerRoute: AppMaterialsLedgerRoute,
   AppMaterialsStockRoute: AppMaterialsStockRoute,
   AppMaterialsUomRoute: AppMaterialsUomRoute,
   AppProductsIdRoute: AppProductsIdRoute,

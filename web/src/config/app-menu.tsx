@@ -92,6 +92,11 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
           isActive: pathname.startsWith('/materials/stock'),
         },
         {
+          title: 'Ledger Stok',
+          href: '/materials/ledger',
+          isActive: pathname.startsWith('/materials/ledger'),
+        },
+        {
           title: 'Kategori',
           href: '/materials/category',
           isActive: pathname.startsWith('/materials/category'),

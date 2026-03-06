@@ -34,6 +34,7 @@ export {
   variantPrices,
 } from './product'
 export { recipeItems, recipes } from './recipe'
+export * from './inventory'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)

@@ -59,6 +59,16 @@ export const StockSummaryFilterDto = z.object({
 
 export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 
+export const StockLedgerFilterDto = z.object({
+  locationId: zHttp.query.id.optional(),
+  materialId: zHttp.query.id.optional(),
+  search: zHttp.query.search,
+  dateFrom: z.coerce.date(),
+  dateTo: z.coerce.date(),
+})
+
+export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
+
 /* -------------------------------- MUTATION -------------------------------- */
 
 /** Generate daily summary for a specific date + location */
@@ -68,3 +78,26 @@ export const GenerateSummaryDto = z.object({
 })
 
 export type GenerateSummaryDto = z.infer<typeof GenerateSummaryDto>
+
+/* --------------------------------- LEDGER --------------------------------- */
+
+export const StockLedgerSelectDto = z.object({
+  materialId: zPrimitive.id,
+  materialName: zPrimitive.str,
+  materialSku: zPrimitive.str,
+  baseUomCode: zPrimitive.str,
+
+  openingQty: zPrimitive.num,
+
+  purchaseQty: zPrimitive.num,
+  transferInQty: zPrimitive.num,
+  transferOutQty: zPrimitive.num,
+  sellQty: zPrimitive.num,
+  adjustmentQty: zPrimitive.num,
+
+  closingQty: zPrimitive.num,
+  closingValue: zPrimitive.num,
+  closingAvgCost: zPrimitive.num,
+})
+
+export type StockLedgerSelectDto = z.infer<typeof StockLedgerSelectDto>
