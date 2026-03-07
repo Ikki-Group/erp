@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { boolean, check, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, check, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { materials, uoms } from './material'
@@ -83,5 +83,8 @@ export const recipeItems = pgTable(
   (t) => [
     // A material should only appear once per recipe
     uniqueIndex('recipe_items_recipe_material_idx').on(t.recipeId, t.materialId),
+    // Standalone indexes for reverse lookups
+    index('recipe_items_material_idx').on(t.materialId),
+    index('recipe_items_uom_idx').on(t.uomId),
   ]
 )

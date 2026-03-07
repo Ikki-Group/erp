@@ -4,7 +4,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const StockSummaryDto = z.object({
+const StockSummaryDto = z.object({
   id: zPrimitive.id,
   materialId: zPrimitive.id,
   locationId: zPrimitive.id,
@@ -35,7 +35,7 @@ export const StockSummaryDto = z.object({
   ...zSchema.metadata.shape,
 })
 
-export type StockSummaryDto = z.infer<typeof StockSummaryDto>
+type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
 /* --------------------------------- SELECT --------------------------------- */
 

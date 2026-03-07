@@ -3,45 +3,42 @@ import { and, count, eq, inArray, or } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
 import {
-  checkConflict,
-  paginate,
-  searchFilter,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirst,
-  takeFirstOrThrow,
-  type ConflictField,
+    checkConflict,
+    paginate,
+    searchFilter,
+    sortBy,
+    stampCreate,
+    stampUpdate,
+    takeFirst,
+    takeFirstOrThrow,
+    type ConflictField,
 } from '@/lib/db'
-import { NotFoundError, UnauthorizedError } from '@/lib/error/http'
+import { UnauthorizedError } from '@/lib/error/http'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import { locations, roles, userAssignments, users } from '@/db/schema'
 
-import type { LocationServiceModule } from '@/modules/location'
+import type { LocationServiceModule } from '@/modules/location/service'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
 
 import type {
-  UserAdminUpdatePasswordDto,
-  UserAssignmentDetailDto,
-  UserChangePasswordDto,
-  UserCreateDto,
-  UserDto,
-  UserFilterDto,
-  UserSelectDto,
-  UserUpdateDto,
+    UserAdminUpdatePasswordDto,
+    UserAssignmentDetailDto,
+    UserChangePasswordDto,
+    UserCreateDto,
+    UserDto,
+    UserFilterDto,
+    UserSelectDto,
+    UserUpdateDto,
 } from '../dto'
 
 import type { RoleService } from './role.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const _err = {
-  notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
-}
 
 const uniqueFields: ConflictField<'email' | 'username'>[] = [
   { field: 'email', column: users.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },

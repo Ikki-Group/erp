@@ -4,8 +4,8 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
-export type TransactionType = z.infer<typeof TransactionType>
+const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
+type TransactionType = z.infer<typeof TransactionType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 

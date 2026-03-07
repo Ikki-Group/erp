@@ -1,17 +1,12 @@
-import type { IamServiceModule } from '@/modules/iam'
-import type { LocationServiceModule } from '@/modules/location'
+import type { IamServiceModule } from '@/modules/iam/service'
+import type { LocationServiceModule } from '@/modules/location/service'
 
 import { SettingsService } from './settings.service'
 
 export class DashboardServiceModule {
   public settings: SettingsService
 
-  constructor(
-    private readonly iam: IamServiceModule,
-    private readonly location: LocationServiceModule
-  ) {
+  constructor(iam: IamServiceModule, location: LocationServiceModule) {
     this.settings = new SettingsService(iam, location)
   }
 }
-
-export { SettingsService } from './settings.service'

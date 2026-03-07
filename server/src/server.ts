@@ -1,28 +1,7 @@
-import { configure, getConsoleSink } from '@logtape/logtape'
-
+import { env } from '@/config/env'
 import { logger } from '@/lib/logger'
 
-import { env } from '@/config/env'
-
 async function main() {
-  await configure({
-    sinks: {
-      console: getConsoleSink(),
-    },
-    loggers: [
-      {
-        category: ['logtape', 'meta'],
-        sinks: ['console'],
-        lowestLevel: 'warning',
-      },
-      {
-        category: [],
-        sinks: ['console'],
-        lowestLevel: 'debug',
-      },
-    ],
-  })
-
   const app = await import('@/app').then((mod) => mod.app)
 
   app.listen({

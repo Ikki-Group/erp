@@ -4,8 +4,8 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const LocationType = z.enum(['store', 'warehouse'])
-export type LocationType = z.infer<typeof LocationType>
+const LocationType = z.enum(['store', 'warehouse'])
+type LocationType = z.infer<typeof LocationType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 

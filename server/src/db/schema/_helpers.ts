@@ -1,4 +1,4 @@
-import { integer, pgEnum, serial, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { integer, pgEnum, serial, timestamp } from 'drizzle-orm/pg-core'
 
 // ─── Reusable Column Helpers ──────────────────────────────────────────────────
 
@@ -8,15 +8,6 @@ import { integer, pgEnum, serial, timestamp, uuid } from 'drizzle-orm/pg-core'
  */
 export const pk = {
   id: serial().primaryKey(),
-} as const
-
-/**
- * Primary key using UUIDv4.
- * Use this for tables that may grow very large, need globally unique IDs,
- * or require distributed inserts (e.g., high-volume transactional data).
- */
-export const pkUuid = {
-  id: uuid().primaryKey().defaultRandom(),
 } as const
 
 /**

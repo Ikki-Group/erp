@@ -3,7 +3,8 @@ import { Elysia } from 'elysia'
 
 import { UnauthorizedError } from '@/lib/error/http'
 
-import type { IamServiceModule, UserSelectDto } from '@/modules/iam'
+import type { UserSelectDto } from '@/modules/iam/dto/user.dto'
+import type { IamServiceModule } from '@/modules/iam/service'
 
 class AuthContext {
   constructor(public user: UserSelectDto | null) {}

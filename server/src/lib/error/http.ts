@@ -56,23 +56,9 @@ export class ConflictError extends HttpError {
   }
 }
 
-export class TooManyRequestsError extends HttpError {
-  constructor(message: string, code?: string, details?: Record<string, unknown>) {
-    super(429, message, code, details)
-    this.name = 'TooManyRequestsError'
-  }
-}
-
 export class InternalServerError extends HttpError {
   constructor(message: string, code?: string, details?: Record<string, unknown>) {
     super(500, message, code, details)
     this.name = 'InternalServerError'
-  }
-}
-
-export class ServiceUnavailableError extends HttpError {
-  constructor(message: string, code?: string, details?: Record<string, unknown>) {
-    super(503, message, code, details)
-    this.name = 'ServiceUnavailableError'
   }
 }

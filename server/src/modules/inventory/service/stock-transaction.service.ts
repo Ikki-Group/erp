@@ -1,6 +1,6 @@
-import { randomUUID } from 'node:crypto'
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
+import { randomUUID } from 'node:crypto'
 
 import { paginate, stampCreate, takeFirstOrThrow } from '@/lib/db'
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
@@ -13,13 +13,13 @@ import type { MaterialLocationService } from '@/modules/materials/service/materi
 import { db } from '@/db'
 
 import type {
-  AdjustmentTransactionDto,
-  PurchaseTransactionDto,
-  StockTransactionDto,
-  StockTransactionFilterDto,
-  StockTransactionSelectDto,
-  TransactionResultDto,
-  TransferTransactionDto,
+    AdjustmentTransactionDto,
+    PurchaseTransactionDto,
+    StockTransactionDto,
+    StockTransactionFilterDto,
+    StockTransactionSelectDto,
+    TransactionResultDto,
+    TransferTransactionDto,
 } from '../dto'
 
 const err = {
@@ -68,42 +68,44 @@ export class StockTransactionService {
         const metadata = stampCreate(actorId)
 
         for (const item of items) {
-          // Validate assignment & get current stock
-          const assignment = await this.mLocationSvc.findOne(item.materialId, locationId)
+          await record(`StockTransactionService.handlePurchase.item:${item.materialId}`, async () => {
+            // Validate assignment & get current stock
+            const assignment = await this.mLocationSvc.findOne(item.materialId, locationId)
 
-          // Calculate WAC
-          const { newQty, newAvgCost } = this.calculateIncomingWAC(
-            assignment.currentQty,
-            assignment.currentAvgCost,
-            item.qty,
-            item.unitCost
-          )
-          const totalCost = item.qty * item.unitCost
-          const newValue = newQty * newAvgCost
+            // Calculate WAC
+            const { newQty, newAvgCost } = this.calculateIncomingWAC(
+              assignment.currentQty,
+              assignment.currentAvgCost,
+              item.qty,
+              item.unitCost
+            )
+            const totalCost = item.qty * item.unitCost
+            const newValue = newQty * newAvgCost
 
-          // Create journal entry
-          await tx.insert(stockTransactions).values({
-            materialId: item.materialId,
-            locationId,
-            type: 'purchase',
-            date,
-            referenceNo,
-            notes: notes ?? null,
-            qty: item.qty.toString(),
-            unitCost: item.unitCost.toString(),
-            totalCost: totalCost.toString(),
-            runningQty: newQty.toString(),
-            runningAvgCost: newAvgCost.toString(),
-            ...metadata,
+            // Create journal entry
+            await tx.insert(stockTransactions).values({
+              materialId: item.materialId,
+              locationId,
+              type: 'purchase',
+              date,
+              referenceNo,
+              notes: notes ?? null,
+              qty: item.qty.toString(),
+              unitCost: item.unitCost.toString(),
+              totalCost: totalCost.toString(),
+              runningQty: newQty.toString(),
+              runningAvgCost: newAvgCost.toString(),
+              ...metadata,
+            })
+
+            // Update live stock
+            await this.mLocationSvc.updateCurrentStock(
+              item.materialId,
+              locationId,
+              { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
+              actorId
+            )
           })
-
-          // Update live stock
-          await this.mLocationSvc.updateCurrentStock(
-            item.materialId,
-            locationId,
-            { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
-            actorId
-          )
         }
       })
 
@@ -127,78 +129,80 @@ export class StockTransactionService {
         const metadata = stampCreate(actorId)
 
         for (const item of items) {
-          // Validate both assignments
-          const sourceAssignment = await this.mLocationSvc.findOne(item.materialId, sourceLocationId)
-          const destAssignment = await this.mLocationSvc.findOne(item.materialId, destinationLocationId)
+          await record(`StockTransactionService.handleTransfer.item:${item.materialId}`, async () => {
+            // Validate both assignments
+            const sourceAssignment = await this.mLocationSvc.findOne(item.materialId, sourceLocationId)
+            const destAssignment = await this.mLocationSvc.findOne(item.materialId, destinationLocationId)
 
-          // Check sufficient stock at source
-          if (sourceAssignment.currentQty < item.qty) {
-            throw err.insufficientStock(item.materialId, sourceAssignment.currentQty, item.qty)
-          }
+            // Check sufficient stock at source
+            if (sourceAssignment.currentQty < item.qty) {
+              throw err.insufficientStock(item.materialId, sourceAssignment.currentQty, item.qty)
+            }
 
-          const transferCost = item.qty * sourceAssignment.currentAvgCost
+            const transferCost = item.qty * sourceAssignment.currentAvgCost
 
-          // ── Transfer OUT (source) — WAC unchanged ──
-          const sourceNewQty = sourceAssignment.currentQty - item.qty
-          const sourceAvgCost = sourceAssignment.currentAvgCost
+            // ── Transfer OUT (source) — WAC unchanged ──
+            const sourceNewQty = sourceAssignment.currentQty - item.qty
+            const sourceAvgCost = sourceAssignment.currentAvgCost
 
-          await tx.insert(stockTransactions).values({
-            materialId: item.materialId,
-            locationId: sourceLocationId,
-            type: 'transfer_out',
-            date,
-            referenceNo,
-            notes: notes ?? null,
-            qty: item.qty.toString(),
-            unitCost: sourceAvgCost.toString(),
-            totalCost: transferCost.toString(),
-            counterpartLocationId: destinationLocationId,
-            transferId,
-            runningQty: sourceNewQty.toString(),
-            runningAvgCost: sourceAvgCost.toString(),
-            ...metadata,
+            await tx.insert(stockTransactions).values({
+              materialId: item.materialId,
+              locationId: sourceLocationId,
+              type: 'transfer_out',
+              date,
+              referenceNo,
+              notes: notes ?? null,
+              qty: item.qty.toString(),
+              unitCost: sourceAvgCost.toString(),
+              totalCost: transferCost.toString(),
+              counterpartLocationId: destinationLocationId,
+              transferId,
+              runningQty: sourceNewQty.toString(),
+              runningAvgCost: sourceAvgCost.toString(),
+              ...metadata,
+            })
+
+            // ── Transfer IN (destination) — WAC recalculated ──
+            const { newQty: destNewQty, newAvgCost: destNewAvgCost } = this.calculateIncomingWAC(
+              destAssignment.currentQty,
+              destAssignment.currentAvgCost,
+              item.qty,
+              sourceAvgCost
+            )
+
+            await tx.insert(stockTransactions).values({
+              materialId: item.materialId,
+              locationId: destinationLocationId,
+              type: 'transfer_in',
+              date,
+              referenceNo,
+              notes: notes ?? null,
+              qty: item.qty.toString(),
+              unitCost: sourceAvgCost.toString(),
+              totalCost: transferCost.toString(),
+              counterpartLocationId: sourceLocationId,
+              transferId,
+              runningQty: destNewQty.toString(),
+              runningAvgCost: destNewAvgCost.toString(),
+              ...metadata,
+            })
+
+            // Update both locations' live stock (run sequentially or via promise.all inside tx isn't strictly necessary but is fine)
+            await Promise.all([
+              this.mLocationSvc.updateCurrentStock(
+                item.materialId,
+                sourceLocationId,
+                { currentQty: sourceNewQty, currentAvgCost: sourceAvgCost, currentValue: sourceNewQty * sourceAvgCost },
+                actorId
+              ),
+              this.mLocationSvc.updateCurrentStock(
+                item.materialId,
+                destinationLocationId,
+                { currentQty: destNewQty, currentAvgCost: destNewAvgCost, currentValue: destNewQty * destNewAvgCost },
+                actorId
+              ),
+            ])
           })
-
-          // ── Transfer IN (destination) — WAC recalculated ──
-          const { newQty: destNewQty, newAvgCost: destNewAvgCost } = this.calculateIncomingWAC(
-            destAssignment.currentQty,
-            destAssignment.currentAvgCost,
-            item.qty,
-            sourceAvgCost
-          )
-
-          await tx.insert(stockTransactions).values({
-            materialId: item.materialId,
-            locationId: destinationLocationId,
-            type: 'transfer_in',
-            date,
-            referenceNo,
-            notes: notes ?? null,
-            qty: item.qty.toString(),
-            unitCost: sourceAvgCost.toString(),
-            totalCost: transferCost.toString(),
-            counterpartLocationId: sourceLocationId,
-            transferId,
-            runningQty: destNewQty.toString(),
-            runningAvgCost: destNewAvgCost.toString(),
-            ...metadata,
-          })
-
-          // Update both locations' live stock (run sequentially or via promise.all inside tx isn't strictly necessary but is fine)
-          await Promise.all([
-            this.mLocationSvc.updateCurrentStock(
-              item.materialId,
-              sourceLocationId,
-              { currentQty: sourceNewQty, currentAvgCost: sourceAvgCost, currentValue: sourceNewQty * sourceAvgCost },
-              actorId
-            ),
-            this.mLocationSvc.updateCurrentStock(
-              item.materialId,
-              destinationLocationId,
-              { currentQty: destNewQty, currentAvgCost: destNewAvgCost, currentValue: destNewQty * destNewAvgCost },
-              actorId
-            ),
-          ])
         }
       })
 
@@ -221,54 +225,56 @@ export class StockTransactionService {
         const metadata = stampCreate(actorId)
 
         for (const item of items) {
-          const assignment = await this.mLocationSvc.findOne(item.materialId, locationId)
+          await record(`StockTransactionService.handleAdjustment.item:${item.materialId}`, async () => {
+            const assignment = await this.mLocationSvc.findOne(item.materialId, locationId)
 
-          let newQty: number
-          let newAvgCost: number
-          const effectiveUnitCost = item.unitCost ?? assignment.currentAvgCost
+            let newQty: number
+            let newAvgCost: number
+            const effectiveUnitCost = item.unitCost ?? assignment.currentAvgCost
 
-          if (item.qty > 0) {
-            // Positive adjustment — recalculate WAC
-            const result = this.calculateIncomingWAC(
-              assignment.currentQty,
-              assignment.currentAvgCost,
-              item.qty,
-              effectiveUnitCost
+            if (item.qty > 0) {
+              // Positive adjustment — recalculate WAC
+              const result = this.calculateIncomingWAC(
+                assignment.currentQty,
+                assignment.currentAvgCost,
+                item.qty,
+                effectiveUnitCost
+              )
+              newQty = result.newQty
+              newAvgCost = result.newAvgCost
+            } else {
+              // Negative adjustment — WAC unchanged
+              newQty = assignment.currentQty + item.qty
+              newAvgCost = assignment.currentAvgCost
+
+              if (newQty < 0) throw err.negativeStock(item.materialId)
+            }
+
+            const totalCost = Math.abs(item.qty) * effectiveUnitCost
+            const newValue = newQty * newAvgCost
+
+            await tx.insert(stockTransactions).values({
+              materialId: item.materialId,
+              locationId,
+              type: 'adjustment',
+              date,
+              referenceNo,
+              notes: notes ?? null,
+              qty: item.qty.toString(),
+              unitCost: effectiveUnitCost.toString(),
+              totalCost: totalCost.toString(),
+              runningQty: newQty.toString(),
+              runningAvgCost: newAvgCost.toString(),
+              ...metadata,
+            })
+
+            await this.mLocationSvc.updateCurrentStock(
+              item.materialId,
+              locationId,
+              { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
+              actorId
             )
-            newQty = result.newQty
-            newAvgCost = result.newAvgCost
-          } else {
-            // Negative adjustment — WAC unchanged
-            newQty = assignment.currentQty + item.qty
-            newAvgCost = assignment.currentAvgCost
-
-            if (newQty < 0) throw err.negativeStock(item.materialId)
-          }
-
-          const totalCost = Math.abs(item.qty) * effectiveUnitCost
-          const newValue = newQty * newAvgCost
-
-          await tx.insert(stockTransactions).values({
-            materialId: item.materialId,
-            locationId,
-            type: 'adjustment',
-            date,
-            referenceNo,
-            notes: notes ?? null,
-            qty: item.qty.toString(),
-            unitCost: effectiveUnitCost.toString(),
-            totalCost: totalCost.toString(),
-            runningQty: newQty.toString(),
-            runningAvgCost: newAvgCost.toString(),
-            ...metadata,
           })
-
-          await this.mLocationSvc.updateCurrentStock(
-            item.materialId,
-            locationId,
-            { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
-            actorId
-          )
         }
       })
 

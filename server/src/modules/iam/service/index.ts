@@ -1,4 +1,4 @@
-import type { LocationServiceModule } from '@/modules/location'
+import type { LocationServiceModule } from '@/modules/location/service'
 
 import { AuthService } from './auth.service'
 import { RoleService } from './role.service'

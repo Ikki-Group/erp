@@ -111,7 +111,11 @@ export class RecipeService {
   }
 
   private async checkTargetConflict(
-    target: { materialId?: number | null; productId?: number | null; productVariantId?: number | null },
+    target: {
+      materialId?: number | null | undefined
+      productId?: number | null | undefined
+      productVariantId?: number | null | undefined
+    },
     excludeId?: number
   ) {
     const conditions = []

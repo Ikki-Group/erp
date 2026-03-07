@@ -1,3 +1,4 @@
+import { record } from '@elysiajs/opentelemetry'
 import { asc, desc, ilike, type SQL } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 
@@ -47,31 +48,33 @@ export async function paginate<TResult>({
   pq,
   countQuery,
 }: PaginateOptions<TResult>): Promise<WithPaginationResult<TResult>> {
-  const page = Math.max(1, pq.page)
-  const limit = Math.max(1, pq.limit)
-  const offset = (page - 1) * limit
+  return record('db.paginate', async () => {
+    const page = Math.max(1, pq.page)
+    const limit = Math.max(1, pq.limit)
+    const offset = (page - 1) * limit
 
-  // Run data + count in parallel
-  const [data, countResult] = await Promise.all([dataFn({ limit, offset }), countQuery])
+    // Run data + count in parallel
+    const [data, countResult] = await Promise.all([dataFn({ limit, offset }), countQuery])
 
-  const total = countResult[0]?.count ?? 0
+    const total = countResult[0]?.count ?? 0
 
-  return {
-    data,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  }
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+  })
 }
 
 /* -------------------------------------------------------------------------- */
 /*                             SORTING HELPERS                                */
 /* -------------------------------------------------------------------------- */
 
-export type SortDirection = 'asc' | 'desc'
+type SortDirection = 'asc' | 'desc'
 
 /**
  * Returns a Drizzle orderBy clause for the given column and direction.

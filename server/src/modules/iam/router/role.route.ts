@@ -59,7 +59,8 @@ export function initRoleRoute(s: IamServiceModule) {
       {
         body: z.object({
           id: zPrimitive.id,
-          ...RoleMutationDto.partial().shape,
+          code: z.string(),
+          name: z.string(),
         }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,

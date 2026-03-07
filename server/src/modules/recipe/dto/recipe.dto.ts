@@ -4,7 +4,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* --------------------------------- NESTED --------------------------------- */
 
-export const RecipeItemDto = z.object({
+const RecipeItemDto = z.object({
   id: zPrimitive.id,
   recipeId: zPrimitive.id,
   materialId: zPrimitive.id,
@@ -16,7 +16,7 @@ export const RecipeItemDto = z.object({
   ...zSchema.metadata.shape,
 })
 
-export type RecipeItemDto = z.infer<typeof RecipeItemDto>
+type RecipeItemDto = z.infer<typeof RecipeItemDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -59,7 +59,7 @@ export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const RecipeItemMutationDto = z.object({
+const RecipeItemMutationDto = z.object({
   materialId: zPrimitive.id,
   qty: zPrimitive.str,
   scrapPercentage: zPrimitive.str.optional().default('0'),
@@ -68,7 +68,7 @@ export const RecipeItemMutationDto = z.object({
   sortOrder: zPrimitive.num.optional().default(0),
 })
 
-export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
+type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
 
 export const RecipeMutationDto = z
   .object({

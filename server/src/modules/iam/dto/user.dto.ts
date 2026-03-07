@@ -2,21 +2,21 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
-import { LocationDto } from '@/modules/location'
+import { LocationDto } from '@/modules/location/dto/location.dto'
 
 import { RoleDto } from './role.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 /** Represents a user-role-location assignment (from the `user_assignments` junction table). */
-export const UserAssignmentDto = z.object({
+const UserAssignmentDto = z.object({
   id: zPrimitive.id,
   locationId: zPrimitive.id,
   roleId: zPrimitive.id,
   isDefault: zPrimitive.bool,
 })
 
-export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
+type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
 export const UserDto = z.object({
   id: zPrimitive.id,

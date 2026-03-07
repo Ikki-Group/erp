@@ -5,17 +5,17 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
 
-export const MaterialType = z.enum(['raw', 'semi'])
-export type MaterialType = z.infer<typeof MaterialType>
+const MaterialType = z.enum(['raw', 'semi'])
+type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const MaterialConversionDto = z.object({
+const MaterialConversionDto = z.object({
   toBaseFactor: zPrimitive.str,
   uomId: zPrimitive.id,
 })
 
-export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
+type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 export const MaterialDto = z.object({
   id: zPrimitive.id,

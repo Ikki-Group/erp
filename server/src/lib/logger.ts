@@ -46,12 +46,4 @@ const logger = pino(
   transport
 )
 
-type LoggerGroup = 'core' | 'session' | 'mongodb' | 'redis' | 'seed' | 'moka'
-
-const cache = {} as Record<LoggerGroup, pino.Logger>
-
-function getLogger(group: LoggerGroup): pino.Logger {
-  return cache[group] || (cache[group] = logger.child({ name: group }))
-}
-
-export { getLogger, logger }
+export { logger }
