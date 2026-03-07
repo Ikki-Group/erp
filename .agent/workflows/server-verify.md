@@ -28,7 +28,15 @@ If there are auto-fixable issues:
 cd server && bun run lint:fix
 ```
 
-## 3. Dead Code Check
+## 3. Circular Dependency Check
+
+```bash
+cd server && bun run check-deps
+```
+
+This ensures there are no circular imports that can break the runtime or bundling.
+
+## 4. Dead Code Check
 
 ```bash
 cd server && bun run knip
@@ -45,7 +53,7 @@ cd server && bun run dev
 Verify:
 
 - Server starts without errors
-- `ikki-erp is running at http://0.0.0.0:3001` appears in logs
+- `ikki-erp is running at http://0.0.0.0:8080` appears in logs
 - No unhandled promise rejections
 
 ## 5. Format (Optional)
