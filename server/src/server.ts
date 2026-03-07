@@ -29,13 +29,14 @@ async function main() {
     port: env.PORT,
   })
 
-  logger
-    .withMetadata({
+  logger.info(
+    {
       port: env.PORT,
       host: env.HOST,
       env: env.NODE_ENV,
-    })
-    .info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`)
+    },
+    `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`
+  )
 }
 
 main()

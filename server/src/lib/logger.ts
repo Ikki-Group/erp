@@ -1,22 +1,58 @@
-import { ConsoleTransport, LogLayer } from 'loglayer'
-import { serializeError } from 'serialize-error'
+import type { TransportTargetOptions } from 'pino'
+import pino from 'pino'
 
-const logger = new LogLayer({
-  errorSerializer: serializeError,
-  copyMsgOnOnlyError: true,
-  transport: [
-    new ConsoleTransport({
-      logger: console,
-      messageField: 'msg',
-    }),
-    // getSimplePrettyTerminal({
-    //   runtime: 'node',
-    //   viewMode: 'expanded',
-    //   maxInlineDepth: 10,
-    //   collapseArrays: true,
-    //   flattenNestedObjects: false,
-    // }),
-  ],
+import { env } from '@/config/env'
+
+const isDev = env.NODE_ENV === 'development'
+
+const targets: TransportTargetOptions[] = []
+
+// Standard Output Transport
+if (isDev || env.LOG_PRETTY) {
+  targets.push({
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      ignore: 'pid,hostname,req.headers,module,res',
+      translateTime: 'SYS:standard',
+    },
+  })
+} else {
+  targets.push({
+    target: 'pino/file',
+    options: { destination: 1 }, // 1 is stdout
+  })
+}
+
+// Axiom Transport
+if (env.AXIOM_TOKEN) {
+  targets.push({
+    target: '@axiomhq/pino',
+    options: {
+      dataset: env.AXIOM_DATASET,
+      token: env.AXIOM_TOKEN,
+    },
+  })
+}
+
+const transport = pino.transport({
+  targets,
 })
 
-export { logger }
+const logger = pino(
+  {
+    level: env.LOG_LEVEL,
+    timestamp: pino.stdTimeFunctions.isoTime,
+  },
+  transport
+)
+
+type LoggerGroup = 'core' | 'session' | 'mongodb' | 'redis' | 'seed' | 'moka'
+
+const cache = {} as Record<LoggerGroup, pino.Logger>
+
+function getLogger(group: LoggerGroup): pino.Logger {
+  return cache[group] || (cache[group] = logger.child({ name: group }))
+}
+
+export { getLogger, logger }

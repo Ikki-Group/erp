@@ -19,9 +19,9 @@ const betterstackExporter = new OTLPTraceExporter({
 })
 
 export const otel = opentelemetry({
+  serviceName: Bun.env.APP_NAME || 'ikki-erp',
   autoDetectResources: true,
   spanProcessors: [new BatchSpanProcessor(axiomExporter)],
-  instrumentations: [],
-  serviceName: Bun.env.APP_NAME || 'ikki-erp',
+  // instrumentations: [],
   sampler: new AlwaysOnSampler(),
 })

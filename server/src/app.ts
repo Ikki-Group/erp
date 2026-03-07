@@ -63,7 +63,7 @@ export const app = new Elysia({
     }
 
     ctx.set.status = error.statusCode
-    logger.withError(ctx.error).error(error.message)
+    logger.error(ctx.error, error.message)
     return error.toJSON()
   })
   .use(cors())

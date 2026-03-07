@@ -87,7 +87,7 @@ export class SessionService {
 
         return session
       } catch (error) {
-        logger.withError(error).error('Failed to verify session')
+        logger.error(error, 'Failed to verify session')
         return null
       }
     })
