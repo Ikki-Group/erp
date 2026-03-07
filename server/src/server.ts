@@ -48,7 +48,6 @@ main()
 //   await closeDatabase()
 //   logger.info('Shutdown complete')
 
-//   // eslint-disable-next-line unicorn/no-process-exit
 //   process.exit(0)
 // }
 
