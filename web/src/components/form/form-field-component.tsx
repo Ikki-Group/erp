@@ -241,6 +241,7 @@ function FieldCombobox<TItem>({
   description,
   required,
   className,
+  onItemSelect,
   ...props
 }: FieldComboboxProps<TItem>) {
   const field = useFieldContext<string | null>()
@@ -256,6 +257,7 @@ function FieldCombobox<TItem>({
         <DataCombobox<TItem>
           value={field.state.value}
           onValueChange={val => field.handleChange(val)}
+          onItemSelect={onItemSelect}
           {...props}
         />
       </FieldControl>

@@ -1,6 +1,6 @@
+import { randomUUID } from 'node:crypto'
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
-import { randomUUID } from 'node:crypto'
 
 import { paginate, stampCreate, takeFirstOrThrow } from '@/lib/db'
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
@@ -13,13 +13,13 @@ import type { MaterialLocationService } from '@/modules/materials/service/materi
 import { db } from '@/db'
 
 import type {
-    AdjustmentTransactionDto,
-    PurchaseTransactionDto,
-    StockTransactionDto,
-    StockTransactionFilterDto,
-    StockTransactionSelectDto,
-    TransactionResultDto,
-    TransferTransactionDto,
+  AdjustmentTransactionDto,
+  PurchaseTransactionDto,
+  StockTransactionDto,
+  StockTransactionFilterDto,
+  StockTransactionSelectDto,
+  TransactionResultDto,
+  TransferTransactionDto,
 } from '../dto'
 
 const err = {
@@ -312,7 +312,7 @@ export class StockTransactionService {
               : undefined
 
       const where = and(
-        eq(stockTransactions.locationId, locationId),
+        locationId === undefined ? undefined : eq(stockTransactions.locationId, locationId),
         materialId === undefined ? undefined : eq(stockTransactions.materialId, materialId),
         type === undefined ? undefined : eq(stockTransactions.type, type),
         dateCondition,

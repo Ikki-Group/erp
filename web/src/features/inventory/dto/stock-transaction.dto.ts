@@ -1,11 +1,16 @@
-import z from 'zod'
-
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { z } from 'zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
-type TransactionType = z.infer<typeof TransactionType>
+export const TransactionType = z.enum([
+  'purchase',
+  'transfer_in',
+  'transfer_out',
+  'adjustment',
+  'sell',
+])
+export type TransactionType = z.infer<typeof TransactionType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -46,7 +51,9 @@ export const StockTransactionSelectDto = z.object({
   materialSku: zPrimitive.str,
 })
 
-export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto>
+export type StockTransactionSelectDto = z.infer<
+  typeof StockTransactionSelectDto
+>
 
 /* --------------------------------- FILTER --------------------------------- */
 
@@ -59,33 +66,31 @@ export const StockTransactionFilterDto = z.object({
   dateTo: z.coerce.date().optional(),
 })
 
-export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto>
+export type StockTransactionFilterDto = z.infer<
+  typeof StockTransactionFilterDto
+>
 
 /* ─────────────────────── MUTATION: ITEMS ─────────────────────── */
 
-/** Single item within a purchase transaction */
-const PurchaseItemDto = z.object({
+export const PurchaseItemDto = z.object({
   materialId: zPrimitive.id,
   qty: zPrimitive.num.positive('Quantity must be positive'),
   unitCost: zPrimitive.num.nonnegative('Unit cost must be non-negative'),
 })
 
-/** Single item within a transfer transaction */
-const TransferItemDto = z.object({
+export const TransferItemDto = z.object({
   materialId: zPrimitive.id,
-  qty: zPrimitive.num.positive('Quantity must be positive'),
+  qty: zPrimitive.numCoerce.positive('Quantity must be positive'),
 })
 
-/** Single item within an adjustment transaction */
-const AdjustmentItemDto = z.object({
+export const AdjustmentItemDto = z.object({
   materialId: zPrimitive.id,
-  qty: zPrimitive.num.refine((v) => v !== 0, 'Quantity must not be zero'),
+  qty: zPrimitive.num.refine(v => v !== 0, 'Quantity must not be zero'),
   unitCost: zPrimitive.num.nonnegative().optional(),
 })
 
 /* ─────────────────────── MUTATION: BATCH ─────────────────────── */
 
-/** Create purchase transactions (multiple materials at one location) */
 export const PurchaseTransactionDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,
@@ -96,7 +101,6 @@ export const PurchaseTransactionDto = z.object({
 
 export type PurchaseTransactionDto = z.infer<typeof PurchaseTransactionDto>
 
-/** Create transfer transactions (multiple materials between two locations) */
 export const TransferTransactionDto = z.object({
   sourceLocationId: zPrimitive.id,
   destinationLocationId: zPrimitive.id,
@@ -108,7 +112,6 @@ export const TransferTransactionDto = z.object({
 
 export type TransferTransactionDto = z.infer<typeof TransferTransactionDto>
 
-/** Create adjustment transactions (multiple materials at one location) */
 export const AdjustmentTransactionDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,
@@ -121,7 +124,6 @@ export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 
 /* ─────────────────────── MUTATION: RESULT ─────────────────────── */
 
-/** Response for batch transaction operations */
 export const TransactionResultDto = z.object({
   count: z.number(),
   referenceNo: zPrimitive.str,

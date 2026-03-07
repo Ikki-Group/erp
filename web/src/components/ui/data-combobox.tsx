@@ -7,6 +7,7 @@ import { Combobox } from '@/components/ui/combobox'
 export interface DataComboboxProps<TItem> {
   value?: string | null
   onValueChange?: (value: string | null) => void
+  onItemSelect?: (item: TItem | null) => void
   placeholder?: string
   emptyText?: string
   loadingText?: string
@@ -22,6 +23,7 @@ export interface DataComboboxProps<TItem> {
 export function DataCombobox<TItem>({
   value,
   onValueChange,
+  onItemSelect,
   placeholder = 'Pilih data...',
   emptyText = 'Data tidak ditemukan.',
   loadingText = 'Mencari data...',
@@ -37,12 +39,6 @@ export function DataCombobox<TItem>({
   const [inputValue, setInputValue] = React.useState('')
   const debouncedSearch = useDebounce(inputValue, debounceMs)
 
-  // Use selected item's label if the popup is closed and we have a selectedItem
-  // Base UI Combobox manages uncontrolled inputValue automatically,
-  // but we can let it be uncontrolled and simply hook into onInputValueChange if possible.
-  // Wait, if we use `inputValue` and `onInputValueChange`, it handles the text in the input.
-  // Instead of fully controlling it, we let Base UI coordinate it and just watch the `inputValue` state.
-
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [...queryKey, debouncedSearch],
     queryFn: () => queryFn(debouncedSearch),
@@ -54,6 +50,14 @@ export function DataCombobox<TItem>({
       value={value ?? null}
       onValueChange={val => {
         onValueChange?.(val)
+        if (onItemSelect) {
+          if (!val) {
+            onItemSelect(null)
+          } else {
+            const selectedItem = data?.find(item => getValue(item) === val)
+            if (selectedItem) onItemSelect(selectedItem)
+          }
+        }
       }}
       open={open}
       onOpenChange={setOpen}

@@ -93,7 +93,7 @@ export function textColumn<TData>(
 ): Partial<ColumnDef<TData, string>> {
   return {
     header: opts.header,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+     
     cell: ({ getValue }: CellContext<TData, string>) => getValue() ?? '-',
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,
@@ -149,7 +149,7 @@ export function numericColumn<TData>(
     header: opts.header,
     cell: ({ getValue }: CellContext<TData, number>) => {
       const value = getValue()
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+       
       if (value == null) return '-'
       const formatted = opts.format ? opts.format(value) : String(value)
       return <p className='text-right tabular-nums'>{formatted}</p>

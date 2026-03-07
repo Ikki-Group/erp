@@ -1,10 +1,10 @@
 import z from 'zod'
 
+import { ProductFilterDto, ProductMutationDto, ProductSelectDto } from '../dto'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-import { ProductFilterDto, ProductMutationDto, ProductSelectDto } from '../dto'
 
 export const productApi = {
   list: apiFactory({

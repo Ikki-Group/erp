@@ -58,19 +58,24 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
       isHide: false,
       children: [
         {
-          title: 'Daftar Stok',
-          href: '/inventory',
-          isActive: pathname === '/inventory',
+          title: 'Summary Stok',
+          href: '/inventory/summary',
+          isActive: pathname.startsWith('/inventory/summary'),
         },
         {
-          title: 'Mutasi Stok',
-          href: '/inventory/mutation',
-          isActive: pathname.startsWith('/inventory/mutation'),
+          title: 'Riwayat Transaksi',
+          href: '/inventory/transactions',
+          isActive: pathname === '/inventory/transactions',
         },
         {
-          title: 'Transfer Stok',
-          href: '/inventory/uom',
-          isActive: pathname.startsWith('/inventory/uom'),
+          title: 'Transaksi Adjustment',
+          href: '/inventory/transactions/adjustment',
+          isActive: pathname.startsWith('/inventory/transactions/adjustment'),
+        },
+        {
+          title: 'Transaksi Transfer',
+          href: '/inventory/transactions/transfer',
+          isActive: pathname.startsWith('/inventory/transactions/transfer'),
         },
       ],
     },
