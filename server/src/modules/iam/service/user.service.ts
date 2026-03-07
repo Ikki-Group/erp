@@ -17,11 +17,12 @@ import { NotFoundError, UnauthorizedError } from '@/lib/error/http'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
+import { locations, roles, userAssignments, users } from '@/db/schema'
+
 import type { LocationServiceModule } from '@/modules/location'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
-import { locations, roles, userAssignments, users } from '@/db/schema'
 
 import type {
   UserAdminUpdatePasswordDto,

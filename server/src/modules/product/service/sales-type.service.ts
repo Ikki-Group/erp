@@ -15,8 +15,9 @@ import {
 import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { db } from '@/db'
 import { salesTypes } from '@/db/schema'
+
+import { db } from '@/db'
 
 import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 

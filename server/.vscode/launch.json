@@ -14,7 +14,7 @@
       "stopOnEntry": false,
       "noDebug": false,
       "runtime": "bun",
-      "runtimeArgs": [],
+      "runtimeArgs": []
     },
     {
       "type": "bun",
@@ -22,7 +22,7 @@
       "name": "Attach to Bun",
       "url": "ws://localhost:6499/",
       "localRoot": "${workspaceFolder}",
-      "remoteRoot": "/app",
-    },
+      "remoteRoot": "/app"
+    }
   ]
 }

@@ -1,5 +1,4 @@
-import type { TransportTargetOptions } from 'pino'
-import pino from 'pino'
+import pino, { type TransportTargetOptions } from 'pino'
 
 import { env } from '@/config/env'
 

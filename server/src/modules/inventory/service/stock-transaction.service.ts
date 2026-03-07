@@ -6,10 +6,11 @@ import { paginate, stampCreate, takeFirstOrThrow } from '@/lib/db'
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
+import { materials, stockTransactions } from '@/db/schema'
+
 import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
 import { db } from '@/db'
-import { materials, stockTransactions } from '@/db/schema'
 
 import type {
   AdjustmentTransactionDto,

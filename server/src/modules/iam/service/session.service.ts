@@ -6,9 +6,10 @@ import { cache } from '@/lib/cache'
 import { takeFirst } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
+import { sessions } from '@/db/schema'
+
 import { env } from '@/config/env'
 import { db } from '@/db'
-import { sessions } from '@/db/schema'
 
 import { SessionDataDto, type SessionDto, type UserDto } from '../dto'
 
