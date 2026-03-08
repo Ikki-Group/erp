@@ -140,7 +140,7 @@ function MaterialTable() {
                   })
                 }
               >
-                <MapPinIcon className='mr-2 size-4' />
+                <MapPinIcon />
                 Assign {selectedIds.length} Lokasi
               </Button>
             )}
@@ -243,7 +243,7 @@ function getColumns() {
           <Button
             variant='ghost'
             size='sm'
-            className='h-8 w-fit gap-2 px-2 -ml-2 font-normal'
+            className='gap-2 -ml-2'
             onClick={() =>
               MaterialAssignToLocationDialog.call({
                 materialIds: [row.original.id],
