@@ -4,6 +4,8 @@ import { PencilIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { UomDto } from '@/features/material'
 import { uomApi } from '@/features/material'
+import { Badge } from '@/components/ui/badge'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
 import { toDateTimeStamp } from '@/lib/formatter'
@@ -19,7 +21,10 @@ export const Route = createFileRoute('/_app/materials/uom')({
 function RouteComponent() {
   return (
     <Page>
-      <Page.BlockHeader title='Satuan Bahan Baku' />
+      <Page.BlockHeader
+        title='Satuan Bahan Baku'
+        description='Kelola Satuan (UOM) untuk bahan baku. Satuan ini akan digunakan dalam inventaris, resep, dan transaksi stok.'
+      />
       <Page.Content>
         <UomFormDialog.Root />
         <UomTable />
@@ -32,13 +37,28 @@ const ch = createColumnHelper<UomDto>()
 
 const columns = [
   ch.accessor('code', {
-    header: 'Kategori',
-    cell: ({ row }) => row.original.code,
+    header: 'Kode Satuan',
+    cell: ({ row }) => (
+      <div className='flex items-center py-1'>
+        <Badge
+          variant='outline'
+          className='h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30'
+        >
+          {row.original.code}
+        </Badge>
+      </div>
+    ),
+    size: 200,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
-    cell: ({ row }) => toDateTimeStamp(row.original.createdAt),
+    cell: ({ row }) => (
+      <span className='text-xs text-muted-foreground font-medium'>
+        {toDateTimeStamp(row.original.createdAt)}
+      </span>
+    ),
+    size: 200,
     enableSorting: false,
   }),
   ch.display({
@@ -46,13 +66,14 @@ const columns = [
     header: '',
     cell: ({ row }) => {
       return (
-        <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-end px-2'>
           <Button
             variant='ghost'
             size='icon-sm'
+            className='size-8 text-muted-foreground hover:text-foreground'
             onClick={() => UomFormDialog.upsert({ id: row.original.id })}
           >
-            <PencilIcon />
+            <PencilIcon className='size-4' />
           </Button>
         </div>
       )
@@ -69,6 +90,7 @@ function UomTable() {
   const { data, isLoading } = useQuery(
     uomApi.list.query({
       ...ds.pagination,
+      search: ds.search,
     })
   )
 
@@ -82,10 +104,16 @@ function UomTable() {
 
   return (
     <DataTableCard
-      title='Satuan Bahan Baku'
+      title='Daftar Satuan'
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[{ type: 'search', placeholder: 'Cari satuan...' }]}
+        />
+      }
       action={
         <Button size='sm' onClick={() => UomFormDialog.upsert({})}>
           Tambah Satuan
