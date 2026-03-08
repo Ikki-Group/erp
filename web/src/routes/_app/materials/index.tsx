@@ -31,7 +31,10 @@ export const Route = createFileRoute('/_app/materials/')({
 function RouteComponent() {
   return (
     <Page>
-      <Page.BlockHeader title='Bahan Baku' />
+      <Page.BlockHeader
+        title='Bahan Baku'
+        description='Kelola daftar bahan mentah dan bahan setengah jadi untuk proses produksi, pengaturan satuan (UOM), serta penempatan lokasi penyimpanan.'
+      />
       <Page.Content>
         <MaterialTable />
       </Page.Content>
