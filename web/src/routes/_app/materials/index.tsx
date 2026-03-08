@@ -39,15 +39,6 @@ function RouteComponent() {
   )
 }
 
-/**
- * Render the materials management table with filtering, selection, and location-assignment controls.
- *
- * Renders a pageable, selectable data table of materials with columns for SKU, name, category, type,
- * unit, locations, and actions. Includes toolbar filters (search, type, category, location), row and
- * page selection, per-row and bulk "assign to location" actions, and controls to create or edit materials.
- *
- * @returns A React element containing the materials table, its filters, action buttons, and the assignment dialog root.
- */
 function MaterialTable() {
   const ds = useDataTableState<MaterialFilterDto>()
   const [rowSelection, setRowSelection] = useState({})
@@ -187,88 +178,87 @@ function getColumns() {
       enableSorting: false,
       enableHiding: false,
     }),
-    ch.accessor('sku', {
-      header: 'SKU',
-      cell: ({ row }) => (
-        <span className='font-mono text-xs font-semibold'>
-          {row.original.sku}
-        </span>
-      ),
-      size: 120,
-    }),
     ch.accessor('name', {
       header: 'Bahan Baku',
       cell: ({ row }) => (
-        <div className='flex flex-col gap-1'>
-          <span className='font-medium'>{row.original.name}</span>
+        <div className='flex flex-col gap-1.5 py-1'>
+          <div className='flex items-center gap-2'>
+            <span className='font-semibold text-sm tracking-tight'>
+              {row.original.name}
+            </span>
+            <span className='font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 font-medium'>
+              {row.original.sku}
+            </span>
+          </div>
           {row.original.description && (
-            <span className='text-xs text-muted-foreground line-clamp-1'>
+            <span className='text-xs text-muted-foreground/80 line-clamp-1 max-w-[300px]'>
               {row.original.description}
             </span>
           )}
         </div>
       ),
-      size: 250,
+      size: 350,
     }),
     ch.accessor('category.name', {
       header: 'Kategori',
       cell: ({ row }) => (
-        <Badge variant='outline' className='bg-muted/50 rounded-sm font-normal'>
-          {row.original.category?.name ?? 'Tanpa Kategori'}
+        <Badge
+          variant='secondary'
+          className='bg-secondary/40 text-secondary-foreground rounded-md px-2 py-0 border-none font-medium text-[11px]'
+        >
+          {row.original.category?.name ?? 'Uncategorized'}
         </Badge>
       ),
-      size: 150,
+      size: 140,
     }),
     ch.accessor('type', {
       header: 'Jenis',
       cell: ({ row }) => (
         <BadgeDot {...MaterialBadgeProps[row.original.type]} />
       ),
-      size: 100,
+      size: 160,
     }),
     ch.accessor('uom.code', {
       header: 'Satuan',
       cell: ({ row }) => (
-        <div className='flex items-center gap-2'>
-          <span className='text-sm capitalize'>
+        <div className='flex items-center'>
+          <Badge
+            variant='outline'
+            className='h-5 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 border-muted-foreground/20'
+          >
             {row.original.uom?.code ?? '-'}
-          </span>
+          </Badge>
         </div>
       ),
-      size: 100,
+      size: 90,
     }),
-
     ch.accessor('locationIds', {
       header: 'Lokasi',
       cell: ({ row }) => {
         const count = row.original.locationIds.length
         return (
-          <div className='flex items-center justify-between gap-2 group'>
-            <div className='flex items-center gap-2'>
-              <MapPinIcon className='size-3.5 text-muted-foreground' />
-              <span
-                className={cn(
-                  'text-nowrap',
-                  count > 0 ? 'text-sm' : 'text-sm text-muted-foreground'
-                )}
-              >
-                {count} Lokasi
-              </span>
-            </div>
-            <Button
-              size='icon'
-              variant='ghost'
-              className='size-7 opacity-0 group-hover:opacity-100 transition-opacity'
-              onClick={() =>
-                MaterialAssignToLocationDialog.call({
-                  materialIds: [row.original.id],
-                  materialName: row.original.name,
-                })
-              }
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-8 w-fit gap-2 px-2 -ml-2 font-normal'
+            onClick={() =>
+              MaterialAssignToLocationDialog.call({
+                materialIds: [row.original.id],
+                materialName: row.original.name,
+              })
+            }
+          >
+            <MapPinIcon className='size-3.5 text-muted-foreground' />
+            <span
+              className={cn(
+                'text-nowrap',
+                count > 0 ? 'text-sm' : 'text-sm text-muted-foreground'
+              )}
             >
-              <PlusIcon className='size-3.5' />
-            </Button>
-          </div>
+              {count} Lokasi
+            </span>
+            <PlusIcon className='size-3 text-muted-foreground/50' />
+          </Button>
         )
       },
       size: 120,
@@ -278,12 +268,12 @@ function getColumns() {
       header: '',
       cell: ({ row }) => {
         return (
-          <div className='flex items-center justify-center gap-1'>
+          <div className='flex items-center justify-end gap-1 px-2'>
             {row.original.type === 'semi' && (
               <Button
                 variant='ghost'
-                size='icon'
-                className='size-8 text-primary hover:text-primary hover:bg-primary/10'
+                size='icon-sm'
+                className='size-8 text-primary/70 hover:text-primary hover:bg-primary/10'
                 title='Kelola Resep'
                 nativeButton={false}
                 render={
@@ -299,8 +289,8 @@ function getColumns() {
             )}
             <Button
               variant='ghost'
-              size='icon'
-              className='size-8'
+              size='icon-sm'
+              className='size-8 text-muted-foreground hover:text-foreground'
               title='Edit Bahan Baku'
               nativeButton={false}
               render={
@@ -316,7 +306,7 @@ function getColumns() {
           </div>
         )
       },
-      size: 60,
+      size: 100,
       enableSorting: false,
       enableHiding: false,
       enableResizing: false,
