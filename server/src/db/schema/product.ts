@@ -14,6 +14,7 @@ export const salesTypes = pgTable(
     ...pk,
     code: text().notNull(),
     name: text().notNull(),
+    isSystem: boolean().notNull().default(false),
     ...metadata,
   },
   (t) => [uniqueIndex('sales_types_code_idx').on(t.code)]
