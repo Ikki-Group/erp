@@ -1,4 +1,5 @@
 import {
+  ActivityIcon,
   BarChart3Icon,
   BoxIcon,
   CirclePileIcon,
@@ -117,6 +118,40 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
       ],
     },
     {
+      label: 'Sistem POS (Moka)',
+      items: [
+        {
+          title: 'Monitoring Moka',
+          href: '/moka/monitoring',
+          icon: ActivityIcon,
+          isActive: pathname.startsWith('/moka/monitoring'),
+        },
+        {
+          title: 'Produk',
+          href: '/products',
+          icon: PackageIcon,
+          isActive: pathname.startsWith('/products'),
+          children: [
+            {
+              title: 'Daftar Produk',
+              href: '/products',
+              isActive: pathname === '/products',
+            },
+            {
+              title: 'Kategori Produk',
+              href: '/products/category',
+              isActive: pathname === '/products/category',
+            },
+            {
+              title: 'Jenis Penjualan',
+              href: '/products/sales-type',
+              isActive: pathname === '/products/sales-type',
+            },
+          ],
+        },
+      ],
+    },
+    {
       label: 'Logistik',
       items: [
         {
@@ -126,7 +161,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           isActive: pathname.startsWith('/inventory'),
           children: [
             {
-              title: 'Summary Stok',
+              title: 'Daftar Stok',
               href: '/inventory/summary',
               isActive: pathname.startsWith('/inventory/summary'),
             },
@@ -177,29 +212,6 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Data Master',
       items: [
-        {
-          title: 'Produk',
-          href: '/products',
-          icon: PackageIcon,
-          isActive: pathname.startsWith('/products'),
-          children: [
-            {
-              title: 'Daftar Produk',
-              href: '/products',
-              isActive: pathname === '/products',
-            },
-            {
-              title: 'Kategori Produk',
-              href: '/products/category',
-              isActive: pathname === '/products/category',
-            },
-            {
-              title: 'Jenis Penjualan',
-              href: '/products/sales-type',
-              isActive: pathname === '/products/sales-type',
-            },
-          ],
-        },
         {
           title: 'Konfigurasi Bahan',
           href: '/materials/master',
