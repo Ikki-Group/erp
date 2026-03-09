@@ -13,6 +13,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -30,6 +31,7 @@ import { getAppMenu } from '@/config/app-menu'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
 import { UserSection } from '@/features/iam/components/user-section'
 import { useAppState } from '@/hooks/use-app-state'
+import { cn } from '@/lib/utils'
 
 export function AppLayout() {
   const { setSidebarOpen, sidebarOpen } = useAppState()
@@ -74,57 +76,66 @@ export function AppLayout() {
 function SidebarMenus() {
   const { pathname } = useLocation()
 
-  const menus = useMemo(() => getAppMenu(pathname), [pathname])
+  const groups = useMemo(() => getAppMenu(pathname), [pathname])
 
   return (
-    <SidebarGroup className='py-3'>
-      <SidebarMenu className='gap-1.5'>
-        {menus.map(menu => {
-          if (menu.children?.length) {
-            return (
-              <Collapsible
-                key={menu.href}
-                className='group/collapsible'
-                defaultOpen={menu.isActive}
-                title={menu.title}
-              >
-                <SidebarMenuButton render={<CollapsibleTrigger />}>
-                  {menu.icon && <menu.icon />}
-                  <span>{menu.title}</span>
-                  <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90' />
-                </SidebarMenuButton>
-                <CollapsibleContent>
-                  <SidebarMenuSub>
-                    {menu.children.map(subItem => (
-                      <SidebarMenuSubItem key={subItem.href}>
-                        <SidebarMenuSubButton
-                          isActive={subItem.isActive}
-                          render={<Link to={subItem.href} />}
-                        >
-                          <span>{subItem.title}</span>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </Collapsible>
-            )
-          }
+    <>
+      {groups.map((group, groupIdx) => (
+        <SidebarGroup
+          key={group.label}
+          className={cn('py-2', groupIdx > 0 && 'pt-0')}
+        >
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarMenu className='gap-1'>
+            {group.items.map(menu => {
+              if (menu.children?.length) {
+                return (
+                  <Collapsible
+                    key={menu.href}
+                    className='group/collapsible'
+                    defaultOpen={menu.isActive}
+                    title={menu.title}
+                  >
+                    <SidebarMenuButton render={<CollapsibleTrigger />}>
+                      {menu.icon && <menu.icon />}
+                      <span>{menu.title}</span>
+                      <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90' />
+                    </SidebarMenuButton>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {menu.children.map(subItem => (
+                          <SidebarMenuSubItem key={subItem.href}>
+                            <SidebarMenuSubButton
+                              isActive={subItem.isActive}
+                              render={<Link to={subItem.href} />}
+                            >
+                              <span>{subItem.title}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )
+              }
 
-          return (
-            <SidebarMenuItem key={menu.href}>
-              <SidebarMenuButton
-                isActive={menu.isActive}
-                render={<Link to={menu.href} />}
-              >
-                {menu.icon && <menu.icon />}
-                <span>{menu.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+              return (
+                <SidebarMenuItem key={menu.href}>
+                  <SidebarMenuButton
+                    isActive={menu.isActive}
+                    render={<Link to={menu.href} />}
+                    tooltip={menu.title}
+                  >
+                    {menu.icon && <menu.icon />}
+                    <span>{menu.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }
 

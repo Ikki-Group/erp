@@ -1,10 +1,17 @@
 import {
+  BarChart3Icon,
   BoxIcon,
   CirclePileIcon,
-  LayoutDashboardIcon,
+  ClipboardListIcon,
+  FactoryIcon,
+  HomeIcon,
   LayoutTemplateIcon,
+  MapPinIcon,
   PackageIcon,
   Settings2Icon,
+  ShoppingBagIcon,
+  ShoppingCartIcon,
+  UsersIcon,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -17,186 +24,258 @@ export interface AppMenu {
   children?: Array<Omit<AppMenu, 'children' | 'icon'>>
 }
 
-export function getAppMenu(pathname: string): Array<AppMenu> {
-  const menus: Array<AppMenu> = [
+export interface AppMenuGroup {
+  label: string
+  items: Array<AppMenu>
+}
+
+export function getAppMenu(pathname: string): Array<AppMenuGroup> {
+  return [
     {
-      title: 'Dashboard',
-      href: '/',
-      icon: LayoutDashboardIcon,
-      isActive: pathname === '/',
-      isHide: false,
-    },
-    {
-      title: 'Produk',
-      href: '/products',
-      icon: PackageIcon,
-      isActive: pathname.startsWith('/products'),
-      isHide: false,
-      children: [
+      label: 'Ringkasan',
+      items: [
         {
-          title: 'Daftar Produk',
-          href: '/products',
-          isActive: pathname === '/products',
+          title: 'Dashboard',
+          href: '/',
+          icon: HomeIcon,
+          isActive: pathname === '/',
         },
         {
-          title: 'Kategori',
-          href: '/products/category',
-          isActive: pathname === '/products/category',
-        },
-        {
-          title: 'Jenis Penjualan',
-          href: '/products/sales-type',
-          isActive: pathname === '/products/sales-type',
+          title: 'Analitik & Laporan',
+          href: '/analytics',
+          icon: BarChart3Icon,
+          isHide: false,
+          children: [
+            {
+              title: 'Laporan Stok',
+              href: '/analytics/stock',
+              isActive: pathname === '/analytics/stock',
+            },
+            {
+              title: 'Laporan Produksi',
+              href: '/analytics/production',
+              isActive: pathname === '/analytics/production',
+            },
+          ],
         },
       ],
     },
     {
-      title: 'Inventory',
-      href: '/inventory',
-      icon: BoxIcon,
-      isActive: pathname.startsWith('/inventory'),
-      isHide: false,
-      children: [
+      label: 'Operasional',
+      items: [
         {
-          title: 'Summary Stok',
-          href: '/inventory/summary',
-          isActive: pathname.startsWith('/inventory/summary'),
+          title: 'Penjualan',
+          href: '/sales',
+          icon: ShoppingCartIcon,
+          children: [
+            {
+              title: 'Pesanan Penjualan',
+              href: '/sales/orders',
+              isActive: pathname.startsWith('/sales/orders'),
+            },
+            {
+              title: 'Pelanggan',
+              href: '/sales/customers',
+              isActive: pathname.startsWith('/sales/customers'),
+            },
+          ],
         },
         {
-          title: 'Riwayat Transaksi',
-          href: '/inventory/transactions',
-          isActive: pathname === '/inventory/transactions',
+          title: 'Pembelian',
+          href: '/procurement',
+          icon: ShoppingBagIcon,
+          children: [
+            {
+              title: 'Pesanan Pembelian',
+              href: '/procurement/orders',
+              isActive: pathname.startsWith('/procurement/orders'),
+            },
+            {
+              title: 'Supplier',
+              href: '/procurement/suppliers',
+              isActive: pathname.startsWith('/procurement/suppliers'),
+            },
+          ],
         },
         {
-          title: 'Transaksi Adjustment',
-          href: '/inventory/transactions/adjustment',
-          isActive: pathname.startsWith('/inventory/transactions/adjustment'),
-        },
-        {
-          title: 'Transaksi Transfer',
-          href: '/inventory/transactions/transfer',
-          isActive: pathname.startsWith('/inventory/transactions/transfer'),
+          title: 'Produksi',
+          href: '/production',
+          icon: FactoryIcon,
+          children: [
+            {
+              title: 'Perintah Kerja (WO)',
+              href: '/production/work-orders',
+              isActive: pathname.startsWith('/production/work-orders'),
+            },
+            {
+              title: 'Resep & BOM',
+              href: '/production/recipes',
+              isActive: pathname.startsWith('/production/recipes'),
+            },
+          ],
         },
       ],
     },
     {
-      title: 'Bahan Baku',
-      href: '/materials',
-      icon: CirclePileIcon,
-      isActive: pathname.startsWith('/materials'),
-      isHide: false,
-      children: [
+      label: 'Logistik',
+      items: [
         {
-          title: 'Daftar Bahan Baku',
+          title: 'Inventori',
+          href: '/inventory',
+          icon: BoxIcon,
+          isActive: pathname.startsWith('/inventory'),
+          children: [
+            {
+              title: 'Summary Stok',
+              href: '/inventory/summary',
+              isActive: pathname.startsWith('/inventory/summary'),
+            },
+            {
+              title: 'Riwayat Transaksi',
+              href: '/inventory/transactions',
+              isActive: pathname === '/inventory/transactions',
+            },
+            {
+              title: 'Penyesuaian (Adj)',
+              href: '/inventory/transactions/adjustment',
+              isActive: pathname.startsWith(
+                '/inventory/transactions/adjustment'
+              ),
+            },
+            {
+              title: 'Transfer Barang',
+              href: '/inventory/transactions/transfer',
+              isActive: pathname.startsWith('/inventory/transactions/transfer'),
+            },
+          ],
+        },
+        {
+          title: 'Bahan Baku',
           href: '/materials',
-          isActive: pathname === '/materials',
-        },
-        {
-          title: 'Stok per Lokasi',
-          href: '/materials/stock',
-          isActive: pathname.startsWith('/materials/stock'),
-        },
-        {
-          title: 'Ledger Stok',
-          href: '/materials/ledger',
-          isActive: pathname.startsWith('/materials/ledger'),
-        },
-        {
-          title: 'Kategori',
-          href: '/materials/category',
-          isActive: pathname.startsWith('/materials/category'),
-        },
-        {
-          title: 'Satuan (UoM)',
-          href: '/materials/uom',
-          isActive: pathname.startsWith('/materials/uom'),
+          icon: CirclePileIcon,
+          isActive: pathname.startsWith('/materials'),
+          children: [
+            {
+              title: 'Daftar Bahan Baku',
+              href: '/materials',
+              isActive: pathname === '/materials',
+            },
+            {
+              title: 'Stok per Lokasi',
+              href: '/materials/stock',
+              isActive: pathname.startsWith('/materials/stock'),
+            },
+            {
+              title: 'Ledger Stok',
+              href: '/materials/ledger',
+              isActive: pathname.startsWith('/materials/ledger'),
+            },
+          ],
         },
       ],
     },
     {
-      title: 'Pengaturan',
-      href: '/settings/user',
-      icon: Settings2Icon,
-      isActive: pathname.startsWith('/settings'),
-      isHide: false,
+      label: 'Data Master',
+      items: [
+        {
+          title: 'Produk',
+          href: '/products',
+          icon: PackageIcon,
+          isActive: pathname.startsWith('/products'),
+          children: [
+            {
+              title: 'Daftar Produk',
+              href: '/products',
+              isActive: pathname === '/products',
+            },
+            {
+              title: 'Kategori Produk',
+              href: '/products/category',
+              isActive: pathname === '/products/category',
+            },
+            {
+              title: 'Jenis Penjualan',
+              href: '/products/sales-type',
+              isActive: pathname === '/products/sales-type',
+            },
+          ],
+        },
+        {
+          title: 'Konfigurasi Bahan',
+          href: '/materials/master',
+          icon: ClipboardListIcon,
+          children: [
+            {
+              title: 'Kategori Bahan',
+              href: '/materials/category',
+              isActive: pathname.startsWith('/materials/category'),
+            },
+            {
+              title: 'Satuan (UoM)',
+              href: '/materials/uom',
+              isActive: pathname.startsWith('/materials/uom'),
+            },
+          ],
+        },
+        {
+          title: 'Lokasi & Gudang',
+          href: '/locations',
+          icon: MapPinIcon,
+          isActive: pathname.startsWith('/locations'),
+        },
+      ],
     },
     {
-      title: 'Examples',
-      href: '/examples',
-      icon: LayoutTemplateIcon,
-      isActive: pathname.startsWith('/examples'),
-      children: [
+      label: 'Sistem',
+      items: [
         {
-          title: 'Table Layout',
-          href: '/examples/table',
-          isActive: pathname.startsWith('/examples/table'),
+          title: 'Manajemen User',
+          href: '/settings/user',
+          icon: UsersIcon,
+          isActive: pathname.startsWith('/settings/user'),
         },
         {
-          title: 'Form Layout',
-          href: '/examples/form',
-          isActive: pathname.startsWith('/examples/form'),
+          title: 'Pengaturan App',
+          href: '/settings',
+          icon: Settings2Icon,
+          isActive:
+            pathname.startsWith('/settings') &&
+            !pathname.startsWith('/settings/user'),
+        },
+      ],
+    },
+    {
+      label: 'Bantuan',
+      items: [
+        {
+          title: 'Dokumentasi',
+          href: '/docs',
+          icon: ClipboardListIcon,
         },
         {
-          title: 'Detail Layout',
-          href: '/examples/detail',
-          isActive: pathname.startsWith('/examples/detail'),
-        },
-        {
-          title: 'Responsive Dashboard',
-          href: '/examples/dashboard',
-          isActive: pathname.startsWith('/examples/dashboard'),
-        },
-        {
-          title: 'Complex Form',
-          href: '/examples/complex-form',
-          isActive: pathname.startsWith('/examples/complex-form'),
-        },
-        {
-          title: 'Dialog',
-          href: '/examples/dialog',
-          isActive: pathname.startsWith('/examples/dialog'),
-        },
-        {
-          title: 'Dialog Form',
-          href: '/examples/dialog-form',
-          isActive: pathname.startsWith('/examples/dialog-form'),
-        },
-        {
-          title: 'Search Dialog',
-          href: '/examples/search',
-          isActive: pathname.startsWith('/examples/search'),
-        },
-        {
-          title: 'Details Display',
-          href: '/examples/details',
-          isActive: pathname.startsWith('/examples/details'),
-        },
-        {
-          title: 'Recharts',
-          href: '/examples/charts',
-          isActive: pathname.startsWith('/examples/charts'),
-        },
-        {
-          title: 'Layout Primitives',
-          href: '/examples/layouts',
-          isActive: pathname.startsWith('/examples/layouts'),
-        },
-        {
-          title: 'Page Layouts',
-          href: '/examples/page-layouts',
-          isActive: pathname.startsWith('/examples/page-layouts'),
-        },
-        {
-          title: 'New Page',
-          href: '/examples/page-new',
-          isActive: pathname.startsWith('/examples/page-new'),
+          title: 'Examples',
+          href: '/examples',
+          icon: LayoutTemplateIcon,
+          isActive: pathname.startsWith('/examples'),
+          children: [
+            {
+              title: 'Table Layout',
+              href: '/examples/table',
+              isActive: pathname.startsWith('/examples/table'),
+            },
+            {
+              title: 'Form Layout',
+              href: '/examples/form',
+              isActive: pathname.startsWith('/examples/form'),
+            },
+            {
+              title: 'Detail Layout',
+              href: '/examples/detail',
+              isActive: pathname.startsWith('/examples/detail'),
+            },
+          ],
         },
       ],
     },
   ]
-
-  return menus.reduce<Array<AppMenu>>((acc, menu) => {
-    if (menu.isHide) return acc
-    return [...acc, menu]
-  }, [])
 }

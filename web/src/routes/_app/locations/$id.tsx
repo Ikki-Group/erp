@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { LocationFormPage } from '@/features/location/components/location-form-page'
 
-export const Route = createFileRoute('/_app/settings/location/$id')({
+export const Route = createFileRoute('/_app/locations/$id')({
   component: RouteComponent,
 })
 
@@ -13,7 +13,7 @@ function RouteComponent() {
       id={Number(id)}
       backTo={{
         from: Route.fullPath,
-        to: '/settings/location',
+        to: '/locations',
       }}
     />
   )
