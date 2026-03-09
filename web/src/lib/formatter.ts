@@ -42,3 +42,13 @@ export function toNumber(value: number | string): string {
 
   return new Intl.NumberFormat('id-ID').format(num)
 }
+
+/** Code case formatter (Screaming Snake Case): "Dine In" -> "DINE_IN" */
+export function toCodeCase(str: string): string {
+  return (
+    str
+      .match(/[a-z0-9]+/gi)
+      ?.map(word => word.toUpperCase())
+      .join('_') || ''
+  )
+}

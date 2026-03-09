@@ -78,20 +78,17 @@ const columns = [
     id: 'action',
     header: '',
     cell: ({ row }) => {
+      if (row.original.isSystem) return null
       return (
         <div className='flex items-center justify-end px-2'>
-          {!row.original.isSystem && (
-            <Button
-              variant='ghost'
-              size='icon-sm'
-              className='size-8 text-muted-foreground hover:text-foreground'
-              onClick={() =>
-                SalesTypeFormDialog.upsert({ id: row.original.id })
-              }
-            >
-              <PencilIcon className='size-4' />
-            </Button>
-          )}
+          <Button
+            variant='ghost'
+            size='icon-sm'
+            className='size-8 text-muted-foreground hover:text-foreground'
+            onClick={() => SalesTypeFormDialog.upsert({ id: row.original.id })}
+          >
+            <PencilIcon className='size-4' />
+          </Button>
         </div>
       )
     },
