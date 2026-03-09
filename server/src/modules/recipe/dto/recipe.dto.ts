@@ -13,6 +13,11 @@ const RecipeItemDto = z.object({
   uomId: zPrimitive.id,
   notes: zPrimitive.strNullable,
   sortOrder: zPrimitive.num,
+
+  // optional joins
+  material: z.object({ name: z.string(), sku: z.string() }).optional(),
+  uom: z.object({ code: z.string() }).optional(),
+
   ...zSchema.metadata.shape,
 })
 
