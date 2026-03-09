@@ -9,6 +9,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Button } from '@/components/ui/button'
 import { Page } from '@/components/layout/page'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { toDateTimeStamp } from '@/lib/formatter'
 import { ProductCategoryFormDialog } from '@/features/product/components/product-category-form-dialog'
 
@@ -19,7 +20,10 @@ export const Route = createFileRoute('/_app/products/category')({
 function RouteComponent() {
   return (
     <Page>
-      <Page.BlockHeader title='Kategori Produk' />
+      <Page.BlockHeader
+        title='Kategori Produk'
+        description='Kelola kategori produk untuk memudahkan pengorganisasian dan pencarian item menu.'
+      />
       <Page.Content>
         <ProductCategoryFormDialog.Root />
         <CategoryTable />
@@ -33,17 +37,34 @@ const ch = createColumnHelper<ProductCategoryDto>()
 const columns = [
   ch.accessor('name', {
     header: 'Kategori',
-    cell: ({ row }) => row.original.name,
+    cell: ({ row }) => (
+      <div className='flex flex-col gap-1 py-1'>
+        <span className='font-semibold text-sm tracking-tight'>
+          {row.original.name}
+        </span>
+      </div>
+    ),
+    size: 250,
     enableSorting: false,
   }),
   ch.accessor('description', {
     header: 'Deskripsi',
-    cell: ({ row }) => row.original.description ?? '-',
+    cell: ({ row }) => (
+      <span className='text-xs text-muted-foreground line-clamp-1'>
+        {row.original.description || '-'}
+      </span>
+    ),
+    size: 400,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
-    cell: ({ row }) => toDateTimeStamp(row.original.createdAt),
+    cell: ({ row }) => (
+      <span className='text-xs text-muted-foreground font-medium'>
+        {toDateTimeStamp(row.original.createdAt)}
+      </span>
+    ),
+    size: 180,
     enableSorting: false,
   }),
   ch.display({
@@ -51,15 +72,16 @@ const columns = [
     header: '',
     cell: ({ row }) => {
       return (
-        <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-end px-2'>
           <Button
             variant='ghost'
             size='icon-sm'
+            className='size-8 text-muted-foreground hover:text-foreground'
             onClick={() =>
               ProductCategoryFormDialog.upsert({ id: row.original.id })
             }
           >
-            <PencilIcon />
+            <PencilIcon className='size-4' />
           </Button>
         </div>
       )
@@ -76,6 +98,7 @@ function CategoryTable() {
   const { data, isLoading } = useQuery(
     productCategoryApi.list.query({
       ...ds.pagination,
+      search: ds.search,
     })
   )
 
@@ -89,10 +112,16 @@ function CategoryTable() {
 
   return (
     <DataTableCard
-      title='Kategori Produk'
+      title='Daftar Kategori Produk'
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
+      toolbar={
+        <DataGridFilter
+          ds={ds}
+          options={[{ type: 'search', placeholder: 'Cari kategori...' }]}
+        />
+      }
       action={
         <Button size='sm' onClick={() => ProductCategoryFormDialog.upsert({})}>
           Tambah Kategori
