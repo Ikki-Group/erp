@@ -1,6 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { ChefHatIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
+import {
+  ChefHatIcon,
+  EyeIcon,
+  MapPinIcon,
+  PencilIcon,
+  PlusIcon,
+} from 'lucide-react'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
@@ -186,9 +192,14 @@ function getColumns() {
       cell: ({ row }) => (
         <div className='flex flex-col gap-1.5 py-1'>
           <div className='flex items-center gap-2'>
-            <span className='font-semibold text-sm tracking-tight'>
+            <Link
+              from={Route.fullPath}
+              to='/materials/$id'
+              params={{ id: String(row.original.id) }}
+              className='font-semibold text-sm tracking-tight hover:text-primary hover:underline'
+            >
               {row.original.name}
-            </span>
+            </Link>
             <span className='font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 font-medium'>
               {row.original.sku}
             </span>
@@ -294,7 +305,7 @@ function getColumns() {
               variant='ghost'
               size='icon-sm'
               className='size-8 text-muted-foreground hover:text-foreground'
-              title='Edit Bahan Baku'
+              title='Lihat Detail'
               nativeButton={false}
               render={
                 <Link
@@ -304,12 +315,28 @@ function getColumns() {
                 />
               }
             >
+              <EyeIcon className='size-4' />
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon-sm'
+              className='size-8 text-muted-foreground hover:text-foreground'
+              title='Edit Bahan Baku'
+              nativeButton={false}
+              render={
+                <Link
+                  from={Route.fullPath}
+                  to='/materials/$id/update'
+                  params={{ id: String(row.original.id) }}
+                />
+              }
+            >
               <PencilIcon className='size-4' />
             </Button>
           </div>
         )
       },
-      size: 100,
+      size: 140,
       enableSorting: false,
       enableHiding: false,
       enableResizing: false,

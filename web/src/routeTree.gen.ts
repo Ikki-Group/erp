@@ -49,6 +49,7 @@ import { Route as AppSettingsLocationIdRouteImport } from './routes/_app/setting
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
 import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
+import { Route as AppMaterialsIdUpdateRouteImport } from './routes/_app/materials/$id.update'
 import { Route as AppMaterialsIdRecipeRouteImport } from './routes/_app/materials/$id.recipe'
 import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
 import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
@@ -261,6 +262,11 @@ const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
   path: '/location',
   getParentRoute: () => AppSettingsTabRoute,
 } as any)
+const AppMaterialsIdUpdateRoute = AppMaterialsIdUpdateRouteImport.update({
+  id: '/materials/$id/update',
+  path: '/materials/$id/update',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMaterialsIdRecipeRoute = AppMaterialsIdRecipeRouteImport.update({
   id: '/materials/$id/recipe',
   path: '/materials/$id/recipe',
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
   '/materials/$id/recipe': typeof AppMaterialsIdRecipeRoute
+  '/materials/$id/update': typeof AppMaterialsIdUpdateRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
   '/materials/$id/recipe': typeof AppMaterialsIdRecipeRoute
+  '/materials/$id/update': typeof AppMaterialsIdUpdateRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/_app/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/_app/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
   '/_app/materials/$id/recipe': typeof AppMaterialsIdRecipeRoute
+  '/_app/materials/$id/update': typeof AppMaterialsIdUpdateRoute
   '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/transfer'
     | '/materials/$id/recipe'
+    | '/materials/$id/update'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/transfer'
     | '/materials/$id/recipe'
+    | '/materials/$id/update'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -558,6 +569,7 @@ export interface FileRouteTypes {
     | '/_app/inventory/transactions/adjustment'
     | '/_app/inventory/transactions/transfer'
     | '/_app/materials/$id/recipe'
+    | '/_app/materials/$id/update'
     | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
@@ -866,6 +878,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabLocationRouteImport
       parentRoute: typeof AppSettingsTabRoute
     }
+    '/_app/materials/$id/update': {
+      id: '/_app/materials/$id/update'
+      path: '/materials/$id/update'
+      fullPath: '/materials/$id/update'
+      preLoaderRoute: typeof AppMaterialsIdUpdateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/materials/$id/recipe': {
       id: '/_app/materials/$id/recipe'
       path: '/materials/$id/recipe'
@@ -952,6 +971,7 @@ interface AppRouteRouteChildren {
   AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
   AppInventoryTransactionsTransferRoute: typeof AppInventoryTransactionsTransferRoute
   AppMaterialsIdRecipeRoute: typeof AppMaterialsIdRecipeRoute
+  AppMaterialsIdUpdateRoute: typeof AppMaterialsIdUpdateRoute
   AppSettingsLocationIdRoute: typeof AppSettingsLocationIdRoute
   AppSettingsLocationCreateRoute: typeof AppSettingsLocationCreateRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
@@ -996,6 +1016,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
     AppInventoryTransactionsAdjustmentRoute,
   AppInventoryTransactionsTransferRoute: AppInventoryTransactionsTransferRoute,
   AppMaterialsIdRecipeRoute: AppMaterialsIdRecipeRoute,
+  AppMaterialsIdUpdateRoute: AppMaterialsIdUpdateRoute,
   AppSettingsLocationIdRoute: AppSettingsLocationIdRoute,
   AppSettingsLocationCreateRoute: AppSettingsLocationCreateRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
