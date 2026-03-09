@@ -44,7 +44,7 @@ export function getAppMenu(pathname: string): Array<AppMenu> {
           isActive: pathname === '/products/category',
         },
         {
-          title: 'Tipe Penjualan',
+          title: 'Jenis Penjualan',
           href: '/products/sales-type',
           isActive: pathname === '/products/sales-type',
         },
