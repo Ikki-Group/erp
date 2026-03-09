@@ -18,10 +18,15 @@ import { Route as AppProductsIndexRouteImport } from './routes/_app/products/ind
 import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
 import { Route as AppLocationsIndexRouteImport } from './routes/_app/locations/index'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
+import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
+import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
 import { Route as AppProductsSalesTypeRouteImport } from './routes/_app/products/sales-type'
 import { Route as AppProductsCreateRouteImport } from './routes/_app/products/create'
 import { Route as AppProductsCategoryRouteImport } from './routes/_app/products/category'
 import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
+import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
+import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
 import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
 import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
 import { Route as AppMaterialsLedgerRouteImport } from './routes/_app/materials/ledger'
@@ -102,6 +107,16 @@ const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSalesOrdersRoute = AppSalesOrdersRouteImport.update({
+  id: '/sales/orders',
+  path: '/sales/orders',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSalesCustomersRoute = AppSalesCustomersRouteImport.update({
+  id: '/sales/customers',
+  path: '/sales/customers',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductsSalesTypeRoute = AppProductsSalesTypeRouteImport.update({
   id: '/products/sales-type',
   path: '/products/sales-type',
@@ -120,6 +135,21 @@ const AppProductsCategoryRoute = AppProductsCategoryRouteImport.update({
 const AppProductsIdRoute = AppProductsIdRouteImport.update({
   id: '/products/$id',
   path: '/products/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProductionWorkOrdersRoute = AppProductionWorkOrdersRouteImport.update({
+  id: '/production/work-orders',
+  path: '/production/work-orders',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProcurementSuppliersRoute = AppProcurementSuppliersRouteImport.update({
+  id: '/procurement/suppliers',
+  path: '/procurement/suppliers',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProcurementOrdersRoute = AppProcurementOrdersRouteImport.update({
+  id: '/procurement/orders',
+  path: '/procurement/orders',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialsUomRoute = AppMaterialsUomRouteImport.update({
@@ -329,10 +359,15 @@ export interface FileRoutesByFullPath {
   '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
+  '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products/category': typeof AppProductsCategoryRoute
   '/products/create': typeof AppProductsCreateRoute
   '/products/sales-type': typeof AppProductsSalesTypeRoute
+  '/sales/customers': typeof AppSalesCustomersRoute
+  '/sales/orders': typeof AppSalesOrdersRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/locations/': typeof AppLocationsIndexRoute
   '/materials/': typeof AppMaterialsIndexRoute
@@ -378,10 +413,15 @@ export interface FileRoutesByTo {
   '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
+  '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/products/$id': typeof AppProductsIdRoute
   '/products/category': typeof AppProductsCategoryRoute
   '/products/create': typeof AppProductsCreateRoute
   '/products/sales-type': typeof AppProductsSalesTypeRoute
+  '/sales/customers': typeof AppSalesCustomersRoute
+  '/sales/orders': typeof AppSalesOrdersRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/locations': typeof AppLocationsIndexRoute
   '/materials': typeof AppMaterialsIndexRoute
@@ -430,10 +470,15 @@ export interface FileRoutesById {
   '/_app/materials/ledger': typeof AppMaterialsLedgerRoute
   '/_app/materials/stock': typeof AppMaterialsStockRoute
   '/_app/materials/uom': typeof AppMaterialsUomRoute
+  '/_app/procurement/orders': typeof AppProcurementOrdersRoute
+  '/_app/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/_app/products/$id': typeof AppProductsIdRoute
   '/_app/products/category': typeof AppProductsCategoryRoute
   '/_app/products/create': typeof AppProductsCreateRoute
   '/_app/products/sales-type': typeof AppProductsSalesTypeRoute
+  '/_app/sales/customers': typeof AppSalesCustomersRoute
+  '/_app/sales/orders': typeof AppSalesOrdersRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/locations/': typeof AppLocationsIndexRoute
   '/_app/materials/': typeof AppMaterialsIndexRoute
@@ -481,10 +526,15 @@ export interface FileRouteTypes {
     | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
+    | '/procurement/orders'
+    | '/procurement/suppliers'
+    | '/production/work-orders'
     | '/products/$id'
     | '/products/category'
     | '/products/create'
     | '/products/sales-type'
+    | '/sales/customers'
+    | '/sales/orders'
     | '/settings'
     | '/locations/'
     | '/materials/'
@@ -530,10 +580,15 @@ export interface FileRouteTypes {
     | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
+    | '/procurement/orders'
+    | '/procurement/suppliers'
+    | '/production/work-orders'
     | '/products/$id'
     | '/products/category'
     | '/products/create'
     | '/products/sales-type'
+    | '/sales/customers'
+    | '/sales/orders'
     | '/settings'
     | '/locations'
     | '/materials'
@@ -581,10 +636,15 @@ export interface FileRouteTypes {
     | '/_app/materials/ledger'
     | '/_app/materials/stock'
     | '/_app/materials/uom'
+    | '/_app/procurement/orders'
+    | '/_app/procurement/suppliers'
+    | '/_app/production/work-orders'
     | '/_app/products/$id'
     | '/_app/products/category'
     | '/_app/products/create'
     | '/_app/products/sales-type'
+    | '/_app/sales/customers'
+    | '/_app/sales/orders'
     | '/_app/settings/_tab'
     | '/_app/locations/'
     | '/_app/materials/'
@@ -684,6 +744,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/sales/orders': {
+      id: '/_app/sales/orders'
+      path: '/sales/orders'
+      fullPath: '/sales/orders'
+      preLoaderRoute: typeof AppSalesOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/sales/customers': {
+      id: '/_app/sales/customers'
+      path: '/sales/customers'
+      fullPath: '/sales/customers'
+      preLoaderRoute: typeof AppSalesCustomersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/products/sales-type': {
       id: '/_app/products/sales-type'
       path: '/products/sales-type'
@@ -710,6 +784,27 @@ declare module '@tanstack/react-router' {
       path: '/products/$id'
       fullPath: '/products/$id'
       preLoaderRoute: typeof AppProductsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/production/work-orders': {
+      id: '/_app/production/work-orders'
+      path: '/production/work-orders'
+      fullPath: '/production/work-orders'
+      preLoaderRoute: typeof AppProductionWorkOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/suppliers': {
+      id: '/_app/procurement/suppliers'
+      path: '/procurement/suppliers'
+      fullPath: '/procurement/suppliers'
+      preLoaderRoute: typeof AppProcurementSuppliersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/orders': {
+      id: '/_app/procurement/orders'
+      path: '/procurement/orders'
+      fullPath: '/procurement/orders'
+      preLoaderRoute: typeof AppProcurementOrdersRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/materials/uom': {
@@ -997,10 +1092,15 @@ interface AppRouteRouteChildren {
   AppMaterialsLedgerRoute: typeof AppMaterialsLedgerRoute
   AppMaterialsStockRoute: typeof AppMaterialsStockRoute
   AppMaterialsUomRoute: typeof AppMaterialsUomRoute
+  AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
+  AppProcurementSuppliersRoute: typeof AppProcurementSuppliersRoute
+  AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
   AppProductsIdRoute: typeof AppProductsIdRoute
   AppProductsCategoryRoute: typeof AppProductsCategoryRoute
   AppProductsCreateRoute: typeof AppProductsCreateRoute
   AppProductsSalesTypeRoute: typeof AppProductsSalesTypeRoute
+  AppSalesCustomersRoute: typeof AppSalesCustomersRoute
+  AppSalesOrdersRoute: typeof AppSalesOrdersRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppLocationsIndexRoute: typeof AppLocationsIndexRoute
   AppMaterialsIndexRoute: typeof AppMaterialsIndexRoute
@@ -1044,10 +1144,15 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialsLedgerRoute: AppMaterialsLedgerRoute,
   AppMaterialsStockRoute: AppMaterialsStockRoute,
   AppMaterialsUomRoute: AppMaterialsUomRoute,
+  AppProcurementOrdersRoute: AppProcurementOrdersRoute,
+  AppProcurementSuppliersRoute: AppProcurementSuppliersRoute,
+  AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
   AppProductsIdRoute: AppProductsIdRoute,
   AppProductsCategoryRoute: AppProductsCategoryRoute,
   AppProductsCreateRoute: AppProductsCreateRoute,
   AppProductsSalesTypeRoute: AppProductsSalesTypeRoute,
+  AppSalesCustomersRoute: AppSalesCustomersRoute,
+  AppSalesOrdersRoute: AppSalesOrdersRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppLocationsIndexRoute: AppLocationsIndexRoute,
   AppMaterialsIndexRoute: AppMaterialsIndexRoute,
