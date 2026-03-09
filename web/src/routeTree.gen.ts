@@ -33,6 +33,8 @@ import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
+import { Route as AppAnalyticsStockRouteImport } from './routes/_app/analytics/stock'
+import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
 import { Route as AppMaterialsIdIndexRouteImport } from './routes/_app/materials/$id.index'
 import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
@@ -176,6 +178,16 @@ const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
   path: '/examples/data-table',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAnalyticsStockRoute = AppAnalyticsStockRouteImport.update({
+  id: '/analytics/stock',
+  path: '/analytics/stock',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppAnalyticsProductionRoute = AppAnalyticsProductionRouteImport.update({
+  id: '/analytics/production',
+  path: '/analytics/production',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMaterialsIdIndexRoute = AppMaterialsIdIndexRouteImport.update({
   id: '/materials/$id/',
   path: '/materials/$id/',
@@ -304,6 +316,8 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
+  '/analytics/production': typeof AppAnalyticsProductionRoute
+  '/analytics/stock': typeof AppAnalyticsStockRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
@@ -351,6 +365,8 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
+  '/analytics/production': typeof AppAnalyticsProductionRoute
+  '/analytics/stock': typeof AppAnalyticsStockRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
@@ -401,6 +417,8 @@ export interface FileRoutesById {
   '/_app/$': typeof AppSplatRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/analytics/production': typeof AppAnalyticsProductionRoute
+  '/_app/analytics/stock': typeof AppAnalyticsStockRoute
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
@@ -450,6 +468,8 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/login'
+    | '/analytics/production'
+    | '/analytics/stock'
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
@@ -497,6 +517,8 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/login'
+    | '/analytics/production'
+    | '/analytics/stock'
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
@@ -546,6 +568,8 @@ export interface FileRouteTypes {
     | '/_app/$'
     | '/_auth/login'
     | '/_app/'
+    | '/_app/analytics/production'
+    | '/_app/analytics/stock'
     | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
@@ -765,6 +789,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExamplesDataTableRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/analytics/stock': {
+      id: '/_app/analytics/stock'
+      path: '/analytics/stock'
+      fullPath: '/analytics/stock'
+      preLoaderRoute: typeof AppAnalyticsStockRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/analytics/production': {
+      id: '/_app/analytics/production'
+      path: '/analytics/production'
+      fullPath: '/analytics/production'
+      preLoaderRoute: typeof AppAnalyticsProductionRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/materials/$id/': {
       id: '/_app/materials/$id/'
       path: '/materials/$id'
@@ -946,6 +984,8 @@ const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
 interface AppRouteRouteChildren {
   AppSplatRoute: typeof AppSplatRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAnalyticsProductionRoute: typeof AppAnalyticsProductionRoute
+  AppAnalyticsStockRoute: typeof AppAnalyticsStockRoute
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
@@ -991,6 +1031,8 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSplatRoute: AppSplatRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAnalyticsProductionRoute: AppAnalyticsProductionRoute,
+  AppAnalyticsStockRoute: AppAnalyticsStockRoute,
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
