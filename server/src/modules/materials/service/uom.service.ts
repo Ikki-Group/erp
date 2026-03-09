@@ -15,8 +15,9 @@ import {
 import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { db } from '@/db'
 import { uoms } from '@/db/schema'
+
+import { db } from '@/db'
 
 import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 

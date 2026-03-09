@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Page } from '@/components/layout/page'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-import { materialApi, MaterialPickerDialog, uomApi } from '@/features/material'
+import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
 import { RecipeMutationDto, recipeApi } from '@/features/recipe'
 
 type RecipeMutation = z.infer<typeof RecipeMutationDto>

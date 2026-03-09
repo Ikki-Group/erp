@@ -9,22 +9,23 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { authApi } from '@/features/iam'
 import { useAppState } from '@/hooks/use-app-state'
+import { ApiError } from '@/lib/api'
 
 export const Route = createRootRouteWithContext<RouteContext>()({
   beforeLoad: async ({ context }) => {
     const token = useAppState.getState().token
 
     if (token) {
-      const userData = await context.qc
+      await context.qc
         .ensureQueryData(authApi.me.query({}))
-        .then(res => res.data)
-        .catch(() => null)
-
-      if (userData) {
-        useAppState.getState().invalidateSessionData(userData)
-      } else {
-        useAppState.getState().clearToken()
-      }
+        .then(res => {
+          useAppState.getState().invalidateSessionData(res.data)
+        })
+        .catch(err => {
+          if (err instanceof ApiError && err.status === 401) {
+            useAppState.getState().clearToken()
+          }
+        })
     }
   },
   component: RootComponent,

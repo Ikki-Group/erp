@@ -1,7 +1,9 @@
 import { LocationService } from './location.service'
 
 export class LocationServiceModule {
-  constructor(public readonly location: LocationService = new LocationService()) {}
-}
+  public location: LocationService
 
-export { LocationService } from './location.service'
+  constructor() {
+    this.location = new LocationService()
+  }
+}

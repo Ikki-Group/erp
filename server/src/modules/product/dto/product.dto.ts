@@ -6,8 +6,8 @@ import { ProductCategoryDto } from './product-category.dto'
 
 /* --------------------------------- ENUMS ---------------------------------- */
 
-export const ProductStatus = z.enum(['active', 'inactive', 'archived'])
-export type ProductStatus = z.infer<typeof ProductStatus>
+const ProductStatus = z.enum(['active', 'inactive', 'archived'])
+type ProductStatus = z.infer<typeof ProductStatus>
 
 /* --------------------------------- NESTED --------------------------------- */
 
@@ -101,21 +101,21 @@ export type ProductSelectDto = z.infer<typeof ProductSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const VariantPriceMutationDto = z.object({
+const VariantPriceMutationDto = z.object({
   salesTypeId: zPrimitive.id,
   price: zPrimitive.str,
 })
 
-export type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
+type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 
-export const ProductPriceMutationDto = z.object({
+const ProductPriceMutationDto = z.object({
   salesTypeId: zPrimitive.id,
   price: zPrimitive.str,
 })
 
-export type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
+type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
 
-export const ProductVariantMutationDto = z.object({
+const ProductVariantMutationDto = z.object({
   name: zPrimitive.str,
   sku: zPrimitive.str.optional(),
   isDefault: zPrimitive.bool.optional().default(false),
@@ -123,7 +123,7 @@ export const ProductVariantMutationDto = z.object({
   prices: VariantPriceMutationDto.array(),
 })
 
-export type ProductVariantMutationDto = z.infer<typeof ProductVariantMutationDto>
+type ProductVariantMutationDto = z.infer<typeof ProductVariantMutationDto>
 
 export const ProductMutationDto = z.object({
   ...ProductDto.pick({

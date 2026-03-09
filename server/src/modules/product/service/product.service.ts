@@ -6,8 +6,9 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { db } from '@/db'
 import { productExternalMappings, productPrices, products, productVariants, variantPrices } from '@/db/schema'
+
+import { db } from '@/db'
 
 import type { ProductCategoryDto } from '../dto/product-category.dto'
 import type {

@@ -1,9 +1,19 @@
 import { queryOptions } from '@tanstack/react-query'
+import { treeifyError } from 'zod'
+import { HTTPError } from 'ky'
 import { apiClient } from './api-client'
+import { ApiError } from './api-error'
 import type { ZodType, z } from 'zod'
 import type { KyInstance } from 'ky'
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete'
+
+export interface TErr<T = any> {
+  code: string | number
+  message: string
+  data: T
+  trace: unknown
+}
 
 interface ApiFactoryConfig<
   TParams extends ZodType | undefined,
@@ -51,19 +61,47 @@ export function apiFactory<
    * fetch
    * --------------------------------------*/
   const fetch = async (args: Args): Promise<Result> => {
-    let params = (args as any)?.params
-    let body = (args as any)?.body
+    try {
+      let params = (args as any)?.params
+      let body = (args as any)?.body
 
-    if (config.params) params = config.params.parse(params)
-    if (config.body) body = config.body.parse(body)
+      if (config.params) params = config.params.parse(params)
+      if (config.body) body = config.body.parse(body)
 
-    const res = await client(config.url, {
-      method: config.method,
-      searchParams: params,
-      json: body,
-    }).json()
+      const resultRaw = await client(config.url, {
+        method: config.method,
+        searchParams: params,
+        json: body,
+      })
 
-    return config.result.parse(res) as Result
+      const resultJson = await resultRaw.json()
+      const parsedResult = config.result.safeParse(resultJson)
+      if (parsedResult.error) {
+        const msg = `[ZodError] ${config.url}
+Response:
+${JSON.stringify(resultJson, null, 2)}
+========
+${JSON.stringify(treeifyError(parsedResult.error), null, 2)}
+`
+        throw new Error(msg)
+      }
+
+      return parsedResult.data as Result
+    } catch (error) {
+      /**
+       * Handle HTTP errors
+       * if the response is JSON, parse it and throw an ApiError
+       */
+      if (
+        error instanceof HTTPError &&
+        error.response.headers.get('content-type')?.includes('application/json')
+      ) {
+        const data = await error.response.json<TErr<any>>()
+        throw new ApiError(data.message, error.response.status, data)
+      }
+
+      throw error
+    }
   }
 
   /* ----------------------------------------

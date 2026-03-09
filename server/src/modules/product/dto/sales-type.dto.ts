@@ -8,6 +8,7 @@ export const SalesTypeDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
+  isSystem: z.boolean(),
   ...zSchema.metadata.shape,
 })
 
@@ -27,6 +28,7 @@ export const SalesTypeMutationDto = z.object({
   ...SalesTypeDto.pick({
     code: true,
     name: true,
+    isSystem: true,
   }).shape,
 })
 

@@ -11,17 +11,10 @@ const axiomExporter = new OTLPTraceExporter({
   },
 })
 
-const betterstackExporter = new OTLPTraceExporter({
-  url: 'https://s2035304.eu-fsn-3.betterstackdata.com/v1/traces',
-  headers: {
-    Authorization: 'Bearer qydrQBUhyoh79aBa9sy5f4Sg',
-  },
-})
-
 export const otel = opentelemetry({
+  serviceName: Bun.env.APP_NAME || 'ikki-erp',
   autoDetectResources: true,
   spanProcessors: [new BatchSpanProcessor(axiomExporter)],
-  instrumentations: [],
-  serviceName: Bun.env.APP_NAME || 'ikki-erp',
+  // instrumentations: [],
   sampler: new AlwaysOnSampler(),
 })

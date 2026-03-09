@@ -188,6 +188,7 @@ function DataGridFilterSelect({
 }: DataGridFilterSelectProps) {
   return (
     <Select
+      items={options}
       value={value != null && value !== '' ? String(value) : ''}
       onValueChange={val => {
         if (val === '') {
@@ -211,7 +212,11 @@ function DataGridFilterSelect({
       }}
     >
       <SelectTrigger className='h-8 w-fit min-w-[130px] gap-2'>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder}>
+          {value != null && value !== ''
+            ? options.find(opt => String(opt.value) === String(value))?.label
+            : undefined}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map(opt => (

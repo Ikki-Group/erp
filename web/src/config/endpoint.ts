@@ -84,10 +84,26 @@ const recipe = {
   remove: 'recipe/remove',
 }
 
+const inventory = {
+  summary: {
+    byLocation: 'inventory/summary/by-location',
+    ledger: 'inventory/summary/ledger',
+    generate: 'inventory/summary/generate',
+  },
+  transaction: {
+    list: 'inventory/transaction/list',
+    detail: 'inventory/transaction/detail',
+    purchase: 'inventory/transaction/purchase',
+    transfer: 'inventory/transaction/transfer',
+    adjustment: 'inventory/transaction/adjustment',
+  },
+}
+
 export const endpoint = {
   iam,
   location,
   material,
   product,
   recipe,
+  inventory,
 }

@@ -1,6 +1,8 @@
 import z from 'zod'
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
+import { LocationDto } from '@/features/location/dto'
+import { RecipeDto } from '@/features/recipe/dto'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
@@ -13,6 +15,7 @@ export type MaterialType = z.infer<typeof MaterialType>
 export const MaterialConversionDto = z.object({
   toBaseFactor: zPrimitive.str,
   uomId: zPrimitive.id,
+  uom: UomDto.optional(),
 })
 
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
@@ -39,6 +42,8 @@ export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
   category: MaterialCategoryDto.nullable(),
   uom: UomDto.nullable(),
+  locations: LocationDto.array().optional(),
+  recipe: RecipeDto.nullable().optional(),
 })
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>

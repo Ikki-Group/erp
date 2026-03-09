@@ -1,3 +1,4 @@
+import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, or, type SQL } from 'drizzle-orm'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
@@ -27,7 +28,7 @@ export interface ConflictField<T = string> {
   code?: string
 }
 
-export interface CheckConflictOptions<T = string> {
+interface CheckConflictOptions<T = string> {
   /** The Drizzle table to query against. */
   table: PgTable
   /** The primary key column of the table (default serial `id`). */
@@ -67,31 +68,33 @@ export interface CheckConflictOptions<T = string> {
  * })
  */
 export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<void> {
-  const { table, pkColumn, fields, input, existing } = opts
+  return record('db.checkConflict', async () => {
+    const { table, pkColumn, fields, input, existing } = opts
 
-  // Determine which fields actually changed
-  const changedFields = fields.filter((f) => {
-    if (!existing) return true // create → always check
-    return existing[f.field] !== input[f.field]
-  })
+    // Determine which fields actually changed
+    const changedFields = fields.filter((f) => {
+      if (!existing) return true // create → always check
+      return existing[f.field] !== input[f.field]
+    })
 
-  if (changedFields.length === 0) return
+    if (changedFields.length === 0) return
 
-  // Build OR conditions with only changed fields
-  const orConditions: SQL[] = changedFields.map((f) => eq(f.column, input[f.field] as never))
+    // Build OR conditions with only changed fields
+    const orConditions: SQL[] = changedFields.map((f) => eq(f.column, input[f.field] as never))
 
-  // Combine: OR of field checks, AND exclude self on update
-  const whereClause = existing ? and(ne(pkColumn, existing.id), or(...orConditions)!) : or(...orConditions)!
+    // Combine: OR of field checks, AND exclude self on update
+    const whereClause = existing ? and(ne(pkColumn, existing.id), or(...orConditions)!) : or(...orConditions)!
 
-  const [conflict] = await db.select().from(table).where(whereClause).limit(1)
+    const [conflict] = await db.select().from(table).where(whereClause).limit(1)
 
-  if (!conflict) return
+    if (!conflict) return
 
-  // Throw the first matching conflict
-  const conflictRecord = conflict as Record<string, unknown>
-  for (const f of changedFields) {
-    if (conflictRecord[f.field] === input[f.field]) {
-      throw new ConflictError(f.message, f.code)
+    // Throw the first matching conflict
+    const conflictRecord = conflict as Record<string, unknown>
+    for (const f of changedFields) {
+      if (conflictRecord[f.field] === input[f.field]) {
+        throw new ConflictError(f.message, f.code)
+      }
     }
-  }
+  })
 }

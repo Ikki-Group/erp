@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+ 
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable no-shadow */
 import { Fragment } from 'react'

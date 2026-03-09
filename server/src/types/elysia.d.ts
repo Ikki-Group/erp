@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/require-module-specifiers */
 
 declare module 'elysia' {
   interface SingletonBase {
@@ -8,4 +7,5 @@ declare module 'elysia' {
   }
 }
 
-export {}
+export { }
+

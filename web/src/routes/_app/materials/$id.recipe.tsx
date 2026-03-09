@@ -20,7 +20,8 @@ function RouteComponent() {
       targetId={Number(id)}
       backTo={{
         from: Route.fullPath,
-        to: '/materials',
+        to: '/materials/$id',
+        params: { id: String(id) },
       }}
     />
   )

@@ -6,8 +6,11 @@ import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type Conflic
 import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
+import { materialConversions, materialLocations, materials, uoms } from '@/db/schema'
+
+import type { LocationService } from '@/modules/location/service/location.service'
+
 import { db } from '@/db'
-import { materialConversions, materialLocations, materials } from '@/db/schema'
 
 import type {
   MaterialCategoryDto,
@@ -48,7 +51,8 @@ const cacheKey = {
 export class MaterialService {
   constructor(
     private readonly categorySvc: MaterialCategoryService,
-    private readonly uomSvc: UomService
+    private readonly uomSvc: UomService,
+    private readonly locationSvc: LocationService
   ) {}
 
   /**
@@ -61,8 +65,13 @@ export class MaterialService {
 
     const [conversions, locations] = await Promise.all([
       db
-        .select({ toBaseFactor: materialConversions.toBaseFactor, uomId: materialConversions.uomId })
+        .select({
+          toBaseFactor: materialConversions.toBaseFactor,
+          uomId: materialConversions.uomId,
+          uom: uoms,
+        })
         .from(materialConversions)
+        .innerJoin(uoms, eq(materialConversions.uomId, uoms.id))
         .where(eq(materialConversions.materialId, id)),
 
       db
@@ -83,9 +92,8 @@ export class MaterialService {
    */
   private async getMaterialsBatchWithRelations(
     ids: number[]
-  ): Promise<Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>> {
-    if (ids.length === 0)
-      return new Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>()
+  ): Promise<Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>> {
+    if (ids.length === 0) return new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
 
     const [conversions, locations] = await Promise.all([
       db
@@ -93,8 +101,10 @@ export class MaterialService {
           materialId: materialConversions.materialId,
           toBaseFactor: materialConversions.toBaseFactor,
           uomId: materialConversions.uomId,
+          uom: uoms,
         })
         .from(materialConversions)
+        .innerJoin(uoms, eq(materialConversions.uomId, uoms.id))
         .where(inArray(materialConversions.materialId, ids)),
 
       db
@@ -103,13 +113,17 @@ export class MaterialService {
         .where(inArray(materialLocations.materialId, ids)),
     ])
 
-    const map = new Map<number, { conversions: { toBaseFactor: string; uomId: number }[]; locationIds: number[] }>()
+    const map = new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
     for (const id of ids) {
       map.set(id, { conversions: [], locationIds: [] })
     }
 
     for (const c of conversions) {
-      map.get(c.materialId)!.conversions.push({ toBaseFactor: c.toBaseFactor, uomId: c.uomId })
+      map.get(c.materialId)!.conversions.push({
+        toBaseFactor: c.toBaseFactor,
+        uomId: c.uomId,
+        uom: c.uom,
+      })
     }
 
     for (const l of locations) {
@@ -234,15 +248,19 @@ export class MaterialService {
   async handleDetail(id: number): Promise<MaterialSelectDto> {
     return record('MaterialService.handleDetail', async () => {
       const material = await this.findById(id)
-      const [category, uom] = await Promise.all([
+      const [category, uom, locations] = await Promise.all([
         material.categoryId ? this.categorySvc.findById(material.categoryId) : null,
         this.uomSvc.findById(material.baseUomId).catch(() => null),
+        material.locationIds.length > 0
+          ? Promise.all(material.locationIds.map((lId) => this.locationSvc.findById(lId)))
+          : [],
       ])
 
       return {
         ...material,
         category,
         uom,
+        locations,
       }
     })
   }

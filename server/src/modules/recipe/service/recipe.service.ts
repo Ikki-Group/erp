@@ -6,8 +6,9 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
+import { materials, recipeItems, recipes, uoms } from '@/db/schema'
+
 import { db } from '@/db'
-import { recipeItems, recipes } from '@/db/schema'
 
 import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
 
@@ -29,7 +30,19 @@ export class RecipeService {
   // ─── Private Helpers ──────────────────────────────────────────────────────
 
   private async getRecipeItems(recipeId: number) {
-    return db.select().from(recipeItems).where(eq(recipeItems.recipeId, recipeId)).orderBy(recipeItems.sortOrder)
+    const results = await db
+      .select({
+        item: recipeItems,
+        material: { name: materials.name, sku: materials.sku },
+        uom: { code: uoms.code },
+      })
+      .from(recipeItems)
+      .innerJoin(materials, eq(recipeItems.materialId, materials.id))
+      .innerJoin(uoms, eq(recipeItems.uomId, uoms.id))
+      .where(eq(recipeItems.recipeId, recipeId))
+      .orderBy(recipeItems.sortOrder)
+
+    return results.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
   }
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
@@ -78,14 +91,22 @@ export class RecipeService {
 
       const recipeIds = result.data.map((r) => r.id)
 
-      const allItems =
+      const allItemsRaw =
         recipeIds.length > 0
           ? await db
-              .select()
+              .select({
+                item: recipeItems,
+                material: { name: materials.name, sku: materials.sku },
+                uom: { code: uoms.code },
+              })
               .from(recipeItems)
+              .innerJoin(materials, eq(recipeItems.materialId, materials.id))
+              .innerJoin(uoms, eq(recipeItems.uomId, uoms.id))
               .where(inArray(recipeItems.recipeId, recipeIds))
               .orderBy(recipeItems.sortOrder)
           : []
+
+      const allItems = allItemsRaw.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
 
       const itemsByRecipe = new Map<number, typeof allItems>()
       for (const item of allItems) {
@@ -110,7 +131,11 @@ export class RecipeService {
   }
 
   private async checkTargetConflict(
-    target: { materialId?: number | null; productId?: number | null; productVariantId?: number | null },
+    target: {
+      materialId?: number | null | undefined
+      productId?: number | null | undefined
+      productVariantId?: number | null | undefined
+    },
     excludeId?: number
   ) {
     const conditions = []

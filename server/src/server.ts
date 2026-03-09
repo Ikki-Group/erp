@@ -1,41 +1,21 @@
-import { configure, getConsoleSink } from '@logtape/logtape'
-
+import { env } from '@/config/env'
 import { logger } from '@/lib/logger'
 
-import { env } from '@/config/env'
-
 async function main() {
-  await configure({
-    sinks: {
-      console: getConsoleSink(),
-    },
-    loggers: [
-      {
-        category: ['logtape', 'meta'],
-        sinks: ['console'],
-        lowestLevel: 'warning',
-      },
-      {
-        category: [],
-        sinks: ['console'],
-        lowestLevel: 'debug',
-      },
-    ],
-  })
-
   const app = await import('@/app').then((mod) => mod.app)
 
   app.listen({
     port: env.PORT,
   })
 
-  logger
-    .withMetadata({
+  logger.info(
+    {
       port: env.PORT,
       host: env.HOST,
       env: env.NODE_ENV,
-    })
-    .info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`)
+    },
+    `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`
+  )
 }
 
 main()
@@ -47,7 +27,6 @@ main()
 //   await closeDatabase()
 //   logger.info('Shutdown complete')
 
-//   // eslint-disable-next-line unicorn/no-process-exit
 //   process.exit(0)
 // }
 

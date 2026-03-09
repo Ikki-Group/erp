@@ -1,3 +1,4 @@
+export * from './material-detail-page'
 export * from './material-form-page'
 export * from './material-location-assign-dialog'
 export * from './material-assign-to-location-dialog'

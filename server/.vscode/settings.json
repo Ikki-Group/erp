@@ -17,15 +17,13 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "prettier.enable": true,
   "eslint.enable": true,
-  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
-    "^(node:)?os$"
-  ],
+  "typescript.preferences.autoImportSpecifierExcludeRegexes": ["^(node:)?os$"],
   "todo-tree.tree.scanMode": "workspace only",
   "[markdown]": {
     "editor.formatOnSave": false
   },
   "markdown.styles": [],
   "material-icon-theme.files.associations": {
-    "**/controller/**": "typescript",
-  },
+    "**/controller/**": "typescript"
+  }
 }

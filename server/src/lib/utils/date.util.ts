@@ -29,9 +29,3 @@ export function toWibDateKey(date: Date): Date {
   return new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate()))
 }
 
-/**
- * Returns the current moment in WIB as a Date key (midnight UTC).
- */
-export function todayWibKey(): Date {
-  return toWibDateKey(new Date())
-}

@@ -5,7 +5,7 @@ import {
   createFileRoute,
   useLocation,
 } from '@tanstack/react-router'
-import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+import { ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 import type { CardStatProps } from '@/components/card/card-stat'
 import { CardStat } from '@/components/card/card-stat'
 import { Page } from '@/components/layout/page'
@@ -15,7 +15,6 @@ import { settingsApi } from '@/features/dashboard/api/settings.api'
 const TABS = [
   ['Pengguna', '/settings/user'],
   ['Role', '/settings/role'],
-  ['Lokasi', '/settings/location'],
 ] as const
 
 export const Route = createFileRoute('/_app/settings/_tab')({
@@ -70,11 +69,6 @@ function SettingsSummarySection() {
       title: 'Total Role',
       value: data.data.roles,
       icon: ShieldEllipsisIcon,
-    },
-    {
-      title: 'Total Lokasi',
-      value: data.data.locations,
-      icon: MapPinIcon,
     },
   ] satisfies Array<CardStatProps>
 

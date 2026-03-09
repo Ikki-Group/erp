@@ -5,10 +5,7 @@ const config = {
   semi: false,
   singleQuote: true,
   printWidth: 120,
-  plugins: [
-    require.resolve('prettier-plugin-organize-imports'),
-    require.resolve('@ianvs/prettier-plugin-sort-imports'),
-  ],
+  plugins: ['@ianvs/prettier-plugin-sort-imports'],
   importOrder: [
     '^(bun|node):',
     '<THIRD_PARTY_MODULES>',
@@ -17,7 +14,7 @@ const config = {
     '',
     '^@/lib/(.*)$',
     '',
-    '^@/database',
+    '^@/db/(.*)$',
     '',
     '^@/modules/(.*)$',
     '',
@@ -27,7 +24,8 @@ const config = {
     '',
     '^[./]',
   ],
-  importOrderParserPlugins: ['typescript'],
+  importOrderParserPlugins: ['typescript', 'decorators-legacy'],
+  importOrderTypeScriptVersion: '5.0.0',
 }
 
 module.exports = config

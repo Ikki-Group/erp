@@ -254,7 +254,12 @@ function FormSelect({
             className={cn('w-full', className)}
             aria-invalid={errors.length > 0 || undefined}
           >
-            <SelectValue placeholder={placeholder} />
+            <SelectValue placeholder={placeholder}>
+              {value
+                ? options.find(opt => String(opt.value) === String(value))
+                    ?.label
+                : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {options.map(option => (

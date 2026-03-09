@@ -178,14 +178,6 @@ interface FieldSelectProps<TValue extends StringOrNumber>
 
 /**
  * Renders a select field connected to the current form field context.
- *
- * @param placeholder - Text shown in the trigger when no option is selected.
- * @param options - Array of options to display; each option should provide `value` and `label`.
- * @param label - Field label displayed above the control.
- * @param description - Optional descriptive text displayed below the label.
- * @param required - If true, marks the field as required.
- * @param className - Additional class names applied to the field wrapper.
- * @returns A JSX element rendering the select control bound to the surrounding field context.
  */
 function FieldSelect<TValue extends StringOrNumber = string>({
   placeholder,
@@ -241,6 +233,7 @@ function FieldCombobox<TItem>({
   description,
   required,
   className,
+  onItemSelect,
   ...props
 }: FieldComboboxProps<TItem>) {
   const field = useFieldContext<string | null>()
@@ -256,6 +249,7 @@ function FieldCombobox<TItem>({
         <DataCombobox<TItem>
           value={field.state.value}
           onValueChange={val => field.handleChange(val)}
+          onItemSelect={onItemSelect}
           {...props}
         />
       </FieldControl>

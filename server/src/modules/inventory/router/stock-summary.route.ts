@@ -5,7 +5,13 @@ import { authPluginMacro } from '@/lib/elysia/auth-plugin'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zResponse } from '@/lib/validation'
 
-import { GenerateSummaryDto, StockSummaryFilterDto, StockSummarySelectDto } from '../dto'
+import {
+  GenerateSummaryDto,
+  StockLedgerFilterDto,
+  StockLedgerSelectDto,
+  StockSummaryFilterDto,
+  StockSummarySelectDto,
+} from '../dto'
 import type { InventoryServiceModule } from '../service'
 
 export function initStockSummaryRoute(s: InventoryServiceModule) {
@@ -28,6 +34,24 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           response: zResponse.paginated(StockSummarySelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
+        }
+      )
+
+      /* ─────── Stock Ledger Aggregation (date range, paginated) ─────── */
+      .get(
+        '/ledger',
+        async function ledger({ query }) {
+          const result = await s.summary.handleLedger(query, query)
+          return res.paginated(result)
+        },
+        {
+          query: z.object({
+            ...zHttp.pagination.shape,
+            ...StockLedgerFilterDto.shape,
+          }),
+          response: zResponse.paginated(StockLedgerSelectDto.array()),
+          auth: true,
+          detail: { tags: ['Inventory Ledger'] },
         }
       )
 

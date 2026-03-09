@@ -6,9 +6,10 @@ import { cache } from '@/lib/cache'
 import { takeFirst } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
+import { sessions } from '@/db/schema'
+
 import { env } from '@/config/env'
 import { db } from '@/db'
-import { sessions } from '@/db/schema'
 
 import { SessionDataDto, type SessionDto, type UserDto } from '../dto'
 
@@ -87,7 +88,7 @@ export class SessionService {
 
         return session
       } catch (error) {
-        logger.withError(error).error('Failed to verify session')
+        logger.error(error, 'Failed to verify session')
         return null
       }
     })

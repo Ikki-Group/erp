@@ -1,10 +1,10 @@
 import z from 'zod'
 
+import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 
 export const salesTypeApi = {
   list: apiFactory({

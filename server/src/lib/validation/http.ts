@@ -15,7 +15,6 @@ const query = {
     .enum(['true', 'false'])
     .transform((val) => val === 'true')
     .optional()
-    // eslint-disable-next-line unicorn/no-useless-undefined
     .catch(undefined),
 
   /** Optional search string, returns undefined for empty strings */

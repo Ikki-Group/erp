@@ -1,10 +1,9 @@
 import { cors } from '@elysiajs/cors'
-import { elysiaLogger } from '@logtape/elysia'
 import { Elysia, ValidationError } from 'elysia'
 
 import { createAuthPlugin } from '@/lib/elysia/auth-plugin'
 import { requestIdPlugin } from '@/lib/elysia/request-id'
-import { BadRequestError, HttpError, InternalServerError } from '@/lib/error/http'
+import { BadRequestError, HttpError, InternalServerError, NotFoundError } from '@/lib/error/http'
 import { logger } from '@/lib/logger'
 import { otel } from '@/lib/otel'
 
@@ -47,9 +46,11 @@ export const app = new Elysia({
   name: 'App',
   precompile: true,
 })
+  .get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
+  .onRequest(({ request }) => {
+    logger.info({ method: request.method, url: request.url }, 'Request received')
+  })
   .onError((ctx) => {
-    // eslint-disable-next-line no-console
-    console.log(ctx.error)
     let error: HttpError
     if (ctx.error instanceof HttpError) {
       error = ctx.error
@@ -58,24 +59,24 @@ export const app = new Elysia({
         message: ctx.error.cause,
         fields: ctx.error.all,
       })
+    } else if (ctx.code === 'NOT_FOUND') {
+      error = new NotFoundError('Route not found', 'ROUTE_NOT_FOUND')
     } else {
       error = new InternalServerError('Internal server error', 'INTERNAL_SERVER_ERROR', ctx.error)
     }
 
     ctx.set.status = error.statusCode
-    logger.withError(ctx.error).error(error.message)
+    logger.error(
+      {
+        err: ctx.error,
+        path: ctx.path,
+        method: ctx.request.method,
+      },
+      error.message
+    )
     return error.toJSON()
   })
   .use(cors())
-  .use(
-    elysiaLogger({
-      level: 'info',
-      format: 'dev',
-      logRequest: true,
-      scope: 'global',
-      category: 'request',
-    })
-  )
   .use(otel)
   .use(requestIdPlugin())
   .use(createAuthPlugin(iamService))
@@ -87,10 +88,4 @@ export const app = new Elysia({
   .use(inventoryRoute)
   .use(productRoute)
   .use(recipeRoute)
-// Must be last
-// .get('/', () => redirect('/openapi'), {
-//   detail: { hide: true },
-// })
-// .use(openapiPlugin)
 
-export type App = typeof app

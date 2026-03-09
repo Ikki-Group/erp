@@ -3,7 +3,7 @@ import z from 'zod'
 
 const Env = z.object({
   // Server
-  NODE_ENV: z.enum(['development', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3001),
   HOST: z.string().default('0.0.0.0'),
 
@@ -24,6 +24,10 @@ const Env = z.object({
   // App
   APP_NAME: z.string().default('ikki-erp'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
+  LOG_PRETTY: z
+    .string()
+    .transform((v) => v === 'true')
+    .default(false),
 
   // Upstash
   UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
@@ -34,9 +38,7 @@ const _env = Env.safeParse(Bun.env)
 
 if (!_env.success) {
   console.error('Invalid environment variables:', z.treeifyError(_env.error))
-  // eslint-disable-next-line unicorn/no-process-exit
   process.exit(1)
 }
 
 export const env = _env.data
-export type Env = z.infer<typeof Env>

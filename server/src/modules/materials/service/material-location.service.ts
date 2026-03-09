@@ -5,10 +5,11 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
+import { locations, materialLocations, materials, uoms } from '@/db/schema'
+
 import type { LocationServiceModule } from '@/modules/location'
 
 import { db } from '@/db'
-import { locations, materialLocations, materials, uoms } from '@/db/schema'
 
 import type {
   MaterialLocationAssignDto,

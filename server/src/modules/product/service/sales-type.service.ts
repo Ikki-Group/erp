@@ -12,11 +12,12 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
+import { BadRequestError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { db } from '@/db'
 import { salesTypes } from '@/db/schema'
+
+import { db } from '@/db'
 
 import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 
@@ -24,6 +25,7 @@ import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND'),
+  systemSalesType: () => new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM'),
 }
 
 const uniqueFields: ConflictField<'code'>[] = [
@@ -129,6 +131,7 @@ export class SalesTypeService {
             target: salesTypes.code,
             set: {
               name: d.name,
+              isSystem: d.isSystem,
               updatedAt: metadata.updatedAt,
               updatedBy: metadata.updatedBy,
             },
@@ -158,6 +161,7 @@ export class SalesTypeService {
           ...data,
           code,
           name,
+          isSystem: false,
           ...stampCreate(actorId),
         })
         .returning({ id: salesTypes.id })
@@ -176,6 +180,8 @@ export class SalesTypeService {
     return record('SalesTypeService.handleUpdate', async () => {
       const existing = await this.findById(id)
 
+      if (existing.isSystem) throw err.systemSalesType()
+
       const code = data.code ? data.code.trim().toLowerCase() : existing.code
       const name = data.name ? data.name.trim() : existing.name
 
@@ -193,6 +199,7 @@ export class SalesTypeService {
           ...data,
           code,
           name,
+          isSystem: false,
           ...stampUpdate(actorId),
         })
         .where(eq(salesTypes.id, id))
@@ -207,6 +214,9 @@ export class SalesTypeService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('SalesTypeService.handleRemove', async () => {
+      const existing = await this.findById(id)
+      if (existing.isSystem) throw err.systemSalesType()
+
       const result = await db.delete(salesTypes).where(eq(salesTypes.id, id)).returning({ id: salesTypes.id })
       if (result.length === 0) throw err.notFound(id)
 

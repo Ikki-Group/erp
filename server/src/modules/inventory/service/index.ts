@@ -12,6 +12,3 @@ export class InventoryServiceModule {
     this.summary = new StockSummaryService(materialServiceModule.mLocation)
   }
 }
-
-export { StockSummaryService } from './stock-summary.service'
-export { StockTransactionService } from './stock-transaction.service'

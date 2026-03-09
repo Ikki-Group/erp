@@ -60,6 +60,7 @@ export class SeedService {
           SEED_CONFIG.SALES_TYPES.map((st) => ({
             code: st.code,
             name: st.name,
+            isSystem: st.isSystem,
             createdBy: SYSTEM_ACTOR_ID,
           }))
         )

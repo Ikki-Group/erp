@@ -47,7 +47,7 @@ function DataGridColumnFilter<TData, TValue>({
             <CirclePlusIcon className='size-4' />
             {title}
             {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+               
               selectedValues?.size > 0 && (
                 <>
                   <Separator orientation='vertical' className='mx-2 h-4' />

@@ -24,8 +24,8 @@ export const SEED_CONFIG = {
   ],
 
   SALES_TYPES: [
-    { code: 'DINE_IN', name: 'Dine In' },
-    { code: 'TAKE_AWAY', name: 'Take Away' },
+    { code: 'DINE_IN', name: 'Dine In', isSystem: true },
+    { code: 'TAKE_AWAY', name: 'Take Away', isSystem: true },
   ],
   UOMS: [
     { code: 'PCS' },

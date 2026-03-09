@@ -3,6 +3,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
 import type { LocationDto } from '@/features/location'
+import { Page } from '@/components/layout/page'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -12,12 +13,22 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/settings/_tab/location')({
+export const Route = createFileRoute('/_app/locations/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <LocationsTable />
+  return (
+    <Page>
+      <Page.BlockHeader
+        title='Lokasi & Gudang'
+        description='Kelola data lokasi dan gudang untuk penyimpanan inventory.'
+      />
+      <Page.Content>
+        <LocationsTable />
+      </Page.Content>
+    </Page>
+  )
 }
 
 const ch = createColumnHelper<LocationDto>()
@@ -32,7 +43,7 @@ const columns = [
             size='icon-sm'
             render={
               <Link
-                to='/settings/location/$id'
+                to='/locations/$id'
                 params={{ id: String(row.original.id) }}
               />
             }
@@ -124,7 +135,7 @@ function LocationsTable() {
       action={
         <Button
           size='sm'
-          render={<Link from={Route.fullPath} to='/settings/location/create' />}
+          render={<Link from={Route.fullPath} to='/locations/create' />}
           nativeButton={false}
         >
           Tambah Lokasi

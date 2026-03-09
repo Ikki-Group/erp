@@ -4,8 +4,8 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
-export type TransactionType = z.infer<typeof TransactionType>
+const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
+type TransactionType = z.infer<typeof TransactionType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -51,7 +51,7 @@ export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockTransactionFilterDto = z.object({
-  locationId: zHttp.query.id,
+  locationId: zHttp.query.id.optional(),
   materialId: zHttp.query.id.optional(),
   type: TransactionType.optional(),
   search: zHttp.query.search,

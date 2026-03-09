@@ -15,8 +15,9 @@ import {
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { db } from '@/db'
 import { roles } from '@/db/schema'
+
+import { db } from '@/db'
 
 import type { RoleDto, RoleFilterDto, RoleMutationDto } from '../dto'
 

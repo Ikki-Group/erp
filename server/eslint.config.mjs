@@ -1,28 +1,26 @@
 import eslint from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
-import importPlugin from 'eslint-plugin-import'
-import n from 'eslint-plugin-n'
-import unicorn from 'eslint-plugin-unicorn'
 import unusedImports from 'eslint-plugin-unused-imports'
-import { defineConfig, globalIgnores } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
-export default defineConfig(
+export default tseslint.config(
+  {
+    // Global ignores
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
+  },
   eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
-  unicorn.configs['recommended'],
   {
-    plugins: {
-      import: importPlugin,
-      n,
-      'unused-imports': unusedImports,
-    },
     languageOptions: {
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+    plugins: {
+      'unused-imports': unusedImports,
     },
     rules: {
       // General
@@ -50,39 +48,14 @@ export default defineConfig(
           argsIgnorePattern: '^_',
         },
       ],
-
-      // Unicorn
-      'unicorn/prevent-abbreviations': 'off',
-      'unicorn/no-null': 'off',
-      'unicorn/filename-case': [
-        'error',
-        {
-          case: 'kebabCase',
-        },
-      ],
-      'unicorn/prefer-module': 'error',
-      'unicorn/no-array-reduce': 'off',
-      'unicorn/prefer-top-level-await': 'off',
-
-      // Import
-      'import/no-unresolved': 'off', // Handled by TS
-      'import/order': 'off', // Handled by Prettier plugin
     },
   },
   {
-    files: ['**/scripts/**', 'src/main.ts'],
-    rules: {
-      'unicorn/no-process-exit': 'off',
-    },
-  },
-  {
-    files: ['**.config.{cjs,mjs,ts,js}', 'newrelic.cjs'],
+    files: ['**.config.{cjs,mjs,ts,js}'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       'no-undef': 'off',
-      'unicorn/prefer-module': 'off',
     },
   },
-  prettierConfig,
-  globalIgnores(['./dist/*'])
+  prettierConfig
 )
