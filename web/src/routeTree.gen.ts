@@ -27,6 +27,7 @@ import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
 import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
 import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
 import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
+import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
 import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
 import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
 import { Route as AppMaterialsLedgerRouteImport } from './routes/_app/materials/ledger'
@@ -150,6 +151,11 @@ const AppProcurementSuppliersRoute = AppProcurementSuppliersRouteImport.update({
 const AppProcurementOrdersRoute = AppProcurementOrdersRouteImport.update({
   id: '/procurement/orders',
   path: '/procurement/orders',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMokaMonitoringRoute = AppMokaMonitoringRouteImport.update({
+  id: '/moka/monitoring',
+  path: '/moka/monitoring',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialsUomRoute = AppMaterialsUomRouteImport.update({
@@ -359,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
+  '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
   '/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
@@ -413,6 +420,7 @@ export interface FileRoutesByTo {
   '/materials/ledger': typeof AppMaterialsLedgerRoute
   '/materials/stock': typeof AppMaterialsStockRoute
   '/materials/uom': typeof AppMaterialsUomRoute
+  '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
   '/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
@@ -470,6 +478,7 @@ export interface FileRoutesById {
   '/_app/materials/ledger': typeof AppMaterialsLedgerRoute
   '/_app/materials/stock': typeof AppMaterialsStockRoute
   '/_app/materials/uom': typeof AppMaterialsUomRoute
+  '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
   '/_app/procurement/orders': typeof AppProcurementOrdersRoute
   '/_app/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
@@ -526,6 +535,7 @@ export interface FileRouteTypes {
     | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
+    | '/moka/monitoring'
     | '/procurement/orders'
     | '/procurement/suppliers'
     | '/production/work-orders'
@@ -580,6 +590,7 @@ export interface FileRouteTypes {
     | '/materials/ledger'
     | '/materials/stock'
     | '/materials/uom'
+    | '/moka/monitoring'
     | '/procurement/orders'
     | '/procurement/suppliers'
     | '/production/work-orders'
@@ -636,6 +647,7 @@ export interface FileRouteTypes {
     | '/_app/materials/ledger'
     | '/_app/materials/stock'
     | '/_app/materials/uom'
+    | '/_app/moka/monitoring'
     | '/_app/procurement/orders'
     | '/_app/procurement/suppliers'
     | '/_app/production/work-orders'
@@ -805,6 +817,13 @@ declare module '@tanstack/react-router' {
       path: '/procurement/orders'
       fullPath: '/procurement/orders'
       preLoaderRoute: typeof AppProcurementOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/moka/monitoring': {
+      id: '/_app/moka/monitoring'
+      path: '/moka/monitoring'
+      fullPath: '/moka/monitoring'
+      preLoaderRoute: typeof AppMokaMonitoringRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/materials/uom': {
@@ -1092,6 +1111,7 @@ interface AppRouteRouteChildren {
   AppMaterialsLedgerRoute: typeof AppMaterialsLedgerRoute
   AppMaterialsStockRoute: typeof AppMaterialsStockRoute
   AppMaterialsUomRoute: typeof AppMaterialsUomRoute
+  AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
   AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
   AppProcurementSuppliersRoute: typeof AppProcurementSuppliersRoute
   AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
@@ -1144,6 +1164,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialsLedgerRoute: AppMaterialsLedgerRoute,
   AppMaterialsStockRoute: AppMaterialsStockRoute,
   AppMaterialsUomRoute: AppMaterialsUomRoute,
+  AppMokaMonitoringRoute: AppMokaMonitoringRoute,
   AppProcurementOrdersRoute: AppProcurementOrdersRoute,
   AppProcurementSuppliersRoute: AppProcurementSuppliersRoute,
   AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
