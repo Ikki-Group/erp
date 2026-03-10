@@ -37,7 +37,7 @@ export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 
-export const UserMutationDto = z.object({
+export const UserCreateDto = z.object({
   ...UserDto.pick({
     email: true,
     username: true,
@@ -49,7 +49,14 @@ export const UserMutationDto = z.object({
   password: zPrimitive.password,
 })
 
-export type UserMutationDto = z.infer<typeof UserMutationDto>
+export type UserCreateDto = z.infer<typeof UserCreateDto>
+
+export const UserUpdateDto = z.object({
+  ...UserCreateDto.omit({ password: true }).shape,
+  password: zPrimitive.password.optional(),
+})
+
+export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 
 export const UserChangePasswordDto = z.object({
   oldPassword: zPrimitive.password,

@@ -1,11 +1,11 @@
-import { Elysia } from 'elysia'
+import { Elysia } from 'elysia';
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { res } from '@/lib/utils/response.util'
-import { zResponse } from '@/lib/validation'
+import { authPluginMacro } from '@/lib/elysia/auth-plugin';
+import { res } from '@/lib/utils/response.util';
+import { zResponse } from '@/lib/validation';
 
-import { AuthResponseDto, LoginDto, UserSelectDto } from '../dto'
-import type { AuthService } from '../service/auth.service'
+import { AuthResponseDto, LoginDto, UserSelectDto } from '../dto';
+import type { AuthService } from '../service/auth.service';
 
 export function initAuthRoute(svc: AuthService) {
   return new Elysia({ prefix: '/auth' })

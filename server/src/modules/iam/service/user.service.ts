@@ -28,10 +28,11 @@ import type {
   UserAdminUpdatePasswordDto,
   UserAssignmentDetailDto,
   UserChangePasswordDto,
+  UserCreateDto,
   UserDto,
   UserFilterDto,
-  UserMutationDto,
   UserSelectDto,
+  UserUpdateDto,
 } from '../dto'
 
 import type { RoleService } from './role.service'
@@ -80,7 +81,7 @@ export class UserService {
   /**
    * Seed users.
    */
-  async seed(data: (UserMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
+  async seed(data: (UserCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
     return record('UserService.seed', async () => {
       for (const d of data) {
         const { password, assignments, ...rest } = d
@@ -197,14 +198,12 @@ export class UserService {
       const assignmentRoot = await this.#getRootAssignments()
 
       // Build full UserSelectDto with assignments
-      const data: UserSelectDto[] = await Promise.all(
-        result.data.map(async (u) => {
-          return {
-            ...u,
-            assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []),
-          }
-        })
-      )
+      const data: UserSelectDto[] = result.data.map((u) => {
+        return {
+          ...u,
+          assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []),
+        }
+      })
 
       return { data, meta: result.meta }
     })
@@ -222,7 +221,7 @@ export class UserService {
   /**
    * Create user handler.
    */
-  async handleCreate(data: UserMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: UserCreateDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleCreate', async () => {
       const { password, assignments, email, username, ...rest } = data
 
@@ -265,7 +264,7 @@ export class UserService {
   /**
    * Update user handler.
    */
-  async handleUpdate(id: number, data: UserMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: UserUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleUpdate', async () => {
       const existing = await this.findById(id)
 

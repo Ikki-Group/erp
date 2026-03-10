@@ -6,7 +6,7 @@ import { ForbiddenError } from '@/lib/error/http'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserMutationDto, UserSelectDto } from '../dto'
+import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -47,7 +47,7 @@ export function initUserRoute(s: IamServiceModule) {
         return res.created(result, 'USER_CREATED')
       },
       {
-        body: UserMutationDto,
+        body: UserCreateDto,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -61,7 +61,7 @@ export function initUserRoute(s: IamServiceModule) {
       {
         body: z.object({
           id: zPrimitive.id,
-          ...UserMutationDto.shape,
+          ...UserUpdateDto.shape,
         }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
