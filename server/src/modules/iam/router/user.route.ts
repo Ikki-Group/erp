@@ -68,7 +68,7 @@ export function initUserRoute(s: IamServiceModule) {
       }
     )
     .delete(
-      '/delete',
+      '/remove',
       async function remove({ body }) {
         const result = await s.user.handleRemove(body.id)
         return res.ok(result, 'USER_DELETED')
