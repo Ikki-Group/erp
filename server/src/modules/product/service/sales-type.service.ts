@@ -15,7 +15,7 @@ import {
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { salesTypes } from '@/db/schema'
+import { salesTypesTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -31,7 +31,7 @@ const err = {
 const uniqueFields: ConflictField<'code'>[] = [
   {
     field: 'code',
-    column: salesTypes.code,
+    column: salesTypesTable.code,
     message: 'Sales type code already exists',
     code: 'SALES_TYPE_CODE_ALREADY_EXISTS',
   },
@@ -52,7 +52,7 @@ export class SalesTypeService {
   async find(): Promise<SalesTypeDto[]> {
     return record('SalesTypeService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(salesTypes).orderBy(salesTypes.name)
+        return db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
       })
     })
   }
@@ -63,7 +63,7 @@ export class SalesTypeService {
   async findById(id: number): Promise<SalesTypeDto> {
     return record('SalesTypeService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(salesTypes).where(eq(salesTypes.id, id))
+        const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
         return takeFirstOrThrow(result, `Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
       })
     })
@@ -75,7 +75,7 @@ export class SalesTypeService {
   async count(): Promise<number> {
     return record('SalesTypeService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(salesTypes)
+        const result = await db.select({ val: count() }).from(salesTypesTable)
         return result[0]?.val ?? 0
       })
     })
@@ -87,19 +87,19 @@ export class SalesTypeService {
   async handleList(filter: SalesTypeFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<SalesTypeDto>> {
     return record('SalesTypeService.handleList', async () => {
       const { search } = filter
-      const where = searchFilter(salesTypes.name, search)
+      const where = searchFilter(salesTypesTable.name, search)
 
       return paginate<SalesTypeDto>({
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(salesTypes)
+            .from(salesTypesTable)
             .where(where)
-            .orderBy(sortBy(salesTypes.updatedAt, 'desc'))
+            .orderBy(sortBy(salesTypesTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(salesTypes).where(where),
+        countQuery: db.select({ count: count() }).from(salesTypesTable).where(where),
       })
     })
   }
@@ -122,13 +122,13 @@ export class SalesTypeService {
         const metadata = stampCreate(d.createdBy)
 
         await db
-          .insert(salesTypes)
+          .insert(salesTypesTable)
           .values({
             ...d,
             ...metadata,
           })
           .onConflictDoUpdate({
-            target: salesTypes.code,
+            target: salesTypesTable.code,
             set: {
               name: d.name,
               isSystem: d.isSystem,
@@ -149,14 +149,14 @@ export class SalesTypeService {
       const name = data.name.trim()
 
       await checkConflict({
-        table: salesTypes,
-        pkColumn: salesTypes.id,
+        table: salesTypesTable,
+        pkColumn: salesTypesTable.id,
         fields: uniqueFields,
         input: { code },
       })
 
       const [inserted] = await db
-        .insert(salesTypes)
+        .insert(salesTypesTable)
         .values({
           ...data,
           code,
@@ -164,7 +164,7 @@ export class SalesTypeService {
           isSystem: false,
           ...stampCreate(actorId),
         })
-        .returning({ id: salesTypes.id })
+        .returning({ id: salesTypesTable.id })
 
       if (!inserted) throw new Error('Failed to create sales type')
 
@@ -186,15 +186,15 @@ export class SalesTypeService {
       const name = data.name ? data.name.trim() : existing.name
 
       await checkConflict({
-        table: salesTypes,
-        pkColumn: salesTypes.id,
+        table: salesTypesTable,
+        pkColumn: salesTypesTable.id,
         fields: uniqueFields,
         input: { code },
         existing,
       })
 
       await db
-        .update(salesTypes)
+        .update(salesTypesTable)
         .set({
           ...data,
           code,
@@ -202,7 +202,7 @@ export class SalesTypeService {
           isSystem: false,
           ...stampUpdate(actorId),
         })
-        .where(eq(salesTypes.id, id))
+        .where(eq(salesTypesTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -217,7 +217,7 @@ export class SalesTypeService {
       const existing = await this.findById(id)
       if (existing.isSystem) throw err.systemSalesType()
 
-      const result = await db.delete(salesTypes).where(eq(salesTypes.id, id)).returning({ id: salesTypes.id })
+      const result = await db.delete(salesTypesTable).where(eq(salesTypesTable.id, id)).returning({ id: salesTypesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -236,3 +236,4 @@ export class SalesTypeService {
     ])
   }
 }
+

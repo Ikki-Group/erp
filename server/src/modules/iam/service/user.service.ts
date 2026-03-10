@@ -17,7 +17,7 @@ import { UnauthorizedError } from '@/lib/error/http'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { locations, roles, userAssignments, users } from '@/db/schema'
+import { locationsTable, rolesTable, userAssignmentsTable, usersTable } from '@/db/schema'
 
 import type { LocationServiceModule } from '@/modules/location/service'
 
@@ -41,10 +41,10 @@ import type { RoleService } from './role.service'
 
 
 const uniqueFields: ConflictField<'email' | 'username'>[] = [
-  { field: 'email', column: users.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
+  { field: 'email', column: usersTable.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
   {
     field: 'username',
-    column: users.username,
+    column: usersTable.username,
     message: 'Username already exists',
     code: 'USER_USERNAME_ALREADY_EXISTS',
   },
@@ -76,14 +76,14 @@ export class UserService {
         const passwordHash = await hashPassword(password)
 
         const [inserted] = await db
-          .insert(users)
+          .insert(usersTable)
           .values({
             ...rest,
             passwordHash,
             ...metadata,
           })
           .onConflictDoUpdate({
-            target: users.email,
+            target: usersTable.email,
             set: {
               username: d.username,
               fullname: d.fullname,
@@ -92,11 +92,11 @@ export class UserService {
               updatedBy: metadata.updatedBy,
             },
           })
-          .returning({ id: users.id })
+          .returning({ id: usersTable.id })
 
         if (inserted && assignments?.length > 0) {
-          await db.delete(userAssignments).where(eq(userAssignments.userId, inserted.id))
-          await db.insert(userAssignments).values(
+          await db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, inserted.id))
+          await db.insert(userAssignmentsTable).values(
             assignments.map((a) => ({
               ...a,
               userId: inserted.id,
@@ -114,7 +114,7 @@ export class UserService {
   async findById(id: number): Promise<UserDto> {
     return record('UserService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(users).where(eq(users.id, id))
+        const result = await db.select().from(usersTable).where(eq(usersTable.id, id))
         return takeFirstOrThrow(result, `User with ID ${id} not found`, 'USER_NOT_FOUND')
       })
     })
@@ -129,8 +129,8 @@ export class UserService {
       return cache.wrap(cacheKey.byIdentifier(lower), async () => {
         const result = await db
           .select()
-          .from(users)
-          .where(or(eq(users.email, lower), eq(users.username, lower)))
+          .from(usersTable)
+          .where(or(eq(usersTable.email, lower), eq(usersTable.username, lower)))
         return takeFirst(result)
       })
     })
@@ -142,7 +142,7 @@ export class UserService {
   async count(): Promise<number> {
     return record('UserService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(users)
+        const result = await db.select({ val: count() }).from(usersTable)
         return result[0]?.val ?? 0
       })
     })
@@ -155,37 +155,37 @@ export class UserService {
   private async fetchAssignments(userId: number): Promise<UserAssignmentDetailDto[]> {
     const rows = await db
       .select({
-        id: userAssignments.id,
-        locationId: userAssignments.locationId,
-        roleId: userAssignments.roleId,
-        isDefault: userAssignments.isDefault,
+        id: userAssignmentsTable.id,
+        locationId: userAssignmentsTable.locationId,
+        roleId: userAssignmentsTable.roleId,
+        isDefault: userAssignmentsTable.isDefault,
         role: {
-          id: roles.id,
-          code: roles.code,
-          name: roles.name,
-          isSystem: roles.isSystem,
-          createdBy: roles.createdBy,
-          updatedBy: roles.updatedBy,
-          createdAt: roles.createdAt,
-          updatedAt: roles.updatedAt,
+          id: rolesTable.id,
+          code: rolesTable.code,
+          name: rolesTable.name,
+          isSystem: rolesTable.isSystem,
+          createdBy: rolesTable.createdBy,
+          updatedBy: rolesTable.updatedBy,
+          createdAt: rolesTable.createdAt,
+          updatedAt: rolesTable.updatedAt,
         },
         location: {
-          id: locations.id,
-          code: locations.code,
-          name: locations.name,
-          type: locations.type,
-          description: locations.description,
-          isActive: locations.isActive,
-          createdBy: locations.createdBy,
-          updatedBy: locations.updatedBy,
-          createdAt: locations.createdAt,
-          updatedAt: locations.updatedAt,
+          id: locationsTable.id,
+          code: locationsTable.code,
+          name: locationsTable.name,
+          type: locationsTable.type,
+          description: locationsTable.description,
+          isActive: locationsTable.isActive,
+          createdBy: locationsTable.createdBy,
+          updatedBy: locationsTable.updatedBy,
+          createdAt: locationsTable.createdAt,
+          updatedAt: locationsTable.updatedAt,
         },
       })
-      .from(userAssignments)
-      .innerJoin(roles, eq(userAssignments.roleId, roles.id))
-      .innerJoin(locations, eq(userAssignments.locationId, locations.id))
-      .where(eq(userAssignments.userId, userId))
+      .from(userAssignmentsTable)
+      .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+      .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+      .where(eq(userAssignmentsTable.userId, userId))
 
     return rows
   }
@@ -198,38 +198,38 @@ export class UserService {
 
     const rows = await db
       .select({
-        userId: userAssignments.userId,
-        id: userAssignments.id,
-        locationId: userAssignments.locationId,
-        roleId: userAssignments.roleId,
-        isDefault: userAssignments.isDefault,
+        userId: userAssignmentsTable.userId,
+        id: userAssignmentsTable.id,
+        locationId: userAssignmentsTable.locationId,
+        roleId: userAssignmentsTable.roleId,
+        isDefault: userAssignmentsTable.isDefault,
         role: {
-          id: roles.id,
-          code: roles.code,
-          name: roles.name,
-          isSystem: roles.isSystem,
-          createdBy: roles.createdBy,
-          updatedBy: roles.updatedBy,
-          createdAt: roles.createdAt,
-          updatedAt: roles.updatedAt,
+          id: rolesTable.id,
+          code: rolesTable.code,
+          name: rolesTable.name,
+          isSystem: rolesTable.isSystem,
+          createdBy: rolesTable.createdBy,
+          updatedBy: rolesTable.updatedBy,
+          createdAt: rolesTable.createdAt,
+          updatedAt: rolesTable.updatedAt,
         },
         location: {
-          id: locations.id,
-          code: locations.code,
-          name: locations.name,
-          type: locations.type,
-          description: locations.description,
-          isActive: locations.isActive,
-          createdBy: locations.createdBy,
-          updatedBy: locations.updatedBy,
-          createdAt: locations.createdAt,
-          updatedAt: locations.updatedAt,
+          id: locationsTable.id,
+          code: locationsTable.code,
+          name: locationsTable.name,
+          type: locationsTable.type,
+          description: locationsTable.description,
+          isActive: locationsTable.isActive,
+          createdBy: locationsTable.createdBy,
+          updatedBy: locationsTable.updatedBy,
+          createdAt: locationsTable.createdAt,
+          updatedAt: locationsTable.updatedAt,
         },
       })
-      .from(userAssignments)
-      .innerJoin(roles, eq(userAssignments.roleId, roles.id))
-      .innerJoin(locations, eq(userAssignments.locationId, locations.id))
-      .where(inArray(userAssignments.userId, userIds))
+      .from(userAssignmentsTable)
+      .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+      .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+      .where(inArray(userAssignmentsTable.userId, userIds))
 
     const map = new Map<number, UserAssignmentDetailDto[]>()
     for (const row of rows) {
@@ -286,16 +286,16 @@ export class UserService {
       const { search, isActive } = filter
 
       const where = and(
-        searchFilter(users.fullname, search),
-        typeof isActive === 'boolean' ? eq(users.isActive, isActive) : undefined
+        searchFilter(usersTable.fullname, search),
+        typeof isActive === 'boolean' ? eq(usersTable.isActive, isActive) : undefined
       )
 
       // Fetch paginated users using standard select query
       const result = await paginate<UserDto>({
         data: ({ limit, offset }) =>
-          db.select().from(users).where(where).orderBy(sortBy(users.updatedAt, 'desc')).limit(limit).offset(offset),
+          db.select().from(usersTable).where(where).orderBy(sortBy(usersTable.updatedAt, 'desc')).limit(limit).offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(users).where(where),
+        countQuery: db.select({ count: count() }).from(usersTable).where(where),
       })
 
       // Batch-fetch assignments for all users in the page
@@ -339,8 +339,8 @@ export class UserService {
       const username = rest.username.toLowerCase().trim()
 
       await checkConflict({
-        table: users,
-        pkColumn: users.id,
+        table: usersTable,
+        pkColumn: usersTable.id,
         fields: uniqueFields,
         input: { email, username },
       })
@@ -350,7 +350,7 @@ export class UserService {
 
       const inserted = await db.transaction(async (tx) => {
         const [user] = await tx
-          .insert(users)
+          .insert(usersTable)
           .values({
             ...rest,
             email,
@@ -358,10 +358,10 @@ export class UserService {
             passwordHash,
             ...metadata,
           })
-          .returning({ id: users.id })
+          .returning({ id: usersTable.id })
 
         if (user && assignments?.length > 0) {
-          await tx.insert(userAssignments).values(
+          await tx.insert(userAssignmentsTable).values(
             assignments.map((a) => ({
               ...a,
               userId: user.id,
@@ -392,8 +392,8 @@ export class UserService {
       const username = rest.username ? rest.username.toLowerCase().trim() : existing.username
 
       await checkConflict({
-        table: users,
-        pkColumn: users.id,
+        table: usersTable,
+        pkColumn: usersTable.id,
         fields: uniqueFields,
         input: { email, username },
         existing,
@@ -404,7 +404,7 @@ export class UserService {
 
       await db.transaction(async (tx) => {
         await tx
-          .update(users)
+          .update(usersTable)
           .set({
             ...rest,
             email,
@@ -412,13 +412,13 @@ export class UserService {
             ...(passwordHash && { passwordHash }),
             ...metadata,
           })
-          .where(eq(users.id, id))
+          .where(eq(usersTable.id, id))
 
         if (assignments) {
           const createMetadata = stampCreate(actorId)
-          await tx.delete(userAssignments).where(eq(userAssignments.userId, id))
+          await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, id))
           if (assignments.length > 0) {
-            await tx.insert(userAssignments).values(
+            await tx.insert(userAssignmentsTable).values(
               assignments.map((a) => ({
                 ...a,
                 userId: id,
@@ -441,7 +441,7 @@ export class UserService {
     return record('UserService.handleRemove', async () => {
       const existing = await this.findById(id)
 
-      await db.delete(users).where(eq(users.id, id))
+      await db.delete(usersTable).where(eq(usersTable.id, id))
 
       void this.clearCache(id, existing.email, existing.username)
       return { id }
@@ -465,9 +465,9 @@ export class UserService {
       const metadata = stampUpdate(userId)
 
       await db
-        .update(users)
+        .update(usersTable)
         .set({ passwordHash, ...metadata })
-        .where(eq(users.id, userId))
+        .where(eq(usersTable.id, userId))
 
       void this.clearCache(userId, user.email, user.username)
       return { id: userId }
@@ -486,9 +486,9 @@ export class UserService {
       const metadata = stampUpdate(actorId)
 
       await db
-        .update(users)
+        .update(usersTable)
         .set({ passwordHash, ...metadata })
-        .where(eq(users.id, targetUserId))
+        .where(eq(usersTable.id, targetUserId))
 
       void this.clearCache(targetUserId, targetUser.email, targetUser.username)
       return { id: targetUserId }
@@ -508,3 +508,4 @@ export class UserService {
     ])
   }
 }
+

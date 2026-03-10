@@ -1,11 +1,11 @@
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
-import { locations } from './location'
+import { locationsTable } from './location'
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
-export const users = pgTable(
+export const usersTable = pgTable(
   'users',
   {
     ...pk,
@@ -22,7 +22,7 @@ export const users = pgTable(
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
 
-export const roles = pgTable(
+export const rolesTable = pgTable(
   'roles',
   {
     ...pk,
@@ -38,19 +38,19 @@ export const roles = pgTable(
 // MongoDB embedded `user.assignments[]` → proper junction table in SQL.
 // Each row means "user X has role Y at location Z".
 
-export const userAssignments = pgTable(
+export const userAssignmentsTable = pgTable(
   'user_assignments',
   {
     ...pk,
     userId: integer()
       .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     roleId: integer()
       .notNull()
-      .references(() => roles.id, { onDelete: 'restrict' }),
+      .references(() => rolesTable.id, { onDelete: 'restrict' }),
     locationId: integer()
       .notNull()
-      .references(() => locations.id, { onDelete: 'restrict' }),
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
     isDefault: boolean().notNull().default(false),
     ...metadata,
   },
@@ -65,13 +65,13 @@ export const userAssignments = pgTable(
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
 
-export const sessions = pgTable(
+export const sessionsTable = pgTable(
   'sessions',
   {
     ...pk,
     userId: integer()
       .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     createdAt: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     expiredAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
   },

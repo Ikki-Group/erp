@@ -4,7 +4,7 @@ import { locationTypeEnum, metadata, pk } from './_helpers'
 
 // ─── Locations ────────────────────────────────────────────────────────────────
 
-export const locations = pgTable(
+export const locationsTable = pgTable(
   'locations',
   {
     ...pk,

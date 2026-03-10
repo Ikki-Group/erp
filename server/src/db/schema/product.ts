@@ -2,13 +2,13 @@ import { sql } from 'drizzle-orm'
 import { boolean, index, integer, jsonb, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk, productStatusEnum } from './_helpers'
-import { locations } from './location'
+import { locationsTable } from './location'
 
 // ─── Sales Types ──────────────────────────────────────────────────────────────
 // Global lookup for sales channels (dine-in, takeaway, delivery, etc.).
 // Not per-outlet — every outlet shares the same set of sales types.
 
-export const salesTypes = pgTable(
+export const salesTypesTable = pgTable(
   'sales_types',
   {
     ...pk,
@@ -22,7 +22,7 @@ export const salesTypes = pgTable(
 
 // ─── Product Categories ───────────────────────────────────────────────────────
 
-export const productCategories = pgTable(
+export const productCategoriesTable = pgTable(
   'product_categories',
   {
     ...pk,
@@ -45,7 +45,7 @@ export const productCategories = pgTable(
 //  true        │ false                │ product_variants.basePrice
 //  true        │ true                 │ variant_prices → variants.basePrice → products.basePrice
 
-export const products = pgTable(
+export const productsTable = pgTable(
   'products',
   {
     ...pk,
@@ -54,8 +54,8 @@ export const products = pgTable(
     sku: text().notNull(),
     locationId: integer()
       .notNull()
-      .references(() => locations.id, { onDelete: 'restrict' }),
-    categoryId: integer().references(() => productCategories.id, { onDelete: 'set null' }),
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
+    categoryId: integer().references(() => productCategoriesTable.id, { onDelete: 'set null' }),
     status: productStatusEnum().notNull().default('active'),
 
     // ── Feature Flags ──────────────────────────────────────────────────
@@ -87,16 +87,16 @@ export const products = pgTable(
 // Used when hasVariants = false AND hasSalesTypePricing = true.
 // Falls back to products.basePrice if no row exists for a given sales type.
 
-export const productPrices = pgTable(
+export const productPricesTable = pgTable(
   'product_prices',
   {
     ...pk,
     productId: integer()
       .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
+      .references(() => productsTable.id, { onDelete: 'cascade' }),
     salesTypeId: integer()
       .notNull()
-      .references(() => salesTypes.id, { onDelete: 'restrict' }),
+      .references(() => salesTypesTable.id, { onDelete: 'restrict' }),
     price: numeric({ precision: 18, scale: 4 }).notNull(),
     ...metadata,
   },
@@ -111,13 +111,13 @@ export const productPrices = pgTable(
 // Only relevant when products.hasVariants = true.
 // Each variant can have its own SKU and base price.
 
-export const productVariants = pgTable(
+export const productVariantsTable = pgTable(
   'product_variants',
   {
     ...pk,
     productId: integer()
       .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
+      .references(() => productsTable.id, { onDelete: 'cascade' }),
     name: text().notNull(),
     sku: text(),
     isDefault: boolean().notNull().default(false),
@@ -140,16 +140,16 @@ export const productVariants = pgTable(
 // Used when hasVariants = true AND hasSalesTypePricing = true.
 // Falls back to variant.basePrice → product.basePrice.
 
-export const variantPrices = pgTable(
+export const variantPricesTable = pgTable(
   'variant_prices',
   {
     ...pk,
     variantId: integer()
       .notNull()
-      .references(() => productVariants.id, { onDelete: 'cascade' }),
+      .references(() => productVariantsTable.id, { onDelete: 'cascade' }),
     salesTypeId: integer()
       .notNull()
-      .references(() => salesTypes.id, { onDelete: 'restrict' }),
+      .references(() => salesTypesTable.id, { onDelete: 'restrict' }),
     price: numeric({ precision: 18, scale: 4 }).notNull(),
     ...metadata,
   },
@@ -165,14 +165,14 @@ export const variantPrices = pgTable(
 // Links an external entity to either a product or a specific variant.
 // productId is always set; variantId is set only for variant-level mappings.
 
-export const productExternalMappings = pgTable(
+export const productExternalMappingsTable = pgTable(
   'product_external_mappings',
   {
     ...pk,
     productId: integer()
       .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
-    variantId: integer().references(() => productVariants.id, { onDelete: 'cascade' }),
+      .references(() => productsTable.id, { onDelete: 'cascade' }),
+    variantId: integer().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
     // Integration provider key (e.g., 'moka', 'grabfood', 'shopeefood')
     provider: text().notNull(),
     // The ID of this item in the external system

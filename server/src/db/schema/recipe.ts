@@ -2,8 +2,8 @@ import { sql } from 'drizzle-orm'
 import { boolean, check, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
-import { materials, uoms } from './material'
-import { products, productVariants } from './product'
+import { materialsTable, uomsTable } from './material'
+import { productsTable, productVariantsTable } from './product'
 
 // ─── Recipes ──────────────────────────────────────────────────────────────────
 // A recipe defines how to make a target item.
@@ -13,13 +13,13 @@ import { products, productVariants } from './product'
 // 3. productVariantId (specific recipe overriding the product-level recipe)
 // We enforce that exactly one of (materialId, productId, productVariantId) is not null.
 
-export const recipes = pgTable(
+export const recipesTable = pgTable(
   'recipes',
   {
     ...pk,
-    materialId: integer().references(() => materials.id, { onDelete: 'cascade' }),
-    productId: integer().references(() => products.id, { onDelete: 'cascade' }),
-    productVariantId: integer().references(() => productVariants.id, { onDelete: 'cascade' }),
+    materialId: integer().references(() => materialsTable.id, { onDelete: 'cascade' }),
+    productId: integer().references(() => productsTable.id, { onDelete: 'cascade' }),
+    productVariantId: integer().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
 
     // The amount produced by this recipe (expected yield)
     targetQty: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
@@ -51,17 +51,17 @@ export const recipes = pgTable(
 // ─── Recipe Items ─────────────────────────────────────────────────────────────
 // The ingredients/components required for a recipe.
 
-export const recipeItems = pgTable(
+export const recipeItemsTable = pgTable(
   'recipe_items',
   {
     ...pk,
     recipeId: integer()
       .notNull()
-      .references(() => recipes.id, { onDelete: 'cascade' }),
+      .references(() => recipesTable.id, { onDelete: 'cascade' }),
     // The component material required
     materialId: integer()
       .notNull()
-      .references(() => materials.id, { onDelete: 'restrict' }),
+      .references(() => materialsTable.id, { onDelete: 'restrict' }),
 
     // Quantity of the material needed
     qty: numeric({ precision: 18, scale: 4 }).notNull(),
@@ -70,7 +70,7 @@ export const recipeItems = pgTable(
     // UOM used for this ingredient in the recipe (should match baseUom or be convertible)
     uomId: integer()
       .notNull()
-      .references(() => uoms.id, { onDelete: 'restrict' }),
+      .references(() => uomsTable.id, { onDelete: 'restrict' }),
 
     // Optional instructions for specific item (e.g. "Finely chopped")
     notes: text(),

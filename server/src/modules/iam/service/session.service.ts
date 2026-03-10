@@ -6,7 +6,7 @@ import { cache } from '@/lib/cache'
 import { takeFirst } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
-import { sessions } from '@/db/schema'
+import { sessionsTable } from '@/db/schema'
 
 import { env } from '@/config/env'
 import { db } from '@/db'
@@ -28,7 +28,7 @@ export class SessionService {
   async findById(id: number): Promise<SessionDto | null> {
     return record('SessionService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(sessions).where(eq(sessions.id, id))
+        const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
         return takeFirst(result)
       })
     })
@@ -43,7 +43,7 @@ export class SessionService {
       const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
       const [session] = await db
-        .insert(sessions)
+        .insert(sessionsTable)
         .values({
           userId: user.id,
           createdAt,
@@ -99,7 +99,7 @@ export class SessionService {
    */
   async deleteSession(id: number): Promise<void> {
     return record('SessionService.deleteSession', async () => {
-      await db.delete(sessions).where(eq(sessions.id, id))
+      await db.delete(sessionsTable).where(eq(sessionsTable.id, id))
       void cache.del(cacheKey.byId(id))
     })
   }
@@ -109,7 +109,8 @@ export class SessionService {
    */
   async cleanupExpired(): Promise<void> {
     return record('SessionService.cleanupExpired', async () => {
-      await db.delete(sessions).where(lte(sessions.expiredAt, new Date()))
+      await db.delete(sessionsTable).where(lte(sessionsTable.expiredAt, new Date()))
     })
   }
 }
+

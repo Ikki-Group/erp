@@ -2,38 +2,50 @@ import { defineRelations } from 'drizzle-orm'
 
 // ─── Imports for Relations ────────────────────────────────────────────────────
 
-import { roles, sessions, userAssignments, users } from './iam'
-import { stockSummaries, stockTransactions } from './inventory'
-import { locations } from './location'
-import { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
+import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
+import { stockSummariesTable, stockTransactionsTable } from './inventory'
+import { locationsTable } from './location'
 import {
-  productCategories,
-  productExternalMappings,
-  productPrices,
-  products,
-  productVariants,
-  salesTypes,
-  variantPrices,
+  materialCategoriesTable,
+  materialConversionsTable,
+  materialLocationsTable,
+  materialsTable,
+  uomsTable,
+} from './material'
+import {
+  productCategoriesTable,
+  productExternalMappingsTable,
+  productPricesTable,
+  productsTable,
+  productVariantsTable,
+  salesTypesTable,
+  variantPricesTable,
 } from './product'
-import { recipeItems, recipes } from './recipe'
+import { recipeItemsTable, recipesTable } from './recipe'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
 export { locationTypeEnum, materialTypeEnum, productStatusEnum, transactionTypeEnum } from './_helpers'
-export { roles, sessions, userAssignments, users } from './iam'
-export { stockSummaries, stockTransactions } from './inventory'
-export { locations } from './location'
-export { materialCategories, materialConversions, materialLocations, materials, uoms } from './material'
+export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
+export { stockSummariesTable, stockTransactionsTable } from './inventory'
+export { locationsTable } from './location'
 export {
-  productCategories,
-  productExternalMappings,
-  productPrices,
-  products,
-  productVariants,
-  salesTypes,
-  variantPrices,
+  materialCategoriesTable,
+  materialConversionsTable,
+  materialLocationsTable,
+  materialsTable,
+  uomsTable,
+} from './material'
+export {
+  productCategoriesTable,
+  productExternalMappingsTable,
+  productPricesTable,
+  productsTable,
+  productVariantsTable,
+  salesTypesTable,
+  variantPricesTable,
 } from './product'
-export { recipeItems, recipes } from './recipe'
+export { recipeItemsTable, recipesTable } from './recipe'
 export * from './inventory'
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -47,241 +59,242 @@ export * from './inventory'
 
 export const relations = defineRelations(
   {
-    users,
-    roles,
-    userAssignments,
-    sessions,
-    locations,
-    uoms,
-    materialCategories,
-    materials,
-    materialConversions,
-    materialLocations,
-    stockTransactions,
-    stockSummaries,
-    salesTypes,
-    productCategories,
-    products,
-    productPrices,
-    productVariants,
-    variantPrices,
-    productExternalMappings,
-    recipes,
-    recipeItems,
+    usersTable,
+    rolesTable,
+    userAssignmentsTable,
+    sessionsTable,
+    locationsTable,
+    uomsTable,
+    materialCategoriesTable,
+    materialsTable,
+    materialConversionsTable,
+    materialLocationsTable,
+    stockTransactionsTable,
+    stockSummariesTable,
+    salesTypesTable,
+    productCategoriesTable,
+    productsTable,
+    productPricesTable,
+    productVariantsTable,
+    variantPricesTable,
+    productExternalMappingsTable,
+    recipesTable,
+    recipeItemsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
 
-    users: {
-      assignments: r.many.userAssignments(),
-      sessions: r.many.sessions(),
+    usersTable: {
+      assignments: r.many.userAssignmentsTable(),
+      sessions: r.many.sessionsTable(),
     },
 
-    roles: {
-      userAssignments: r.many.userAssignments(),
+    rolesTable: {
+      userAssignments: r.many.userAssignmentsTable(),
     },
 
-    userAssignments: {
-      user: r.one.users({
-        from: r.userAssignments.userId,
-        to: r.users.id,
+    userAssignmentsTable: {
+      user: r.one.usersTable({
+        from: r.userAssignmentsTable.userId,
+        to: r.usersTable.id,
       }),
-      role: r.one.roles({
-        from: r.userAssignments.roleId,
-        to: r.roles.id,
+      role: r.one.rolesTable({
+        from: r.userAssignmentsTable.roleId,
+        to: r.rolesTable.id,
       }),
-      location: r.one.locations({
-        from: r.userAssignments.locationId,
-        to: r.locations.id,
+      location: r.one.locationsTable({
+        from: r.userAssignmentsTable.locationId,
+        to: r.locationsTable.id,
       }),
     },
 
-    sessions: {
-      user: r.one.users({
-        from: r.sessions.userId,
-        to: r.users.id,
+    sessionsTable: {
+      user: r.one.usersTable({
+        from: r.sessionsTable.userId,
+        to: r.usersTable.id,
       }),
     },
 
     // ─── Location ─────────────────────────────────────────────────────
 
-    locations: {
-      userAssignments: r.many.userAssignments(),
-      materialLocations: r.many.materialLocations(),
-      stockTransactions: r.many.stockTransactions({
+    locationsTable: {
+      userAssignments: r.many.userAssignmentsTable(),
+      materialLocations: r.many.materialLocationsTable(),
+      stockTransactions: r.many.stockTransactionsTable({
         alias: 'location',
       }),
-      stockSummaries: r.many.stockSummaries(),
-      products: r.many.products(),
+      stockSummaries: r.many.stockSummariesTable(),
+      products: r.many.productsTable(),
     },
 
     // ─── Material ─────────────────────────────────────────────────────
 
-    materialCategories: {
-      materials: r.many.materials(),
+    materialCategoriesTable: {
+      materials: r.many.materialsTable(),
     },
 
-    materials: {
-      category: r.one.materialCategories({
-        from: r.materials.categoryId,
-        to: r.materialCategories.id,
+    materialsTable: {
+      category: r.one.materialCategoriesTable({
+        from: r.materialsTable.categoryId,
+        to: r.materialCategoriesTable.id,
       }),
-      conversions: r.many.materialConversions(),
-      materialLocations: r.many.materialLocations(),
-      stockTransactions: r.many.stockTransactions(),
-      stockSummaries: r.many.stockSummaries(),
-      recipe: r.many.recipes(),
-      recipeItems: r.many.recipeItems(),
+      conversions: r.many.materialConversionsTable(),
+      materialLocations: r.many.materialLocationsTable(),
+      stockTransactions: r.many.stockTransactionsTable(),
+      stockSummaries: r.many.stockSummariesTable(),
+      recipe: r.many.recipesTable(),
+      recipeItems: r.many.recipeItemsTable(),
     },
 
-    materialConversions: {
-      material: r.one.materials({
-        from: r.materialConversions.materialId,
-        to: r.materials.id,
+    materialConversionsTable: {
+      material: r.one.materialsTable({
+        from: r.materialConversionsTable.materialId,
+        to: r.materialsTable.id,
       }),
     },
 
-    materialLocations: {
-      material: r.one.materials({
-        from: r.materialLocations.materialId,
-        to: r.materials.id,
+    materialLocationsTable: {
+      material: r.one.materialsTable({
+        from: r.materialLocationsTable.materialId,
+        to: r.materialsTable.id,
       }),
-      location: r.one.locations({
-        from: r.materialLocations.locationId,
-        to: r.locations.id,
+      location: r.one.locationsTable({
+        from: r.materialLocationsTable.locationId,
+        to: r.locationsTable.id,
       }),
     },
 
     // ─── Inventory ────────────────────────────────────────────────────
 
-    stockTransactions: {
-      material: r.one.materials({
-        from: r.stockTransactions.materialId,
-        to: r.materials.id,
+    stockTransactionsTable: {
+      material: r.one.materialsTable({
+        from: r.stockTransactionsTable.materialId,
+        to: r.materialsTable.id,
       }),
-      location: r.one.locations({
-        from: r.stockTransactions.locationId,
-        to: r.locations.id,
+      location: r.one.locationsTable({
+        from: r.stockTransactionsTable.locationId,
+        to: r.locationsTable.id,
         alias: 'location',
       }),
-      counterpartLocation: r.one.locations({
-        from: r.stockTransactions.counterpartLocationId,
-        to: r.locations.id,
+      counterpartLocation: r.one.locationsTable({
+        from: r.stockTransactionsTable.counterpartLocationId,
+        to: r.locationsTable.id,
         alias: 'counterpartLocation',
       }),
     },
 
-    stockSummaries: {
-      material: r.one.materials({
-        from: r.stockSummaries.materialId,
-        to: r.materials.id,
+    stockSummariesTable: {
+      material: r.one.materialsTable({
+        from: r.stockSummariesTable.materialId,
+        to: r.materialsTable.id,
       }),
-      location: r.one.locations({
-        from: r.stockSummaries.locationId,
-        to: r.locations.id,
+      location: r.one.locationsTable({
+        from: r.stockSummariesTable.locationId,
+        to: r.locationsTable.id,
       }),
     },
 
     // ─── Product ──────────────────────────────────────────────────────
 
-    salesTypes: {
-      variantPrices: r.many.variantPrices(),
-      productPrices: r.many.productPrices(),
+    salesTypesTable: {
+      variantPrices: r.many.variantPricesTable(),
+      productPrices: r.many.productPricesTable(),
     },
 
-    productCategories: {
-      products: r.many.products(),
+    productCategoriesTable: {
+      products: r.many.productsTable(),
     },
 
-    products: {
-      location: r.one.locations({
-        from: r.products.locationId,
-        to: r.locations.id,
+    productsTable: {
+      location: r.one.locationsTable({
+        from: r.productsTable.locationId,
+        to: r.locationsTable.id,
       }),
-      category: r.one.productCategories({
-        from: r.products.categoryId,
-        to: r.productCategories.id,
+      category: r.one.productCategoriesTable({
+        from: r.productsTable.categoryId,
+        to: r.productCategoriesTable.id,
       }),
-      variants: r.many.productVariants(),
-      prices: r.many.productPrices(),
-      externalMappings: r.many.productExternalMappings(),
-      recipe: r.many.recipes(),
+      variants: r.many.productVariantsTable(),
+      prices: r.many.productPricesTable(),
+      externalMappings: r.many.productExternalMappingsTable(),
+      recipe: r.many.recipesTable(),
     },
 
-    productPrices: {
-      product: r.one.products({
-        from: r.productPrices.productId,
-        to: r.products.id,
+    productPricesTable: {
+      product: r.one.productsTable({
+        from: r.productPricesTable.productId,
+        to: r.productsTable.id,
       }),
-      salesType: r.one.salesTypes({
-        from: r.productPrices.salesTypeId,
-        to: r.salesTypes.id,
-      }),
-    },
-
-    productVariants: {
-      product: r.one.products({
-        from: r.productVariants.productId,
-        to: r.products.id,
-      }),
-      prices: r.many.variantPrices(),
-      recipe: r.many.recipes(),
-      externalMappings: r.many.productExternalMappings(),
-    },
-
-    variantPrices: {
-      variant: r.one.productVariants({
-        from: r.variantPrices.variantId,
-        to: r.productVariants.id,
-      }),
-      salesType: r.one.salesTypes({
-        from: r.variantPrices.salesTypeId,
-        to: r.salesTypes.id,
+      salesType: r.one.salesTypesTable({
+        from: r.productPricesTable.salesTypeId,
+        to: r.salesTypesTable.id,
       }),
     },
 
-    productExternalMappings: {
-      product: r.one.products({
-        from: r.productExternalMappings.productId,
-        to: r.products.id,
+    productVariantsTable: {
+      product: r.one.productsTable({
+        from: r.productVariantsTable.productId,
+        to: r.productsTable.id,
       }),
-      variant: r.one.productVariants({
-        from: r.productExternalMappings.variantId,
-        to: r.productVariants.id,
+      prices: r.many.variantPricesTable(),
+      recipe: r.many.recipesTable(),
+      externalMappings: r.many.productExternalMappingsTable(),
+    },
+
+    variantPricesTable: {
+      variant: r.one.productVariantsTable({
+        from: r.variantPricesTable.variantId,
+        to: r.productVariantsTable.id,
+      }),
+      salesType: r.one.salesTypesTable({
+        from: r.variantPricesTable.salesTypeId,
+        to: r.salesTypesTable.id,
+      }),
+    },
+
+    productExternalMappingsTable: {
+      product: r.one.productsTable({
+        from: r.productExternalMappingsTable.productId,
+        to: r.productsTable.id,
+      }),
+      variant: r.one.productVariantsTable({
+        from: r.productExternalMappingsTable.variantId,
+        to: r.productVariantsTable.id,
       }),
     },
 
     // ─── Recipe ───────────────────────────────────────────────────────
 
-    recipes: {
-      material: r.one.materials({
-        from: r.recipes.materialId,
-        to: r.materials.id,
+    recipesTable: {
+      material: r.one.materialsTable({
+        from: r.recipesTable.materialId,
+        to: r.materialsTable.id,
       }),
-      product: r.one.products({
-        from: r.recipes.productId,
-        to: r.products.id,
+      product: r.one.productsTable({
+        from: r.recipesTable.productId,
+        to: r.productsTable.id,
       }),
-      productVariant: r.one.productVariants({
-        from: r.recipes.productVariantId,
-        to: r.productVariants.id,
+      productVariant: r.one.productVariantsTable({
+        from: r.recipesTable.productVariantId,
+        to: r.productVariantsTable.id,
       }),
-      items: r.many.recipeItems(),
+      items: r.many.recipeItemsTable(),
     },
 
-    recipeItems: {
-      recipe: r.one.recipes({
-        from: r.recipeItems.recipeId,
-        to: r.recipes.id,
+    recipeItemsTable: {
+      recipe: r.one.recipesTable({
+        from: r.recipeItemsTable.recipeId,
+        to: r.recipesTable.id,
       }),
-      material: r.one.materials({
-        from: r.recipeItems.materialId,
-        to: r.materials.id,
+      material: r.one.materialsTable({
+        from: r.recipeItemsTable.materialId,
+        to: r.materialsTable.id,
       }),
-      uom: r.one.uoms({
-        from: r.recipeItems.uomId,
-        to: r.uoms.id,
+      uom: r.one.uomsTable({
+        from: r.recipeItemsTable.uomId,
+        to: r.uomsTable.id,
       }),
     },
   })
 )
+

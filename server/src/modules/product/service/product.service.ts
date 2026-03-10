@@ -6,7 +6,13 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { productExternalMappings, productPrices, products, productVariants, variantPrices } from '@/db/schema'
+import {
+  productExternalMappingsTable,
+  productPricesTable,
+  productsTable,
+  productVariantsTable,
+  variantPricesTable,
+} from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -49,7 +55,7 @@ export class ProductService {
    * Fetches product-level prices (for non-variant products with sales type pricing).
    */
   private async getProductPrices(productId: number): Promise<ProductPriceDto[]> {
-    return db.select().from(productPrices).where(eq(productPrices.productId, productId))
+    return db.select().from(productPricesTable).where(eq(productPricesTable.productId, productId))
   }
 
   /**
@@ -58,7 +64,7 @@ export class ProductService {
   private async getProductPricesBatch(productIds: number[]) {
     if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
 
-    const prices = await db.select().from(productPrices).where(inArray(productPrices.productId, productIds))
+    const prices = await db.select().from(productPricesTable).where(inArray(productPricesTable.productId, productIds))
 
     const map = new Map<number, ProductPriceDto[]>()
     for (const id of productIds) map.set(id, [])
@@ -71,12 +77,12 @@ export class ProductService {
    * Fetches variants + prices for a single product.
    */
   private async getVariantsWithPrices(productId: number): Promise<ProductVariantDto[]> {
-    const variants = await db.select().from(productVariants).where(eq(productVariants.productId, productId))
+    const variants = await db.select().from(productVariantsTable).where(eq(productVariantsTable.productId, productId))
 
     if (variants.length === 0) return []
 
     const variantIds = variants.map((v) => v.id)
-    const prices = await db.select().from(variantPrices).where(inArray(variantPrices.variantId, variantIds))
+    const prices = await db.select().from(variantPricesTable).where(inArray(variantPricesTable.variantId, variantIds))
 
     const pricesByVariant = new Map<number, VariantPriceDto[]>()
     for (const p of prices) {
@@ -97,13 +103,16 @@ export class ProductService {
   private async getVariantsBatch(productIds: number[]) {
     if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
 
-    const variants = await db.select().from(productVariants).where(inArray(productVariants.productId, productIds))
+    const variants = await db
+      .select()
+      .from(productVariantsTable)
+      .where(inArray(productVariantsTable.productId, productIds))
 
     const variantIds = variants.map((v) => v.id)
 
     const prices =
       variantIds.length > 0
-        ? await db.select().from(variantPrices).where(inArray(variantPrices.variantId, variantIds))
+        ? await db.select().from(variantPricesTable).where(inArray(variantPricesTable.variantId, variantIds))
         : []
 
     const pricesByVariant = new Map<number, VariantPriceDto[]>()
@@ -137,8 +146,8 @@ export class ProductService {
 
     const mappings = await db
       .select()
-      .from(productExternalMappings)
-      .where(inArray(productExternalMappings.productId, productIds))
+      .from(productExternalMappingsTable)
+      .where(inArray(productExternalMappingsTable.productId, productIds))
 
     const map = new Map<number, ProductExternalMappingDto[]>()
     for (const id of productIds) {
@@ -156,18 +165,18 @@ export class ProductService {
    */
   private async checkScopedConflict(locationId: number, input: { sku: string; name: string }, excludeId?: number) {
     const conditions = [
-      eq(products.locationId, locationId),
-      or(eq(products.sku, input.sku), eq(products.name, input.name)),
+      eq(productsTable.locationId, locationId),
+      or(eq(productsTable.sku, input.sku), eq(productsTable.name, input.name)),
     ]
 
     if (excludeId) {
       const { ne } = await import('drizzle-orm')
-      conditions.push(ne(products.id, excludeId))
+      conditions.push(ne(productsTable.id, excludeId))
     }
 
     const [conflict] = await db
-      .select({ sku: products.sku, name: products.name })
-      .from(products)
+      .select({ sku: productsTable.sku, name: productsTable.name })
+      .from(productsTable)
       .where(and(...conditions))
       .limit(1)
 
@@ -196,15 +205,15 @@ export class ProductService {
   async findById(id: number): Promise<ProductDto> {
     return record('ProductService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const [result] = await db.select().from(products).where(eq(products.id, id)).limit(1)
+        const [result] = await db.select().from(productsTable).where(eq(productsTable.id, id)).limit(1)
         if (!result) throw err.notFound(id)
 
         const variants = result.hasVariants ? await this.getVariantsWithPrices(id) : []
         const prices = !result.hasVariants && result.hasSalesTypePricing ? await this.getProductPrices(id) : []
         const mappings = await db
           .select()
-          .from(productExternalMappings)
-          .where(eq(productExternalMappings.productId, id))
+          .from(productExternalMappingsTable)
+          .where(eq(productExternalMappingsTable.productId, id))
 
         return { ...result, variants, prices, externalMappings: mappings }
       })
@@ -214,7 +223,7 @@ export class ProductService {
   async count(): Promise<number> {
     return record('ProductService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(products)
+        const result = await db.select({ val: count() }).from(productsTable)
         return result[0]?.val ?? 0
       })
     })
@@ -227,19 +236,19 @@ export class ProductService {
       const { search, status, categoryId, locationId, isExternal, provider } = filter
 
       const searchCondition = search
-        ? or(ilike(products.name, `%${search}%`), ilike(products.sku, `%${search}%`))
+        ? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
         : undefined
 
       const externalCondition =
         isExternal !== undefined || provider !== undefined
           ? exists(
               db
-                .select({ id: productExternalMappings.id })
-                .from(productExternalMappings)
+                .select({ id: productExternalMappingsTable.id })
+                .from(productExternalMappingsTable)
                 .where(
                   and(
-                    eq(productExternalMappings.productId, products.id),
-                    provider ? eq(productExternalMappings.provider, provider) : undefined
+                    eq(productExternalMappingsTable.productId, productsTable.id),
+                    provider ? eq(productExternalMappingsTable.provider, provider) : undefined
                   )
                 )
             )
@@ -248,9 +257,9 @@ export class ProductService {
       // Invert if isExternal = false
       const where = and(
         searchCondition,
-        status ? eq(products.status, status) : undefined,
-        categoryId === undefined ? undefined : eq(products.categoryId, categoryId),
-        locationId === undefined ? undefined : eq(products.locationId, locationId),
+        status ? eq(productsTable.status, status) : undefined,
+        categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
+        locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
         externalCondition ? (isExternal === false ? not(externalCondition) : externalCondition) : undefined
       )
 
@@ -258,13 +267,13 @@ export class ProductService {
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(products)
+            .from(productsTable)
             .where(where)
-            .orderBy(sortBy(products.updatedAt, 'desc'))
+            .orderBy(sortBy(productsTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(products).where(where),
+        countQuery: db.select({ count: count() }).from(productsTable).where(where),
       })
 
       const productIds = result.data.map((p) => p.id)
@@ -320,7 +329,7 @@ export class ProductService {
 
       const inserted = await db.transaction(async (tx) => {
         const [product] = await tx
-          .insert(products)
+          .insert(productsTable)
           .values({
             name,
             description: data.description,
@@ -333,13 +342,13 @@ export class ProductService {
             hasSalesTypePricing: data.hasSalesTypePricing,
             ...meta,
           })
-          .returning({ id: products.id })
+          .returning({ id: productsTable.id })
 
         if (!product) throw new Error('Failed to create product')
 
         // Insert product-level prices (when !hasVariants && hasSalesTypePricing)
         if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-          await tx.insert(productPrices).values(
+          await tx.insert(productPricesTable).values(
             data.prices.map((p) => ({
               productId: product.id,
               salesTypeId: p.salesTypeId,
@@ -352,7 +361,7 @@ export class ProductService {
         // Insert variants + variant prices (when hasVariants)
         for (const variant of inputVariants) {
           const [insertedVariant] = await tx
-            .insert(productVariants)
+            .insert(productVariantsTable)
             .values({
               productId: product.id,
               name: variant.name.trim(),
@@ -361,10 +370,10 @@ export class ProductService {
               basePrice: variant.basePrice ?? '0',
               ...meta,
             })
-            .returning({ id: productVariants.id })
+            .returning({ id: productVariantsTable.id })
 
           if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-            await tx.insert(variantPrices).values(
+            await tx.insert(variantPricesTable).values(
               variant.prices.map((p) => ({
                 variantId: insertedVariant.id,
                 salesTypeId: p.salesTypeId,
@@ -401,7 +410,7 @@ export class ProductService {
 
       await db.transaction(async (tx) => {
         await tx
-          .update(products)
+          .update(productsTable)
           .set({
             name,
             description: data.description,
@@ -414,13 +423,13 @@ export class ProductService {
             hasSalesTypePricing: data.hasSalesTypePricing,
             ...updateMeta,
           })
-          .where(eq(products.id, id))
+          .where(eq(productsTable.id, id))
 
         // Replace product-level prices
-        await tx.delete(productPrices).where(eq(productPrices.productId, id))
+        await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
 
         if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-          await tx.insert(productPrices).values(
+          await tx.insert(productPricesTable).values(
             data.prices.map((p) => ({
               productId: id,
               salesTypeId: p.salesTypeId,
@@ -433,11 +442,11 @@ export class ProductService {
         // Replace variants if provided (delete-and-recreate strategy)
         if (data.hasVariants && data.variants) {
           // Delete existing variants (cascade deletes variant_prices)
-          await tx.delete(productVariants).where(eq(productVariants.productId, id))
+          await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
 
           for (const variant of data.variants) {
             const [insertedVariant] = await tx
-              .insert(productVariants)
+              .insert(productVariantsTable)
               .values({
                 productId: id,
                 name: variant.name.trim(),
@@ -446,10 +455,10 @@ export class ProductService {
                 basePrice: variant.basePrice ?? '0',
                 ...createMeta,
               })
-              .returning({ id: productVariants.id })
+              .returning({ id: productVariantsTable.id })
 
             if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-              await tx.insert(variantPrices).values(
+              await tx.insert(variantPricesTable).values(
                 variant.prices.map((p) => ({
                   variantId: insertedVariant.id,
                   salesTypeId: p.salesTypeId,
@@ -461,7 +470,7 @@ export class ProductService {
           }
         } else if (!data.hasVariants) {
           // If switching from variants → no variants, clean up existing variants
-          await tx.delete(productVariants).where(eq(productVariants.productId, id))
+          await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
         }
       })
 
@@ -472,7 +481,7 @@ export class ProductService {
 
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('ProductService.handleRemove', async () => {
-      const result = await db.delete(products).where(eq(products.id, id)).returning({ id: products.id })
+      const result = await db.delete(productsTable).where(eq(productsTable.id, id)).returning({ id: productsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -490,3 +499,4 @@ export class ProductService {
     ])
   }
 }
+

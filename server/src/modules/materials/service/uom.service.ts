@@ -15,7 +15,7 @@ import {
 import { NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { uoms } from '@/db/schema'
+import { uomsTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -28,7 +28,7 @@ const err = {
 }
 
 const uniqueFields: ConflictField<'code'>[] = [
-  { field: 'code', column: uoms.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
+  { field: 'code', column: uomsTable.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
 ]
 
 const cacheKey = {
@@ -46,7 +46,7 @@ export class UomService {
   async find(): Promise<UomDto[]> {
     return record('UomService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(uoms).orderBy(uoms.code)
+        return db.select().from(uomsTable).orderBy(uomsTable.code)
       })
     })
   }
@@ -57,7 +57,7 @@ export class UomService {
   async findById(id: number): Promise<UomDto> {
     return record('UomService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(uoms).where(eq(uoms.id, id))
+        const result = await db.select().from(uomsTable).where(eq(uomsTable.id, id))
         return takeFirstOrThrow(result, `UOM with ID ${id} not found`)
       })
     })
@@ -69,7 +69,7 @@ export class UomService {
   async count(): Promise<number> {
     return record('UomService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(uoms)
+        const result = await db.select({ val: count() }).from(uomsTable)
         return result[0]?.val ?? 0
       })
     })
@@ -81,13 +81,13 @@ export class UomService {
   async handleList(filter: UomFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UomDto>> {
     return record('UomService.handleList', async () => {
       const { search } = filter
-      const where = searchFilter(uoms.code, search)
+      const where = searchFilter(uomsTable.code, search)
 
       return paginate<UomDto>({
         data: ({ limit, offset }) =>
-          db.select().from(uoms).where(where).orderBy(sortBy(uoms.updatedAt, 'desc')).limit(limit).offset(offset),
+          db.select().from(uomsTable).where(where).orderBy(sortBy(uomsTable.updatedAt, 'desc')).limit(limit).offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(uoms).where(where),
+        countQuery: db.select({ count: count() }).from(uomsTable).where(where),
       })
     })
   }
@@ -109,19 +109,19 @@ export class UomService {
       const code = data.code.toUpperCase().trim()
 
       await checkConflict({
-        table: uoms,
-        pkColumn: uoms.id,
+        table: uomsTable,
+        pkColumn: uomsTable.id,
         fields: uniqueFields,
         input: { code },
       })
 
       const [inserted] = await db
-        .insert(uoms)
+        .insert(uomsTable)
         .values({
           code,
           ...stampCreate(actorId),
         })
-        .returning({ id: uoms.id })
+        .returning({ id: uomsTable.id })
 
       if (!inserted) throw new Error('Failed to create UOM')
 
@@ -140,20 +140,20 @@ export class UomService {
       const code = data.code ? data.code.toUpperCase().trim() : existing.code
 
       await checkConflict({
-        table: uoms,
-        pkColumn: uoms.id,
+        table: uomsTable,
+        pkColumn: uomsTable.id,
         fields: uniqueFields,
         input: { code },
         existing,
       })
 
       await db
-        .update(uoms)
+        .update(uomsTable)
         .set({
           code,
           ...stampUpdate(actorId),
         })
-        .where(eq(uoms.id, id))
+        .where(eq(uomsTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -165,7 +165,7 @@ export class UomService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('UomService.handleRemove', async () => {
-      const result = await db.delete(uoms).where(eq(uoms.id, id)).returning({ id: uoms.id })
+      const result = await db.delete(uomsTable).where(eq(uomsTable.id, id)).returning({ id: uomsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -189,7 +189,7 @@ export class UomService {
    */
   async seed(data: { code: string; createdBy: number }[]): Promise<void> {
     return record('UomService.seed', async () => {
-      const existing = await db.select({ code: uoms.code }).from(uoms)
+      const existing = await db.select({ code: uomsTable.code }).from(uomsTable)
       const existingCodes = new Set(existing.map((e) => e.code))
 
       const newUoms = data
@@ -201,7 +201,7 @@ export class UomService {
 
       if (newUoms.length === 0) return
 
-      await db.insert(uoms).values(
+      await db.insert(uomsTable).values(
         newUoms.map((d) => ({
           ...d,
           ...stampCreate(d.createdBy),
@@ -212,3 +212,4 @@ export class UomService {
     })
   }
 }
+

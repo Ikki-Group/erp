@@ -15,7 +15,7 @@ import {
 import { BadRequestError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { roles } from '@/db/schema'
+import { rolesTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -29,8 +29,8 @@ const err = {
 }
 
 const uniqueFields: ConflictField<'code' | 'name'>[] = [
-  { field: 'code', column: roles.code, message: 'Role code already exists', code: 'ROLE_CODE_ALREADY_EXISTS' },
-  { field: 'name', column: roles.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
+  { field: 'code', column: rolesTable.code, message: 'Role code already exists', code: 'ROLE_CODE_ALREADY_EXISTS' },
+  { field: 'name', column: rolesTable.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
 ]
 
 const cacheKey = {
@@ -50,14 +50,14 @@ export class RoleService {
       for (const d of data) {
         const metadata = stampCreate(d.createdBy)
         await db
-          .insert(roles)
+          .insert(rolesTable)
           .values({
             ...d,
             isSystem: true,
             ...metadata,
           })
           .onConflictDoUpdate({
-            target: roles.code,
+            target: rolesTable.code,
             set: {
               name: d.name,
               updatedAt: metadata.updatedAt,
@@ -74,7 +74,7 @@ export class RoleService {
   async find(): Promise<RoleDto[]> {
     return record('RoleService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(roles).orderBy(roles.name)
+        return db.select().from(rolesTable).orderBy(rolesTable.name)
       })
     })
   }
@@ -85,7 +85,7 @@ export class RoleService {
   async findById(id: number): Promise<RoleDto> {
     return record('RoleService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(roles).where(eq(roles.id, id))
+        const result = await db.select().from(rolesTable).where(eq(rolesTable.id, id))
         return takeFirstOrThrow(result, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
       })
     })
@@ -97,7 +97,7 @@ export class RoleService {
   async count(): Promise<number> {
     return record('RoleService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(roles)
+        const result = await db.select({ val: count() }).from(rolesTable)
         return result[0]?.val ?? 0
       })
     })
@@ -109,13 +109,13 @@ export class RoleService {
   async handleList(filter: RoleFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
     return record('RoleService.handleList', async () => {
       const { search } = filter
-      const where = searchFilter(roles.name, search)
+      const where = searchFilter(rolesTable.name, search)
 
       return paginate<RoleDto>({
         data: ({ limit, offset }) =>
-          db.select().from(roles).where(where).orderBy(sortBy(roles.updatedAt, 'desc')).limit(limit).offset(offset),
+          db.select().from(rolesTable).where(where).orderBy(sortBy(rolesTable.updatedAt, 'desc')).limit(limit).offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(roles).where(where),
+        countQuery: db.select({ count: count() }).from(rolesTable).where(where),
       })
     })
   }
@@ -138,21 +138,21 @@ export class RoleService {
       const name = data.name.trim()
 
       await checkConflict({
-        table: roles,
-        pkColumn: roles.id,
+        table: rolesTable,
+        pkColumn: rolesTable.id,
         fields: uniqueFields,
         input: { code, name },
       })
 
       const [inserted] = await db
-        .insert(roles)
+        .insert(rolesTable)
         .values({
           ...data,
           code,
           name,
           ...stampCreate(actorId),
         })
-        .returning({ id: roles.id })
+        .returning({ id: rolesTable.id })
 
       if (!inserted) throw new Error('Failed to create role')
 
@@ -174,22 +174,22 @@ export class RoleService {
       const name = data.name ? data.name.trim() : existing.name
 
       await checkConflict({
-        table: roles,
-        pkColumn: roles.id,
+        table: rolesTable,
+        pkColumn: rolesTable.id,
         fields: uniqueFields,
         input: { code, name },
         existing,
       })
 
       await db
-        .update(roles)
+        .update(rolesTable)
         .set({
           ...data,
           code,
           name,
           ...stampUpdate(actorId),
         })
-        .where(eq(roles.id, id))
+        .where(eq(rolesTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -204,7 +204,7 @@ export class RoleService {
       const existing = await this.findById(id)
       if (existing.isSystem) throw err.systemRole()
 
-      const result = await db.delete(roles).where(eq(roles.id, id)).returning({ id: roles.id })
+      const result = await db.delete(rolesTable).where(eq(rolesTable.id, id)).returning({ id: rolesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -223,3 +223,4 @@ export class RoleService {
     ])
   }
 }
+

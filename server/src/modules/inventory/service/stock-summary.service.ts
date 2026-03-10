@@ -5,7 +5,7 @@ import { paginate, stampCreate } from '@/lib/db'
 import { toWibDateKey, toWibDayBounds } from '@/lib/utils/date.util'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { materials, stockSummaries, stockTransactions, uoms } from '@/db/schema'
+import { materialsTable, stockSummariesTable, stockTransactionsTable, uomsTable } from '@/db/schema'
 
 import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
@@ -36,55 +36,55 @@ export class StockSummaryService {
       const { locationId, materialId, dateFrom, dateTo } = filter
 
       const where = and(
-        eq(stockSummaries.locationId, locationId),
-        materialId === undefined ? undefined : eq(stockSummaries.materialId, materialId),
-        gte(stockSummaries.date, toWibDateKey(dateFrom)),
-        lte(stockSummaries.date, toWibDateKey(dateTo))
+        eq(stockSummariesTable.locationId, locationId),
+        materialId === undefined ? undefined : eq(stockSummariesTable.materialId, materialId),
+        gte(stockSummariesTable.date, toWibDateKey(dateFrom)),
+        lte(stockSummariesTable.date, toWibDateKey(dateTo))
       )
 
       const result = await paginate({
         data: ({ limit, offset }) =>
           db
             .select({
-              id: stockSummaries.id,
-              materialId: stockSummaries.materialId,
-              locationId: stockSummaries.locationId,
-              date: stockSummaries.date,
-              openingQty: stockSummaries.openingQty,
-              openingAvgCost: stockSummaries.openingAvgCost,
-              openingValue: stockSummaries.openingValue,
-              purchaseQty: stockSummaries.purchaseQty,
-              purchaseValue: stockSummaries.purchaseValue,
-              transferInQty: stockSummaries.transferInQty,
-              transferInValue: stockSummaries.transferInValue,
-              transferOutQty: stockSummaries.transferOutQty,
-              transferOutValue: stockSummaries.transferOutValue,
-              adjustmentQty: stockSummaries.adjustmentQty,
-              adjustmentValue: stockSummaries.adjustmentValue,
-              sellQty: stockSummaries.sellQty,
-              sellValue: stockSummaries.sellValue,
-              closingQty: stockSummaries.closingQty,
-              closingAvgCost: stockSummaries.closingAvgCost,
-              closingValue: stockSummaries.closingValue,
-              createdAt: stockSummaries.createdAt,
-              updatedAt: stockSummaries.updatedAt,
-              createdBy: stockSummaries.createdBy,
-              updatedBy: stockSummaries.updatedBy,
-              syncAt: stockSummaries.syncAt,
-              materialName: materials.name,
-              materialSku: materials.sku,
+              id: stockSummariesTable.id,
+              materialId: stockSummariesTable.materialId,
+              locationId: stockSummariesTable.locationId,
+              date: stockSummariesTable.date,
+              openingQty: stockSummariesTable.openingQty,
+              openingAvgCost: stockSummariesTable.openingAvgCost,
+              openingValue: stockSummariesTable.openingValue,
+              purchaseQty: stockSummariesTable.purchaseQty,
+              purchaseValue: stockSummariesTable.purchaseValue,
+              transferInQty: stockSummariesTable.transferInQty,
+              transferInValue: stockSummariesTable.transferInValue,
+              transferOutQty: stockSummariesTable.transferOutQty,
+              transferOutValue: stockSummariesTable.transferOutValue,
+              adjustmentQty: stockSummariesTable.adjustmentQty,
+              adjustmentValue: stockSummariesTable.adjustmentValue,
+              sellQty: stockSummariesTable.sellQty,
+              sellValue: stockSummariesTable.sellValue,
+              closingQty: stockSummariesTable.closingQty,
+              closingAvgCost: stockSummariesTable.closingAvgCost,
+              closingValue: stockSummariesTable.closingValue,
+              createdAt: stockSummariesTable.createdAt,
+              updatedAt: stockSummariesTable.updatedAt,
+              createdBy: stockSummariesTable.createdBy,
+              updatedBy: stockSummariesTable.updatedBy,
+              syncAt: stockSummariesTable.syncAt,
+              materialName: materialsTable.name,
+              materialSku: materialsTable.sku,
             })
-            .from(stockSummaries)
-            .innerJoin(materials, eq(stockSummaries.materialId, materials.id))
+            .from(stockSummariesTable)
+            .innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
             .where(where)
-            .orderBy(desc(stockSummaries.date))
+            .orderBy(desc(stockSummariesTable.date))
             .limit(limit)
             .offset(offset),
         pq,
         countQuery: db
           .select({ count: count() })
-          .from(stockSummaries)
-          .innerJoin(materials, eq(stockSummaries.materialId, materials.id))
+          .from(stockSummariesTable)
+          .innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
           .where(where),
       })
 
@@ -130,27 +130,27 @@ export class StockSummaryService {
 
       // 1. Paginate Materials matching filter
       const matWhere = and(
-        materialId === undefined ? undefined : eq(materials.id, materialId),
-        search ? or(ilike(materials.name, `%${search}%`), ilike(materials.sku, `%${search}%`)) : undefined
+        materialId === undefined ? undefined : eq(materialsTable.id, materialId),
+        search ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`)) : undefined
       )
 
       const matResult = await paginate({
         data: ({ limit, offset }) =>
           db
             .select({
-              id: materials.id,
-              name: materials.name,
-              sku: materials.sku,
-              baseUomCode: uoms.code,
+              id: materialsTable.id,
+              name: materialsTable.name,
+              sku: materialsTable.sku,
+              baseUomCode: uomsTable.code,
             })
-            .from(materials)
-            .innerJoin(uoms, eq(materials.baseUomId, uoms.id))
+            .from(materialsTable)
+            .innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
             .where(matWhere)
-            .orderBy(asc(materials.name))
+            .orderBy(asc(materialsTable.name))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(materials).where(matWhere),
+        countQuery: db.select({ count: count() }).from(materialsTable).where(matWhere),
       })
 
       // If no materials match, return empty early
@@ -180,23 +180,23 @@ export class StockSummaryService {
       // B. Movements: Sum of all daily movements within date range
       const movements = await db
         .select({
-          materialId: stockSummaries.materialId,
-          purchaseQty: sum(stockSummaries.purchaseQty),
-          transferInQty: sum(stockSummaries.transferInQty),
-          transferOutQty: sum(stockSummaries.transferOutQty),
-          adjustmentQty: sum(stockSummaries.adjustmentQty),
-          sellQty: sum(stockSummaries.sellQty),
+          materialId: stockSummariesTable.materialId,
+          purchaseQty: sum(stockSummariesTable.purchaseQty),
+          transferInQty: sum(stockSummariesTable.transferInQty),
+          transferOutQty: sum(stockSummariesTable.transferOutQty),
+          adjustmentQty: sum(stockSummariesTable.adjustmentQty),
+          sellQty: sum(stockSummariesTable.sellQty),
         })
-        .from(stockSummaries)
+        .from(stockSummariesTable)
         .where(
           and(
-            inArray(stockSummaries.materialId, materialIds),
-            locationId === undefined ? undefined : eq(stockSummaries.locationId, locationId),
-            gte(stockSummaries.date, startKey),
-            lte(stockSummaries.date, endKey)
+            inArray(stockSummariesTable.materialId, materialIds),
+            locationId === undefined ? undefined : eq(stockSummariesTable.locationId, locationId),
+            gte(stockSummariesTable.date, startKey),
+            lte(stockSummariesTable.date, endKey)
           )
         )
-        .groupBy(stockSummaries.materialId)
+        .groupBy(stockSummariesTable.materialId)
 
       const movementMap = new Map(movements.map((m) => [m.materialId, m]))
 
@@ -278,7 +278,7 @@ export class StockSummaryService {
         // PostgreSQL: DISTINCT ON is the cleanest way here
         const prevSummariesQuery = sql`
           SELECT DISTINCT ON ("materialId") "materialId", "closingQty", "closingAvgCost"
-          FROM ${stockSummaries}
+          FROM ${stockSummariesTable}
           WHERE "locationId" = ${locationId} AND "date" < ${dateKey.toISOString()}
             AND "materialId" IN ${materialIds}
           ORDER BY "materialId", "date" DESC
@@ -294,21 +294,21 @@ export class StockSummaryService {
         // 3. Bulk fetch today's movements aggregated per material+type
         const movements = await tx
           .select({
-            materialId: stockTransactions.materialId,
-            type: stockTransactions.type,
-            qty: sum(stockTransactions.qty),
-            totalCost: sum(stockTransactions.totalCost),
+            materialId: stockTransactionsTable.materialId,
+            type: stockTransactionsTable.type,
+            qty: sum(stockTransactionsTable.qty),
+            totalCost: sum(stockTransactionsTable.totalCost),
           })
-          .from(stockTransactions)
+          .from(stockTransactionsTable)
           .where(
             and(
-              eq(stockTransactions.locationId, locationId),
-              gte(stockTransactions.date, start),
-              lt(stockTransactions.date, end),
-              inArray(stockTransactions.materialId, materialIds)
+              eq(stockTransactionsTable.locationId, locationId),
+              gte(stockTransactionsTable.date, start),
+              lt(stockTransactionsTable.date, end),
+              inArray(stockTransactionsTable.materialId, materialIds)
             )
           )
-          .groupBy(stockTransactions.materialId, stockTransactions.type)
+          .groupBy(stockTransactionsTable.materialId, stockTransactionsTable.type)
 
         const movementMap = new Map<number, typeof movements>()
         for (const m of movements) {
@@ -320,7 +320,7 @@ export class StockSummaryService {
         // 4. Bulk fetch today's last transaction per material (for closingAvgCost)
         const lastTransactionsQuery = sql`
           SELECT DISTINCT ON ("materialId") "materialId", "runningAvgCost"
-          FROM ${stockTransactions}
+          FROM ${stockTransactionsTable}
           WHERE "locationId" = ${locationId} AND "date" >= ${start.toISOString()} AND "date" < ${end.toISOString()}
             AND "materialId" IN ${materialIds}
           ORDER BY "materialId", "id" DESC
@@ -411,10 +411,10 @@ export class StockSummaryService {
 
         // 6. Bulk Upsert using onConflictDoUpdate
         await tx
-          .insert(stockSummaries)
+          .insert(stockSummariesTable)
           .values(upsertData)
           .onConflictDoUpdate({
-            target: [stockSummaries.materialId, stockSummaries.locationId, stockSummaries.date],
+            target: [stockSummariesTable.materialId, stockSummariesTable.locationId, stockSummariesTable.date],
             set: {
               openingQty: sql`excluded."openingQty"`,
               openingAvgCost: sql`excluded."openingAvgCost"`,
@@ -442,3 +442,4 @@ export class StockSummaryService {
     })
   }
 }
+

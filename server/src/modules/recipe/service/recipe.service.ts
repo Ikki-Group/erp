@@ -6,7 +6,7 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
 import { ConflictError, NotFoundError } from '@/lib/error/http'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { materials, recipeItems, recipes, uoms } from '@/db/schema'
+import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -32,15 +32,15 @@ export class RecipeService {
   private async getRecipeItems(recipeId: number) {
     const results = await db
       .select({
-        item: recipeItems,
-        material: { name: materials.name, sku: materials.sku },
-        uom: { code: uoms.code },
+        item: recipeItemsTable,
+        material: { name: materialsTable.name, sku: materialsTable.sku },
+        uom: { code: uomsTable.code },
       })
-      .from(recipeItems)
-      .innerJoin(materials, eq(recipeItems.materialId, materials.id))
-      .innerJoin(uoms, eq(recipeItems.uomId, uoms.id))
-      .where(eq(recipeItems.recipeId, recipeId))
-      .orderBy(recipeItems.sortOrder)
+      .from(recipeItemsTable)
+      .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
+      .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
+      .where(eq(recipeItemsTable.recipeId, recipeId))
+      .orderBy(recipeItemsTable.sortOrder)
 
     return results.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
   }
@@ -50,7 +50,7 @@ export class RecipeService {
   async findById(id: number): Promise<RecipeDto> {
     return record('RecipeService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const [result] = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1)
+        const [result] = await db.select().from(recipesTable).where(eq(recipesTable.id, id)).limit(1)
         if (!result) throw err.notFound(id)
 
         const items = await this.getRecipeItems(id)
@@ -63,7 +63,7 @@ export class RecipeService {
   async count(): Promise<number> {
     return record('RecipeService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(recipes)
+        const result = await db.select({ val: count() }).from(recipesTable)
         return result[0]?.val ?? 0
       })
     })
@@ -76,17 +76,23 @@ export class RecipeService {
       const { materialId, productId, productVariantId, isActive } = filter
 
       const where = and(
-        materialId === undefined ? undefined : eq(recipes.materialId, materialId),
-        productId === undefined ? undefined : eq(recipes.productId, productId),
-        productVariantId === undefined ? undefined : eq(recipes.productVariantId, productVariantId),
-        isActive === undefined ? undefined : eq(recipes.isActive, isActive)
+        materialId === undefined ? undefined : eq(recipesTable.materialId, materialId),
+        productId === undefined ? undefined : eq(recipesTable.productId, productId),
+        productVariantId === undefined ? undefined : eq(recipesTable.productVariantId, productVariantId),
+        isActive === undefined ? undefined : eq(recipesTable.isActive, isActive)
       )
 
       const result = await paginate({
         data: ({ limit, offset }) =>
-          db.select().from(recipes).where(where).orderBy(sortBy(recipes.updatedAt, 'desc')).limit(limit).offset(offset),
+          db
+            .select()
+            .from(recipesTable)
+            .where(where)
+            .orderBy(sortBy(recipesTable.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(recipes).where(where),
+        countQuery: db.select({ count: count() }).from(recipesTable).where(where),
       })
 
       const recipeIds = result.data.map((r) => r.id)
@@ -95,15 +101,15 @@ export class RecipeService {
         recipeIds.length > 0
           ? await db
               .select({
-                item: recipeItems,
-                material: { name: materials.name, sku: materials.sku },
-                uom: { code: uoms.code },
+                item: recipeItemsTable,
+                material: { name: materialsTable.name, sku: materialsTable.sku },
+                uom: { code: uomsTable.code },
               })
-              .from(recipeItems)
-              .innerJoin(materials, eq(recipeItems.materialId, materials.id))
-              .innerJoin(uoms, eq(recipeItems.uomId, uoms.id))
-              .where(inArray(recipeItems.recipeId, recipeIds))
-              .orderBy(recipeItems.sortOrder)
+              .from(recipeItemsTable)
+              .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
+              .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
+              .where(inArray(recipeItemsTable.recipeId, recipeIds))
+              .orderBy(recipeItemsTable.sortOrder)
           : []
 
       const allItems = allItemsRaw.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
@@ -140,9 +146,9 @@ export class RecipeService {
   ) {
     const conditions = []
 
-    if (target.materialId) conditions.push(eq(recipes.materialId, target.materialId))
-    if (target.productId) conditions.push(eq(recipes.productId, target.productId))
-    if (target.productVariantId) conditions.push(eq(recipes.productVariantId, target.productVariantId))
+    if (target.materialId) conditions.push(eq(recipesTable.materialId, target.materialId))
+    if (target.productId) conditions.push(eq(recipesTable.productId, target.productId))
+    if (target.productVariantId) conditions.push(eq(recipesTable.productVariantId, target.productVariantId))
 
     if (conditions.length !== 1) {
       throw new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET')
@@ -150,12 +156,12 @@ export class RecipeService {
 
     if (excludeId) {
       const { ne } = await import('drizzle-orm')
-      conditions.push(ne(recipes.id, excludeId))
+      conditions.push(ne(recipesTable.id, excludeId))
     }
 
     const [conflict] = await db
-      .select({ id: recipes.id })
-      .from(recipes)
+      .select({ id: recipesTable.id })
+      .from(recipesTable)
       .where(and(...conditions))
       .limit(1)
 
@@ -176,7 +182,7 @@ export class RecipeService {
 
       const inserted = await db.transaction(async (tx) => {
         const [recipe] = await tx
-          .insert(recipes)
+          .insert(recipesTable)
           .values({
             materialId: data.materialId ?? null,
             productId: data.productId ?? null,
@@ -186,12 +192,12 @@ export class RecipeService {
             instructions: data.instructions,
             ...meta,
           })
-          .returning({ id: recipes.id })
+          .returning({ id: recipesTable.id })
 
         if (!recipe) throw new Error('Failed to create recipe')
 
         if (data.items?.length) {
-          await tx.insert(recipeItems).values(
+          await tx.insert(recipeItemsTable).values(
             data.items.map((item) => ({
               recipeId: recipe.id,
               materialId: item.materialId,
@@ -230,7 +236,7 @@ export class RecipeService {
 
       const updated = await db.transaction(async (tx) => {
         await tx
-          .update(recipes)
+          .update(recipesTable)
           .set({
             materialId: data.materialId === undefined ? existing.materialId : data.materialId,
             productId: data.productId === undefined ? existing.productId : data.productId,
@@ -240,13 +246,13 @@ export class RecipeService {
             instructions: data.instructions,
             ...updateMeta,
           })
-          .where(eq(recipes.id, id))
+          .where(eq(recipesTable.id, id))
 
         // Recreate items
-        await tx.delete(recipeItems).where(eq(recipeItems.recipeId, id))
+        await tx.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
 
         if (data.items?.length) {
-          await tx.insert(recipeItems).values(
+          await tx.insert(recipeItemsTable).values(
             data.items.map((item) => ({
               recipeId: id,
               materialId: item.materialId,
@@ -270,7 +276,7 @@ export class RecipeService {
 
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('RecipeService.handleRemove', async () => {
-      const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id })
+      const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -288,3 +294,4 @@ export class RecipeService {
     ])
   }
 }
+
