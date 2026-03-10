@@ -16,7 +16,7 @@ const num = z.number()
 const numCoerce = z.coerce.number()
 const date = z.coerce.date()
 const bool = z.boolean()
-const email = z.email()
+const email = z.email().transform((v) => v.toLowerCase())
 const uuid = z.uuidv7()
 
 /** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
@@ -35,6 +35,7 @@ const username = z
   .trim()
   .min(3, 'Username must be at least 3 characters')
   .max(50, 'Username must not exceed 50 characters')
+  .transform((v) => v.toLowerCase())
 
 export const zPrimitive = {
   str,

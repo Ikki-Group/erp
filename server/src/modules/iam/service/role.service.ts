@@ -45,7 +45,7 @@ export class RoleService {
   /**
    * Seed roles.
    */
-  async seed(data: Pick<RoleDto, 'code' | 'name' | 'createdBy'>[]): Promise<void> {
+  async seed(data: Pick<RoleDto, 'code' | 'name' | 'createdBy' | 'description'>[]): Promise<void> {
     return record('RoleService.seed', async () => {
       for (const d of data) {
         const metadata = stampCreate(d.createdBy)
@@ -113,7 +113,13 @@ export class RoleService {
 
       return paginate<RoleDto>({
         data: ({ limit, offset }) =>
-          db.select().from(rolesTable).where(where).orderBy(sortBy(rolesTable.updatedAt, 'desc')).limit(limit).offset(offset),
+          db
+            .select()
+            .from(rolesTable)
+            .where(where)
+            .orderBy(sortBy(rolesTable.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
         countQuery: db.select({ count: count() }).from(rolesTable).where(where),
       })
@@ -223,4 +229,3 @@ export class RoleService {
     ])
   }
 }
-

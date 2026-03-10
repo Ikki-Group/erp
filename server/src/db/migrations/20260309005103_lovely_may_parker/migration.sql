@@ -1,1 +1,0 @@
-ALTER TABLE "sales_types" ADD COLUMN "isSystem" boolean DEFAULT false NOT NULL;

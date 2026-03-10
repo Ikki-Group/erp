@@ -17,7 +17,7 @@ export class AuthService {
     const targetUser = await this.userSvc.findByIdentifier(identifier)
 
     if (!targetUser || !targetUser.isActive) {
-      throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
+      throw new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND')
     }
 
     const isPasswordValid = await verifyPassword(password, targetUser.passwordHash)

@@ -1,23 +1,23 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray, or } from 'drizzle-orm'
+import { and, count, eq, or } from 'drizzle-orm'
 
 import { cache } from '@/lib/cache'
 import {
-    checkConflict,
-    paginate,
-    searchFilter,
-    sortBy,
-    stampCreate,
-    stampUpdate,
-    takeFirst,
-    takeFirstOrThrow,
-    type ConflictField,
+  checkConflict,
+  paginate,
+  searchFilter,
+  sortBy,
+  stampCreate,
+  stampUpdate,
+  takeFirst,
+  takeFirstOrThrow,
+  type ConflictField,
 } from '@/lib/db'
 import { UnauthorizedError } from '@/lib/error/http'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
-import { locationsTable, rolesTable, userAssignmentsTable, usersTable } from '@/db/schema'
+import { usersTable } from '@/db/schema'
 
 import type { LocationServiceModule } from '@/modules/location/service'
 
@@ -25,20 +25,19 @@ import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
 
 import type {
-    UserAdminUpdatePasswordDto,
-    UserAssignmentDetailDto,
-    UserChangePasswordDto,
-    UserCreateDto,
-    UserDto,
-    UserFilterDto,
-    UserSelectDto,
-    UserUpdateDto,
+  UserAdminUpdatePasswordDto,
+  UserAssignmentDetailDto,
+  UserChangePasswordDto,
+  UserDto,
+  UserFilterDto,
+  UserMutationDto,
+  UserSelectDto,
 } from '../dto'
 
 import type { RoleService } from './role.service'
+import type { UserAssignmentService } from './user-assignment.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
-
 
 const uniqueFields: ConflictField<'email' | 'username'>[] = [
   { field: 'email', column: usersTable.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
@@ -54,7 +53,6 @@ const cacheKey = {
   count: 'user.count',
   list: 'user.list',
   byId: (id: number) => `user.byId.${id}`,
-  byIdentifier: (identifier: string) => `user.byIdentifier.${identifier}`,
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -62,13 +60,27 @@ const cacheKey = {
 export class UserService {
   constructor(
     private readonly roleSvc: RoleService,
-    private readonly locationSvc: LocationServiceModule
+    private readonly locationSvc: LocationServiceModule,
+    private readonly userAssignmentSvc: UserAssignmentService
   ) {}
+
+  async #getRootAssignments(): Promise<UserAssignmentDetailDto[]> {
+    const [allRoles, allLocations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
+    const superadmin = allRoles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
+
+    const rootAssignments: UserAssignmentDetailDto[] = allLocations.map((l) => ({
+      isDefault: false,
+      location: l,
+      role: superadmin,
+    }))
+
+    return rootAssignments
+  }
 
   /**
    * Seed users.
    */
-  async seed(data: (UserCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
+  async seed(data: (UserMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
     return record('UserService.seed', async () => {
       for (const d of data) {
         const { password, assignments, ...rest } = d
@@ -95,14 +107,7 @@ export class UserService {
           .returning({ id: usersTable.id })
 
         if (inserted && assignments?.length > 0) {
-          await db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, inserted.id))
-          await db.insert(userAssignmentsTable).values(
-            assignments.map((a) => ({
-              ...a,
-              userId: inserted.id,
-              ...metadata,
-            }))
-          )
+          await this.userAssignmentSvc.upsertUserAssignments(inserted.id, assignments, d.createdBy)
         }
       }
     })
@@ -126,13 +131,11 @@ export class UserService {
   async findByIdentifier(identifier: string): Promise<UserDto | null> {
     return record('UserService.findByIdentifier', async () => {
       const lower = identifier.toLowerCase()
-      return cache.wrap(cacheKey.byIdentifier(lower), async () => {
-        const result = await db
-          .select()
-          .from(usersTable)
-          .where(or(eq(usersTable.email, lower), eq(usersTable.username, lower)))
-        return takeFirst(result)
-      })
+      const result = await db
+        .select()
+        .from(usersTable)
+        .where(or(eq(usersTable.email, lower), eq(usersTable.username, lower)))
+      return takeFirst(result)
     })
   }
 
@@ -149,131 +152,15 @@ export class UserService {
   }
 
   /**
-   * Fetches assignments for a user with joined role and location data.
-   * Uses explicit joins to avoid relational query type issues.
-   */
-  private async fetchAssignments(userId: number): Promise<UserAssignmentDetailDto[]> {
-    const rows = await db
-      .select({
-        id: userAssignmentsTable.id,
-        locationId: userAssignmentsTable.locationId,
-        roleId: userAssignmentsTable.roleId,
-        isDefault: userAssignmentsTable.isDefault,
-        role: {
-          id: rolesTable.id,
-          code: rolesTable.code,
-          name: rolesTable.name,
-          isSystem: rolesTable.isSystem,
-          createdBy: rolesTable.createdBy,
-          updatedBy: rolesTable.updatedBy,
-          createdAt: rolesTable.createdAt,
-          updatedAt: rolesTable.updatedAt,
-        },
-        location: {
-          id: locationsTable.id,
-          code: locationsTable.code,
-          name: locationsTable.name,
-          type: locationsTable.type,
-          description: locationsTable.description,
-          isActive: locationsTable.isActive,
-          createdBy: locationsTable.createdBy,
-          updatedBy: locationsTable.updatedBy,
-          createdAt: locationsTable.createdAt,
-          updatedAt: locationsTable.updatedAt,
-        },
-      })
-      .from(userAssignmentsTable)
-      .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-      .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-      .where(eq(userAssignmentsTable.userId, userId))
-
-    return rows
-  }
-
-  /**
-   * Batch fetch assignments for multiple users.
-   */
-  private async fetchAssignmentsBatch(userIds: number[]): Promise<Map<number, UserAssignmentDetailDto[]>> {
-    if (userIds.length === 0) return new Map()
-
-    const rows = await db
-      .select({
-        userId: userAssignmentsTable.userId,
-        id: userAssignmentsTable.id,
-        locationId: userAssignmentsTable.locationId,
-        roleId: userAssignmentsTable.roleId,
-        isDefault: userAssignmentsTable.isDefault,
-        role: {
-          id: rolesTable.id,
-          code: rolesTable.code,
-          name: rolesTable.name,
-          isSystem: rolesTable.isSystem,
-          createdBy: rolesTable.createdBy,
-          updatedBy: rolesTable.updatedBy,
-          createdAt: rolesTable.createdAt,
-          updatedAt: rolesTable.updatedAt,
-        },
-        location: {
-          id: locationsTable.id,
-          code: locationsTable.code,
-          name: locationsTable.name,
-          type: locationsTable.type,
-          description: locationsTable.description,
-          isActive: locationsTable.isActive,
-          createdBy: locationsTable.createdBy,
-          updatedBy: locationsTable.updatedBy,
-          createdAt: locationsTable.createdAt,
-          updatedAt: locationsTable.updatedAt,
-        },
-      })
-      .from(userAssignmentsTable)
-      .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-      .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-      .where(inArray(userAssignmentsTable.userId, userIds))
-
-    const map = new Map<number, UserAssignmentDetailDto[]>()
-    for (const row of rows) {
-      const { userId, ...assignment } = row
-      const existing = map.get(userId) ?? []
-      existing.push(assignment)
-      map.set(userId, existing)
-    }
-
-    return map
-  }
-
-  /**
    * Resolves a user ID to a full select object including assignments.
    */
   async getDetailById(id: number): Promise<UserSelectDto> {
     return record('UserService.getDetailById', async () => {
       const user = await this.findById(id)
 
-      // If user is root, they automatically have access to ALL locations as SUPERADMIN
-      if (user.isRoot) {
-        const [allRoles, allLocations] = await Promise.all([this.roleSvc.find(), this.locationSvc.location.find()])
-        const superadmin = allRoles.find((r) => r.code === SEED_CONFIG.ROLE_SUPERADMIN_CODE)!
-
-        const rootAssignments: UserAssignmentDetailDto[] = allLocations.map((l) => ({
-          id: l.id, // Virtual ID for root assignment (must be > 0 due to zPrimitive.id)
-          isDefault: false,
-          locationId: l.id,
-          roleId: superadmin.id,
-          location: l,
-          role: superadmin,
-        }))
-
-        return {
-          ...user,
-          assignments: rootAssignments,
-        }
-      }
-
-      const assignments = await this.fetchAssignments(id)
-
       return {
         ...user,
-        assignments,
+        assignments: user.isRoot ? await this.#getRootAssignments() : await this.userAssignmentSvc.findByUserId(id),
       }
     })
   }
@@ -293,25 +180,28 @@ export class UserService {
       // Fetch paginated users using standard select query
       const result = await paginate<UserDto>({
         data: ({ limit, offset }) =>
-          db.select().from(usersTable).where(where).orderBy(sortBy(usersTable.updatedAt, 'desc')).limit(limit).offset(offset),
+          db
+            .select()
+            .from(usersTable)
+            .where(where)
+            .orderBy(sortBy(usersTable.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
         countQuery: db.select({ count: count() }).from(usersTable).where(where),
       })
 
       // Batch-fetch assignments for all users in the page
       const userIds = result.data.map((u) => u.id)
-      const assignmentMap = await this.fetchAssignmentsBatch(userIds)
+      const assignmentMap = await this.userAssignmentSvc.findByUserIds(userIds)
+      const assignmentRoot = await this.#getRootAssignments()
 
       // Build full UserSelectDto with assignments
       const data: UserSelectDto[] = await Promise.all(
         result.data.map(async (u) => {
-          // Root users get dynamically expanded assignments
-          if (u.isRoot) {
-            return this.getDetailById(u.id)
-          }
           return {
             ...u,
-            assignments: assignmentMap.get(u.id) ?? [],
+            assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []),
           }
         })
       )
@@ -332,11 +222,9 @@ export class UserService {
   /**
    * Create user handler.
    */
-  async handleCreate(data: UserCreateDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: UserMutationDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleCreate', async () => {
-      const { password, assignments, ...rest } = data
-      const email = rest.email.toLowerCase().trim()
-      const username = rest.username.toLowerCase().trim()
+      const { password, assignments, email, username, ...rest } = data
 
       await checkConflict({
         table: usersTable,
@@ -361,13 +249,7 @@ export class UserService {
           .returning({ id: usersTable.id })
 
         if (user && assignments?.length > 0) {
-          await tx.insert(userAssignmentsTable).values(
-            assignments.map((a) => ({
-              ...a,
-              userId: user.id,
-              ...metadata,
-            }))
-          )
+          await this.userAssignmentSvc.upsertUserAssignments(user.id, assignments, actorId)
         }
 
         return user
@@ -375,7 +257,7 @@ export class UserService {
 
       if (!inserted) throw new Error('Failed to create user')
 
-      void this.clearCache(inserted.id, email, username)
+      void this.clearCache(inserted.id)
       return inserted
     })
   }
@@ -383,13 +265,11 @@ export class UserService {
   /**
    * Update user handler.
    */
-  async handleUpdate(id: number, data: UserUpdateDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: UserMutationDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleUpdate', async () => {
       const existing = await this.findById(id)
 
-      const { password, assignments, ...rest } = data
-      const email = rest.email ? rest.email.toLowerCase().trim() : existing.email
-      const username = rest.username ? rest.username.toLowerCase().trim() : existing.username
+      const { password, assignments, email, username, ...rest } = data
 
       await checkConflict({
         table: usersTable,
@@ -415,21 +295,11 @@ export class UserService {
           .where(eq(usersTable.id, id))
 
         if (assignments) {
-          const createMetadata = stampCreate(actorId)
-          await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, id))
-          if (assignments.length > 0) {
-            await tx.insert(userAssignmentsTable).values(
-              assignments.map((a) => ({
-                ...a,
-                userId: id,
-                ...createMetadata,
-              }))
-            )
-          }
+          await this.userAssignmentSvc.upsertUserAssignments(id, assignments, actorId)
         }
       })
 
-      void this.clearCache(id, email, username)
+      void this.clearCache(id)
       return { id }
     })
   }
@@ -439,11 +309,10 @@ export class UserService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleRemove', async () => {
-      const existing = await this.findById(id)
-
+      await this.findById(id)
       await db.delete(usersTable).where(eq(usersTable.id, id))
 
-      void this.clearCache(id, existing.email, existing.username)
+      void this.clearCache(id)
       return { id }
     })
   }
@@ -469,7 +338,7 @@ export class UserService {
         .set({ passwordHash, ...metadata })
         .where(eq(usersTable.id, userId))
 
-      void this.clearCache(userId, user.email, user.username)
+      void this.clearCache(userId)
       return { id: userId }
     })
   }
@@ -480,7 +349,7 @@ export class UserService {
   async handleAdminUpdatePassword(actorId: number, data: UserAdminUpdatePasswordDto): Promise<{ id: number }> {
     return record('UserService.handleAdminUpdatePassword', async () => {
       const { id: targetUserId, password } = data
-      const targetUser = await this.findById(targetUserId)
+      await this.findById(targetUserId)
 
       const passwordHash = await hashPassword(password)
       const metadata = stampUpdate(actorId)
@@ -490,7 +359,7 @@ export class UserService {
         .set({ passwordHash, ...metadata })
         .where(eq(usersTable.id, targetUserId))
 
-      void this.clearCache(targetUserId, targetUser.email, targetUser.username)
+      void this.clearCache(targetUserId)
       return { id: targetUserId }
     })
   }
@@ -498,14 +367,7 @@ export class UserService {
   /**
    * Helper to clear caches.
    */
-  private async clearCache(id: number, email: string, username: string) {
-    await Promise.all([
-      cache.del(cacheKey.count),
-      cache.del(cacheKey.list),
-      cache.del(cacheKey.byId(id)),
-      cache.del(cacheKey.byIdentifier(email)),
-      cache.del(cacheKey.byIdentifier(username)),
-    ])
+  private async clearCache(id: number) {
+    await Promise.all([cache.del(cacheKey.count), cache.del(cacheKey.list), cache.del(cacheKey.byId(id))])
   }
 }
-

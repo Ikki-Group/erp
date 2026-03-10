@@ -82,11 +82,40 @@ CREATE TABLE "product_categories" (
 	"syncAt" timestamp with time zone
 );
 --> statement-breakpoint
+CREATE TABLE "product_external_mappings" (
+	"id" serial PRIMARY KEY,
+	"productId" integer NOT NULL,
+	"variantId" integer,
+	"provider" text NOT NULL,
+	"externalId" text NOT NULL,
+	"externalData" jsonb,
+	"lastSyncedAt" timestamp with time zone,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"createdBy" integer NOT NULL,
+	"updatedBy" integer NOT NULL,
+	"syncAt" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "product_prices" (
+	"id" serial PRIMARY KEY,
+	"productId" integer NOT NULL,
+	"salesTypeId" integer NOT NULL,
+	"price" numeric(18,4) NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"createdBy" integer NOT NULL,
+	"updatedBy" integer NOT NULL,
+	"syncAt" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE "product_variants" (
 	"id" serial PRIMARY KEY,
 	"productId" integer NOT NULL,
 	"name" text NOT NULL,
+	"sku" text,
 	"isDefault" boolean DEFAULT false NOT NULL,
+	"basePrice" numeric(18,4) DEFAULT '0' NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
@@ -102,6 +131,8 @@ CREATE TABLE "products" (
 	"locationId" integer NOT NULL,
 	"categoryId" integer,
 	"status" "product_status" DEFAULT 'active'::"product_status" NOT NULL,
+	"hasVariants" boolean DEFAULT false NOT NULL,
+	"hasSalesTypePricing" boolean DEFAULT false NOT NULL,
 	"basePrice" numeric(18,4) DEFAULT '0' NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
@@ -115,7 +146,10 @@ CREATE TABLE "recipe_items" (
 	"recipeId" integer NOT NULL,
 	"materialId" integer NOT NULL,
 	"qty" numeric(18,4) NOT NULL,
-	"uom" text NOT NULL,
+	"scrapPercentage" numeric(5,2) DEFAULT '0' NOT NULL,
+	"uomId" integer NOT NULL,
+	"notes" text,
+	"sortOrder" integer DEFAULT 0 NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
@@ -126,21 +160,24 @@ CREATE TABLE "recipe_items" (
 CREATE TABLE "recipes" (
 	"id" serial PRIMARY KEY,
 	"materialId" integer,
+	"productId" integer,
 	"productVariantId" integer,
 	"targetQty" numeric(18,4) DEFAULT '1' NOT NULL,
+	"isActive" boolean DEFAULT true NOT NULL,
 	"instructions" text,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
 	"updatedBy" integer NOT NULL,
 	"syncAt" timestamp with time zone,
-	CONSTRAINT "recipe_target_chk" CHECK (num_nonnulls("materialId", "productVariantId") = 1)
+	CONSTRAINT "recipe_target_chk" CHECK (num_nonnulls("materialId", "productId", "productVariantId") = 1)
 );
 --> statement-breakpoint
 CREATE TABLE "roles" (
 	"id" serial PRIMARY KEY,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
+	"description" text,
 	"isSystem" boolean DEFAULT false NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
@@ -153,6 +190,7 @@ CREATE TABLE "sales_types" (
 	"id" serial PRIMARY KEY,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
+	"isSystem" boolean DEFAULT false NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"createdBy" integer NOT NULL,
@@ -271,6 +309,7 @@ CREATE UNIQUE INDEX "locations_code_idx" ON "locations" ("code");--> statement-b
 CREATE UNIQUE INDEX "locations_name_idx" ON "locations" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "material_categories_name_idx" ON "material_categories" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "material_conversions_material_uom_idx" ON "material_conversions" ("materialId","uomId");--> statement-breakpoint
+CREATE INDEX "material_conversions_uom_idx" ON "material_conversions" ("uomId");--> statement-breakpoint
 CREATE UNIQUE INDEX "material_locations_material_location_idx" ON "material_locations" ("materialId","locationId");--> statement-breakpoint
 CREATE INDEX "material_locations_location_idx" ON "material_locations" ("locationId");--> statement-breakpoint
 CREATE UNIQUE INDEX "materials_name_idx" ON "materials" ("name");--> statement-breakpoint
@@ -278,13 +317,24 @@ CREATE UNIQUE INDEX "materials_sku_idx" ON "materials" ("sku");--> statement-bre
 CREATE INDEX "materials_category_idx" ON "materials" ("categoryId");--> statement-breakpoint
 CREATE INDEX "materials_base_uom_idx" ON "materials" ("baseUomId");--> statement-breakpoint
 CREATE UNIQUE INDEX "product_categories_name_idx" ON "product_categories" ("name");--> statement-breakpoint
+CREATE UNIQUE INDEX "product_ext_map_provider_ext_id_idx" ON "product_external_mappings" ("provider","externalId");--> statement-breakpoint
+CREATE UNIQUE INDEX "product_ext_map_provider_product_variant_idx" ON "product_external_mappings" ("provider","productId","variantId");--> statement-breakpoint
+CREATE INDEX "product_ext_map_product_idx" ON "product_external_mappings" ("productId");--> statement-breakpoint
+CREATE INDEX "product_ext_map_provider_idx" ON "product_external_mappings" ("provider");--> statement-breakpoint
+CREATE UNIQUE INDEX "product_prices_product_sales_type_idx" ON "product_prices" ("productId","salesTypeId");--> statement-breakpoint
+CREATE INDEX "product_prices_sales_type_idx" ON "product_prices" ("salesTypeId");--> statement-breakpoint
 CREATE UNIQUE INDEX "product_variants_product_name_idx" ON "product_variants" ("productId","name");--> statement-breakpoint
+CREATE UNIQUE INDEX "product_variants_sku_idx" ON "product_variants" ("productId","sku") WHERE "sku" IS NOT NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "products_sku_location_idx" ON "products" ("sku","locationId");--> statement-breakpoint
 CREATE UNIQUE INDEX "products_name_location_idx" ON "products" ("name","locationId");--> statement-breakpoint
 CREATE INDEX "products_location_idx" ON "products" ("locationId");--> statement-breakpoint
 CREATE INDEX "products_category_idx" ON "products" ("categoryId");--> statement-breakpoint
+CREATE INDEX "products_status_idx" ON "products" ("status");--> statement-breakpoint
 CREATE UNIQUE INDEX "recipe_items_recipe_material_idx" ON "recipe_items" ("recipeId","materialId");--> statement-breakpoint
+CREATE INDEX "recipe_items_material_idx" ON "recipe_items" ("materialId");--> statement-breakpoint
+CREATE INDEX "recipe_items_uom_idx" ON "recipe_items" ("uomId");--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_material_idx" ON "recipes" ("materialId") WHERE "materialId" IS NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "recipes_product_idx" ON "recipes" ("productId") WHERE "productId" IS NOT NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_product_variant_idx" ON "recipes" ("productVariantId") WHERE "productVariantId" IS NOT NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_code_idx" ON "roles" ("code");--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_name_idx" ON "roles" ("name");--> statement-breakpoint
@@ -300,9 +350,10 @@ CREATE INDEX "stock_txn_type_date_idx" ON "stock_transactions" ("type","date");-
 CREATE INDEX "stock_txn_transfer_idx" ON "stock_transactions" ("transferId");--> statement-breakpoint
 CREATE INDEX "stock_txn_reference_no_idx" ON "stock_transactions" ("referenceNo");--> statement-breakpoint
 CREATE UNIQUE INDEX "uoms_code_idx" ON "uoms" ("code");--> statement-breakpoint
-CREATE UNIQUE INDEX "user_assignments_user_role_location_idx" ON "user_assignments" ("userId","roleId","locationId");--> statement-breakpoint
+CREATE INDEX "user_assignments_user_idx" ON "user_assignments" ("userId");--> statement-breakpoint
 CREATE INDEX "user_assignments_role_idx" ON "user_assignments" ("roleId");--> statement-breakpoint
 CREATE INDEX "user_assignments_location_idx" ON "user_assignments" ("locationId");--> statement-breakpoint
+CREATE UNIQUE INDEX "user_assignments_user_role_location_idx" ON "user_assignments" ("userId","roleId","locationId");--> statement-breakpoint
 CREATE UNIQUE INDEX "users_email_idx" ON "users" ("email");--> statement-breakpoint
 CREATE UNIQUE INDEX "users_username_idx" ON "users" ("username");--> statement-breakpoint
 CREATE UNIQUE INDEX "variant_prices_variant_sales_type_idx" ON "variant_prices" ("variantId","salesTypeId");--> statement-breakpoint
@@ -313,12 +364,18 @@ ALTER TABLE "material_locations" ADD CONSTRAINT "material_locations_materialId_m
 ALTER TABLE "material_locations" ADD CONSTRAINT "material_locations_locationId_locations_id_fkey" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "materials" ADD CONSTRAINT "materials_categoryId_material_categories_id_fkey" FOREIGN KEY ("categoryId") REFERENCES "material_categories"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "materials" ADD CONSTRAINT "materials_baseUomId_uoms_id_fkey" FOREIGN KEY ("baseUomId") REFERENCES "uoms"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "product_external_mappings" ADD CONSTRAINT "product_external_mappings_productId_products_id_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "product_external_mappings" ADD CONSTRAINT "product_external_mappings_variantId_product_variants_id_fkey" FOREIGN KEY ("variantId") REFERENCES "product_variants"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "product_prices" ADD CONSTRAINT "product_prices_productId_products_id_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "product_prices" ADD CONSTRAINT "product_prices_salesTypeId_sales_types_id_fkey" FOREIGN KEY ("salesTypeId") REFERENCES "sales_types"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_productId_products_id_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "products" ADD CONSTRAINT "products_locationId_locations_id_fkey" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "products" ADD CONSTRAINT "products_categoryId_product_categories_id_fkey" FOREIGN KEY ("categoryId") REFERENCES "product_categories"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "recipe_items" ADD CONSTRAINT "recipe_items_recipeId_recipes_id_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "recipe_items" ADD CONSTRAINT "recipe_items_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "recipe_items" ADD CONSTRAINT "recipe_items_uomId_uoms_id_fkey" FOREIGN KEY ("uomId") REFERENCES "uoms"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "recipes" ADD CONSTRAINT "recipes_productId_products_id_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_productVariantId_product_variants_id_fkey" FOREIGN KEY ("productVariantId") REFERENCES "product_variants"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_users_id_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "stock_summaries" ADD CONSTRAINT "stock_summaries_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE RESTRICT;--> statement-breakpoint

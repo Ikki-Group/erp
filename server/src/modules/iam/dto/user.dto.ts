@@ -2,21 +2,9 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
-import { LocationDto } from '@/modules/location/dto/location.dto'
-
-import { RoleDto } from './role.dto'
+import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignments.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
-
-/** Represents a user-role-location assignment (from the `user_assignments` junction table). */
-const UserAssignmentDto = z.object({
-  id: zPrimitive.id,
-  locationId: zPrimitive.id,
-  roleId: zPrimitive.id,
-  isDefault: zPrimitive.bool,
-})
-
-type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
 export const UserDto = z.object({
   id: zPrimitive.id,
@@ -40,14 +28,6 @@ export const UserFilterDto = z.object({
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
-export const UserAssignmentDetailDto = z.object({
-  ...UserAssignmentDto.shape,
-  location: LocationDto,
-  role: RoleDto,
-})
-
-export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
-
 export const UserSelectDto = z.object({
   ...UserDto.omit({ passwordHash: true }).shape,
   assignments: z.array(UserAssignmentDetailDto),
@@ -57,30 +37,19 @@ export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /* --------------------------------- MUTATION --------------------------------- */
 
-export const UserCreateDto = z.object({
-  email: zPrimitive.email,
-  username: zPrimitive.username,
-  fullname: zPrimitive.str,
+export const UserMutationDto = z.object({
+  ...UserDto.pick({
+    email: true,
+    username: true,
+    fullname: true,
+    isRoot: true,
+    isActive: true,
+  }).shape,
+  assignments: z.array(UserAssignmentUpsertDto).default([]),
   password: zPrimitive.password,
-  isActive: zPrimitive.bool,
-  isRoot: zPrimitive.bool,
-  /** Assignment list to create in the junction table */
-  assignments: z
-    .array(
-      z.object({
-        roleId: zPrimitive.id,
-        locationId: zPrimitive.id,
-        isDefault: zPrimitive.bool.default(false),
-      })
-    )
-    .default([]),
 })
 
-export type UserCreateDto = z.infer<typeof UserCreateDto>
-
-export const UserUpdateDto = UserCreateDto.partial()
-
-export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+export type UserMutationDto = z.infer<typeof UserMutationDto>
 
 export const UserChangePasswordDto = z.object({
   oldPassword: zPrimitive.password,

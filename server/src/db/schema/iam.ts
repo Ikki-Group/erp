@@ -28,6 +28,7 @@ export const rolesTable = pgTable(
     ...pk,
     code: text().notNull(),
     name: text().notNull(),
+    description: text(),
     isSystem: boolean().notNull().default(false),
     ...metadata,
   },
@@ -35,8 +36,6 @@ export const rolesTable = pgTable(
 )
 
 // ─── User Assignments ────────────────────────────────────────────────────────
-// MongoDB embedded `user.assignments[]` → proper junction table in SQL.
-// Each row means "user X has role Y at location Z".
 
 export const userAssignmentsTable = pgTable(
   'user_assignments',
@@ -55,11 +54,12 @@ export const userAssignmentsTable = pgTable(
     ...metadata,
   },
   (t) => [
-    // Composite unique: a user can only have ONE assignment per role+location combo
-    uniqueIndex('user_assignments_user_role_location_idx').on(t.userId, t.roleId, t.locationId),
     // Standalone indexes for reverse lookups (composite unique already covers userId-leading queries)
+    index('user_assignments_user_idx').on(t.userId),
     index('user_assignments_role_idx').on(t.roleId),
     index('user_assignments_location_idx').on(t.locationId),
+    // Composite unique: a user can only have ONE assignment per role+location combo
+    uniqueIndex('user_assignments_user_role_location_idx').on(t.userId, t.roleId, t.locationId),
   ]
 )
 

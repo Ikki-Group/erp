@@ -1,1 +1,0 @@
-ALTER TABLE "recipe_items" DROP CONSTRAINT "recipe_items_uomId_uoms_id_fkey", ADD CONSTRAINT "recipe_items_uomId_uoms_id_fkey" FOREIGN KEY ("uomId") REFERENCES "uoms"("id") ON DELETE RESTRICT;

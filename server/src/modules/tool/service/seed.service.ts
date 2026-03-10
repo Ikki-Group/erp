@@ -27,6 +27,13 @@ export class SeedService {
           {
             code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
             name: 'Administrator',
+            description: 'Super administrator',
+            createdBy: SYSTEM_ACTOR_ID,
+          },
+          {
+            code: 'MANAGER',
+            name: 'Manager',
+            description: null,
             createdBy: SYSTEM_ACTOR_ID,
           },
         ])

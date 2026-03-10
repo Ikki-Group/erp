@@ -1,29 +1,47 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "7059d721-82d0-42c3-b2a7-637bafd74702",
-  "prevIds": ["8cdb4f28-ea14-4bd7-a61c-d45506fbf40d"],
+  "id": "5570371e-7a5f-4e6e-8c3f-b5e2cf343a66",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
-      "values": ["store", "warehouse"],
+      "values": [
+        "store",
+        "warehouse"
+      ],
       "name": "location_type",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["raw", "semi"],
+      "values": [
+        "raw",
+        "semi"
+      ],
       "name": "material_type",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["active", "inactive", "archived"],
+      "values": [
+        "active",
+        "inactive",
+        "archived"
+      ],
       "name": "product_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["purchase", "transfer_in", "transfer_out", "adjustment", "sell"],
+      "values": [
+        "purchase",
+        "transfer_in",
+        "transfer_out",
+        "adjustment",
+        "sell"
+      ],
       "name": "transaction_type",
       "entityType": "enums",
       "schema": "public"
@@ -1936,6 +1954,19 @@
       "table": "roles"
     },
     {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "roles"
+    },
+    {
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -2048,6 +2079,19 @@
       "generated": null,
       "identity": null,
       "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sales_types"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "isSystem",
       "entityType": "columns",
       "schema": "public",
       "table": "sales_types"
@@ -3330,6 +3374,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "uomId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "material_conversions_uom_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "material_conversions"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "materialId",
           "isExpression": false,
           "asc": true,
@@ -3848,6 +3913,48 @@
           "opclass": null
         }
       ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "recipe_items_material_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "uomId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "recipe_items_uom_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "recipe_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "materialId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
       "isUnique": true,
       "where": "\"materialId\" IS NOT NULL",
       "with": "",
@@ -4252,28 +4359,14 @@
           "asc": true,
           "nullsFirst": false,
           "opclass": null
-        },
-        {
-          "value": "roleId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
         }
       ],
-      "isUnique": true,
+      "isUnique": false,
       "where": null,
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "user_assignments_user_role_location_idx",
+      "name": "user_assignments_user_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "user_assignments"
@@ -4316,6 +4409,41 @@
       "method": "btree",
       "concurrently": false,
       "name": "user_assignments_location_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "user_assignments"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "roleId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "locationId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "user_assignments_user_role_location_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "user_assignments"
@@ -4413,10 +4541,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_conversions_materialId_materials_id_fkey",
@@ -4426,10 +4558,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["uomId"],
+      "columns": [
+        "uomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_conversions_uomId_uoms_id_fkey",
@@ -4439,10 +4575,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_locations_materialId_materials_id_fkey",
@@ -4452,10 +4592,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_locations_locationId_locations_id_fkey",
@@ -4465,10 +4609,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["categoryId"],
+      "columns": [
+        "categoryId"
+      ],
       "schemaTo": "public",
       "tableTo": "material_categories",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "materials_categoryId_material_categories_id_fkey",
@@ -4478,10 +4626,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["baseUomId"],
+      "columns": [
+        "baseUomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "materials_baseUomId_uoms_id_fkey",
@@ -4491,10 +4643,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_productId_products_id_fkey",
@@ -4504,10 +4660,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["variantId"],
+      "columns": [
+        "variantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_variantId_product_variants_id_fkey",
@@ -4517,10 +4677,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_prices_productId_products_id_fkey",
@@ -4530,10 +4694,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["salesTypeId"],
+      "columns": [
+        "salesTypeId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "product_prices_salesTypeId_sales_types_id_fkey",
@@ -4543,10 +4711,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_variants_productId_products_id_fkey",
@@ -4556,10 +4728,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "products_locationId_locations_id_fkey",
@@ -4569,10 +4745,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["categoryId"],
+      "columns": [
+        "categoryId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_categories",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "products_categoryId_product_categories_id_fkey",
@@ -4582,10 +4762,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["recipeId"],
+      "columns": [
+        "recipeId"
+      ],
       "schemaTo": "public",
       "tableTo": "recipes",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipe_items_recipeId_recipes_id_fkey",
@@ -4595,10 +4779,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_materialId_materials_id_fkey",
@@ -4608,10 +4796,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["uomId"],
+      "columns": [
+        "uomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_uomId_uoms_id_fkey",
@@ -4621,10 +4813,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_materialId_materials_id_fkey",
@@ -4634,10 +4830,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productId_products_id_fkey",
@@ -4647,10 +4847,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productVariantId"],
+      "columns": [
+        "productVariantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productVariantId_product_variants_id_fkey",
@@ -4660,10 +4864,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["userId"],
+      "columns": [
+        "userId"
+      ],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_userId_users_id_fkey",
@@ -4673,10 +4881,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_materialId_materials_id_fkey",
@@ -4686,10 +4898,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_locationId_locations_id_fkey",
@@ -4699,10 +4915,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_materialId_materials_id_fkey",
@@ -4712,10 +4932,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_locationId_locations_id_fkey",
@@ -4725,10 +4949,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["counterpartLocationId"],
+      "columns": [
+        "counterpartLocationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_counterpartLocationId_locations_id_fkey",
@@ -4738,10 +4966,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["userId"],
+      "columns": [
+        "userId"
+      ],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_assignments_userId_users_id_fkey",
@@ -4751,10 +4983,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["roleId"],
+      "columns": [
+        "roleId"
+      ],
       "schemaTo": "public",
       "tableTo": "roles",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_roleId_roles_id_fkey",
@@ -4764,10 +5000,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_locationId_locations_id_fkey",
@@ -4777,10 +5017,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["variantId"],
+      "columns": [
+        "variantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "variant_prices_variantId_product_variants_id_fkey",
@@ -4790,10 +5034,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["salesTypeId"],
+      "columns": [
+        "salesTypeId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "variant_prices_salesTypeId_sales_types_id_fkey",
@@ -4802,7 +5050,9 @@
       "table": "variant_prices"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "locations_pkey",
       "schema": "public",
@@ -4810,7 +5060,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_categories_pkey",
       "schema": "public",
@@ -4818,7 +5070,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_conversions_pkey",
       "schema": "public",
@@ -4826,7 +5080,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_locations_pkey",
       "schema": "public",
@@ -4834,7 +5090,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "materials_pkey",
       "schema": "public",
@@ -4842,7 +5100,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_categories_pkey",
       "schema": "public",
@@ -4850,7 +5110,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_external_mappings_pkey",
       "schema": "public",
@@ -4858,7 +5120,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_prices_pkey",
       "schema": "public",
@@ -4866,7 +5130,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_variants_pkey",
       "schema": "public",
@@ -4874,7 +5140,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "products_pkey",
       "schema": "public",
@@ -4882,7 +5150,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "recipe_items_pkey",
       "schema": "public",
@@ -4890,7 +5160,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "recipes_pkey",
       "schema": "public",
@@ -4898,7 +5170,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "roles_pkey",
       "schema": "public",
@@ -4906,7 +5180,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_types_pkey",
       "schema": "public",
@@ -4914,7 +5190,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "public",
@@ -4922,7 +5200,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "stock_summaries_pkey",
       "schema": "public",
@@ -4930,7 +5210,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "stock_transactions_pkey",
       "schema": "public",
@@ -4938,7 +5220,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "uoms_pkey",
       "schema": "public",
@@ -4946,7 +5230,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "user_assignments_pkey",
       "schema": "public",
@@ -4954,7 +5240,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
@@ -4962,7 +5250,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "variant_prices_pkey",
       "schema": "public",

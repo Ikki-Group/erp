@@ -8,6 +8,7 @@ export const RoleDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
+  description: zPrimitive.strNullable,
   isSystem: zPrimitive.bool,
   ...zSchema.metadata.shape,
 })
