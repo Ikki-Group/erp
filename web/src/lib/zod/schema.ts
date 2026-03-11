@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { zPrimitive } from './primitive'
 
-const meta = z.object({
+const metadata = z.object({
   createdAt: zPrimitive.date,
   updatedAt: zPrimitive.date,
   createdBy: zPrimitive.id,
@@ -15,7 +15,6 @@ const recordId = z.object({
 })
 
 export const zSchema = {
-  meta,
-  metadata: meta,
+  metadata,
   recordId,
 }
