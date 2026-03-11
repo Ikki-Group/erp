@@ -65,6 +65,7 @@ export class RoleService {
             },
           })
       }
+      void this.clearCache()
     })
   }
 

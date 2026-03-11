@@ -111,6 +111,7 @@ export class UserService {
           await this.userAssignmentSvc.upsertUserAssignments(inserted.id, assignments, d.createdBy)
         }
       }
+      void this.clearCache()
     })
   }
 
@@ -364,7 +365,11 @@ export class UserService {
   /**
    * Helper to clear caches.
    */
-  private async clearCache(id: number) {
-    await Promise.all([cache.del(cacheKey.count), cache.del(cacheKey.list), cache.del(cacheKey.byId(id))])
+  private async clearCache(id?: number) {
+    await Promise.all([
+      cache.del(cacheKey.count),
+      cache.del(cacheKey.list),
+      id ? cache.del(cacheKey.byId(id)) : Promise.resolve()
+    ])
   }
 }
