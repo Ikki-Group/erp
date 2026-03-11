@@ -4,7 +4,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
 import { ProductCategoryDto } from './product-category.dto'
 
-/* --------------------------------- ENUMS ---------------------------------- */
+/* ---------------------------------- ENUM ---------------------------------- */
 
 const ProductStatus = z.enum(['active', 'inactive', 'archived'])
 type ProductStatus = z.infer<typeof ProductStatus>
@@ -15,7 +15,7 @@ export const VariantPriceDto = z.object({
   id: zPrimitive.id,
   variantId: zPrimitive.id,
   salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
+  price: zPrimitive.decimal,
   ...zSchema.metadata.shape,
 })
 
@@ -25,7 +25,7 @@ export const ProductPriceDto = z.object({
   id: zPrimitive.id,
   productId: zPrimitive.id,
   salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
+  price: zPrimitive.decimal,
   ...zSchema.metadata.shape,
 })
 
@@ -37,7 +37,7 @@ export const ProductVariantDto = z.object({
   name: zPrimitive.str,
   sku: zPrimitive.strNullable,
   isDefault: zPrimitive.bool,
-  basePrice: zPrimitive.str,
+  basePrice: zPrimitive.decimal,
   prices: VariantPriceDto.array(),
   ...zSchema.metadata.shape,
 })
@@ -63,7 +63,7 @@ export const ProductDto = z.object({
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   sku: zPrimitive.str,
-  basePrice: zPrimitive.str,
+  basePrice: zPrimitive.decimal,
   locationId: zPrimitive.id,
   categoryId: zPrimitive.id.nullable(),
   status: ProductStatus,
@@ -103,14 +103,14 @@ export type ProductSelectDto = z.infer<typeof ProductSelectDto>
 
 const VariantPriceMutationDto = z.object({
   salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
+  price: zPrimitive.decimal,
 })
 
 type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 
 const ProductPriceMutationDto = z.object({
   salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
+  price: zPrimitive.decimal,
 })
 
 type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
@@ -119,7 +119,7 @@ const ProductVariantMutationDto = z.object({
   name: zPrimitive.str,
   sku: zPrimitive.str.optional(),
   isDefault: zPrimitive.bool.optional().default(false),
-  basePrice: zPrimitive.str.optional().default('0'),
+  basePrice: zPrimitive.decimal.optional().default('0'),
   prices: VariantPriceMutationDto.array(),
 })
 

@@ -20,7 +20,7 @@ export const UomFilterDto = z.object({
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const UomMutationDto = z.object({
   ...UomDto.pick({

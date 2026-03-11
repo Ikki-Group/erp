@@ -32,36 +32,10 @@ const pagination = z.object({
   limit: zPrimitive.numCoerce.int().positive().max(100).default(10),
 })
 
-const paginationMeta = z.object({
-  page: z.number(),
-  limit: z.number(),
-  total: z.number(),
-  totalPages: z.number(),
-})
-
 const recordId = z.object({ id: zPrimitive.id })
-
-function ok<T extends z.ZodTypeAny>(data: T) {
-  return z.object({
-    success: z.literal(true),
-    code: z.string(),
-    data,
-  })
-}
-
-function paginated<T extends z.ZodTypeAny>(data: T) {
-  return z.object({
-    success: z.literal(true),
-    code: z.string().default('OK'),
-    data,
-    meta: paginationMeta,
-  })
-}
 
 export const zHttp = {
   query,
   pagination,
   recordId,
-  ok,
-  paginated,
 }

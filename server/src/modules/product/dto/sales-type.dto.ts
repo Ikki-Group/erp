@@ -8,7 +8,7 @@ export const SalesTypeDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
-  isSystem: z.boolean(),
+  isSystem: zPrimitive.bool,
   ...zSchema.metadata.shape,
 })
 

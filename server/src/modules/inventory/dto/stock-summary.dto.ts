@@ -37,7 +37,7 @@ const StockSummaryDto = z.object({
 
 type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
 export const StockSummarySelectDto = z.object({

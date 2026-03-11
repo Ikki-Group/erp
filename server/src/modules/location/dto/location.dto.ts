@@ -14,7 +14,7 @@ export const LocationDto = z.object({
   code: zPrimitive.codeUpper,
   name: zPrimitive.str,
   type: LocationType,
-  description: zPrimitive.str.nullable(),
+  description: zPrimitive.strNullable,
   isActive: zPrimitive.bool,
   ...zSchema.metadata.shape,
 })

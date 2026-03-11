@@ -28,7 +28,7 @@ export const MaterialLocationDto = z.object({
 
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Enriched view with location details — used in "locations assigned to material" */
 export const MaterialLocationWithLocationDto = z.object({

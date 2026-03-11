@@ -37,6 +37,12 @@ const username = z
   .max(50, 'Username must not exceed 50 characters')
   .transform((v) => v.toLowerCase())
 
+/** Decimal string — for monetary amounts, prices, quantities stored as string (e.g. Decimal DB columns). */
+const decimal = z.string().trim()
+
+/** Sort order / display order integer */
+const sortOrder = z.number().int().nonnegative()
+
 export const zPrimitive = {
   str,
   strNullable,
@@ -50,4 +56,6 @@ export const zPrimitive = {
   codeUpper,
   password,
   username,
+  decimal,
+  sortOrder,
 }

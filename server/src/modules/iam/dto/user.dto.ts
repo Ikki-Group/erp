@@ -19,7 +19,7 @@ export const UserDto = z.object({
 
 export type UserDto = z.infer<typeof UserDto>
 
-/* --------------------------------- COMMON --------------------------------- */
+/* --------------------------------- FILTER --------------------------------- */
 
 export const UserFilterDto = z.object({
   search: zHttp.query.search,
@@ -28,6 +28,8 @@ export const UserFilterDto = z.object({
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
+/* --------------------------------- RESULT --------------------------------- */
+
 export const UserSelectDto = z.object({
   ...UserDto.omit({ passwordHash: true }).shape,
   assignments: z.array(UserAssignmentDetailDto),
@@ -35,7 +37,7 @@ export const UserSelectDto = z.object({
 
 export type UserSelectDto = z.infer<typeof UserSelectDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const UserCreateDto = z.object({
   ...UserDto.pick({
