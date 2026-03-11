@@ -4,12 +4,12 @@ import {
   GenerateSummaryDto,
   PurchaseTransactionDto,
   StockLedgerFilterDto,
-  StockLedgerSelectDto,
+  StockLedgerOutputDto,
   StockSummaryFilterDto,
-  StockSummarySelectDto,
+  StockSummaryOutputDto,
   StockTransactionDto,
   StockTransactionFilterDto,
-  StockTransactionSelectDto,
+  StockTransactionOutputDto,
   TransactionResultDto,
   TransferTransactionDto,
 } from '../dto'
@@ -25,7 +25,7 @@ export const stockSummaryApi = {
       ...zHttp.pagination.shape,
       ...StockSummaryFilterDto.shape,
     }),
-    result: zHttp.paginated(StockSummarySelectDto.array()),
+    result: zHttp.paginated(StockSummaryOutputDto.array()),
   }),
   ledger: apiFactory({
     method: 'get',
@@ -34,7 +34,7 @@ export const stockSummaryApi = {
       ...zHttp.pagination.shape,
       ...StockLedgerFilterDto.shape,
     }),
-    result: zHttp.paginated(StockLedgerSelectDto.array()),
+    result: zHttp.paginated(StockLedgerOutputDto.array()),
   }),
   generate: apiFactory({
     method: 'post',
@@ -52,7 +52,7 @@ export const stockTransactionApi = {
       ...zHttp.pagination.shape,
       ...StockTransactionFilterDto.shape,
     }),
-    result: zHttp.paginated(StockTransactionSelectDto.array()),
+    result: zHttp.paginated(StockTransactionOutputDto.array()),
   }),
   detail: apiFactory({
     method: 'get',
@@ -80,5 +80,5 @@ export const stockTransactionApi = {
   }),
 }
 
-// Keep inventoryApi for backward compatibility (if used in materials/ledger.tsx)
+// Keep inventoryApi for backward compatibility
 export const inventoryApi = stockSummaryApi

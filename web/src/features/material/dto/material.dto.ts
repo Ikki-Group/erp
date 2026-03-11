@@ -10,7 +10,7 @@ import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 export const MaterialType = z.enum(['raw', 'semi'])
 export type MaterialType = z.infer<typeof MaterialType>
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* --------------------------------- NESTED --------------------------------- */
 
 export const MaterialConversionDto = z.object({
   toBaseFactor: zPrimitive.str,
@@ -19,6 +19,8 @@ export const MaterialConversionDto = z.object({
 })
 
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
+
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
   id: zPrimitive.id,
@@ -36,18 +38,6 @@ export const MaterialDto = z.object({
 
 export type MaterialDto = z.infer<typeof MaterialDto>
 
-/* --------------------------------- SELECT --------------------------------- */
-
-export const MaterialSelectDto = z.object({
-  ...MaterialDto.shape,
-  category: MaterialCategoryDto.nullable(),
-  uom: UomDto.nullable(),
-  locations: LocationDto.array().optional(),
-  recipe: RecipeDto.nullable().optional(),
-})
-
-export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
-
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialFilterDto = z.object({
@@ -59,6 +49,18 @@ export const MaterialFilterDto = z.object({
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
+
+/* --------------------------------- OUTPUT --------------------------------- */
+
+export const MaterialOutputDto = z.object({
+  ...MaterialDto.shape,
+  category: MaterialCategoryDto.nullable(),
+  uom: UomDto.nullable(),
+  locations: LocationDto.array().optional(),
+  recipe: RecipeDto.nullable().optional(),
+})
+
+export type MaterialOutputDto = z.infer<typeof MaterialOutputDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 

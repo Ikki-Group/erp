@@ -1,10 +1,8 @@
 import z from 'zod'
-
 import { ProductCategoryDto } from './product-category.dto'
-
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-/* --------------------------------- ENUMS ---------------------------------- */
+/* ---------------------------------- ENUM ---------------------------------- */
 
 export const ProductStatus = z.enum(['active', 'inactive', 'archived'])
 export type ProductStatus = z.infer<typeof ProductStatus>
@@ -16,7 +14,7 @@ export const VariantPriceDto = z.object({
   variantId: zPrimitive.id,
   salesTypeId: zPrimitive.id,
   price: zPrimitive.str,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type VariantPriceDto = z.infer<typeof VariantPriceDto>
@@ -26,7 +24,7 @@ export const ProductPriceDto = z.object({
   productId: zPrimitive.id,
   salesTypeId: zPrimitive.id,
   price: zPrimitive.str,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type ProductPriceDto = z.infer<typeof ProductPriceDto>
@@ -39,7 +37,7 @@ export const ProductVariantDto = z.object({
   isDefault: zPrimitive.bool,
   basePrice: zPrimitive.str,
   prices: VariantPriceDto.array(),
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type ProductVariantDto = z.infer<typeof ProductVariantDto>
@@ -51,12 +49,10 @@ export const ProductExternalMappingDto = z.object({
   provider: zPrimitive.str,
   externalId: zPrimitive.str,
   lastSyncedAt: z.date().nullable(),
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
-export type ProductExternalMappingDto = z.infer<
-  typeof ProductExternalMappingDto
->
+export type ProductExternalMappingDto = z.infer<typeof ProductExternalMappingDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -74,7 +70,7 @@ export const ProductDto = z.object({
   variants: ProductVariantDto.array(),
   prices: ProductPriceDto.array(),
   externalMappings: ProductExternalMappingDto.array(),
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type ProductDto = z.infer<typeof ProductDto>
@@ -82,24 +78,24 @@ export type ProductDto = z.infer<typeof ProductDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const ProductFilterDto = z.object({
-  search: zHttp.search,
+  search: zHttp.query.search,
   status: ProductStatus.optional(),
-  categoryId: zHttp.id.optional(),
-  locationId: zHttp.id.optional(),
-  isExternal: zHttp.boolean,
-  provider: z.string().optional(),
+  categoryId: zHttp.query.id.optional(),
+  locationId: zHttp.query.id.optional(),
+  isExternal: zHttp.query.boolean,
+  provider: zPrimitive.str.optional(),
 })
 
 export type ProductFilterDto = z.infer<typeof ProductFilterDto>
 
-/* --------------------------------- RESULT --------------------------------- */
+/* --------------------------------- OUTPUT --------------------------------- */
 
-export const ProductSelectDto = z.object({
+export const ProductOutputDto = z.object({
   ...ProductDto.shape,
   category: ProductCategoryDto.nullable(),
 })
 
-export type ProductSelectDto = z.infer<typeof ProductSelectDto>
+export type ProductOutputDto = z.infer<typeof ProductOutputDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
@@ -125,9 +121,7 @@ export const ProductVariantMutationDto = z.object({
   prices: VariantPriceMutationDto.array(),
 })
 
-export type ProductVariantMutationDto = z.infer<
-  typeof ProductVariantMutationDto
->
+export type ProductVariantMutationDto = z.infer<typeof ProductVariantMutationDto>
 
 export const ProductMutationDto = z.object({
   ...ProductDto.pick({

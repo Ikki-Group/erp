@@ -4,7 +4,8 @@ import {
   UserAdminUpdatePasswordDto,
   UserChangePasswordDto,
   UserCreateDto,
-  UserSelectDto,
+  UserFilterDto,
+  UserOutputDto,
   UserUpdateDto,
 } from '../dto'
 import { endpoint } from '@/config/endpoint'
@@ -17,16 +18,15 @@ export const userApi = {
     url: endpoint.iam.user.list,
     params: z.object({
       ...zHttp.pagination.shape,
-      search: zHttp.search,
-      isActive: zHttp.boolean.optional(),
+      ...UserFilterDto.shape,
     }),
-    result: zHttp.paginated(UserSelectDto.array()),
+    result: zHttp.paginated(UserOutputDto.array()),
   }),
   detail: apiFactory({
     method: 'get',
     url: endpoint.iam.user.detail,
     params: zSchema.recordId,
-    result: zHttp.ok(UserSelectDto),
+    result: zHttp.ok(UserOutputDto),
   }),
   create: apiFactory({
     method: 'post',

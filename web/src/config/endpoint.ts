@@ -1,3 +1,8 @@
+const auth = {
+  login: 'auth/login',
+  me: 'auth/me',
+}
+
 const iam = {
   user: {
     list: 'iam/user/list',
@@ -100,6 +105,7 @@ const inventory = {
 }
 
 export const endpoint = {
+  auth,
   iam,
   location,
   material,

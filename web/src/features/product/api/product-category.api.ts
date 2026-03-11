@@ -1,5 +1,4 @@
 import z from 'zod'
-
 import {
   ProductCategoryDto,
   ProductCategoryFilterDto,
@@ -19,18 +18,21 @@ export const productCategoryApi = {
     }),
     result: zHttp.paginated(ProductCategoryDto.array()),
   }),
+
   detail: apiFactory({
     method: 'get',
     url: endpoint.product.category.detail,
     params: zSchema.recordId,
     result: zHttp.ok(ProductCategoryDto),
   }),
+
   create: apiFactory({
     method: 'post',
     url: endpoint.product.category.create,
     body: ProductCategoryMutationDto,
     result: zHttp.ok(zSchema.recordId),
   }),
+
   update: apiFactory({
     method: 'put',
     url: endpoint.product.category.update,
@@ -40,9 +42,11 @@ export const productCategoryApi = {
     }),
     result: zHttp.ok(zSchema.recordId),
   }),
+
   remove: apiFactory({
     method: 'delete',
     url: endpoint.product.category.remove,
+    params: zSchema.recordId,
     result: zHttp.ok(zSchema.recordId),
   }),
 }
