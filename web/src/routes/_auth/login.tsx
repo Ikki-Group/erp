@@ -107,12 +107,12 @@ function LoginForm() {
       password: '',
     },
     onSubmit: async ({ value }) => {
-      const resp = (await loginMutation.mutateAsync({
+      const resp = await loginMutation.mutateAsync({
         body: {
           identifier: value.email,
           password: value.password,
         },
-      } as any)) as any
+      })
 
       const {
         data: { token, user },
