@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
-import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { cache } from '@/core/cache'
+import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 

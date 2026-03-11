@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { asc, desc, ilike, type SQL } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 /* -------------------------------------------------------------------------- */
 /*                              PAGINATED QUERY                               */

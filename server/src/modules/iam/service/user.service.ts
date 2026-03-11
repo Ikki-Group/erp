@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, or } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
+import { cache } from '@/core/cache'
 import {
   checkConflict,
   paginate,
@@ -12,10 +12,10 @@ import {
   takeFirst,
   takeFirstOrThrow,
   type ConflictField,
-} from '@/lib/db'
-import { UnauthorizedError } from '@/lib/error/http'
-import { hashPassword, verifyPassword } from '@/lib/password'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+} from '@/core/database'
+import { UnauthorizedError } from '@/core/http/errors'
+import { hashPassword, verifyPassword } from '@/core/password'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { usersTable } from '@/db/schema'
 

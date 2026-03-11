@@ -1,8 +1,7 @@
 import z from 'zod'
 
-import { zPrimitive } from '@/lib/validation'
-
-import { UserOutputDto } from './user.dto'
+import { zPrimitive } from '@/core/validation'
+import { UserOutputDto } from '@/modules/iam/dto'
 
 /* ---------------------------------- INPUT --------------------------------- */
 

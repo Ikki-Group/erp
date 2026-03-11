@@ -1,10 +1,10 @@
 import { getCurrentSpan, record } from '@elysiajs/opentelemetry'
 import { Elysia } from 'elysia'
 
-import { UnauthorizedError } from '@/lib/error/http'
+import { UnauthorizedError } from '@/core/http/errors'
 
 import type { UserOutputDto } from '@/modules/iam/dto/user.dto'
-import type { IamServiceModule } from '@/modules/iam/service'
+import type { AuthServiceModule } from '@/modules/auth/service'
 
 class AuthContext {
   constructor(public user: UserOutputDto | null) {}
@@ -19,7 +19,7 @@ class AuthContext {
   }
 }
 
-export function createAuthPlugin(iamService: IamServiceModule) {
+export function createAuthPlugin(authService: AuthServiceModule) {
   return new Elysia({ name: 'auth-plugin' })
     .derive(async ({ request, set }): Promise<{ auth: AuthContext }> => {
       return record('auth-plugin.derive', async () => {
@@ -28,7 +28,7 @@ export function createAuthPlugin(iamService: IamServiceModule) {
 
         if (token) {
           token = token.startsWith('Bearer ') ? token.slice(7) : token
-          const user = await iamService.auth.verifyToken(token).catch(() => null)
+          const user = await authService.auth.verifyToken(token).catch(() => null)
           if (user) {
             auth = new AuthContext(user)
             set.headers['X-User-Id'] = user.id.toString()

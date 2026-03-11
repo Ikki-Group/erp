@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 

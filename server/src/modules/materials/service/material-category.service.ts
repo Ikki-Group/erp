@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
+import { cache } from '@/core/cache'
 import {
   checkConflict,
   paginate,
@@ -11,9 +11,9 @@ import {
   stampUpdate,
   takeFirstOrThrow,
   type ConflictField,
-} from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+} from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { materialCategoriesTable } from '@/db/schema'
 

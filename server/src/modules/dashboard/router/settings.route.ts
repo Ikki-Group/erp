@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 
-import { res } from '@/lib/utils/response.util'
-import { zResponse } from '@/lib/validation'
+import { res } from '@/core/http/response'
+import { zResponse } from '@/core/validation'
 
 import { SettingsSummaryDto } from '../dto'
 import type { DashboardServiceModule } from '../service'

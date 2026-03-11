@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HttpError } from '@/lib/error/http'
+import { HttpError } from '@/core/http/errors'
 import { describe, expect, it } from 'bun:test'
 import { Elysia } from 'elysia'
 import { authPluginMacro, createAuthPlugin } from './auth-plugin'

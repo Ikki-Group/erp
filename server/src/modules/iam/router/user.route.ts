@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { ForbiddenError } from '@/lib/error/http'
-import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
+import { authPluginMacro } from '@/core/http/auth-plugin'
+import { ForbiddenError } from '@/core/http/errors'
+import { res } from '@/core/http/response'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
 
 import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserOutputDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'

@@ -1,5 +1,5 @@
 import { env } from '@/config/env'
-import { logger } from '@/lib/logger'
+import { logger } from '@/core/logger'
 
 async function main() {
   const app = await import('@/app').then((mod) => mod.app)

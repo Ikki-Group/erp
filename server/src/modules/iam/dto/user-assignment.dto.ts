@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zPrimitive, zSchema } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location'
 

@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 
-import { res } from '@/lib/utils/response.util'
-import { zPrimitive, zResponse } from '@/lib/validation'
+import { res } from '@/core/http/response'
+import { zPrimitive, zResponse } from '@/core/validation'
 
 import type { SeedService } from '../service/seed.service'
 

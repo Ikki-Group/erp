@@ -1,9 +1,9 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { res } from '@/lib/utils/response.util'
-import { zHttp, zResponse } from '@/lib/validation'
+import { authPluginMacro } from '@/core/http/auth-plugin'
+import { res } from '@/core/http/response'
+import { zHttp, zResponse } from '@/core/validation'
 
 import {
   GenerateSummaryDto,

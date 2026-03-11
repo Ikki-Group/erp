@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, or, type SQL } from 'drizzle-orm'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
-import { ConflictError } from '@/lib/error/http'
+import { ConflictError } from '@/core/http/errors'
 
 import { db } from '@/db'
 

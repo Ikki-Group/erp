@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto'
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
 
-import { paginate, stampCreate, takeFirstOrThrow } from '@/lib/db'
-import { BadRequestError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { paginate, stampCreate, takeFirstOrThrow } from '@/core/database'
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 

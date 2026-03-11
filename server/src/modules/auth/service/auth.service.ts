@@ -1,10 +1,10 @@
-import { UnauthorizedError } from '@/lib/error/http'
-import { verifyPassword } from '@/lib/password'
+import { UnauthorizedError } from '@/core/http/errors'
+import { verifyPassword } from '@/core/password'
+import { UserOutputDto } from '@/modules/iam/dto'
 
-import type { AuthOutputDto, LoginDto, UserOutputDto } from '../dto'
-
+import type { AuthOutputDto, LoginDto } from '../dto'
 import type { SessionService } from './session.service'
-import type { UserService } from './user.service'
+import type { UserService } from '@/modules/iam/service/user.service'
 
 export class AuthService {
   constructor(

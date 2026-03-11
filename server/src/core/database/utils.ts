@@ -1,4 +1,4 @@
-import { NotFoundError } from '@/lib/error/http'
+import { NotFoundError } from '@/core/http/errors'
 
 /* -------------------------------------------------------------------------- */
 /*                           General DB Helpers                               */

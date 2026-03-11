@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { cache } from '@/core/cache'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
 import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
 
