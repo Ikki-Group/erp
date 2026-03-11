@@ -39,6 +39,8 @@ When asked to create a module, gather this information:
 
 ### Step 1: DTO File
 
+Refer to the `server-dto` skill (`/.agent/skills/server-dto/SKILL.md`) for detailed DTO conventions.
+
 Create `modules/<module>/dto/<entity>.dto.ts`:
 
 ```typescript
@@ -62,7 +64,7 @@ export const <Entity>FilterDto = z.object({
 })
 export type <Entity>FilterDto = z.infer<typeof <Entity>FilterDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 export const <Entity>SelectDto = z.object({
   ...<Entity>Dto.shape,
@@ -87,7 +89,7 @@ export type <Entity>UpdateDto = z.infer<typeof <Entity>UpdateDto>
 - Use `zPrimitive` for all base types (id, str, num, bool, etc.)
 - Use `zSchema.metadata.shape` spread for audit fields
 - Always export both schema and type with same name
-- Organize with comment sections: ENTITY, FILTER, SELECT, MUTATION
+- Organize with comment sections: ENUM, NESTED, ENTITY, FILTER, RESULT, MUTATION
 
 ### Step 2: Service File
 

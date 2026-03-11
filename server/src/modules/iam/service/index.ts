@@ -16,7 +16,7 @@ export class IamServiceModule {
   constructor(private readonly location: LocationServiceModule) {
     this.role = new RoleService()
     this.session = new SessionService()
-    this.userAssignment = new UserAssignmentService(this.role, this.location.location)
+    this.userAssignment = new UserAssignmentService()
     this.user = new UserService(this.role, this.location, this.userAssignment)
     this.auth = new AuthService(this.user, this.session)
   }
