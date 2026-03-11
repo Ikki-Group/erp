@@ -1,6 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, or } from 'drizzle-orm'
 
+import { usersTable } from '@/db/schema'
+
+import type { LocationServiceModule } from '@/modules/location/service'
+
+import { SEED_CONFIG } from '@/config/seed-config'
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -16,12 +21,6 @@ import {
 import { UnauthorizedError } from '@/core/http/errors'
 import { hashPassword, verifyPassword } from '@/core/password'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
-import { usersTable } from '@/db/schema'
-
-import type { LocationServiceModule } from '@/modules/location/service'
-
-import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
 
 import type {
@@ -369,7 +368,7 @@ export class UserService {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),
-      id ? cache.del(cacheKey.byId(id)) : Promise.resolve()
+      id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
     ])
   }
 }
