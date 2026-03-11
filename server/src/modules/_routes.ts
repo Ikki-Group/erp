@@ -7,6 +7,7 @@ import { initMaterialsRouteModule } from './materials'
 import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
 import { initToolRouteModule } from './tool'
+import { initMokaRouteModule } from './moka'
 
 import type { Modules } from './_registry'
 
@@ -21,5 +22,6 @@ export function createRoutes(m: Modules) {
     initProductRouteModule(m.product),
     initRecipeRouteModule(m.recipe),
     initToolRouteModule(m.tool),
+    initMokaRouteModule(m.moka),
   ]
 }

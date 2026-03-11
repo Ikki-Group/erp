@@ -21,6 +21,7 @@ import {
   salesTypesTable,
   variantPricesTable,
 } from './product'
+import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 import { recipeItemsTable, recipesTable } from './recipe'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
@@ -45,6 +46,7 @@ export {
   salesTypesTable,
   variantPricesTable,
 } from './product'
+export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
 export * from './inventory'
 
@@ -80,6 +82,8 @@ export const relations = defineRelations(
     productExternalMappingsTable,
     recipesTable,
     recipeItemsTable,
+    mokaConfigurationsTable,
+    mokaScrapHistoriesTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -125,6 +129,7 @@ export const relations = defineRelations(
       }),
       stockSummaries: r.many.stockSummariesTable(),
       products: r.many.productsTable(),
+      mokaConfigurations: r.many.mokaConfigurationsTable(),
     },
 
     // ─── Material ─────────────────────────────────────────────────────
@@ -293,6 +298,23 @@ export const relations = defineRelations(
       uom: r.one.uomsTable({
         from: r.recipeItemsTable.uomId,
         to: r.uomsTable.id,
+      }),
+    },
+
+    // ─── Moka ─────────────────────────────────────────────────────────
+
+    mokaConfigurationsTable: {
+      location: r.one.locationsTable({
+        from: r.mokaConfigurationsTable.locationId,
+        to: r.locationsTable.id,
+      }),
+      scrapHistories: r.many.mokaScrapHistoriesTable(),
+    },
+
+    mokaScrapHistoriesTable: {
+      configuration: r.one.mokaConfigurationsTable({
+        from: r.mokaScrapHistoriesTable.mokaConfigurationId,
+        to: r.mokaConfigurationsTable.id,
       }),
     },
   })

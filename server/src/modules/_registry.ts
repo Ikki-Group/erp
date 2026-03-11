@@ -7,6 +7,8 @@ import { MaterialServiceModule } from './materials'
 import { ProductServiceModule } from './product'
 import { RecipeServiceModule } from './recipe'
 import { ToolServiceModule } from './tool'
+import { MokaServiceModule } from './moka'
+import { logger } from '@/core/logger'
 
 export function createModules() {
   // Layer 0 — Core
@@ -27,6 +29,7 @@ export function createModules() {
   // Layer 3 — Aggregators
   const dashboard = new DashboardServiceModule(iam, location)
   const tool = new ToolServiceModule(iam, location, product, material)
+  const moka = new MokaServiceModule(logger)
 
   return {
     location,
@@ -38,6 +41,7 @@ export function createModules() {
     recipe,
     dashboard,
     tool,
+    moka,
   }
 }
 
