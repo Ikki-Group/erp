@@ -1,5 +1,9 @@
 import z from 'zod'
-import { MaterialCategoryDto, MaterialCategoryMutationDto } from '../dto'
+import {
+  MaterialCategoryDto,
+  MaterialCategoryFilterDto,
+  MaterialCategoryMutationDto,
+} from '../dto'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
@@ -10,22 +14,25 @@ export const materialCategoryApi = {
     url: endpoint.material.category.list,
     params: z.object({
       ...zHttp.pagination.shape,
-      search: zHttp.search,
+      ...MaterialCategoryFilterDto.shape,
     }),
     result: zHttp.paginated(MaterialCategoryDto.array()),
   }),
+
   detail: apiFactory({
     method: 'get',
     url: endpoint.material.category.detail,
     params: zSchema.recordId,
     result: zHttp.ok(MaterialCategoryDto),
   }),
+
   create: apiFactory({
     method: 'post',
     url: endpoint.material.category.create,
     body: MaterialCategoryMutationDto,
     result: zHttp.ok(zSchema.recordId),
   }),
+
   update: apiFactory({
     method: 'put',
     url: endpoint.material.category.update,
@@ -35,9 +42,11 @@ export const materialCategoryApi = {
     }),
     result: zHttp.ok(zSchema.recordId),
   }),
+
   remove: apiFactory({
     method: 'delete',
     url: endpoint.material.category.remove,
+    params: zSchema.recordId,
     result: zHttp.ok(zSchema.recordId),
   }),
 }

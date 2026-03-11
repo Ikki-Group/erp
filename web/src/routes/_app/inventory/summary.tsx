@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { StockLedgerSelectDto } from '@/features/inventory'
+import type { StockLedgerOutputDto } from '@/features/inventory'
 import { stockSummaryApi } from '@/features/inventory'
 import { Page } from '@/components/layout/page'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -79,7 +79,7 @@ function RouteComponent() {
 
 /* ─────────── Summary Table ─────────── */
 
-const ch = createColumnHelper<StockLedgerSelectDto>()
+const ch = createColumnHelper<StockLedgerOutputDto>()
 
 function SummaryTable({
   locationId,

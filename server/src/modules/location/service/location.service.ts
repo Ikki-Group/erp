@@ -77,6 +77,7 @@ export class LocationService {
             },
           })
       }
+      void this.clearCache()
     })
   }
 

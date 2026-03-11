@@ -3,7 +3,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
-import type { ProductFilterDto, ProductSelectDto } from '@/features/product'
+import type { ProductFilterDto, ProductOutputDto } from '@/features/product'
 import { productApi, productCategoryApi } from '@/features/product'
 import { locationApi } from '@/features/location'
 
@@ -31,7 +31,7 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<ProductSelectDto>()
+const ch = createColumnHelper<ProductOutputDto>()
 
 const columns = [
   ch.accessor('sku', {

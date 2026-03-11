@@ -1,20 +1,32 @@
 import z from 'zod'
-import { zPrimitive, zSchema } from '@/lib/zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialCategoryDto = z.object({
   id: zPrimitive.id,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
-export const MaterialCategoryMutationDto = z.object({
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
+/* --------------------------------- FILTER --------------------------------- */
+
+export const MaterialCategoryFilterDto = z.object({
+  search: zHttp.query.search,
 })
 
-export type MaterialCategoryMutationDto = z.infer<
-  typeof MaterialCategoryMutationDto
->
+export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
+
+export const MaterialCategoryMutationDto = z.object({
+  ...MaterialCategoryDto.pick({
+    name: true,
+    description: true,
+  }).shape,
+})
+
+export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutationDto>

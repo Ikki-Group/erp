@@ -1,7 +1,7 @@
-import { z } from 'zod'
+import z from 'zod'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const StockSummaryDto = z.object({
   id: zPrimitive.id,
@@ -9,10 +9,12 @@ export const StockSummaryDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,
 
+  // Opening balance
   openingQty: zPrimitive.num,
   openingAvgCost: zPrimitive.num,
   openingValue: zPrimitive.num,
 
+  // Movements
   purchaseQty: zPrimitive.num,
   purchaseValue: zPrimitive.num,
   transferInQty: zPrimitive.num,
@@ -24,6 +26,7 @@ export const StockSummaryDto = z.object({
   sellQty: zPrimitive.num,
   sellValue: zPrimitive.num,
 
+  // Closing balance
   closingQty: zPrimitive.num,
   closingAvgCost: zPrimitive.num,
   closingValue: zPrimitive.num,
@@ -33,15 +36,37 @@ export const StockSummaryDto = z.object({
 
 export type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- OUTPUT --------------------------------- */
 
-export const StockSummarySelectDto = z.object({
+/** Summary enriched with material info for display */
+export const StockSummaryOutputDto = z.object({
   ...StockSummaryDto.shape,
   materialName: zPrimitive.str,
   materialSku: zPrimitive.str,
 })
 
-export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
+export type StockSummaryOutputDto = z.infer<typeof StockSummaryOutputDto>
+
+export const StockLedgerOutputDto = z.object({
+  materialId: zPrimitive.id,
+  materialName: zPrimitive.str,
+  materialSku: zPrimitive.str,
+  baseUomCode: zPrimitive.str,
+
+  openingQty: zPrimitive.num,
+
+  purchaseQty: zPrimitive.num,
+  transferInQty: zPrimitive.num,
+  transferOutQty: zPrimitive.num,
+  sellQty: zPrimitive.num,
+  adjustmentQty: zPrimitive.num,
+
+  closingQty: zPrimitive.num,
+  closingValue: zPrimitive.num,
+  closingAvgCost: zPrimitive.num,
+})
+
+export type StockLedgerOutputDto = z.infer<typeof StockLedgerOutputDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
@@ -54,8 +79,19 @@ export const StockSummaryFilterDto = z.object({
 
 export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 
+export const StockLedgerFilterDto = z.object({
+  locationId: zHttp.query.id.optional(),
+  materialId: zHttp.query.id.optional(),
+  search: zHttp.query.search,
+  dateFrom: z.coerce.date(),
+  dateTo: z.coerce.date(),
+})
+
+export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
+
 /* -------------------------------- MUTATION -------------------------------- */
 
+/** Generate daily summary for a specific date + location */
 export const GenerateSummaryDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,

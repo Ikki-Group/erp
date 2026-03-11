@@ -1,14 +1,30 @@
 import z from 'zod'
-import { zPrimitive, zSchema } from '@/lib/zod'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const UomDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type UomDto = z.infer<typeof UomDto>
 
-export const UomMutationDto = z.object({
-  code: zPrimitive.str,
+/* --------------------------------- FILTER --------------------------------- */
+
+export const UomFilterDto = z.object({
+  search: zHttp.query.search,
 })
+
+export type UomFilterDto = z.infer<typeof UomFilterDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
+
+export const UomMutationDto = z.object({
+  ...UomDto.pick({
+    code: true,
+  }).shape,
+})
+
+export type UomMutationDto = z.infer<typeof UomMutationDto>

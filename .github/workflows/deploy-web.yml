@@ -45,4 +45,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ steps.cf.outputs.project }}
-          directory: apps/web/dist
+          directory: web/dist

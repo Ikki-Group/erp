@@ -2,7 +2,8 @@ import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import type {MaterialSelectDto} from '@/features/material';
+import { materialApi } from '..'
+import type { MaterialOutputDto } from '..'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,11 +14,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import {  materialApi } from '@/features/material'
 import { Badge } from '@/components/ui/badge'
 
 interface MaterialPickerDialogProps {
-  onConfirm: (materials: Array<MaterialSelectDto>) => void
+  onConfirm: (materials: Array<MaterialOutputDto>) => void
   selectedIds?: Array<number>
   trigger?: React.ReactNode
   title?: string
@@ -34,7 +34,7 @@ export function MaterialPickerDialog({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [tempSelected, setTempSelected] = useState<
-    Map<number, MaterialSelectDto>
+    Map<number, MaterialOutputDto>
   >(new Map())
 
   // Reset temp selected when dialog opens
@@ -50,7 +50,7 @@ export function MaterialPickerDialog({
     enabled: open,
   })
 
-  const toggleSelect = (item: MaterialSelectDto) => {
+  const toggleSelect = (item: MaterialOutputDto) => {
     setTempSelected(prev => {
       const next = new Map(prev)
       if (next.has(item.id)) {
@@ -71,16 +71,14 @@ export function MaterialPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          trigger || (
-            <Button variant='outline' size='sm'>
-              <PlusIcon className='mr-2 h-4 w-4' />
-              Pilih Bahan
-            </Button>
-          )
-        }
-      />
+      <DialogTrigger>
+        {trigger || (
+          <Button variant='outline' size='sm'>
+            <PlusIcon className='mr-2 h-4 w-4' />
+            Pilih Bahan
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent className='p-0 gap-0 overflow-hidden sm:max-w-150 h-150 flex flex-col'>
         <div className='p-4 border-b flex flex-col gap-1 bg-muted/10'>
           <DialogTitle>{title}</DialogTitle>

@@ -1,5 +1,4 @@
 import z from 'zod'
-
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -8,8 +7,8 @@ export const SalesTypeDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
-  isSystem: zPrimitive.bool.default(false),
-  ...zSchema.meta.shape,
+  isSystem: zPrimitive.bool,
+  ...zSchema.metadata.shape,
 })
 
 export type SalesTypeDto = z.infer<typeof SalesTypeDto>
@@ -17,7 +16,7 @@ export type SalesTypeDto = z.infer<typeof SalesTypeDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const SalesTypeFilterDto = z.object({
-  search: zHttp.search,
+  search: zHttp.query.search,
 })
 
 export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>

@@ -1,5 +1,4 @@
 import z from 'zod'
-
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- NESTED --------------------------------- */
@@ -18,7 +17,7 @@ export const RecipeItemDto = z.object({
   material: z.object({ name: z.string(), sku: z.string() }).optional(),
   uom: z.object({ code: z.string() }).optional(),
 
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type RecipeItemDto = z.infer<typeof RecipeItemDto>
@@ -37,7 +36,7 @@ export const RecipeDto = z.object({
   // items can be populated
   items: RecipeItemDto.array().optional(),
 
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type RecipeDto = z.infer<typeof RecipeDto>
@@ -45,22 +44,22 @@ export type RecipeDto = z.infer<typeof RecipeDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const RecipeFilterDto = z.object({
-  search: zHttp.search,
-  materialId: zHttp.id.optional(),
-  productId: zHttp.id.optional(),
-  productVariantId: zHttp.id.optional(),
-  isActive: zHttp.boolean.optional(),
+  search: zHttp.query.search,
+  materialId: zHttp.query.id.optional(),
+  productId: zHttp.query.id.optional(),
+  productVariantId: zHttp.query.id.optional(),
+  isActive: zHttp.query.boolean.optional(),
 })
 
 export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
-/* --------------------------------- RESULT --------------------------------- */
+/* --------------------------------- OUTPUT --------------------------------- */
 
-export const RecipeSelectDto = z.object({
+export const RecipeOutputDto = z.object({
   ...RecipeDto.shape,
 })
 
-export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
+export type RecipeOutputDto = z.infer<typeof RecipeOutputDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
@@ -75,14 +74,26 @@ export const RecipeItemMutationDto = z.object({
 
 export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
 
-export const RecipeMutationDto = z.object({
-  materialId: zPrimitive.id.optional().nullable(),
-  productId: zPrimitive.id.optional().nullable(),
-  productVariantId: zPrimitive.id.optional().nullable(),
-  targetQty: zPrimitive.str,
-  isActive: zPrimitive.bool,
-  instructions: zPrimitive.str.optional().nullable(),
-  items: RecipeItemMutationDto.array(),
-})
+export const RecipeMutationDto = z
+  .object({
+    materialId: zPrimitive.id.optional().nullable(),
+    productId: zPrimitive.id.optional().nullable(),
+    productVariantId: zPrimitive.id.optional().nullable(),
+    targetQty: zPrimitive.str.optional().default('1'),
+    isActive: zPrimitive.bool.optional().default(true),
+    instructions: zPrimitive.str.optional().nullable(),
+    items: RecipeItemMutationDto.array(),
+  })
+  .refine(
+    (data) => {
+      // Ensure exactly one target is provided
+      const targets = [data.materialId, data.productId, data.productVariantId].filter((t) => t != null)
+      return targets.length === 1
+    },
+    {
+      message: 'Recipe must have exactly one target (materialId, productId, or productVariantId)',
+      path: ['materialId'],
+    }
+  )
 
 export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>

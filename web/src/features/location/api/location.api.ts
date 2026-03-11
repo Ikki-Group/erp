@@ -1,5 +1,5 @@
 import z from 'zod'
-import { LocationDto, LocationMutationDto } from '../dto/location.dto'
+import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 import { endpoint } from '@/config/endpoint'
@@ -10,8 +10,7 @@ export const locationApi = {
     url: endpoint.location.list,
     params: z.object({
       ...zHttp.pagination.shape,
-      search: zHttp.search,
-      isActive: zHttp.boolean.optional(),
+      ...LocationFilterDto.shape,
     }),
     result: zHttp.paginated(LocationDto.array()),
   }),

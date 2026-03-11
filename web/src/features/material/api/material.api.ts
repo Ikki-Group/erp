@@ -2,7 +2,7 @@ import z from 'zod'
 import {
   MaterialFilterDto,
   MaterialMutationDto,
-  MaterialSelectDto,
+  MaterialOutputDto,
 } from '../dto'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
@@ -16,14 +16,14 @@ export const materialApi = {
       ...zHttp.pagination.shape,
       ...MaterialFilterDto.shape,
     }),
-    result: zHttp.paginated(MaterialSelectDto.array()),
+    result: zHttp.paginated(MaterialOutputDto.array()),
   }),
 
   detail: apiFactory({
     method: 'get',
     url: endpoint.material.detail,
     params: zSchema.recordId,
-    result: zHttp.ok(MaterialSelectDto),
+    result: zHttp.ok(MaterialOutputDto),
   }),
   create: apiFactory({
     method: 'post',
@@ -43,6 +43,7 @@ export const materialApi = {
   remove: apiFactory({
     method: 'delete',
     url: endpoint.material.remove,
+    body: zSchema.recordId,
     result: zHttp.ok(zSchema.recordId),
   }),
 }

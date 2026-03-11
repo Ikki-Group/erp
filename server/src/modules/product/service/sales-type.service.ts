@@ -137,6 +137,7 @@ export class SalesTypeService {
             },
           })
       }
+      void this.clearCache()
     })
   }
 

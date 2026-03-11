@@ -3,7 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useQuery } from '@tanstack/react-query'
 import { PlusIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import type { StockTransactionSelectDto } from '@/features/inventory'
+import type { StockTransactionOutputDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
 import { Page } from '@/components/layout/page'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_app/inventory/transactions/')({
   component: RouteComponent,
 })
 
-const ch = createColumnHelper<StockTransactionSelectDto>()
+const ch = createColumnHelper<StockTransactionOutputDto>()
 
 function RouteComponent() {
   const ds = useDataTableState()

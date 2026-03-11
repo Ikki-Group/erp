@@ -64,4 +64,16 @@ export function initLocationRoute(service: LocationService) {
         auth: true,
       }
     )
+    .delete(
+      '/remove',
+      async function remove({ body }) {
+        const result = await service.handleRemove(body.id)
+        return res.ok(result, 'LOCATION_DELETED')
+      },
+      {
+        body: zSchema.recordId,
+        response: zResponse.ok(zSchema.recordId),
+        auth: true,
+      }
+    )
 }

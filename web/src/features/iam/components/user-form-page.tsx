@@ -5,7 +5,7 @@ import z from 'zod'
 import { toast } from 'sonner'
 import { userApi } from '../api'
 import type { LinkOptions } from '@tanstack/react-router'
-import type { UserSelectDto } from '../dto'
+import type { UserOutputDto } from '../dto'
 import { Separator } from '@/components/ui/separator'
 import { Card } from '@/components/ui/card'
 import { Page } from '@/components/layout/page'
@@ -19,28 +19,28 @@ import { CardSection } from '@/components/card/card-section'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 const FormDto = z.object({
-  fullname: z.string().min(1),
-  username: z.string().min(1),
-  email: z.email(),
-  password: z.string().min(8).optional(),
-  isRoot: z.boolean(),
-  isActive: z.boolean(),
+  fullname: z.string().min(1, 'Nama lengkap wajib diisi'),
+  username: z.string().min(1, 'Username wajib diisi'),
+  email: z.string().email('Email tidak valid'),
+  password: z.string().min(8, 'Password minimal 8 karakter').optional(),
+  isRoot: z.boolean().default(false),
+  isActive: z.boolean().default(true),
   assignments: z.array(
     z.object({
-      locationId: z.string(),
-      roleId: z.string(),
+      locationId: z.coerce.number(),
+      roleId: z.coerce.number(),
     })
-  ),
+  ).default([]),
 })
 
 type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: FormDto },
+  validators: { onSubmit: FormDto as any },
   defaultValues: {} as FormDto,
 })
 
-function getDefaultValues(v?: UserSelectDto): FormDto {
+function getDefaultValues(v?: UserOutputDto): FormDto {
   return {
     email: v?.email ?? '',
     fullname: v?.fullname ?? '',
@@ -77,13 +77,13 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
             body: {
               id: selectedUser.data.data.id,
               ...value,
-            },
+            } as any,
           })
         : create.mutateAsync({
             body: {
               ...value,
               password: value.password ?? '',
-            },
+            } as any,
           })
 
       await toast.promise(promise, toastLabelMessage(mode, 'pengguna')).unwrap()

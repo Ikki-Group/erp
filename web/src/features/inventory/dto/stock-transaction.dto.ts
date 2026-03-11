@@ -1,15 +1,9 @@
-import { z } from 'zod'
+import z from 'zod'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const TransactionType = z.enum([
-  'purchase',
-  'transfer_in',
-  'transfer_out',
-  'adjustment',
-  'sell',
-])
+export const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
 export type TransactionType = z.infer<typeof TransactionType>
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -42,18 +36,16 @@ export const StockTransactionDto = z.object({
 
 export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- OUTPUT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const StockTransactionSelectDto = z.object({
+export const StockTransactionOutputDto = z.object({
   ...StockTransactionDto.shape,
   materialName: zPrimitive.str,
   materialSku: zPrimitive.str,
 })
 
-export type StockTransactionSelectDto = z.infer<
-  typeof StockTransactionSelectDto
->
+export type StockTransactionOutputDto = z.infer<typeof StockTransactionOutputDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
@@ -66,31 +58,33 @@ export const StockTransactionFilterDto = z.object({
   dateTo: z.coerce.date().optional(),
 })
 
-export type StockTransactionFilterDto = z.infer<
-  typeof StockTransactionFilterDto
->
+export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto>
 
-/* ─────────────────────── MUTATION: ITEMS ─────────────────────── */
+/* ─────────────────── MUTATION: NESTED ITEMS ──────────────────── */
 
+/** Single item within a purchase transaction */
 export const PurchaseItemDto = z.object({
   materialId: zPrimitive.id,
   qty: zPrimitive.num.positive('Quantity must be positive'),
   unitCost: zPrimitive.num.nonnegative('Unit cost must be non-negative'),
 })
 
+/** Single item within a transfer transaction */
 export const TransferItemDto = z.object({
   materialId: zPrimitive.id,
-  qty: zPrimitive.numCoerce.positive('Quantity must be positive'),
+  qty: zPrimitive.num.positive('Quantity must be positive'),
 })
 
+/** Single item within an adjustment transaction */
 export const AdjustmentItemDto = z.object({
   materialId: zPrimitive.id,
-  qty: zPrimitive.num.refine(v => v !== 0, 'Quantity must not be zero'),
+  qty: zPrimitive.num.refine((v) => v !== 0, 'Quantity must not be zero'),
   unitCost: zPrimitive.num.nonnegative().optional(),
 })
 
-/* ─────────────────────── MUTATION: BATCH ─────────────────────── */
+/* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 
+/** Create purchase transactions (multiple materials at one location) */
 export const PurchaseTransactionDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,
@@ -101,6 +95,7 @@ export const PurchaseTransactionDto = z.object({
 
 export type PurchaseTransactionDto = z.infer<typeof PurchaseTransactionDto>
 
+/** Create transfer transactions (multiple materials between two locations) */
 export const TransferTransactionDto = z.object({
   sourceLocationId: zPrimitive.id,
   destinationLocationId: zPrimitive.id,
@@ -112,6 +107,7 @@ export const TransferTransactionDto = z.object({
 
 export type TransferTransactionDto = z.infer<typeof TransferTransactionDto>
 
+/** Create adjustment transactions (multiple materials at one location) */
 export const AdjustmentTransactionDto = z.object({
   locationId: zPrimitive.id,
   date: zPrimitive.date,
@@ -122,8 +118,9 @@ export const AdjustmentTransactionDto = z.object({
 
 export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 
-/* ─────────────────────── MUTATION: RESULT ─────────────────────── */
+/* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 
+/** Response for batch transaction operations */
 export const TransactionResultDto = z.object({
   count: z.number(),
   referenceNo: zPrimitive.str,

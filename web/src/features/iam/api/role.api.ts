@@ -1,5 +1,5 @@
 import z from 'zod'
-import { RoleDto, RoleMutationDto } from '../dto/role.dto'
+import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 import { endpoint } from '@/config/endpoint'
@@ -10,7 +10,7 @@ export const roleApi = {
     url: endpoint.iam.role.list,
     params: z.object({
       ...zHttp.pagination.shape,
-      search: zHttp.search,
+      ...RoleFilterDto.shape,
     }),
     result: zHttp.paginated(RoleDto.array()),
   }),
@@ -23,7 +23,7 @@ export const roleApi = {
   create: apiFactory({
     method: 'post',
     url: endpoint.iam.role.create,
-    body: RoleMutationDto,
+    body: RoleCreateDto,
     result: zHttp.ok(zSchema.recordId),
   }),
   update: apiFactory({
@@ -31,7 +31,7 @@ export const roleApi = {
     url: endpoint.iam.role.update,
     body: z.object({
       id: zPrimitive.id,
-      ...RoleMutationDto.partial().shape,
+      ...RoleUpdateDto.shape,
     }),
     result: zHttp.ok(zSchema.recordId),
   }),

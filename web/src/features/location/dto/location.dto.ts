@@ -23,9 +23,9 @@ export type LocationDto = z.infer<typeof LocationDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const LocationFilterDto = z.object({
-  search: zHttp.search,
+  search: zHttp.query.search,
   type: LocationType.optional(),
-  isActive: zHttp.boolean,
+  isActive: zHttp.query.boolean.optional(),
 })
 
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

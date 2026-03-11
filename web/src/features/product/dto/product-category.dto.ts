@@ -1,5 +1,4 @@
 import z from 'zod'
-
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -8,7 +7,7 @@ export const ProductCategoryDto = z.object({
   id: zPrimitive.id,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
-  ...zSchema.meta.shape,
+  ...zSchema.metadata.shape,
 })
 
 export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
@@ -16,7 +15,7 @@ export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const ProductCategoryFilterDto = z.object({
-  search: zHttp.search,
+  search: zHttp.query.search,
 })
 
 export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
@@ -30,6 +29,4 @@ export const ProductCategoryMutationDto = z.object({
   }).shape,
 })
 
-export type ProductCategoryMutationDto = z.infer<
-  typeof ProductCategoryMutationDto
->
+export type ProductCategoryMutationDto = z.infer<typeof ProductCategoryMutationDto>

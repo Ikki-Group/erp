@@ -3,9 +3,9 @@ import { useMutation } from '@tanstack/react-query'
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { formOptions } from '@tanstack/react-form'
+import z from 'zod'
 
 import { stockTransactionApi } from '@/features/inventory'
-import { TransferTransactionDto } from '@/features/inventory/dto'
 import { locationApi } from '@/features/location'
 import { materialLocationApi } from '@/features/material/api/material-location.api'
 
@@ -23,8 +23,26 @@ export const Route = createFileRoute('/_app/inventory/transactions/transfer')({
   component: RouteComponent,
 })
 
+const FormDto = z.object({
+  sourceLocationId: z.number().min(1, 'Lokasi asal wajib dipilih'),
+  destinationLocationId: z.number().min(1, 'Lokasi tujuan wajib dipilih'),
+  date: z.coerce.date(),
+  referenceNo: z.string().min(1, 'No. referensi wajib diisi'),
+  notes: z.string().optional().nullable(),
+  items: z
+    .array(
+      z.object({
+        materialId: z.number().min(1, 'Bahan baku wajib dipilih'),
+        qty: z.number().positive('Kuantitas harus positif'),
+      })
+    )
+    .min(1, 'Minimal satu item harus ditambahkan'),
+})
+
+type FormDto = z.infer<typeof FormDto>
+
 const fopts = formOptions({
-  validators: { onSubmit: TransferTransactionDto },
+  validators: { onSubmit: FormDto as any },
   defaultValues: {
     sourceLocationId: undefined as any,
     destinationLocationId: undefined as any,
@@ -32,7 +50,7 @@ const fopts = formOptions({
     referenceNo: '',
     notes: '',
     items: [{ materialId: undefined as any, qty: 1 }],
-  } as unknown as TransferTransactionDto,
+  } as FormDto,
 })
 
 function RouteComponent() {
@@ -109,7 +127,7 @@ function TransferInfoCard() {
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => String(loc.id)}
+              getValue={(loc: any) => loc.id}
             />
           )}
         </form.AppField>
@@ -128,7 +146,7 @@ function TransferInfoCard() {
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => String(loc.id)}
+              getValue={(loc: any) => loc.id}
             />
           )}
         </form.AppField>
@@ -189,7 +207,7 @@ function TransferItemsCard() {
                             if (!sourceLocationId) return []
                             const res = await materialLocationApi.stock.fetch({
                               params: {
-                                locationId: String(sourceLocationId),
+                                locationId: sourceLocationId,
                                 page: 1,
                                 limit: 20,
                                 search: search || undefined,

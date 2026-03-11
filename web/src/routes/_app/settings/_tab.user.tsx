@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { KeyRoundIcon, PencilIcon } from 'lucide-react'
-import type { UserSelectDto } from '@/features/iam/dto'
+import type { UserOutputDto } from '@/features/iam'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { BadgeDot } from '@/components/common/badge-dot'
@@ -28,7 +28,7 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<UserSelectDto>()
+const ch = createColumnHelper<UserOutputDto>()
 const columns = [
   ch.accessor('fullname', {
     header: ({ column }) => (

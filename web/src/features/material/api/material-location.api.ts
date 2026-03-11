@@ -2,20 +2,14 @@ import z from 'zod'
 import {
   MaterialLocationAssignDto,
   MaterialLocationConfigDto,
-  MaterialLocationDto,
+  MaterialLocationFilterDto,
   MaterialLocationStockDto,
   MaterialLocationUnassignDto,
+  MaterialLocationWithLocationDto,
 } from '../dto'
-import { LocationDto } from '@/features/location'
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-
-/** Enriched view with location details — used in "locations assigned to material" */
-const MaterialLocationWithLocationDto = z.object({
-  ...MaterialLocationDto.shape,
-  location: LocationDto,
-})
+import { zHttp, zSchema } from '@/lib/zod'
 
 export const materialLocationApi = {
   /** Paginated stock list for a specific location */
@@ -24,8 +18,7 @@ export const materialLocationApi = {
     url: endpoint.material.location.stock,
     params: z.object({
       ...zHttp.pagination.shape,
-      locationId: zPrimitive.id,
-      search: zHttp.search,
+      ...MaterialLocationFilterDto.shape,
     }),
     result: zHttp.paginated(MaterialLocationStockDto.array()),
   }),
