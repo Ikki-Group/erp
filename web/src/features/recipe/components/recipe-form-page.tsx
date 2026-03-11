@@ -4,8 +4,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { ChefHatIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-import { RecipeMutationDto, recipeApi } from '..'
-import type { z } from 'zod'
+import z from 'zod'
+import { recipeApi } from '..'
 import type { LinkOptions } from '@tanstack/react-router'
 
 import type { RecipeOutputDto } from '..'
@@ -23,10 +23,38 @@ import { toastLabelMessage } from '@/lib/toast-message'
 
 import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
 
-type RecipeMutation = z.infer<typeof RecipeMutationDto>
+const FormDto = z.object({
+  materialId: z.number().optional().nullable(),
+  productId: z.number().optional().nullable(),
+  productVariantId: z.number().optional().nullable(),
+  targetQty: z.string().default('1'),
+  isActive: z.boolean().default(true),
+  instructions: z.string().optional().nullable(),
+  items: z.array(
+    z.object({
+      materialId: z.number(),
+      qty: z.string(),
+      scrapPercentage: z.string().default('0'),
+      uomId: z.number(),
+      notes: z.string().optional(),
+      sortOrder: z.number().default(0),
+    })
+  ),
+}).refine(
+  (data) => {
+    const targets = [data.materialId, data.productId, data.productVariantId].filter((t) => t != null)
+    return targets.length === 1
+  },
+  {
+    message: 'Recipe must have exactly one target (materialId, productId, or productVariantId)',
+    path: ['materialId'],
+  }
+)
+
+type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: RecipeMutationDto as any },
+  validators: { onSubmit: FormDto as any },
   defaultValues: {
     materialId: null,
     productId: null,
@@ -35,7 +63,7 @@ const fopts = formOptions({
     isActive: true,
     instructions: '',
     items: [],
-  } as RecipeMutation,
+  } as FormDto,
 })
 
 function getDefaultValues(
@@ -45,7 +73,7 @@ function getDefaultValues(
     productId?: number | null
     productVariantId?: number | null
   }
-): RecipeMutation {
+): FormDto {
   if (!v) {
     return {
       materialId: target?.materialId ?? null,

@@ -19,18 +19,18 @@ import { CardSection } from '@/components/card/card-section'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 const FormDto = z.object({
-  fullname: z.string().min(1),
-  username: z.string().min(1),
-  email: z.email(),
-  password: z.string().min(8).optional(),
-  isRoot: z.boolean(),
-  isActive: z.boolean(),
+  fullname: z.string().min(1, 'Nama lengkap wajib diisi'),
+  username: z.string().min(1, 'Username wajib diisi'),
+  email: z.string().email('Email tidak valid'),
+  password: z.string().min(8, 'Password minimal 8 karakter').optional(),
+  isRoot: z.boolean().default(false),
+  isActive: z.boolean().default(true),
   assignments: z.array(
     z.object({
-      locationId: z.string(),
-      roleId: z.string(),
+      locationId: z.coerce.number(),
+      roleId: z.coerce.number(),
     })
-  ),
+  ).default([]),
 })
 
 type FormDto = z.infer<typeof FormDto>
