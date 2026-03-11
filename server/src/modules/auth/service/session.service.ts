@@ -2,16 +2,16 @@ import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
+import { sessionsTable } from '@/db/schema'
+
+import type { UserDto } from '@/modules/iam/dto'
+
+import { env } from '@/config/env'
 import { cache } from '@/core/cache'
 import { takeFirst } from '@/core/database'
 import { logger } from '@/core/logger'
-
-import { sessionsTable } from '@/db/schema'
-
-import { env } from '@/config/env'
 import { db } from '@/db'
 
-import type { UserDto } from '@/modules/iam/dto'
 import { SessionPayloadDto, type SessionDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -114,4 +114,3 @@ export class SessionService {
     })
   }
 }
-
