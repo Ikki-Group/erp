@@ -10,24 +10,26 @@ import { db } from '@/db'
 
 import type { UserAssignmentDetailDto, UserAssignmentDto, UserAssignmentUpsertDto } from '../dto'
 
-const userAssignmentDetailQuery = db
-  .select({
-    ...getColumns(userAssignmentsTable),
-    role: rolesTable,
-    location: locationsTable,
-  })
-  .from(userAssignmentsTable)
-  .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-  .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-  .$dynamic()
-
 export class UserAssignmentService {
+  private createDetailQuery() {
+    return db
+      .select({
+        ...getColumns(userAssignmentsTable),
+        role: rolesTable,
+        location: locationsTable,
+      })
+      .from(userAssignmentsTable)
+      .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+      .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+      .$dynamic()
+  }
+
   /**
    * Fetches assignments for a user with joined role and location data.
    */
   async findByUserId(userId: number): Promise<UserAssignmentDetailDto[]> {
     return record('UserAssignmentService.findByUserId', async () => {
-      const rows = userAssignmentDetailQuery.where(eq(userAssignmentsTable.userId, userId)).execute()
+      const rows = await this.createDetailQuery().where(eq(userAssignmentsTable.userId, userId)).execute()
       return rows
     })
   }
@@ -39,7 +41,7 @@ export class UserAssignmentService {
     return record('UserAssignmentService.findByUserIds', async () => {
       if (userIds.length === 0) return new Map()
 
-      const rows = await userAssignmentDetailQuery.where(inArray(userAssignmentsTable.userId, userIds)).execute()
+      const rows = await this.createDetailQuery().where(inArray(userAssignmentsTable.userId, userIds)).execute()
       return arrayToMap(rows, (r) => r.userId)
     })
   }

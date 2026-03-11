@@ -13,11 +13,13 @@ export const SessionDto = z.object({
 
 export type SessionDto = z.infer<typeof SessionDto>
 
-export const SessionDataDto = z.object({
+/* --------------------------------- PAYLOAD -------------------------------- */
+
+export const SessionPayloadDto = z.object({
   id: zPrimitive.id,
   userId: zPrimitive.id,
   email: zPrimitive.email,
   username: zPrimitive.str,
 })
 
-export type SessionDataDto = z.infer<typeof SessionDataDto>
+export type SessionPayloadDto = z.infer<typeof SessionPayloadDto>

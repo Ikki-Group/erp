@@ -31,7 +31,7 @@ import type {
   UserCreateDto,
   UserDto,
   UserFilterDto,
-  UserSelectDto,
+  UserOutputDto,
   UserUpdateDto,
 } from '../dto'
 
@@ -155,7 +155,7 @@ export class UserService {
   /**
    * Resolves a user ID to a full select object including assignments.
    */
-  async getDetailById(id: number): Promise<UserSelectDto> {
+  async getDetailById(id: number): Promise<UserOutputDto> {
     return record('UserService.getDetailById', async () => {
       const user = await this.findById(id)
 
@@ -169,7 +169,7 @@ export class UserService {
   /**
    * Handler for listing users with pagination.
    */
-  async handleList(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserSelectDto>> {
+  async handleList(filter: UserFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<UserOutputDto>> {
     return record('UserService.handleList', async () => {
       const { search, isActive } = filter
 
@@ -198,7 +198,7 @@ export class UserService {
       const assignmentRoot = await this.#getRootAssignments()
 
       // Build full UserSelectDto with assignments
-      const data: UserSelectDto[] = result.data.map((u) => {
+      const data: UserOutputDto[] = result.data.map((u) => {
         return {
           ...u,
           assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []),
@@ -212,10 +212,8 @@ export class UserService {
   /**
    * Detail handler.
    */
-  async handleDetail(id: number): Promise<UserSelectDto> {
-    return record('UserService.handleDetail', async () => {
-      return this.getDetailById(id)
-    })
+  async handleDetail(id: number): Promise<UserOutputDto> {
+    return this.getDetailById(id)
   }
 
   /**

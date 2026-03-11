@@ -2,14 +2,20 @@ import z from 'zod'
 
 import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- BASE ---------------------------------- */
 
-export const RoleDto = z.object({
-  id: zPrimitive.id,
+export const RoleBase = z.object({
   code: zPrimitive.str,
   name: zPrimitive.str,
   description: zPrimitive.strNullable,
   isSystem: zPrimitive.bool,
+})
+
+/* --------------------------------- ENTITY --------------------------------- */
+
+export const RoleDto = z.object({
+  id: zPrimitive.id,
+  ...RoleBase.shape,
   ...zSchema.metadata.shape,
 })
 
@@ -23,14 +29,18 @@ export const RoleFilterDto = z.object({
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
+/* --------------------------------- CREATE --------------------------------- */
 
-export const RoleMutationDto = z.object({
-  ...RoleDto.pick({
-    code: true,
-    name: true,
-    isSystem: true,
-  }).shape,
+export const RoleCreateDto = z.object({
+  ...RoleBase.shape,
 })
 
-export type RoleMutationDto = z.infer<typeof RoleMutationDto>
+export type RoleCreateDto = z.infer<typeof RoleCreateDto>
+
+/* --------------------------------- UPDATE --------------------------------- */
+
+export const RoleUpdateDto = z.object({
+  ...RoleBase.shape,
+})
+
+export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>

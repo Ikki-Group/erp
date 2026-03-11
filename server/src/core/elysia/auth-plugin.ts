@@ -3,11 +3,11 @@ import { Elysia } from 'elysia'
 
 import { UnauthorizedError } from '@/lib/error/http'
 
-import type { UserSelectDto } from '@/modules/iam/dto/user.dto'
+import type { UserOutputDto } from '@/modules/iam/dto/user.dto'
 import type { IamServiceModule } from '@/modules/iam/service'
 
 class AuthContext {
-  constructor(public user: UserSelectDto | null) {}
+  constructor(public user: UserOutputDto | null) {}
 
   get isAuthenticated(): boolean {
     return this.user !== null

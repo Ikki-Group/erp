@@ -6,7 +6,7 @@ import { ForbiddenError } from '@/lib/error/http'
 import { res } from '@/lib/utils/response.util'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
 
-import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
+import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserOutputDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -24,7 +24,7 @@ export function initUserRoute(s: IamServiceModule) {
           search: zHttp.query.search,
           isActive: zHttp.query.boolean,
         }),
-        response: zResponse.paginated(UserSelectDto.array()),
+        response: zResponse.paginated(UserOutputDto.array()),
         auth: true,
       }
     )
@@ -36,7 +36,7 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         query: zHttp.recordId,
-        response: zResponse.ok(UserSelectDto),
+        response: zResponse.ok(UserOutputDto),
         auth: true,
       }
     )

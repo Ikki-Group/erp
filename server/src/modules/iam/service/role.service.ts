@@ -19,7 +19,7 @@ import { rolesTable } from '@/db/schema'
 
 import { db } from '@/db'
 
-import type { RoleDto, RoleFilterDto, RoleMutationDto } from '../dto'
+import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -130,15 +130,13 @@ export class RoleService {
    * Serves role detail.
    */
   async handleDetail(id: number): Promise<RoleDto> {
-    return record('RoleService.handleDetail', async () => {
-      return this.findById(id)
-    })
+    return this.findById(id)
   }
 
   /**
    * Creates a new role. Invalidates cache.
    */
-  async handleCreate(data: RoleMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: RoleCreateDto, actorId: number): Promise<{ id: number }> {
     return record('RoleService.handleCreate', async () => {
       const code = data.code.toUpperCase().trim()
       const name = data.name.trim()
@@ -170,7 +168,7 @@ export class RoleService {
   /**
    * Updates existing role. Invalidates cache.
    */
-  async handleUpdate(id: number, data: Partial<RoleMutationDto>, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: RoleUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('RoleService.handleUpdate', async () => {
       const existing = await this.findById(id)
 

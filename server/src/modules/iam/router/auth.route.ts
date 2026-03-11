@@ -4,7 +4,7 @@ import { authPluginMacro } from '@/lib/elysia/auth-plugin';
 import { res } from '@/lib/utils/response.util';
 import { zResponse } from '@/lib/validation';
 
-import { AuthResponseDto, LoginDto, UserSelectDto } from '../dto';
+import { AuthOutputDto, LoginDto, UserOutputDto } from '../dto';
 import type { AuthService } from '../service/auth.service';
 
 export function initAuthRoute(svc: AuthService) {
@@ -18,7 +18,7 @@ export function initAuthRoute(svc: AuthService) {
       },
       {
         body: LoginDto,
-        response: zResponse.ok(AuthResponseDto),
+        response: zResponse.ok(AuthOutputDto),
       }
     )
     .get(
@@ -27,7 +27,7 @@ export function initAuthRoute(svc: AuthService) {
         return res.ok(auth.user!, 'AUTH_ME_SUCCESS')
       },
       {
-        response: zResponse.ok(UserSelectDto),
+        response: zResponse.ok(UserOutputDto),
         auth: true,
       }
     )

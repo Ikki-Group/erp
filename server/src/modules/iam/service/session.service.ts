@@ -11,7 +11,7 @@ import { sessionsTable } from '@/db/schema'
 import { env } from '@/config/env'
 import { db } from '@/db'
 
-import { SessionDataDto, type SessionDto, type UserDto } from '../dto'
+import { SessionPayloadDto, type SessionDto, type UserDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -53,7 +53,7 @@ export class SessionService {
 
       if (!session) throw new Error('Failed to create session')
 
-      const data: SessionDataDto = {
+      const data: SessionPayloadDto = {
         id: session.id,
         userId: user.id,
         email: user.email,
@@ -75,7 +75,7 @@ export class SessionService {
     return record('SessionService.verifySession', async () => {
       try {
         const decoded = jwt.verify(token, env.JWT_SECRET)
-        const valid = SessionDataDto.parse(decoded)
+        const valid = SessionPayloadDto.parse(decoded)
         const session = await this.findById(valid.id)
 
         if (!session) return null
