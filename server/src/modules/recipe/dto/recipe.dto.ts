@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- NESTED --------------------------------- */
 
@@ -8,11 +8,11 @@ const RecipeItemDto = z.object({
   id: zPrimitive.id,
   recipeId: zPrimitive.id,
   materialId: zPrimitive.id,
-  qty: zPrimitive.str,
-  scrapPercentage: zPrimitive.str,
+  qty: zPrimitive.decimal,
+  scrapPercentage: zPrimitive.decimal,
   uomId: zPrimitive.id,
   notes: zPrimitive.strNullable,
-  sortOrder: zPrimitive.num,
+  sortOrder: zPrimitive.sortOrder,
 
   // optional joins
   material: z.object({ name: z.string(), sku: z.string() }).optional(),
@@ -30,7 +30,7 @@ export const RecipeDto = z.object({
   materialId: zPrimitive.id.nullable(),
   productId: zPrimitive.id.nullable(),
   productVariantId: zPrimitive.id.nullable(),
-  targetQty: zPrimitive.str,
+  targetQty: zPrimitive.decimal,
   isActive: zPrimitive.bool,
   instructions: zPrimitive.strNullable,
 
@@ -49,7 +49,7 @@ export const RecipeFilterDto = z.object({
   materialId: zHttp.query.id.optional(),
   productId: zHttp.query.id.optional(),
   productVariantId: zHttp.query.id.optional(),
-  isActive: zHttp.query.boolean.optional(),
+  isActive: zHttp.query.boolean,
 })
 
 export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
@@ -66,11 +66,11 @@ export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 const RecipeItemMutationDto = z.object({
   materialId: zPrimitive.id,
-  qty: zPrimitive.str,
-  scrapPercentage: zPrimitive.str.optional().default('0'),
+  qty: zPrimitive.decimal,
+  scrapPercentage: zPrimitive.decimal.optional().default('0'),
   uomId: zPrimitive.id,
   notes: zPrimitive.str.optional(),
-  sortOrder: zPrimitive.num.optional().default(0),
+  sortOrder: zPrimitive.sortOrder.optional().default(0),
 })
 
 type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
@@ -80,7 +80,7 @@ export const RecipeMutationDto = z
     materialId: zPrimitive.id.optional().nullable(),
     productId: zPrimitive.id.optional().nullable(),
     productVariantId: zPrimitive.id.optional().nullable(),
-    targetQty: zPrimitive.str.optional().default('1'),
+    targetQty: zPrimitive.decimal.optional().default('1'),
     isActive: zPrimitive.bool.optional().default(true),
     instructions: zPrimitive.str.optional().nullable(),
     items: RecipeItemMutationDto.array(),

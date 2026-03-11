@@ -7,3 +7,5 @@ export class LocationServiceModule {
     this.location = new LocationService()
   }
 }
+
+export type { LocationService } from './location.service'

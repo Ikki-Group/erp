@@ -12,14 +12,6 @@ const paginationMeta = z.object({
 export type PaginationMeta = z.infer<typeof paginationMeta>
 
 export const zHttp = {
-  boolean: z
-    .preprocess(
-      val => (typeof val === 'boolean' ? (val ? 'true' : 'false') : val),
-      z.enum(['true', 'false']).optional()
-    )
-    .transform(val => val === 'true')
-    .optional(),
-
   query: {
     id: zPrimitive.id,
     ids: z
@@ -30,17 +22,10 @@ export const zHttp = {
       )
       .optional(),
 
-    boolean: z
-      .enum(['true', 'false'])
-      .transform(val => val === 'true')
-      .optional()
-      .catch(undefined),
+    boolean: z.boolean(),
     search: zPrimitive.str.optional().transform(val => val || undefined),
     num: zPrimitive.numCoerce,
   },
-
-  search: zPrimitive.str.optional().transform(val => val || undefined),
-  id: zPrimitive.id,
 
   pagination: z.object({
     page: zPrimitive.numCoerce.int().positive().default(1),

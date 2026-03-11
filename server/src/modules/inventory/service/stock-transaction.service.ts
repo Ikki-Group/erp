@@ -2,11 +2,11 @@ import { randomUUID } from 'node:crypto'
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
 
-import { paginate, stampCreate, takeFirstOrThrow } from '@/lib/db'
-import { BadRequestError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { paginate, stampCreate, takeFirstOrThrow } from '@/core/database'
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { materials, stockTransactions } from '@/db/schema'
+import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
 import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
@@ -83,7 +83,7 @@ export class StockTransactionService {
             const newValue = newQty * newAvgCost
 
             // Create journal entry
-            await tx.insert(stockTransactions).values({
+            await tx.insert(stockTransactionsTable).values({
               materialId: item.materialId,
               locationId,
               type: 'purchase',
@@ -145,7 +145,7 @@ export class StockTransactionService {
             const sourceNewQty = sourceAssignment.currentQty - item.qty
             const sourceAvgCost = sourceAssignment.currentAvgCost
 
-            await tx.insert(stockTransactions).values({
+            await tx.insert(stockTransactionsTable).values({
               materialId: item.materialId,
               locationId: sourceLocationId,
               type: 'transfer_out',
@@ -170,7 +170,7 @@ export class StockTransactionService {
               sourceAvgCost
             )
 
-            await tx.insert(stockTransactions).values({
+            await tx.insert(stockTransactionsTable).values({
               materialId: item.materialId,
               locationId: destinationLocationId,
               type: 'transfer_in',
@@ -253,7 +253,7 @@ export class StockTransactionService {
             const totalCost = Math.abs(item.qty) * effectiveUnitCost
             const newValue = newQty * newAvgCost
 
-            await tx.insert(stockTransactions).values({
+            await tx.insert(stockTransactionsTable).values({
               materialId: item.materialId,
               locationId,
               type: 'adjustment',
@@ -296,25 +296,25 @@ export class StockTransactionService {
 
       const searchCondition = search
         ? or(
-            ilike(materials.name, `%${search}%`),
-            ilike(materials.sku, `%${search}%`),
-            ilike(stockTransactions.referenceNo, `%${search}%`)
+            ilike(materialsTable.name, `%${search}%`),
+            ilike(materialsTable.sku, `%${search}%`),
+            ilike(stockTransactionsTable.referenceNo, `%${search}%`)
           )
         : undefined
 
       const dateCondition =
         dateFrom && dateTo
-          ? and(gte(stockTransactions.date, dateFrom), lte(stockTransactions.date, dateTo))
+          ? and(gte(stockTransactionsTable.date, dateFrom), lte(stockTransactionsTable.date, dateTo))
           : dateFrom
-            ? gte(stockTransactions.date, dateFrom)
+            ? gte(stockTransactionsTable.date, dateFrom)
             : dateTo
-              ? lte(stockTransactions.date, dateTo)
+              ? lte(stockTransactionsTable.date, dateTo)
               : undefined
 
       const where = and(
-        locationId === undefined ? undefined : eq(stockTransactions.locationId, locationId),
-        materialId === undefined ? undefined : eq(stockTransactions.materialId, materialId),
-        type === undefined ? undefined : eq(stockTransactions.type, type),
+        locationId === undefined ? undefined : eq(stockTransactionsTable.locationId, locationId),
+        materialId === undefined ? undefined : eq(stockTransactionsTable.materialId, materialId),
+        type === undefined ? undefined : eq(stockTransactionsTable.type, type),
         dateCondition,
         searchCondition
       )
@@ -323,39 +323,39 @@ export class StockTransactionService {
         data: ({ limit, offset }) =>
           db
             .select({
-              id: stockTransactions.id,
-              materialId: stockTransactions.materialId,
-              locationId: stockTransactions.locationId,
-              type: stockTransactions.type,
-              date: stockTransactions.date,
-              referenceNo: stockTransactions.referenceNo,
-              notes: stockTransactions.notes,
-              qty: stockTransactions.qty,
-              unitCost: stockTransactions.unitCost,
-              totalCost: stockTransactions.totalCost,
-              counterpartLocationId: stockTransactions.counterpartLocationId,
-              transferId: stockTransactions.transferId,
-              runningQty: stockTransactions.runningQty,
-              runningAvgCost: stockTransactions.runningAvgCost,
-              createdAt: stockTransactions.createdAt,
-              updatedAt: stockTransactions.updatedAt,
-              createdBy: stockTransactions.createdBy,
-              updatedBy: stockTransactions.updatedBy,
-              syncAt: stockTransactions.syncAt,
-              materialName: materials.name,
-              materialSku: materials.sku,
+              id: stockTransactionsTable.id,
+              materialId: stockTransactionsTable.materialId,
+              locationId: stockTransactionsTable.locationId,
+              type: stockTransactionsTable.type,
+              date: stockTransactionsTable.date,
+              referenceNo: stockTransactionsTable.referenceNo,
+              notes: stockTransactionsTable.notes,
+              qty: stockTransactionsTable.qty,
+              unitCost: stockTransactionsTable.unitCost,
+              totalCost: stockTransactionsTable.totalCost,
+              counterpartLocationId: stockTransactionsTable.counterpartLocationId,
+              transferId: stockTransactionsTable.transferId,
+              runningQty: stockTransactionsTable.runningQty,
+              runningAvgCost: stockTransactionsTable.runningAvgCost,
+              createdAt: stockTransactionsTable.createdAt,
+              updatedAt: stockTransactionsTable.updatedAt,
+              createdBy: stockTransactionsTable.createdBy,
+              updatedBy: stockTransactionsTable.updatedBy,
+              syncAt: stockTransactionsTable.syncAt,
+              materialName: materialsTable.name,
+              materialSku: materialsTable.sku,
             })
-            .from(stockTransactions)
-            .innerJoin(materials, eq(stockTransactions.materialId, materials.id))
+            .from(stockTransactionsTable)
+            .innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
             .where(where)
-            .orderBy(desc(stockTransactions.date))
+            .orderBy(desc(stockTransactionsTable.date))
             .limit(limit)
             .offset(offset),
         pq,
         countQuery: db
           .select({ count: count() })
-          .from(stockTransactions)
-          .innerJoin(materials, eq(stockTransactions.materialId, materials.id))
+          .from(stockTransactionsTable)
+          .innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
           .where(where),
       })
 
@@ -379,7 +379,7 @@ export class StockTransactionService {
    */
   async handleDetail(id: number): Promise<StockTransactionDto> {
     return record('StockTransactionService.handleDetail', async () => {
-      const result = await db.select().from(stockTransactions).where(eq(stockTransactions.id, id))
+      const result = await db.select().from(stockTransactionsTable).where(eq(stockTransactionsTable.id, id))
       const row = takeFirstOrThrow(result, `Transaction with ID ${id} not found`, 'TRANSACTION_NOT_FOUND')
 
       return {
@@ -393,3 +393,4 @@ export class StockTransactionService {
     })
   }
 }
+

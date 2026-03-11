@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -37,7 +37,7 @@ const StockSummaryDto = z.object({
 
 type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
 export const StockSummarySelectDto = z.object({

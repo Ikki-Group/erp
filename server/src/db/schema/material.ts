@@ -1,11 +1,11 @@
 import { index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { materialTypeEnum, metadata, pk } from './_helpers'
-import { locations } from './location'
+import { locationsTable } from './location'
 
 // ─── UOM (Unit of Measure) ────────────────────────────────────────────────────
 
-export const uoms = pgTable(
+export const uomsTable = pgTable(
   'uoms',
   {
     ...pk,
@@ -17,7 +17,7 @@ export const uoms = pgTable(
 
 // ─── Material Categories ──────────────────────────────────────────────────────
 
-export const materialCategories = pgTable(
+export const materialCategoriesTable = pgTable(
   'material_categories',
   {
     ...pk,
@@ -30,7 +30,7 @@ export const materialCategories = pgTable(
 
 // ─── Materials ────────────────────────────────────────────────────────────────
 
-export const materials = pgTable(
+export const materialsTable = pgTable(
   'materials',
   {
     ...pk,
@@ -38,10 +38,10 @@ export const materials = pgTable(
     description: text(),
     sku: text().notNull(),
     type: materialTypeEnum().notNull(),
-    categoryId: integer().references(() => materialCategories.id, { onDelete: 'set null' }),
+    categoryId: integer().references(() => materialCategoriesTable.id, { onDelete: 'set null' }),
     baseUomId: integer()
       .notNull()
-      .references(() => uoms.id, { onDelete: 'restrict' }),
+      .references(() => uomsTable.id, { onDelete: 'restrict' }),
     ...metadata,
   },
   (t) => [
@@ -57,16 +57,16 @@ export const materials = pgTable(
 // MongoDB embedded `material.conversions[]` → proper table in SQL.
 // Stores UOM conversion factors relative to the material's base UOM.
 
-export const materialConversions = pgTable(
+export const materialConversionsTable = pgTable(
   'material_conversions',
   {
     ...pk,
     materialId: integer()
       .notNull()
-      .references(() => materials.id, { onDelete: 'cascade' }),
+      .references(() => materialsTable.id, { onDelete: 'cascade' }),
     uomId: integer()
       .notNull()
-      .references(() => uoms.id, { onDelete: 'restrict' }),
+      .references(() => uomsTable.id, { onDelete: 'restrict' }),
     toBaseFactor: numeric({ precision: 18, scale: 6 }).notNull(),
     ...metadata,
   },
@@ -79,16 +79,16 @@ export const materialConversions = pgTable(
 // ─── Material Locations ───────────────────────────────────────────────────────
 // Junction between materials and locations with per-location config + stock snapshot.
 
-export const materialLocations = pgTable(
+export const materialLocationsTable = pgTable(
   'material_locations',
   {
     ...pk,
     materialId: integer()
       .notNull()
-      .references(() => materials.id, { onDelete: 'cascade' }),
+      .references(() => materialsTable.id, { onDelete: 'cascade' }),
     locationId: integer()
       .notNull()
-      .references(() => locations.id, { onDelete: 'restrict' }),
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
 
     // Per-location configuration
     minStock: integer().notNull().default(0),

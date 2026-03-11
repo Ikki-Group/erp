@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -21,7 +21,7 @@ export const MaterialCategoryFilterDto = z.object({
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCategoryMutationDto = z.object({
   ...MaterialCategoryDto.pick({

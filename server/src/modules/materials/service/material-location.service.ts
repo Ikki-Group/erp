@@ -1,11 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/lib/db'
-import { ConflictError, NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { locations, materialLocations, materials, uoms } from '@/db/schema'
+import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import type { LocationServiceModule } from '@/modules/location'
 
@@ -51,8 +51,8 @@ export class MaterialLocationService {
     return record('MaterialLocationService.findOne', async () => {
       const [result] = await db
         .select()
-        .from(materialLocations)
-        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
+        .from(materialLocationsTable)
+        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
 
       if (!result) throw err.notAssigned(materialId, locationId)
       return {
@@ -67,7 +67,7 @@ export class MaterialLocationService {
   /** Get all assignments for a specific material */
   async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByMaterialId', async () => {
-      const results = await db.select().from(materialLocations).where(eq(materialLocations.materialId, materialId))
+      const results = await db.select().from(materialLocationsTable).where(eq(materialLocationsTable.materialId, materialId))
       return results.map((r) => ({
         ...r,
         currentQty: Number(r.currentQty),
@@ -80,7 +80,7 @@ export class MaterialLocationService {
   /** Get all assignments for a specific location */
   async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByLocationId', async () => {
-      const results = await db.select().from(materialLocations).where(eq(materialLocations.locationId, locationId))
+      const results = await db.select().from(materialLocationsTable).where(eq(materialLocationsTable.locationId, locationId))
       return results.map((r) => ({
         ...r,
         currentQty: Number(r.currentQty),
@@ -113,17 +113,17 @@ export class MaterialLocationService {
       // 3. Find already assigned combinations
       const existing = await db
         .select({
-          materialId: materialLocations.materialId,
-          locationId: materialLocations.locationId,
+          materialId: materialLocationsTable.materialId,
+          locationId: materialLocationsTable.locationId,
         })
-        .from(materialLocations)
+        .from(materialLocationsTable)
         .where(
-          and(inArray(materialLocations.locationId, locationIds), inArray(materialLocations.materialId, materialIds))
+          and(inArray(materialLocationsTable.locationId, locationIds), inArray(materialLocationsTable.materialId, materialIds))
         )
 
       const existingSet = new Set(existing.map((e) => `${e.locationId}-${e.materialId}`))
       const metadata = stampCreate(actorId)
-      const docs: (typeof materialLocations.$inferInsert)[] = []
+      const docs: (typeof materialLocationsTable.$inferInsert)[] = []
 
       for (const locationId of locationIds) {
         for (const materialId of materialIds) {
@@ -139,7 +139,7 @@ export class MaterialLocationService {
 
       if (docs.length === 0) return { assignedCount: 0 }
 
-      await db.insert(materialLocations).values(docs)
+      await db.insert(materialLocationsTable).values(docs)
 
       return { assignedCount: docs.length }
     })
@@ -153,9 +153,9 @@ export class MaterialLocationService {
       const { materialId, locationId } = data
 
       const [result] = await db
-        .delete(materialLocations)
-        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
-        .returning({ id: materialLocations.id })
+        .delete(materialLocationsTable)
+        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
+        .returning({ id: materialLocationsTable.id })
 
       if (!result) throw err.notAssigned(materialId, locationId)
 
@@ -175,12 +175,12 @@ export class MaterialLocationService {
 
       const assignments = await db
         .select({
-          assignment: materialLocations,
-          location: locations,
+          assignment: materialLocationsTable,
+          location: locationsTable,
         })
-        .from(materialLocations)
-        .innerJoin(locations, eq(materialLocations.locationId, locations.id))
-        .where(eq(materialLocations.materialId, materialId))
+        .from(materialLocationsTable)
+        .innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
+        .where(eq(materialLocationsTable.materialId, materialId))
 
       return assignments.map((row) => ({
         ...row.assignment,
@@ -209,42 +209,42 @@ export class MaterialLocationService {
       await this.locationSvc.location.findById(locationId)
 
       const searchCondition = search
-        ? or(ilike(materials.name, `%${search}%`), ilike(materials.sku, `%${search}%`))
+        ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
         : undefined
 
-      const where = and(eq(materialLocations.locationId, locationId), searchCondition)
+      const where = and(eq(materialLocationsTable.locationId, locationId), searchCondition)
 
       const result = await paginate({
         data: ({ limit, offset }) =>
           db
             .select({
-              id: materialLocations.id,
-              materialId: materialLocations.materialId,
-              locationId: materialLocations.locationId,
-              materialName: materials.name,
-              materialSku: materials.sku,
-              baseUomId: materials.baseUomId,
-              minStock: materialLocations.minStock,
-              maxStock: materialLocations.maxStock,
-              reorderPoint: materialLocations.reorderPoint,
-              currentQty: materialLocations.currentQty,
-              currentAvgCost: materialLocations.currentAvgCost,
-              currentValue: materialLocations.currentValue,
-              uom: uoms,
+              id: materialLocationsTable.id,
+              materialId: materialLocationsTable.materialId,
+              locationId: materialLocationsTable.locationId,
+              materialName: materialsTable.name,
+              materialSku: materialsTable.sku,
+              baseUomId: materialsTable.baseUomId,
+              minStock: materialLocationsTable.minStock,
+              maxStock: materialLocationsTable.maxStock,
+              reorderPoint: materialLocationsTable.reorderPoint,
+              currentQty: materialLocationsTable.currentQty,
+              currentAvgCost: materialLocationsTable.currentAvgCost,
+              currentValue: materialLocationsTable.currentValue,
+              uom: uomsTable,
             })
-            .from(materialLocations)
-            .innerJoin(materials, eq(materialLocations.materialId, materials.id))
-            .innerJoin(uoms, eq(materials.baseUomId, uoms.id))
+            .from(materialLocationsTable)
+            .innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+            .innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
 
             .where(where)
-            .orderBy(sortBy(materialLocations.updatedAt, 'desc'))
+            .orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
         countQuery: db
           .select({ count: count() })
-          .from(materialLocations)
-          .innerJoin(materials, eq(materialLocations.materialId, materials.id))
+          .from(materialLocationsTable)
+          .innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
           .where(where),
       })
 
@@ -270,13 +270,13 @@ export class MaterialLocationService {
       const { id, ...update } = data
 
       const [result] = await db
-        .update(materialLocations)
+        .update(materialLocationsTable)
         .set({
           ...update,
           ...stampUpdate(actorId),
         })
-        .where(eq(materialLocations.id, id))
-        .returning({ id: materialLocations.id })
+        .where(eq(materialLocationsTable.id, id))
+        .returning({ id: materialLocationsTable.id })
 
       if (!result) throw err.notFound(id)
       return { id: result.id }
@@ -296,14 +296,15 @@ export class MaterialLocationService {
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
       await db
-        .update(materialLocations)
+        .update(materialLocationsTable)
         .set({
           currentQty: stock.currentQty.toString(),
           currentAvgCost: stock.currentAvgCost.toString(),
           currentValue: stock.currentValue.toString(),
           ...stampUpdate(actorId),
         })
-        .where(and(eq(materialLocations.materialId, materialId), eq(materialLocations.locationId, locationId)))
+        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
     })
   }
 }
+

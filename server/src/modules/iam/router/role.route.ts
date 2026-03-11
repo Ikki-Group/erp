@@ -1,11 +1,11 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
+import { authPluginMacro } from '@/core/http/auth-plugin'
+import { res } from '@/core/http/response'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
 
-import { RoleDto, RoleMutationDto } from '../dto'
+import { RoleCreateDto, RoleDto, RoleUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initRoleRoute(s: IamServiceModule) {
@@ -45,7 +45,7 @@ export function initRoleRoute(s: IamServiceModule) {
         return res.created(result, 'ROLE_CREATED')
       },
       {
-        body: RoleMutationDto,
+        body: RoleCreateDto,
         response: zResponse.ok(zSchema.recordId),
         auth: true,
       }
@@ -57,10 +57,8 @@ export function initRoleRoute(s: IamServiceModule) {
         return res.ok(result, 'ROLE_UPDATED')
       },
       {
-        body: z.object({
+        body: RoleUpdateDto.extend({
           id: zPrimitive.id,
-          code: z.string(),
-          name: z.string(),
         }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,

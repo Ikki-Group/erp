@@ -1,21 +1,21 @@
 import { date, index, integer, numeric, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk, transactionTypeEnum } from './_helpers'
-import { locations } from './location'
-import { materials } from './material'
+import { locationsTable } from './location'
+import { materialsTable } from './material'
 
 // ─── Stock Transactions ───────────────────────────────────────────────────────
 
-export const stockTransactions = pgTable(
+export const stockTransactionsTable = pgTable(
   'stock_transactions',
   {
     ...pk,
     materialId: integer()
       .notNull()
-      .references(() => materials.id, { onDelete: 'restrict' }),
+      .references(() => materialsTable.id, { onDelete: 'restrict' }),
     locationId: integer()
       .notNull()
-      .references(() => locations.id, { onDelete: 'restrict' }),
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
 
     type: transactionTypeEnum().notNull(),
     date: date({ mode: 'date' }).notNull(),
@@ -28,7 +28,7 @@ export const stockTransactions = pgTable(
     totalCost: numeric({ precision: 18, scale: 4 }).notNull(),
 
     // Transfer-specific
-    counterpartLocationId: integer().references(() => locations.id, { onDelete: 'restrict' }),
+    counterpartLocationId: integer().references(() => locationsTable.id, { onDelete: 'restrict' }),
     transferId: uuid(),
 
     // Running snapshot after this transaction
@@ -48,16 +48,16 @@ export const stockTransactions = pgTable(
 
 // ─── Stock Summaries (Daily Snapshot) ─────────────────────────────────────────
 
-export const stockSummaries = pgTable(
+export const stockSummariesTable = pgTable(
   'stock_summaries',
   {
     ...pk,
     materialId: integer()
       .notNull()
-      .references(() => materials.id, { onDelete: 'restrict' }),
+      .references(() => materialsTable.id, { onDelete: 'restrict' }),
     locationId: integer()
       .notNull()
-      .references(() => locations.id, { onDelete: 'restrict' }),
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
     date: date({ mode: 'date' }).notNull(),
 
     // Opening balance

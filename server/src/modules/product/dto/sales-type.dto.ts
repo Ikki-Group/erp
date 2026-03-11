@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -8,7 +8,7 @@ export const SalesTypeDto = z.object({
   id: zPrimitive.id,
   code: zPrimitive.str,
   name: zPrimitive.str,
-  isSystem: z.boolean(),
+  isSystem: zPrimitive.bool,
   ...zSchema.metadata.shape,
 })
 

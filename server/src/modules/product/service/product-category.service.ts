@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
+import { cache } from '@/core/cache'
 import {
   checkConflict,
   paginate,
@@ -11,11 +11,11 @@ import {
   stampUpdate,
   takeFirstOrThrow,
   type ConflictField,
-} from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+} from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { productCategories } from '@/db/schema'
+import { productCategoriesTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -30,7 +30,7 @@ const err = {
 const uniqueFields: ConflictField<'name'>[] = [
   {
     field: 'name',
-    column: productCategories.name,
+    column: productCategoriesTable.name,
     message: 'Product category name already exists',
     code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
   },
@@ -51,7 +51,7 @@ export class ProductCategoryService {
   async find(): Promise<ProductCategoryDto[]> {
     return record('ProductCategoryService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(productCategories).orderBy(productCategories.name)
+        return db.select().from(productCategoriesTable).orderBy(productCategoriesTable.name)
       })
     })
   }
@@ -62,7 +62,7 @@ export class ProductCategoryService {
   async findById(id: number): Promise<ProductCategoryDto> {
     return record('ProductCategoryService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(productCategories).where(eq(productCategories.id, id))
+        const result = await db.select().from(productCategoriesTable).where(eq(productCategoriesTable.id, id))
         return takeFirstOrThrow(result, `Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
       })
     })
@@ -74,7 +74,7 @@ export class ProductCategoryService {
   async count(): Promise<number> {
     return record('ProductCategoryService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(productCategories)
+        const result = await db.select({ val: count() }).from(productCategoriesTable)
         return result[0]?.val ?? 0
       })
     })
@@ -89,19 +89,19 @@ export class ProductCategoryService {
   ): Promise<WithPaginationResult<ProductCategoryDto>> {
     return record('ProductCategoryService.handleList', async () => {
       const { search } = filter
-      const where = searchFilter(productCategories.name, search)
+      const where = searchFilter(productCategoriesTable.name, search)
 
       return paginate<ProductCategoryDto>({
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(productCategories)
+            .from(productCategoriesTable)
             .where(where)
-            .orderBy(sortBy(productCategories.updatedAt, 'desc'))
+            .orderBy(sortBy(productCategoriesTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(productCategories).where(where),
+        countQuery: db.select({ count: count() }).from(productCategoriesTable).where(where),
       })
     })
   }
@@ -123,20 +123,20 @@ export class ProductCategoryService {
       const name = data.name.trim()
 
       await checkConflict({
-        table: productCategories,
-        pkColumn: productCategories.id,
+        table: productCategoriesTable,
+        pkColumn: productCategoriesTable.id,
         fields: uniqueFields,
         input: { name },
       })
 
       const [inserted] = await db
-        .insert(productCategories)
+        .insert(productCategoriesTable)
         .values({
           ...data,
           name,
           ...stampCreate(actorId),
         })
-        .returning({ id: productCategories.id })
+        .returning({ id: productCategoriesTable.id })
 
       if (!inserted) throw new Error('Failed to create product category')
 
@@ -155,21 +155,21 @@ export class ProductCategoryService {
       const name = data.name ? data.name.trim() : existing.name
 
       await checkConflict({
-        table: productCategories,
-        pkColumn: productCategories.id,
+        table: productCategoriesTable,
+        pkColumn: productCategoriesTable.id,
         fields: uniqueFields,
         input: { name },
         existing,
       })
 
       await db
-        .update(productCategories)
+        .update(productCategoriesTable)
         .set({
           ...data,
           name,
           ...stampUpdate(actorId),
         })
-        .where(eq(productCategories.id, id))
+        .where(eq(productCategoriesTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -182,9 +182,9 @@ export class ProductCategoryService {
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleRemove', async () => {
       const result = await db
-        .delete(productCategories)
-        .where(eq(productCategories.id, id))
-        .returning({ id: productCategories.id })
+        .delete(productCategoriesTable)
+        .where(eq(productCategoriesTable.id, id))
+        .returning({ id: productCategoriesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -203,3 +203,4 @@ export class ProductCategoryService {
     ])
   }
 }
+

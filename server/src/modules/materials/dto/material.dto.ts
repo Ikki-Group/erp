@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location/dto'
 import { RecipeDto } from '@/modules/recipe/dto'
@@ -8,18 +8,22 @@ import { RecipeDto } from '@/modules/recipe/dto'
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
 
+/* ---------------------------------- ENUM ---------------------------------- */
+
 const MaterialType = z.enum(['raw', 'semi'])
 type MaterialType = z.infer<typeof MaterialType>
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* --------------------------------- NESTED --------------------------------- */
 
 const MaterialConversionDto = z.object({
-  toBaseFactor: zPrimitive.str,
+  toBaseFactor: zPrimitive.decimal,
   uomId: zPrimitive.id,
   uom: UomDto.optional(),
 })
 
 type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
+
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
   id: zPrimitive.id,

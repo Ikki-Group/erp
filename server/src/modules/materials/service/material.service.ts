@@ -1,12 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
-import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import { cache } from '@/core/cache'
+import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { materialConversions, materialLocations, materials, uoms } from '@/db/schema'
+import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import type { LocationService } from '@/modules/location/service/location.service'
 
@@ -31,10 +31,10 @@ const err = {
 }
 
 const uniqueFields: ConflictField<'sku' | 'name'>[] = [
-  { field: 'sku', column: materials.sku, message: 'Material SKU already exists', code: 'MATERIAL_SKU_ALREADY_EXISTS' },
+  { field: 'sku', column: materialsTable.sku, message: 'Material SKU already exists', code: 'MATERIAL_SKU_ALREADY_EXISTS' },
   {
     field: 'name',
-    column: materials.name,
+    column: materialsTable.name,
     message: 'Material name already exists',
     code: 'MATERIAL_NAME_ALREADY_EXISTS',
   },
@@ -59,25 +59,25 @@ export class MaterialService {
    * Helper to fetch full material detail including conversions and locationIds
    */
   private async getMaterialWithRelations(id: number): Promise<MaterialDto> {
-    const [result] = await db.select().from(materials).where(eq(materials.id, id)).limit(1)
+    const [result] = await db.select().from(materialsTable).where(eq(materialsTable.id, id)).limit(1)
 
     if (!result) throw err.notFound(id)
 
     const [conversions, locations] = await Promise.all([
       db
         .select({
-          toBaseFactor: materialConversions.toBaseFactor,
-          uomId: materialConversions.uomId,
-          uom: uoms,
+          toBaseFactor: materialConversionsTable.toBaseFactor,
+          uomId: materialConversionsTable.uomId,
+          uom: uomsTable,
         })
-        .from(materialConversions)
-        .innerJoin(uoms, eq(materialConversions.uomId, uoms.id))
-        .where(eq(materialConversions.materialId, id)),
+        .from(materialConversionsTable)
+        .innerJoin(uomsTable, eq(materialConversionsTable.uomId, uomsTable.id))
+        .where(eq(materialConversionsTable.materialId, id)),
 
       db
-        .select({ locationId: materialLocations.locationId })
-        .from(materialLocations)
-        .where(eq(materialLocations.materialId, id)),
+        .select({ locationId: materialLocationsTable.locationId })
+        .from(materialLocationsTable)
+        .where(eq(materialLocationsTable.materialId, id)),
     ])
 
     return {
@@ -98,19 +98,19 @@ export class MaterialService {
     const [conversions, locations] = await Promise.all([
       db
         .select({
-          materialId: materialConversions.materialId,
-          toBaseFactor: materialConversions.toBaseFactor,
-          uomId: materialConversions.uomId,
-          uom: uoms,
+          materialId: materialConversionsTable.materialId,
+          toBaseFactor: materialConversionsTable.toBaseFactor,
+          uomId: materialConversionsTable.uomId,
+          uom: uomsTable,
         })
-        .from(materialConversions)
-        .innerJoin(uoms, eq(materialConversions.uomId, uoms.id))
-        .where(inArray(materialConversions.materialId, ids)),
+        .from(materialConversionsTable)
+        .innerJoin(uomsTable, eq(materialConversionsTable.uomId, uomsTable.id))
+        .where(inArray(materialConversionsTable.materialId, ids)),
 
       db
-        .select({ materialId: materialLocations.materialId, locationId: materialLocations.locationId })
-        .from(materialLocations)
-        .where(inArray(materialLocations.materialId, ids)),
+        .select({ materialId: materialLocationsTable.materialId, locationId: materialLocationsTable.locationId })
+        .from(materialLocationsTable)
+        .where(inArray(materialLocationsTable.materialId, ids)),
     ])
 
     const map = new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
@@ -136,7 +136,7 @@ export class MaterialService {
   async find(): Promise<MaterialDto[]> {
     return record('MaterialService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        const rawMaterials = await db.select().from(materials).orderBy(materials.name)
+        const rawMaterials = await db.select().from(materialsTable).orderBy(materialsTable.name)
         const relationsMap = await this.getMaterialsBatchWithRelations(rawMaterials.map((m) => m.id))
 
         return rawMaterials.map((m) => ({
@@ -159,7 +159,7 @@ export class MaterialService {
   async count(): Promise<number> {
     return record('MaterialService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(materials)
+        const result = await db.select({ val: count() }).from(materialsTable)
         return result[0]?.val ?? 0
       })
     })
@@ -170,16 +170,16 @@ export class MaterialService {
       const { search, type, categoryId, locationIds, excludeLocationIds } = filter
 
       const searchCondition = search
-        ? or(ilike(materials.name, `%${search}%`), ilike(materials.sku, `%${search}%`))
+        ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
         : undefined
 
       const locationCondition = locationIds?.length
         ? exists(
             db
               .select()
-              .from(materialLocations)
+              .from(materialLocationsTable)
               .where(
-                and(eq(materialLocations.materialId, materials.id), inArray(materialLocations.locationId, locationIds))
+                and(eq(materialLocationsTable.materialId, materialsTable.id), inArray(materialLocationsTable.locationId, locationIds))
               )
           )
         : undefined
@@ -188,11 +188,11 @@ export class MaterialService {
         ? notExists(
             db
               .select()
-              .from(materialLocations)
+              .from(materialLocationsTable)
               .where(
                 and(
-                  eq(materialLocations.materialId, materials.id),
-                  inArray(materialLocations.locationId, excludeLocationIds)
+                  eq(materialLocationsTable.materialId, materialsTable.id),
+                  inArray(materialLocationsTable.locationId, excludeLocationIds)
                 )
               )
           )
@@ -200,8 +200,8 @@ export class MaterialService {
 
       const where = and(
         searchCondition,
-        type ? eq(materials.type, type) : undefined,
-        categoryId === undefined ? undefined : eq(materials.categoryId, categoryId),
+        type ? eq(materialsTable.type, type) : undefined,
+        categoryId === undefined ? undefined : eq(materialsTable.categoryId, categoryId),
         locationCondition,
         excludeLocationCondition
       )
@@ -210,13 +210,13 @@ export class MaterialService {
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(materials)
+            .from(materialsTable)
             .where(where)
-            .orderBy(sortBy(materials.updatedAt, 'desc'))
+            .orderBy(sortBy(materialsTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(materials).where(where),
+        countQuery: db.select({ count: count() }).from(materialsTable).where(where),
       })
 
       const materialIds = result.data.map((m) => m.id)
@@ -271,8 +271,8 @@ export class MaterialService {
       const name = data.name.trim()
 
       await checkConflict({
-        table: materials,
-        pkColumn: materials.id,
+        table: materialsTable,
+        pkColumn: materialsTable.id,
         fields: uniqueFields,
         input: { sku, name },
       })
@@ -281,17 +281,17 @@ export class MaterialService {
 
       const inserted = await db.transaction(async (tx) => {
         const [material] = await tx
-          .insert(materials)
+          .insert(materialsTable)
           .values({
             ...data,
             sku,
             name,
             ...metadata,
           })
-          .returning({ id: materials.id })
+          .returning({ id: materialsTable.id })
 
         if (material && data.conversions?.length > 0) {
-          await tx.insert(materialConversions).values(
+          await tx.insert(materialConversionsTable).values(
             data.conversions.map((c) => ({
               materialId: material.id,
               uomId: c.uomId,
@@ -319,8 +319,8 @@ export class MaterialService {
       const name = data.name ? data.name.trim() : existing.name
 
       await checkConflict({
-        table: materials,
-        pkColumn: materials.id,
+        table: materialsTable,
+        pkColumn: materialsTable.id,
         fields: uniqueFields,
         input: { sku, name },
         existing,
@@ -331,19 +331,19 @@ export class MaterialService {
 
       await db.transaction(async (tx) => {
         await tx
-          .update(materials)
+          .update(materialsTable)
           .set({
             ...data,
             sku,
             name,
             ...updateMetadata,
           })
-          .where(eq(materials.id, id))
+          .where(eq(materialsTable.id, id))
 
         if (data.conversions !== undefined) {
-          await tx.delete(materialConversions).where(eq(materialConversions.materialId, id))
+          await tx.delete(materialConversionsTable).where(eq(materialConversionsTable.materialId, id))
           if (data.conversions.length > 0) {
-            await tx.insert(materialConversions).values(
+            await tx.insert(materialConversionsTable).values(
               data.conversions.map((c) => ({
                 materialId: id,
                 uomId: c.uomId,
@@ -362,7 +362,7 @@ export class MaterialService {
 
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('MaterialService.handleRemove', async () => {
-      const result = await db.delete(materials).where(eq(materials.id, id)).returning({ id: materials.id })
+      const result = await db.delete(materialsTable).where(eq(materialsTable.id, id)).returning({ id: materialsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -381,3 +381,4 @@ export class MaterialService {
     ])
   }
 }
+

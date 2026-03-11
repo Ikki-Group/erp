@@ -39,11 +39,13 @@ When asked to create a module, gather this information:
 
 ### Step 1: DTO File
 
+Refer to the `server-dto` skill (`/.agent/skills/server-dto/SKILL.md`) for detailed DTO conventions.
+
 Create `modules/<module>/dto/<entity>.dto.ts`:
 
 ```typescript
 import z from 'zod'
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -62,23 +64,27 @@ export const <Entity>FilterDto = z.object({
 })
 export type <Entity>FilterDto = z.infer<typeof <Entity>FilterDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* ---------------------------------- OUTPUT -------------------------------- */
 
-export const <Entity>SelectDto = z.object({
+export const <Entity>OutputDto = z.object({
   ...<Entity>Dto.shape,
   // Add joined / computed fields
   // Omit internal fields if needed
 })
-export type <Entity>SelectDto = z.infer<typeof <Entity>SelectDto>
+export type <Entity>OutputDto = z.infer<typeof <Entity>OutputDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
+/* --------------------------------- CREATE --------------------------------- */
 
 export const <Entity>CreateDto = z.object({
   // Only writable fields (no id, no metadata)
 })
 export type <Entity>CreateDto = z.infer<typeof <Entity>CreateDto>
 
-export const <Entity>UpdateDto = <Entity>CreateDto.partial()
+/* --------------------------------- UPDATE --------------------------------- */
+
+export const <Entity>UpdateDto = z.object({
+  // Typically similar to CreateDto but with optional fields or specialization
+})
 export type <Entity>UpdateDto = z.infer<typeof <Entity>UpdateDto>
 ```
 
@@ -87,7 +93,7 @@ export type <Entity>UpdateDto = z.infer<typeof <Entity>UpdateDto>
 - Use `zPrimitive` for all base types (id, str, num, bool, etc.)
 - Use `zSchema.metadata.shape` spread for audit fields
 - Always export both schema and type with same name
-- Organize with comment sections: ENTITY, FILTER, SELECT, MUTATION
+- Organize with comment sections: ENUM, NESTED, ENTITY, FILTER, RESULT, MUTATION
 
 ### Step 2: Service File
 
@@ -178,14 +184,13 @@ export * from "./router"
 export * from "./service"
 ```
 
-### Step 7: Register in App
+### Step 7: Registry Registration
 
-Edit `server/src/app.ts`:
+1. Add your service to `src/modules/_registry.ts` in the appropriate layer section.
+2. Add your route module initialization to `src/modules/_routes.ts`.
+3. If new cross-module dependencies are needed, update the constructor calls.
 
-1. Import ServiceModule and initRouteModule
-2. Instantiate service (respect layer order)
-3. Init route
-4. Add `.use(route)` to app chain
+Use centralized validators from `core/validation/`.
 
 ## Validation Checklist
 

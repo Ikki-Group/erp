@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { ForbiddenError } from '@/lib/error/http'
-import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
+import { authPluginMacro } from '@/core/http/auth-plugin'
+import { ForbiddenError } from '@/core/http/errors'
+import { res } from '@/core/http/response'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
 
-import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserSelectDto, UserUpdateDto } from '../dto'
+import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserOutputDto, UserUpdateDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -24,7 +24,7 @@ export function initUserRoute(s: IamServiceModule) {
           search: zHttp.query.search,
           isActive: zHttp.query.boolean,
         }),
-        response: zResponse.paginated(UserSelectDto.array()),
+        response: zResponse.paginated(UserOutputDto.array()),
         auth: true,
       }
     )
@@ -36,7 +36,7 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         query: zHttp.recordId,
-        response: zResponse.ok(UserSelectDto),
+        response: zResponse.ok(UserOutputDto),
         auth: true,
       }
     )
@@ -68,7 +68,7 @@ export function initUserRoute(s: IamServiceModule) {
       }
     )
     .delete(
-      '/delete',
+      '/remove',
       async function remove({ body }) {
         const result = await s.user.handleRemove(body.id)
         return res.ok(result, 'USER_DELETED')

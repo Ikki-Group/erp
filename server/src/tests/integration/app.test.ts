@@ -1,5 +1,6 @@
-import { app } from '@/app'
 import { describe, expect, it } from 'bun:test'
+
+import { app } from '@/app'
 
 describe('Integration: App', () => {
   it('should return health check status on root', async () => {

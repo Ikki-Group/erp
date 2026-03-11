@@ -1,37 +1,46 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+
+/* ---------------------------------- BASE ---------------------------------- */
+
+export const RoleBase = z.object({
+  code: zPrimitive.str,
+  name: zPrimitive.str,
+  description: zPrimitive.strNullable,
+  isSystem: zPrimitive.bool,
+})
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RoleDto = z.object({
   id: zPrimitive.id,
-  code: zPrimitive.str,
-  name: zPrimitive.str,
-  isSystem: zPrimitive.bool,
+  ...RoleBase.shape,
   ...zSchema.metadata.shape,
 })
 
 export type RoleDto = z.infer<typeof RoleDto>
 
-/* --------------------------------- COMMON --------------------------------- */
+/* --------------------------------- FILTER --------------------------------- */
 
 export const RoleFilterDto = z.object({
-  search: z
-    .string()
-    .trim()
-    .optional()
-    .transform((val) => val || undefined),
+  search: zHttp.query.search,
 })
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* --------------------------------- CREATE --------------------------------- */
 
-export const RoleMutationDto = z.object({
-  code: zPrimitive.str,
-  name: zPrimitive.str,
-  isSystem: zPrimitive.bool,
+export const RoleCreateDto = z.object({
+  ...RoleBase.shape,
 })
 
-export type RoleMutationDto = z.infer<typeof RoleMutationDto>
+export type RoleCreateDto = z.infer<typeof RoleCreateDto>
+
+/* --------------------------------- UPDATE --------------------------------- */
+
+export const RoleUpdateDto = z.object({
+  ...RoleBase.shape,
+})
+
+export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>

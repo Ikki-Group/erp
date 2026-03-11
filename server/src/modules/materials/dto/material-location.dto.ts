@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location/dto'
 
@@ -28,7 +28,7 @@ export const MaterialLocationDto = z.object({
 
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Enriched view with location details — used in "locations assigned to material" */
 export const MaterialLocationWithLocationDto = z.object({

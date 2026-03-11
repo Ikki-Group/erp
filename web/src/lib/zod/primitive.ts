@@ -1,7 +1,6 @@
 import z from 'zod'
 
 const str = z.string().trim()
-const strRequired = str.min(1)
 const strNullable = z
   .string()
   .trim()
@@ -11,13 +10,13 @@ const strNullable = z
 const num = z.number()
 const numCoerce = z.coerce.number()
 
-/** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
-const id = z.coerce.number().int().positive()
-
 const date = z.coerce.date()
 const bool = z.boolean()
-const email = z.email()
+const email = z.email().transform(v => v.toLowerCase())
 const uuid = z.uuidv7()
+
+const id = z.number().int().positive()
+
 const password = z
   .string()
   .trim()
@@ -30,9 +29,10 @@ const username = z
   .min(3, 'Username must be at least 3 characters')
   .max(50, 'Username must not exceed 50 characters')
 
+const decimal = z.string().trim()
+
 export const zPrimitive = {
   str,
-  strRequired,
   strNullable,
   num,
   numCoerce,
@@ -43,4 +43,5 @@ export const zPrimitive = {
   uuid,
   password,
   username,
+  decimal,
 }

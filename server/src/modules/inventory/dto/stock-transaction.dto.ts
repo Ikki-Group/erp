@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -37,7 +37,7 @@ export const StockTransactionDto = z.object({
 
 export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 
-/* --------------------------------- SELECT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
 export const StockTransactionSelectDto = z.object({
@@ -61,7 +61,7 @@ export const StockTransactionFilterDto = z.object({
 
 export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto>
 
-/* ─────────────────────── MUTATION: ITEMS ─────────────────────── */
+/* ─────────────────── MUTATION: NESTED ITEMS ──────────────────── */
 
 /** Single item within a purchase transaction */
 const PurchaseItemDto = z.object({
@@ -83,7 +83,7 @@ const AdjustmentItemDto = z.object({
   unitCost: zPrimitive.num.nonnegative().optional(),
 })
 
-/* ─────────────────────── MUTATION: BATCH ─────────────────────── */
+/* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 
 /** Create purchase transactions (multiple materials at one location) */
 export const PurchaseTransactionDto = z.object({
@@ -119,7 +119,7 @@ export const AdjustmentTransactionDto = z.object({
 
 export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 
-/* ─────────────────────── MUTATION: RESULT ─────────────────────── */
+/* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 
 /** Response for batch transaction operations */
 export const TransactionResultDto = z.object({

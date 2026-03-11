@@ -4,7 +4,7 @@ import { locationTypeEnum, metadata, pk } from './_helpers'
 
 // ─── Locations ────────────────────────────────────────────────────────────────
 
-export const locations = pgTable(
+export const locationsTable = pgTable(
   'locations',
   {
     ...pk,
@@ -15,10 +15,5 @@ export const locations = pgTable(
     isActive: boolean().notNull().default(true),
     ...metadata,
   },
-  (t) => [
-    uniqueIndex('locations_code_idx').on(t.code),
-    uniqueIndex('locations_name_idx').on(t.name),
-    // Removed: locations_type_idx — enum with only 2 values, low selectivity
-    // Removed: locations_is_active_idx — boolean column, PostgreSQL almost never uses it
-  ]
+  (t) => [uniqueIndex('locations_code_idx').on(t.code), uniqueIndex('locations_name_idx').on(t.name)]
 )

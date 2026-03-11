@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
+import { cache } from '@/core/cache'
 import {
   checkConflict,
   paginate,
@@ -11,11 +11,11 @@ import {
   stampUpdate,
   takeFirstOrThrow,
   type ConflictField,
-} from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+} from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { locations } from '@/db/schema'
+import { locationsTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -30,13 +30,13 @@ const err = {
 const uniqueFields: ConflictField<'code' | 'name'>[] = [
   {
     field: 'code',
-    column: locations.code,
+    column: locationsTable.code,
     message: 'Location code already exists',
     code: 'LOCATION_CODE_ALREADY_EXISTS',
   },
   {
     field: 'name',
-    column: locations.name,
+    column: locationsTable.name,
     message: 'Location name already exists',
     code: 'LOCATION_NAME_ALREADY_EXISTS',
   },
@@ -60,7 +60,7 @@ export class LocationService {
       for (const d of data) {
         const metadata = stampCreate(d.createdBy)
         await db
-          .insert(locations)
+          .insert(locationsTable)
           .values({
             ...d,
             description: '',
@@ -68,7 +68,7 @@ export class LocationService {
             ...metadata,
           })
           .onConflictDoUpdate({
-            target: locations.code,
+            target: locationsTable.code,
             set: {
               name: d.name,
               type: d.type,
@@ -86,7 +86,7 @@ export class LocationService {
   async find(): Promise<LocationDto[]> {
     return record('LocationService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(locations).where(eq(locations.isActive, true)).orderBy(locations.name)
+        return db.select().from(locationsTable).where(eq(locationsTable.isActive, true)).orderBy(locationsTable.name)
       })
     })
   }
@@ -97,7 +97,7 @@ export class LocationService {
   async findById(id: number): Promise<LocationDto> {
     return record('LocationService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(locations).where(eq(locations.id, id))
+        const result = await db.select().from(locationsTable).where(eq(locationsTable.id, id))
         return takeFirstOrThrow(result, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
       })
     })
@@ -109,7 +109,7 @@ export class LocationService {
   async count(): Promise<number> {
     return record('LocationService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(locations)
+        const result = await db.select({ val: count() }).from(locationsTable)
         return result[0]?.val ?? 0
       })
     })
@@ -123,22 +123,22 @@ export class LocationService {
       const { search, type, isActive } = filter
 
       const where = and(
-        searchFilter(locations.name, search),
-        type ? eq(locations.type, type) : undefined,
-        typeof isActive === 'boolean' ? eq(locations.isActive, isActive) : undefined
+        searchFilter(locationsTable.name, search),
+        type ? eq(locationsTable.type, type) : undefined,
+        typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined
       )
 
       return paginate<LocationDto>({
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(locations)
+            .from(locationsTable)
             .where(where)
-            .orderBy(sortBy(locations.updatedAt, 'desc'))
+            .orderBy(sortBy(locationsTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(locations).where(where),
+        countQuery: db.select({ count: count() }).from(locationsTable).where(where),
       })
     })
   }
@@ -158,19 +158,19 @@ export class LocationService {
   async handleCreate(data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
     return record('LocationService.handleCreate', async () => {
       await checkConflict({
-        table: locations,
-        pkColumn: locations.id,
+        table: locationsTable,
+        pkColumn: locationsTable.id,
         fields: uniqueFields,
         input: data,
       })
 
       const [inserted] = await db
-        .insert(locations)
+        .insert(locationsTable)
         .values({
           ...data,
           ...stampCreate(actorId),
         })
-        .returning({ id: locations.id })
+        .returning({ id: locationsTable.id })
 
       if (!inserted) throw new Error('Failed to create location')
 
@@ -187,20 +187,20 @@ export class LocationService {
       const existing = await this.findById(id)
 
       await checkConflict({
-        table: locations,
-        pkColumn: locations.id,
+        table: locationsTable,
+        pkColumn: locationsTable.id,
         fields: uniqueFields,
         input: data,
         existing,
       })
 
       await db
-        .update(locations)
+        .update(locationsTable)
         .set({
           ...data,
           ...stampUpdate(actorId),
         })
-        .where(eq(locations.id, id))
+        .where(eq(locationsTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -212,7 +212,7 @@ export class LocationService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('LocationService.handleRemove', async () => {
-      const result = await db.delete(locations).where(eq(locations.id, id)).returning({ id: locations.id })
+      const result = await db.delete(locationsTable).where(eq(locationsTable.id, id)).returning({ id: locationsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -231,3 +231,4 @@ export class LocationService {
     ])
   }
 }
+

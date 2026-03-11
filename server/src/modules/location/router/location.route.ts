@@ -1,9 +1,9 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { authPluginMacro } from '@/lib/elysia/auth-plugin'
-import { res } from '@/lib/utils/response.util'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/lib/validation'
+import { authPluginMacro } from '@/core/http/auth-plugin'
+import { res } from '@/core/http/response'
+import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
 
 import { LocationFilterDto, LocationMutationDto } from '../dto'
 import type { LocationService } from '../service/location.service'

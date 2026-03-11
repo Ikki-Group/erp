@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { cache } from '@/lib/cache'
+import { cache } from '@/core/cache'
 import {
   checkConflict,
   paginate,
@@ -11,11 +11,11 @@ import {
   stampUpdate,
   takeFirstOrThrow,
   type ConflictField,
-} from '@/lib/db'
-import { NotFoundError } from '@/lib/error/http'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+} from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
-import { materialCategories } from '@/db/schema'
+import { materialCategoriesTable } from '@/db/schema'
 
 import { db } from '@/db'
 
@@ -31,7 +31,7 @@ const err = {
 const uniqueFields: ConflictField<'name'>[] = [
   {
     field: 'name',
-    column: materialCategories.name,
+    column: materialCategoriesTable.name,
     message: 'Material category name already exists',
     code: 'MATERIAL_CATEGORY_NAME_ALREADY_EXISTS',
   },
@@ -52,7 +52,7 @@ export class MaterialCategoryService {
   async find(): Promise<MaterialCategoryDto[]> {
     return record('MaterialCategoryService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(materialCategories).orderBy(materialCategories.name)
+        return db.select().from(materialCategoriesTable).orderBy(materialCategoriesTable.name)
       })
     })
   }
@@ -63,7 +63,7 @@ export class MaterialCategoryService {
   async findById(id: number): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.findById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(materialCategories).where(eq(materialCategories.id, id))
+        const result = await db.select().from(materialCategoriesTable).where(eq(materialCategoriesTable.id, id))
         return takeFirstOrThrow(result, `Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND')
       })
     })
@@ -75,7 +75,7 @@ export class MaterialCategoryService {
   async count(): Promise<number> {
     return record('MaterialCategoryService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(materialCategories)
+        const result = await db.select({ val: count() }).from(materialCategoriesTable)
         return result[0]?.val ?? 0
       })
     })
@@ -90,19 +90,19 @@ export class MaterialCategoryService {
   ): Promise<WithPaginationResult<MaterialCategoryDto>> {
     return record('MaterialCategoryService.handleList', async () => {
       const { search } = filter
-      const where = searchFilter(materialCategories.name, search)
+      const where = searchFilter(materialCategoriesTable.name, search)
 
       return paginate<MaterialCategoryDto>({
         data: ({ limit, offset }) =>
           db
             .select()
-            .from(materialCategories)
+            .from(materialCategoriesTable)
             .where(where)
-            .orderBy(sortBy(materialCategories.updatedAt, 'desc'))
+            .orderBy(sortBy(materialCategoriesTable.updatedAt, 'desc'))
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: count() }).from(materialCategories).where(where),
+        countQuery: db.select({ count: count() }).from(materialCategoriesTable).where(where),
       })
     })
   }
@@ -124,20 +124,20 @@ export class MaterialCategoryService {
       const name = data.name.trim()
 
       await checkConflict({
-        table: materialCategories,
-        pkColumn: materialCategories.id,
+        table: materialCategoriesTable,
+        pkColumn: materialCategoriesTable.id,
         fields: uniqueFields,
         input: { name },
       })
 
       const [inserted] = await db
-        .insert(materialCategories)
+        .insert(materialCategoriesTable)
         .values({
           ...data,
           name,
           ...stampCreate(actorId),
         })
-        .returning({ id: materialCategories.id })
+        .returning({ id: materialCategoriesTable.id })
 
       if (!inserted) throw new Error('Failed to create material category')
 
@@ -156,21 +156,21 @@ export class MaterialCategoryService {
       const name = data.name ? data.name.trim() : existing.name
 
       await checkConflict({
-        table: materialCategories,
-        pkColumn: materialCategories.id,
+        table: materialCategoriesTable,
+        pkColumn: materialCategoriesTable.id,
         fields: uniqueFields,
         input: { name },
         existing,
       })
 
       await db
-        .update(materialCategories)
+        .update(materialCategoriesTable)
         .set({
           ...data,
           name,
           ...stampUpdate(actorId),
         })
-        .where(eq(materialCategories.id, id))
+        .where(eq(materialCategoriesTable.id, id))
 
       void this.clearCache(id)
       return { id }
@@ -183,9 +183,9 @@ export class MaterialCategoryService {
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleRemove', async () => {
       const result = await db
-        .delete(materialCategories)
-        .where(eq(materialCategories.id, id))
-        .returning({ id: materialCategories.id })
+        .delete(materialCategoriesTable)
+        .where(eq(materialCategoriesTable.id, id))
+        .returning({ id: materialCategoriesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -204,3 +204,4 @@ export class MaterialCategoryService {
     ])
   }
 }
+

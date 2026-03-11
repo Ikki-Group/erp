@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/validation'
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -20,7 +20,7 @@ export const UomFilterDto = z.object({
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>
 
-/* --------------------------------- MUTATION --------------------------------- */
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const UomMutationDto = z.object({
   ...UomDto.pick({

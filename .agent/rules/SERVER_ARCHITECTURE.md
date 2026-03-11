@@ -42,9 +42,10 @@ Exception: `tool` module may skip `dto/` if it has no API contracts.
 
 ```
 Layer 0 (Core):       location, product         ← ZERO dependencies
-Layer 1 (Masters):    iam, materials             ← May depend on Layer 0 only
-Layer 2 (Operations): inventory, recipe          ← May depend on Layer 0 + Layer 1
-Layer 3 (Aggregators): dashboard, tool           ← May depend on any layer
+Layer 1 (Masters):    iam, materials            ← May depend on Layer 0 only
+Layer 1.5 (Security): auth                      ← May depend on Layer 1 (iam)
+Layer 2 (Operations): inventory, recipe         ← May depend on Layer 0 + Layer 1
+Layer 3 (Aggregators): dashboard, tool          ← May depend on any layer
 ```
 
 ### Import Rules
@@ -175,7 +176,7 @@ export function initEntityRoute(s: DomainServiceModule) {
         ...zHttp.pagination.shape,
         search: zHttp.query.search,
       }),
-      response: zResponse.paginated(EntitySelectDto.array()),
+      response: zResponse.paginated(EntityOutputDto.array()),
       auth: true,
     },
   )
@@ -193,14 +194,14 @@ export const EntityDto = z.object({ ... })
 // 2. Filter DTO (query params for list)
 export const EntityFilterDto = z.object({ ... })
 
-// 3. Select DTO (API response — may omit/add fields)
-export const EntitySelectDto = z.object({ ... })
+// 3. Output DTO (API response — what the client receives)
+export const EntityOutputDto = z.object({ ... })
 
 // 4. Create DTO (input for creation)
 export const EntityCreateDto = z.object({ ... })
 
-// 5. Update DTO (input for update — usually partial of Create)
-export const EntityUpdateDto = EntityCreateDto.partial()
+// 5. Update DTO (input for update)
+export const EntityUpdateDto = z.object({ ... })
 ```
 
 Always export both schema AND type:
@@ -212,7 +213,7 @@ export type EntityDto = z.infer<typeof EntityDto>
 
 ## Shared Validators
 
-Use centralized validators from `lib/validation/`:
+Use centralized validators from `core/validation/`:
 
 - `zPrimitive` — base types (id, str, email, password, bool, num, date)
 - `zHttp` — HTTP helpers (pagination, query params, recordId)
