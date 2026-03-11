@@ -1,18 +1,19 @@
 import {
-  ActivityIcon,
+  BanknoteIcon,
   BarChart3Icon,
+  BookOpenIcon,
   BoxIcon,
   CirclePileIcon,
-  ClipboardListIcon,
   FactoryIcon,
-  HomeIcon,
-  LayoutTemplateIcon,
-  MapPinIcon,
+  FingerprintIcon,
+  LayoutDashboardIcon,
   PackageIcon,
   Settings2Icon,
   ShoppingBagIcon,
+  ShoppingBasketIcon,
   ShoppingCartIcon,
   UsersIcon,
+  WarehouseIcon,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -38,31 +39,35 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
         {
           title: 'Dashboard',
           href: '/',
-          icon: HomeIcon,
+          icon: LayoutDashboardIcon,
           isActive: pathname === '/',
         },
         {
-          title: 'Analitik & Laporan',
+          title: 'Laporan & Analitik',
           href: '/analytics',
           icon: BarChart3Icon,
-          isHide: false,
           children: [
+            {
+              title: 'Laporan Penjualan',
+              href: '/analytics/sales',
+              isActive: pathname === '/analytics/sales',
+            },
             {
               title: 'Laporan Stok',
               href: '/analytics/stock',
               isActive: pathname === '/analytics/stock',
             },
             {
-              title: 'Laporan Produksi',
-              href: '/analytics/production',
-              isActive: pathname === '/analytics/production',
+              title: 'Laporan Keuangan',
+              href: '/analytics/finance',
+              isActive: pathname === '/analytics/finance',
             },
           ],
         },
       ],
     },
     {
-      label: 'Operasional',
+      label: 'Komersial & Outlet',
       items: [
         {
           title: 'Penjualan',
@@ -70,19 +75,68 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: ShoppingCartIcon,
           children: [
             {
-              title: 'Pesanan Penjualan',
+              title: 'Transaksi Penjualan',
               href: '/sales/orders',
               isActive: pathname.startsWith('/sales/orders'),
             },
             {
-              title: 'Pelanggan',
+              title: 'Daftar Pelanggan',
               href: '/sales/customers',
               isActive: pathname.startsWith('/sales/customers'),
             },
           ],
         },
         {
-          title: 'Pembelian',
+          title: 'Integrasi POS (Moka)',
+          href: '/moka',
+          icon: ShoppingBasketIcon,
+          children: [
+            {
+              title: 'Monitoring Moka',
+              href: '/moka/monitoring',
+              isActive: pathname.startsWith('/moka/monitoring'),
+            },
+            {
+              title: 'Sync Produk Moka',
+              href: '/moka/sync',
+              isActive: pathname.startsWith('/moka/sync'),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: 'Manajemen Stok',
+      items: [
+        {
+          title: 'Inventori & Logistik',
+          href: '/inventory',
+          icon: BoxIcon,
+          children: [
+            {
+              title: 'Stok per Lokasi',
+              href: '/inventory/summary',
+              isActive: pathname.startsWith('/inventory/summary'),
+            },
+            {
+              title: 'Alokasi Bahan',
+              href: '/inventory/assignment',
+              isActive: pathname.startsWith('/inventory/assignment'),
+            },
+            {
+              title: 'Transfer & Mutasi',
+              href: '/inventory/transactions',
+              isActive: pathname.startsWith('/inventory/transactions'),
+            },
+            {
+              title: 'Penyesuaian (Opname)',
+              href: '/inventory/adjustment',
+              isActive: pathname.startsWith('/inventory/adjustment'),
+            },
+          ],
+        },
+        {
+          title: 'Pembelian (PO)',
           href: '/procurement',
           icon: ShoppingBagIcon,
           children: [
@@ -92,12 +146,17 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
               isActive: pathname.startsWith('/procurement/orders'),
             },
             {
-              title: 'Supplier',
+              title: 'Daftar Supplier',
               href: '/procurement/suppliers',
               isActive: pathname.startsWith('/procurement/suppliers'),
             },
           ],
         },
+      ],
+    },
+    {
+      label: 'Operasional',
+      items: [
         {
           title: 'Produksi',
           href: '/production',
@@ -115,124 +174,77 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
             },
           ],
         },
+        {
+          title: 'Keuangan',
+          href: '/finance',
+          icon: BanknoteIcon,
+          children: [
+            {
+              title: 'Kas & Bank',
+              href: '/finance/accounts',
+              isActive: pathname.startsWith('/finance/accounts'),
+            },
+            {
+              title: 'Hutang & Piutang',
+              href: '/finance/ledger',
+              isActive: pathname.startsWith('/finance/ledger'),
+            },
+            {
+              title: 'Pengeluaran (Biaya)',
+              href: '/finance/expenses',
+              isActive: pathname.startsWith('/finance/expenses'),
+            },
+          ],
+        },
+        {
+          title: 'Karyawan',
+          href: '/employees',
+          icon: UsersIcon,
+          children: [
+            {
+              title: 'Daftar Staff',
+              href: '/employees/list',
+              isActive: pathname.startsWith('/employees/list'),
+            },
+            {
+              title: 'Absensi & Jadwal',
+              href: '/employees/attendance',
+              isActive: pathname.startsWith('/employees/attendance'),
+            },
+          ],
+        },
       ],
     },
     {
-      label: 'Sistem POS (Moka)',
+      label: 'Data Master (Global)',
       items: [
         {
-          title: 'Monitoring Moka',
-          href: '/moka/monitoring',
-          icon: ActivityIcon,
-          isActive: pathname.startsWith('/moka/monitoring'),
-        },
-        {
-          title: 'Produk',
+          title: 'Katalog Produk',
           href: '/products',
           icon: PackageIcon,
           isActive: pathname.startsWith('/products'),
-          children: [
-            {
-              title: 'Daftar Produk',
-              href: '/products',
-              isActive: pathname === '/products',
-            },
-            {
-              title: 'Kategori Produk',
-              href: '/products/category',
-              isActive: pathname === '/products/category',
-            },
-            {
-              title: 'Jenis Penjualan',
-              href: '/products/sales-type',
-              isActive: pathname === '/products/sales-type',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      label: 'Logistik',
-      items: [
-        {
-          title: 'Inventori',
-          href: '/inventory',
-          icon: BoxIcon,
-          isActive: pathname.startsWith('/inventory'),
-          children: [
-            {
-              title: 'Daftar Stok',
-              href: '/inventory/summary',
-              isActive: pathname.startsWith('/inventory/summary'),
-            },
-            {
-              title: 'Riwayat Transaksi',
-              href: '/inventory/transactions',
-              isActive: pathname === '/inventory/transactions',
-            },
-            {
-              title: 'Penyesuaian (Adj)',
-              href: '/inventory/transactions/adjustment',
-              isActive: pathname.startsWith(
-                '/inventory/transactions/adjustment'
-              ),
-            },
-            {
-              title: 'Transfer Barang',
-              href: '/inventory/transactions/transfer',
-              isActive: pathname.startsWith('/inventory/transactions/transfer'),
-            },
-          ],
         },
         {
-          title: 'Bahan Baku',
+          title: 'Bahan Baku Global',
           href: '/materials',
           icon: CirclePileIcon,
-          isActive: pathname.startsWith('/materials'),
           children: [
             {
-              title: 'Daftar Bahan Baku',
+              title: 'Daftar Bahan',
               href: '/materials',
               isActive: pathname === '/materials',
             },
             {
-              title: 'Stok per Lokasi',
-              href: '/materials/stock',
-              isActive: pathname.startsWith('/materials/stock'),
-            },
-            {
-              title: 'Ledger Stok',
-              href: '/materials/ledger',
-              isActive: pathname.startsWith('/materials/ledger'),
-            },
-          ],
-        },
-      ],
-    },
-    {
-      label: 'Data Master',
-      items: [
-        {
-          title: 'Konfigurasi Bahan',
-          href: '/materials/master',
-          icon: ClipboardListIcon,
-          children: [
-            {
-              title: 'Kategori Bahan',
-              href: '/materials/category',
-              isActive: pathname.startsWith('/materials/category'),
-            },
-            {
-              title: 'Satuan (UoM)',
-              href: '/materials/uom',
-              isActive: pathname.startsWith('/materials/uom'),
+              title: 'Kategori & UoM',
+              href: '/materials/config',
+              isActive: pathname.startsWith('/materials/config'),
             },
           ],
         },
         {
-          title: 'Lokasi & Gudang',
+          title: 'Lokasi & Outlet',
           href: '/locations',
-          icon: MapPinIcon,
+          icon: WarehouseIcon,
           isActive: pathname.startsWith('/locations'),
         },
       ],
@@ -241,53 +253,25 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
       label: 'Sistem',
       items: [
         {
-          title: 'Manajemen User',
-          href: '/settings/user',
-          icon: UsersIcon,
-          isActive: pathname.startsWith('/settings/user'),
+          title: 'Akses & Keamanan',
+          href: '/settings/iam',
+          icon: FingerprintIcon,
+          isActive: pathname.startsWith('/settings/iam'),
         },
         {
           title: 'Pengaturan App',
           href: '/settings',
           icon: Settings2Icon,
-          isActive:
-            pathname.startsWith('/settings') &&
-            !pathname.startsWith('/settings/user'),
+          isActive: pathname === '/settings',
         },
-      ],
-    },
-    {
-      label: 'Bantuan',
-      items: [
         {
-          title: 'Dokumentasi',
+          title: 'Bantuan',
           href: '/docs',
-          icon: ClipboardListIcon,
-        },
-        {
-          title: 'Examples',
-          href: '/examples',
-          icon: LayoutTemplateIcon,
-          isActive: pathname.startsWith('/examples'),
-          children: [
-            {
-              title: 'Table Layout',
-              href: '/examples/table',
-              isActive: pathname.startsWith('/examples/table'),
-            },
-            {
-              title: 'Form Layout',
-              href: '/examples/form',
-              isActive: pathname.startsWith('/examples/form'),
-            },
-            {
-              title: 'Detail Layout',
-              href: '/examples/detail',
-              isActive: pathname.startsWith('/examples/detail'),
-            },
-          ],
+          icon: BookOpenIcon,
         },
       ],
     },
   ]
 }
+
+
