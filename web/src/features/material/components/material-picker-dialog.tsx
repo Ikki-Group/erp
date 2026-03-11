@@ -2,6 +2,7 @@ import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { materialApi } from '..'
 import type { MaterialOutputDto } from '..'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,7 +14,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { materialApi } from '..'
 import { Badge } from '@/components/ui/badge'
 
 interface MaterialPickerDialogProps {
