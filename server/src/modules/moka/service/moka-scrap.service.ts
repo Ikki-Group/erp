@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Logger } from 'pino'
 
 import type { MokaConfigurationDto } from '../dto/moka-configuration.dto'
 import type { MokaTriggerInputDto } from '../dto/moka.dto'
 
-import { MokaAuthService } from './engine/moka-auth.service'
-import { MokaCategoryService } from './engine/moka-category.service'
-import { MokaProductService } from './engine/moka-product.service'
-import { MokaSalesService } from './engine/moka-sales.service'
+import { MokaAuthEngine } from './engine/moka-auth.service'
+import { MokaCategoryEngine } from './engine/moka-category.service'
+import { MokaProductEngine } from './engine/moka-product.service'
+import { MokaSalesEngine } from './engine/moka-sales.service'
 import type { MokaConfigurationService } from './moka-configuration.service'
 import type { MokaScrapHistoryService } from './moka-scrap-history.service'
 import type { MokaTransformationService } from './moka-transformation.service'
@@ -50,7 +51,7 @@ export class MokaScrapService {
     input: MokaTriggerInputDto,
     actorId: number
   ) {
-    const auth = new MokaAuthService(this.logger, {
+    const auth = new MokaAuthEngine(this.logger, {
       email: config.email,
       password: config.password,
     })
@@ -59,28 +60,32 @@ export class MokaScrapService {
       await auth.ensureAuthenticated()
 
       await this.configSvc.updateAuthData(config.id, {
-        businessId: auth.mokaBusinessId ?? null,
-        outletId: auth.mokaOutletId ?? null,
-        accessToken: auth.token ?? null,
+        businessId: null, // MokaAuthEngine doesn't provide businessId anymore, or we can get it from outlets[0]
+        outletId: auth.mokaOutletId,
+        accessToken: auth.token,
       })
 
       if (input.type === 'category') {
-        const engine = new MokaCategoryService(auth, this.logger)
-        const categories = await engine.fetchCategories()
+        const engine = new MokaCategoryEngine(auth, this.logger)
+        const categories = await engine.fetch()
         await this.transformSvc.transformCategories(config.locationId, categories, actorId)
         await this.historySvc.updateStatus(historyId, 'completed', {
           metadata: { count: categories.length },
         })
       } else if (input.type === 'product') {
-        const engine = new MokaProductService(auth, this.logger)
-        const products = await engine.fetchProducts()
+        const engine = new MokaProductEngine(auth, this.logger)
+        const products = await engine.fetch()
         await this.transformSvc.transformProducts(config.locationId, products, actorId)
         await this.historySvc.updateStatus(historyId, 'completed', {
           metadata: { count: products.length },
         })
       } else if (input.type === 'sales') {
-        const engine = new MokaSalesService(auth, this.logger)
-        const sales = await engine.fetchSales(input.dateFrom || new Date(), input.dateTo || new Date())
+        const engine = new MokaSalesEngine(auth, this.logger, {
+          from: input.dateFrom || new Date(),
+          to: input.dateTo || new Date(),
+        })
+        const sales = await engine.fetch()
+        // TODO: Transform sales data
         await this.historySvc.updateStatus(historyId, 'completed', {
           metadata: { count: sales.length },
         })

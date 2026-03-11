@@ -1,24 +1,24 @@
-import type { Logger } from 'pino'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { MokaCategoryRaw } from '../../dto/moka-raw.types'
+import { MokaCategoryRawSchema } from '../../dto/moka.dto'
 
-import type { MokaAuthService } from './moka-auth.service'
+import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
-export interface MokaCategoryRaw {
-  id: number
-  name: string
-  // ... other fields
-}
-
-export class MokaCategoryService {
-  constructor(
-    private readonly auth: MokaAuthService,
-    private readonly logger: Logger
-  ) {}
-
-  async fetchCategories(): Promise<MokaCategoryRaw[]> {
+export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<MokaCategoryRaw> {
+  async fetch(): Promise<MokaCategoryRaw[]> {
     this.logger.info('Fetching categories from Moka')
-    const response = await this.auth.fetch('https://backoffice.mokapos.com/api/v2/categories')
-    if (!response.ok) throw new Error('Failed to fetch Moka categories')
-    const data: any = await response.json()
-    return data.categories || []
+    const api = await this.getApi()
+
+    try {
+      const response = await api.get('/api/v2/categories', {
+        headers: this.getHeaders('AUTHENTICATED'),
+      })
+
+      const categories = response.data.categories || []
+      return categories.map((cat: any) => MokaCategoryRawSchema.parse(cat))
+    } catch (error: any) {
+      this.logger.error({ err: error.message }, 'Failed to fetch Moka categories')
+      throw error
+    }
   }
 }

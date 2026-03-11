@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface MokaSalesDetailRaw {
   id: number
   uuid: string
@@ -45,6 +46,7 @@ export interface MokaSalesDetailRaw {
   guid: string
   bill_created_at: string
   items: MokaSalesItemRaw[]
+  order_items?: Record<string, MokaSalesItemRaw[]>
 }
 
 export interface MokaSalesItemRaw {
@@ -62,5 +64,52 @@ export interface MokaSalesItemRaw {
   redeem_amount: number
   is_program_item: boolean
   item_type: string
-  modifiers: any[]
+  modifiers: MokaModifierRaw[]
+}
+
+export interface MokaModifierRaw {
+  id: number
+  uuid: string
+  created_at: string
+  updated_at: any
+  gross_sales: number
+  net_sales: number
+  modifier_id: number
+  discount_amount: number
+  modifier_option_name: string
+  price: number
+  modifier_name: string
+  modifier_option_id: number
+  cogs: number
+  redeem_amount: number
+  discounts: any[]
+}
+
+export interface MokaCategoryRaw {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MokaProductRaw {
+  id: number
+  name: string
+  category_name: string | null
+  item_variants: Array<{
+    id: number
+    name: string
+    price: number
+    sku: string | null
+  }>
+}
+
+export interface MokaLoginResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  outlets: Array<{
+    id: number
+    name: string
+  }>
 }

@@ -5,8 +5,7 @@ import { productCategoriesTable, productExternalMappingsTable, productsTable, pr
 import { stampCreate, takeFirst } from '@/core/database'
 import { db } from '@/db'
 
-import type { MokaCategoryRaw } from './engine/moka-category.service'
-import type { MokaProductRaw } from './engine/moka-product.service'
+import type { MokaCategoryRaw, MokaProductRaw } from '../dto/moka-raw.types'
 
 export class MokaTransformationService {
   async transformCategories(_locationId: number, categories: MokaCategoryRaw[], actorId: number) {
