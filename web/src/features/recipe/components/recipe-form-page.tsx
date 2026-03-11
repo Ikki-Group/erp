@@ -1,14 +1,12 @@
 import { formOptions, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-form-adapter'
 import { ChefHatIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import type { z } from 'zod'
-
-import type { RecipeSelectDto } from '@/features/recipe'
 import type { LinkOptions } from '@tanstack/react-router'
+
 import {
   FormConfig,
   useAppForm,
@@ -22,12 +20,13 @@ import { Page } from '@/components/layout/page'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
-import { RecipeMutationDto, recipeApi } from '@/features/recipe'
+import { RecipeMutationDto, recipeApi } from '..'
+import type { RecipeOutputDto } from '..'
 
 type RecipeMutation = z.infer<typeof RecipeMutationDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: zodValidator(RecipeMutationDto) },
+  validators: { onSubmit: RecipeMutationDto as any },
   defaultValues: {
     materialId: null,
     productId: null,
@@ -40,7 +39,7 @@ const fopts = formOptions({
 })
 
 function getDefaultValues(
-  v?: RecipeSelectDto,
+  v?: RecipeOutputDto,
   target?: {
     materialId?: number | null
     productId?: number | null
@@ -356,7 +355,7 @@ function RecipeItemRow({
   })
 
   const { data: allUoms } = useQuery({
-    ...uomApi.list.query({ params: { page: 1, limit: 100 } }),
+    ...uomApi.list.query({ page: 1, limit: 100 }),
     enabled: !!materialId,
   })
 
@@ -393,7 +392,7 @@ function RecipeItemRow({
                 placeholder='Tambahkan catatan (pilihan)...'
                 value={field.state.value || ''}
                 onChange={e => {
-                  field.handleChange(e.target.value)
+                  ;(field as any).handleChange(e.target.value)
                   e.target.style.height = 'inherit'
                   e.target.style.height = `${e.target.scrollHeight}px`
                 }}

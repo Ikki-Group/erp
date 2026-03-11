@@ -30,7 +30,7 @@ export type UserDto = z.infer<typeof UserDto>
 
 export const UserFilterDto = z.object({
   search: zHttp.query.search,
-  isActive: zHttp.query.boolean,
+  isActive: zHttp.query.boolean.optional(),
 })
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>

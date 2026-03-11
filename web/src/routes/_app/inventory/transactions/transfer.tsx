@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_app/inventory/transactions/transfer')({
 })
 
 const fopts = formOptions({
-  validators: { onSubmit: TransferTransactionDto },
+  validators: { onSubmit: TransferTransactionDto as any },
   defaultValues: {
     sourceLocationId: undefined as any,
     destinationLocationId: undefined as any,
@@ -109,7 +109,7 @@ function TransferInfoCard() {
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => String(loc.id)}
+              getValue={(loc: any) => loc.id}
             />
           )}
         </form.AppField>
@@ -128,7 +128,7 @@ function TransferInfoCard() {
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => String(loc.id)}
+              getValue={(loc: any) => loc.id}
             />
           )}
         </form.AppField>
@@ -189,7 +189,7 @@ function TransferItemsCard() {
                             if (!sourceLocationId) return []
                             const res = await materialLocationApi.stock.fetch({
                               params: {
-                                locationId: String(sourceLocationId),
+                                locationId: sourceLocationId,
                                 page: 1,
                                 limit: 20,
                                 search: search || undefined,

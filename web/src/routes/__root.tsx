@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes'
 import type { RouteContext } from '@/lib/tanstack-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
-import { authApi } from '@/features/iam'
+import { authApi } from '@/features/auth'
 import { useAppState } from '@/hooks/use-app-state'
 import { ApiError } from '@/lib/api'
 

@@ -1,8 +1,8 @@
 import z from 'zod'
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
-import { LocationDto } from '@/features/location/dto'
-import { RecipeDto } from '@/features/recipe/dto'
+import { LocationDto } from '@/features/location'
+import { RecipeDto } from '@/features/recipe'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */

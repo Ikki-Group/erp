@@ -26,7 +26,7 @@ const FormDto = z.object({
 type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: FormDto },
+  validators: { onSubmit: FormDto as any },
   defaultValues: {} as FormDto,
 })
 
@@ -65,15 +65,13 @@ export const SalesTypeFormDialog = createCallable<SalesTypeFormDialogProps>(
       onSubmit: async ({ value }) => {
         const promise = isCreate
           ? create.mutateAsync({
-              body: {
-                ...value,
-              },
+              body: value as any,
             })
           : update.mutateAsync({
               body: {
                 id,
                 ...value,
-              },
+              } as any,
             })
 
         await toast

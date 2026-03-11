@@ -1,6 +1,6 @@
 import z from 'zod'
 import { UomDto } from './uom.dto'
-import { LocationDto } from '@/features/location/dto'
+import { LocationDto } from '@/features/location'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */

@@ -26,7 +26,7 @@ export const Route = createFileRoute('/_app/inventory/transactions/adjustment')(
 )
 
 const fopts = formOptions({
-  validators: { onSubmit: AdjustmentTransactionDto },
+  validators: { onSubmit: AdjustmentTransactionDto as any },
   defaultValues: {
     locationId: undefined as any,
     date: new Date(),
@@ -105,7 +105,7 @@ function AdjustmentInfoCard() {
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => String(loc.id)}
+              getValue={(loc: any) => loc.id}
             />
           )}
         </form.AppField>
@@ -163,7 +163,7 @@ function AdjustmentItemsCard() {
                             if (!locationId) return []
                             const res = await materialLocationApi.stock.fetch({
                               params: {
-                                locationId: String(locationId),
+                                locationId: locationId,
                                 page: 1,
                                 limit: 20,
                                 search: search || undefined,
@@ -174,7 +174,7 @@ function AdjustmentItemsCard() {
                           getLabel={(mat: any) =>
                             `${mat.materialName} (${mat.materialSku})`
                           }
-                          getValue={(mat: any) => String(mat.materialId)}
+                          getValue={(mat: any) => mat.materialId}
                         />
                       )}
                     </form.AppField>

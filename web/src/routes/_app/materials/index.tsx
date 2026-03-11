@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
+import type { MaterialFilterDto, MaterialOutputDto } from '@/features/material'
 
 import {
   MaterialAssignToLocationDialog,
@@ -164,7 +164,7 @@ function MaterialTable() {
   )
 }
 
-const ch = createColumnHelper<MaterialSelectDto>()
+const ch = createColumnHelper<MaterialOutputDto>()
 function getColumns() {
   return [
     ch.display({
@@ -228,7 +228,7 @@ function getColumns() {
     ch.accessor('type', {
       header: 'Jenis',
       cell: ({ row }) => (
-        <BadgeDot {...MaterialBadgeProps[row.original.type]} />
+        <BadgeDot {...(MaterialBadgeProps as any)[row.original.type]} />
       ),
       size: 160,
     }),

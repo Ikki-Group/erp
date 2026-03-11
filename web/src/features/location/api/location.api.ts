@@ -1,5 +1,5 @@
 import z from 'zod'
-import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto/location.dto'
+import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 import { endpoint } from '@/config/endpoint'

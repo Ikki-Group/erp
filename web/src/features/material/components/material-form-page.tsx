@@ -12,7 +12,7 @@ import {
 import { useMemo } from 'react'
 import { materialApi, materialCategoryApi, uomApi } from '../api'
 import { MaterialType } from '../dto'
-import type { MaterialSelectDto } from '../dto'
+import type { MaterialOutputDto } from '../dto'
 import type { LinkOptions } from '@tanstack/react-router'
 import { Page } from '@/components/layout/page'
 import {
@@ -59,7 +59,7 @@ const fopts = formOptions({
  * @param v - Optional existing material data to derive default values from
  * @returns A FormDto populated from `v` when present, otherwise containing empty/default values. Conversions are copied from `v.conversions` when available.
  */
-function getDefaultValues(v?: MaterialSelectDto): FormDto {
+function getDefaultValues(v?: MaterialOutputDto): FormDto {
   const conversions: FormDto['conversions'] = []
 
   if (v?.conversions.length) {
