@@ -53,7 +53,7 @@ export {
   salesTypesTable,
   variantPricesTable,
 } from './product'
-export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
+export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaScrapStatusEnum, mokaScrapTypeEnum } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
 export {
   salesExternalRefsTable,

@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "685189a4-f7da-4e10-913e-aaceca3067db",
+  "id": "8aad25e6-5d2f-45b7-96ac-7894b48a7754",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -21,6 +21,27 @@
         "semi"
       ],
       "name": "material_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "name": "moka_scrap_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "sales",
+        "product",
+        "category"
+      ],
+      "name": "moka_scrap_type",
       "entityType": "enums",
       "schema": "public"
     },

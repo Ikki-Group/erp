@@ -1,5 +1,7 @@
 CREATE TYPE "location_type" AS ENUM('store', 'warehouse');--> statement-breakpoint
 CREATE TYPE "material_type" AS ENUM('raw', 'semi');--> statement-breakpoint
+CREATE TYPE "moka_scrap_status" AS ENUM('pending', 'processing', 'completed', 'failed');--> statement-breakpoint
+CREATE TYPE "moka_scrap_type" AS ENUM('sales', 'product', 'category');--> statement-breakpoint
 CREATE TYPE "product_status" AS ENUM('active', 'inactive', 'archived');--> statement-breakpoint
 CREATE TYPE "sales_order_status" AS ENUM('open', 'closed', 'void');--> statement-breakpoint
 CREATE TYPE "transaction_type" AS ENUM('purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell');--> statement-breakpoint
