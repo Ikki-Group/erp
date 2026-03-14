@@ -1,35 +1,57 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "a492b6ad-c3f8-4ced-8757-aa60bff765b2",
-  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "id": "685189a4-f7da-4e10-913e-aaceca3067db",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
-      "values": ["store", "warehouse"],
+      "values": [
+        "store",
+        "warehouse"
+      ],
       "name": "location_type",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["raw", "semi"],
+      "values": [
+        "raw",
+        "semi"
+      ],
       "name": "material_type",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["active", "inactive", "archived"],
+      "values": [
+        "active",
+        "inactive",
+        "archived"
+      ],
       "name": "product_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["open", "closed", "void"],
+      "values": [
+        "open",
+        "closed",
+        "void"
+      ],
       "name": "sales_order_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["purchase", "transfer_in", "transfer_out", "adjustment", "sell"],
+      "values": [
+        "purchase",
+        "transfer_in",
+        "transfer_out",
+        "adjustment",
+        "sell"
+      ],
       "name": "transaction_type",
       "entityType": "enums",
       "schema": "public"
@@ -5948,10 +5970,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_conversions_materialId_materials_id_fkey",
@@ -5961,10 +5987,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["uomId"],
+      "columns": [
+        "uomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_conversions_uomId_uoms_id_fkey",
@@ -5974,10 +6004,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_locations_materialId_materials_id_fkey",
@@ -5987,10 +6021,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_locations_locationId_locations_id_fkey",
@@ -6000,10 +6038,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["categoryId"],
+      "columns": [
+        "categoryId"
+      ],
       "schemaTo": "public",
       "tableTo": "material_categories",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "materials_categoryId_material_categories_id_fkey",
@@ -6013,10 +6055,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["baseUomId"],
+      "columns": [
+        "baseUomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "materials_baseUomId_uoms_id_fkey",
@@ -6026,10 +6072,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_productId_products_id_fkey",
@@ -6039,10 +6089,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["variantId"],
+      "columns": [
+        "variantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_variantId_product_variants_id_fkey",
@@ -6052,10 +6106,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_prices_productId_products_id_fkey",
@@ -6065,10 +6123,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["salesTypeId"],
+      "columns": [
+        "salesTypeId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "product_prices_salesTypeId_sales_types_id_fkey",
@@ -6078,10 +6140,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_variants_productId_products_id_fkey",
@@ -6091,10 +6157,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "products_locationId_locations_id_fkey",
@@ -6104,10 +6174,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["categoryId"],
+      "columns": [
+        "categoryId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_categories",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "products_categoryId_product_categories_id_fkey",
@@ -6117,10 +6191,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["recipeId"],
+      "columns": [
+        "recipeId"
+      ],
       "schemaTo": "public",
       "tableTo": "recipes",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipe_items_recipeId_recipes_id_fkey",
@@ -6130,10 +6208,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_materialId_materials_id_fkey",
@@ -6143,10 +6225,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["uomId"],
+      "columns": [
+        "uomId"
+      ],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_uomId_uoms_id_fkey",
@@ -6156,10 +6242,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_materialId_materials_id_fkey",
@@ -6169,10 +6259,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productId_products_id_fkey",
@@ -6182,10 +6276,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productVariantId"],
+      "columns": [
+        "productVariantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productVariantId_product_variants_id_fkey",
@@ -6195,10 +6293,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["orderId"],
+      "columns": [
+        "orderId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_external_refs_orderId_sales_orders_id_fkey",
@@ -6208,10 +6310,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["orderId"],
+      "columns": [
+        "orderId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_order_batches_orderId_sales_orders_id_fkey",
@@ -6221,10 +6327,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["orderId"],
+      "columns": [
+        "orderId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_order_items_orderId_sales_orders_id_fkey",
@@ -6234,10 +6344,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["batchId"],
+      "columns": [
+        "batchId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_order_batches",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_batchId_sales_order_batches_id_fkey",
@@ -6247,10 +6361,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["productId"],
+      "columns": [
+        "productId"
+      ],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_productId_products_id_fkey",
@@ -6260,10 +6378,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["variantId"],
+      "columns": [
+        "variantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_variantId_product_variants_id_fkey",
@@ -6273,10 +6395,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sales_orders_locationId_locations_id_fkey",
@@ -6286,10 +6412,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["salesTypeId"],
+      "columns": [
+        "salesTypeId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sales_orders_salesTypeId_sales_types_id_fkey",
@@ -6299,10 +6429,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["orderId"],
+      "columns": [
+        "orderId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_voids_orderId_sales_orders_id_fkey",
@@ -6312,10 +6446,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["itemId"],
+      "columns": [
+        "itemId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_order_items",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_voids_itemId_sales_order_items_id_fkey",
@@ -6325,10 +6463,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["userId"],
+      "columns": [
+        "userId"
+      ],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_userId_users_id_fkey",
@@ -6338,10 +6480,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_materialId_materials_id_fkey",
@@ -6351,10 +6497,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_locationId_locations_id_fkey",
@@ -6364,10 +6514,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["materialId"],
+      "columns": [
+        "materialId"
+      ],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_materialId_materials_id_fkey",
@@ -6377,10 +6531,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_locationId_locations_id_fkey",
@@ -6390,10 +6548,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["counterpartLocationId"],
+      "columns": [
+        "counterpartLocationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_counterpartLocationId_locations_id_fkey",
@@ -6403,10 +6565,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["userId"],
+      "columns": [
+        "userId"
+      ],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_assignments_userId_users_id_fkey",
@@ -6416,10 +6582,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["roleId"],
+      "columns": [
+        "roleId"
+      ],
       "schemaTo": "public",
       "tableTo": "roles",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_roleId_roles_id_fkey",
@@ -6429,10 +6599,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["locationId"],
+      "columns": [
+        "locationId"
+      ],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_locationId_locations_id_fkey",
@@ -6442,10 +6616,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["variantId"],
+      "columns": [
+        "variantId"
+      ],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "variant_prices_variantId_product_variants_id_fkey",
@@ -6455,10 +6633,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["salesTypeId"],
+      "columns": [
+        "salesTypeId"
+      ],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "variant_prices_salesTypeId_sales_types_id_fkey",
@@ -6467,7 +6649,9 @@
       "table": "variant_prices"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "locations_pkey",
       "schema": "public",
@@ -6475,7 +6659,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_categories_pkey",
       "schema": "public",
@@ -6483,7 +6669,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_conversions_pkey",
       "schema": "public",
@@ -6491,7 +6679,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "material_locations_pkey",
       "schema": "public",
@@ -6499,7 +6689,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "materials_pkey",
       "schema": "public",
@@ -6507,7 +6699,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "moka_configurations_pkey",
       "schema": "public",
@@ -6515,7 +6709,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "moka_scrap_histories_pkey",
       "schema": "public",
@@ -6523,7 +6719,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_categories_pkey",
       "schema": "public",
@@ -6531,7 +6729,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_external_mappings_pkey",
       "schema": "public",
@@ -6539,7 +6739,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_prices_pkey",
       "schema": "public",
@@ -6547,7 +6749,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "product_variants_pkey",
       "schema": "public",
@@ -6555,7 +6759,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "products_pkey",
       "schema": "public",
@@ -6563,7 +6769,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "recipe_items_pkey",
       "schema": "public",
@@ -6571,7 +6779,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "recipes_pkey",
       "schema": "public",
@@ -6579,7 +6789,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "roles_pkey",
       "schema": "public",
@@ -6587,7 +6799,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_external_refs_pkey",
       "schema": "public",
@@ -6595,7 +6809,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_order_batches_pkey",
       "schema": "public",
@@ -6603,7 +6819,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_order_items_pkey",
       "schema": "public",
@@ -6611,7 +6829,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_orders_pkey",
       "schema": "public",
@@ -6619,7 +6839,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_types_pkey",
       "schema": "public",
@@ -6627,7 +6849,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sales_voids_pkey",
       "schema": "public",
@@ -6635,7 +6859,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "public",
@@ -6643,7 +6869,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "stock_summaries_pkey",
       "schema": "public",
@@ -6651,7 +6879,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "stock_transactions_pkey",
       "schema": "public",
@@ -6659,7 +6889,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "uoms_pkey",
       "schema": "public",
@@ -6667,7 +6899,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "user_assignments_pkey",
       "schema": "public",
@@ -6675,7 +6909,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
@@ -6683,7 +6919,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "variant_prices_pkey",
       "schema": "public",
