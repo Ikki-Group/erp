@@ -23,6 +23,13 @@ import {
 } from './product'
 import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 import { recipeItemsTable, recipesTable } from './recipe'
+import {
+  salesExternalRefsTable,
+  salesOrderBatchesTable,
+  salesOrderItemsTable,
+  salesOrdersTable,
+  salesVoidsTable,
+} from './sales'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -48,6 +55,14 @@ export {
 } from './product'
 export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
+export {
+  salesExternalRefsTable,
+  salesOrderBatchesTable,
+  salesOrderItemsTable,
+  salesOrdersTable,
+  salesOrderStatusEnum,
+  salesVoidsTable,
+} from './sales'
 export * from './inventory'
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -84,6 +99,11 @@ export const relations = defineRelations(
     recipeItemsTable,
     mokaConfigurationsTable,
     mokaScrapHistoriesTable,
+    salesOrdersTable,
+    salesOrderBatchesTable,
+    salesOrderItemsTable,
+    salesVoidsTable,
+    salesExternalRefsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -130,6 +150,7 @@ export const relations = defineRelations(
       stockSummaries: r.many.stockSummariesTable(),
       products: r.many.productsTable(),
       mokaConfigurations: r.many.mokaConfigurationsTable(),
+      salesOrders: r.many.salesOrdersTable(),
     },
 
     // ─── Material ─────────────────────────────────────────────────────
@@ -204,6 +225,7 @@ export const relations = defineRelations(
     salesTypesTable: {
       variantPrices: r.many.variantPricesTable(),
       productPrices: r.many.productPricesTable(),
+      salesOrders: r.many.salesOrdersTable(),
     },
 
     productCategoriesTable: {
@@ -223,6 +245,7 @@ export const relations = defineRelations(
       prices: r.many.productPricesTable(),
       externalMappings: r.many.productExternalMappingsTable(),
       recipe: r.many.recipesTable(),
+      salesOrderItems: r.many.salesOrderItemsTable(),
     },
 
     productPricesTable: {
@@ -244,6 +267,7 @@ export const relations = defineRelations(
       prices: r.many.variantPricesTable(),
       recipe: r.many.recipesTable(),
       externalMappings: r.many.productExternalMappingsTable(),
+      salesOrderItems: r.many.salesOrderItemsTable(),
     },
 
     variantPricesTable: {
@@ -315,6 +339,68 @@ export const relations = defineRelations(
       configuration: r.one.mokaConfigurationsTable({
         from: r.mokaScrapHistoriesTable.mokaConfigurationId,
         to: r.mokaConfigurationsTable.id,
+      }),
+    },
+
+    // ─── Sales ────────────────────────────────────────────────────────
+
+    salesOrdersTable: {
+      location: r.one.locationsTable({
+        from: r.salesOrdersTable.locationId,
+        to: r.locationsTable.id,
+      }),
+      salesType: r.one.salesTypesTable({
+        from: r.salesOrdersTable.salesTypeId,
+        to: r.salesTypesTable.id,
+      }),
+      batches: r.many.salesOrderBatchesTable(),
+      items: r.many.salesOrderItemsTable(),
+      voids: r.many.salesVoidsTable(),
+      externalRefs: r.many.salesExternalRefsTable(),
+    },
+
+    salesOrderBatchesTable: {
+      order: r.one.salesOrdersTable({
+        from: r.salesOrderBatchesTable.orderId,
+        to: r.salesOrdersTable.id,
+      }),
+      items: r.many.salesOrderItemsTable(),
+    },
+
+    salesOrderItemsTable: {
+      order: r.one.salesOrdersTable({
+        from: r.salesOrderItemsTable.orderId,
+        to: r.salesOrdersTable.id,
+      }),
+      batch: r.one.salesOrderBatchesTable({
+        from: r.salesOrderItemsTable.batchId,
+        to: r.salesOrderBatchesTable.id,
+      }),
+      product: r.one.productsTable({
+        from: r.salesOrderItemsTable.productId,
+        to: r.productsTable.id,
+      }),
+      variant: r.one.productVariantsTable({
+        from: r.salesOrderItemsTable.variantId,
+        to: r.productVariantsTable.id,
+      }),
+    },
+
+    salesVoidsTable: {
+      order: r.one.salesOrdersTable({
+        from: r.salesVoidsTable.orderId,
+        to: r.salesOrdersTable.id,
+      }),
+      item: r.one.salesOrderItemsTable({
+        from: r.salesVoidsTable.itemId,
+        to: r.salesOrderItemsTable.id,
+      }),
+    },
+
+    salesExternalRefsTable: {
+      order: r.one.salesOrdersTable({
+        from: r.salesExternalRefsTable.orderId,
+        to: r.salesOrdersTable.id,
       }),
     },
   })

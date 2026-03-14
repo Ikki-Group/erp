@@ -8,6 +8,7 @@ import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
 import { initToolRouteModule } from './tool'
 import { initMokaRouteModule } from './moka'
+import { initSalesRouteModule } from './sales'
 
 import type { Modules } from './_registry'
 
@@ -23,5 +24,6 @@ export function createRoutes(m: Modules) {
     initRecipeRouteModule(m.recipe),
     initToolRouteModule(m.tool),
     initMokaRouteModule(m.moka),
+    initSalesRouteModule(m.sales),
   ]
 }

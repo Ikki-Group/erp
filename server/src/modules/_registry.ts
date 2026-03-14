@@ -8,6 +8,7 @@ import { ProductServiceModule } from './product'
 import { RecipeServiceModule } from './recipe'
 import { ToolServiceModule } from './tool'
 import { MokaServiceModule } from './moka'
+import { SalesServiceModule } from './sales'
 import { logger } from '@/core/logger'
 
 export function createModules() {
@@ -25,6 +26,7 @@ export function createModules() {
   // Layer 2 — Operations
   const inventory = new InventoryServiceModule(material)
   const recipe = new RecipeServiceModule()
+  const sales = new SalesServiceModule()
 
   // Layer 3 — Aggregators
   const dashboard = new DashboardServiceModule(iam, location)
@@ -42,6 +44,7 @@ export function createModules() {
     dashboard,
     tool,
     moka,
+    sales,
   }
 }
 
