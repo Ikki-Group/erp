@@ -1,8 +1,8 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/core/validation'
-
 import { LocationDto } from '@/modules/location'
+
+import { zPrimitive, zSchema } from '@/core/validation'
 
 import { RoleDto } from './role.dto'
 

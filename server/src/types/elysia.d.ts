@@ -1,4 +1,3 @@
-
 declare module 'elysia' {
   interface SingletonBase {
     derive: {
@@ -7,5 +6,4 @@ declare module 'elysia' {
   }
 }
 
-export { }
-
+export {}

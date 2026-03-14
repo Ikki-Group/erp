@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
+import { uomsTable } from '@/db/schema'
+
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -14,9 +16,6 @@ import {
 } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
-import { uomsTable } from '@/db/schema'
-
 import { db } from '@/db'
 
 import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
@@ -85,7 +84,13 @@ export class UomService {
 
       return paginate<UomDto>({
         data: ({ limit, offset }) =>
-          db.select().from(uomsTable).where(where).orderBy(sortBy(uomsTable.updatedAt, 'desc')).limit(limit).offset(offset),
+          db
+            .select()
+            .from(uomsTable)
+            .where(where)
+            .orderBy(sortBy(uomsTable.updatedAt, 'desc'))
+            .limit(limit)
+            .offset(offset),
         pq,
         countQuery: db.select({ count: count() }).from(uomsTable).where(where),
       })
@@ -212,4 +217,3 @@ export class UomService {
     })
   }
 }
-

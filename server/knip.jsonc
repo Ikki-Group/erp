@@ -1,20 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": [
-    "src/server.ts"
-  ],
-  "project": [
-    "src/**/*.ts"
-  ],
+  "entry": ["src/server.ts"],
+  "project": ["src/**/*.ts"],
   "ignoreDependencies": [
     "pino-pretty",
     "@axiomhq/pino",
     "@total-typescript/ts-reset",
     "@kubiks/otel-drizzle",
     "bcrypt",
-    "lint-staged"
+    "lint-staged",
   ],
-  "ignoreBinaries": [
-    "flyctl"
-  ]
+  "ignoreBinaries": ["flyctl"],
 }

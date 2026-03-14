@@ -1,14 +1,4 @@
-import {
-  integer,
-  index,
-  jsonb,
-  numeric,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { locationsTable } from './location'

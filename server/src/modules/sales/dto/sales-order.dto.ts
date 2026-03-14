@@ -109,25 +109,27 @@ export const SalesOrderCreateDto = z.object({
     discountAmount: true,
     taxAmount: true,
   }).shape,
-  items: z.array(
-    z.object({
-      ...SalesOrderItemDto.pick({
-        batchId: true,
-        productId: true,
-        variantId: true,
-        itemName: true,
-        quantity: true,
-        unitPrice: true,
-        discountAmount: true,
-        taxAmount: true,
-        subtotal: true,
-      }).partial({
-        batchId: true,
-        productId: true,
-        variantId: true,
-      }).shape,
-    })
-  ).optional(),
+  items: z
+    .array(
+      z.object({
+        ...SalesOrderItemDto.pick({
+          batchId: true,
+          productId: true,
+          variantId: true,
+          itemName: true,
+          quantity: true,
+          unitPrice: true,
+          discountAmount: true,
+          taxAmount: true,
+          subtotal: true,
+        }).partial({
+          batchId: true,
+          productId: true,
+          variantId: true,
+        }).shape,
+      })
+    )
+    .optional(),
 })
 
 export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>

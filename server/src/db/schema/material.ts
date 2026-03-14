@@ -110,4 +110,3 @@ export const materialLocationsTable = pgTable(
     // Removed: material_locations_material_idx — redundant, covered by composite unique above
   ]
 )
-

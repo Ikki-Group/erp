@@ -1,9 +1,11 @@
 import type { Logger } from 'pino'
-import { expandDates } from './moka-utils'
-import { MokaSalesDetailRawSchema } from '../../dto/moka.dto'
+
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
-import { type IMokaEngine, MokaBaseEngine } from './moka-engine'
+import { MokaSalesDetailRawSchema } from '../../dto/moka.dto'
+
 import type { MokaAuthEngine } from './moka-auth.service'
+import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
+import { expandDates } from './moka-utils'
 
 interface MokaSalesListResponse {
   orders: {
@@ -77,7 +79,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
       const data: MokaSalesListResponse = response.data
       const orders = data.orders
       const nextCursor: string | null = data.next_cursor
-      
+
       orders.forEach((o: { order_token: string }) => tokens.add(o.order_token))
       cursor = nextCursor ?? undefined
       completed = !nextCursor

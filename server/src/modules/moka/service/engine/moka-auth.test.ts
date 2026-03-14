@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test'
 import axios from 'axios'
 import type { Logger } from 'pino'
+
 import { MokaAuthEngine } from './moka-auth.service'
 
 // Mock Logger

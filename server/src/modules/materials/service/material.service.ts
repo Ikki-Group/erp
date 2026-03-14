@@ -1,15 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
-import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
 import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import type { LocationService } from '@/modules/location/service/location.service'
 
+import { cache } from '@/core/cache'
+import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 
 import type {
@@ -31,7 +30,12 @@ const err = {
 }
 
 const uniqueFields: ConflictField<'sku' | 'name'>[] = [
-  { field: 'sku', column: materialsTable.sku, message: 'Material SKU already exists', code: 'MATERIAL_SKU_ALREADY_EXISTS' },
+  {
+    field: 'sku',
+    column: materialsTable.sku,
+    message: 'Material SKU already exists',
+    code: 'MATERIAL_SKU_ALREADY_EXISTS',
+  },
   {
     field: 'name',
     column: materialsTable.name,
@@ -179,7 +183,10 @@ export class MaterialService {
               .select()
               .from(materialLocationsTable)
               .where(
-                and(eq(materialLocationsTable.materialId, materialsTable.id), inArray(materialLocationsTable.locationId, locationIds))
+                and(
+                  eq(materialLocationsTable.materialId, materialsTable.id),
+                  inArray(materialLocationsTable.locationId, locationIds)
+                )
               )
           )
         : undefined
@@ -362,7 +369,10 @@ export class MaterialService {
 
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('MaterialService.handleRemove', async () => {
-      const result = await db.delete(materialsTable).where(eq(materialsTable.id, id)).returning({ id: materialsTable.id })
+      const result = await db
+        .delete(materialsTable)
+        .where(eq(materialsTable.id, id))
+        .returning({ id: materialsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -381,4 +391,3 @@ export class MaterialService {
     ])
   }
 }
-

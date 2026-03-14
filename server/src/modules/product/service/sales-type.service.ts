@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
+import { salesTypesTable } from '@/db/schema'
+
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -14,9 +16,6 @@ import {
 } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
-import { salesTypesTable } from '@/db/schema'
-
 import { db } from '@/db'
 
 import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
@@ -218,7 +217,10 @@ export class SalesTypeService {
       const existing = await this.findById(id)
       if (existing.isSystem) throw err.systemSalesType()
 
-      const result = await db.delete(salesTypesTable).where(eq(salesTypesTable.id, id)).returning({ id: salesTypesTable.id })
+      const result = await db
+        .delete(salesTypesTable)
+        .where(eq(salesTypesTable.id, id))
+        .returning({ id: salesTypesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -237,4 +239,3 @@ export class SalesTypeService {
     ])
   }
 }
-

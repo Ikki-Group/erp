@@ -12,6 +12,7 @@ import {
   materialsTable,
   uomsTable,
 } from './material'
+import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 import {
   productCategoriesTable,
   productExternalMappingsTable,
@@ -21,7 +22,6 @@ import {
   salesTypesTable,
   variantPricesTable,
 } from './product'
-import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 import { recipeItemsTable, recipesTable } from './recipe'
 import {
   salesExternalRefsTable,
@@ -405,4 +405,3 @@ export const relations = defineRelations(
     },
   })
 )
-

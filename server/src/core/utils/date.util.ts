@@ -28,4 +28,3 @@ export function toWibDateKey(date: Date): Date {
   const wib = new Date(date.getTime() + WIB_OFFSET_MS)
   return new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate()))
 }
-

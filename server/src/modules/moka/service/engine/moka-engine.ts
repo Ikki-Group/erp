@@ -1,4 +1,5 @@
 import type { Logger } from 'pino'
+
 import type { MokaAuthEngine } from './moka-auth.service'
 
 /**

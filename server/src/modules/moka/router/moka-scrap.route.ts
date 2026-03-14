@@ -8,10 +8,7 @@ import { MokaTriggerInputDto } from '../dto'
 import type { MokaScrapHistoryService } from '../service/moka-scrap-history.service'
 import type { MokaScrapService } from '../service/moka-scrap.service'
 
-export function initMokaScrapRoute(
-  scrapSvc: MokaScrapService,
-  historySvc: MokaScrapHistoryService
-) {
+export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaScrapHistoryService) {
   return new Elysia({ prefix: '/scrap' })
     .use(authPluginMacro)
     .post(

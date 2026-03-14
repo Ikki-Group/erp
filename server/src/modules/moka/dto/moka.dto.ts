@@ -1,5 +1,7 @@
 import { z } from 'zod'
+
 import { zPrimitive } from '@/core/validation'
+
 import { MokaScrapType } from './moka-scrap-history.dto'
 
 /* ---------------------------------- RAW ---------------------------------- */
@@ -37,26 +39,28 @@ export const MokaSalesItemRawSchema = z.object({
   note: z.string().nullable().optional(),
 })
 
-export const MokaSalesDetailRawSchema = z.object({
-  id: z.number(),
-  uuid: z.string(),
-  payment_no: z.string(),
-  parent_order_uuid: z.string().optional(),
-  parent_order_created_at: z.string().optional(),
-  created_at: z.string(),
-  total_collected_amount: z.number(),
-  subtotal: z.number(),
-  payment_type: z.string(),
-  payment_type_label: z.string(),
-  payment_note: z.string().optional(),
-  tendered: z.number().optional(),
-  change: z.number().optional(),
-  include_gratuity_tax: z.boolean().optional(),
-  enable_tax: z.boolean().optional(),
-  enable_gratuity: z.boolean().optional(),
-  items: z.array(MokaSalesItemRawSchema).optional(),
-  order_items: z.record(z.string(), z.array(MokaSalesItemRawSchema)).optional(),
-}).passthrough() // Use passthrough to allow other fields from the raw API
+export const MokaSalesDetailRawSchema = z
+  .object({
+    id: z.number(),
+    uuid: z.string(),
+    payment_no: z.string(),
+    parent_order_uuid: z.string().optional(),
+    parent_order_created_at: z.string().optional(),
+    created_at: z.string(),
+    total_collected_amount: z.number(),
+    subtotal: z.number(),
+    payment_type: z.string(),
+    payment_type_label: z.string(),
+    payment_note: z.string().optional(),
+    tendered: z.number().optional(),
+    change: z.number().optional(),
+    include_gratuity_tax: z.boolean().optional(),
+    enable_tax: z.boolean().optional(),
+    enable_gratuity: z.boolean().optional(),
+    items: z.array(MokaSalesItemRawSchema).optional(),
+    order_items: z.record(z.string(), z.array(MokaSalesItemRawSchema)).optional(),
+  })
+  .passthrough() // Use passthrough to allow other fields from the raw API
 
 /* ---------------------------------- DTO ---------------------------------- */
 

@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
+import { locationsTable } from '@/db/schema'
+
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -14,9 +16,6 @@ import {
 } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
-import { locationsTable } from '@/db/schema'
-
 import { db } from '@/db'
 
 import type { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
@@ -213,7 +212,10 @@ export class LocationService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('LocationService.handleRemove', async () => {
-      const result = await db.delete(locationsTable).where(eq(locationsTable.id, id)).returning({ id: locationsTable.id })
+      const result = await db
+        .delete(locationsTable)
+        .where(eq(locationsTable.id, id))
+        .returning({ id: locationsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       void this.clearCache(id)
@@ -232,4 +234,3 @@ export class LocationService {
     ])
   }
 }
-

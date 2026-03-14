@@ -1,10 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
-import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
 import {
   salesExternalRefsTable,
   salesOrderBatchesTable,
@@ -13,6 +9,9 @@ import {
   salesVoidsTable,
 } from '@/db/schema/sales'
 
+import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 
 import type {
@@ -35,7 +34,17 @@ export class SalesOrderService {
 
   async handleCreate(data: SalesOrderCreateDto, actorId: number): Promise<{ id: number }> {
     return record('SalesOrderService.handleCreate', async () => {
-      const { locationId, customerId, salesTypeId, status, transactionDate, totalAmount, discountAmount, taxAmount, items } = data
+      const {
+        locationId,
+        customerId,
+        salesTypeId,
+        status,
+        transactionDate,
+        totalAmount,
+        discountAmount,
+        taxAmount,
+        items,
+      } = data
 
       return db.transaction(async (tx) => {
         const metadata = stampCreate(actorId)
@@ -187,17 +196,17 @@ export class SalesOrderService {
             .set({ status: 'void', ...updateMetadata })
             .where(eq(salesOrdersTable.id, orderId))
         } else {
-           // Ensure the item exists
-           const itemResult = await tx
+          // Ensure the item exists
+          const itemResult = await tx
             .select({ id: salesOrderItemsTable.id })
             .from(salesOrderItemsTable)
             .where(eq(salesOrderItemsTable.id, data.itemId))
-           takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message, 'SALES_ORDER_ITEM_NOT_FOUND')!
-           
+          takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message, 'SALES_ORDER_ITEM_NOT_FOUND')!
+
           // If only specific item is voided and order is open, we can recalculate totals.
           // Note: Full ERP might zero out the item line or just exclude it in recalculations.
           if (order.status === 'open') {
-             await this.recalculateOrderTotals(tx, orderId, actorId)
+            await this.recalculateOrderTotals(tx, orderId, actorId)
           }
         }
       })
@@ -346,32 +355,36 @@ export class SalesOrderService {
   /* ──────────────────── INTERNAL HELPERS ──────────────────── */
 
   private async recalculateOrderTotals(tx: any, orderId: number, actorId: number) {
-     const allItems = await tx.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, orderId))
-     const allVoids = await tx.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, orderId))
-     const voidedItemIds = new Set(allVoids.filter((v: { itemId: number | null }) => v.itemId !== null).map((v: { itemId: number | null }) => v.itemId))
+    const allItems = await tx.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, orderId))
+    const allVoids = await tx.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, orderId))
+    const voidedItemIds = new Set(
+      allVoids
+        .filter((v: { itemId: number | null }) => v.itemId !== null)
+        .map((v: { itemId: number | null }) => v.itemId)
+    )
 
-     let totalAmount = 0
-     let discountAmount = 0
-     let taxAmount = 0
+    let totalAmount = 0
+    let discountAmount = 0
+    let taxAmount = 0
 
-     for (const item of allItems) {
-        if (!voidedItemIds.has(item.id)) {
-           totalAmount += Number(item.subtotal)
-           discountAmount += Number(item.discountAmount)
-           taxAmount += Number(item.taxAmount)
-        }
-     }
+    for (const item of allItems) {
+      if (!voidedItemIds.has(item.id)) {
+        totalAmount += Number(item.subtotal)
+        discountAmount += Number(item.discountAmount)
+        taxAmount += Number(item.taxAmount)
+      }
+    }
 
-     const metadata = stampUpdate(actorId)
-     await tx
-        .update(salesOrdersTable)
-        .set({
-           totalAmount: totalAmount.toString(),
-           discountAmount: discountAmount.toString(),
-           taxAmount: taxAmount.toString(),
-           ...metadata
-        })
-        .where(eq(salesOrdersTable.id, orderId))
+    const metadata = stampUpdate(actorId)
+    await tx
+      .update(salesOrdersTable)
+      .set({
+        totalAmount: totalAmount.toString(),
+        discountAmount: discountAmount.toString(),
+        taxAmount: taxAmount.toString(),
+        ...metadata,
+      })
+      .where(eq(salesOrdersTable.id, orderId))
   }
 
   private mapOrder(row: any): SalesOrderDto {

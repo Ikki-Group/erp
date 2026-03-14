@@ -1,10 +1,10 @@
 import { getCurrentSpan, record } from '@elysiajs/opentelemetry'
 import { Elysia } from 'elysia'
 
-import { UnauthorizedError } from '@/core/http/errors'
-
-import type { UserOutputDto } from '@/modules/iam/dto/user.dto'
 import type { AuthServiceModule } from '@/modules/auth/service'
+import type { UserOutputDto } from '@/modules/iam/dto/user.dto'
+
+import { UnauthorizedError } from '@/core/http/errors'
 
 class AuthContext {
   constructor(public user: UserOutputDto | null) {}

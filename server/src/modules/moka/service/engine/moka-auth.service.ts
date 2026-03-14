@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type RawAxiosRequestHeaders } from 'axios'
 import type { Logger } from 'pino'
+
 import type { MokaLoginResponse } from '../../dto/moka-raw.types'
 
 const BASE_URL = 'https://backoffice.mokapos.com'
@@ -24,7 +25,7 @@ export class MokaAuthEngine {
     private readonly credentials: { email: string; password: string }
   ) {
     this.api = axios.create({ baseURL: BASE_URL })
-    
+
     // Add 401 interceptor for auto-relogin
     this.api.interceptors.response.use(
       (response) => response,
@@ -54,7 +55,7 @@ export class MokaAuthEngine {
 
   async login(): Promise<MokaLoginResponse> {
     this.logger.info({ email: this.credentials.email }, 'Logging into Moka')
-    
+
     try {
       const response = await axios.post(
         `${AUTH_URL}/account/v2/login`,

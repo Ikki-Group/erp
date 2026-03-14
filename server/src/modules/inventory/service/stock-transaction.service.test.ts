@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { describe, expect, it } from 'bun:test'
+
 import { StockTransactionService } from './stock-transaction.service'
 
 describe('StockTransactionService', () => {

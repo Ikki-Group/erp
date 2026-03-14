@@ -15,11 +15,6 @@ export class MokaServiceModule {
     this.configuration = new MokaConfigurationService()
     this.history = new MokaScrapHistoryService()
     this.transformation = new MokaTransformationService()
-    this.scrap = new MokaScrapService(
-      this.configuration,
-      this.history,
-      this.transformation,
-      logger
-    )
+    this.scrap = new MokaScrapService(this.configuration, this.history, this.transformation, logger)
   }
 }

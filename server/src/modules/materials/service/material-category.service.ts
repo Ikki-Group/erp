@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
+import { materialCategoriesTable } from '@/db/schema'
+
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -14,9 +16,6 @@ import {
 } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
-import { materialCategoriesTable } from '@/db/schema'
-
 import { db } from '@/db'
 
 import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
@@ -204,4 +203,3 @@ export class MaterialCategoryService {
     ])
   }
 }
-

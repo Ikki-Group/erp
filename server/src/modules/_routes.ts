@@ -1,16 +1,15 @@
+import type { Modules } from './_registry'
 import { initAuthRoute } from './auth'
 import { initDashboardRouteModule } from './dashboard'
 import { initIamRouteModule } from './iam'
 import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
 import { initMaterialsRouteModule } from './materials'
+import { initMokaRouteModule } from './moka'
 import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
-import { initToolRouteModule } from './tool'
-import { initMokaRouteModule } from './moka'
 import { initSalesRouteModule } from './sales'
-
-import type { Modules } from './_registry'
+import { initToolRouteModule } from './tool'
 
 export function createRoutes(m: Modules) {
   return [

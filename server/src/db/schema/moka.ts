@@ -5,18 +5,13 @@ import { metadata, pk } from './_helpers'
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export const mokaScrapTypeEnum = pgEnum('moka_scrap_type', ['sales', 'product', 'category'])
-export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', [
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-])
+export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', ['pending', 'processing', 'completed', 'failed'])
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
 
 export const mokaConfigurationsTable = pgTable('moka_configurations', {
   ...pk,
-  locationId: integer().notNull(), // FK to locations (manual enforcement as per rules)
+  locationId: integer().notNull(),
   email: text().notNull(),
   password: text().notNull(),
   businessId: integer(),

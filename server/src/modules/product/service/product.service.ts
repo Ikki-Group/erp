@@ -1,11 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, not, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
 import {
   productExternalMappingsTable,
   productPricesTable,
@@ -14,6 +9,10 @@ import {
   variantPricesTable,
 } from '@/db/schema'
 
+import { cache } from '@/core/cache'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 
 import type { ProductCategoryDto } from '../dto/product-category.dto'
@@ -499,4 +498,3 @@ export class ProductService {
     ])
   }
 }
-

@@ -1,11 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { eq, getColumns, inArray } from 'drizzle-orm'
 
-import { stampCreate } from '@/core/database'
-import { arrayToMap } from '@/core/utils/collection'
-
 import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
 
+import { stampCreate } from '@/core/database'
+import { arrayToMap } from '@/core/utils/collection'
 import { db } from '@/db'
 
 import type { UserAssignmentDetailDto, UserAssignmentDto, UserAssignmentUpsertDto } from '../dto'

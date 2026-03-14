@@ -5,7 +5,6 @@ import { authPluginMacro } from '@/core/http/auth-plugin'
 import { res } from '@/core/http/response'
 import { zHttp, zResponse, zSchema } from '@/core/validation'
 
-import type { SalesServiceModule } from '../service'
 import {
   SalesOrderAddBatchDto,
   SalesOrderCreateDto,
@@ -14,6 +13,7 @@ import {
   SalesOrderOutputDto,
   SalesOrderVoidDto,
 } from '../dto'
+import type { SalesServiceModule } from '../service'
 
 export function initSalesOrderRoute(s: SalesServiceModule) {
   return new Elysia({ prefix: '/order' })
@@ -26,10 +26,12 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({
-          ...zHttp.pagination.shape,
-          search: zHttp.query.search,
-        }).merge(SalesOrderFilterDto),
+        query: z
+          .object({
+            ...zHttp.pagination.shape,
+            search: zHttp.query.search,
+          })
+          .merge(SalesOrderFilterDto),
         response: zResponse.paginated(SalesOrderDto.array()),
         auth: true,
       }

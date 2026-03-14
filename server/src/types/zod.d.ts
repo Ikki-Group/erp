@@ -4,5 +4,4 @@ declare module 'zod' {
   }
 }
 
-export { }
-
+export {}

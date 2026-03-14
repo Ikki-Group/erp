@@ -1,15 +1,16 @@
+import { logger } from '@/core/logger'
+
 import { AuthServiceModule } from './auth'
 import { DashboardServiceModule } from './dashboard'
 import { IamServiceModule } from './iam'
 import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
 import { MaterialServiceModule } from './materials'
+import { MokaServiceModule } from './moka'
 import { ProductServiceModule } from './product'
 import { RecipeServiceModule } from './recipe'
-import { ToolServiceModule } from './tool'
-import { MokaServiceModule } from './moka'
 import { SalesServiceModule } from './sales'
-import { logger } from '@/core/logger'
+import { ToolServiceModule } from './tool'
 
 export function createModules() {
   // Layer 0 — Core

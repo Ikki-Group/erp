@@ -1,14 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import type { LocationServiceModule } from '@/modules/location'
 
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 
 import type {
@@ -52,7 +51,9 @@ export class MaterialLocationService {
       const [result] = await db
         .select()
         .from(materialLocationsTable)
-        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
+        .where(
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+        )
 
       if (!result) throw err.notAssigned(materialId, locationId)
       return {
@@ -67,7 +68,10 @@ export class MaterialLocationService {
   /** Get all assignments for a specific material */
   async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByMaterialId', async () => {
-      const results = await db.select().from(materialLocationsTable).where(eq(materialLocationsTable.materialId, materialId))
+      const results = await db
+        .select()
+        .from(materialLocationsTable)
+        .where(eq(materialLocationsTable.materialId, materialId))
       return results.map((r) => ({
         ...r,
         currentQty: Number(r.currentQty),
@@ -80,7 +84,10 @@ export class MaterialLocationService {
   /** Get all assignments for a specific location */
   async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByLocationId', async () => {
-      const results = await db.select().from(materialLocationsTable).where(eq(materialLocationsTable.locationId, locationId))
+      const results = await db
+        .select()
+        .from(materialLocationsTable)
+        .where(eq(materialLocationsTable.locationId, locationId))
       return results.map((r) => ({
         ...r,
         currentQty: Number(r.currentQty),
@@ -118,7 +125,10 @@ export class MaterialLocationService {
         })
         .from(materialLocationsTable)
         .where(
-          and(inArray(materialLocationsTable.locationId, locationIds), inArray(materialLocationsTable.materialId, materialIds))
+          and(
+            inArray(materialLocationsTable.locationId, locationIds),
+            inArray(materialLocationsTable.materialId, materialIds)
+          )
         )
 
       const existingSet = new Set(existing.map((e) => `${e.locationId}-${e.materialId}`))
@@ -154,7 +164,9 @@ export class MaterialLocationService {
 
       const [result] = await db
         .delete(materialLocationsTable)
-        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
+        .where(
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+        )
         .returning({ id: materialLocationsTable.id })
 
       if (!result) throw err.notAssigned(materialId, locationId)
@@ -303,8 +315,9 @@ export class MaterialLocationService {
           currentValue: stock.currentValue.toString(),
           ...stampUpdate(actorId),
         })
-        .where(and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)))
+        .where(
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+        )
     })
   }
 }
-

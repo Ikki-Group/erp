@@ -4,11 +4,7 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-plugin'
 import { res } from '@/core/http/response'
 
-import {
-  MokaConfigurationCreateDto,
-  MokaConfigurationOutputDto,
-  MokaConfigurationUpdateDto,
-} from '../dto'
+import { MokaConfigurationCreateDto, MokaConfigurationOutputDto, MokaConfigurationUpdateDto } from '../dto'
 import type { MokaConfigurationService } from '../service/moka-configuration.service'
 
 export function initMokaConfigurationRoute(service: MokaConfigurationService) {

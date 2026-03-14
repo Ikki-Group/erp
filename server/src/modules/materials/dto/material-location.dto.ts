@@ -1,8 +1,8 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
-
 import { LocationDto } from '@/modules/location/dto'
+
+import { zHttp, zPrimitive, zSchema } from '@/core/validation'
 
 import { UomDto } from './uom.dto'
 
