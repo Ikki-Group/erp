@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { AppLayout } from '@/components/layout/app-layout'
+
 import { LoadingPage } from '@/components/common/loading-page'
+import { AppLayout } from '@/components/layout/app-layout'
 import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_app')({

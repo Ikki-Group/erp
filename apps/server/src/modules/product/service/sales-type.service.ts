@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { salesTypesTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,6 +15,7 @@ import {
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { salesTypesTable } from '@/db/schema'
 
 import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 
@@ -36,11 +35,7 @@ const uniqueFields: ConflictField<'code'>[] = [
   },
 ]
 
-const cacheKey = {
-  count: 'salesType.count',
-  list: 'salesType.list',
-  byId: (id: number) => `salesType.byId.${id}`,
-}
+const cacheKey = { count: 'salesType.count', list: 'salesType.list', byId: (id: number) => `salesType.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -122,18 +117,10 @@ export class SalesTypeService {
 
         await db
           .insert(salesTypesTable)
-          .values({
-            ...d,
-            ...metadata,
-          })
+          .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: salesTypesTable.code,
-            set: {
-              name: d.name,
-              isSystem: d.isSystem,
-              updatedAt: metadata.updatedAt,
-              updatedBy: metadata.updatedBy,
-            },
+            set: { name: d.name, isSystem: d.isSystem, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
       void this.clearCache()
@@ -157,13 +144,7 @@ export class SalesTypeService {
 
       const [inserted] = await db
         .insert(salesTypesTable)
-        .values({
-          ...data,
-          code,
-          name,
-          isSystem: false,
-          ...stampCreate(actorId),
-        })
+        .values({ ...data, code, name, isSystem: false, ...stampCreate(actorId) })
         .returning({ id: salesTypesTable.id })
 
       if (!inserted) throw new Error('Failed to create sales type')
@@ -195,13 +176,7 @@ export class SalesTypeService {
 
       await db
         .update(salesTypesTable)
-        .set({
-          ...data,
-          code,
-          name,
-          isSystem: false,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...data, code, name, isSystem: false, ...stampUpdate(actorId) })
         .where(eq(salesTypesTable.id, id))
 
       void this.clearCache(id)

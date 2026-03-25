@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+
 import { cn } from '@/lib/utils'
 
 export interface DescriptionItem {
@@ -32,7 +33,7 @@ export function DescriptionList({
         columns === 2 && 'grid-cols-1 md:grid-cols-2',
         columns === 3 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
         variant === 'bordered' && 'divide-y',
-        className
+        className,
       )}
       {...props}
     >
@@ -41,33 +42,22 @@ export function DescriptionList({
           key={index}
           className={cn(
             'flex',
-            layout === 'vertical'
-              ? 'flex-col gap-1'
-              : 'flex-col sm:flex-row sm:gap-4',
-            variant === 'striped' &&
-              index % 2 === 0 &&
-              'bg-muted/50 -mx-4 px-4 py-3 rounded-md',
+            layout === 'vertical' ? 'flex-col gap-1' : 'flex-col sm:flex-row sm:gap-4',
+            variant === 'striped' && index % 2 === 0 && 'bg-muted/50 -mx-4 px-4 py-3 rounded-md',
             variant === 'bordered' && 'py-4 first:pt-0 last:pb-0',
-            item.className
+            item.className,
           )}
         >
           <dt
             className={cn(
               'text-sm font-medium text-muted-foreground shrink-0',
               layout === 'horizontal' && 'w-1/3 min-w-[140px]',
-              item.termClassName
+              item.termClassName,
             )}
           >
             {item.term}
           </dt>
-          <dd
-            className={cn(
-              'text-sm text-foreground flex-1',
-              item.descriptionClassName
-            )}
-          >
-            {item.description}
-          </dd>
+          <dd className={cn('text-sm text-foreground flex-1', item.descriptionClassName)}>{item.description}</dd>
         </div>
       ))}
     </dl>

@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { materialCategoriesTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,6 +15,7 @@ import {
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { materialCategoriesTable } from '@/db/schema'
 
 import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
 
@@ -85,7 +84,7 @@ export class MaterialCategoryService {
    */
   async handleList(
     filter: MaterialCategoryFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<MaterialCategoryDto>> {
     return record('MaterialCategoryService.handleList', async () => {
       const { search } = filter
@@ -131,11 +130,7 @@ export class MaterialCategoryService {
 
       const [inserted] = await db
         .insert(materialCategoriesTable)
-        .values({
-          ...data,
-          name,
-          ...stampCreate(actorId),
-        })
+        .values({ ...data, name, ...stampCreate(actorId) })
         .returning({ id: materialCategoriesTable.id })
 
       if (!inserted) throw new Error('Failed to create material category')
@@ -164,11 +159,7 @@ export class MaterialCategoryService {
 
       await db
         .update(materialCategoriesTable)
-        .set({
-          ...data,
-          name,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...data, name, ...stampUpdate(actorId) })
         .where(eq(materialCategoriesTable.id, id))
 
       void this.clearCache(id)

@@ -96,20 +96,12 @@ export interface MokaProductRaw {
   id: number
   name: string
   category_name: string | null
-  item_variants: Array<{
-    id: number
-    name: string
-    price: number
-    sku: string | null
-  }>
+  item_variants: Array<{ id: number; name: string; price: number; sku: string | null }>
 }
 
 export interface MokaLoginResponse {
   access_token: string
   token_type: string
   expires_in: number
-  outlets: Array<{
-    id: number
-    name: string
-  }>
+  outlets: Array<{ id: number; name: string }>
 }

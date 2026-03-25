@@ -22,7 +22,7 @@ export class MokaAuthEngine {
 
   constructor(
     private readonly logger: Logger,
-    private readonly credentials: { email: string; password: string }
+    private readonly credentials: { email: string; password: string },
   ) {
     this.api = axios.create({ baseURL: BASE_URL })
 
@@ -37,7 +37,7 @@ export class MokaAuthEngine {
           return this.api.request(error.config)
         }
         return Promise.reject(error)
-      }
+      },
     )
   }
 
@@ -60,7 +60,7 @@ export class MokaAuthEngine {
       const response = await axios.post(
         `${AUTH_URL}/account/v2/login`,
         { session: this.credentials },
-        { headers: BASE_HEADERS }
+        { headers: BASE_HEADERS },
       )
 
       const result = response.data as MokaLoginResponse

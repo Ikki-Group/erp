@@ -1,4 +1,5 @@
 import z from 'zod'
+
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* --------------------------------- NESTED --------------------------------- */
@@ -55,9 +56,7 @@ export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-export const RecipeOutputDto = z.object({
-  ...RecipeDto.shape,
-})
+export const RecipeOutputDto = z.object({ ...RecipeDto.shape })
 
 export type RecipeOutputDto = z.infer<typeof RecipeOutputDto>
 
@@ -93,7 +92,7 @@ export const RecipeMutationDto = z
     {
       message: 'Recipe must have exactly one target (materialId, productId, or productVariantId)',
       path: ['materialId'],
-    }
+    },
   )
 
 export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>

@@ -1,7 +1,6 @@
 import Elysia from 'elysia'
 
 import type { ToolServiceModule } from '../service'
-
 import { initSeedRoute } from './seed.route'
 
 export function initToolRouteModule(service: ToolServiceModule) {

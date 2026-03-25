@@ -1,14 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
-
-import type { LocationServiceModule } from '@/modules/location'
-
 import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
+import type { LocationServiceModule } from '@/modules/location'
 
 import type {
   MaterialLocationAssignDto,
@@ -19,7 +17,6 @@ import type {
   MaterialLocationUnassignDto,
   MaterialLocationWithLocationDto,
 } from '../dto'
-
 import type { MaterialService } from './material.service'
 
 const err = {
@@ -28,19 +25,19 @@ const err = {
   notAssigned: (materialId: number, locationId: number) =>
     new NotFoundError(
       `Material ${materialId} is not assigned to location ${locationId}`,
-      'MATERIAL_NOT_ASSIGNED_TO_LOCATION'
+      'MATERIAL_NOT_ASSIGNED_TO_LOCATION',
     ),
   alreadyAssigned: (materialId: number, locationId: number) =>
     new ConflictError(
       `Material ${materialId} is already assigned to location ${locationId}`,
-      'MATERIAL_LOCATION_ALREADY_ASSIGNED'
+      'MATERIAL_LOCATION_ALREADY_ASSIGNED',
     ),
 }
 
 export class MaterialLocationService {
   constructor(
     private readonly materialSvc: MaterialService,
-    private readonly locationSvc: LocationServiceModule
+    private readonly locationSvc: LocationServiceModule,
   ) {}
 
   /* ─────────────────────── INTERNAL QUERIES ─────────────────────── */
@@ -52,7 +49,7 @@ export class MaterialLocationService {
         .select()
         .from(materialLocationsTable)
         .where(
-          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)),
         )
 
       if (!result) throw err.notAssigned(materialId, locationId)
@@ -119,16 +116,13 @@ export class MaterialLocationService {
 
       // 3. Find already assigned combinations
       const existing = await db
-        .select({
-          materialId: materialLocationsTable.materialId,
-          locationId: materialLocationsTable.locationId,
-        })
+        .select({ materialId: materialLocationsTable.materialId, locationId: materialLocationsTable.locationId })
         .from(materialLocationsTable)
         .where(
           and(
             inArray(materialLocationsTable.locationId, locationIds),
-            inArray(materialLocationsTable.materialId, materialIds)
-          )
+            inArray(materialLocationsTable.materialId, materialIds),
+          ),
         )
 
       const existingSet = new Set(existing.map((e) => `${e.locationId}-${e.materialId}`))
@@ -138,11 +132,7 @@ export class MaterialLocationService {
       for (const locationId of locationIds) {
         for (const materialId of materialIds) {
           if (!existingSet.has(`${locationId}-${materialId}`)) {
-            docs.push({
-              materialId,
-              locationId,
-              ...metadata,
-            })
+            docs.push({ materialId, locationId, ...metadata })
           }
         }
       }
@@ -165,7 +155,7 @@ export class MaterialLocationService {
       const [result] = await db
         .delete(materialLocationsTable)
         .where(
-          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)),
         )
         .returning({ id: materialLocationsTable.id })
 
@@ -186,10 +176,7 @@ export class MaterialLocationService {
       await this.materialSvc.findById(materialId)
 
       const assignments = await db
-        .select({
-          assignment: materialLocationsTable,
-          location: locationsTable,
-        })
+        .select({ assignment: materialLocationsTable, location: locationsTable })
         .from(materialLocationsTable)
         .innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
         .where(eq(materialLocationsTable.materialId, materialId))
@@ -212,7 +199,7 @@ export class MaterialLocationService {
    */
   async handleStockByLocation(
     filter: MaterialLocationFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<MaterialLocationStockDto>> {
     return record('MaterialLocationService.handleStockByLocation', async () => {
       const { locationId, search } = filter
@@ -283,10 +270,7 @@ export class MaterialLocationService {
 
       const [result] = await db
         .update(materialLocationsTable)
-        .set({
-          ...update,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...update, ...stampUpdate(actorId) })
         .where(eq(materialLocationsTable.id, id))
         .returning({ id: materialLocationsTable.id })
 
@@ -304,7 +288,7 @@ export class MaterialLocationService {
     materialId: number,
     locationId: number,
     stock: { currentQty: number; currentAvgCost: number; currentValue: number },
-    actorId: number
+    actorId: number,
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
       await db
@@ -316,7 +300,7 @@ export class MaterialLocationService {
           ...stampUpdate(actorId),
         })
         .where(
-          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId))
+          and(eq(materialLocationsTable.materialId, materialId), eq(materialLocationsTable.locationId, locationId)),
         )
     })
   }

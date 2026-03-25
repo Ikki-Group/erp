@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { MokaProductRaw } from '../../dto/moka-raw.types'
 import { MokaProductRawSchema } from '../../dto/moka.dto'
-
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<MokaProductRaw> {
@@ -10,9 +9,7 @@ export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<Mok
     const api = await this.getApi()
 
     try {
-      const response = await api.get('/api/v2/items', {
-        headers: this.getHeaders('AUTHENTICATED'),
-      })
+      const response = await api.get('/api/v2/items', { headers: this.getHeaders('AUTHENTICATED') })
 
       const items = response.data.items || []
       return items.map((item: any) => MokaProductRawSchema.parse(item))

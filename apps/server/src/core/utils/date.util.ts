@@ -14,10 +14,7 @@ export function toWibDayBounds(date: Date): { start: Date; end: Date } {
   const m = wib.getUTCMonth()
   const d = wib.getUTCDate()
 
-  return {
-    start: new Date(Date.UTC(y, m, d) - WIB_OFFSET_MS),
-    end: new Date(Date.UTC(y, m, d + 1) - WIB_OFFSET_MS),
-  }
+  return { start: new Date(Date.UTC(y, m, d) - WIB_OFFSET_MS), end: new Date(Date.UTC(y, m, d + 1) - WIB_OFFSET_MS) }
 }
 
 /**

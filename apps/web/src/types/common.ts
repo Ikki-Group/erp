@@ -6,8 +6,4 @@ export interface Option<TValue extends StringOrNumber> {
   [key: string]: any
 }
 
-export type OptionsWithData<TValue extends StringOrNumber, TData = any> = Array<
-  Option<TValue> & {
-    data: TData
-  }
->
+export type OptionsWithData<TValue extends StringOrNumber, TData = any> = Array<Option<TValue> & { data: TData }>

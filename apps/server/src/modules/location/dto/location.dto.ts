@@ -34,13 +34,7 @@ export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const LocationMutationDto = z.object({
-  ...LocationDto.pick({
-    code: true,
-    name: true,
-    type: true,
-    description: true,
-    isActive: true,
-  }).shape,
+  ...LocationDto.pick({ code: true, name: true, type: true, description: true, isActive: true }).shape,
 })
 
 export type LocationMutationDto = z.infer<typeof LocationMutationDto>

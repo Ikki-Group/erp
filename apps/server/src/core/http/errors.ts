@@ -3,7 +3,7 @@ export class HttpError extends Error {
     public readonly statusCode: number,
     message: string,
     public readonly code?: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message)
     this.name = 'HttpError'
@@ -13,10 +13,7 @@ export class HttpError extends Error {
     return {
       code: this.code ?? this.name,
       message: this.message ?? this.name,
-      error: {
-        details: this.details,
-        stack: this.stack,
-      },
+      error: { details: this.details, stack: this.stack },
     }
   }
 }

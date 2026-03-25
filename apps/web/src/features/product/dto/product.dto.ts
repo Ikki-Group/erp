@@ -1,6 +1,8 @@
 import z from 'zod'
-import { ProductCategoryDto } from './product-category.dto'
+
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { ProductCategoryDto } from './product-category.dto'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -90,26 +92,17 @@ export type ProductFilterDto = z.infer<typeof ProductFilterDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-export const ProductOutputDto = z.object({
-  ...ProductDto.shape,
-  category: ProductCategoryDto.nullable(),
-})
+export const ProductOutputDto = z.object({ ...ProductDto.shape, category: ProductCategoryDto.nullable() })
 
 export type ProductOutputDto = z.infer<typeof ProductOutputDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const VariantPriceMutationDto = z.object({
-  salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
-})
+export const VariantPriceMutationDto = z.object({ salesTypeId: zPrimitive.id, price: zPrimitive.str })
 
 export type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 
-export const ProductPriceMutationDto = z.object({
-  salesTypeId: zPrimitive.id,
-  price: zPrimitive.str,
-})
+export const ProductPriceMutationDto = z.object({ salesTypeId: zPrimitive.id, price: zPrimitive.str })
 
 export type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
 

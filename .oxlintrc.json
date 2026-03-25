@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": { "builtin": true },
+  "options": { "typeAware": true, "typeCheck": true },
+  "plugins": ["typescript", "unicorn", "react", "oxc", "import", "jsdoc", "node", "promise", "vitest"],
+  "categories": { "correctness": "error", "suspicious": "error", "perf": "warn", "style": "off" },
+  "rules": {
+    "no-shadow": "off",
+    "react/react-in-jsx-scope": "off",
+    "unicorn/no-empty-file": "off",
+    "no-await-in-loop": "off",
+    "@typescript-eslint/no-unsafe-type-assertion": "warn"
+  },
+  "ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
+}

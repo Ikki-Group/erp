@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { uomsTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,24 +15,19 @@ import {
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { uomsTable } from '@/db/schema'
 
 import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`),
-}
+const err = { notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`) }
 
 const uniqueFields: ConflictField<'code'>[] = [
   { field: 'code', column: uomsTable.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
 ]
 
-const cacheKey = {
-  count: 'uom.count',
-  list: 'uom.list',
-  byId: (id: number) => `uom.byId.${id}`,
-}
+const cacheKey = { count: 'uom.count', list: 'uom.list', byId: (id: number) => `uom.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -113,19 +106,11 @@ export class UomService {
     return record('UomService.handleCreate', async () => {
       const code = data.code.toUpperCase().trim()
 
-      await checkConflict({
-        table: uomsTable,
-        pkColumn: uomsTable.id,
-        fields: uniqueFields,
-        input: { code },
-      })
+      await checkConflict({ table: uomsTable, pkColumn: uomsTable.id, fields: uniqueFields, input: { code } })
 
       const [inserted] = await db
         .insert(uomsTable)
-        .values({
-          code,
-          ...stampCreate(actorId),
-        })
+        .values({ code, ...stampCreate(actorId) })
         .returning({ id: uomsTable.id })
 
       if (!inserted) throw new Error('Failed to create UOM')
@@ -144,20 +129,11 @@ export class UomService {
 
       const code = data.code ? data.code.toUpperCase().trim() : existing.code
 
-      await checkConflict({
-        table: uomsTable,
-        pkColumn: uomsTable.id,
-        fields: uniqueFields,
-        input: { code },
-        existing,
-      })
+      await checkConflict({ table: uomsTable, pkColumn: uomsTable.id, fields: uniqueFields, input: { code }, existing })
 
       await db
         .update(uomsTable)
-        .set({
-          code,
-          ...stampUpdate(actorId),
-        })
+        .set({ code, ...stampUpdate(actorId) })
         .where(eq(uomsTable.id, id))
 
       void this.clearCache(id)
@@ -198,20 +174,12 @@ export class UomService {
       const existingCodes = new Set(existing.map((e) => e.code))
 
       const newUoms = data
-        .map((d) => ({
-          ...d,
-          code: d.code.toUpperCase().trim(),
-        }))
+        .map((d) => ({ ...d, code: d.code.toUpperCase().trim() }))
         .filter((d) => !existingCodes.has(d.code))
 
       if (newUoms.length === 0) return
 
-      await db.insert(uomsTable).values(
-        newUoms.map((d) => ({
-          ...d,
-          ...stampCreate(d.createdBy),
-        }))
-      )
+      await db.insert(uomsTable).values(newUoms.map((d) => ({ ...d, ...stampCreate(d.createdBy) })))
 
       void this.clearCache()
     })

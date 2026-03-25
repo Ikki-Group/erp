@@ -1,27 +1,16 @@
-import * as React from 'react'
 import { useForm } from '@tanstack/react-form'
 import { zodValidator } from '@tanstack/zod-form-adapter'
+import * as React from 'react'
 
-import type { DataComboboxProps } from '@/components/ui/data-combobox'
-import { cn } from '@/lib/utils'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import type { DataComboboxProps } from '@/components/ui/data-combobox'
 import { DataCombobox } from '@/components/ui/data-combobox'
+import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 // ============================================================================
 // Form Wrapper Component
@@ -34,7 +23,7 @@ interface FormProps extends Omit<React.ComponentProps<'form'>, 'onSubmit'> {
 function Form({ form, className, children, ...props }: FormProps) {
   return (
     <form
-      onSubmit={e => {
+      onSubmit={(e) => {
         e.preventDefault()
         e.stopPropagation()
         form.handleSubmit()
@@ -66,28 +55,15 @@ interface FormFieldProps {
   }) => React.ReactNode
 }
 
-function FormField({
-  form,
-  name,
-  label,
-  description,
-  orientation = 'vertical',
-  validators,
-  children,
-}: FormFieldProps) {
+function FormField({ form, name, label, description, orientation = 'vertical', validators, children }: FormFieldProps) {
   return (
     <form.Field name={name} validators={validators}>
       {(field: any) => {
         const hasErrors = field.state.meta.errors.length > 0
-        const errors = field.state.meta.errors.map((error: string) => ({
-          message: error,
-        }))
+        const errors = field.state.meta.errors.map((error: string) => ({ message: error }))
 
         return (
-          <Field
-            orientation={orientation}
-            data-invalid={hasErrors || undefined}
-          >
+          <Field orientation={orientation} data-invalid={hasErrors || undefined}>
             {label && <FieldLabel htmlFor={name}>{label}</FieldLabel>}
             {description && <FieldDescription>{description}</FieldDescription>}
             {children({
@@ -108,10 +84,7 @@ function FormField({
 // FormInput Component - Pre-configured input field
 // ============================================================================
 
-interface FormInputProps extends Omit<
-  React.ComponentProps<typeof Input>,
-  'name' | 'value' | 'onChange' | 'onBlur'
-> {
+interface FormInputProps extends Omit<React.ComponentProps<typeof Input>, 'name' | 'value' | 'onChange' | 'onBlur'> {
   form: any
   name: string
   label?: string
@@ -143,7 +116,7 @@ function FormInput({
         <Input
           id={name}
           value={value as string}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           aria-invalid={errors.length > 0 || undefined}
           className={className}
@@ -193,7 +166,7 @@ function FormTextarea({
         <Textarea
           id={name}
           value={value as string}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           aria-invalid={errors.length > 0 || undefined}
           className={className}
@@ -246,23 +219,14 @@ function FormSelect({
       validators={validators}
     >
       {({ value, onChange, errors }) => (
-        <Select
-          value={(value as string) || undefined}
-          onValueChange={newValue => onChange(newValue || '')}
-        >
-          <SelectTrigger
-            className={cn('w-full', className)}
-            aria-invalid={errors.length > 0 || undefined}
-          >
+        <Select value={(value as string) || undefined} onValueChange={(newValue) => onChange(newValue || '')}>
+          <SelectTrigger className={cn('w-full', className)} aria-invalid={errors.length > 0 || undefined}>
             <SelectValue placeholder={placeholder}>
-              {value
-                ? options.find(opt => String(opt.value) === String(value))
-                    ?.label
-                : undefined}
+              {value ? options.find((opt) => String(opt.value) === String(value))?.label : undefined}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {options.map(option => (
+            {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -310,7 +274,7 @@ function FormCheckbox({
         <Checkbox
           id={name}
           checked={value as boolean}
-          onCheckedChange={checked => onChange(checked)}
+          onCheckedChange={(checked) => onChange(checked)}
           onBlur={onBlur}
           aria-invalid={errors.length > 0 || undefined}
           className={className}
@@ -324,10 +288,7 @@ function FormCheckbox({
 // FormSubmit Component - Submit button with form state awareness
 // ============================================================================
 
-interface FormSubmitProps extends Omit<
-  React.ComponentProps<typeof Button>,
-  'type'
-> {
+interface FormSubmitProps extends Omit<React.ComponentProps<typeof Button>, 'type'> {
   form: any
   loadingText?: string
 }
@@ -340,24 +301,9 @@ function FormSubmit({
   ...buttonProps
 }: FormSubmitProps) {
   return (
-    <form.Subscribe
-      selector={(state: any) => ({
-        canSubmit: state.canSubmit,
-        isSubmitting: state.isSubmitting,
-      })}
-    >
-      {({
-        canSubmit,
-        isSubmitting,
-      }: {
-        canSubmit: boolean
-        isSubmitting: boolean
-      }) => (
-        <Button
-          type='submit'
-          disabled={!canSubmit || disabled}
-          {...buttonProps}
-        >
+    <form.Subscribe selector={(state: any) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}>
+      {({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitting: boolean }) => (
+        <Button type="submit" disabled={!canSubmit || disabled} {...buttonProps}>
           {isSubmitting ? loadingText : children}
         </Button>
       )}
@@ -369,10 +315,7 @@ function FormSubmit({
 // FormCombobox Component - Pre-configured combobox field
 // ============================================================================
 
-interface FormComboboxProps<TItem> extends Omit<
-  DataComboboxProps<TItem>,
-  'value' | 'onValueChange'
-> {
+interface FormComboboxProps<TItem> extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'> {
   form: any
   name: string
   label?: string
@@ -400,11 +343,7 @@ function FormCombobox<TItem>({
       validators={validators}
     >
       {({ value, onChange }) => (
-        <DataCombobox<TItem>
-          value={value as string | null}
-          onValueChange={onChange}
-          {...comboboxProps}
-        />
+        <DataCombobox<TItem> value={value as string | null} onValueChange={onChange} {...comboboxProps} />
       )}
     </FormField>
   )

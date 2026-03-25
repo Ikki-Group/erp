@@ -1,7 +1,8 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@uidotdev/usehooks'
 import { DatabaseIcon, Loader2Icon } from 'lucide-react'
+import * as React from 'react'
+
 import { Combobox } from '@/components/ui/combobox'
 
 export interface DataComboboxProps<TItem> {
@@ -48,13 +49,13 @@ export function DataCombobox<TItem>({
   return (
     <Combobox
       value={value ?? null}
-      onValueChange={val => {
+      onValueChange={(val) => {
         onValueChange?.(val)
         if (onItemSelect) {
           if (!val) {
             onItemSelect(null)
           } else {
-            const selectedItem = data?.find(item => getValue(item) === val)
+            const selectedItem = data?.find((item) => getValue(item) === val)
             if (selectedItem) onItemSelect(selectedItem)
           }
         }
@@ -66,44 +67,32 @@ export function DataCombobox<TItem>({
       disabled={disabled}
       items={data}
     >
-      <div className='relative group/combobox-wrapper'>
-        <Combobox.Input
-          placeholder={placeholder}
-          className={className}
-          showClear={!!value}
-          disabled={disabled}
-        />
-        {/* If we have a selected value but the input is empty or disconnected, 
+      <div className="relative group/combobox-wrapper">
+        <Combobox.Input placeholder={placeholder} className={className} showClear={!!value} disabled={disabled} />
+        {/* If we have a selected value but the input is empty or disconnected,
             Base UI Combobox handles displaying the selected value's label mostly.
             But we must ensure the items provide labels. */}
       </div>
 
-      <Combobox.Content
-        align='start'
-        className='w-[--anchor-width] p-0 shadow-lg'
-      >
-        <div className='flex flex-col'>
+      <Combobox.Content align="start" className="w-[--anchor-width] p-0 shadow-lg">
+        <div className="flex flex-col">
           {isLoading || isFetching ? (
-            <div className='flex flex-col items-center justify-center p-6 text-muted-foreground gap-3'>
-              <Loader2Icon className='size-5 animate-spin text-primary/60' />
-              <span className='text-sm font-medium'>{loadingText}</span>
+            <div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3">
+              <Loader2Icon className="size-5 animate-spin text-primary/60" />
+              <span className="text-sm font-medium">{loadingText}</span>
             </div>
           ) : (
-            <Combobox.List className='p-1'>
+            <Combobox.List className="p-1">
               {data?.length === 0 ? (
-                <div className='flex flex-col items-center justify-center p-6 text-muted-foreground gap-3 text-center'>
-                  <DatabaseIcon className='size-8 opacity-20' />
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-sm font-medium text-foreground'>
-                      {emptyText}
-                    </span>
-                    <span className='text-xs'>
-                      Ubah kata kunci pencarian Anda
-                    </span>
+                <div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3 text-center">
+                  <DatabaseIcon className="size-8 opacity-20" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-foreground">{emptyText}</span>
+                    <span className="text-xs">Ubah kata kunci pencarian Anda</span>
                   </div>
                 </div>
               ) : (
-                data?.map(item => (
+                data?.map((item) => (
                   <Combobox.Item key={getValue(item)} value={getValue(item)}>
                     {getLabel(item)}
                   </Combobox.Item>

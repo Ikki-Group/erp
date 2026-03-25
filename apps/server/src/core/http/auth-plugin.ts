@@ -1,10 +1,9 @@
 import { getCurrentSpan, record } from '@elysiajs/opentelemetry'
 import { Elysia } from 'elysia'
 
+import { UnauthorizedError } from '@/core/http/errors'
 import type { AuthServiceModule } from '@/modules/auth/service'
 import type { UserOutputDto } from '@/modules/iam/dto/user.dto'
-
-import { UnauthorizedError } from '@/core/http/errors'
 
 class AuthContext {
   constructor(public user: UserOutputDto | null) {}
@@ -48,9 +47,7 @@ export const authPluginMacro = new Elysia({ name: 'auth-plugin' })
   .decorate('auth', null! as AuthContext)
   .derive(({ auth }) => {
     if (!auth) return
-    return {
-      auth,
-    }
+    return { auth }
   })
   .macro({
     isAuthenticated: (enabled: boolean) => ({

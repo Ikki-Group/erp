@@ -27,14 +27,11 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({
-            ...zHttp.pagination.shape,
-            ...StockSummaryFilterDto.shape,
-          }),
+          query: z.object({ ...zHttp.pagination.shape, ...StockSummaryFilterDto.shape }),
           response: zResponse.paginated(StockSummarySelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
-        }
+        },
       )
 
       /* ─────── Stock Ledger Aggregation (date range, paginated) ─────── */
@@ -45,14 +42,11 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({
-            ...zHttp.pagination.shape,
-            ...StockLedgerFilterDto.shape,
-          }),
+          query: z.object({ ...zHttp.pagination.shape, ...StockLedgerFilterDto.shape }),
           response: zResponse.paginated(StockLedgerSelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Ledger'] },
-        }
+        },
       )
 
       /* ─────── Generate/regenerate daily summary ─────── */
@@ -67,7 +61,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           response: zResponse.ok(z.object({ generatedCount: z.number() })),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
-        }
+        },
       )
   )
 }

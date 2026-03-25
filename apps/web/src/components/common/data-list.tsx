@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+
 import { cn } from '@/lib/utils'
 
 interface DataListProps {
@@ -18,11 +19,7 @@ export function DataList({ children, className, cols = 3 }: DataListProps) {
     4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
   }[cols]
 
-  return (
-    <div className={cn('grid gap-y-6 gap-x-4', gridCols, className)}>
-      {children}
-    </div>
-  )
+  return <div className={cn('grid gap-y-6 gap-x-4', gridCols, className)}>{children}</div>
 }
 
 interface DataListItemProps {
@@ -33,13 +30,7 @@ interface DataListItemProps {
   span?: 1 | 2 | 3 | 4
 }
 
-function DataListItem({
-  label,
-  value,
-  children,
-  className,
-  span = 1,
-}: DataListItemProps) {
+function DataListItem({ label, value, children, className, span = 1 }: DataListItemProps) {
   const colSpan = {
     1: 'col-span-1',
     2: 'col-span-1 sm:col-span-2',
@@ -49,10 +40,8 @@ function DataListItem({
 
   return (
     <div className={cn('flex flex-col gap-1', colSpan, className)}>
-      <span className='text-[10px] font-bold text-muted-foreground uppercase tracking-wider'>
-        {label}
-      </span>
-      <div className='text-sm font-medium'>{value ?? children}</div>
+      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
+      <div className="text-sm font-medium">{value ?? children}</div>
     </div>
   )
 }

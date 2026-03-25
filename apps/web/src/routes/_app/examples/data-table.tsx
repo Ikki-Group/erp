@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { MoreHorizontalIcon } from 'lucide-react'
-import { DataTable } from '@/components/data-table/data-table'
+
 import { useDataTableAuto, useDataTableState } from '@/components/data-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { Page } from '@/components/layout/page'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
@@ -16,21 +17,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export const Route = createFileRoute('/_app/examples/data-table')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/examples/data-table')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.Header>
         <Page.Title>Data Table Examples</Page.Title>
-        <Page.Description>
-          Comprehensive examples of data table features and use cases
-        </Page.Description>
+        <Page.Description>Comprehensive examples of data table features and use cases</Page.Description>
       </Page.Header>
 
-      <Page.Content className='space-y-8'>
+      <Page.Content className="space-y-8">
         <AdvancedExample />
         <BasicExample />
       </Page.Content>
@@ -66,12 +63,7 @@ const MOCK_USERS: Array<User> = Array.from({ length: 100 }).map((_, index) => ({
 
 function BasicExample() {
   const ds = useDataTableState()
-  const table = useDataTableAuto({
-    data: MOCK_USERS,
-    columns: basicColumns,
-    ds,
-    isLoading: true,
-  })
+  const table = useDataTableAuto({ data: MOCK_USERS, columns: basicColumns, ds, isLoading: true })
 
   return (
     <Card>
@@ -92,18 +84,9 @@ function BasicExample() {
 const ch = createColumnHelper<User>()
 
 const basicColumns = [
-  ch.accessor('name', {
-    header: 'Name',
-    cell: info => info.getValue(),
-  }),
-  ch.accessor('email', {
-    header: 'Email',
-    cell: info => info.getValue(),
-  }),
-  ch.accessor('role', {
-    header: 'Role',
-    cell: info => <Badge variant='outline'>{info.getValue()}</Badge>,
-  }),
+  ch.accessor('name', { header: 'Name', cell: (info) => info.getValue() }),
+  ch.accessor('email', { header: 'Email', cell: (info) => info.getValue() }),
+  ch.accessor('role', { header: 'Role', cell: (info) => <Badge variant="outline">{info.getValue()}</Badge> }),
 ]
 
 // ============================================================================
@@ -112,27 +95,21 @@ const basicColumns = [
 
 function AdvancedExample() {
   const ds = useDataTableState()
-  const table = useDataTableAuto({
-    data: MOCK_USERS,
-    columns: advancedColumns,
-    ds,
-  })
+  const table = useDataTableAuto({ data: MOCK_USERS, columns: advancedColumns, ds })
 
   return (
     <Card>
-      <Card.Header className='border-b'>
+      <Card.Header className="border-b">
         <Card.Title>Advanced Table</Card.Title>
-        <Card.Description>
-          Table with selection, search, column visibility, and row actions
-        </Card.Description>
+        <Card.Description>Table with selection, search, column visibility, and row actions</Card.Description>
       </Card.Header>
 
       <DataTable table={table}>
-        <div className='px-4 pb-2'>
+        <div className="px-4 pb-2">
           <DataTable.Toolbar />
         </div>
-        <DataTable.Table className='border-y' />
-        <Card.Footer className='pt-4'>
+        <DataTable.Table className="border-y" />
+        <Card.Footer className="pt-4">
           <DataTable.Pagination />
         </Card.Footer>
       </DataTable>
@@ -146,17 +123,17 @@ const advancedColumns = [
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-        aria-label='Select all'
-        className='translate-y-[2px]'
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={value => row.toggleSelected(!!value)}
-        aria-label='Select row'
-        className='translate-y-[2px]'
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
       />
     ),
     enableSorting: false,
@@ -164,22 +141,16 @@ const advancedColumns = [
     size: 8,
   }),
   ch.accessor('name', {
-    header: ({ column }) => (
-      <DataTable.ColumnHeader column={column} title='Name' />
-    ),
-    cell: info => info.getValue(),
+    header: ({ column }) => <DataTable.ColumnHeader column={column} title="Name" />,
+    cell: (info) => info.getValue(),
   }),
   ch.accessor('email', {
-    header: ({ column }) => (
-      <DataTable.ColumnHeader column={column} title='Email' />
-    ),
-    cell: info => info.getValue(),
+    header: ({ column }) => <DataTable.ColumnHeader column={column} title="Email" />,
+    cell: (info) => info.getValue(),
   }),
   ch.accessor('role', {
-    header: ({ column }) => (
-      <DataTable.ColumnHeader column={column} title='Role' />
-    ),
-    cell: info => <Badge variant='outline'>{info.getValue()}</Badge>,
+    header: ({ column }) => <DataTable.ColumnHeader column={column} title="Role" />,
+    cell: (info) => <Badge variant="outline">{info.getValue()}</Badge>,
   }),
   ch.display({
     id: 'actions',
@@ -188,18 +159,12 @@ const advancedColumns = [
       const user = row.original
       return (
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant='ghost' className='size-8 p-0' />}
-          >
-            <span className='sr-only'>Open menu</span>
-            <MoreHorizontalIcon className='size-4' />
+          <DropdownMenuTrigger render={<Button variant="ghost" className="size-8 p-0" />}>
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontalIcon className="size-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(user.id)}
-            >
-              Copy user ID
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)}>Copy user ID</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Edit user</DropdownMenuItem>
             <DropdownMenuItem>View details</DropdownMenuItem>

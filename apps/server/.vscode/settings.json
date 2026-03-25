@@ -1,16 +1,10 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always",
-    "source.organizeImports": "explicit"
-  },
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "always", "source.organizeImports": "explicit" },
   "workbench.editor.labelFormat": "long",
   "explorer.sortOrder": "default",
-  "search.exclude": {
-    "**/node_modules": true,
-    "dist": true
-  },
+  "search.exclude": { "**/node_modules": true, "dist": true },
   "editor.snippetSuggestions": "bottom",
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "typescript.enablePromptUseWorkspaceTsdk": true,
@@ -19,11 +13,7 @@
   "eslint.enable": true,
   "typescript.preferences.autoImportSpecifierExcludeRegexes": ["^(node:)?os$"],
   "todo-tree.tree.scanMode": "workspace only",
-  "[markdown]": {
-    "editor.formatOnSave": false
-  },
+  "[markdown]": { "editor.formatOnSave": false },
   "markdown.styles": [],
-  "material-icon-theme.files.associations": {
-    "**/controller/**": "typescript"
-  }
+  "material-icon-theme.files.associations": { "**/controller/**": "typescript" }
 }

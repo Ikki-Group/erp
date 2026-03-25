@@ -1,27 +1,20 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
 
 import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
-}
+const err = { notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND') }
 
-const cacheKey = {
-  count: 'recipe.count',
-  list: 'recipe.list',
-  byId: (id: number) => `recipe.byId.${id}`,
-}
+const cacheKey = { count: 'recipe.count', list: 'recipe.list', byId: (id: number) => `recipe.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -78,7 +71,7 @@ export class RecipeService {
         materialId === undefined ? undefined : eq(recipesTable.materialId, materialId),
         productId === undefined ? undefined : eq(recipesTable.productId, productId),
         productVariantId === undefined ? undefined : eq(recipesTable.productVariantId, productVariantId),
-        isActive === undefined ? undefined : eq(recipesTable.isActive, isActive)
+        isActive === undefined ? undefined : eq(recipesTable.isActive, isActive),
       )
 
       const result = await paginate({
@@ -120,10 +113,7 @@ export class RecipeService {
         itemsByRecipe.set(item.recipeId, list)
       }
 
-      const data: RecipeSelectDto[] = result.data.map((r) => ({
-        ...r,
-        items: itemsByRecipe.get(r.id) || [],
-      }))
+      const data: RecipeSelectDto[] = result.data.map((r) => ({ ...r, items: itemsByRecipe.get(r.id) || [] }))
 
       return { data, meta: result.meta }
     })
@@ -141,7 +131,7 @@ export class RecipeService {
       productId?: number | null | undefined
       productVariantId?: number | null | undefined
     },
-    excludeId?: number
+    excludeId?: number,
   ) {
     const conditions = []
 
@@ -196,18 +186,20 @@ export class RecipeService {
         if (!recipe) throw new Error('Failed to create recipe')
 
         if (data.items?.length) {
-          await tx.insert(recipeItemsTable).values(
-            data.items.map((item) => ({
-              recipeId: recipe.id,
-              materialId: item.materialId,
-              qty: item.qty,
-              scrapPercentage: item.scrapPercentage,
-              uomId: item.uomId,
-              notes: item.notes,
-              sortOrder: item.sortOrder,
-              ...meta,
-            }))
-          )
+          await tx
+            .insert(recipeItemsTable)
+            .values(
+              data.items.map((item) => ({
+                recipeId: recipe.id,
+                materialId: item.materialId,
+                qty: item.qty,
+                scrapPercentage: item.scrapPercentage,
+                uomId: item.uomId,
+                notes: item.notes,
+                sortOrder: item.sortOrder,
+                ...meta,
+              })),
+            )
         }
 
         return recipe
@@ -251,18 +243,20 @@ export class RecipeService {
         await tx.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
 
         if (data.items?.length) {
-          await tx.insert(recipeItemsTable).values(
-            data.items.map((item) => ({
-              recipeId: id,
-              materialId: item.materialId,
-              qty: item.qty,
-              scrapPercentage: item.scrapPercentage,
-              uomId: item.uomId,
-              notes: item.notes ?? null,
-              sortOrder: item.sortOrder,
-              ...createMeta,
-            }))
-          )
+          await tx
+            .insert(recipeItemsTable)
+            .values(
+              data.items.map((item) => ({
+                recipeId: id,
+                materialId: item.materialId,
+                qty: item.qty,
+                scrapPercentage: item.scrapPercentage,
+                uomId: item.uomId,
+                notes: item.notes ?? null,
+                sortOrder: item.sortOrder,
+                ...createMeta,
+              })),
+            )
         }
 
         return { id }

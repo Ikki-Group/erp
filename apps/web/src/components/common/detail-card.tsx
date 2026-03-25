@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
+
 import type { DescriptionItem } from '@/components/common/data-display/description-list'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DescriptionList } from '@/components/common/data-display/description-list'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -52,16 +53,14 @@ export function DetailCard({
   columns = 1,
 }: DetailCardProps) {
   return (
-    <Card size='sm' className={cn(className)}>
-      <CardHeader className='border-b'>
-        <div className='flex items-center justify-between'>
-          <div className='space-y-0.5'>
+    <Card size="sm" className={cn(className)}>
+      <CardHeader className="border-b">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
             <CardTitle>{title}</CardTitle>
-            {description && (
-              <p className='text-sm text-muted-foreground'>{description}</p>
-            )}
+            {description && <p className="text-sm text-muted-foreground">{description}</p>}
           </div>
-          {action && <div className='flex items-center gap-2'>{action}</div>}
+          {action && <div className="flex items-center gap-2">{action}</div>}
         </div>
       </CardHeader>
       <CardContent>
@@ -81,11 +80,11 @@ export function DetailCard({
 
 function DetailCardSkeleton({ count }: { count: number }) {
   return (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={`skeleton-${String(i)}`} className='flex gap-4'>
-          <Skeleton className='h-4 w-1/4' />
-          <Skeleton className='h-4 w-1/2' />
+        <div key={`skeleton-${String(i)}`} className="flex gap-4">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-4 w-1/2" />
         </div>
       ))}
     </div>

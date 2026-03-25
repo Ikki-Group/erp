@@ -1,12 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
+
 import { materialApi } from '@/features/material'
 import { MaterialFormPage } from '@/features/material/components/material-form-page'
 
 export const Route = createFileRoute('/_app/materials/$id/update')({
   loader: async ({ context, params }) => {
-    await context.qc.ensureQueryData(
-      materialApi.detail.query({ id: Number(params.id) })
-    )
+    await context.qc.ensureQueryData(materialApi.detail.query({ id: Number(params.id) }))
   },
   component: RouteComponent,
 })
@@ -16,13 +15,9 @@ function RouteComponent() {
 
   return (
     <MaterialFormPage
-      mode='update'
+      mode="update"
       id={Number(id)}
-      backTo={{
-        from: Route.fullPath,
-        to: '/materials/$id',
-        params: { id: String(id) },
-      }}
+      backTo={{ from: Route.fullPath, to: '/materials/$id', params: { id: String(id) } }}
     />
   )
 }

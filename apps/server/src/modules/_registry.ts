@@ -34,19 +34,7 @@ export function createModules() {
   const tool = new ToolServiceModule(iam, location, product, material)
   const moka = new MokaServiceModule(logger)
 
-  return {
-    location,
-    product,
-    iam,
-    material,
-    auth,
-    inventory,
-    recipe,
-    dashboard,
-    tool,
-    moka,
-    sales,
-  }
+  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales }
 }
 
 export type Modules = ReturnType<typeof createModules>

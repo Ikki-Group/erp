@@ -1,24 +1,15 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { MapPinIcon, MoreHorizontalIcon, PackageIcon, SettingsIcon, Trash2Icon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  MapPinIcon,
-  MoreHorizontalIcon,
-  PackageIcon,
-  SettingsIcon,
-  Trash2Icon,
-} from 'lucide-react'
-import type { MaterialLocationStockDto } from '@/features/material'
-import { materialLocationApi } from '@/features/material'
-import { locationApi } from '@/features/location'
-import { Page } from '@/components/layout/page'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-import { useDataTable } from '@/hooks/use-data-table'
+
 import { DataTableCard } from '@/components/card/data-table-card'
-import { Button } from '@/components/ui/button'
+import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DataCombobox } from '@/components/ui/data-combobox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +17,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataCombobox } from '@/components/ui/data-combobox'
+import { locationApi } from '@/features/location'
+import type { MaterialLocationStockDto } from '@/features/material'
+import { materialLocationApi } from '@/features/material'
 import { MaterialLocationAssignDialog } from '@/features/material/components/material-location-assign-dialog'
 import { MaterialLocationEditSheet } from '@/features/material/components/material-location-edit-sheet'
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-export const Route = createFileRoute('/_app/materials/stock')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/materials/stock')({ component: RouteComponent })
 
 function RouteComponent() {
   const [locationId, setLocationId] = useState<string | null>(null)
@@ -43,23 +36,20 @@ function RouteComponent() {
 
   return (
     <Page>
-      <Page.BlockHeader
-        title='Stok Bahan Baku'
-        description='Kelola stok bahan baku per lokasi'
-      />
-      <Page.Content className='flex flex-col gap-4'>
+      <Page.BlockHeader title="Stok Bahan Baku" description="Kelola stok bahan baku per lokasi" />
+      <Page.Content className="flex flex-col gap-4">
         {/* Location Selector */}
-        <div className='flex items-end gap-3'>
-          <div className='flex flex-col gap-1.5 w-full max-w-sm'>
-            <label className='text-sm font-medium'>Pilih Lokasi</label>
+        <div className="flex items-end gap-3">
+          <div className="flex flex-col gap-1.5 w-full max-w-sm">
+            <label className="text-sm font-medium">Pilih Lokasi</label>
             <DataCombobox
               value={locationId}
-              onValueChange={val => {
+              onValueChange={(val) => {
                 setLocationId(val)
                 if (!val) setLocationName('')
               }}
-              placeholder='Cari lokasi...'
-              emptyText='Lokasi tidak ditemukan.'
+              placeholder="Cari lokasi..."
+              emptyText="Lokasi tidak ditemukan."
               queryKey={['location-list']}
               queryFn={async (search: string) => {
                 const res = await locationApi.list.fetch({
@@ -67,13 +57,13 @@ function RouteComponent() {
                 })
                 return res.data
               }}
-              getLabel={item => {
+              getLabel={(item) => {
                 if (String(item.id) === locationId) {
                   setLocationName(item.name)
                 }
                 return `${item.name} (${item.code})`
               }}
-              getValue={item => String(item.id)}
+              getValue={(item) => String(item.id)}
             />
           </div>
         </div>
@@ -82,22 +72,14 @@ function RouteComponent() {
         {numericLocationId ? (
           <>
             <MaterialLocationAssignDialog.Root />
-            <StockTable
-              locationId={numericLocationId}
-              locationName={locationName}
-            />
+            <StockTable locationId={numericLocationId} locationName={locationName} />
           </>
         ) : (
-          <div className='flex flex-col items-center justify-center py-20 text-muted-foreground gap-3'>
-            <MapPinIcon className='size-12 opacity-20' />
-            <div className='text-center space-y-1'>
-              <p className='font-medium text-foreground'>
-                Pilih lokasi terlebih dahulu
-              </p>
-              <p className='text-sm'>
-                Gunakan pencarian di atas untuk memilih lokasi dan melihat stok
-                bahan baku
-              </p>
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+            <MapPinIcon className="size-12 opacity-20" />
+            <div className="text-center space-y-1">
+              <p className="font-medium text-foreground">Pilih lokasi terlebih dahulu</p>
+              <p className="text-sm">Gunakan pencarian di atas untuk memilih lokasi dan melihat stok bahan baku</p>
             </div>
           </div>
         )}
@@ -119,73 +101,52 @@ const ch = createColumnHelper<MaterialLocationStockDto>()
  * @param locationName - Human-readable name of the selected location (used in dialogs/actions)
  * @returns The stock table UI and related dialogs for managing material-location assignments
  */
-function StockTable({
-  locationId,
-  locationName,
-}: {
-  locationId: number
-  locationName: string
-}) {
+function StockTable({ locationId, locationName }: { locationId: number; locationName: string }) {
   const queryClient = useQueryClient()
   const ds = useDataTableState()
 
   // Edit sheet state (config only, stock updates use inventory transactions)
-  const [editSheet, setEditSheet] = useState<{
-    open: boolean
-    data: MaterialLocationStockDto | null
-  }>({ open: false, data: null })
+  const [editSheet, setEditSheet] = useState<{ open: boolean; data: MaterialLocationStockDto | null }>({
+    open: false,
+    data: null,
+  })
 
   const { data, isLoading } = useQuery(
-    materialLocationApi.stock.query({
-      locationId,
-      ...ds.pagination,
-      search: ds.search || undefined,
-    })
+    materialLocationApi.stock.query({ locationId, ...ds.pagination, search: ds.search || undefined }),
   )
 
   const unassignMutation = useMutation({
     mutationFn: materialLocationApi.unassign.mutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: materialLocationApi.stock.queryKey(undefined),
-      })
+      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
     },
   })
 
   const handleUnassign = useCallback(
     async (row: MaterialLocationStockDto) => {
       const promise = unassignMutation.mutateAsync({
-        params: {
-          materialId: row.materialId,
-          locationId: row.locationId,
-        },
+        params: { materialId: row.materialId, locationId: row.locationId },
       })
 
-      await toast
-        .promise(promise, toastLabelMessage('delete', 'assign material'))
-        .unwrap()
+      await toast.promise(promise, toastLabelMessage('delete', 'assign material')).unwrap()
     },
-    [unassignMutation]
+    [unassignMutation],
   )
 
   const columns = [
     ch.accessor('materialName', {
       header: 'Bahan Baku',
       cell: ({ row }) => (
-        <div className='flex flex-col'>
-          <span className='font-medium'>{row.original.materialName}</span>
-          <span className='text-xs text-muted-foreground'>
-            SKU: {row.original.materialSku}
-          </span>
+        <div className="flex flex-col">
+          <span className="font-medium">{row.original.materialName}</span>
+          <span className="text-xs text-muted-foreground">SKU: {row.original.materialSku}</span>
         </div>
       ),
       enableSorting: false,
     }),
     ch.accessor('uom', {
       header: 'Satuan',
-      cell: ({ row }) => (
-        <Badge variant='secondary'>{row.original.uom?.code ?? '-'}</Badge>
-      ),
+      cell: ({ row }) => <Badge variant="secondary">{row.original.uom?.code ?? '-'}</Badge>,
       enableSorting: false,
       size: 90,
     }),
@@ -197,16 +158,10 @@ function StockTable({
         const min = row.original.minStock
         const isLow = val <= min
         return (
-          <div className='flex items-center gap-2'>
-            <span
-              className={
-                isLow ? 'font-semibold text-destructive' : 'font-semibold'
-              }
-            >
-              {val}
-            </span>
+          <div className="flex items-center gap-2">
+            <span className={isLow ? 'font-semibold text-destructive' : 'font-semibold'}>{val}</span>
             {isLow && (
-              <Badge variant='destructive' className='text-[10px] h-4'>
+              <Badge variant="destructive" className="text-[10px] h-4">
                 Low
               </Badge>
             )}
@@ -218,20 +173,14 @@ function StockTable({
     }),
     ch.accessor('currentAvgCost', {
       header: 'Harga Rata-rata',
-      cell: ({ row }) => (
-        <span className='tabular-nums'>
-          {row.original.currentAvgCost.toLocaleString('id-ID')}
-        </span>
-      ),
+      cell: ({ row }) => <span className="tabular-nums">{row.original.currentAvgCost.toLocaleString('id-ID')}</span>,
       enableSorting: false,
       size: 140,
     }),
     ch.accessor('currentValue', {
       header: 'Nilai Stok',
       cell: ({ row }) => (
-        <span className='tabular-nums font-medium'>
-          {row.original.currentValue.toLocaleString('id-ID')}
-        </span>
+        <span className="tabular-nums font-medium">{row.original.currentValue.toLocaleString('id-ID')}</span>
       ),
       enableSorting: false,
       size: 140,
@@ -241,24 +190,17 @@ function StockTable({
       header: '',
       cell: ({ row }) => (
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant='ghost' size='icon-sm' />}
-          >
-            <MoreHorizontalIcon className='size-4' />
+          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+            <MoreHorizontalIcon className="size-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuItem
-              onClick={() => setEditSheet({ open: true, data: row.original })}
-            >
-              <SettingsIcon className='size-4 mr-2' />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setEditSheet({ open: true, data: row.original })}>
+              <SettingsIcon className="size-4 mr-2" />
               Konfigurasi Stok
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant='destructive'
-              onClick={() => handleUnassign(row.original)}
-            >
-              <Trash2Icon className='size-4 mr-2' />
+            <DropdownMenuItem variant="destructive" onClick={() => handleUnassign(row.original)}>
+              <Trash2Icon className="size-4 mr-2" />
               Unassign
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -282,21 +224,13 @@ function StockTable({
   return (
     <>
       <DataTableCard
-        title='Stok Bahan Baku'
+        title="Stok Bahan Baku"
         table={table}
         isLoading={isLoading}
         recordCount={data?.meta.total || 0}
         action={
-          <Button
-            size='sm'
-            onClick={() =>
-              MaterialLocationAssignDialog.call({
-                locationId,
-                locationName,
-              })
-            }
-          >
-            <PackageIcon className='mr-2 size-4' />
+          <Button size="sm" onClick={() => MaterialLocationAssignDialog.call({ locationId, locationName })}>
+            <PackageIcon className="mr-2 size-4" />
             Assign Bahan Baku
           </Button>
         }
@@ -304,7 +238,7 @@ function StockTable({
 
       <MaterialLocationEditSheet
         open={editSheet.open}
-        onOpenChange={open => setEditSheet(prev => ({ ...prev, open }))}
+        onOpenChange={(open) => setEditSheet((prev) => ({ ...prev, open }))}
         data={editSheet.data}
       />
     </>

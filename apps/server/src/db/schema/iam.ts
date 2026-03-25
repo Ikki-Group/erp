@@ -17,7 +17,7 @@ export const usersTable = pgTable(
     isActive: boolean().notNull().default(true),
     ...metadata,
   },
-  (t) => [uniqueIndex('users_email_idx').on(t.email), uniqueIndex('users_username_idx').on(t.username)]
+  (t) => [uniqueIndex('users_email_idx').on(t.email), uniqueIndex('users_username_idx').on(t.username)],
 )
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ export const rolesTable = pgTable(
     isSystem: boolean().notNull().default(false),
     ...metadata,
   },
-  (t) => [uniqueIndex('roles_code_idx').on(t.code), uniqueIndex('roles_name_idx').on(t.name)]
+  (t) => [uniqueIndex('roles_code_idx').on(t.code), uniqueIndex('roles_name_idx').on(t.name)],
 )
 
 // ─── User Assignments ────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ export const userAssignmentsTable = pgTable(
     index('user_assignments_location_idx').on(t.locationId),
     // Composite unique: a user can only have ONE assignment per role+location combo
     uniqueIndex('user_assignments_user_role_location_idx').on(t.userId, t.roleId, t.locationId),
-  ]
+  ],
 )
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
@@ -75,5 +75,5 @@ export const sessionsTable = pgTable(
     createdAt: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     expiredAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
   },
-  (t) => [index('sessions_user_idx').on(t.userId), index('sessions_expired_at_idx').on(t.expiredAt)]
+  (t) => [index('sessions_user_idx').on(t.userId), index('sessions_expired_at_idx').on(t.expiredAt)],
 )

@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { Input } from './input'
+
 import { cn } from '@/lib/utils'
 
-export interface InputNumberProps extends Omit<
-  React.ComponentProps<typeof Input>,
-  'value' | 'onChange'
-> {
+import { Input } from './input'
+
+export interface InputNumberProps extends Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange'> {
   value?: number | null
   onChange?: (value: number | null) => void
   /**
@@ -39,15 +38,10 @@ export interface InputNumberProps extends Omit<
  * @param decimalScale - Maximum number of fraction digits to include when decimals are allowed.
  * @returns The formatted number string in `id-ID` locale, or an empty string for absent or invalid input.
  */
-function formatNumber(
-  value: number | string | null | undefined,
-  allowDecimal: boolean,
-  decimalScale: number
-): string {
+function formatNumber(value: number | string | null | undefined, allowDecimal: boolean, decimalScale: number): string {
   if (value === null || value === undefined || value === '') return ''
 
-  const num =
-    typeof value === 'string' ? Number(value.replace(/[^0-9.-]/g, '')) : value
+  const num = typeof value === 'string' ? Number(value.replace(/[^0-9.-]/g, '')) : value
   if (isNaN(num)) return ''
 
   return new Intl.NumberFormat('id-ID', {
@@ -126,8 +120,7 @@ export function InputNumber({
         if (parts[1] && parts[1].length > decimalScale) return
       }
 
-      const numericValue =
-        cleanRaw === '' || cleanRaw === '-' ? null : Number(cleanRaw)
+      const numericValue = cleanRaw === '' || cleanRaw === '-' ? null : Number(cleanRaw)
 
       setTypingValue(raw)
       setIsTyping(true)
@@ -154,7 +147,7 @@ export function InputNumber({
     <Input
       {...props}
       ref={ref}
-      type='text'
+      type="text"
       inputMode={allowDecimal ? 'decimal' : 'numeric'}
       className={cn('tabular-nums', className)}
       value={displayValue}

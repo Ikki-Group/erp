@@ -37,7 +37,7 @@ export const salesOrdersTable = pgTable(
     index('sales_orders_location_idx').on(t.locationId),
     index('sales_orders_status_idx').on(t.status),
     index('sales_orders_transaction_date_idx').on(t.transactionDate),
-  ]
+  ],
 )
 
 // ─── Sales Order Batches ──────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ export const salesOrderBatchesTable = pgTable(
     status: text().notNull().default('pending'), // E.g., pending, prepared, delivered
     ...metadata,
   },
-  (t) => [index('sales_order_batches_order_idx').on(t.orderId)]
+  (t) => [index('sales_order_batches_order_idx').on(t.orderId)],
 )
 
 // ─── Sales Order Items ────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ export const salesOrderItemsTable = pgTable(
     index('sales_order_items_product_idx').on(t.productId),
     index('sales_order_items_variant_idx').on(t.variantId),
     index('sales_order_items_batch_idx').on(t.batchId),
-  ]
+  ],
 )
 
 // ─── Sales Voids ──────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ export const salesVoidsTable = pgTable(
 
     ...metadata,
   },
-  (t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)]
+  (t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
 )
 
 // ─── Sales External Refs ──────────────────────────────────────────────────────
@@ -128,5 +128,5 @@ export const salesExternalRefsTable = pgTable(
   (t) => [
     uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),
     index('sales_external_refs_order_idx').on(t.orderId),
-  ]
+  ],
 )

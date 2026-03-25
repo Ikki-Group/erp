@@ -1,21 +1,16 @@
 import z from 'zod'
-import {
-  MaterialFilterDto,
-  MaterialMutationDto,
-  MaterialOutputDto,
-} from '../dto'
+
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { MaterialFilterDto, MaterialMutationDto, MaterialOutputDto } from '../dto'
 
 export const materialApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.material.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...MaterialFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...MaterialFilterDto.shape }),
     result: zHttp.paginated(MaterialOutputDto.array()),
   }),
 
@@ -34,10 +29,7 @@ export const materialApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.material.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...MaterialMutationDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...MaterialMutationDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({

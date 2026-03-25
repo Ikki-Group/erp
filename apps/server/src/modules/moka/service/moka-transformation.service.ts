@@ -1,9 +1,8 @@
 import { and, eq } from 'drizzle-orm'
 
-import { productCategoriesTable, productExternalMappingsTable, productsTable, productVariantsTable } from '@/db/schema'
-
 import { stampCreate, takeFirst } from '@/core/database'
 import { db } from '@/db'
+import { productCategoriesTable, productExternalMappingsTable, productsTable, productVariantsTable } from '@/db/schema'
 
 import type { MokaCategoryRaw, MokaProductRaw } from '../dto/moka-raw.types'
 
@@ -14,10 +13,7 @@ export class MokaTransformationService {
       const existing = takeFirst(result)
 
       if (!existing) {
-        await db.insert(productCategoriesTable).values({
-          name: cat.name,
-          ...stampCreate(actorId),
-        })
+        await db.insert(productCategoriesTable).values({ name: cat.name, ...stampCreate(actorId) })
       }
     }
   }
@@ -30,18 +26,15 @@ export class MokaTransformationService {
         .where(
           and(
             eq(productExternalMappingsTable.provider, 'moka'),
-            eq(productExternalMappingsTable.externalId, String(prod.id))
-          )
+            eq(productExternalMappingsTable.externalId, String(prod.id)),
+          ),
         )
       const mapping = takeFirst(result)
 
       if (mapping) {
         await db
           .update(productExternalMappingsTable)
-          .set({
-            lastSyncedAt: new Date(),
-            externalData: prod,
-          })
+          .set({ lastSyncedAt: new Date(), externalData: prod })
           .where(eq(productExternalMappingsTable.id, mapping.id))
       } else {
         const [newProd] = await db
@@ -58,25 +51,29 @@ export class MokaTransformationService {
           .returning({ id: productsTable.id })
 
         if (newProd) {
-          await db.insert(productExternalMappingsTable).values({
-            productId: newProd.id,
-            provider: 'moka',
-            externalId: String(prod.id),
-            externalData: prod,
-            lastSyncedAt: new Date(),
-            ...stampCreate(actorId),
-          })
+          await db
+            .insert(productExternalMappingsTable)
+            .values({
+              productId: newProd.id,
+              provider: 'moka',
+              externalId: String(prod.id),
+              externalData: prod,
+              lastSyncedAt: new Date(),
+              ...stampCreate(actorId),
+            })
 
           if (prod.item_variants.length > 1) {
             for (const v of prod.item_variants) {
-              await db.insert(productVariantsTable).values({
-                productId: newProd.id,
-                name: v.name,
-                sku: v.sku,
-                basePrice: String(v.price),
-                isDefault: false,
-                ...stampCreate(actorId),
-              })
+              await db
+                .insert(productVariantsTable)
+                .values({
+                  productId: newProd.id,
+                  name: v.name,
+                  sku: v.sku,
+                  basePrice: String(v.price),
+                  isDefault: false,
+                  ...stampCreate(actorId),
+                })
             }
           }
         }

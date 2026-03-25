@@ -1,35 +1,26 @@
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
-import { useFieldContext } from './form-hook-context'
-import {
-  Field,
-  FieldControl,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from './form-tanstack'
 import type { ComponentProps } from 'react'
-import type { Option, StringOrNumber } from '@/types/common'
-import type { DataComboboxProps } from '@/components/ui/data-combobox'
+
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
+import type { DataComboboxProps } from '@/components/ui/data-combobox'
+import { DataCombobox } from '@/components/ui/data-combobox'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-
+import { InputCurrency } from '@/components/ui/input-currency'
+import { InputNumber } from '@/components/ui/input-number'
+import { InputPassword } from '@/components/ui/input-password'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { InputPassword } from '@/components/ui/input-password'
-import { DataCombobox } from '@/components/ui/data-combobox'
-import { InputNumber } from '@/components/ui/input-number'
-import { InputCurrency } from '@/components/ui/input-currency'
 import { cn } from '@/lib/utils'
+import type { Option, StringOrNumber } from '@/types/common'
+
+import { useFieldContext } from './form-hook-context'
+import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from './form-tanstack'
 
 interface BaseFieldProps {
   label?: string
@@ -38,19 +29,11 @@ interface BaseFieldProps {
   className?: string
 }
 
-interface FieldBaseProps
-  extends BaseFieldProps, Omit<ComponentProps<typeof Field>, 'children'> {
+interface FieldBaseProps extends BaseFieldProps, Omit<ComponentProps<typeof Field>, 'children'> {
   children: React.ReactNode
 }
 
-function FieldBase({
-  label,
-  required,
-  description,
-  children,
-  className,
-  ...props
-}: FieldBaseProps) {
+function FieldBase({ label, required, description, children, className, ...props }: FieldBaseProps) {
   return (
     <Field className={className} {...props}>
       {label && <FieldLabel required={required}>{label}</FieldLabel>}
@@ -68,7 +51,7 @@ function FieldInput(props: ComponentProps<typeof Input>) {
     <FieldControl>
       <Input
         value={field.state.value}
-        onChange={e => field.handleChange(e.target.value)}
+        onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         {...props}
       />
@@ -83,7 +66,7 @@ function FieldInputPassword(props: ComponentProps<typeof InputPassword>) {
     <FieldControl>
       <InputPassword
         value={field.state.value}
-        onChange={e => field.handleChange(e.target.value)}
+        onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         {...props}
       />
@@ -97,7 +80,7 @@ function FieldTextarea(props: ComponentProps<typeof Textarea>) {
     <FieldControl>
       <Textarea
         value={field.state.value}
-        onChange={e => field.handleChange(e.target.value)}
+        onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         {...props}
       />
@@ -105,26 +88,19 @@ function FieldTextarea(props: ComponentProps<typeof Textarea>) {
   )
 }
 
-interface FieldCheckboxProps
-  extends Omit<ComponentProps<typeof Checkbox>, 'className'>, BaseFieldProps {}
+interface FieldCheckboxProps extends Omit<ComponentProps<typeof Checkbox>, 'className'>, BaseFieldProps {}
 
-function FieldCheckbox({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldCheckboxProps) {
+function FieldCheckbox({ label, description, required, className, ...props }: FieldCheckboxProps) {
   const field = useFieldContext<boolean>()
 
   return (
-    <Field orientation='horizontal' className={className}>
+    <Field orientation="horizontal" className={className}>
       <FieldControl>
         <Checkbox
           name={field.name}
           checked={field.state.value}
           onBlur={field.handleBlur}
-          onCheckedChange={checked => field.handleChange(checked === true)}
+          onCheckedChange={(checked) => field.handleChange(checked === true)}
           {...props}
         />
       </FieldControl>
@@ -137,27 +113,20 @@ function FieldCheckbox({
   )
 }
 
-interface FieldSwitchProps
-  extends Omit<ComponentProps<typeof Switch>, 'className'>, BaseFieldProps {}
+interface FieldSwitchProps extends Omit<ComponentProps<typeof Switch>, 'className'>, BaseFieldProps {}
 
-function FieldSwitch({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldSwitchProps) {
+function FieldSwitch({ label, description, required, className, ...props }: FieldSwitchProps) {
   const field = useFieldContext<boolean>()
 
   return (
-    <Field orientation='horizontal' className={className}>
+    <Field orientation="horizontal" className={className}>
       <FieldContent>
         <FieldLabel required={required}>{label}</FieldLabel>
         {description && <FieldDescription>{description}</FieldDescription>}
       </FieldContent>
       <FieldControl>
         <Switch
-          onCheckedChange={checked => field.handleChange(checked)}
+          onCheckedChange={(checked) => field.handleChange(checked)}
           checked={field.state.value}
           onBlur={field.handleBlur}
           name={field.name}
@@ -169,9 +138,7 @@ function FieldSwitch({
 }
 
 interface FieldSelectProps<TValue extends StringOrNumber>
-  extends
-    Omit<ComponentProps<typeof Select>, 'value' | 'onValueChange'>,
-    BaseFieldProps {
+  extends Omit<ComponentProps<typeof Select>, 'value' | 'onValueChange'>, BaseFieldProps {
   placeholder?: string
   options: Array<Option<TValue>>
 }
@@ -191,15 +158,10 @@ function FieldSelect<TValue extends StringOrNumber = string>({
   const field = useFieldContext<TValue | null>()
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <Select
         value={field.state.value}
-        onValueChange={val => field.handleChange(val as TValue)}
+        onValueChange={(val) => field.handleChange(val as TValue)}
         items={options}
         {...props}
       >
@@ -209,10 +171,8 @@ function FieldSelect<TValue extends StringOrNumber = string>({
           </Select.Trigger>
         </FieldControl>
         <Select.Content alignItemWithTrigger={false}>
-          {options.length === 0 && (
-            <Select.Item disabled>Tidak ada opsi</Select.Item>
-          )}
-          {options.map(option => (
+          {options.length === 0 && <Select.Item disabled>Tidak ada opsi</Select.Item>}
+          {options.map((option) => (
             <Select.Item key={String(option.value)} value={option.value}>
               {option.label}
             </Select.Item>
@@ -223,10 +183,7 @@ function FieldSelect<TValue extends StringOrNumber = string>({
   )
 }
 
-interface FieldComboboxProps<TItem>
-  extends
-    Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>,
-    BaseFieldProps {}
+interface FieldComboboxProps<TItem> extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>, BaseFieldProps {}
 
 function FieldCombobox<TItem>({
   label,
@@ -239,16 +196,11 @@ function FieldCombobox<TItem>({
   const field = useFieldContext<string | null>()
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <FieldControl>
         <DataCombobox<TItem>
           value={field.state.value}
-          onValueChange={val => field.handleChange(val)}
+          onValueChange={(val) => field.handleChange(val)}
           onItemSelect={onItemSelect}
           {...props}
         />
@@ -261,29 +213,17 @@ function FieldCombobox<TItem>({
 /*  FieldNumber                                                               */
 /* -------------------------------------------------------------------------- */
 
-interface FieldNumberProps
-  extends ComponentProps<typeof InputNumber>, BaseFieldProps {}
+interface FieldNumberProps extends ComponentProps<typeof InputNumber>, BaseFieldProps {}
 
-function FieldNumber({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldNumberProps) {
+function FieldNumber({ label, description, required, className, ...props }: FieldNumberProps) {
   const field = useFieldContext<number | null>()
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <FieldControl>
         <InputNumber
           value={field.state.value}
-          onChange={val => field.handleChange(val)}
+          onChange={(val) => field.handleChange(val)}
           onBlur={field.handleBlur}
           {...props}
         />
@@ -296,29 +236,17 @@ function FieldNumber({
 /*  FieldCurrency                                                             */
 /* -------------------------------------------------------------------------- */
 
-interface FieldCurrencyProps
-  extends ComponentProps<typeof InputCurrency>, BaseFieldProps {}
+interface FieldCurrencyProps extends ComponentProps<typeof InputCurrency>, BaseFieldProps {}
 
-function FieldCurrency({
-  label,
-  description,
-  required,
-  className,
-  ...props
-}: FieldCurrencyProps) {
+function FieldCurrency({ label, description, required, className, ...props }: FieldCurrencyProps) {
   const field = useFieldContext<number | null>()
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <FieldControl>
         <InputCurrency
           value={field.state.value}
-          onChange={val => field.handleChange(val)}
+          onChange={(val) => field.handleChange(val)}
           onBlur={field.handleBlur}
           {...props}
         />
@@ -350,37 +278,30 @@ function FieldDatePicker({
   const field = useFieldContext<Date | null>()
 
   return (
-    <FieldBase
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
+    <FieldBase label={label} description={description} required={required} className={className}>
       <Popover>
         <FieldControl>
           <PopoverTrigger
             render={
               <Button
-                variant='outline'
+                variant="outline"
                 className={cn(
                   'w-full justify-start text-left font-normal',
-                  !field.state.value && 'text-muted-foreground'
+                  !field.state.value && 'text-muted-foreground',
                 )}
                 disabled={disabled}
               />
             }
           >
-            <CalendarIcon className='mr-2 size-4' />
-            {field.state.value
-              ? format(field.state.value, dateFormat)
-              : placeholder}
+            <CalendarIcon className="mr-2 size-4" />
+            {field.state.value ? format(field.state.value, dateFormat) : placeholder}
           </PopoverTrigger>
         </FieldControl>
-        <PopoverContent className='w-auto p-0' align='start'>
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
-            mode='single'
+            mode="single"
             selected={field.state.value ?? undefined}
-            onSelect={date => field.handleChange(date ?? null)}
+            onSelect={(date) => field.handleChange(date ?? null)}
           />
         </PopoverContent>
       </Popover>

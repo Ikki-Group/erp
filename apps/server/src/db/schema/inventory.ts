@@ -43,7 +43,7 @@ export const stockTransactionsTable = pgTable(
     index('stock_txn_type_date_idx').on(t.type, t.date),
     index('stock_txn_transfer_idx').on(t.transferId),
     index('stock_txn_reference_no_idx').on(t.referenceNo),
-  ]
+  ],
 )
 
 // ─── Stock Summaries (Daily Snapshot) ─────────────────────────────────────────
@@ -88,5 +88,5 @@ export const stockSummariesTable = pgTable(
     uniqueIndex('stock_summaries_material_location_date_idx').on(t.materialId, t.locationId, t.date),
     index('stock_summaries_location_date_idx').on(t.locationId, t.date),
     index('stock_summaries_date_idx').on(t.date),
-  ]
+  ],
 )

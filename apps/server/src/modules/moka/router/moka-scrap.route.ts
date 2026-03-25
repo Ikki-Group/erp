@@ -17,22 +17,16 @@ export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaS
         const result = await scrapSvc.handleTrigger(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: MokaTriggerInputDto,
-        auth: true,
-      }
+      { body: MokaTriggerInputDto, auth: true },
     )
     .get(
       '/history',
       async ({ query }) => {
         const result = await historySvc.handleList(
-          query.mokaConfigurationId ? Number(query.mokaConfigurationId) : undefined
+          query.mokaConfigurationId ? Number(query.mokaConfigurationId) : undefined,
         )
         return res.ok(result)
       },
-      {
-        query: z.object({ mokaConfigurationId: z.string().optional() }),
-        auth: true,
-      }
+      { query: z.object({ mokaConfigurationId: z.string().optional() }), auth: true },
     )
 }

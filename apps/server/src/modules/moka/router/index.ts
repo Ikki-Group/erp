@@ -1,7 +1,6 @@
 import Elysia from 'elysia'
 
 import type { MokaServiceModule } from '../service'
-
 import { initMokaConfigurationRoute } from './moka-configuration.route'
 import { initMokaScrapRoute } from './moka-scrap.route'
 

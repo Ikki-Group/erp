@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -8,21 +7,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import type { ColumnDef, PaginationState, Row, SortingState } from '@tanstack/react-table'
+import { FunnelIcon, MoreHorizontalIcon, SearchIcon, UserPlusIcon, XIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  FunnelIcon,
-  MoreHorizontalIcon,
-  SearchIcon,
-  UserPlusIcon,
-  XIcon,
-} from 'lucide-react'
-import type {
-  ColumnDef,
-  PaginationState,
-  Row,
-  SortingState,
-} from '@tanstack/react-table'
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
+
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
@@ -32,16 +21,9 @@ import {
   DataGridTableRowSelect,
   DataGridTableRowSelectAll,
 } from '@/components/reui/data-grid/data-grid-table'
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
@@ -50,19 +32,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from '@/components/ui/input-group'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 
 interface IData {
   id: string
@@ -84,8 +58,7 @@ const demoData: Array<IData> = [
     id: '1',
     name: 'Alex Johnson',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
     status: 'Active',
     flag: 'us',
     email: 'alex@apple.com',
@@ -99,8 +72,7 @@ const demoData: Array<IData> = [
     id: '2',
     name: 'Sarah Chen',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
     status: 'Inactive',
     flag: 'gb',
     email: 'sarah@openai.com',
@@ -114,8 +86,7 @@ const demoData: Array<IData> = [
     id: '3',
     name: 'Michael Rodriguez',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80',
     status: 'Blocked',
     flag: 'ca',
     email: 'michael@meta.com',
@@ -129,8 +100,7 @@ const demoData: Array<IData> = [
     id: '4',
     name: 'Emma Wilson',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80',
     status: 'Inactive',
     flag: 'au',
     email: 'emma@tesla.com',
@@ -144,8 +114,7 @@ const demoData: Array<IData> = [
     id: '5',
     name: 'David Kim',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=96&h=96&dpr=2&q=80',
     status: 'Active',
     flag: 'de',
     email: 'david@sap.com',
@@ -159,8 +128,7 @@ const demoData: Array<IData> = [
     id: '6',
     name: 'Aron Thompson',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=96&h=96&dpr=2&q=80',
     status: 'Pending',
     flag: 'my',
     email: 'aron@keenthemes.com',
@@ -174,8 +142,7 @@ const demoData: Array<IData> = [
     id: '7',
     name: 'James Brown',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1543299750-19d1d6297053?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1543299750-19d1d6297053?w=96&h=96&dpr=2&q=80',
     status: 'Inactive',
     flag: 'es',
     email: 'james@bbva.es',
@@ -189,8 +156,7 @@ const demoData: Array<IData> = [
     id: '8',
     name: 'Maria Garcia',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1620075225255-8c2051b6c015?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1620075225255-8c2051b6c015?w=96&h=96&dpr=2&q=80',
     status: 'Blocked',
     flag: 'jp',
     email: 'maria@sony.jp',
@@ -204,8 +170,7 @@ const demoData: Array<IData> = [
     id: '9',
     name: 'Nick Johnson',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=96&h=96&dpr=2&q=80',
     status: 'Pending',
     flag: 'fr',
     email: 'nick@lvmh.fr',
@@ -219,8 +184,7 @@ const demoData: Array<IData> = [
     id: '10',
     name: 'Liam Thompson',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1542595913-85d69b0edbaf?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1542595913-85d69b0edbaf?w=96&h=96&dpr=2&q=80',
     status: 'Inactive',
     flag: 'it',
     email: 'liam@eni.it',
@@ -234,8 +198,7 @@ const demoData: Array<IData> = [
     id: '11',
     name: 'Alex Johnson',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
     status: 'Blocked',
     flag: 'br',
     email: 'alex@vale.br',
@@ -249,8 +212,7 @@ const demoData: Array<IData> = [
     id: '12',
     name: 'Sarah Chen',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
     status: 'Active',
     flag: 'in',
     email: 'sarah@tata.in',
@@ -267,25 +229,23 @@ function ActionsCell({ row }: { row: Row<IData> }) {
   const handleCopyId = () => {
     copyToClipboard(row.original.id)
 
-    toast.success('Employee ID successfully copied', {
-      description: row.original.id,
-    })
+    toast.success('Employee ID successfully copied', { description: row.original.id })
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button className='size-7' size='icon' variant='ghost'>
+          <Button className="size-7" size="icon" variant="ghost">
             <MoreHorizontalIcon />
           </Button>
         }
       />
-      <DropdownMenuContent side='bottom' align='start'>
+      <DropdownMenuContent side="bottom" align="start">
         <DropdownMenuItem onClick={() => {}}>Edit</DropdownMenuItem>
         <DropdownMenuItem onClick={handleCopyId}>Copy ID</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant='destructive' onClick={() => {}}>
+        <DropdownMenuItem variant="destructive" onClick={() => {}}>
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -294,21 +254,15 @@ function ActionsCell({ row }: { row: Row<IData> }) {
 }
 
 export function Pattern() {
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 5,
-  })
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'name', desc: true },
-  ])
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 5 })
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: true }])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatuses, setSelectedStatuses] = useState<Array<string>>([])
 
   const filteredData = useMemo(() => {
-    return demoData.filter(item => {
+    return demoData.filter((item) => {
       // Filter by status
-      const matchesStatus =
-        !selectedStatuses?.length || selectedStatuses.includes(item.status)
+      const matchesStatus = !selectedStatuses?.length || selectedStatuses.includes(item.status)
 
       // Filter by search query (case-insensitive)
       const searchLower = searchQuery.toLowerCase()
@@ -329,15 +283,15 @@ export function Pattern() {
         acc[item.status] = (acc[item.status] || 0) + 1
         return acc
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     )
   }, [])
 
   const handleStatusChange = (checked: boolean, value: string) => {
     setSelectedStatuses(
       (
-        prev = [] // Default to an empty array
-      ) => (checked ? [...prev, value] : prev.filter(v => v !== value))
+        prev = [], // Default to an empty array
+      ) => (checked ? [...prev, value] : prev.filter((v) => v !== value)),
     )
   }
 
@@ -350,44 +304,28 @@ export function Pattern() {
         cell: ({ row }) => <DataGridTableRowSelect row={row} />,
         enableSorting: false,
         size: 35,
-        meta: {
-          headerClassName: '',
-          cellClassName: '',
-        },
+        meta: { headerClassName: '', cellClassName: '' },
         enableResizing: false,
       },
       {
         accessorKey: 'name',
         id: 'name',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='User'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="User" visibility={true} column={column} />,
         cell: ({ row }) => {
           return (
-            <div className='flex items-center gap-3'>
-              <Avatar className='size-8'>
-                <AvatarImage
-                  src={row.original.avatar}
-                  alt={row.original.name}
-                />
+            <div className="flex items-center gap-3">
+              <Avatar className="size-8">
+                <AvatarImage src={row.original.avatar} alt={row.original.name} />
                 <AvatarFallback>
                   {row.original.name
                     .split(' ')
-                    .map(n => n[0])
+                    .map((n) => n[0])
                     .join('')}
                 </AvatarFallback>
               </Avatar>
-              <div className='space-y-px'>
-                <div className='text-foreground font-medium'>
-                  {row.original.name}
-                </div>
-                <div className='text-muted-foreground'>
-                  {row.original.email}
-                </div>
+              <div className="space-y-px">
+                <div className="text-foreground font-medium">{row.original.name}</div>
+                <div className="text-muted-foreground">{row.original.email}</div>
               </div>
             </div>
           )
@@ -400,32 +338,21 @@ export function Pattern() {
       {
         accessorKey: 'location',
         id: 'location',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Location'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Location" visibility={true} column={column} />,
         cell: ({ row }) => {
           return (
-            <div className='flex items-center gap-1.5'>
+            <div className="flex items-center gap-1.5">
               <img
                 src={`https://flagcdn.com/${row.original.flag.toLowerCase()}.svg`}
                 alt={row.original.flag}
-                className='size-4 rounded-full object-cover'
+                className="size-4 rounded-full object-cover"
               />
-              <div className='text-foreground font-medium'>
-                {row.original.location}
-              </div>
+              <div className="text-foreground font-medium">{row.original.location}</div>
             </div>
           )
         },
         size: 150,
-        meta: {
-          headerClassName: '',
-          cellClassName: 'text-start',
-        },
+        meta: { headerClassName: '', cellClassName: 'text-start' },
         enableSorting: true,
         enableHiding: true,
         enableResizing: true,
@@ -433,19 +360,9 @@ export function Pattern() {
       {
         accessorKey: 'role',
         id: 'role',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Role'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Role" visibility={true} column={column} />,
         cell: ({ row }) => {
-          return (
-            <div className='text-foreground font-medium'>
-              {row.original.role}
-            </div>
-          )
+          return <div className="text-foreground font-medium">{row.original.role}</div>
         },
         size: 150,
         enableSorting: true,
@@ -455,19 +372,9 @@ export function Pattern() {
       {
         accessorKey: 'joined',
         id: 'joined',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Joined'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Joined" visibility={true} column={column} />,
         cell: ({ row }) => {
-          return (
-            <div className='text-foreground font-medium'>
-              {row.original.joined}
-            </div>
-          )
+          return <div className="text-foreground font-medium">{row.original.joined}</div>
         },
         size: 150,
         enableSorting: true,
@@ -477,24 +384,18 @@ export function Pattern() {
       {
         accessorKey: 'status',
         id: 'status',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Status'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Status" visibility={true} column={column} />,
         cell: ({ row }) => {
           const status = row.original.status
 
           if (status == 'Active') {
-            return <Badge variant='success-outline'>Approved</Badge>
+            return <Badge variant="success-outline">Approved</Badge>
           } else if (status == 'Blocked') {
-            return <Badge variant='destructive-outline'>Blocked</Badge>
+            return <Badge variant="destructive-outline">Blocked</Badge>
           } else if (status == 'Inactive') {
-            return <Badge variant='info-outline'>Inactive</Badge>
+            return <Badge variant="info-outline">Inactive</Badge>
           } else {
-            return <Badge variant='warning-outline'>Pending</Badge>
+            return <Badge variant="warning-outline">Pending</Badge>
           }
         },
         size: 100,
@@ -512,23 +413,17 @@ export function Pattern() {
         enableResizing: false,
       },
     ],
-    []
+    [],
   )
 
-  const [columnOrder, setColumnOrder] = useState<Array<string>>(
-    columns.map(column => column.id as string)
-  )
+  const [columnOrder, setColumnOrder] = useState<Array<string>>(columns.map((column) => column.id as string))
 
   const table = useReactTable({
     columns,
     data: filteredData,
     pageCount: Math.ceil((filteredData?.length || 0) / pagination.pageSize),
     getRowId: (row: IData) => row.id,
-    state: {
-      pagination,
-      sorting,
-      columnOrder,
-    },
+    state: { pagination, sorting, columnOrder },
     columnResizeMode: 'onChange',
     onColumnOrderChange: setColumnOrder,
     onPaginationChange: setPagination,
@@ -543,35 +438,25 @@ export function Pattern() {
     <DataGrid
       table={table}
       recordCount={filteredData?.length || 0}
-      tableLayout={{
-        columnsPinnable: true,
-        columnsResizable: true,
-        columnsMovable: true,
-        columnsVisibility: true,
-      }}
+      tableLayout={{ columnsPinnable: true, columnsResizable: true, columnsMovable: true, columnsVisibility: true }}
     >
-      <Card className='w-full gap-3 py-3.5'>
-        <CardHeader className='justify-between px-3.5'>
-          <div className='flex items-center gap-2.5'>
-            <InputGroup className='w-48'>
-              <InputGroupAddon align='inline-start'>
+      <Card className="w-full gap-3 py-3.5">
+        <CardHeader className="justify-between px-3.5">
+          <div className="flex items-center gap-2.5">
+            <InputGroup className="w-48">
+              <InputGroupAddon align="inline-start">
                 <SearchIcon />
               </InputGroupAddon>
 
               <InputGroupInput
-                placeholder='Search...'
+                placeholder="Search..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
 
               {searchQuery.length > 0 && (
-                <InputGroupAddon align='inline-end'>
-                  <InputGroupButton
-                    aria-label='Copy'
-                    title='Copy'
-                    size='icon-xs'
-                    onClick={() => setSearchQuery('')}
-                  >
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton aria-label="Copy" title="Copy" size="icon-xs" onClick={() => setSearchQuery('')}>
                     <XIcon />
                   </InputGroupButton>
                 </InputGroupAddon>
@@ -580,40 +465,31 @@ export function Pattern() {
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant='outline'>
+                  <Button variant="outline">
                     <FunnelIcon />
                     Status
                     {selectedStatuses.length > 0 && (
-                      <Badge size='sm' variant='info-outline'>
+                      <Badge size="sm" variant="info-outline">
                         {selectedStatuses.length}
                       </Badge>
                     )}
                   </Button>
                 }
               />
-              <PopoverContent className='w-40' align='start'>
-                <div className='space-y-3'>
-                  <div className='text-muted-foreground text-xs font-medium'>
-                    Filters
-                  </div>
-                  <div className='space-y-3'>
-                    {Object.keys(statusCounts).map(status => (
-                      <div key={status} className='flex items-center gap-2.5'>
+              <PopoverContent className="w-40" align="start">
+                <div className="space-y-3">
+                  <div className="text-muted-foreground text-xs font-medium">Filters</div>
+                  <div className="space-y-3">
+                    {Object.keys(statusCounts).map((status) => (
+                      <div key={status} className="flex items-center gap-2.5">
                         <Checkbox
                           id={status}
                           checked={selectedStatuses.includes(status)}
-                          onCheckedChange={checked =>
-                            handleStatusChange(checked === true, status)
-                          }
+                          onCheckedChange={(checked) => handleStatusChange(checked === true, status)}
                         />
-                        <Label
-                          htmlFor={status}
-                          className='flex grow items-center justify-between gap-1.5 font-normal'
-                        >
+                        <Label htmlFor={status} className="flex grow items-center justify-between gap-1.5 font-normal">
                           {status}
-                          <span className='text-muted-foreground'>
-                            {statusCounts[status]}
-                          </span>
+                          <span className="text-muted-foreground">{statusCounts[status]}</span>
                         </Label>
                       </div>
                     ))}
@@ -629,13 +505,13 @@ export function Pattern() {
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent className='border-y px-0'>
+        <CardContent className="border-y px-0">
           <ScrollArea>
             <DataGridTable />
-            <ScrollBar orientation='horizontal' />
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardContent>
-        <CardFooter className='border-none bg-transparent! px-3.5 py-0'>
+        <CardFooter className="border-none bg-transparent! px-3.5 py-0">
           <DataGridPagination />
         </CardFooter>
       </Card>

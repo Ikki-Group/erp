@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react'
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -6,27 +5,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import { UserPlusIcon } from 'lucide-react'
-import type {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-} from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
+
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardAction,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardAction, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 interface IData {
@@ -49,8 +39,7 @@ const demoData: Array<IData> = [
     id: '1',
     name: 'Alex Johnson',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'us',
     email: 'alex@example.com',
@@ -64,8 +53,7 @@ const demoData: Array<IData> = [
     id: '2',
     name: 'Sarah Chen',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
     status: 'inactive',
     flag: 'gb',
     email: 'sarah@example.com',
@@ -79,8 +67,7 @@ const demoData: Array<IData> = [
     id: '3',
     name: 'Michael Rodriguez',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'ca',
     email: 'michael@example.com',
@@ -94,8 +81,7 @@ const demoData: Array<IData> = [
     id: '4',
     name: 'Emma Wilson',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80',
     status: 'inactive',
     flag: 'au',
     email: 'emma@example.com',
@@ -109,8 +95,7 @@ const demoData: Array<IData> = [
     id: '5',
     name: 'David Kim',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'de',
     email: 'david@example.com',
@@ -124,8 +109,7 @@ const demoData: Array<IData> = [
     id: '6',
     name: 'Aron Thompson',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'my',
     email: 'lisa@example.com',
@@ -139,8 +123,7 @@ const demoData: Array<IData> = [
     id: '7',
     name: 'James Brown',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1543299750-19d1d6297053?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1543299750-19d1d6297053?w=96&h=96&dpr=2&q=80',
     status: 'inactive',
     flag: 'es',
     email: 'james@example.com',
@@ -154,8 +137,7 @@ const demoData: Array<IData> = [
     id: '8',
     name: 'Maria Garcia',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1620075225255-8c2051b6c015?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1620075225255-8c2051b6c015?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'jp',
     email: 'maria@example.com',
@@ -169,8 +151,7 @@ const demoData: Array<IData> = [
     id: '9',
     name: 'Nick Johnson',
     availability: 'online',
-    avatar:
-      'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'fr',
     email: 'nick@example.com',
@@ -184,8 +165,7 @@ const demoData: Array<IData> = [
     id: '10',
     name: 'Liam Thompson',
     availability: 'away',
-    avatar:
-      'https://images.unsplash.com/photo-1542595913-85d69b0edbaf?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1542595913-85d69b0edbaf?w=96&h=96&dpr=2&q=80',
     status: 'inactive',
     flag: 'it',
     email: 'liam@example.com',
@@ -199,8 +179,7 @@ const demoData: Array<IData> = [
     id: '11',
     name: 'Alex Johnson',
     availability: 'busy',
-    avatar:
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'br',
     email: 'alex@example.com',
@@ -214,8 +193,7 @@ const demoData: Array<IData> = [
     id: '12',
     name: 'Sarah Chen',
     availability: 'offline',
-    avatar:
-      'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
+    avatar: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80',
     status: 'active',
     flag: 'in',
     email: 'sarah@example.com',
@@ -228,48 +206,30 @@ const demoData: Array<IData> = [
 ]
 
 export function PDataGrid19() {
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 5,
-  })
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'name', desc: true },
-  ])
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 5 })
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: true }])
 
   const columns = useMemo<Array<ColumnDef<IData>>>(
     () => [
       {
         accessorKey: 'name',
         id: 'name',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='User'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="User" visibility={true} column={column} />,
         cell: ({ row }) => {
           return (
-            <div className='flex items-center gap-3'>
-              <Avatar className='size-8'>
-                <AvatarImage
-                  src={row.original.avatar}
-                  alt={row.original.name}
-                />
+            <div className="flex items-center gap-3">
+              <Avatar className="size-8">
+                <AvatarImage src={row.original.avatar} alt={row.original.name} />
                 <AvatarFallback>
                   {row.original.name
                     .split(' ')
-                    .map(n => n[0])
+                    .map((n) => n[0])
                     .join('')}
                 </AvatarFallback>
               </Avatar>
-              <div className='space-y-px'>
-                <div className='text-foreground font-medium'>
-                  {row.original.name}
-                </div>
-                <div className='text-muted-foreground'>
-                  {row.original.email}
-                </div>
+              <div className="space-y-px">
+                <div className="text-foreground font-medium">{row.original.name}</div>
+                <div className="text-muted-foreground">{row.original.email}</div>
               </div>
             </div>
           )
@@ -282,24 +242,16 @@ export function PDataGrid19() {
       {
         accessorKey: 'location',
         id: 'location',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Location'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Location" visibility={true} column={column} />,
         cell: ({ row }) => {
           return (
-            <div className='flex items-center gap-1.5'>
+            <div className="flex items-center gap-1.5">
               <img
                 src={`https://flagcdn.com/${row.original.flag.toLowerCase()}.svg`}
                 alt={row.original.flag}
-                className='size-4 rounded-full object-cover'
+                className="size-4 rounded-full object-cover"
               />
-              <div className='text-foreground font-medium'>
-                {row.original.location}
-              </div>
+              <div className="text-foreground font-medium">{row.original.location}</div>
             </div>
           )
         },
@@ -311,20 +263,14 @@ export function PDataGrid19() {
       {
         accessorKey: 'status',
         id: 'status',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title='Status'
-            visibility={true}
-            column={column}
-          />
-        ),
+        header: ({ column }) => <DataGridColumnHeader title="Status" visibility={true} column={column} />,
         cell: ({ row }) => {
           const status = row.original.status
 
           if (status == 'active') {
-            return <Badge variant='primary-outline'>Approved</Badge>
+            return <Badge variant="primary-outline">Approved</Badge>
           } else {
-            return <Badge variant='destructive-outline'>Pending</Badge>
+            return <Badge variant="destructive-outline">Pending</Badge>
           }
         },
         size: 100,
@@ -333,23 +279,17 @@ export function PDataGrid19() {
         enableResizing: false,
       },
     ],
-    []
+    [],
   )
 
-  const [columnOrder, setColumnOrder] = useState<Array<string>>(
-    columns.map(column => column.id as string)
-  )
+  const [columnOrder, setColumnOrder] = useState<Array<string>>(columns.map((column) => column.id as string))
 
   const table = useReactTable({
     columns,
     data: demoData,
     pageCount: Math.ceil((demoData?.length || 0) / pagination.pageSize),
     getRowId: (row: IData) => row.id,
-    state: {
-      pagination,
-      sorting,
-      columnOrder,
-    },
+    state: { pagination, sorting, columnOrder },
     columnResizeMode: 'onChange',
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
@@ -364,33 +304,26 @@ export function PDataGrid19() {
     <DataGrid
       table={table}
       recordCount={demoData?.length || 0}
-      tableClassNames={{
-        edgeCell: 'px-5',
-      }}
-      tableLayout={{
-        columnsPinnable: true,
-        columnsResizable: true,
-        columnsMovable: true,
-        columnsVisibility: true,
-      }}
+      tableClassNames={{ edgeCell: 'px-5' }}
+      tableLayout={{ columnsPinnable: true, columnsResizable: true, columnsMovable: true, columnsVisibility: true }}
     >
-      <Card className='w-full gap-3 py-3.5'>
-        <CardHeader className='flex items-center justify-between px-3.5'>
+      <Card className="w-full gap-3 py-3.5">
+        <CardHeader className="flex items-center justify-between px-3.5">
           <CardTitle>Users</CardTitle>
           <CardAction>
-            <Button size='sm'>
-              <UserPlusIcon aria-hidden='true' />
+            <Button size="sm">
+              <UserPlusIcon aria-hidden="true" />
               Add User
             </Button>
           </CardAction>
         </CardHeader>
-        <div className='w-full border-y'>
+        <div className="w-full border-y">
           <ScrollArea>
             <DataGridTable />
-            <ScrollBar orientation='horizontal' />
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-        <CardFooter className='border-none bg-transparent! px-3.5 py-0'>
+        <CardFooter className="border-none bg-transparent! px-3.5 py-0">
           <DataGridPagination />
         </CardFooter>
       </Card>

@@ -1,4 +1,5 @@
 import { createCallable } from 'react-call'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,15 +32,9 @@ interface ConfirmDialogProps {
 /* -------------------------------------------------------------------------- */
 
 const variantStyles: Record<ConfirmVariant, { button: string }> = {
-  destructive: {
-    button: 'bg-destructive text-white hover:bg-destructive/90',
-  },
-  warning: {
-    button: 'bg-warning text-white hover:bg-warning/90',
-  },
-  default: {
-    button: '',
-  },
+  destructive: { button: 'bg-destructive text-white hover:bg-destructive/90' },
+  warning: { button: 'bg-warning text-white hover:bg-warning/90' },
+  default: { button: '' },
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,18 +63,11 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{title}</AlertDialogTitle>
-            {description && (
-              <AlertDialogDescription>{description}</AlertDialogDescription>
-            )}
+            {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => call.end(false)}>
-              {cancelLabel}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className={cn(styles.button)}
-              onClick={handleConfirm}
-            >
+            <AlertDialogCancel onClick={() => call.end(false)}>{cancelLabel}</AlertDialogCancel>
+            <AlertDialogAction className={cn(styles.button)} onClick={handleConfirm}>
               {confirmLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -87,5 +75,5 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
       </AlertDialog>
     )
   },
-  200
+  200,
 )

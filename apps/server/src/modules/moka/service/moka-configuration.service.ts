@@ -1,10 +1,9 @@
 import { eq } from 'drizzle-orm'
 
-import { mokaConfigurationsTable } from '@/db/schema'
-
 import { stampCreate, stampUpdate, takeFirst } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import { db } from '@/db'
+import { mokaConfigurationsTable } from '@/db/schema'
 
 import {
   MokaConfigurationDto,
@@ -42,10 +41,7 @@ export class MokaConfigurationService {
 
     const [result] = await db
       .insert(mokaConfigurationsTable)
-      .values({
-        ...data,
-        ...stampCreate(actorId),
-      })
+      .values({ ...data, ...stampCreate(actorId) })
       .returning({ id: mokaConfigurationsTable.id })
 
     if (!result) throw new Error('Failed to create Moka configuration')
@@ -62,10 +58,7 @@ export class MokaConfigurationService {
 
     const [result] = await db
       .update(mokaConfigurationsTable)
-      .set({
-        ...data,
-        ...stampUpdate(actorId),
-      })
+      .set({ ...data, ...stampUpdate(actorId) })
       .where(eq(mokaConfigurationsTable.id, id))
       .returning({ id: mokaConfigurationsTable.id })
 
@@ -75,15 +68,11 @@ export class MokaConfigurationService {
 
   async updateAuthData(
     id: number,
-    authData: { businessId?: number | null; outletId?: number | null; accessToken?: string | null }
+    authData: { businessId?: number | null; outletId?: number | null; accessToken?: string | null },
   ) {
     await db
       .update(mokaConfigurationsTable)
-      .set({
-        ...authData,
-        lastSyncedAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .set({ ...authData, lastSyncedAt: new Date(), updatedAt: new Date() })
       .where(eq(mokaConfigurationsTable.id, id))
   }
 }

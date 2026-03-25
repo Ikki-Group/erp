@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+
 import type { UserOutputDto } from '@/features/iam'
 
 type Location = Array<number> | null
@@ -24,29 +25,24 @@ export const useAppState = create<AppState>()(
       location: null,
       sidebarOpen: false,
 
-      invalidateSessionData: user => {
-        set({
-          location: validateLocation(get().location, user),
-        })
+      invalidateSessionData: (user) => {
+        set({ location: validateLocation(get().location, user) })
       },
       isAuthenticated: () => !!get().token,
       setToken: (token, user) => {
         set({ token, location: validateLocation(get().location, user) })
       },
       clearToken: () => set({ token: '', location: null }),
-      setLocation: location => set({ location }),
-      setSidebarOpen: sidebarOpen => set({ sidebarOpen }),
+      setLocation: (location) => set({ location }),
+      setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
     }),
-    {
-      name: 'app-state',
-      storage: createJSONStorage(() => localStorage),
-    }
-  )
+    { name: 'app-state', storage: createJSONStorage(() => localStorage) },
+  ),
 )
 
 function validateLocation(current: Location, user: UserOutputDto): Location {
   if (user.assignments.length) {
-    const userLocationIds = user.assignments.map(a => a.location.id)
+    const userLocationIds = user.assignments.map((a) => a.location.id)
     if (current && current.length === 1) {
       if (userLocationIds.includes(current[0])) return current
       return null

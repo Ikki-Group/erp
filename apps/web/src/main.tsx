@@ -1,7 +1,6 @@
 // import './styles/main.css'
 // import 'geist/style.css'
 import './styles/backup.css'
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { z } from 'zod'
@@ -16,6 +15,6 @@ if (!rootElement.innerHTML) {
   root.render(
     <React.StrictMode>
       <App />
-    </React.StrictMode>
+    </React.StrictMode>,
   )
 }

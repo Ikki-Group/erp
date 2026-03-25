@@ -2,9 +2,7 @@ import { context, trace } from '@opentelemetry/api'
 import Elysia from 'elysia'
 
 export function requestIdPlugin() {
-  return new Elysia({
-    name: 'request-id',
-  })
+  return new Elysia({ name: 'request-id' })
     .derive(({ set }) => {
       const span = trace.getSpan(context.active())
       const requestId = span?.spanContext().traceId || ''

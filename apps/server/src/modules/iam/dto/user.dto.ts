@@ -27,10 +27,7 @@ export type UserDto = z.infer<typeof UserDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const UserFilterDto = z.object({
-  search: zHttp.query.search,
-  isActive: zHttp.query.boolean,
-})
+export const UserFilterDto = z.object({ search: zHttp.query.search, isActive: zHttp.query.boolean })
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
@@ -67,16 +64,10 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 
 /* ------------------------------ SPECIALIZED ------------------------------- */
 
-export const UserChangePasswordDto = z.object({
-  oldPassword: zPrimitive.password,
-  newPassword: zPrimitive.password,
-})
+export const UserChangePasswordDto = z.object({ oldPassword: zPrimitive.password, newPassword: zPrimitive.password })
 
 export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
 
-export const UserAdminUpdatePasswordDto = z.object({
-  id: zPrimitive.id,
-  password: zPrimitive.password,
-})
+export const UserAdminUpdatePasswordDto = z.object({ id: zPrimitive.id, password: zPrimitive.password })
 
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

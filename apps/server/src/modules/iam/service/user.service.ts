@@ -1,10 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, or } from 'drizzle-orm'
 
-import { usersTable } from '@/db/schema'
-
-import type { LocationServiceModule } from '@/modules/location/service'
-
 import { SEED_CONFIG } from '@/config/seed-config'
 import { cache } from '@/core/cache'
 import {
@@ -22,6 +18,8 @@ import { UnauthorizedError } from '@/core/http/errors'
 import { hashPassword, verifyPassword } from '@/core/password'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { usersTable } from '@/db/schema'
+import type { LocationServiceModule } from '@/modules/location/service'
 
 import type {
   UserAdminUpdatePasswordDto,
@@ -33,7 +31,6 @@ import type {
   UserOutputDto,
   UserUpdateDto,
 } from '../dto'
-
 import type { RoleService } from './role.service'
 import type { UserAssignmentService } from './user-assignment.service'
 
@@ -49,11 +46,7 @@ const uniqueFields: ConflictField<'email' | 'username'>[] = [
   },
 ]
 
-const cacheKey = {
-  count: 'user.count',
-  list: 'user.list',
-  byId: (id: number) => `user.byId.${id}`,
-}
+const cacheKey = { count: 'user.count', list: 'user.list', byId: (id: number) => `user.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -61,7 +54,7 @@ export class UserService {
   constructor(
     private readonly roleSvc: RoleService,
     private readonly locationSvc: LocationServiceModule,
-    private readonly userAssignmentSvc: UserAssignmentService
+    private readonly userAssignmentSvc: UserAssignmentService,
   ) {}
 
   async #getRootAssignments(): Promise<UserAssignmentDetailDto[]> {
@@ -89,11 +82,7 @@ export class UserService {
 
         const [inserted] = await db
           .insert(usersTable)
-          .values({
-            ...rest,
-            passwordHash,
-            ...metadata,
-          })
+          .values({ ...rest, passwordHash, ...metadata })
           .onConflictDoUpdate({
             target: usersTable.email,
             set: {
@@ -175,7 +164,7 @@ export class UserService {
 
       const where = and(
         searchFilter(usersTable.fullname, search),
-        typeof isActive === 'boolean' ? eq(usersTable.isActive, isActive) : undefined
+        typeof isActive === 'boolean' ? eq(usersTable.isActive, isActive) : undefined,
       )
 
       // Fetch paginated users using standard select query
@@ -199,10 +188,7 @@ export class UserService {
 
       // Build full UserSelectDto with assignments
       const data: UserOutputDto[] = result.data.map((u) => {
-        return {
-          ...u,
-          assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []),
-        }
+        return { ...u, assignments: u.isRoot ? assignmentRoot : (assignmentMap.get(u.id) ?? []) }
       })
 
       return { data, meta: result.meta }
@@ -236,13 +222,7 @@ export class UserService {
       const inserted = await db.transaction(async (tx) => {
         const [user] = await tx
           .insert(usersTable)
-          .values({
-            ...rest,
-            email,
-            username,
-            passwordHash,
-            ...metadata,
-          })
+          .values({ ...rest, email, username, passwordHash, ...metadata })
           .returning({ id: usersTable.id })
 
         if (user && assignments?.length > 0) {
@@ -282,13 +262,7 @@ export class UserService {
       await db.transaction(async (tx) => {
         await tx
           .update(usersTable)
-          .set({
-            ...rest,
-            email,
-            username,
-            ...(passwordHash && { passwordHash }),
-            ...metadata,
-          })
+          .set({ ...rest, email, username, ...(passwordHash && { passwordHash }), ...metadata })
           .where(eq(usersTable.id, id))
 
         if (assignments) {

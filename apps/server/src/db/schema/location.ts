@@ -15,5 +15,5 @@ export const locationsTable = pgTable(
     isActive: boolean().notNull().default(true),
     ...metadata,
   },
-  (t) => [uniqueIndex('locations_code_idx').on(t.code), uniqueIndex('locations_name_idx').on(t.name)]
+  (t) => [uniqueIndex('locations_code_idx').on(t.code), uniqueIndex('locations_name_idx').on(t.name)],
 )

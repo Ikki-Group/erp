@@ -16,10 +16,7 @@ export function toDate(date: Date | string | number): string {
 /** Relative time: 2 jam yang lalu */
 export function toRelativeTime(date: Date | string | number): string {
   if (!date) return '-'
-  return formatDistanceToNow(new Date(date), {
-    addSuffix: true,
-    locale: id,
-  })
+  return formatDistanceToNow(new Date(date), { addSuffix: true, locale: id })
 }
 
 /** Currency formatter (IDR): Rp 1.000.000 */
@@ -48,7 +45,7 @@ export function toCodeCase(str: string): string {
   return (
     str
       .match(/[a-z0-9]+/gi)
-      ?.map(word => word.toUpperCase())
+      ?.map((word) => word.toUpperCase())
       .join('_') || ''
   )
 }

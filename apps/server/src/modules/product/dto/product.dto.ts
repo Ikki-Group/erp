@@ -92,26 +92,17 @@ export type ProductFilterDto = z.infer<typeof ProductFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const ProductSelectDto = z.object({
-  ...ProductDto.shape,
-  category: ProductCategoryDto.nullable(),
-})
+export const ProductSelectDto = z.object({ ...ProductDto.shape, category: ProductCategoryDto.nullable() })
 
 export type ProductSelectDto = z.infer<typeof ProductSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const VariantPriceMutationDto = z.object({
-  salesTypeId: zPrimitive.id,
-  price: zPrimitive.decimal,
-})
+const VariantPriceMutationDto = z.object({ salesTypeId: zPrimitive.id, price: zPrimitive.decimal })
 
 type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 
-const ProductPriceMutationDto = z.object({
-  salesTypeId: zPrimitive.id,
-  price: zPrimitive.decimal,
-})
+const ProductPriceMutationDto = z.object({ salesTypeId: zPrimitive.id, price: zPrimitive.decimal })
 
 type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
 

@@ -2,249 +2,63 @@
   "version": "8",
   "dialect": "postgres",
   "id": "8aad25e6-5d2f-45b7-96ac-7894b48a7754",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
+    { "values": ["store", "warehouse"], "name": "location_type", "entityType": "enums", "schema": "public" },
+    { "values": ["raw", "semi"], "name": "material_type", "entityType": "enums", "schema": "public" },
     {
-      "values": [
-        "store",
-        "warehouse"
-      ],
-      "name": "location_type",
-      "entityType": "enums",
-      "schema": "public"
-    },
-    {
-      "values": [
-        "raw",
-        "semi"
-      ],
-      "name": "material_type",
-      "entityType": "enums",
-      "schema": "public"
-    },
-    {
-      "values": [
-        "pending",
-        "processing",
-        "completed",
-        "failed"
-      ],
+      "values": ["pending", "processing", "completed", "failed"],
       "name": "moka_scrap_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "sales",
-        "product",
-        "category"
-      ],
+      "values": ["sales", "product", "category"],
       "name": "moka_scrap_type",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "active",
-        "inactive",
-        "archived"
-      ],
+      "values": ["active", "inactive", "archived"],
       "name": "product_status",
       "entityType": "enums",
       "schema": "public"
     },
+    { "values": ["open", "closed", "void"], "name": "sales_order_status", "entityType": "enums", "schema": "public" },
     {
-      "values": [
-        "open",
-        "closed",
-        "void"
-      ],
-      "name": "sales_order_status",
-      "entityType": "enums",
-      "schema": "public"
-    },
-    {
-      "values": [
-        "purchase",
-        "transfer_in",
-        "transfer_out",
-        "adjustment",
-        "sell"
-      ],
+      "values": ["purchase", "transfer_in", "transfer_out", "adjustment", "sell"],
       "name": "transaction_type",
       "entityType": "enums",
       "schema": "public"
     },
-    {
-      "isRlsEnabled": false,
-      "name": "locations",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "material_categories",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "material_conversions",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "material_locations",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "materials",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "moka_configurations",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "moka_scrap_histories",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "product_categories",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "product_external_mappings",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "product_prices",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "product_variants",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "products",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "recipe_items",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "recipes",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "roles",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_external_refs",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_order_batches",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_order_items",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_orders",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_types",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sales_voids",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sessions",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "stock_summaries",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "stock_transactions",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "uoms",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "user_assignments",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "users",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "variant_prices",
-      "entityType": "tables",
-      "schema": "public"
-    },
+    { "isRlsEnabled": false, "name": "locations", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "material_categories", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "material_conversions", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "material_locations", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "materials", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "moka_configurations", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "moka_scrap_histories", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "product_categories", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "product_external_mappings", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "product_prices", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "product_variants", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "products", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "recipe_items", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "recipes", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "roles", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_external_refs", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_order_batches", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_order_items", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_orders", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_types", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sales_voids", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "sessions", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "stock_summaries", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "stock_transactions", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "uoms", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "user_assignments", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "users", "entityType": "tables", "schema": "public" },
+    { "isRlsEnabled": false, "name": "variant_prices", "entityType": "tables", "schema": "public" },
     {
       "type": "serial",
       "typeSchema": null,
@@ -4472,15 +4286,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "code",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "code", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4493,15 +4299,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4514,15 +4312,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4536,20 +4326,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "uomId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "uomId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4563,15 +4341,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "uomId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "uomId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4585,20 +4355,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4612,15 +4370,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4633,15 +4383,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4654,15 +4396,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "sku",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "sku", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4675,15 +4409,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "categoryId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "categoryId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4696,15 +4422,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "baseUomId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "baseUomId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4717,15 +4435,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -4739,20 +4449,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "provider",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "externalId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "provider", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "externalId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4767,27 +4465,9 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "provider",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "variantId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "provider", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "variantId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4801,15 +4481,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4822,15 +4494,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "provider",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "provider", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4844,20 +4508,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "salesTypeId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "salesTypeId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4871,15 +4523,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "salesTypeId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "salesTypeId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -4893,20 +4537,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4921,20 +4553,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "sku",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "sku", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": "\"sku\" IS NOT NULL",
@@ -4949,20 +4569,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "sku",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "sku", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -4977,20 +4585,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5004,15 +4600,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5025,15 +4613,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "categoryId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "categoryId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5046,15 +4626,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "status",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "status", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5068,20 +4640,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "recipeId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "recipeId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5095,15 +4655,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5116,15 +4668,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "uomId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "uomId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5137,15 +4681,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": "\"materialId\" IS NOT NULL",
       "with": "",
@@ -5158,15 +4694,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": "\"productId\" IS NOT NULL",
       "with": "",
@@ -5180,13 +4708,7 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "productVariantId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "productVariantId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": "\"productVariantId\" IS NOT NULL",
@@ -5200,15 +4722,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "code",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "code", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5221,15 +4735,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "name",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "name", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5243,20 +4749,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "externalSource",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "externalOrderId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "externalSource", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "externalOrderId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5270,15 +4764,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "orderId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "orderId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5291,15 +4777,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "orderId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "orderId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5312,15 +4790,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "orderId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "orderId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5333,15 +4803,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "productId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "productId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5354,15 +4816,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "variantId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "variantId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5375,15 +4829,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "batchId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "batchId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5396,15 +4842,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5417,15 +4855,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "status",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "status", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5439,13 +4869,7 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "transactionDate",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "transactionDate", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": false,
       "where": null,
@@ -5459,15 +4883,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "code",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "code", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5480,15 +4896,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "orderId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "orderId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5501,15 +4909,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "itemId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "itemId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5522,15 +4922,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "userId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "userId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5543,15 +4935,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "expiredAt",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "expiredAt", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5565,27 +4949,9 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5600,20 +4966,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": false,
       "where": null,
@@ -5627,15 +4981,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5649,27 +4995,9 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "materialId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "materialId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": false,
       "where": null,
@@ -5684,20 +5012,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": false,
       "where": null,
@@ -5712,20 +5028,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "type",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "date",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "type", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "date", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": false,
       "where": null,
@@ -5739,15 +5043,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "transferId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "transferId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5760,15 +5056,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "referenceNo",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "referenceNo", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5781,15 +5069,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "code",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "code", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5802,15 +5082,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "userId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "userId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5823,15 +5095,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "roleId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "roleId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5844,15 +5108,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5866,27 +5122,9 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "userId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "roleId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "locationId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "userId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "roleId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "locationId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5900,15 +5138,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "email",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "email", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5921,15 +5151,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "username",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "username", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": true,
       "where": null,
       "with": "",
@@ -5943,20 +5165,8 @@
     {
       "nameExplicit": true,
       "columns": [
-        {
-          "value": "variantId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "salesTypeId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
+        { "value": "variantId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null },
+        { "value": "salesTypeId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }
       ],
       "isUnique": true,
       "where": null,
@@ -5970,15 +5180,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        {
-          "value": "salesTypeId",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
+      "columns": [{ "value": "salesTypeId", "isExpression": false, "asc": true, "nullsFirst": false, "opclass": null }],
       "isUnique": false,
       "where": null,
       "with": "",
@@ -5991,14 +5193,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_conversions_materialId_materials_id_fkey",
@@ -6008,14 +5206,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uomId"
-      ],
+      "columns": ["uomId"],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_conversions_uomId_uoms_id_fkey",
@@ -6025,14 +5219,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "material_locations_materialId_materials_id_fkey",
@@ -6042,14 +5232,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "material_locations_locationId_locations_id_fkey",
@@ -6059,14 +5245,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "categoryId"
-      ],
+      "columns": ["categoryId"],
       "schemaTo": "public",
       "tableTo": "material_categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "materials_categoryId_material_categories_id_fkey",
@@ -6076,14 +5258,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "baseUomId"
-      ],
+      "columns": ["baseUomId"],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "materials_baseUomId_uoms_id_fkey",
@@ -6093,14 +5271,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productId"
-      ],
+      "columns": ["productId"],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_productId_products_id_fkey",
@@ -6110,14 +5284,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variantId"
-      ],
+      "columns": ["variantId"],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_external_mappings_variantId_product_variants_id_fkey",
@@ -6127,14 +5297,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productId"
-      ],
+      "columns": ["productId"],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_prices_productId_products_id_fkey",
@@ -6144,14 +5310,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "salesTypeId"
-      ],
+      "columns": ["salesTypeId"],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "product_prices_salesTypeId_sales_types_id_fkey",
@@ -6161,14 +5323,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productId"
-      ],
+      "columns": ["productId"],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "product_variants_productId_products_id_fkey",
@@ -6178,14 +5336,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "products_locationId_locations_id_fkey",
@@ -6195,14 +5349,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "categoryId"
-      ],
+      "columns": ["categoryId"],
       "schemaTo": "public",
       "tableTo": "product_categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "products_categoryId_product_categories_id_fkey",
@@ -6212,14 +5362,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "recipeId"
-      ],
+      "columns": ["recipeId"],
       "schemaTo": "public",
       "tableTo": "recipes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipe_items_recipeId_recipes_id_fkey",
@@ -6229,14 +5375,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_materialId_materials_id_fkey",
@@ -6246,14 +5388,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uomId"
-      ],
+      "columns": ["uomId"],
       "schemaTo": "public",
       "tableTo": "uoms",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "recipe_items_uomId_uoms_id_fkey",
@@ -6263,14 +5401,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_materialId_materials_id_fkey",
@@ -6280,14 +5414,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productId"
-      ],
+      "columns": ["productId"],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productId_products_id_fkey",
@@ -6297,14 +5427,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productVariantId"
-      ],
+      "columns": ["productVariantId"],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "recipes_productVariantId_product_variants_id_fkey",
@@ -6314,14 +5440,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "orderId"
-      ],
+      "columns": ["orderId"],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_external_refs_orderId_sales_orders_id_fkey",
@@ -6331,14 +5453,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "orderId"
-      ],
+      "columns": ["orderId"],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_order_batches_orderId_sales_orders_id_fkey",
@@ -6348,14 +5466,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "orderId"
-      ],
+      "columns": ["orderId"],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_order_items_orderId_sales_orders_id_fkey",
@@ -6365,14 +5479,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "batchId"
-      ],
+      "columns": ["batchId"],
       "schemaTo": "public",
       "tableTo": "sales_order_batches",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_batchId_sales_order_batches_id_fkey",
@@ -6382,14 +5492,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "productId"
-      ],
+      "columns": ["productId"],
       "schemaTo": "public",
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_productId_products_id_fkey",
@@ -6399,14 +5505,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variantId"
-      ],
+      "columns": ["variantId"],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "sales_order_items_variantId_product_variants_id_fkey",
@@ -6416,14 +5518,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sales_orders_locationId_locations_id_fkey",
@@ -6433,14 +5531,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "salesTypeId"
-      ],
+      "columns": ["salesTypeId"],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sales_orders_salesTypeId_sales_types_id_fkey",
@@ -6450,14 +5544,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "orderId"
-      ],
+      "columns": ["orderId"],
       "schemaTo": "public",
       "tableTo": "sales_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_voids_orderId_sales_orders_id_fkey",
@@ -6467,14 +5557,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "itemId"
-      ],
+      "columns": ["itemId"],
       "schemaTo": "public",
       "tableTo": "sales_order_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sales_voids_itemId_sales_order_items_id_fkey",
@@ -6484,14 +5570,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_userId_users_id_fkey",
@@ -6501,14 +5583,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_materialId_materials_id_fkey",
@@ -6518,14 +5596,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_summaries_locationId_locations_id_fkey",
@@ -6535,14 +5609,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "materialId"
-      ],
+      "columns": ["materialId"],
       "schemaTo": "public",
       "tableTo": "materials",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_materialId_materials_id_fkey",
@@ -6552,14 +5622,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_locationId_locations_id_fkey",
@@ -6569,14 +5635,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "counterpartLocationId"
-      ],
+      "columns": ["counterpartLocationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_transactions_counterpartLocationId_locations_id_fkey",
@@ -6586,14 +5648,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_assignments_userId_users_id_fkey",
@@ -6603,14 +5661,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "roleId"
-      ],
+      "columns": ["roleId"],
       "schemaTo": "public",
       "tableTo": "roles",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_roleId_roles_id_fkey",
@@ -6620,14 +5674,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "locationId"
-      ],
+      "columns": ["locationId"],
       "schemaTo": "public",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "user_assignments_locationId_locations_id_fkey",
@@ -6637,14 +5687,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variantId"
-      ],
+      "columns": ["variantId"],
       "schemaTo": "public",
       "tableTo": "product_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "variant_prices_variantId_product_variants_id_fkey",
@@ -6654,14 +5700,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "salesTypeId"
-      ],
+      "columns": ["salesTypeId"],
       "schemaTo": "public",
       "tableTo": "sales_types",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "variant_prices_salesTypeId_sales_types_id_fkey",
@@ -6670,9 +5712,7 @@
       "table": "variant_prices"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "locations_pkey",
       "schema": "public",
@@ -6680,9 +5720,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "material_categories_pkey",
       "schema": "public",
@@ -6690,9 +5728,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "material_conversions_pkey",
       "schema": "public",
@@ -6700,9 +5736,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "material_locations_pkey",
       "schema": "public",
@@ -6710,9 +5744,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "materials_pkey",
       "schema": "public",
@@ -6720,9 +5752,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "moka_configurations_pkey",
       "schema": "public",
@@ -6730,9 +5760,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "moka_scrap_histories_pkey",
       "schema": "public",
@@ -6740,9 +5768,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "product_categories_pkey",
       "schema": "public",
@@ -6750,9 +5776,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "product_external_mappings_pkey",
       "schema": "public",
@@ -6760,9 +5784,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "product_prices_pkey",
       "schema": "public",
@@ -6770,9 +5792,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "product_variants_pkey",
       "schema": "public",
@@ -6780,9 +5800,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "products_pkey",
       "schema": "public",
@@ -6790,9 +5808,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "recipe_items_pkey",
       "schema": "public",
@@ -6800,9 +5816,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "recipes_pkey",
       "schema": "public",
@@ -6810,9 +5824,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "roles_pkey",
       "schema": "public",
@@ -6820,9 +5832,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_external_refs_pkey",
       "schema": "public",
@@ -6830,9 +5840,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_order_batches_pkey",
       "schema": "public",
@@ -6840,9 +5848,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_order_items_pkey",
       "schema": "public",
@@ -6850,9 +5856,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_orders_pkey",
       "schema": "public",
@@ -6860,9 +5864,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_types_pkey",
       "schema": "public",
@@ -6870,9 +5872,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_voids_pkey",
       "schema": "public",
@@ -6880,9 +5880,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "public",
@@ -6890,9 +5888,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_summaries_pkey",
       "schema": "public",
@@ -6900,9 +5896,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_transactions_pkey",
       "schema": "public",
@@ -6910,9 +5904,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "uoms_pkey",
       "schema": "public",
@@ -6920,9 +5912,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_assignments_pkey",
       "schema": "public",
@@ -6930,9 +5920,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
@@ -6940,9 +5928,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "variant_prices_pkey",
       "schema": "public",

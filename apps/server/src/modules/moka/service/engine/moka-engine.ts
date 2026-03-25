@@ -15,7 +15,7 @@ export interface IMokaEngine<T> {
 export abstract class MokaBaseEngine {
   constructor(
     protected readonly auth: MokaAuthEngine,
-    protected readonly logger: Logger
+    protected readonly logger: Logger,
   ) {}
 
   protected async getApi() {

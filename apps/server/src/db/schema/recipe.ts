@@ -45,7 +45,7 @@ export const recipesTable = pgTable(
       .where(sql`${t.productVariantId} IS NOT NULL`),
     // Check constraint: exactly one target must be set
     check('recipe_target_chk', sql`num_nonnulls("materialId", "productId", "productVariantId") = 1`),
-  ]
+  ],
 )
 
 // ─── Recipe Items ─────────────────────────────────────────────────────────────
@@ -86,5 +86,5 @@ export const recipeItemsTable = pgTable(
     // Standalone indexes for reverse lookups
     index('recipe_items_material_idx').on(t.materialId),
     index('recipe_items_uom_idx').on(t.uomId),
-  ]
+  ],
 )

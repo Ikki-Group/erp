@@ -56,9 +56,7 @@ export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const RecipeSelectDto = z.object({
-  ...RecipeDto.shape,
-})
+export const RecipeSelectDto = z.object({ ...RecipeDto.shape })
 
 export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
@@ -94,7 +92,7 @@ export const RecipeMutationDto = z
     {
       message: 'Recipe must have exactly one target (materialId, productId, or productVariantId)',
       path: ['materialId'],
-    }
+    },
   )
 
 export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>

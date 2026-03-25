@@ -22,7 +22,4 @@ export const queryClient = new QueryClient({
   }),
 })
 
-broadcastQueryClient({
-  queryClient,
-  broadcastChannel: APP_VERSION,
-})
+broadcastQueryClient({ queryClient, broadcastChannel: APP_VERSION })

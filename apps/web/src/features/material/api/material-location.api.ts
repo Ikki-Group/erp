@@ -1,4 +1,9 @@
 import z from 'zod'
+
+import { endpoint } from '@/config/endpoint'
+import { apiFactory } from '@/lib/api'
+import { zHttp, zSchema } from '@/lib/zod'
+
 import {
   MaterialLocationAssignDto,
   MaterialLocationConfigDto,
@@ -7,19 +12,13 @@ import {
   MaterialLocationUnassignDto,
   MaterialLocationWithLocationDto,
 } from '../dto'
-import { endpoint } from '@/config/endpoint'
-import { apiFactory } from '@/lib/api'
-import { zHttp, zSchema } from '@/lib/zod'
 
 export const materialLocationApi = {
   /** Paginated stock list for a specific location */
   stock: apiFactory({
     method: 'get',
     url: endpoint.material.location.stock,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...MaterialLocationFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...MaterialLocationFilterDto.shape }),
     result: zHttp.paginated(MaterialLocationStockDto.array()),
   }),
 

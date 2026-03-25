@@ -19,14 +19,10 @@ export function initUserRoute(s: IamServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({
-          ...zHttp.pagination.shape,
-          search: zHttp.query.search,
-          isActive: zHttp.query.boolean,
-        }),
+        query: z.object({ ...zHttp.pagination.shape, search: zHttp.query.search, isActive: zHttp.query.boolean }),
         response: zResponse.paginated(UserOutputDto.array()),
         auth: true,
-      }
+      },
     )
     .get(
       '/detail',
@@ -34,11 +30,7 @@ export function initUserRoute(s: IamServiceModule) {
         const user = await s.user.handleDetail(query.id)
         return res.ok(user)
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(UserOutputDto),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(UserOutputDto), auth: true },
     )
     .post(
       '/create',
@@ -46,11 +38,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleCreate(body, auth.userId)
         return res.created(result, 'USER_CREATED')
       },
-      {
-        body: UserCreateDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: UserCreateDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/update',
@@ -59,13 +47,10 @@ export function initUserRoute(s: IamServiceModule) {
         return res.ok(result, 'USER_UPDATED')
       },
       {
-        body: z.object({
-          id: zPrimitive.id,
-          ...UserUpdateDto.shape,
-        }),
+        body: z.object({ id: zPrimitive.id, ...UserUpdateDto.shape }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
-      }
+      },
     )
     .delete(
       '/remove',
@@ -73,11 +58,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleRemove(body.id)
         return res.ok(result, 'USER_DELETED')
       },
-      {
-        body: zSchema.recordId,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: zSchema.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/change-password',
@@ -85,11 +66,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleChangePassword(auth.userId, body)
         return res.ok(result, 'USER_PASSWORD_CHANGED')
       },
-      {
-        body: UserChangePasswordDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: UserChangePasswordDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/admin-update-password',
@@ -98,10 +75,6 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleAdminUpdatePassword(auth.userId, body)
         return res.ok(result, 'USER_PASSWORD_UPDATED_BY_ADMIN')
       },
-      {
-        body: UserAdminUpdatePasswordDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: UserAdminUpdatePasswordDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
 }

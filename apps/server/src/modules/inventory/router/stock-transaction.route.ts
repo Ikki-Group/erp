@@ -33,7 +33,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           response: zResponse.ok(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
-        }
+        },
       )
 
       /* ─────── Transfer stock between locations (multiple materials) ─────── */
@@ -48,7 +48,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           response: zResponse.ok(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
-        }
+        },
       )
 
       /* ─────── Record stock adjustments (multiple materials) ─────── */
@@ -63,7 +63,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           response: zResponse.ok(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
-        }
+        },
       )
 
       /* ─────── List transactions (paginated) ─────── */
@@ -74,14 +74,11 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({
-            ...zHttp.pagination.shape,
-            ...StockTransactionFilterDto.shape,
-          }),
+          query: z.object({ ...zHttp.pagination.shape, ...StockTransactionFilterDto.shape }),
           response: zResponse.paginated(StockTransactionSelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
-        }
+        },
       )
 
       /* ─────── Get transaction detail ─────── */
@@ -96,7 +93,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           response: zResponse.ok(StockTransactionDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
-        }
+        },
       )
   )
 }

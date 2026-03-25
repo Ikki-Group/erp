@@ -1,13 +1,8 @@
 'use client'
 
+import type { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table'
 import { createContext, use } from 'react'
 import type { ReactNode } from 'react'
-import type {
-  ColumnFiltersState,
-  RowData,
-  SortingState,
-  Table,
-} from '@tanstack/react-table'
 
 import { cn } from '@/lib/utils'
 
@@ -29,14 +24,7 @@ export type DataGridApiFetchParams = {
   searchQuery?: string
 }
 
-export type DataGridApiResponse<T> = {
-  data: Array<T>
-  empty: boolean
-  pagination: {
-    total: number
-    page: number
-  }
-}
+export type DataGridApiResponse<T> = { data: Array<T>; empty: boolean; pagination: { total: number; page: number } }
 
 export interface DataGridContextProps<TData extends object> {
   props: DataGridProps<TData>
@@ -91,9 +79,7 @@ export interface DataGridProps<TData extends object> {
   }
 }
 
-const DataGridContext = createContext<DataGridContextProps<any> | undefined>(
-  undefined
-)
+const DataGridContext = createContext<DataGridContextProps<any> | undefined>(undefined)
 
 function useDataGrid() {
   const context = use(DataGridContext)
@@ -109,24 +95,13 @@ function DataGridProvider<TData extends object>({
   ...props
 }: DataGridProps<TData> & { table: Table<TData> }) {
   return (
-    <DataGridContext
-      value={{
-        props,
-        table,
-        recordCount: props.recordCount,
-        isLoading: props.isLoading || false,
-      }}
-    >
+    <DataGridContext value={{ props, table, recordCount: props.recordCount, isLoading: props.isLoading || false }}>
       {children}
     </DataGridContext>
   )
 }
 
-function DataGrid<TData extends object>({
-  children,
-  table,
-  ...props
-}: DataGridProps<TData>) {
+function DataGrid<TData extends object>({ children, table, ...props }: DataGridProps<TData>) {
   const defaultProps: Partial<DataGridProps<TData>> = {
     loadingMode: 'skeleton',
     tableLayout: {
@@ -161,14 +136,8 @@ function DataGrid<TData extends object>({
   const mergedProps: DataGridProps<TData> = {
     ...defaultProps,
     ...props,
-    tableLayout: {
-      ...defaultProps.tableLayout,
-      ...(props.tableLayout || {}),
-    },
-    tableClassNames: {
-      ...defaultProps.tableClassNames,
-      ...(props.tableClassNames || {}),
-    },
+    tableLayout: { ...defaultProps.tableLayout, ...(props.tableLayout || {}) },
+    tableClassNames: { ...defaultProps.tableClassNames, ...(props.tableClassNames || {}) },
   }
 
   // Ensure table is provided
@@ -194,12 +163,8 @@ function DataGridContainer({
 }) {
   return (
     <div
-      data-slot='data-grid'
-      className={cn(
-        'w-full overflow-hidden',
-        border && 'border-border rounded-lg border',
-        className
-      )}
+      data-slot="data-grid"
+      className={cn('w-full overflow-hidden', border && 'border-border rounded-lg border', className)}
     >
       {children}
     </div>

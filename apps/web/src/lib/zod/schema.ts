@@ -10,11 +10,6 @@ const metadata = z.object({
   syncAt: zPrimitive.date.optional().nullable(),
 })
 
-const recordId = z.object({
-  id: zPrimitive.id,
-})
+const recordId = z.object({ id: zPrimitive.id })
 
-export const zSchema = {
-  metadata,
-  recordId,
-}
+export const zSchema = { metadata, recordId }

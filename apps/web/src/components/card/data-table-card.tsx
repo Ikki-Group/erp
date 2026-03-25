@@ -1,16 +1,11 @@
 import type { Table } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
+
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
-import {
-  Card,
-  CardAction,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
+import { Card, CardAction, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 interface DataTableCardProps<TData extends object> {
   title: string
@@ -37,7 +32,7 @@ export function DataTableCard<TData extends object>({
       recordCount={recordCount}
       tableClassNames={{ edgeCell: 'px-5' }}
       isLoading={isLoading}
-      loadingMode='spinner'
+      loadingMode="spinner"
       tableLayout={{
         cellBorder: false,
         // cellBorder: true,
@@ -45,22 +40,20 @@ export function DataTableCard<TData extends object>({
       }}
       onRowClick={onRowClick}
     >
-      <Card className='w-full gap-0! py-3.5' size='sm'>
-        <CardHeader className='flex items-center justify-between px-3.5 border-b'>
+      <Card className="w-full gap-0! py-3.5" size="sm">
+        <CardHeader className="flex items-center justify-between px-3.5 border-b">
           <CardTitle>{title}</CardTitle>
           {action && <CardAction>{action}</CardAction>}
         </CardHeader>
-        {toolbar && (
-          <div className='px-3.5 py-4 border-b bg-muted/20'>{toolbar}</div>
-        )}
-        <div className='w-full'>
+        {toolbar && <div className="px-3.5 py-4 border-b bg-muted/20">{toolbar}</div>}
+        <div className="w-full">
           <ScrollArea>
             <DataGridTable />
-            <ScrollBar orientation='horizontal' />
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-        <CardFooter className='px-3.5 border-t'>
-          <DataGridPagination className='py-0' />
+        <CardFooter className="px-3.5 border-t">
+          <DataGridPagination className="py-0" />
         </CardFooter>
       </Card>
     </DataGrid>

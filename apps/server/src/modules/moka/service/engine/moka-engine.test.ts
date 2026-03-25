@@ -1,4 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
+
 import type { Logger } from 'pino'
 
 import type { MokaAuthEngine } from './moka-auth.service'
@@ -7,11 +8,7 @@ import { MokaProductEngine } from './moka-product.service'
 import { MokaSalesEngine } from './moka-sales.service'
 
 // Mock Logger
-const mockLogger = {
-  info: mock(() => {}),
-  error: mock(() => {}),
-  child: mock(() => mockLogger),
-} as unknown as Logger
+const mockLogger = { info: mock(() => {}), error: mock(() => {}), child: mock(() => mockLogger) } as unknown as Logger
 
 // Mock MokaAuthEngine
 const mockAuth = {
@@ -45,12 +42,7 @@ const mockAuth = {
       }
       // Sales List
       if (url === '/order-reporting/backoffice/v1/orders') {
-        return {
-          data: {
-            orders: [{ order_token: 'TOKEN1' }, { order_token: 'TOKEN2' }],
-            next_cursor: null,
-          },
-        }
+        return { data: { orders: [{ order_token: 'TOKEN1' }, { order_token: 'TOKEN2' }], next_cursor: null } }
       }
       // Sales Detail
       if (url.startsWith('/order-reporting/backoffice/v1/orders/')) {

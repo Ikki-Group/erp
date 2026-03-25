@@ -5,8 +5,8 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "zod": "^4.3.6",
-    "@elysiajs/eden": "^1.4.8"
+    "@elysiajs/eden": "^1.4.8",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

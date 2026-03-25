@@ -36,32 +36,15 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Ringkasan',
       items: [
-        {
-          title: 'Dashboard',
-          href: '/',
-          icon: LayoutDashboardIcon,
-          isActive: pathname === '/',
-        },
+        { title: 'Dashboard', href: '/', icon: LayoutDashboardIcon, isActive: pathname === '/' },
         {
           title: 'Laporan & Analitik',
           href: '/analytics',
           icon: BarChart3Icon,
           children: [
-            {
-              title: 'Laporan Penjualan',
-              href: '/analytics/sales',
-              isActive: pathname === '/analytics/sales',
-            },
-            {
-              title: 'Laporan Stok',
-              href: '/analytics/stock',
-              isActive: pathname === '/analytics/stock',
-            },
-            {
-              title: 'Laporan Keuangan',
-              href: '/analytics/finance',
-              isActive: pathname === '/analytics/finance',
-            },
+            { title: 'Laporan Penjualan', href: '/analytics/sales', isActive: pathname === '/analytics/sales' },
+            { title: 'Laporan Stok', href: '/analytics/stock', isActive: pathname === '/analytics/stock' },
+            { title: 'Laporan Keuangan', href: '/analytics/finance', isActive: pathname === '/analytics/finance' },
           ],
         },
       ],
@@ -74,16 +57,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           href: '/sales',
           icon: ShoppingCartIcon,
           children: [
-            {
-              title: 'Transaksi Penjualan',
-              href: '/sales/orders',
-              isActive: pathname.startsWith('/sales/orders'),
-            },
-            {
-              title: 'Daftar Pelanggan',
-              href: '/sales/customers',
-              isActive: pathname.startsWith('/sales/customers'),
-            },
+            { title: 'Transaksi Penjualan', href: '/sales/orders', isActive: pathname.startsWith('/sales/orders') },
+            { title: 'Daftar Pelanggan', href: '/sales/customers', isActive: pathname.startsWith('/sales/customers') },
           ],
         },
         {
@@ -91,16 +66,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           href: '/moka',
           icon: ShoppingBasketIcon,
           children: [
-            {
-              title: 'Monitoring Moka',
-              href: '/moka/monitoring',
-              isActive: pathname.startsWith('/moka/monitoring'),
-            },
-            {
-              title: 'Sync Produk Moka',
-              href: '/moka/sync',
-              isActive: pathname.startsWith('/moka/sync'),
-            },
+            { title: 'Monitoring Moka', href: '/moka/monitoring', isActive: pathname.startsWith('/moka/monitoring') },
+            { title: 'Sync Produk Moka', href: '/moka/sync', isActive: pathname.startsWith('/moka/sync') },
           ],
         },
       ],
@@ -167,11 +134,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
               href: '/production/work-orders',
               isActive: pathname.startsWith('/production/work-orders'),
             },
-            {
-              title: 'Resep & BOM',
-              href: '/production/recipes',
-              isActive: pathname.startsWith('/production/recipes'),
-            },
+            { title: 'Resep & BOM', href: '/production/recipes', isActive: pathname.startsWith('/production/recipes') },
           ],
         },
         {
@@ -179,16 +142,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           href: '/finance',
           icon: BanknoteIcon,
           children: [
-            {
-              title: 'Kas & Bank',
-              href: '/finance/accounts',
-              isActive: pathname.startsWith('/finance/accounts'),
-            },
-            {
-              title: 'Hutang & Piutang',
-              href: '/finance/ledger',
-              isActive: pathname.startsWith('/finance/ledger'),
-            },
+            { title: 'Kas & Bank', href: '/finance/accounts', isActive: pathname.startsWith('/finance/accounts') },
+            { title: 'Hutang & Piutang', href: '/finance/ledger', isActive: pathname.startsWith('/finance/ledger') },
             {
               title: 'Pengeluaran (Biaya)',
               href: '/finance/expenses',
@@ -201,11 +156,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           href: '/employees',
           icon: UsersIcon,
           children: [
-            {
-              title: 'Daftar Staff',
-              href: '/employees/list',
-              isActive: pathname.startsWith('/employees/list'),
-            },
+            { title: 'Daftar Staff', href: '/employees/list', isActive: pathname.startsWith('/employees/list') },
             {
               title: 'Absensi & Jadwal',
               href: '/employees/attendance',
@@ -218,27 +169,14 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Data Master (Global)',
       items: [
-        {
-          title: 'Katalog Produk',
-          href: '/products',
-          icon: PackageIcon,
-          isActive: pathname.startsWith('/products'),
-        },
+        { title: 'Katalog Produk', href: '/products', icon: PackageIcon, isActive: pathname.startsWith('/products') },
         {
           title: 'Bahan Baku Global',
           href: '/materials',
           icon: CirclePileIcon,
           children: [
-            {
-              title: 'Daftar Bahan',
-              href: '/materials',
-              isActive: pathname === '/materials',
-            },
-            {
-              title: 'Kategori & UoM',
-              href: '/materials/config',
-              isActive: pathname.startsWith('/materials/config'),
-            },
+            { title: 'Daftar Bahan', href: '/materials', isActive: pathname === '/materials' },
+            { title: 'Kategori & UoM', href: '/materials/config', isActive: pathname.startsWith('/materials/config') },
           ],
         },
         {
@@ -258,20 +196,9 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: FingerprintIcon,
           isActive: pathname.startsWith('/settings/iam'),
         },
-        {
-          title: 'Pengaturan App',
-          href: '/settings',
-          icon: Settings2Icon,
-          isActive: pathname === '/settings',
-        },
-        {
-          title: 'Bantuan',
-          href: '/docs',
-          icon: BookOpenIcon,
-        },
+        { title: 'Pengaturan App', href: '/settings', icon: Settings2Icon, isActive: pathname === '/settings' },
+        { title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
       ],
     },
   ]
 }
-
-

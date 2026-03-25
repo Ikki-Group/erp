@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
-import { locationsTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,14 +15,13 @@ import {
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { locationsTable } from '@/db/schema'
 
 import type { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: number) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
-}
+const err = { notFound: (id: number) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND') }
 
 const uniqueFields: ConflictField<'code' | 'name'>[] = [
   {
@@ -41,11 +38,7 @@ const uniqueFields: ConflictField<'code' | 'name'>[] = [
   },
 ]
 
-const cacheKey = {
-  count: 'location.count',
-  list: 'location.list',
-  byId: (id: number) => `location.byId.${id}`,
-}
+const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: number) => `location.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -60,20 +53,10 @@ export class LocationService {
         const metadata = stampCreate(d.createdBy)
         await db
           .insert(locationsTable)
-          .values({
-            ...d,
-            description: '',
-            isActive: true,
-            ...metadata,
-          })
+          .values({ ...d, description: '', isActive: true, ...metadata })
           .onConflictDoUpdate({
             target: locationsTable.code,
-            set: {
-              name: d.name,
-              type: d.type,
-              updatedAt: metadata.updatedAt,
-              updatedBy: metadata.updatedBy,
-            },
+            set: { name: d.name, type: d.type, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
       void this.clearCache()
@@ -125,7 +108,7 @@ export class LocationService {
       const where = and(
         searchFilter(locationsTable.name, search),
         type ? eq(locationsTable.type, type) : undefined,
-        typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined
+        typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined,
       )
 
       return paginate<LocationDto>({
@@ -157,19 +140,11 @@ export class LocationService {
    */
   async handleCreate(data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
     return record('LocationService.handleCreate', async () => {
-      await checkConflict({
-        table: locationsTable,
-        pkColumn: locationsTable.id,
-        fields: uniqueFields,
-        input: data,
-      })
+      await checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data })
 
       const [inserted] = await db
         .insert(locationsTable)
-        .values({
-          ...data,
-          ...stampCreate(actorId),
-        })
+        .values({ ...data, ...stampCreate(actorId) })
         .returning({ id: locationsTable.id })
 
       if (!inserted) throw new Error('Failed to create location')
@@ -196,10 +171,7 @@ export class LocationService {
 
       await db
         .update(locationsTable)
-        .set({
-          ...data,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...data, ...stampUpdate(actorId) })
         .where(eq(locationsTable.id, id))
 
       void this.clearCache(id)

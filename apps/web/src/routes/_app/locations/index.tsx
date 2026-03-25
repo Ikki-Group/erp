@@ -2,27 +2,26 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
-import type { LocationDto } from '@/features/location'
-import { Page } from '@/components/layout/page'
+
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
+import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
+import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/locations/')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/locations/')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title='Lokasi & Gudang'
-        description='Kelola data lokasi dan gudang untuk penyimpanan inventory.'
+        title="Lokasi & Gudang"
+        description="Kelola data lokasi dan gudang untuk penyimpanan inventory."
       />
       <Page.Content>
         <LocationsTable />
@@ -37,16 +36,11 @@ const columns = [
     id: 'action',
     cell: ({ row }) => {
       return (
-        <div className='flex items-center justify-center'>
+        <div className="flex items-center justify-center">
           <Button
-            variant='outline'
-            size='icon-sm'
-            render={
-              <Link
-                to='/locations/$id'
-                params={{ id: String(row.original.id) }}
-              />
-            }
+            variant="outline"
+            size="icon-sm"
+            render={<Link to="/locations/$id" params={{ id: String(row.original.id) }} />}
           >
             <PencilIcon />
           </Button>
@@ -59,11 +53,9 @@ const columns = [
   ch.accessor('name', {
     header: 'Lokasi',
     cell: ({ row }) => (
-      <div className='flex gap-2 flex-col'>
+      <div className="flex gap-2 flex-col">
         <p>{row.original.name}</p>
-        <p className='text-muted-foreground text-xs italic'>
-          ({row.original.code})
-        </p>
+        <p className="text-muted-foreground text-xs italic">({row.original.code})</p>
       </div>
     ),
     enableSorting: false,
@@ -92,13 +84,7 @@ const columns = [
 
 function LocationsTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(
-    locationApi.list.query({
-      ...ds.pagination,
-      search: ds.search,
-      ...ds.filters,
-    })
-  )
+  const { data, isLoading } = useQuery(locationApi.list.query({ ...ds.pagination, search: ds.search, ...ds.filters }))
 
   const table = useDataTable({
     columns: columns,
@@ -110,7 +96,7 @@ function LocationsTable() {
 
   return (
     <DataTableCard
-      title='Daftar Lokasi'
+      title="Daftar Lokasi"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
@@ -133,11 +119,7 @@ function LocationsTable() {
         />
       }
       action={
-        <Button
-          size='sm'
-          render={<Link from={Route.fullPath} to='/locations/create' />}
-          nativeButton={false}
-        >
+        <Button size="sm" render={<Link from={Route.fullPath} to="/locations/create" />} nativeButton={false}>
           Tambah Lokasi
         </Button>
       }

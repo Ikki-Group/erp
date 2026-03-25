@@ -12,7 +12,7 @@ export class ToolServiceModule {
     iamSvc: IamServiceModule,
     locationSvc: LocationServiceModule,
     productSvc: ProductServiceModule,
-    materialSvc: MaterialServiceModule
+    materialSvc: MaterialServiceModule,
   ) {
     this.seed = new SeedService(iamSvc, locationSvc, productSvc, materialSvc)
   }

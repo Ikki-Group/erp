@@ -1,15 +1,14 @@
 import { randomUUID } from 'node:crypto'
+
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
-
-import { materialsTable, stockTransactionsTable } from '@/db/schema'
-
-import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
 import { paginate, stampCreate, takeFirstOrThrow } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { materialsTable, stockTransactionsTable } from '@/db/schema'
+import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
 import type {
   AdjustmentTransactionDto,
@@ -26,7 +25,7 @@ const err = {
   insufficientStock: (materialId: number, available: number, requested: number) =>
     new BadRequestError(
       `Insufficient stock for material ${materialId}: available ${available}, requested ${requested}`,
-      'INSUFFICIENT_STOCK'
+      'INSUFFICIENT_STOCK',
     ),
   negativeStock: (materialId: number) =>
     new BadRequestError(`Adjustment would result in negative stock for material ${materialId}`, 'NEGATIVE_STOCK'),
@@ -45,7 +44,7 @@ export class StockTransactionService {
     currentQty: number,
     currentAvgCost: number,
     incomingQty: number,
-    incomingUnitCost: number
+    incomingUnitCost: number,
   ): { newQty: number; newAvgCost: number } {
     const newQty = currentQty + incomingQty
     const newAvgCost = newQty > 0 ? (currentQty * currentAvgCost + incomingQty * incomingUnitCost) / newQty : 0
@@ -76,33 +75,35 @@ export class StockTransactionService {
               assignment.currentQty,
               assignment.currentAvgCost,
               item.qty,
-              item.unitCost
+              item.unitCost,
             )
             const totalCost = item.qty * item.unitCost
             const newValue = newQty * newAvgCost
 
             // Create journal entry
-            await tx.insert(stockTransactionsTable).values({
-              materialId: item.materialId,
-              locationId,
-              type: 'purchase',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: item.qty.toString(),
-              unitCost: item.unitCost.toString(),
-              totalCost: totalCost.toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId: item.materialId,
+                locationId,
+                type: 'purchase',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: item.qty.toString(),
+                unitCost: item.unitCost.toString(),
+                totalCost: totalCost.toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             // Update live stock
             await this.mLocationSvc.updateCurrentStock(
               item.materialId,
               locationId,
               { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
-              actorId
+              actorId,
             )
           })
         }
@@ -144,47 +145,51 @@ export class StockTransactionService {
             const sourceNewQty = sourceAssignment.currentQty - item.qty
             const sourceAvgCost = sourceAssignment.currentAvgCost
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId: item.materialId,
-              locationId: sourceLocationId,
-              type: 'transfer_out',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: item.qty.toString(),
-              unitCost: sourceAvgCost.toString(),
-              totalCost: transferCost.toString(),
-              counterpartLocationId: destinationLocationId,
-              transferId,
-              runningQty: sourceNewQty.toString(),
-              runningAvgCost: sourceAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId: item.materialId,
+                locationId: sourceLocationId,
+                type: 'transfer_out',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: item.qty.toString(),
+                unitCost: sourceAvgCost.toString(),
+                totalCost: transferCost.toString(),
+                counterpartLocationId: destinationLocationId,
+                transferId,
+                runningQty: sourceNewQty.toString(),
+                runningAvgCost: sourceAvgCost.toString(),
+                ...metadata,
+              })
 
             // ── Transfer IN (destination) — WAC recalculated ──
             const { newQty: destNewQty, newAvgCost: destNewAvgCost } = this.calculateIncomingWAC(
               destAssignment.currentQty,
               destAssignment.currentAvgCost,
               item.qty,
-              sourceAvgCost
+              sourceAvgCost,
             )
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId: item.materialId,
-              locationId: destinationLocationId,
-              type: 'transfer_in',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: item.qty.toString(),
-              unitCost: sourceAvgCost.toString(),
-              totalCost: transferCost.toString(),
-              counterpartLocationId: sourceLocationId,
-              transferId,
-              runningQty: destNewQty.toString(),
-              runningAvgCost: destNewAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId: item.materialId,
+                locationId: destinationLocationId,
+                type: 'transfer_in',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: item.qty.toString(),
+                unitCost: sourceAvgCost.toString(),
+                totalCost: transferCost.toString(),
+                counterpartLocationId: sourceLocationId,
+                transferId,
+                runningQty: destNewQty.toString(),
+                runningAvgCost: destNewAvgCost.toString(),
+                ...metadata,
+              })
 
             // Update both locations' live stock (run sequentially or via promise.all inside tx isn't strictly necessary but is fine)
             await Promise.all([
@@ -192,13 +197,13 @@ export class StockTransactionService {
                 item.materialId,
                 sourceLocationId,
                 { currentQty: sourceNewQty, currentAvgCost: sourceAvgCost, currentValue: sourceNewQty * sourceAvgCost },
-                actorId
+                actorId,
               ),
               this.mLocationSvc.updateCurrentStock(
                 item.materialId,
                 destinationLocationId,
                 { currentQty: destNewQty, currentAvgCost: destNewAvgCost, currentValue: destNewQty * destNewAvgCost },
-                actorId
+                actorId,
               ),
             ])
           })
@@ -237,7 +242,7 @@ export class StockTransactionService {
                 assignment.currentQty,
                 assignment.currentAvgCost,
                 item.qty,
-                effectiveUnitCost
+                effectiveUnitCost,
               )
               newQty = result.newQty
               newAvgCost = result.newAvgCost
@@ -252,26 +257,28 @@ export class StockTransactionService {
             const totalCost = Math.abs(item.qty) * effectiveUnitCost
             const newValue = newQty * newAvgCost
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId: item.materialId,
-              locationId,
-              type: 'adjustment',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: item.qty.toString(),
-              unitCost: effectiveUnitCost.toString(),
-              totalCost: totalCost.toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId: item.materialId,
+                locationId,
+                type: 'adjustment',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: item.qty.toString(),
+                unitCost: effectiveUnitCost.toString(),
+                totalCost: totalCost.toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               item.materialId,
               locationId,
               { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
-              actorId
+              actorId,
             )
           })
         }
@@ -288,7 +295,7 @@ export class StockTransactionService {
    */
   async handleList(
     filter: StockTransactionFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<StockTransactionSelectDto>> {
     return record('StockTransactionService.handleList', async () => {
       const { locationId, materialId, type, search, dateFrom, dateTo } = filter
@@ -297,7 +304,7 @@ export class StockTransactionService {
         ? or(
             ilike(materialsTable.name, `%${search}%`),
             ilike(materialsTable.sku, `%${search}%`),
-            ilike(stockTransactionsTable.referenceNo, `%${search}%`)
+            ilike(stockTransactionsTable.referenceNo, `%${search}%`),
           )
         : undefined
 
@@ -315,7 +322,7 @@ export class StockTransactionService {
         materialId === undefined ? undefined : eq(stockTransactionsTable.materialId, materialId),
         type === undefined ? undefined : eq(stockTransactionsTable.type, type),
         dateCondition,
-        searchCondition
+        searchCondition,
       )
 
       const result = await paginate({

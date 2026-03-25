@@ -1,28 +1,27 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { useQuery } from '@tanstack/react-query'
 import { PencilIcon } from 'lucide-react'
-import type { MaterialCategoryDto } from '@/features/material'
-import { materialCategoryApi } from '@/features/material'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-import { useDataTable } from '@/hooks/use-data-table'
+
 import { DataTableCard } from '@/components/card/data-table-card'
-import { Button } from '@/components/ui/button'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
-import { toDateTimeStamp } from '@/lib/formatter'
+import { Button } from '@/components/ui/button'
+import type { MaterialCategoryDto } from '@/features/material'
+import { materialCategoryApi } from '@/features/material'
 import { MaterialCategoryFormDialog } from '@/features/material/components/material-category-form-dialog'
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/materials/category')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/materials/category')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title='Kategori Bahan Baku'
-        description='Pengaturan kategori bahan baku untuk pengorganisasian inventaris dan klasifikasi produk yang lebih baik.'
+        title="Kategori Bahan Baku"
+        description="Pengaturan kategori bahan baku untuk pengorganisasian inventaris dan klasifikasi produk yang lebih baik."
       />
       <Page.Content>
         <MaterialCategoryFormDialog.Root />
@@ -38,12 +37,10 @@ const columns = [
   ch.accessor('name', {
     header: 'Kategori',
     cell: ({ row }) => (
-      <div className='flex flex-col gap-1 py-1'>
-        <span className='font-semibold text-sm tracking-tight'>
-          {row.original.name}
-        </span>
+      <div className="flex flex-col gap-1 py-1">
+        <span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
         {row.original.description && (
-          <span className='text-xs text-muted-foreground/80 line-clamp-1 max-w-[400px]'>
+          <span className="text-xs text-muted-foreground/80 line-clamp-1 max-w-[400px]">
             {row.original.description}
           </span>
         )}
@@ -55,9 +52,7 @@ const columns = [
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
     cell: ({ row }) => (
-      <span className='text-xs text-muted-foreground font-medium'>
-        {toDateTimeStamp(row.original.createdAt)}
-      </span>
+      <span className="text-xs text-muted-foreground font-medium">{toDateTimeStamp(row.original.createdAt)}</span>
     ),
     size: 180,
     enableSorting: false,
@@ -67,16 +62,14 @@ const columns = [
     header: '',
     cell: ({ row }) => {
       return (
-        <div className='flex items-center justify-end px-2'>
+        <div className="flex items-center justify-end px-2">
           <Button
-            variant='ghost'
-            size='icon-sm'
-            className='size-8 text-muted-foreground hover:text-foreground'
-            onClick={() =>
-              MaterialCategoryFormDialog.upsert({ id: row.original.id })
-            }
+            variant="ghost"
+            size="icon-sm"
+            className="size-8 text-muted-foreground hover:text-foreground"
+            onClick={() => MaterialCategoryFormDialog.upsert({ id: row.original.id })}
           >
-            <PencilIcon className='size-4' />
+            <PencilIcon className="size-4" />
           </Button>
         </div>
       )
@@ -90,12 +83,7 @@ const columns = [
 
 function CategoryTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(
-    materialCategoryApi.list.query({
-      ...ds.pagination,
-      search: ds.search,
-    })
-  )
+  const { data, isLoading } = useQuery(materialCategoryApi.list.query({ ...ds.pagination, search: ds.search }))
 
   const table = useDataTable({
     columns: columns,
@@ -107,18 +95,13 @@ function CategoryTable() {
 
   return (
     <DataTableCard
-      title='Daftar Kategori'
+      title="Daftar Kategori"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
-      toolbar={
-        <DataGridFilter
-          ds={ds}
-          options={[{ type: 'search', placeholder: 'Cari kategori...' }]}
-        />
-      }
+      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari kategori...' }]} />}
       action={
-        <Button size='sm' onClick={() => MaterialCategoryFormDialog.upsert({})}>
+        <Button size="sm" onClick={() => MaterialCategoryFormDialog.upsert({})}>
           Tambah Kategori
         </Button>
       }

@@ -10,27 +10,16 @@ import { locationsTable } from './location'
 
 export const salesTypesTable = pgTable(
   'sales_types',
-  {
-    ...pk,
-    code: text().notNull(),
-    name: text().notNull(),
-    isSystem: boolean().notNull().default(false),
-    ...metadata,
-  },
-  (t) => [uniqueIndex('sales_types_code_idx').on(t.code)]
+  { ...pk, code: text().notNull(), name: text().notNull(), isSystem: boolean().notNull().default(false), ...metadata },
+  (t) => [uniqueIndex('sales_types_code_idx').on(t.code)],
 )
 
 // ─── Product Categories ───────────────────────────────────────────────────────
 
 export const productCategoriesTable = pgTable(
   'product_categories',
-  {
-    ...pk,
-    name: text().notNull(),
-    description: text(),
-    ...metadata,
-  },
-  (t) => [uniqueIndex('product_categories_name_idx').on(t.name)]
+  { ...pk, name: text().notNull(), description: text(), ...metadata },
+  (t) => [uniqueIndex('product_categories_name_idx').on(t.name)],
 )
 
 // ─── Products ─────────────────────────────────────────────────────────────────
@@ -79,7 +68,7 @@ export const productsTable = pgTable(
     index('products_location_idx').on(t.locationId),
     index('products_category_idx').on(t.categoryId),
     index('products_status_idx').on(t.status),
-  ]
+  ],
 )
 
 // ─── Product Prices ───────────────────────────────────────────────────────────
@@ -104,7 +93,7 @@ export const productPricesTable = pgTable(
     // One price per product per sales type
     uniqueIndex('product_prices_product_sales_type_idx').on(t.productId, t.salesTypeId),
     index('product_prices_sales_type_idx').on(t.salesTypeId),
-  ]
+  ],
 )
 
 // ─── Product Variants ─────────────────────────────────────────────────────────
@@ -132,7 +121,7 @@ export const productVariantsTable = pgTable(
     uniqueIndex('product_variants_sku_idx')
       .on(t.productId, t.sku)
       .where(sql`${t.sku} IS NOT NULL`),
-  ]
+  ],
 )
 
 // ─── Variant Prices ───────────────────────────────────────────────────────────
@@ -157,7 +146,7 @@ export const variantPricesTable = pgTable(
     // One price per variant per sales type
     uniqueIndex('variant_prices_variant_sales_type_idx').on(t.variantId, t.salesTypeId),
     index('variant_prices_sales_type_idx').on(t.salesTypeId),
-  ]
+  ],
 )
 
 // ─── Product External Mappings ────────────────────────────────────────────────
@@ -190,5 +179,5 @@ export const productExternalMappingsTable = pgTable(
     uniqueIndex('product_ext_map_provider_product_variant_idx').on(t.provider, t.productId, t.variantId),
     index('product_ext_map_product_idx').on(t.productId),
     index('product_ext_map_provider_idx').on(t.provider),
-  ]
+  ],
 )

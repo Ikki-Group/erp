@@ -18,13 +18,10 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({
-          ...zHttp.pagination.shape,
-          ...MaterialCategoryFilterDto.shape,
-        }),
+        query: z.object({ ...zHttp.pagination.shape, ...MaterialCategoryFilterDto.shape }),
         response: zResponse.paginated(MaterialCategoryDto.array()),
         auth: true,
-      }
+      },
     )
     .get(
       '/detail',
@@ -32,11 +29,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         const materialCategory = await s.category.handleDetail(query.id)
         return res.ok(materialCategory)
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(MaterialCategoryDto),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(MaterialCategoryDto), auth: true },
     )
     .post(
       '/create',
@@ -44,11 +37,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         const { id } = await s.category.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      {
-        body: MaterialCategoryMutationDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: MaterialCategoryMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/update',
@@ -57,13 +46,10 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({
-          id: zPrimitive.id,
-          ...MaterialCategoryMutationDto.shape,
-        }),
+        body: z.object({ id: zPrimitive.id, ...MaterialCategoryMutationDto.shape }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
-      }
+      },
     )
     .delete(
       '/remove',
@@ -71,10 +57,6 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         await s.category.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
     )
 }

@@ -1,16 +1,17 @@
 import { useNavigate } from '@tanstack/react-router'
+import type { ComponentProps } from 'react'
+
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
-import { useFormContext } from './form-hook-context'
 import { useFormConfig } from './form-config'
-import type { ComponentProps } from 'react'
+import { useFormContext } from './form-hook-context'
 
 function Form(props: ComponentProps<'form'>) {
   const form = useFormContext()
 
   return (
     <form
-      onSubmit={e => {
+      onSubmit={(e) => {
         e.stopPropagation()
         e.preventDefault()
         form.handleSubmit()
@@ -26,19 +27,15 @@ function FormSimpleActions() {
   const navigate = useNavigate()
 
   return (
-    <Card size='sm' className='px-3 flex items-end ring-0'>
-      <div className='flex gap-2 max-w-72 w-full'>
+    <Card size="sm" className="px-3 flex items-end ring-0">
+      <div className="flex gap-2 max-w-72 w-full">
         <Button
-          variant='outline'
-          type='button'
-          className='flex-1'
+          variant="outline"
+          type="button"
+          className="flex-1"
           onClick={() => {
             if (backTo) {
-              navigate({
-                to: backTo.to!,
-                search: backTo.search,
-                params: backTo.params,
-              })
+              navigate({ to: backTo.to!, search: backTo.search, params: backTo.params })
             } else {
               window.history.back()
             }
@@ -46,15 +43,9 @@ function FormSimpleActions() {
         >
           Batal
         </Button>
-        <form.Subscribe
-          selector={state => [state.canSubmit, state.isSubmitting]}
-        >
+        <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
           {([canSubmit, isSubmitting]) => (
-            <Button
-              type='submit'
-              disabled={!canSubmit || isSubmitting}
-              className='flex-1 '
-            >
+            <Button type="submit" disabled={!canSubmit || isSubmitting} className="flex-1 ">
               {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
           )}
@@ -73,21 +64,12 @@ function FormDialogActions({ onCancel, disabled }: FormDialogActionsProps) {
   const form = useFormContext()
   return (
     <>
-      <Button
-        variant='outline'
-        type='button'
-        onClick={onCancel}
-        disabled={disabled}
-      >
+      <Button variant="outline" type="button" onClick={onCancel} disabled={disabled}>
         Batal
       </Button>
-      <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+      <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
-          <Button
-            type={'button'}
-            disabled={!canSubmit || isSubmitting || disabled}
-            onClick={() => form.handleSubmit()}
-          >
+          <Button type={'button'} disabled={!canSubmit || isSubmitting || disabled} onClick={() => form.handleSubmit()}>
             {isSubmitting ? 'Menyimpan...' : 'Simpan'}
           </Button>
         )}

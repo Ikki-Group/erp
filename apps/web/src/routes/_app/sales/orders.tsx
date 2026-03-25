@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { Page } from '@/components/layout/page'
@@ -8,9 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useDataTable } from '@/hooks/use-data-table'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/sales/orders')({
-  component: SalesOrderPage,
-})
+export const Route = createFileRoute('/_app/sales/orders')({ component: SalesOrderPage })
 
 // Mock Data
 const mockOrders = [
@@ -50,34 +49,24 @@ const ch = createColumnHelper<OrderType>()
 const columns = [
   ch.accessor('id', {
     header: 'No. Pesanan',
-    cell: ({ row }) => <span className='font-medium'>{row.original.id}</span>,
+    cell: ({ row }) => <span className="font-medium">{row.original.id}</span>,
   }),
-  ch.accessor('customer', {
-    header: 'Pelanggan',
-  }),
-  ch.accessor('date', {
-    header: 'Tanggal',
-    cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()),
-  }),
+  ch.accessor('customer', { header: 'Pelanggan' }),
+  ch.accessor('date', { header: 'Tanggal', cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()) }),
   ch.accessor('total', {
     header: 'Total Pembayaran',
     cell: ({ row }) => (
-      <span className='font-medium text-right block'>
-        Rp {row.original.total.toLocaleString('id-ID')}
-      </span>
+      <span className="font-medium text-right block">Rp {row.original.total.toLocaleString('id-ID')}</span>
     ),
   }),
   ch.accessor('status', {
     header: 'Status',
     cell: ({ row }) => {
       const status = row.original.status
-      if (status === 'completed')
-        return <BadgeDot variant='success-outline'>Selesai</BadgeDot>
-      if (status === 'processing')
-        return <BadgeDot variant='warning-outline'>Diproses</BadgeDot>
-      if (status === 'pending')
-        return <BadgeDot variant='primary-outline'>Menunggu</BadgeDot>
-      return <BadgeDot variant='destructive-outline'>Dibatalkan</BadgeDot>
+      if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
+      if (status === 'processing') return <BadgeDot variant="warning-outline">Diproses</BadgeDot>
+      if (status === 'pending') return <BadgeDot variant="primary-outline">Menunggu</BadgeDot>
+      return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
     },
   }),
 ]
@@ -88,28 +77,21 @@ function SalesOrderPage() {
     data: mockOrders,
     pageCount: 1,
     rowCount: mockOrders.length,
-    ds: {
-      pagination: { limit: 10, page: 1 },
-      search: '',
-      filters: {},
-    } as any,
+    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
   })
 
   return (
     <Page>
-      <Page.BlockHeader
-        title='Pesanan Penjualan'
-        description='Kelola seluruh pesanan pelanggan Anda di sini.'
-      />
+      <Page.BlockHeader title="Pesanan Penjualan" description="Kelola seluruh pesanan pelanggan Anda di sini." />
       <Page.Content>
         <DataTableCard
-          title='Daftar Pesanan'
+          title="Daftar Pesanan"
           table={table as any}
           isLoading={false}
           recordCount={mockOrders.length}
           action={
-            <Button size='sm'>
-              <PlusIcon className='mr-2 h-4 w-4' /> Tambah Pesanan
+            <Button size="sm">
+              <PlusIcon className="mr-2 h-4 w-4" /> Tambah Pesanan
             </Button>
           }
         />

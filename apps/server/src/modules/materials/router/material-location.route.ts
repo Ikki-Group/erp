@@ -32,7 +32,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           response: zResponse.ok(z.object({ assignedCount: z.number() })),
           auth: true,
           detail: { tags: ['Material Location'] },
-        }
+        },
       )
 
       /* ─────── Unassign a material from a location ─────── */
@@ -47,7 +47,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           response: zResponse.ok(zSchema.recordId),
           auth: true,
           detail: { tags: ['Material Location'] },
-        }
+        },
       )
 
       /* ─────── List locations assigned to a material ─────── */
@@ -62,7 +62,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           response: zResponse.ok(MaterialLocationWithLocationDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
-        }
+        },
       )
 
       /* ─────── Stock list: materials at a specific location (paginated) ─────── */
@@ -73,14 +73,11 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({
-            ...zHttp.pagination.shape,
-            ...MaterialLocationFilterDto.shape,
-          }),
+          query: z.object({ ...zHttp.pagination.shape, ...MaterialLocationFilterDto.shape }),
           response: zResponse.paginated(MaterialLocationStockDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
-        }
+        },
       )
 
       /* ─────── Update per-location config ─────── */
@@ -95,7 +92,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           response: zResponse.ok(zSchema.recordId),
           auth: true,
           detail: { tags: ['Material Location'] },
-        }
+        },
       )
   )
 }

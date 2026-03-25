@@ -10,11 +10,7 @@ export const res = {
   /**
    * Success response with data
    */
-  ok: <T>(data: T, code = 'OK') => ({
-    success: true as const,
-    code,
-    data,
-  }),
+  ok: <T>(data: T, code = 'OK') => ({ success: true as const, code, data }),
 
   /**
    * Paginated success response
@@ -29,11 +25,7 @@ export const res = {
   /**
    * Created response (201)
    */
-  created: <T>(data: T, code = 'CREATED') => ({
-    success: true as const,
-    code,
-    data,
-  }),
+  created: <T>(data: T, code = 'CREATED') => ({ success: true as const, code, data }),
 
   /**
    * No content response (204)

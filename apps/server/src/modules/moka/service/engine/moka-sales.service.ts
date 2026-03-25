@@ -2,16 +2,12 @@ import type { Logger } from 'pino'
 
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
 import { MokaSalesDetailRawSchema } from '../../dto/moka.dto'
-
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 import { expandDates } from './moka-utils'
 
 interface MokaSalesListResponse {
-  orders: {
-    order_token: string
-    [key: string]: unknown
-  }[]
+  orders: { order_token: string; [key: string]: unknown }[]
   next_cursor: string | null
 }
 
@@ -21,7 +17,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
   constructor(
     auth: MokaAuthEngine,
     logger: Logger,
-    private readonly dateRange: { from: Date; to: Date }
+    private readonly dateRange: { from: Date; to: Date },
   ) {
     super(auth, logger)
   }
@@ -68,11 +64,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 
     while (!completed) {
       const response = await api.get<MokaSalesListResponse>('/order-reporting/backoffice/v1/orders', {
-        params: {
-          start_time: `${day}T00:00:00`,
-          end_time: `${day}T23:59:59`,
-          cursor,
-        },
+        params: { start_time: `${day}T00:00:00`, end_time: `${day}T23:59:59`, cursor },
         headers: this.getHeaders('OUTLET'),
       })
 

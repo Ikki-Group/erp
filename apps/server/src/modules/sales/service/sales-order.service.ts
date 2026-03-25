@@ -1,6 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
+import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import { db } from '@/db'
 import {
   salesExternalRefsTable,
   salesOrderBatchesTable,
@@ -8,11 +12,6 @@ import {
   salesOrdersTable,
   salesVoidsTable,
 } from '@/db/schema/sales'
-
-import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-import { db } from '@/db'
 
 import type {
   SalesOrderAddBatchDto,
@@ -65,21 +64,23 @@ export class SalesOrderService {
           .returning({ id: salesOrdersTable.id })
 
         if (items && items.length > 0) {
-          await tx.insert(salesOrderItemsTable).values(
-            items.map((item) => ({
-              orderId: order!.id,
-              batchId: item.batchId ?? null,
-              productId: item.productId ?? null,
-              variantId: item.variantId ?? null,
-              itemName: item.itemName,
-              quantity: item.quantity.toString(),
-              unitPrice: item.unitPrice.toString(),
-              discountAmount: item.discountAmount.toString(),
-              taxAmount: item.taxAmount.toString(),
-              subtotal: item.subtotal.toString(),
-              ...metadata,
-            }))
-          )
+          await tx
+            .insert(salesOrderItemsTable)
+            .values(
+              items.map((item) => ({
+                orderId: order!.id,
+                batchId: item.batchId ?? null,
+                productId: item.productId ?? null,
+                variantId: item.variantId ?? null,
+                itemName: item.itemName,
+                quantity: item.quantity.toString(),
+                unitPrice: item.unitPrice.toString(),
+                discountAmount: item.discountAmount.toString(),
+                taxAmount: item.taxAmount.toString(),
+                subtotal: item.subtotal.toString(),
+                ...metadata,
+              })),
+            )
         }
 
         return { id: order!.id }
@@ -106,31 +107,28 @@ export class SalesOrderService {
         // Create Batch
         const [batch] = await tx
           .insert(salesOrderBatchesTable)
-          .values({
-            orderId,
-            batchNumber: data.batchNumber,
-            status: 'pending',
-            ...metadata,
-          })
+          .values({ orderId, batchNumber: data.batchNumber, status: 'pending', ...metadata })
           .returning({ id: salesOrderBatchesTable.id })
 
         // Create Items Link to Batch
         if (data.items.length > 0) {
-          await tx.insert(salesOrderItemsTable).values(
-            data.items.map((item) => ({
-              orderId,
-              batchId: batch!.id,
-              productId: item.productId ?? null,
-              variantId: item.variantId ?? null,
-              itemName: item.itemName,
-              quantity: item.quantity.toString(),
-              unitPrice: item.unitPrice.toString(),
-              discountAmount: item.discountAmount.toString(),
-              taxAmount: item.taxAmount.toString(),
-              subtotal: item.subtotal.toString(),
-              ...metadata,
-            }))
-          )
+          await tx
+            .insert(salesOrderItemsTable)
+            .values(
+              data.items.map((item) => ({
+                orderId,
+                batchId: batch!.id,
+                productId: item.productId ?? null,
+                variantId: item.variantId ?? null,
+                itemName: item.itemName,
+                quantity: item.quantity.toString(),
+                unitPrice: item.unitPrice.toString(),
+                discountAmount: item.discountAmount.toString(),
+                taxAmount: item.taxAmount.toString(),
+                subtotal: item.subtotal.toString(),
+                ...metadata,
+              })),
+            )
         }
 
         // Recalculate totals
@@ -180,13 +178,9 @@ export class SalesOrderService {
         const metadata = stampCreate(actorId)
 
         // Record void
-        await tx.insert(salesVoidsTable).values({
-          orderId,
-          itemId: data.itemId ?? null,
-          reason: data.reason,
-          voidedBy: actorId,
-          ...metadata,
-        })
+        await tx
+          .insert(salesVoidsTable)
+          .values({ orderId, itemId: data.itemId ?? null, reason: data.reason, voidedBy: actorId, ...metadata })
 
         if (!data.itemId) {
           // Void the entire order
@@ -220,7 +214,7 @@ export class SalesOrderService {
   async handleExternalIngestion(
     data: SalesOrderCreateDto,
     externalRef: { source: string; extId: string; payload: any },
-    actorId: number
+    actorId: number,
   ): Promise<{ id: number }> {
     return record('SalesOrderService.handleExternalIngestion', async () => {
       return db.transaction(async (tx) => {
@@ -230,8 +224,8 @@ export class SalesOrderService {
           .where(
             and(
               eq(salesExternalRefsTable.externalSource, externalRef.source),
-              eq(salesExternalRefsTable.externalOrderId, externalRef.extId)
-            )
+              eq(salesExternalRefsTable.externalOrderId, externalRef.extId),
+            ),
           )
           .limit(1)
 
@@ -259,30 +253,34 @@ export class SalesOrderService {
           .returning({ id: salesOrdersTable.id })
 
         if (data.items && data.items.length > 0) {
-          await tx.insert(salesOrderItemsTable).values(
-            data.items.map((item) => ({
-              orderId: order!.id,
-              batchId: item.batchId ?? null,
-              productId: item.productId ?? null,
-              variantId: item.variantId ?? null,
-              itemName: item.itemName,
-              quantity: item.quantity.toString(),
-              unitPrice: item.unitPrice.toString(),
-              discountAmount: item.discountAmount.toString(),
-              taxAmount: item.taxAmount.toString(),
-              subtotal: item.subtotal.toString(),
-              ...metadata,
-            }))
-          )
+          await tx
+            .insert(salesOrderItemsTable)
+            .values(
+              data.items.map((item) => ({
+                orderId: order!.id,
+                batchId: item.batchId ?? null,
+                productId: item.productId ?? null,
+                variantId: item.variantId ?? null,
+                itemName: item.itemName,
+                quantity: item.quantity.toString(),
+                unitPrice: item.unitPrice.toString(),
+                discountAmount: item.discountAmount.toString(),
+                taxAmount: item.taxAmount.toString(),
+                subtotal: item.subtotal.toString(),
+                ...metadata,
+              })),
+            )
         }
 
-        await tx.insert(salesExternalRefsTable).values({
-          orderId: order!.id,
-          externalSource: externalRef.source,
-          externalOrderId: externalRef.extId,
-          rawPayload: externalRef.payload ?? null,
-          ...metadata,
-        })
+        await tx
+          .insert(salesExternalRefsTable)
+          .values({
+            orderId: order!.id,
+            externalSource: externalRef.source,
+            externalOrderId: externalRef.extId,
+            rawPayload: externalRef.payload ?? null,
+            ...metadata,
+          })
 
         return { id: order!.id }
       })
@@ -308,7 +306,7 @@ export class SalesOrderService {
         locationId === undefined ? undefined : eq(salesOrdersTable.locationId, locationId),
         status === undefined ? undefined : eq(salesOrdersTable.status, status),
         salesTypeId === undefined ? undefined : eq(salesOrdersTable.salesTypeId, salesTypeId),
-        dateCondition
+        dateCondition,
       )
 
       const result = await paginate({
@@ -360,7 +358,7 @@ export class SalesOrderService {
     const voidedItemIds = new Set(
       allVoids
         .filter((v: { itemId: number | null }) => v.itemId !== null)
-        .map((v: { itemId: number | null }) => v.itemId)
+        .map((v: { itemId: number | null }) => v.itemId),
     )
 
     let totalAmount = 0

@@ -1,7 +1,6 @@
 import Elysia from 'elysia'
 
 import type { RecipeServiceModule } from '../service'
-
 import { initRecipeRoute } from './recipe.route'
 
 export function initRecipeRouteModule(service: RecipeServiceModule) {

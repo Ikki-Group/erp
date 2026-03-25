@@ -1,10 +1,11 @@
 import { queryOptions } from '@tanstack/react-query'
-import { treeifyError } from 'zod'
 import { HTTPError } from 'ky'
+import type { KyInstance } from 'ky'
+import { treeifyError } from 'zod'
+import type { ZodType, z } from 'zod'
+
 import { apiClient } from './api-client'
 import { ApiError } from './api-error'
-import type { ZodType, z } from 'zod'
-import type { KyInstance } from 'ky'
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete'
 
@@ -48,11 +49,7 @@ export function apiFactory<
   TParams extends ZodType | undefined,
   TBody extends ZodType | undefined,
   TResult extends ZodType,
->({
-  client = apiClient,
-  keys = [],
-  ...config
-}: ApiFactoryConfig<TParams, TBody, TResult>) {
+>({ client = apiClient, keys = [], ...config }: ApiFactoryConfig<TParams, TBody, TResult>) {
   type Args = FetchArgs<TParams, TBody>
   type Result = Output<TResult>
   type Params = Input<TParams>
@@ -68,11 +65,7 @@ export function apiFactory<
       if (config.params) params = config.params.parse(params)
       if (config.body) body = config.body.parse(body)
 
-      const resultRaw = await client(config.url, {
-        method: config.method,
-        searchParams: params,
-        json: body,
-      })
+      const resultRaw = await client(config.url, { method: config.method, searchParams: params, json: body })
 
       const resultJson = await resultRaw.json()
       const parsedResult = config.result.safeParse(resultJson)
@@ -92,10 +85,7 @@ ${JSON.stringify(treeifyError(parsedResult.error), null, 2)}
        * Handle HTTP errors
        * if the response is JSON, parse it and throw an ApiError
        */
-      if (
-        error instanceof HTTPError &&
-        error.response.headers.get('content-type')?.includes('application/json')
-      ) {
+      if (error instanceof HTTPError && error.response.headers.get('content-type')?.includes('application/json')) {
         const data = await error.response.json<TErr<any>>()
         throw new ApiError(data.message, error.response.status, data)
       }
@@ -107,8 +97,7 @@ ${JSON.stringify(treeifyError(parsedResult.error), null, 2)}
   /* ----------------------------------------
    * React Query helpers
    * --------------------------------------*/
-  const queryKey = (params: Params | undefined) =>
-    [config.url, ...keys, params ?? null] as const
+  const queryKey = (params: Params | undefined) => [config.url, ...keys, params ?? null] as const
 
   const query = (params: Params | undefined) =>
     queryOptions({
@@ -127,10 +116,6 @@ ${JSON.stringify(treeifyError(parsedResult.error), null, 2)}
     /* ----------------------------------------
      * Inference helpers (DX)
      * --------------------------------------*/
-    _types: {
-      params: null as unknown as Params,
-      result: null as unknown as Result,
-      args: null as unknown as Args,
-    },
+    _types: { params: null as unknown as Params, result: null as unknown as Result, args: null as unknown as Args },
   }
 }

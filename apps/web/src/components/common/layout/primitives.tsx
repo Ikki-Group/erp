@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
 /**
@@ -9,11 +10,7 @@ interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'section' | 'div' | 'article'
 }
 
-function Section({
-  as: Component = 'section',
-  className,
-  ...props
-}: SectionProps) {
+function Section({ as: Component = 'section', className, ...props }: SectionProps) {
   return <Component className={cn('space-y-6', className)} {...props} />
 }
 
@@ -27,33 +24,19 @@ interface SectionHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   action?: React.ReactNode
 }
 
-function SectionHeader({
-  title,
-  description,
-  action,
-  className,
-  children,
-  ...props
-}: SectionHeaderProps) {
+function SectionHeader({ title, description, action, className, children, ...props }: SectionHeaderProps) {
   if (!title && !description && !action && !children) return null
 
   return (
-    <div
-      className={cn('flex items-center justify-between gap-4', className)}
-      {...props}
-    >
+    <div className={cn('flex items-center justify-between gap-4', className)} {...props}>
       {(title || description || children) && (
-        <div className='space-y-1'>
-          {title && (
-            <h2 className='text-lg font-semibold tracking-tight'>{title}</h2>
-          )}
-          {description && (
-            <p className='text-sm text-muted-foreground'>{description}</p>
-          )}
+        <div className="space-y-1">
+          {title && <h2 className="text-lg font-semibold tracking-tight">{title}</h2>}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
           {children}
         </div>
       )}
-      {action && <div className='flex items-center gap-2'>{action}</div>}
+      {action && <div className="flex items-center gap-2">{action}</div>}
     </div>
   )
 }
@@ -82,7 +65,7 @@ function Grid({ cols = 2, gap = 'md', className, ...props }: GridProps) {
         cols === 3 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
         cols === 4 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
         cols === 6 && 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
-        className
+        className,
       )}
       {...props}
     />
@@ -98,12 +81,7 @@ interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   align?: 'start' | 'center' | 'end' | 'stretch'
 }
 
-function Stack({
-  gap = 'md',
-  align = 'stretch',
-  className,
-  ...props
-}: StackProps) {
+function Stack({ gap = 'md', align = 'stretch', className, ...props }: StackProps) {
   return (
     <div
       className={cn(
@@ -118,7 +96,7 @@ function Stack({
         align === 'center' && 'items-center',
         align === 'end' && 'items-end',
         align === 'stretch' && 'items-stretch',
-        className
+        className,
       )}
       {...props}
     />
@@ -136,14 +114,7 @@ interface InlineProps extends React.HTMLAttributes<HTMLDivElement> {
   wrap?: boolean
 }
 
-function Inline({
-  gap = 'md',
-  align = 'center',
-  justify = 'start',
-  wrap = false,
-  className,
-  ...props
-}: InlineProps) {
+function Inline({ gap = 'md', align = 'center', justify = 'start', wrap = false, className, ...props }: InlineProps) {
   return (
     <div
       className={cn(
@@ -164,7 +135,7 @@ function Inline({
         justify === 'between' && 'justify-between',
         // Wrap
         wrap && 'flex-wrap',
-        className
+        className,
       )}
       {...props}
     />

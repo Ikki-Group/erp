@@ -15,9 +15,7 @@ export const MokaConfigurationDto = z.object({
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
 
-export const MokaConfigurationOutputDto = MokaConfigurationDto.omit({
-  password: true,
-})
+export const MokaConfigurationOutputDto = MokaConfigurationDto.omit({ password: true })
 export type MokaConfigurationOutputDto = z.infer<typeof MokaConfigurationOutputDto>
 
 export const MokaConfigurationCreateDto = z.object({

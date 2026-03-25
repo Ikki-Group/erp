@@ -18,13 +18,10 @@ export function initProductRoute(s: ProductServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({
-          ...zHttp.pagination.shape,
-          ...ProductFilterDto.shape,
-        }),
+        query: z.object({ ...zHttp.pagination.shape, ...ProductFilterDto.shape }),
         response: zResponse.paginated(ProductSelectDto.array()),
         auth: true,
-      }
+      },
     )
     .get(
       '/detail',
@@ -32,11 +29,7 @@ export function initProductRoute(s: ProductServiceModule) {
         const product = await s.product.handleDetail(query.id)
         return res.ok(product)
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(ProductSelectDto),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(ProductSelectDto), auth: true },
     )
     .post(
       '/create',
@@ -44,11 +37,7 @@ export function initProductRoute(s: ProductServiceModule) {
         const { id } = await s.product.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      {
-        body: ProductMutationDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: ProductMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/update',
@@ -57,13 +46,10 @@ export function initProductRoute(s: ProductServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({
-          id: zPrimitive.id,
-          ...ProductMutationDto.shape,
-        }),
+        body: z.object({ id: zPrimitive.id, ...ProductMutationDto.shape }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
-      }
+      },
     )
     .delete(
       '/remove',
@@ -71,10 +57,6 @@ export function initProductRoute(s: ProductServiceModule) {
         await s.product.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
     )
 }

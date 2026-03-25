@@ -1,5 +1,9 @@
 import z from 'zod'
 
+import { endpoint } from '@/config/endpoint'
+import { apiFactory } from '@/lib/api'
+import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
 import {
   UserAdminUpdatePasswordDto,
   UserChangePasswordDto,
@@ -8,18 +12,12 @@ import {
   UserOutputDto,
   UserUpdateDto,
 } from '../dto'
-import { endpoint } from '@/config/endpoint'
-import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 export const userApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.iam.user.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...UserFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...UserFilterDto.shape }),
     result: zHttp.paginated(UserOutputDto.array()),
   }),
   detail: apiFactory({
@@ -37,10 +35,7 @@ export const userApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.iam.user.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...UserUpdateDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...UserUpdateDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({

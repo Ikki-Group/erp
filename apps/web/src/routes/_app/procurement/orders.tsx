@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/card/data-table-card'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { Page } from '@/components/layout/page'
@@ -8,9 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useDataTable } from '@/hooks/use-data-table'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/procurement/orders')({
-  component: ProcurementOrderPage,
-})
+export const Route = createFileRoute('/_app/procurement/orders')({ component: ProcurementOrderPage })
 
 // Mock Data
 const mockOrders = [
@@ -48,36 +47,23 @@ type OrderType = (typeof mockOrders)[0]
 const ch = createColumnHelper<OrderType>()
 
 const columns = [
-  ch.accessor('id', {
-    header: 'No. PO',
-    cell: ({ row }) => <span className='font-medium'>{row.original.id}</span>,
-  }),
-  ch.accessor('supplier', {
-    header: 'Supplier',
-  }),
-  ch.accessor('date', {
-    header: 'Tanggal Order',
-    cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()),
-  }),
+  ch.accessor('id', { header: 'No. PO', cell: ({ row }) => <span className="font-medium">{row.original.id}</span> }),
+  ch.accessor('supplier', { header: 'Supplier' }),
+  ch.accessor('date', { header: 'Tanggal Order', cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()) }),
   ch.accessor('total', {
     header: 'Total Pembelian',
     cell: ({ row }) => (
-      <span className='font-medium text-right block'>
-        Rp {row.original.total.toLocaleString('id-ID')}
-      </span>
+      <span className="font-medium text-right block">Rp {row.original.total.toLocaleString('id-ID')}</span>
     ),
   }),
   ch.accessor('status', {
     header: 'Status',
     cell: ({ row }) => {
       const status = row.original.status
-      if (status === 'completed')
-        return <BadgeDot variant='success-outline'>Diterima</BadgeDot>
-      if (status === 'processing')
-        return <BadgeDot variant='warning-outline'>Dikirim</BadgeDot>
-      if (status === 'pending')
-        return <BadgeDot variant='primary-outline'>Menunggu</BadgeDot>
-      return <BadgeDot variant='destructive-outline'>Dibatalkan</BadgeDot>
+      if (status === 'completed') return <BadgeDot variant="success-outline">Diterima</BadgeDot>
+      if (status === 'processing') return <BadgeDot variant="warning-outline">Dikirim</BadgeDot>
+      if (status === 'pending') return <BadgeDot variant="primary-outline">Menunggu</BadgeDot>
+      return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
     },
   }),
 ]
@@ -88,28 +74,21 @@ function ProcurementOrderPage() {
     data: mockOrders,
     pageCount: 1,
     rowCount: mockOrders.length,
-    ds: {
-      pagination: { limit: 10, page: 1 },
-      search: '',
-      filters: {},
-    } as any,
+    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
   })
 
   return (
     <Page>
-      <Page.BlockHeader
-        title='Pesanan Pembelian (PO)'
-        description='Approval dan pembuatan dokumen Purchase Order.'
-      />
+      <Page.BlockHeader title="Pesanan Pembelian (PO)" description="Approval dan pembuatan dokumen Purchase Order." />
       <Page.Content>
         <DataTableCard
-          title='Daftar Pesanan Pembelian'
+          title="Daftar Pesanan Pembelian"
           table={table as any}
           isLoading={false}
           recordCount={mockOrders.length}
           action={
-            <Button size='sm'>
-              <PlusIcon className='mr-2 h-4 w-4' /> Buat PO
+            <Button size="sm">
+              <PlusIcon className="mr-2 h-4 w-4" /> Buat PO
             </Button>
           }
         />

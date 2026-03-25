@@ -12,8 +12,6 @@ export function initSeedRoute(seedSvc: SeedService) {
       await seedSvc.seed()
       return res.ok('Seeding data...')
     },
-    {
-      response: zResponse.ok(zPrimitive.str),
-    }
+    { response: zResponse.ok(zPrimitive.str) },
   )
 }

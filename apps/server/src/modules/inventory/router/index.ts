@@ -1,7 +1,6 @@
 import Elysia from 'elysia'
 
 import type { InventoryServiceModule } from '../service'
-
 import { initStockSummaryRoute } from './stock-summary.route'
 import { initStockTransactionRoute } from './stock-transaction.route'
 

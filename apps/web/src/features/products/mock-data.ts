@@ -48,11 +48,7 @@ export const MOCK_PRODUCTS: Array<Product> = [
     barcode: '8991234567891',
     sku: 'KMJ-PLO-WHT',
     weight: 0.25,
-    dimensions: {
-      length: 70,
-      width: 50,
-      height: 2,
-    },
+    dimensions: { length: 70, width: 50, height: 2 },
     tags: ['kemeja', 'putih', 'semi-finished'],
     createdAt: new Date('2024-01-20'),
     updatedAt: new Date('2024-02-09'),
@@ -76,11 +72,7 @@ export const MOCK_PRODUCTS: Array<Product> = [
     barcode: '8991234567892',
     sku: 'BTK-EKS-001',
     weight: 0.3,
-    dimensions: {
-      length: 75,
-      width: 55,
-      height: 3,
-    },
+    dimensions: { length: 75, width: 55, height: 3 },
     tags: ['batik', 'eksklusif', 'ready-to-sell'],
     createdAt: new Date('2024-01-25'),
     updatedAt: new Date('2024-02-10'),
@@ -152,11 +144,7 @@ export const MOCK_PRODUCTS: Array<Product> = [
     barcode: '8991234567895',
     sku: 'JNS-PRM-001',
     weight: 0.6,
-    dimensions: {
-      length: 100,
-      width: 40,
-      height: 3,
-    },
+    dimensions: { length: 100, width: 40, height: 3 },
     tags: ['jeans', 'denim', 'premium'],
     createdAt: new Date('2024-02-05'),
     updatedAt: new Date('2024-02-10'),
@@ -204,11 +192,7 @@ export const MOCK_PRODUCTS: Array<Product> = [
     barcode: '8991234567897',
     sku: 'JKT-BMB-LTD',
     weight: 0.8,
-    dimensions: {
-      length: 65,
-      width: 60,
-      height: 5,
-    },
+    dimensions: { length: 65, width: 60, height: 5 },
     tags: ['jaket', 'bomber', 'limited'],
     createdAt: new Date('2024-02-07'),
     updatedAt: new Date('2024-02-10'),
@@ -314,11 +298,11 @@ export const MOCK_PRODUCTS: Array<Product> = [
 
 // Helper functions
 export const getProductById = (id: string): Product | undefined => {
-  return MOCK_PRODUCTS.find(p => p.id === id)
+  return MOCK_PRODUCTS.find((p) => p.id === id)
 }
 
 export const getProductByCode = (code: string): Product | undefined => {
-  return MOCK_PRODUCTS.find(p => p.code === code)
+  return MOCK_PRODUCTS.find((p) => p.code === code)
 }
 
 export const getCategoryLabel = (category: Product['category']): string => {
@@ -332,38 +316,23 @@ export const getCategoryLabel = (category: Product['category']): string => {
 }
 
 export const getStatusLabel = (status: Product['status']): string => {
-  const labels = {
-    active: 'Aktif',
-    inactive: 'Tidak Aktif',
-    discontinued: 'Dihentikan',
-  }
+  const labels = { active: 'Aktif', inactive: 'Tidak Aktif', discontinued: 'Dihentikan' }
   return labels[status]
 }
 
 export const getUnitLabel = (unit: Product['unit']): string => {
-  const labels = {
-    kg: 'Kilogram',
-    liter: 'Liter',
-    pcs: 'Pcs',
-    box: 'Box',
-    meter: 'Meter',
-    roll: 'Roll',
-  }
+  const labels = { kg: 'Kilogram', liter: 'Liter', pcs: 'Pcs', box: 'Box', meter: 'Meter', roll: 'Roll' }
   return labels[unit]
 }
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(amount)
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount)
 }
 
 export const getStockStatus = (
   stock: number,
   minStock: number,
-  reorderPoint: number
+  reorderPoint: number,
 ): 'critical' | 'low' | 'normal' | 'high' => {
   if (stock === 0) return 'critical'
   if (stock < minStock) return 'critical'

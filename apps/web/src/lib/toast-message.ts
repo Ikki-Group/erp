@@ -7,10 +7,7 @@ interface ToastMessages {
 
 type CrudOperation = 'update' | 'delete' | 'create' | 'read'
 
-export function toastLabelMessage(
-  operation: CrudOperation,
-  label: string
-): ToastMessages {
+export function toastLabelMessage(operation: CrudOperation, label: string): ToastMessages {
   switch (operation) {
     case 'update':
       return {
@@ -37,10 +34,6 @@ export function toastLabelMessage(
         error: `Terjadi kesalahan saat mengambil ${label}`,
       }
     default:
-      return {
-        loading: `Mengambil ${label}`,
-        success: `Berhasil`,
-        error: `Terjadi kesalahan`,
-      }
+      return { loading: `Mengambil ${label}`, success: `Berhasil`, error: `Terjadi kesalahan` }
   }
 }

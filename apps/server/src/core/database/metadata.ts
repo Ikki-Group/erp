@@ -43,9 +43,5 @@ export function stampCreate(actorId: number, options?: StampOptions) {
  */
 export function stampUpdate(actorId: number, options?: StampOptions) {
   const now = options?.now || new Date()
-  return {
-    updatedBy: actorId,
-    updatedAt: now,
-    ...(options?.withSync && { syncAt: now }),
-  }
+  return { updatedBy: actorId, updatedAt: now, ...(options?.withSync && { syncAt: now }) }
 }

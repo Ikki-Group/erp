@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia'
 
 import type { IamServiceModule } from '../service'
-
 import { initRoleRoute } from './role.route'
 import { initUserRoute } from './user.route'
 

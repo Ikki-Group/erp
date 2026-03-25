@@ -1,11 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import {
-  Link,
-  Outlet,
-  createFileRoute,
-  useLocation,
-} from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 import { ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+
 import type { CardStatProps } from '@/components/card/card-stat'
 import { CardStat } from '@/components/card/card-stat'
 import { Page } from '@/components/layout/page'
@@ -17,27 +13,22 @@ const TABS = [
   ['Role', '/settings/role'],
 ] as const
 
-export const Route = createFileRoute('/_app/settings/_tab')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/settings/_tab')({ component: RouteComponent })
 
 function RouteComponent() {
   const { pathname } = useLocation()
   return (
     <Page>
-      <Page.BlockHeader
-        title='Pengaturan'
-        description='Kelola preferensi, pengguna, dan konfigurasi sistem Anda.'
-      />
+      <Page.BlockHeader title="Pengaturan" description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda." />
       <SettingsSummarySection />
-      <Page.Content className='mt-4'>
+      <Page.Content className="mt-4">
         <Tabs value={pathname}>
-          <div className='border-b w-full'>
-            <Tabs.List className='w-full md:w-min' variant='line'>
+          <div className="border-b w-full">
+            <Tabs.List className="w-full md:w-min" variant="line">
               {TABS.map(([title, path]) => (
                 <Tabs.Trigger
                   key={path}
-                  className='py-2 px-4'
+                  className="py-2 px-4"
                   value={path}
                   nativeButton={false}
                   render={<Link to={path} />}
@@ -60,21 +51,13 @@ function SettingsSummarySection() {
   const { data } = useSuspenseQuery(settingsApi.summary.query({}))
 
   const stats = [
-    {
-      title: 'Total User',
-      value: data.data.users,
-      icon: UsersIcon,
-    },
-    {
-      title: 'Total Role',
-      value: data.data.roles,
-      icon: ShieldEllipsisIcon,
-    },
+    { title: 'Total User', value: data.data.users, icon: UsersIcon },
+    { title: 'Total Role', value: data.data.roles, icon: ShieldEllipsisIcon },
   ] satisfies Array<CardStatProps>
 
   return (
-    <Page.Content className='flex flex-wrap gap-2'>
-      {stats.map(stat => (
+    <Page.Content className="flex flex-wrap gap-2">
+      {stats.map((stat) => (
         <CardStat key={stat.title} {...stat} />
       ))}
     </Page.Content>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'bun:test'
+
 import { Elysia } from 'elysia'
 
 import { HttpError } from '@/core/http/errors'
@@ -31,13 +32,9 @@ describe('auth-plugin', () => {
   }
 
   it('should allow access with valid token', async () => {
-    const app = createTestApp().get('/protected', ({ auth }) => auth.user, {
-      auth: true,
-    })
+    const app = createTestApp().get('/protected', ({ auth }) => auth.user, { auth: true })
 
-    const req = new Request('http://localhost/protected', {
-      headers: { authorization: 'Bearer valid-token' },
-    })
+    const req = new Request('http://localhost/protected', { headers: { authorization: 'Bearer valid-token' } })
     const res = await app.handle(req)
     const data = (await res.json()) as any
 
@@ -46,22 +43,16 @@ describe('auth-plugin', () => {
   })
 
   it('should deny access with invalid token', async () => {
-    const app = createTestApp().get('/protected', () => 'secret', {
-      auth: true,
-    })
+    const app = createTestApp().get('/protected', () => 'secret', { auth: true })
 
-    const req = new Request('http://localhost/protected', {
-      headers: { authorization: 'Bearer invalid-token' },
-    })
+    const req = new Request('http://localhost/protected', { headers: { authorization: 'Bearer invalid-token' } })
     const res = await app.handle(req)
 
     expect(res.status).toBe(401)
   })
 
   it('should deny access without token', async () => {
-    const app = createTestApp().get('/protected', () => 'secret', {
-      auth: true,
-    })
+    const app = createTestApp().get('/protected', () => 'secret', { auth: true })
 
     const req = new Request('http://localhost/protected')
     const res = await app.handle(req)
@@ -70,9 +61,7 @@ describe('auth-plugin', () => {
   })
 
   it('should respect isAuthenticated macro', async () => {
-    const app = createTestApp().get('/macro-protected', () => 'secret', {
-      isAuthenticated: true,
-    })
+    const app = createTestApp().get('/macro-protected', () => 'secret', { isAuthenticated: true })
 
     const req = new Request('http://localhost/macro-protected')
     const res = await app.handle(req)

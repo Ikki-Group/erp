@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+
 import { cn } from '@/lib/utils'
 
 /* -------------------------------------------------------------------------- */
@@ -33,45 +34,21 @@ export function EmptyState({
       className={cn(
         'flex flex-col items-center justify-center text-center',
         compact ? 'gap-2 py-6' : 'gap-3 py-12',
-        className
+        className,
       )}
     >
       {Icon && (
-        <div
-          className={cn(
-            'flex items-center justify-center rounded-lg bg-muted',
-            compact ? 'size-10' : 'size-12'
-          )}
-        >
-          <Icon
-            className={cn(
-              'text-muted-foreground',
-              compact ? 'size-5' : 'size-6'
-            )}
-          />
+        <div className={cn('flex items-center justify-center rounded-lg bg-muted', compact ? 'size-10' : 'size-12')}>
+          <Icon className={cn('text-muted-foreground', compact ? 'size-5' : 'size-6')} />
         </div>
       )}
-      <div className='space-y-1'>
-        <p
-          className={cn(
-            'font-medium text-foreground',
-            compact ? 'text-sm' : 'text-base'
-          )}
-        >
-          {title}
-        </p>
+      <div className="space-y-1">
+        <p className={cn('font-medium text-foreground', compact ? 'text-sm' : 'text-base')}>{title}</p>
         {description && (
-          <p
-            className={cn(
-              'text-muted-foreground max-w-sm mx-auto',
-              compact ? 'text-xs' : 'text-sm'
-            )}
-          >
-            {description}
-          </p>
+          <p className={cn('text-muted-foreground max-w-sm mx-auto', compact ? 'text-xs' : 'text-sm')}>{description}</p>
         )}
       </div>
-      {action && <div className='mt-1'>{action}</div>}
+      {action && <div className="mt-1">{action}</div>}
     </div>
   )
 }

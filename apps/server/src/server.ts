@@ -4,17 +4,11 @@ import { logger } from '@/core/logger'
 async function main() {
   const app = await import('@/app').then((mod) => mod.app)
 
-  app.listen({
-    port: env.PORT,
-  })
+  app.listen({ port: env.PORT })
 
   logger.info(
-    {
-      port: env.PORT,
-      host: env.HOST,
-      env: env.NODE_ENV,
-    },
-    `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`
+    { port: env.PORT, host: env.HOST, env: env.NODE_ENV },
+    `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`,
   )
 }
 

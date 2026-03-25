@@ -9,85 +9,71 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as AppRouteRouteImport } from './routes/_app/route'
-import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSplatRouteImport } from './routes/_app/$'
-import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
-import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
-import { Route as AppLocationsIndexRouteImport } from './routes/_app/locations/index'
-import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
-import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
-import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
-import { Route as AppProductsSalesTypeRouteImport } from './routes/_app/products/sales-type'
-import { Route as AppProductsCreateRouteImport } from './routes/_app/products/create'
-import { Route as AppProductsCategoryRouteImport } from './routes/_app/products/category'
-import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
-import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
-import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
-import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
-import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
-import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
-import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
-import { Route as AppMaterialsLedgerRouteImport } from './routes/_app/materials/ledger'
-import { Route as AppMaterialsCreateRouteImport } from './routes/_app/materials/create'
-import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
-import { Route as AppLocationsCreateRouteImport } from './routes/_app/locations/create'
-import { Route as AppLocationsIdRouteImport } from './routes/_app/locations/$id'
-import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
-import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
-import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
-import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
-import { Route as AppAnalyticsStockRouteImport } from './routes/_app/analytics/stock'
 import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
-import { Route as AppMaterialsIdIndexRouteImport } from './routes/_app/materials/$id.index'
-import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
-import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
-import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
-import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
-import { Route as AppExamplesFormIndexRouteImport } from './routes/_app/examples/form/index'
-import { Route as AppExamplesDialogFormIndexRouteImport } from './routes/_app/examples/dialog-form/index'
-import { Route as AppExamplesDetailsIndexRouteImport } from './routes/_app/examples/details/index'
-import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/examples/detail/index'
-import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
-import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
+import { Route as AppAnalyticsStockRouteImport } from './routes/_app/analytics/stock'
 import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
-import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
-import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
-import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
-import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
-import { Route as AppMaterialsIdUpdateRouteImport } from './routes/_app/materials/$id.update'
-import { Route as AppMaterialsIdRecipeRouteImport } from './routes/_app/materials/$id.recipe'
-import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
-import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
-import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
-import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
+import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
+import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
+import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
+import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/examples/detail/index'
+import { Route as AppExamplesDetailsIndexRouteImport } from './routes/_app/examples/details/index'
+import { Route as AppExamplesDialogFormIndexRouteImport } from './routes/_app/examples/dialog-form/index'
+import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
+import { Route as AppExamplesFormIndexRouteImport } from './routes/_app/examples/form/index'
+import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
 import { Route as AppExamplesLayoutsOneRouteImport } from './routes/_app/examples/layouts/one'
+import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
+import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
+import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
+import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
+import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
+import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
+import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
+import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
+import { Route as AppLocationsIdRouteImport } from './routes/_app/locations/$id'
+import { Route as AppLocationsCreateRouteImport } from './routes/_app/locations/create'
+import { Route as AppLocationsIndexRouteImport } from './routes/_app/locations/index'
+import { Route as AppMaterialsIdIndexRouteImport } from './routes/_app/materials/$id.index'
+import { Route as AppMaterialsIdRecipeRouteImport } from './routes/_app/materials/$id.recipe'
+import { Route as AppMaterialsIdUpdateRouteImport } from './routes/_app/materials/$id.update'
+import { Route as AppMaterialsCategoryRouteImport } from './routes/_app/materials/category'
+import { Route as AppMaterialsCreateRouteImport } from './routes/_app/materials/create'
+import { Route as AppMaterialsIndexRouteImport } from './routes/_app/materials/index'
+import { Route as AppMaterialsLedgerRouteImport } from './routes/_app/materials/ledger'
+import { Route as AppMaterialsStockRouteImport } from './routes/_app/materials/stock'
+import { Route as AppMaterialsUomRouteImport } from './routes/_app/materials/uom'
+import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
+import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
+import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
+import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
+import { Route as AppProductsIdRouteImport } from './routes/_app/products/$id'
+import { Route as AppProductsCategoryRouteImport } from './routes/_app/products/category'
+import { Route as AppProductsCreateRouteImport } from './routes/_app/products/create'
+import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
+import { Route as AppProductsSalesTypeRouteImport } from './routes/_app/products/sales-type'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
+import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
+import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
+import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
+import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
+import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
+import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 
-const AuthRouteRoute = AuthRouteRouteImport.update({
-  id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRouteRoute = AppRouteRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
+const AuthRouteRoute = AuthRouteRouteImport.update({ id: '/_auth', getParentRoute: () => rootRouteImport } as any)
+const AppRouteRoute = AppRouteRouteImport.update({ id: '/_app', getParentRoute: () => rootRouteImport } as any)
+const AppIndexRoute = AppIndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => AppRouteRoute } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
 } as any)
-const AppSplatRoute = AppSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => AppRouteRoute,
-} as any)
+const AppSplatRoute = AppSplatRouteImport.update({ id: '/$', path: '/$', getParentRoute: () => AppRouteRoute } as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -203,12 +189,11 @@ const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
   path: '/examples/page-new',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesFormComponentsRoute =
-  AppExamplesFormComponentsRouteImport.update({
-    id: '/examples/form-components',
-    path: '/examples/form-components',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppExamplesFormComponentsRoute = AppExamplesFormComponentsRouteImport.update({
+  id: '/examples/form-components',
+  path: '/examples/form-components',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
   id: '/examples/data-table',
   path: '/examples/data-table',
@@ -229,23 +214,21 @@ const AppMaterialsIdIndexRoute = AppMaterialsIdIndexRouteImport.update({
   path: '/materials/$id/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppInventoryTransactionsIndexRoute =
-  AppInventoryTransactionsIndexRouteImport.update({
-    id: '/inventory/transactions/',
-    path: '/inventory/transactions/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppInventoryTransactionsIndexRoute = AppInventoryTransactionsIndexRouteImport.update({
+  id: '/inventory/transactions/',
+  path: '/inventory/transactions/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesSearchIndexRoute = AppExamplesSearchIndexRouteImport.update({
   id: '/examples/search/',
   path: '/examples/search/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesPageLayoutsIndexRoute =
-  AppExamplesPageLayoutsIndexRouteImport.update({
-    id: '/examples/page-layouts/',
-    path: '/examples/page-layouts/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppExamplesPageLayoutsIndexRoute = AppExamplesPageLayoutsIndexRouteImport.update({
+  id: '/examples/page-layouts/',
+  path: '/examples/page-layouts/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesLayoutsIndexRoute = AppExamplesLayoutsIndexRouteImport.update({
   id: '/examples/layouts/',
   path: '/examples/layouts/',
@@ -256,12 +239,11 @@ const AppExamplesFormIndexRoute = AppExamplesFormIndexRouteImport.update({
   path: '/examples/form/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesDialogFormIndexRoute =
-  AppExamplesDialogFormIndexRouteImport.update({
-    id: '/examples/dialog-form/',
-    path: '/examples/dialog-form/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppExamplesDialogFormIndexRoute = AppExamplesDialogFormIndexRouteImport.update({
+  id: '/examples/dialog-form/',
+  path: '/examples/dialog-form/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesDetailsIndexRoute = AppExamplesDetailsIndexRouteImport.update({
   id: '/examples/details/',
   path: '/examples/details/',
@@ -272,18 +254,16 @@ const AppExamplesDetailIndexRoute = AppExamplesDetailIndexRouteImport.update({
   path: '/examples/detail/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesDashboardIndexRoute =
-  AppExamplesDashboardIndexRouteImport.update({
-    id: '/examples/dashboard/',
-    path: '/examples/dashboard/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppExamplesComplexFormIndexRoute =
-  AppExamplesComplexFormIndexRouteImport.update({
-    id: '/examples/complex-form/',
-    path: '/examples/complex-form/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppExamplesDashboardIndexRoute = AppExamplesDashboardIndexRouteImport.update({
+  id: '/examples/dashboard/',
+  path: '/examples/dashboard/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExamplesComplexFormIndexRoute = AppExamplesComplexFormIndexRouteImport.update({
+  id: '/examples/complex-form/',
+  path: '/examples/complex-form/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
   id: '/examples/charts/',
   path: '/examples/charts/',
@@ -319,24 +299,21 @@ const AppMaterialsIdRecipeRoute = AppMaterialsIdRecipeRouteImport.update({
   path: '/materials/$id/recipe',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppInventoryTransactionsTransferRoute =
-  AppInventoryTransactionsTransferRouteImport.update({
-    id: '/inventory/transactions/transfer',
-    path: '/inventory/transactions/transfer',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppInventoryTransactionsAdjustmentRoute =
-  AppInventoryTransactionsAdjustmentRouteImport.update({
-    id: '/inventory/transactions/adjustment',
-    path: '/inventory/transactions/adjustment',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppInventoryTransactionsIdRoute =
-  AppInventoryTransactionsIdRouteImport.update({
-    id: '/inventory/transactions/$id',
-    path: '/inventory/transactions/$id',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
+const AppInventoryTransactionsTransferRoute = AppInventoryTransactionsTransferRouteImport.update({
+  id: '/inventory/transactions/transfer',
+  path: '/inventory/transactions/transfer',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInventoryTransactionsAdjustmentRoute = AppInventoryTransactionsAdjustmentRouteImport.update({
+  id: '/inventory/transactions/adjustment',
+  path: '/inventory/transactions/adjustment',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInventoryTransactionsIdRoute = AppInventoryTransactionsIdRouteImport.update({
+  id: '/inventory/transactions/$id',
+  path: '/inventory/transactions/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesLayoutsTwoRoute = AppExamplesLayoutsTwoRouteImport.update({
   id: '/examples/layouts/two',
   path: '/examples/layouts/two',
@@ -1091,9 +1068,7 @@ const AppSettingsTabRouteChildren: AppSettingsTabRouteChildren = {
   AppSettingsTabUserRoute: AppSettingsTabUserRoute,
 }
 
-const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
-  AppSettingsTabRouteChildren,
-)
+const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(AppSettingsTabRouteChildren)
 
 interface AppRouteRouteChildren {
   AppSplatRoute: typeof AppSplatRoute
@@ -1181,8 +1156,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesLayoutsOneRoute: AppExamplesLayoutsOneRoute,
   AppExamplesLayoutsTwoRoute: AppExamplesLayoutsTwoRoute,
   AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
-  AppInventoryTransactionsAdjustmentRoute:
-    AppInventoryTransactionsAdjustmentRoute,
+  AppInventoryTransactionsAdjustmentRoute: AppInventoryTransactionsAdjustmentRoute,
   AppInventoryTransactionsTransferRoute: AppInventoryTransactionsTransferRoute,
   AppMaterialsIdRecipeRoute: AppMaterialsIdRecipeRoute,
   AppMaterialsIdUpdateRoute: AppMaterialsIdUpdateRoute,
@@ -1202,26 +1176,18 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialsIdIndexRoute: AppMaterialsIdIndexRoute,
 }
 
-const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
-  AppRouteRouteChildren,
-)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(AppRouteRouteChildren)
 
 interface AuthRouteRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
-const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-  AuthLoginRoute: AuthLoginRoute,
-}
+const AuthRouteRouteChildren: AuthRouteRouteChildren = { AuthLoginRoute: AuthLoginRoute }
 
-const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
-  AuthRouteRouteChildren,
-)
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(AuthRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()

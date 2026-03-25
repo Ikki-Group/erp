@@ -12,7 +12,7 @@ const query = {
   /** Coerces single or multiple query parameters into an array of IDs. Returns undefined if input is undefined. */
   ids: z.preprocess(
     (val) => (val === undefined ? undefined : Array.isArray(val) ? val : [val]),
-    z.array(zPrimitive.id).optional()
+    z.array(zPrimitive.id).optional(),
   ),
 
   /** Converts string 'true'/'false' to boolean */
@@ -34,8 +34,4 @@ const pagination = z.object({
 
 const recordId = z.object({ id: zPrimitive.id })
 
-export const zHttp = {
-  query,
-  pagination,
-  recordId,
-}
+export const zHttp = { query, pagination, recordId }

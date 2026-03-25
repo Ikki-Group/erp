@@ -18,13 +18,10 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({
-          ...zHttp.pagination.shape,
-          ...MaterialFilterDto.shape,
-        }),
+        query: z.object({ ...zHttp.pagination.shape, ...MaterialFilterDto.shape }),
         response: zResponse.paginated(MaterialSelectDto.array()),
         auth: true,
-      }
+      },
     )
     .get(
       '/detail',
@@ -32,11 +29,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         const category = await s.material.handleDetail(query.id)
         return res.ok(category)
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(MaterialSelectDto),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(MaterialSelectDto), auth: true },
     )
     .post(
       '/create',
@@ -44,11 +37,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         const { id } = await s.material.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      {
-        body: MaterialMutationDto,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { body: MaterialMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
     )
     .put(
       '/update',
@@ -57,13 +46,10 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({
-          id: zPrimitive.id,
-          ...MaterialMutationDto.shape,
-        }),
+        body: z.object({ id: zPrimitive.id, ...MaterialMutationDto.shape }),
         response: zResponse.ok(zSchema.recordId),
         auth: true,
-      }
+      },
     )
     .delete(
       '/remove',
@@ -71,10 +57,6 @@ export function initMaterialRoute(s: MaterialServiceModule) {
         await s.material.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      {
-        query: zHttp.recordId,
-        response: zResponse.ok(zSchema.recordId),
-        auth: true,
-      }
+      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
     )
 }

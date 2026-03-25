@@ -1,7 +1,9 @@
 import z from 'zod'
-import { UomDto } from './uom.dto'
+
 import { LocationDto } from '@/features/location'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { UomDto } from './uom.dto'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -28,10 +30,7 @@ export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 /* --------------------------------- OUTPUT --------------------------------- */
 
 /** Enriched view with location details — used in "locations assigned to material" */
-export const MaterialLocationWithLocationDto = z.object({
-  ...MaterialLocationDto.shape,
-  location: LocationDto,
-})
+export const MaterialLocationWithLocationDto = z.object({ ...MaterialLocationDto.shape, location: LocationDto })
 
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 
@@ -56,10 +55,7 @@ export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialLocationFilterDto = z.object({
-  locationId: zHttp.query.id,
-  search: zHttp.query.search,
-})
+export const MaterialLocationFilterDto = z.object({ locationId: zHttp.query.id, search: zHttp.query.search })
 
 export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto>
 
@@ -74,10 +70,7 @@ export const MaterialLocationAssignDto = z.object({
 export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto>
 
 /** Unassign a material from a location */
-export const MaterialLocationUnassignDto = z.object({
-  materialId: zPrimitive.id,
-  locationId: zPrimitive.id,
-})
+export const MaterialLocationUnassignDto = z.object({ materialId: zPrimitive.id, locationId: zPrimitive.id })
 
 export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassignDto>
 

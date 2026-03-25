@@ -1,21 +1,16 @@
 import z from 'zod'
-import {
-  ProductCategoryDto,
-  ProductCategoryFilterDto,
-  ProductCategoryMutationDto,
-} from '../dto'
+
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutationDto } from '../dto'
 
 export const productCategoryApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.product.category.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...ProductCategoryFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...ProductCategoryFilterDto.shape }),
     result: zHttp.paginated(ProductCategoryDto.array()),
   }),
 
@@ -36,10 +31,7 @@ export const productCategoryApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.product.category.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...ProductCategoryMutationDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...ProductCategoryMutationDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
 

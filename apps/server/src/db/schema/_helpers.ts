@@ -6,9 +6,7 @@ import { integer, pgEnum, serial, timestamp } from 'drizzle-orm/pg-core'
  * Primary key using auto-incrementing integer (serial).
  * Default for most domain tables — lightweight and fast for joins.
  */
-export const pk = {
-  id: serial().primaryKey(),
-} as const
+export const pk = { id: serial().primaryKey() } as const
 
 /**
  * Audit metadata columns shared by every domain table.

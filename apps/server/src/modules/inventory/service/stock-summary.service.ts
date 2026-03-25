@@ -1,14 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, lte, or, sql, sum } from 'drizzle-orm'
 
-import { materialsTable, stockSummariesTable, stockTransactionsTable, uomsTable } from '@/db/schema'
-
-import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
-
 import { paginate, stampCreate } from '@/core/database'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { materialsTable, stockSummariesTable, stockTransactionsTable, uomsTable } from '@/db/schema'
+import type { MaterialLocationService } from '@/modules/materials/service/material-location.service'
 
 import type {
   GenerateSummaryDto,
@@ -29,7 +27,7 @@ export class StockSummaryService {
    */
   async handleByLocation(
     filter: StockSummaryFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<StockSummarySelectDto>> {
     return record('StockSummaryService.handleByLocation', async () => {
       const { locationId, materialId, dateFrom, dateTo } = filter
@@ -38,7 +36,7 @@ export class StockSummaryService {
         eq(stockSummariesTable.locationId, locationId),
         materialId === undefined ? undefined : eq(stockSummariesTable.materialId, materialId),
         gte(stockSummariesTable.date, toWibDateKey(dateFrom)),
-        lte(stockSummariesTable.date, toWibDateKey(dateTo))
+        lte(stockSummariesTable.date, toWibDateKey(dateTo)),
       )
 
       const result = await paginate({
@@ -119,7 +117,7 @@ export class StockSummaryService {
    */
   async handleLedger(
     filter: StockLedgerFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<StockLedgerSelectDto>> {
     return record('StockSummaryService.handleLedger', async () => {
       const { locationId, materialId, dateFrom, dateTo, search } = filter
@@ -130,7 +128,7 @@ export class StockSummaryService {
       // 1. Paginate Materials matching filter
       const matWhere = and(
         materialId === undefined ? undefined : eq(materialsTable.id, materialId),
-        search ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`)) : undefined
+        search ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`)) : undefined,
       )
 
       const matResult = await paginate({
@@ -192,8 +190,8 @@ export class StockSummaryService {
             inArray(stockSummariesTable.materialId, materialIds),
             locationId === undefined ? undefined : eq(stockSummariesTable.locationId, locationId),
             gte(stockSummariesTable.date, startKey),
-            lte(stockSummariesTable.date, endKey)
-          )
+            lte(stockSummariesTable.date, endKey),
+          ),
         )
         .groupBy(stockSummariesTable.materialId)
 
@@ -304,8 +302,8 @@ export class StockSummaryService {
               eq(stockTransactionsTable.locationId, locationId),
               gte(stockTransactionsTable.date, start),
               lt(stockTransactionsTable.date, end),
-              inArray(stockTransactionsTable.materialId, materialIds)
-            )
+              inArray(stockTransactionsTable.materialId, materialIds),
+            ),
           )
           .groupBy(stockTransactionsTable.materialId, stockTransactionsTable.type)
 

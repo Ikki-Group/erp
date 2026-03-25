@@ -1,6 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, not, or } from 'drizzle-orm'
 
+import { cache } from '@/core/cache'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import { db } from '@/db'
 import {
   productExternalMappingsTable,
   productPricesTable,
@@ -8,12 +13,6 @@ import {
   productVariantsTable,
   variantPricesTable,
 } from '@/db/schema'
-
-import { cache } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-import { db } from '@/db'
 
 import type { ProductCategoryDto } from '../dto/product-category.dto'
 import type {
@@ -26,22 +25,15 @@ import type {
   ProductVariantDto,
   VariantPriceDto,
 } from '../dto/product.dto'
-
 import type { ProductCategoryService } from './product-category.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: number) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND'),
-}
+const err = { notFound: (id: number) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND') }
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
-const cacheKey = {
-  count: 'product.count',
-  list: 'product.list',
-  byId: (id: number) => `product.byId.${id}`,
-}
+const cacheKey = { count: 'product.count', list: 'product.list', byId: (id: number) => `product.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -90,10 +82,7 @@ export class ProductService {
       pricesByVariant.set(p.variantId, list)
     }
 
-    return variants.map((v) => ({
-      ...v,
-      prices: pricesByVariant.get(v.id) ?? [],
-    }))
+    return variants.map((v) => ({ ...v, prices: pricesByVariant.get(v.id) ?? [] }))
   }
 
   /**
@@ -126,10 +115,7 @@ export class ProductService {
       map.set(id, [])
     }
     for (const v of variants) {
-      map.get(v.productId)!.push({
-        ...v,
-        prices: pricesByVariant.get(v.id) ?? [],
-      })
+      map.get(v.productId)!.push({ ...v, prices: pricesByVariant.get(v.id) ?? [] })
     }
 
     return map
@@ -139,7 +125,7 @@ export class ProductService {
    * Loads product external mappings in batch.
    */
   private async getProductExternalMappingsBatch(
-    productIds: number[]
+    productIds: number[],
   ): Promise<Map<number, ProductExternalMappingDto[]>> {
     if (productIds.length === 0) return new Map()
 
@@ -247,9 +233,9 @@ export class ProductService {
                 .where(
                   and(
                     eq(productExternalMappingsTable.productId, productsTable.id),
-                    provider ? eq(productExternalMappingsTable.provider, provider) : undefined
-                  )
-                )
+                    provider ? eq(productExternalMappingsTable.provider, provider) : undefined,
+                  ),
+                ),
             )
           : undefined
 
@@ -259,7 +245,7 @@ export class ProductService {
         status ? eq(productsTable.status, status) : undefined,
         categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
         locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
-        externalCondition ? (isExternal === false ? not(externalCondition) : externalCondition) : undefined
+        externalCondition ? (isExternal === false ? not(externalCondition) : externalCondition) : undefined,
       )
 
       const result = await paginate({
@@ -347,14 +333,11 @@ export class ProductService {
 
         // Insert product-level prices (when !hasVariants && hasSalesTypePricing)
         if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-          await tx.insert(productPricesTable).values(
-            data.prices.map((p) => ({
-              productId: product.id,
-              salesTypeId: p.salesTypeId,
-              price: p.price,
-              ...meta,
-            }))
-          )
+          await tx
+            .insert(productPricesTable)
+            .values(
+              data.prices.map((p) => ({ productId: product.id, salesTypeId: p.salesTypeId, price: p.price, ...meta })),
+            )
         }
 
         // Insert variants + variant prices (when hasVariants)
@@ -372,14 +355,16 @@ export class ProductService {
             .returning({ id: productVariantsTable.id })
 
           if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-            await tx.insert(variantPricesTable).values(
-              variant.prices.map((p) => ({
-                variantId: insertedVariant.id,
-                salesTypeId: p.salesTypeId,
-                price: p.price,
-                ...meta,
-              }))
-            )
+            await tx
+              .insert(variantPricesTable)
+              .values(
+                variant.prices.map((p) => ({
+                  variantId: insertedVariant.id,
+                  salesTypeId: p.salesTypeId,
+                  price: p.price,
+                  ...meta,
+                })),
+              )
           }
         }
 
@@ -428,14 +413,11 @@ export class ProductService {
         await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
 
         if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-          await tx.insert(productPricesTable).values(
-            data.prices.map((p) => ({
-              productId: id,
-              salesTypeId: p.salesTypeId,
-              price: p.price,
-              ...createMeta,
-            }))
-          )
+          await tx
+            .insert(productPricesTable)
+            .values(
+              data.prices.map((p) => ({ productId: id, salesTypeId: p.salesTypeId, price: p.price, ...createMeta })),
+            )
         }
 
         // Replace variants if provided (delete-and-recreate strategy)
@@ -457,14 +439,16 @@ export class ProductService {
               .returning({ id: productVariantsTable.id })
 
             if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-              await tx.insert(variantPricesTable).values(
-                variant.prices.map((p) => ({
-                  variantId: insertedVariant.id,
-                  salesTypeId: p.salesTypeId,
-                  price: p.price,
-                  ...createMeta,
-                }))
-              )
+              await tx
+                .insert(variantPricesTable)
+                .values(
+                  variant.prices.map((p) => ({
+                    variantId: insertedVariant.id,
+                    salesTypeId: p.salesTypeId,
+                    price: p.price,
+                    ...createMeta,
+                  })),
+                )
             }
           }
         } else if (!data.hasVariants) {

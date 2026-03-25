@@ -1,15 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
 
-import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
-
-import type { LocationService } from '@/modules/location/service/location.service'
-
 import { cache } from '@/core/cache'
 import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
+import type { LocationService } from '@/modules/location/service/location.service'
 
 import type {
   MaterialCategoryDto,
@@ -19,15 +17,12 @@ import type {
   MaterialSelectDto,
   UomDto,
 } from '../dto'
-
 import type { MaterialCategoryService } from './material-category.service'
 import type { UomService } from './uom.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = {
-  notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND'),
-}
+const err = { notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND') }
 
 const uniqueFields: ConflictField<'sku' | 'name'>[] = [
   {
@@ -44,11 +39,7 @@ const uniqueFields: ConflictField<'sku' | 'name'>[] = [
   },
 ]
 
-const cacheKey = {
-  count: 'material.count',
-  list: 'material.list',
-  byId: (id: number) => `material.byId.${id}`,
-}
+const cacheKey = { count: 'material.count', list: 'material.list', byId: (id: number) => `material.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -56,7 +47,7 @@ export class MaterialService {
   constructor(
     private readonly categorySvc: MaterialCategoryService,
     private readonly uomSvc: UomService,
-    private readonly locationSvc: LocationService
+    private readonly locationSvc: LocationService,
   ) {}
 
   /**
@@ -84,18 +75,14 @@ export class MaterialService {
         .where(eq(materialLocationsTable.materialId, id)),
     ])
 
-    return {
-      ...result,
-      conversions,
-      locationIds: locations.map((l) => l.locationId),
-    }
+    return { ...result, conversions, locationIds: locations.map((l) => l.locationId) }
   }
 
   /**
    * Batch fetch full material details including conversions and locationIds
    */
   private async getMaterialsBatchWithRelations(
-    ids: number[]
+    ids: number[],
   ): Promise<Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>> {
     if (ids.length === 0) return new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
 
@@ -123,11 +110,7 @@ export class MaterialService {
     }
 
     for (const c of conversions) {
-      map.get(c.materialId)!.conversions.push({
-        toBaseFactor: c.toBaseFactor,
-        uomId: c.uomId,
-        uom: c.uom,
-      })
+      map.get(c.materialId)!.conversions.push({ toBaseFactor: c.toBaseFactor, uomId: c.uomId, uom: c.uom })
     }
 
     for (const l of locations) {
@@ -185,9 +168,9 @@ export class MaterialService {
               .where(
                 and(
                   eq(materialLocationsTable.materialId, materialsTable.id),
-                  inArray(materialLocationsTable.locationId, locationIds)
-                )
-              )
+                  inArray(materialLocationsTable.locationId, locationIds),
+                ),
+              ),
           )
         : undefined
 
@@ -199,9 +182,9 @@ export class MaterialService {
               .where(
                 and(
                   eq(materialLocationsTable.materialId, materialsTable.id),
-                  inArray(materialLocationsTable.locationId, excludeLocationIds)
-                )
-              )
+                  inArray(materialLocationsTable.locationId, excludeLocationIds),
+                ),
+              ),
           )
         : undefined
 
@@ -210,7 +193,7 @@ export class MaterialService {
         type ? eq(materialsTable.type, type) : undefined,
         categoryId === undefined ? undefined : eq(materialsTable.categoryId, categoryId),
         locationCondition,
-        excludeLocationCondition
+        excludeLocationCondition,
       )
 
       const result = await paginate({
@@ -263,12 +246,7 @@ export class MaterialService {
           : [],
       ])
 
-      return {
-        ...material,
-        category,
-        uom,
-        locations,
-      }
+      return { ...material, category, uom, locations }
     })
   }
 
@@ -289,23 +267,20 @@ export class MaterialService {
       const inserted = await db.transaction(async (tx) => {
         const [material] = await tx
           .insert(materialsTable)
-          .values({
-            ...data,
-            sku,
-            name,
-            ...metadata,
-          })
+          .values({ ...data, sku, name, ...metadata })
           .returning({ id: materialsTable.id })
 
         if (material && data.conversions?.length > 0) {
-          await tx.insert(materialConversionsTable).values(
-            data.conversions.map((c) => ({
-              materialId: material.id,
-              uomId: c.uomId,
-              toBaseFactor: c.toBaseFactor,
-              ...metadata,
-            }))
-          )
+          await tx
+            .insert(materialConversionsTable)
+            .values(
+              data.conversions.map((c) => ({
+                materialId: material.id,
+                uomId: c.uomId,
+                toBaseFactor: c.toBaseFactor,
+                ...metadata,
+              })),
+            )
         }
 
         return material
@@ -339,25 +314,22 @@ export class MaterialService {
       await db.transaction(async (tx) => {
         await tx
           .update(materialsTable)
-          .set({
-            ...data,
-            sku,
-            name,
-            ...updateMetadata,
-          })
+          .set({ ...data, sku, name, ...updateMetadata })
           .where(eq(materialsTable.id, id))
 
         if (data.conversions !== undefined) {
           await tx.delete(materialConversionsTable).where(eq(materialConversionsTable.materialId, id))
           if (data.conversions.length > 0) {
-            await tx.insert(materialConversionsTable).values(
-              data.conversions.map((c) => ({
-                materialId: id,
-                uomId: c.uomId,
-                toBaseFactor: c.toBaseFactor,
-                ...createMetadata,
-              }))
-            )
+            await tx
+              .insert(materialConversionsTable)
+              .values(
+                data.conversions.map((c) => ({
+                  materialId: id,
+                  uomId: c.uomId,
+                  toBaseFactor: c.toBaseFactor,
+                  ...createMetadata,
+                })),
+              )
           }
         }
       })

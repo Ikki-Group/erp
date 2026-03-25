@@ -2,12 +2,7 @@ import z from 'zod'
 
 import { zPrimitive } from './primitive'
 
-const paginationMeta = z.object({
-  page: z.number(),
-  limit: z.number(),
-  total: z.number(),
-  totalPages: z.number(),
-})
+const paginationMeta = z.object({ page: z.number(), limit: z.number(), total: z.number(), totalPages: z.number() })
 
 export type PaginationMeta = z.infer<typeof paginationMeta>
 
@@ -16,14 +11,13 @@ export const zHttp = {
     id: zPrimitive.id,
     ids: z
       .preprocess(
-        val =>
-          val === undefined ? undefined : Array.isArray(val) ? val : [val],
-        z.array(zPrimitive.id).optional()
+        (val) => (val === undefined ? undefined : Array.isArray(val) ? val : [val]),
+        z.array(zPrimitive.id).optional(),
       )
       .optional(),
 
     boolean: z.boolean(),
-    search: zPrimitive.str.optional().transform(val => val || undefined),
+    search: zPrimitive.str.optional().transform((val) => val || undefined),
     num: zPrimitive.numCoerce,
   },
 
@@ -34,17 +28,8 @@ export const zHttp = {
 
   paginationMeta,
   ok: <T extends z.ZodType>(data: T) =>
-    z.object({
-      success: z.literal(true),
-      code: zPrimitive.str.default('OK'),
-      data: data,
-    }),
+    z.object({ success: z.literal(true), code: zPrimitive.str.default('OK'), data: data }),
 
   paginated: <T extends z.ZodType>(data: T) =>
-    z.object({
-      success: z.literal(true),
-      code: zPrimitive.str.default('OK'),
-      data: data,
-      meta: paginationMeta,
-    }),
+    z.object({ success: z.literal(true), code: zPrimitive.str.default('OK'), data: data, meta: paginationMeta }),
 }

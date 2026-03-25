@@ -2,22 +2,21 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { KeyRoundIcon, PencilIcon } from 'lucide-react'
-import type { UserOutputDto } from '@/features/iam'
+
 import { DataTableCard } from '@/components/card/data-table-card'
-import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
+import type { UserOutputDto } from '@/features/iam'
 import { userApi } from '@/features/iam'
+import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { getUserStatusBadge } from '@/features/iam/utils'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/settings/_tab/user')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/settings/_tab/user')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
@@ -31,14 +30,12 @@ function RouteComponent() {
 const ch = createColumnHelper<UserOutputDto>()
 const columns = [
   ch.accessor('fullname', {
-    header: ({ column }) => (
-      <DataGridColumnHeader title='Nama' visibility={true} column={column} />
-    ),
+    header: ({ column }) => <DataGridColumnHeader title="Nama" visibility={true} column={column} />,
     cell: ({ row }) => (
-      <Link to='/settings/user/$id' params={{ id: String(row.original.id) }}>
+      <Link to="/settings/user/$id" params={{ id: String(row.original.id) }}>
         <div>
-          <p className='underline'>{row.original.fullname}</p>
-          <p className='text-muted-foreground italic'>{row.original.email}</p>
+          <p className="underline">{row.original.fullname}</p>
+          <p className="text-muted-foreground italic">{row.original.email}</p>
         </div>
       </Link>
     ),
@@ -60,9 +57,7 @@ const columns = [
   }),
   ch.accessor('createdAt', {
     header: 'Dibuat Pada',
-    cell: ({ row }) => (
-      <p className='text-nowrap'>{toDateTimeStamp(row.original.createdAt)}</p>
-    ),
+    cell: ({ row }) => <p className="text-nowrap">{toDateTimeStamp(row.original.createdAt)}</p>,
     enableSorting: false,
   }),
   ch.display({
@@ -70,22 +65,20 @@ const columns = [
     cell: ({ row }) => {
       const { id, username } = row.original
       return (
-        <div className='flex items-center justify-center gap-2'>
+        <div className="flex items-center justify-center gap-2">
           <Button
-            variant='outline'
-            size='icon-sm'
+            variant="outline"
+            size="icon-sm"
             onClick={() => UserPasswordDialog.call({ id, username })}
-            title='Ubah Password'
+            title="Ubah Password"
           >
             <KeyRoundIcon />
           </Button>
           <Button
-            variant='outline'
-            size='icon-sm'
+            variant="outline"
+            size="icon-sm"
             nativeButton={false}
-            render={
-              <Link to='/settings/user/$id' params={{ id: String(id) }} />
-            }
+            render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
           >
             <PencilIcon />
           </Button>
@@ -99,13 +92,7 @@ const columns = [
 
 function UserTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(
-    userApi.list.query({
-      ...ds.pagination,
-      search: ds.search,
-      ...ds.filters,
-    })
-  )
+  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, search: ds.search, ...ds.filters }))
 
   const table = useDataTable({
     columns: columns,
@@ -117,7 +104,7 @@ function UserTable() {
 
   return (
     <DataTableCard
-      title='Daftar Pengguna'
+      title="Daftar Pengguna"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
@@ -125,10 +112,7 @@ function UserTable() {
         <DataGridFilter
           ds={ds}
           options={[
-            {
-              type: 'search',
-              placeholder: 'Cari user (nama, email, username)...',
-            },
+            { type: 'search', placeholder: 'Cari user (nama, email, username)...' },
             {
               type: 'select',
               key: 'isActive',
@@ -143,11 +127,7 @@ function UserTable() {
         />
       }
       action={
-        <Button
-          size='sm'
-          nativeButton={false}
-          render={<Link to='/settings/user/create' from={Route.fullPath} />}
-        >
+        <Button size="sm" nativeButton={false} render={<Link to="/settings/user/create" from={Route.fullPath} />}>
           Tambah Pengguna
         </Button>
       }

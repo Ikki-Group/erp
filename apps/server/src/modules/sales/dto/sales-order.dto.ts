@@ -122,12 +122,8 @@ export const SalesOrderCreateDto = z.object({
           discountAmount: true,
           taxAmount: true,
           subtotal: true,
-        }).partial({
-          batchId: true,
-          productId: true,
-          variantId: true,
-        }).shape,
-      })
+        }).partial({ batchId: true, productId: true, variantId: true }).shape,
+      }),
     )
     .optional(),
 })
@@ -155,17 +151,11 @@ export const SalesOrderAddBatchDto = z.object({
         discountAmount: true,
         taxAmount: true,
         subtotal: true,
-      }).partial({
-        productId: true,
-        variantId: true,
-      }).shape,
-    })
+      }).partial({ productId: true, variantId: true }).shape,
+    }),
   ),
 })
 export type SalesOrderAddBatchDto = z.infer<typeof SalesOrderAddBatchDto>
 
-export const SalesOrderVoidDto = z.object({
-  itemId: zPrimitive.id.optional(),
-  reason: zPrimitive.str,
-})
+export const SalesOrderVoidDto = z.object({ itemId: zPrimitive.id.optional(), reason: zPrimitive.str })
 export type SalesOrderVoidDto = z.infer<typeof SalesOrderVoidDto>

@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 import type { ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
 import type { OptionsWithData, StringOrNumber } from '@/types/common'
 
 export function cn(...inputs: Array<ClassValue>) {
@@ -22,11 +23,7 @@ export function cn(...inputs: Array<ClassValue>) {
 export function toOptions<TItem, TValue extends StringOrNumber>(
   data: Array<TItem>,
   getValue: (item: TItem) => TValue,
-  getLabel: (item: TItem) => string
+  getLabel: (item: TItem) => string,
 ): OptionsWithData<TValue, TItem> {
-  return data.map(item => ({
-    label: getLabel(item),
-    value: getValue(item),
-    data: item,
-  }))
+  return data.map((item) => ({ label: getLabel(item), value: getValue(item), data: item }))
 }

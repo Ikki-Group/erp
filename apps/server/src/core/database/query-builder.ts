@@ -58,15 +58,7 @@ export async function paginate<TResult>({
 
     const total = countResult[0]?.count ?? 0
 
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    }
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } }
   })
 }
 

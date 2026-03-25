@@ -8,10 +8,10 @@ Your task is to design a **PostgreSQL-optimized relational schema** that support
 
 The design must prioritize:
 
-* **SQL performance**
-* **data consistency**
-* **auditability**
-* **future extensibility**
+- **SQL performance**
+- **data consistency**
+- **auditability**
+- **future extensibility**
 
 Tech stack context:
 
@@ -51,10 +51,10 @@ VOID
 
 Requirements:
 
-* a bill can remain **open**
-* items can be added while open
-* a bill is **finalized when closed**
-* voiding must be **auditable**
+- a bill can remain **open**
+- items can be added while open
+- a bill is **finalized when closed**
+- voiding must be **auditable**
 
 ---
 
@@ -80,9 +80,9 @@ Batch 3
 
 This is common in:
 
-* restaurant POS
-* table service
-* incremental ordering
+- restaurant POS
+- table service
+- incremental ordering
 
 The database must explicitly support **batch grouping of items**.
 
@@ -159,9 +159,9 @@ rawPayload
 
 This ensures:
 
-* deduplication
-* traceability
-* replay ability
+- deduplication
+- traceability
+- replay ability
 
 ---
 
@@ -213,9 +213,9 @@ The system must support a **strong audit trail**.
 
 Important requirements:
 
-* no historical mutation
-* void must be tracked
-* item names must be stored even if product changes
+- no historical mutation
+- void must be tracked
+- item names must be stored even if product changes
 
 Use the project helper:
 
@@ -421,4 +421,3 @@ SQL performance
 ```
 
 Avoid unnecessary complexity.
-

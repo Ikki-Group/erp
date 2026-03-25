@@ -17,10 +17,7 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
         if (!result) return res.ok(null)
         return res.ok(MokaConfigurationOutputDto.parse(result))
       },
-      {
-        params: z.object({ locationId: z.string() }),
-        auth: true,
-      }
+      { params: z.object({ locationId: z.string() }), auth: true },
     )
     .post(
       '/create',
@@ -28,10 +25,7 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
         const result = await service.handleCreate(body, auth.userId)
         return res.created(result)
       },
-      {
-        body: MokaConfigurationCreateDto,
-        auth: true,
-      }
+      { body: MokaConfigurationCreateDto, auth: true },
     )
     .put(
       '/update/:id',
@@ -39,10 +33,6 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
         const result = await service.handleUpdate(Number(params.id), body, auth.userId)
         return res.ok(result)
       },
-      {
-        params: z.object({ id: z.string() }),
-        body: MokaConfigurationUpdateDto,
-        auth: true,
-      }
+      { params: z.object({ id: z.string() }), body: MokaConfigurationUpdateDto, auth: true },
     )
 }

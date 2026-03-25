@@ -1,17 +1,16 @@
 import z from 'zod'
-import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
+
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
 export const uomApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.material.uom.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...UomFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...UomFilterDto.shape }),
     result: zHttp.paginated(UomDto.array()),
   }),
 
@@ -32,10 +31,7 @@ export const uomApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.material.uom.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...UomMutationDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...UomMutationDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
 

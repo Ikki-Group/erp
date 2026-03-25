@@ -1,22 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
 import { eq, getColumns, inArray } from 'drizzle-orm'
 
-import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
-
 import { stampCreate } from '@/core/database'
 import { arrayToMap } from '@/core/utils/collection'
 import { db } from '@/db'
+import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
 
 import type { UserAssignmentDetailDto, UserAssignmentDto, UserAssignmentUpsertDto } from '../dto'
 
 export class UserAssignmentService {
   private createDetailQuery() {
     return db
-      .select({
-        ...getColumns(userAssignmentsTable),
-        role: rolesTable,
-        location: locationsTable,
-      })
+      .select({ ...getColumns(userAssignmentsTable), role: rolesTable, location: locationsTable })
       .from(userAssignmentsTable)
       .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
       .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
@@ -52,7 +47,7 @@ export class UserAssignmentService {
   async upsertUserAssignments(
     userId: number,
     assignments: UserAssignmentUpsertDto[],
-    actorId?: number
+    actorId?: number,
   ): Promise<UserAssignmentDto[]> {
     return record('UserAssignmentService.upsertUserAssignments', async () => {
       const metadata = stampCreate(actorId || userId)
@@ -63,13 +58,7 @@ export class UserAssignmentService {
       if (assignments.length > 0) {
         return db
           .insert(userAssignmentsTable)
-          .values(
-            assignments.map((a) => ({
-              ...a,
-              userId,
-              ...metadata,
-            }))
-          )
+          .values(assignments.map((a) => ({ ...a, userId, ...metadata })))
           .returning()
       }
 

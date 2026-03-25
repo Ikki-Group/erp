@@ -5,27 +5,16 @@ import { locationsTable } from './location'
 
 // ─── UOM (Unit of Measure) ────────────────────────────────────────────────────
 
-export const uomsTable = pgTable(
-  'uoms',
-  {
-    ...pk,
-    code: text().notNull(),
-    ...metadata,
-  },
-  (t) => [uniqueIndex('uoms_code_idx').on(t.code)]
-)
+export const uomsTable = pgTable('uoms', { ...pk, code: text().notNull(), ...metadata }, (t) => [
+  uniqueIndex('uoms_code_idx').on(t.code),
+])
 
 // ─── Material Categories ──────────────────────────────────────────────────────
 
 export const materialCategoriesTable = pgTable(
   'material_categories',
-  {
-    ...pk,
-    name: text().notNull(),
-    description: text(),
-    ...metadata,
-  },
-  (t) => [uniqueIndex('material_categories_name_idx').on(t.name)]
+  { ...pk, name: text().notNull(), description: text(), ...metadata },
+  (t) => [uniqueIndex('material_categories_name_idx').on(t.name)],
 )
 
 // ─── Materials ────────────────────────────────────────────────────────────────
@@ -50,7 +39,7 @@ export const materialsTable = pgTable(
     index('materials_category_idx').on(t.categoryId),
     index('materials_base_uom_idx').on(t.baseUomId),
     // Removed: materials_type_idx — enum with only 2 values, low selectivity
-  ]
+  ],
 )
 
 // ─── Material Conversions ─────────────────────────────────────────────────────
@@ -73,7 +62,7 @@ export const materialConversionsTable = pgTable(
   (t) => [
     uniqueIndex('material_conversions_material_uom_idx').on(t.materialId, t.uomId),
     index('material_conversions_uom_idx').on(t.uomId),
-  ]
+  ],
 )
 
 // ─── Material Locations ───────────────────────────────────────────────────────
@@ -108,5 +97,5 @@ export const materialLocationsTable = pgTable(
     // Standalone index for "list all materials at location X" queries
     index('material_locations_location_idx').on(t.locationId),
     // Removed: material_locations_material_idx — redundant, covered by composite unique above
-  ]
+  ],
 )

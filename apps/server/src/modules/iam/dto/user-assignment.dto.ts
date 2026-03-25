@@ -1,8 +1,7 @@
 import z from 'zod'
 
-import { LocationDto } from '@/modules/location'
-
 import { zPrimitive, zSchema } from '@/core/validation'
+import { LocationDto } from '@/modules/location'
 
 import { RoleDto } from './role.dto'
 
@@ -27,18 +26,12 @@ export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-export const UserAssignmentDetailDto = z.object({
-  isDefault: zPrimitive.bool,
-  location: LocationDto,
-  role: RoleDto,
-})
+export const UserAssignmentDetailDto = z.object({ isDefault: zPrimitive.bool, location: LocationDto, role: RoleDto })
 
 export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
 
 /* --------------------------------- UPSERT --------------------------------- */
 
-export const UserAssignmentUpsertDto = z.object({
-  ...UserAssignmentBase.shape,
-})
+export const UserAssignmentUpsertDto = z.object({ ...UserAssignmentBase.shape })
 
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>

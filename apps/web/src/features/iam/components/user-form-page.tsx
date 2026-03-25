@@ -1,22 +1,19 @@
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import z from 'zod'
-import { toast } from 'sonner'
-import { userApi } from '../api'
 import type { LinkOptions } from '@tanstack/react-router'
-import type { UserOutputDto } from '../dto'
-import { Separator } from '@/components/ui/separator'
-import { Card } from '@/components/ui/card'
-import { Page } from '@/components/layout/page'
-import {
-  FormConfig,
-  useAppForm,
-  useFormConfig,
-  useTypedAppFormContext,
-} from '@/components/form'
+import { toast } from 'sonner'
+import z from 'zod'
+
 import { CardSection } from '@/components/card/card-section'
+import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'
+import { Page } from '@/components/layout/page'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { toastLabelMessage } from '@/lib/toast-message'
+
+import { userApi } from '../api'
+import type { UserOutputDto } from '../dto'
 
 const FormDto = z.object({
   fullname: z.string().min(1, 'Nama lengkap wajib diisi'),
@@ -25,20 +22,12 @@ const FormDto = z.object({
   password: z.string().min(8, 'Password minimal 8 karakter').optional(),
   isRoot: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  assignments: z.array(
-    z.object({
-      locationId: z.coerce.number(),
-      roleId: z.coerce.number(),
-    })
-  ).default([]),
+  assignments: z.array(z.object({ locationId: z.coerce.number(), roleId: z.coerce.number() })).default([]),
 })
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({
-  validators: { onSubmit: FormDto as any },
-  defaultValues: {} as FormDto,
-})
+const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: UserOutputDto): FormDto {
   return {
@@ -60,10 +49,7 @@ interface UserFormPageProps {
 
 export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   const navigate = useNavigate()
-  const selectedUser = useQuery({
-    ...userApi.detail.query({ id: id! }),
-    enabled: !!id,
-  })
+  const selectedUser = useQuery({ ...userApi.detail.query({ id: id! }), enabled: !!id })
 
   const create = useMutation({ mutationFn: userApi.create.mutationFn })
   const update = useMutation({ mutationFn: userApi.update.mutationFn })
@@ -73,18 +59,8 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
     defaultValues: getDefaultValues(selectedUser.data?.data),
     onSubmit: async ({ value }) => {
       const promise = selectedUser.data?.data
-        ? update.mutateAsync({
-            body: {
-              id: selectedUser.data.data.id,
-              ...value,
-            } as any,
-          })
-        : create.mutateAsync({
-            body: {
-              ...value,
-              password: value.password ?? '',
-            } as any,
-          })
+        ? update.mutateAsync({ body: { id: selectedUser.data.data.id, ...value } as any })
+        : create.mutateAsync({ body: { ...value, password: value.password ?? '' } as any })
 
       await toast.promise(promise, toastLabelMessage(mode, 'pengguna')).unwrap()
 
@@ -97,13 +73,10 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
   return (
     <form.AppForm>
       <FormConfig mode={mode} id={id} backTo={backTo}>
-        <Page size='sm'>
-          <Page.BlockHeader
-            title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'}
-            back={backTo}
-          />
+        <Page size="sm">
+          <Page.BlockHeader title={mode === 'create' ? 'Tambah Pengguna' : 'Edit Pengguna'} back={backTo} />
           <form.Form>
-            <Page.Content className='gap-6 flex flex-col'>
+            <Page.Content className="gap-6 flex flex-col">
               <UserInformationCard />
               <StatusAndRoleCard />
               {/* <RoleAndLocationCard /> */}
@@ -121,37 +94,33 @@ function UserInformationCard() {
   const isCreate = useFormConfig().mode === 'create'
 
   return (
-    <CardSection title='Informasi Akun'>
-      <form.AppField name='fullname'>
-        {field => (
-          <field.Base label='Nama Lengkap' required>
-            <field.Input placeholder='John Doe' />
+    <CardSection title="Informasi Akun">
+      <form.AppField name="fullname">
+        {(field) => (
+          <field.Base label="Nama Lengkap" required>
+            <field.Input placeholder="John Doe" />
           </field.Base>
         )}
       </form.AppField>
-      <form.AppField name='email'>
-        {field => (
-          <field.Base label='Email' required>
-            <field.Input type='email' placeholder='user@example.com' />
+      <form.AppField name="email">
+        {(field) => (
+          <field.Base label="Email" required>
+            <field.Input type="email" placeholder="user@example.com" />
           </field.Base>
         )}
       </form.AppField>
-      <form.AppField name='username'>
-        {field => (
-          <field.Base label='Username' required>
-            <field.Input placeholder='username' />
+      <form.AppField name="username">
+        {(field) => (
+          <field.Base label="Username" required>
+            <field.Input placeholder="username" />
           </field.Base>
         )}
       </form.AppField>
       {isCreate && (
-        <form.AppField name='password'>
-          {field => (
-            <field.Base label='Password' required>
-              <field.Input
-                type='password'
-                autoComplete='off'
-                placeholder='••••••••'
-              />
+        <form.AppField name="password">
+          {(field) => (
+            <field.Base label="Password" required>
+              <field.Input type="password" autoComplete="off" placeholder="••••••••" />
             </field.Base>
           )}
         </form.AppField>
@@ -164,27 +133,17 @@ function StatusAndRoleCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <Card size='sm'>
-      <Card.Header className='border-b'>
+    <Card size="sm">
+      <Card.Header className="border-b">
         <Card.Title>Status & Hak Akses</Card.Title>
       </Card.Header>
-      <Card.Content className='space-y-2'>
-        <form.AppField name='isActive'>
-          {field => (
-            <field.Switch
-              label='Status Aktif'
-              description='Pengguna dapat login ke sistem'
-            />
-          )}
+      <Card.Content className="space-y-2">
+        <form.AppField name="isActive">
+          {(field) => <field.Switch label="Status Aktif" description="Pengguna dapat login ke sistem" />}
         </form.AppField>
         <Separator />
-        <form.AppField name='isRoot'>
-          {field => (
-            <field.Switch
-              label='Super Admin'
-              description='Akses penuh ke semua fitur dan lokasi'
-            />
-          )}
+        <form.AppField name="isRoot">
+          {(field) => <field.Switch label="Super Admin" description="Akses penuh ke semua fitur dan lokasi" />}
         </form.AppField>
       </Card.Content>
     </Card>

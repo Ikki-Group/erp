@@ -23,12 +23,6 @@
     "fly:deploy": "flyctl deploy",
     "prepare": "husky"
   },
-  "lint-staged": {
-    "**/*.{ts,tsx,js,jsx}": [
-      "oxlint --fix",
-      "oxfmt -w"
-    ]
-  },
   "dependencies": {
     "@axiomhq/pino": "^1.4.0",
     "@elysiajs/cors": "^1.4.1",
@@ -68,5 +62,11 @@
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
     "typescript": "^5.9.3"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx}": [
+      "oxlint --fix",
+      "oxfmt -w"
+    ]
   }
 }

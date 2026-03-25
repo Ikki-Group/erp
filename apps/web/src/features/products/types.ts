@@ -4,11 +4,7 @@
  */
 
 export type ProductStatus = 'active' | 'inactive' | 'discontinued'
-export type ProductCategory =
-  | 'raw-material'
-  | 'semi-finished'
-  | 'finished-goods'
-  | 'consumable'
+export type ProductCategory = 'raw-material' | 'semi-finished' | 'finished-goods' | 'consumable'
 export type ProductUnit = 'kg' | 'liter' | 'pcs' | 'box' | 'meter' | 'roll'
 
 export interface Product {
@@ -29,11 +25,7 @@ export interface Product {
   barcode?: string
   sku?: string
   weight?: number
-  dimensions?: {
-    length: number
-    width: number
-    height: number
-  }
+  dimensions?: { length: number; width: number; height: number }
   imageUrl?: string
   tags?: Array<string>
   createdAt: Date
@@ -59,11 +51,7 @@ export interface ProductFormData {
   barcode?: string
   sku?: string
   weight?: number
-  dimensions?: {
-    length: number
-    width: number
-    height: number
-  }
+  dimensions?: { length: number; width: number; height: number }
   tags?: Array<string>
 }
 

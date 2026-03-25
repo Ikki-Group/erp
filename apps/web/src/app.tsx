@@ -1,11 +1,12 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { Suspense } from 'react'
-import { ThemeListener } from './components/common/theme'
-import { createRouter } from '@/lib/tanstack-router'
-import { queryClient } from '@/lib/tanstack-query'
 
 import { initSentry } from '@/lib/sentry'
+import { queryClient } from '@/lib/tanstack-query'
+import { createRouter } from '@/lib/tanstack-router'
+
+import { ThemeListener } from './components/common/theme'
 
 const router = createRouter()
 initSentry(router)

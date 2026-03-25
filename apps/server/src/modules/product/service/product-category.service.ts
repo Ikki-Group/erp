@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { productCategoriesTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,6 +15,7 @@ import {
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { productCategoriesTable } from '@/db/schema'
 
 import type { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutationDto } from '../dto'
 
@@ -84,7 +83,7 @@ export class ProductCategoryService {
    */
   async handleList(
     filter: ProductCategoryFilterDto,
-    pq: PaginationQuery
+    pq: PaginationQuery,
   ): Promise<WithPaginationResult<ProductCategoryDto>> {
     return record('ProductCategoryService.handleList', async () => {
       const { search } = filter
@@ -130,11 +129,7 @@ export class ProductCategoryService {
 
       const [inserted] = await db
         .insert(productCategoriesTable)
-        .values({
-          ...data,
-          name,
-          ...stampCreate(actorId),
-        })
+        .values({ ...data, name, ...stampCreate(actorId) })
         .returning({ id: productCategoriesTable.id })
 
       if (!inserted) throw new Error('Failed to create product category')
@@ -163,11 +158,7 @@ export class ProductCategoryService {
 
       await db
         .update(productCategoriesTable)
-        .set({
-          ...data,
-          name,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...data, name, ...stampUpdate(actorId) })
         .where(eq(productCategoriesTable.id, id))
 
       void this.clearCache(id)

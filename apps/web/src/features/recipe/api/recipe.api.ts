@@ -1,17 +1,16 @@
 import z from 'zod'
-import { RecipeFilterDto, RecipeMutationDto, RecipeOutputDto } from '../dto'
+
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+
+import { RecipeFilterDto, RecipeMutationDto, RecipeOutputDto } from '../dto'
 
 export const recipeApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.recipe.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...RecipeFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...RecipeFilterDto.shape }),
     result: zHttp.paginated(RecipeOutputDto.array()),
   }),
 
@@ -32,10 +31,7 @@ export const recipeApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.recipe.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...RecipeMutationDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...RecipeMutationDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
 

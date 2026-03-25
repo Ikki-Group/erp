@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { rolesTable } from '@/db/schema'
-
 import { cache } from '@/core/cache'
 import {
   checkConflict,
@@ -17,6 +15,7 @@ import {
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import { rolesTable } from '@/db/schema'
 
 import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto'
 
@@ -32,11 +31,7 @@ const uniqueFields: ConflictField<'code' | 'name'>[] = [
   { field: 'name', column: rolesTable.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
 ]
 
-const cacheKey = {
-  count: 'role.count',
-  list: 'role.list',
-  byId: (id: number) => `role.byId.${id}`,
-}
+const cacheKey = { count: 'role.count', list: 'role.list', byId: (id: number) => `role.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -50,18 +45,10 @@ export class RoleService {
         const metadata = stampCreate(d.createdBy)
         await db
           .insert(rolesTable)
-          .values({
-            ...d,
-            isSystem: true,
-            ...metadata,
-          })
+          .values({ ...d, isSystem: true, ...metadata })
           .onConflictDoUpdate({
             target: rolesTable.code,
-            set: {
-              name: d.name,
-              updatedAt: metadata.updatedAt,
-              updatedBy: metadata.updatedBy,
-            },
+            set: { name: d.name, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
       void this.clearCache()
@@ -141,21 +128,11 @@ export class RoleService {
       const code = data.code.toUpperCase().trim()
       const name = data.name.trim()
 
-      await checkConflict({
-        table: rolesTable,
-        pkColumn: rolesTable.id,
-        fields: uniqueFields,
-        input: { code, name },
-      })
+      await checkConflict({ table: rolesTable, pkColumn: rolesTable.id, fields: uniqueFields, input: { code, name } })
 
       const [inserted] = await db
         .insert(rolesTable)
-        .values({
-          ...data,
-          code,
-          name,
-          ...stampCreate(actorId),
-        })
+        .values({ ...data, code, name, ...stampCreate(actorId) })
         .returning({ id: rolesTable.id })
 
       if (!inserted) throw new Error('Failed to create role')
@@ -187,12 +164,7 @@ export class RoleService {
 
       await db
         .update(rolesTable)
-        .set({
-          ...data,
-          code,
-          name,
-          ...stampUpdate(actorId),
-        })
+        .set({ ...data, code, name, ...stampUpdate(actorId) })
         .where(eq(rolesTable.id, id))
 
       void this.clearCache(id)

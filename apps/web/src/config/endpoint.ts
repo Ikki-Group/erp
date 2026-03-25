@@ -1,7 +1,4 @@
-const auth = {
-  login: 'auth/login',
-  me: 'auth/me',
-}
+const auth = { login: 'auth/login', me: 'auth/me' }
 
 const iam = {
   user: {
@@ -104,12 +101,4 @@ const inventory = {
   },
 }
 
-export const endpoint = {
-  auth,
-  iam,
-  location,
-  material,
-  product,
-  recipe,
-  inventory,
-}
+export const endpoint = { auth, iam, location, material, product, recipe, inventory }

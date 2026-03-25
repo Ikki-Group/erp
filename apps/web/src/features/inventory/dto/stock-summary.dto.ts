@@ -1,4 +1,5 @@
 import z from 'zod'
+
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
@@ -92,9 +93,6 @@ export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 /** Generate daily summary for a specific date + location */
-export const GenerateSummaryDto = z.object({
-  locationId: zPrimitive.id,
-  date: zPrimitive.date,
-})
+export const GenerateSummaryDto = z.object({ locationId: zPrimitive.id, date: zPrimitive.date })
 
 export type GenerateSummaryDto = z.infer<typeof GenerateSummaryDto>

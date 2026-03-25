@@ -3,27 +3,24 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
-import type { ProductFilterDto, ProductOutputDto } from '@/features/product'
-import { productApi, productCategoryApi } from '@/features/product'
-import { locationApi } from '@/features/location'
-
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+import { locationApi } from '@/features/location'
+import type { ProductFilterDto, ProductOutputDto } from '@/features/product'
+import { productApi, productCategoryApi } from '@/features/product'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toCurrency, toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/products/')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute('/_app/products/')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
-      <Page.BlockHeader title='Daftar Produk' />
+      <Page.BlockHeader title="Daftar Produk" />
       <Page.Content>
         <ProductTable />
       </Page.Content>
@@ -36,50 +33,33 @@ const ch = createColumnHelper<ProductOutputDto>()
 const columns = [
   ch.accessor('sku', {
     header: 'SKU',
-    cell: ({ row }) => <p className='font-mono text-sm'>{row.original.sku}</p>,
+    cell: ({ row }) => <p className="font-mono text-sm">{row.original.sku}</p>,
     minSize: 140,
   }),
   ch.accessor('name', {
     header: 'Nama Produk',
     cell: ({ row }) => (
-      <div className='flex flex-col gap-0.5'>
-        <div className='flex items-center gap-2'>
-          <span className='font-medium'>{row.original.name}</span>
-          {row.original.externalMappings.some(m => m.provider === 'moka') && (
-            <Badge
-              variant='outline'
-              className='h-4 px-1 text-[10px] bg-orange-50 text-orange-600 border-orange-200'
-            >
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{row.original.name}</span>
+          {row.original.externalMappings.some((m) => m.provider === 'moka') && (
+            <Badge variant="outline" className="h-4 px-1 text-[10px] bg-orange-50 text-orange-600 border-orange-200">
               MOKA
             </Badge>
           )}
         </div>
-        <span className='text-xs text-muted-foreground'>
-          {row.original.category?.name ?? 'Tanpa Kategori'}
-        </span>
+        <span className="text-xs text-muted-foreground">{row.original.category?.name ?? 'Tanpa Kategori'}</span>
       </div>
     ),
     minSize: 300,
   }),
-  ch.accessor('basePrice', {
-    header: 'Harga',
-    cell: ({ row }) => toCurrency(row.original.basePrice),
-    size: 100,
-  }),
+  ch.accessor('basePrice', { header: 'Harga', cell: ({ row }) => toCurrency(row.original.basePrice), size: 100 }),
   ch.accessor('status', {
     header: 'Status',
     cell: ({ row }) => {
       const status = row.original.status
       return (
-        <Badge
-          variant={
-            status === 'active'
-              ? 'default'
-              : status === 'inactive'
-                ? 'secondary'
-                : 'destructive'
-          }
-        >
+        <Badge variant={status === 'active' ? 'default' : status === 'inactive' ? 'secondary' : 'destructive'}>
           {status.toUpperCase()}
         </Badge>
       )
@@ -90,9 +70,9 @@ const columns = [
     header: 'Varian',
     cell: ({ row }) =>
       row.original.hasVariants ? (
-        <span className='text-sm'>{row.original.variants.length} Varian</span>
+        <span className="text-sm">{row.original.variants.length} Varian</span>
       ) : (
-        <span className='text-xs text-muted-foreground'>-</span>
+        <span className="text-xs text-muted-foreground">-</span>
       ),
     size: 100,
   }),
@@ -106,16 +86,11 @@ const columns = [
     header: '',
     cell: ({ row }) => {
       return (
-        <div className='flex items-center justify-center'>
+        <div className="flex items-center justify-center">
           <Button
-            variant='ghost'
-            size='icon-sm'
-            render={
-              <Link
-                to='/products/$id'
-                params={{ id: String(row.original.id) }}
-              />
-            }
+            variant="ghost"
+            size="icon-sm"
+            render={<Link to="/products/$id" params={{ id: String(row.original.id) }} />}
           >
             <PencilIcon />
           </Button>
@@ -141,18 +116,10 @@ const columns = [
 function ProductTable() {
   const ds = useDataTableState<ProductFilterDto>()
 
-  const { data: categories } = useQuery(
-    productCategoryApi.list.query({ limit: 100 })
-  )
+  const { data: categories } = useQuery(productCategoryApi.list.query({ limit: 100 }))
   const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
-  const { data, isLoading } = useQuery(
-    productApi.list.query({
-      ...ds.pagination,
-      ...ds.filters,
-      search: ds.search,
-    })
-  )
+  const { data, isLoading } = useQuery(productApi.list.query({ ...ds.pagination, ...ds.filters, search: ds.search }))
 
   const table = useDataTable({
     columns: columns,
@@ -164,7 +131,7 @@ function ProductTable() {
 
   return (
     <DataTableCard
-      title='Daftar Produk'
+      title="Daftar Produk"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
@@ -196,28 +163,20 @@ function ProductTable() {
               type: 'select',
               key: 'categoryId',
               placeholder: 'Semua Kategori',
-              options:
-                categories?.data.map(c => ({
-                  label: c.name,
-                  value: c.id,
-                })) ?? [],
+              options: categories?.data.map((c) => ({ label: c.name, value: c.id })) ?? [],
             },
             {
               type: 'select',
               key: 'locationId',
               placeholder: 'Semua Lokasi',
-              options:
-                locations?.data.map(l => ({
-                  label: l.name,
-                  value: l.id,
-                })) ?? [],
+              options: locations?.data.map((l) => ({ label: l.name, value: l.id })) ?? [],
             },
           ]}
         />
       }
       action={
-        <Button size='sm' render={<Link to='/products/create' />}>
-          <PlusIcon className='mr-2 size-4' />
+        <Button size="sm" render={<Link to="/products/create" />}>
+          <PlusIcon className="mr-2 size-4" />
           Tambah Produk
         </Button>
       }

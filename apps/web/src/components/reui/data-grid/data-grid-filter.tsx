@@ -1,18 +1,13 @@
-import * as React from 'react'
 import { useDebounce } from '@uidotdev/usehooks'
 import { SearchIcon, XIcon } from 'lucide-react'
-import type { DataTableState } from '@/hooks/use-data-table-state'
-import type { Option, StringOrNumber } from '@/types/common'
+import * as React from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { DataTableState } from '@/hooks/use-data-table-state'
 import { cn } from '@/lib/utils'
+import type { Option, StringOrNumber } from '@/types/common'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -31,9 +26,7 @@ export interface FilterSelect<TFilter extends Record<string, any>> {
   placeholder?: string
 }
 
-export type FilterOptions<TFilter extends Record<string, any>> =
-  | FilterSearch
-  | FilterSelect<TFilter>
+export type FilterOptions<TFilter extends Record<string, any>> = FilterSearch | FilterSelect<TFilter>
 
 interface DataGridFilterProps<TFilter extends Record<string, any>> {
   options: Array<FilterOptions<TFilter>>
@@ -65,10 +58,7 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
   className,
 }: DataGridFilterProps<TFilter>) {
   const hasActiveFilters =
-    ds.search.length > 0 ||
-    Object.values(ds.filters).some(
-      v => v !== undefined && v !== null && v !== ''
-    )
+    ds.search.length > 0 || Object.values(ds.filters).some((v) => v !== undefined && v !== null && v !== '')
 
   const handleReset = () => {
     ds.setSearch('')
@@ -95,11 +85,8 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
                 // eslint-disable-next-line @eslint-react/no-array-index-key
                 key={`select-${String(option.key)}-${index}`}
                 value={ds.filters[option.key]}
-                onChange={val => {
-                  ds.setFilters(prev => ({
-                    ...prev,
-                    [option.key]: val,
-                  }))
+                onChange={(val) => {
+                  ds.setFilters((prev) => ({ ...prev, [option.key]: val }))
                 }}
                 options={option.options}
                 placeholder={option.placeholder}
@@ -111,14 +98,9 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
       })}
 
       {hasActiveFilters && (
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={handleReset}
-          className='h-8 px-2 lg:px-3'
-        >
+        <Button variant="ghost" size="sm" onClick={handleReset} className="h-8 px-2 lg:px-3">
           Reset
-          <XIcon className='ml-2 size-4' />
+          <XIcon className="ml-2 size-4" />
         </Button>
       )}
     </div>
@@ -136,11 +118,7 @@ interface DataGridFilterSearchProps {
   placeholder?: string
 }
 
-function DataGridFilterSearch({
-  value,
-  onChange,
-  placeholder = 'Cari...',
-}: DataGridFilterSearchProps) {
+function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: DataGridFilterSearchProps) {
   const [internalValue, setInternalValue] = React.useState(value)
   const prevValueRef = React.useRef(value)
 
@@ -160,13 +138,13 @@ function DataGridFilterSearch({
   }, [debouncedValue, onChange, value])
 
   return (
-    <div className='relative'>
-      <SearchIcon className='absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
+    <div className="relative">
+      <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
         value={internalValue}
-        onChange={e => setInternalValue(e.target.value)}
+        onChange={(e) => setInternalValue(e.target.value)}
         placeholder={placeholder}
-        className='h-8 w-[180px] pl-8 lg:w-[250px]'
+        className="h-8 w-[180px] pl-8 lg:w-[250px]"
       />
     </div>
   )
@@ -180,17 +158,12 @@ interface DataGridFilterSelectProps {
   placeholder?: string
 }
 
-function DataGridFilterSelect({
-  value,
-  onChange,
-  options,
-  placeholder = 'Filter...',
-}: DataGridFilterSelectProps) {
+function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter...' }: DataGridFilterSelectProps) {
   return (
     <Select
       items={options}
       value={value != null && value !== '' ? String(value) : ''}
-      onValueChange={val => {
+      onValueChange={(val) => {
         if (val === '') {
           onChange(undefined)
           return
@@ -211,15 +184,15 @@ function DataGridFilterSelect({
         onChange(Number.isNaN(numVal) ? val : numVal)
       }}
     >
-      <SelectTrigger className='h-8 w-fit min-w-[130px] gap-2'>
+      <SelectTrigger className="h-8 w-fit min-w-[130px] gap-2">
         <SelectValue placeholder={placeholder}>
           {value != null && value !== ''
-            ? options.find(opt => String(opt.value) === String(value))?.label
+            ? options.find((opt) => String(opt.value) === String(value))?.label
             : undefined}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {options.map(opt => (
+        {options.map((opt) => (
           <SelectItem key={String(opt.value)} value={String(opt.value)}>
             {opt.label}
           </SelectItem>

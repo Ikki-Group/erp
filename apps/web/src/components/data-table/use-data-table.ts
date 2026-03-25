@@ -1,21 +1,10 @@
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
+import type { OnChangeFn, PaginationState, TableOptions } from '@tanstack/react-table'
 import { useCallback, useMemo } from 'react'
-import type {
-  OnChangeFn,
-  PaginationState,
-  TableOptions,
-} from '@tanstack/react-table'
+
 import type { DataTableState, UseDataTableReturn } from './data-table-types'
 
-type UseDataTableProps<TData> = Omit<
-  TableOptions<TData>,
-  'getCoreRowModel' | 'onStateChange'
-> & {
+type UseDataTableProps<TData> = Omit<TableOptions<TData>, 'getCoreRowModel' | 'onStateChange'> & {
   isLoading?: boolean
   ds: DataTableState
 }
@@ -30,21 +19,15 @@ function useBaseDataTable<TData>({
 }: UseDataTableProps<TData>): UseDataTableReturn<TData> {
   const pagination: PaginationState = useMemo(() => {
     const { page, limit } = ds.pagination
-    return {
-      pageIndex: page - 1,
-      pageSize: limit,
-    }
+    return { pageIndex: page - 1, pageSize: limit }
   }, [ds.pagination])
 
   const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
-    updater => {
+    (updater) => {
       const next = typeof updater === 'function' ? updater(pagination) : updater
-      ds.setPagination({
-        page: next.pageIndex + 1,
-        limit: next.pageSize,
-      })
+      ds.setPagination({ page: next.pageIndex + 1, limit: next.pageSize })
     },
-    [ds.pagination, pagination]
+    [ds.pagination, pagination],
   )
 
   const table = useReactTable({
@@ -53,11 +36,7 @@ function useBaseDataTable<TData>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      pagination,
-      globalFilter: ds.search,
-      ...state,
-    },
+    state: { pagination, globalFilter: ds.search, ...state },
     onGlobalFilterChange: ds.setSearch,
     onPaginationChange,
     ...props,
@@ -65,31 +44,13 @@ function useBaseDataTable<TData>({
 
   const { pageIndex, pageSize } = table.getState().pagination
 
-  return {
-    table,
-    pageIndex,
-    pageSize,
-    pageCount: table.getPageCount(),
-    rowCount: table.getRowCount(),
-    isLoading,
-    ds,
-  }
+  return { table, pageIndex, pageSize, pageCount: table.getPageCount(), rowCount: table.getRowCount(), isLoading, ds }
 }
 
-export function useDataTable<TData>(
-  props: UseDataTableProps<TData>
-): UseDataTableReturn<TData> {
-  return useBaseDataTable({
-    ...props,
-    manualPagination: true,
-  })
+export function useDataTable<TData>(props: UseDataTableProps<TData>): UseDataTableReturn<TData> {
+  return useBaseDataTable({ ...props, manualPagination: true })
 }
 
-export function useDataTableAuto<TData>(
-  props: UseDataTableProps<TData>
-): UseDataTableReturn<TData> {
-  return useBaseDataTable({
-    ...props,
-    manualPagination: false,
-  })
+export function useDataTableAuto<TData>(props: UseDataTableProps<TData>): UseDataTableReturn<TData> {
+  return useBaseDataTable({ ...props, manualPagination: false })
 }

@@ -15,19 +15,14 @@ export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryFilterDto = z.object({
-  search: zHttp.query.search,
-})
+export const MaterialCategoryFilterDto = z.object({ search: zHttp.query.search })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCategoryMutationDto = z.object({
-  ...MaterialCategoryDto.pick({
-    name: true,
-    description: true,
-  }).shape,
+  ...MaterialCategoryDto.pick({ name: true, description: true }).shape,
 })
 
 export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutationDto>

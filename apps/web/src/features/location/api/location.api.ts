@@ -1,17 +1,16 @@
 import z from 'zod'
-import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
+
+import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-import { endpoint } from '@/config/endpoint'
+
+import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
 
 export const locationApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.location.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...LocationFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...LocationFilterDto.shape }),
     result: zHttp.paginated(LocationDto.array()),
   }),
   detail: apiFactory({
@@ -29,15 +28,8 @@ export const locationApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.location.update,
-    body: z.object({
-      id: zPrimitive.num,
-      ...LocationMutationDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.num, ...LocationMutationDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
-  remove: apiFactory({
-    method: 'delete',
-    url: endpoint.location.remove,
-    result: zHttp.ok(zSchema.recordId),
-  }),
+  remove: apiFactory({ method: 'delete', url: endpoint.location.remove, result: zHttp.ok(zSchema.recordId) }),
 }

@@ -4,9 +4,7 @@ export default defineConfig({
   schema: './src/db/schema/index.ts',
   out: './src/db/migrations',
   dialect: 'postgresql',
-  dbCredentials: {
-    url: Bun.env.DATABASE_URL as string,
-  },
+  dbCredentials: { url: Bun.env.DATABASE_URL as string },
   verbose: true,
   strict: true,
 })

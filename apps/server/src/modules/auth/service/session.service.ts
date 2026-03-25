@@ -2,23 +2,19 @@ import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
-import { sessionsTable } from '@/db/schema'
-
-import type { UserDto } from '@/modules/iam/dto'
-
 import { env } from '@/config/env'
 import { cache } from '@/core/cache'
 import { takeFirst } from '@/core/database'
 import { logger } from '@/core/logger'
 import { db } from '@/db'
+import { sessionsTable } from '@/db/schema'
+import type { UserDto } from '@/modules/iam/dto'
 
 import { SessionPayloadDto, type SessionDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const cacheKey = {
-  byId: (id: number) => `session.byId.${id}`,
-}
+const cacheKey = { byId: (id: number) => `session.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -43,27 +39,13 @@ export class SessionService {
       const createdAt = new Date()
       const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
-      const [session] = await db
-        .insert(sessionsTable)
-        .values({
-          userId: user.id,
-          createdAt,
-          expiredAt,
-        })
-        .returning()
+      const [session] = await db.insert(sessionsTable).values({ userId: user.id, createdAt, expiredAt }).returning()
 
       if (!session) throw new Error('Failed to create session')
 
-      const data: SessionPayloadDto = {
-        id: session.id,
-        userId: user.id,
-        email: user.email,
-        username: user.username,
-      }
+      const data: SessionPayloadDto = { id: session.id, userId: user.id, email: user.email, username: user.username }
 
-      const token = jwt.sign(data, env.JWT_SECRET, {
-        expiresIn: env.JWT_EXPIRES_IN,
-      })
+      const token = jwt.sign(data, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN })
 
       return { session: session as SessionDto, token }
     })

@@ -1,17 +1,16 @@
 import z from 'zod'
-import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
+
+import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
-import { endpoint } from '@/config/endpoint'
+
+import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
 
 export const roleApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.iam.role.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...RoleFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...RoleFilterDto.shape }),
     result: zHttp.paginated(RoleDto.array()),
   }),
   detail: apiFactory({
@@ -29,10 +28,7 @@ export const roleApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.iam.role.update,
-    body: z.object({
-      id: zPrimitive.id,
-      ...RoleUpdateDto.shape,
-    }),
+    body: z.object({ id: zPrimitive.id, ...RoleUpdateDto.shape }),
     result: zHttp.ok(zSchema.recordId),
   }),
   remove: apiFactory({

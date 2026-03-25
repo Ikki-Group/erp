@@ -3,7 +3,6 @@ import type { Logger } from 'pino'
 
 import type { MokaConfigurationDto } from '../dto/moka-configuration.dto'
 import type { MokaTriggerInputDto } from '../dto/moka.dto'
-
 import { MokaAuthEngine } from './engine/moka-auth.service'
 import { MokaCategoryEngine } from './engine/moka-category.service'
 import { MokaProductEngine } from './engine/moka-product.service'
@@ -17,7 +16,7 @@ export class MokaScrapService {
     private readonly configSvc: MokaConfigurationService,
     private readonly historySvc: MokaScrapHistoryService,
     private readonly transformSvc: MokaTransformationService,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {}
 
   async handleTrigger(input: MokaTriggerInputDto, actorId: number) {
@@ -28,14 +27,8 @@ export class MokaScrapService {
     const dateTo = input.dateTo || new Date()
 
     const { id: historyId } = await this.historySvc.create(
-      {
-        mokaConfigurationId: config.id,
-        type: input.type,
-        dateFrom,
-        dateTo,
-        status: 'processing',
-      },
-      actorId
+      { mokaConfigurationId: config.id, type: input.type, dateFrom, dateTo, status: 'processing' },
+      actorId,
     )
 
     this.runScrapTask(historyId, config, input, actorId).catch((err: unknown) => {
@@ -49,12 +42,9 @@ export class MokaScrapService {
     historyId: number,
     config: MokaConfigurationDto,
     input: MokaTriggerInputDto,
-    actorId: number
+    actorId: number,
   ) {
-    const auth = new MokaAuthEngine(this.logger, {
-      email: config.email,
-      password: config.password,
-    })
+    const auth = new MokaAuthEngine(this.logger, { email: config.email, password: config.password })
 
     try {
       await auth.ensureAuthenticated()
@@ -69,16 +59,12 @@ export class MokaScrapService {
         const engine = new MokaCategoryEngine(auth, this.logger)
         const categories = await engine.fetch()
         await this.transformSvc.transformCategories(config.locationId, categories, actorId)
-        await this.historySvc.updateStatus(historyId, 'completed', {
-          metadata: { count: categories.length },
-        })
+        await this.historySvc.updateStatus(historyId, 'completed', { metadata: { count: categories.length } })
       } else if (input.type === 'product') {
         const engine = new MokaProductEngine(auth, this.logger)
         const products = await engine.fetch()
         await this.transformSvc.transformProducts(config.locationId, products, actorId)
-        await this.historySvc.updateStatus(historyId, 'completed', {
-          metadata: { count: products.length },
-        })
+        await this.historySvc.updateStatus(historyId, 'completed', { metadata: { count: products.length } })
       } else if (input.type === 'sales') {
         const engine = new MokaSalesEngine(auth, this.logger, {
           from: input.dateFrom || new Date(),
@@ -86,9 +72,7 @@ export class MokaScrapService {
         })
         const sales = await engine.fetch()
         // TODO: Transform sales data
-        await this.historySvc.updateStatus(historyId, 'completed', {
-          metadata: { count: sales.length },
-        })
+        await this.historySvc.updateStatus(historyId, 'completed', { metadata: { count: sales.length } })
       }
     } catch (error: any) {
       await this.historySvc.updateStatus(historyId, 'failed', {

@@ -1,7 +1,6 @@
 import Elysia from 'elysia'
 
 import type { MaterialServiceModule } from '../service'
-
 import { initMaterialCategoryRoute } from './material-category.route'
 import { initMaterialLocationRoute } from './material-location.route'
 import { initMaterialRoute } from './material.route'

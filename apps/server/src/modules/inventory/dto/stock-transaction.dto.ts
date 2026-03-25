@@ -122,9 +122,6 @@ export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 /* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 
 /** Response for batch transaction operations */
-export const TransactionResultDto = z.object({
-  count: z.number(),
-  referenceNo: zPrimitive.str,
-})
+export const TransactionResultDto = z.object({ count: z.number(), referenceNo: zPrimitive.str })
 
 export type TransactionResultDto = z.infer<typeof TransactionResultDto>

@@ -10,11 +10,7 @@ const targets: TransportTargetOptions[] = []
 if (isDev || env.LOG_PRETTY) {
   targets.push({
     target: 'pino-pretty',
-    options: {
-      colorize: true,
-      ignore: 'pid,hostname,req.headers,module,res',
-      translateTime: 'SYS:standard',
-    },
+    options: { colorize: true, ignore: 'pid,hostname,req.headers,module,res', translateTime: 'SYS:standard' },
   })
 } else {
   targets.push({
@@ -25,25 +21,11 @@ if (isDev || env.LOG_PRETTY) {
 
 // Axiom Transport
 if (env.AXIOM_TOKEN) {
-  targets.push({
-    target: '@axiomhq/pino',
-    options: {
-      dataset: env.AXIOM_DATASET,
-      token: env.AXIOM_TOKEN,
-    },
-  })
+  targets.push({ target: '@axiomhq/pino', options: { dataset: env.AXIOM_DATASET, token: env.AXIOM_TOKEN } })
 }
 
-const transport = pino.transport({
-  targets,
-})
+const transport = pino.transport({ targets })
 
-const logger = pino(
-  {
-    level: env.LOG_LEVEL,
-    timestamp: pino.stdTimeFunctions.isoTime,
-  },
-  transport
-)
+const logger = pino({ level: env.LOG_LEVEL, timestamp: pino.stdTimeFunctions.isoTime }, transport)
 
 export { logger }

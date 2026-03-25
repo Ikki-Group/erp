@@ -6,7 +6,7 @@ import type { SettingsSummaryDto } from '../dto'
 export class SettingsService {
   constructor(
     private readonly iam: IamServiceModule,
-    private readonly location: LocationServiceModule
+    private readonly location: LocationServiceModule,
   ) {}
 
   async getSettingsSummary(): Promise<SettingsSummaryDto> {
@@ -16,10 +16,6 @@ export class SettingsService {
       this.location.location.count(),
     ])
 
-    return {
-      users,
-      roles,
-      locations,
-    }
+    return { users, roles, locations }
   }
 }

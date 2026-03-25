@@ -1,4 +1,9 @@
 import { z } from 'zod'
+
+import { endpoint } from '@/config/endpoint'
+import { apiFactory } from '@/lib/api'
+import { zHttp, zSchema } from '@/lib/zod'
+
 import {
   AdjustmentTransactionDto,
   GenerateSummaryDto,
@@ -13,27 +18,18 @@ import {
   TransactionResultDto,
   TransferTransactionDto,
 } from '../dto'
-import { endpoint } from '@/config/endpoint'
-import { apiFactory } from '@/lib/api'
-import { zHttp, zSchema } from '@/lib/zod'
 
 export const stockSummaryApi = {
   byLocation: apiFactory({
     method: 'get',
     url: endpoint.inventory.summary.byLocation,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...StockSummaryFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...StockSummaryFilterDto.shape }),
     result: zHttp.paginated(StockSummaryOutputDto.array()),
   }),
   ledger: apiFactory({
     method: 'get',
     url: endpoint.inventory.summary.ledger,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...StockLedgerFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...StockLedgerFilterDto.shape }),
     result: zHttp.paginated(StockLedgerOutputDto.array()),
   }),
   generate: apiFactory({
@@ -48,10 +44,7 @@ export const stockTransactionApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.inventory.transaction.list,
-    params: z.object({
-      ...zHttp.pagination.shape,
-      ...StockTransactionFilterDto.shape,
-    }),
+    params: z.object({ ...zHttp.pagination.shape, ...StockTransactionFilterDto.shape }),
     result: zHttp.paginated(StockTransactionOutputDto.array()),
   }),
   detail: apiFactory({

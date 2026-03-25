@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
 import { Link } from '@tanstack/react-router'
+import { Fragment } from 'react'
 import type { ReactNode } from 'react'
 
 import {
@@ -38,14 +38,7 @@ interface PageHeaderProps {
  * PageHeader — Core layout component for page titles, breadcrumbs and actions.
  * Usually placed at the top of a Page.
  */
-export function PageHeader({
-  title,
-  description,
-  breadcrumbs,
-  actions,
-  children,
-  className,
-}: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumbs, actions, children, className }: PageHeaderProps) {
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       {/* Breadcrumbs */}
@@ -60,9 +53,7 @@ export function PageHeader({
                     {isLast || !step.href ? (
                       <BreadcrumbPage>{step.label}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink
-                        render={<Link to={step.href as any}>{step.label}</Link>}
-                      />
+                      <BreadcrumbLink render={<Link to={step.href as any}>{step.label}</Link>} />
                     )}
                   </BreadcrumbItem>
                   {!isLast && <BreadcrumbSeparator />}
@@ -74,18 +65,16 @@ export function PageHeader({
       )}
 
       {/* Title & Actions */}
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-        <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight'>{title}</h1>
-          {description && (
-            <p className='text-sm text-muted-foreground'>{description}</p>
-          )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
-        {actions && <div className='flex items-center gap-2'>{actions}</div>}
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
 
       {/* Tabs or Extra content */}
-      {children && <div className='mt-2'>{children}</div>}
+      {children && <div className="mt-2">{children}</div>}
     </div>
   )
 }
