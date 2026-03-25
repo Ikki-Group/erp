@@ -12,9 +12,10 @@
     "db:migrate": "bunx --bun drizzle-kit migrate",
     "db:studio": "bunx --bun drizzle-kit studio",
     "seed": "bun run scripts/seed.ts",
-    "lint": "eslint --report-unused-disable-directives --max-warnings 0 .",
-    "lint:fix": "eslint --fix --max-warnings 0 .",
-    "format": "prettier --write .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt",
+    "check": "oxfmt -w . && oxlint --fix .",
     "knip": "bunx --bun knip --config knip.jsonc",
     "typecheck": "tsc --noEmit",
     "check-deps": "dpdm --no-tree --no-warning --exit-code circular:1 src/server.ts",
@@ -24,11 +25,8 @@
   },
   "lint-staged": {
     "**/*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "**/*.{json,md,yml,yaml,jsonc}": [
-      "prettier --write"
+      "oxlint --fix",
+      "oxfmt -w"
     ]
   },
   "dependencies": {
@@ -59,21 +57,16 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/bun": "^1.3.9",
     "@types/ms": "^2.1.0",
     "dpdm": "^4.0.1",
     "drizzle-kit": "^1.0.0-beta.15-859cf75",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-unused-imports": "^4.4.1",
     "husky": "^9.1.7",
     "knip": "^5.83.1",
     "lint-staged": "^16.3.2",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.0"
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
+    "typescript": "^5.9.3"
   }
 }

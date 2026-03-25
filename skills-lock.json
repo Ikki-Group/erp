@@ -31,6 +31,11 @@
       "sourceType": "github",
       "computedHash": "c44ff51d43e41ed4753e3cfbdde1100f3906124ee90f8e624bf159e5d8eaf45e"
     },
+    "project-workflow-analysis-blueprint-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "3d55c341daf416e131919657ef92616619bfa52b6caea81029b79a64e4f958a3"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
