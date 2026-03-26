@@ -1,6 +1,6 @@
 # Ikki ERP — Master Todo List
 
-> **Last Updated:** 2026-03-08
+> **Last Updated:** 2026-03-26
 > **Legend:** ✅ Done · 🔧 In Progress · ⬜ Todo · 🔴 Critical
 
 ---
@@ -15,6 +15,8 @@
 | Inventory        |   ✅   |   🔧   | Partial UI  |
 | Products         |   ✅   |   ✅   | Operational |
 | Recipes          |   ✅   |   🔧   | Partial UI  |
+| Sales            |   ✅   |   🔧   | Partial UI  |
+| Moka POS         |   ✅   |   🔧   | Partial UI  |
 | Dashboard        |   ✅   |   🔧   | Partial     |
 | Tools (Seed)     |   ✅   |   —    | Dev Only    |
 
