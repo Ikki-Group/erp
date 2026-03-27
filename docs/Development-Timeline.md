@@ -44,12 +44,12 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Establish product catalog management and recipe/BOM definitions.
 
-| Status | Task ID  | Description                                                                          | Component | Dependency |
-| :----: | :------- | :----------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `PRD-01` | Develop Product CRUD APIs (categories, sales types, external mappings).              |  Backend  | `DB-01`    |
-|   ✅   | `PRD-02` | Build Product management UI with DataTables and Forms.                               | Frontend  | `PRD-01`   |
-|   ✅   | `RCP-01` | Develop Recipe CRUD APIs with BOM item management.                                   |  Backend  | `MST-01`   |
-|   🏃   | `RCP-02` | Build Recipe management UI (list, create/edit, detail, cost calculator).              | Frontend  | `RCP-01`   |
+| Status | Task ID  | Description                                                              | Component | Dependency |
+| :----: | :------- | :----------------------------------------------------------------------- | :-------: | :--------- |
+|   ✅   | `PRD-01` | Develop Product CRUD APIs (categories, sales types, external mappings).  |  Backend  | `DB-01`    |
+|   ✅   | `PRD-02` | Build Product management UI with DataTables and Forms.                   | Frontend  | `PRD-01`   |
+|   ✅   | `RCP-01` | Develop Recipe CRUD APIs with BOM item management.                       |  Backend  | `MST-01`   |
+|   🏃   | `RCP-02` | Build Recipe management UI (list, create/edit, detail, cost calculator). | Frontend  | `RCP-01`   |
 
 ---
 
@@ -57,12 +57,12 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Construct the core warehouse operations module ensuring accurate tracking of stock movements, internal transfers, and physical adjustments.
 
-| Status | Task ID  | Description                                                                            | Component | Dependency |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `INV-01` | Establish database schemas for `stock_movements` and `stock_summaries`.                |  Backend  | `MST-01`   |
-|   ✅   | `INV-02` | Develop transactional APIs for Inbound, Outbound, and Internal Transfers.              |  Backend  | `INV-01`   |
-|   ✅   | `INV-03` | Implement Stock Summary generation with WAC calculation and material ledger.           |  Backend  | `INV-02`   |
-|   🏃   | `INV-04` | Construct Stock Movement Dashboards and Opname data entry forms.                       | Frontend  | `INV-02`   |
+| Status | Task ID  | Description                                                                  | Component | Dependency |
+| :----: | :------- | :--------------------------------------------------------------------------- | :-------: | :--------- |
+|   ✅   | `INV-01` | Establish database schemas for `stock_movements` and `stock_summaries`.      |  Backend  | `MST-01`   |
+|   ✅   | `INV-02` | Develop transactional APIs for Inbound, Outbound, and Internal Transfers.    |  Backend  | `INV-01`   |
+|   ✅   | `INV-03` | Implement Stock Summary generation with WAC calculation and material ledger. |  Backend  | `INV-02`   |
+|   🏃   | `INV-04` | Construct Stock Movement Dashboards and Opname data entry forms.             | Frontend  | `INV-02`   |
 
 ---
 
@@ -70,13 +70,13 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Integrate with Moka POS for product sync, sales data scraping, and scrap/waste tracking.
 
-| Status | Task ID   | Description                                                               | Component | Dependency |
-| :----: | :-------- | :------------------------------------------------------------------------ | :-------: | :--------- |
-|   ✅   | `MOKA-01` | Implement Moka Auth service (OAuth token management).                     |  Backend  | -          |
-|   ✅   | `MOKA-02` | Develop product, category, and sales scraping engine.                     |  Backend  | `MOKA-01`  |
-|   ✅   | `MOKA-03` | Build Moka configuration management API (per-outlet settings).            |  Backend  | `MOKA-01`  |
-|   ✅   | `MOKA-04` | Implement scrap history tracking and data transformation service.         |  Backend  | `MOKA-02`  |
-|   🏃   | `MOKA-05` | Build Moka management UI (configuration, sync status).                    | Frontend  | `MOKA-03`  |
+| Status | Task ID   | Description                                                       | Component | Dependency |
+| :----: | :-------- | :---------------------------------------------------------------- | :-------: | :--------- |
+|   ✅   | `MOKA-01` | Implement Moka Auth service (OAuth token management).             |  Backend  | -          |
+|   ✅   | `MOKA-02` | Develop product, category, and sales scraping engine.             |  Backend  | `MOKA-01`  |
+|   ✅   | `MOKA-03` | Build Moka configuration management API (per-outlet settings).    |  Backend  | `MOKA-01`  |
+|   ✅   | `MOKA-04` | Implement scrap history tracking and data transformation service. |  Backend  | `MOKA-02`  |
+|   🏃   | `MOKA-05` | Build Moka management UI (configuration, sync status).            | Frontend  | `MOKA-03`  |
 
 ---
 
@@ -84,11 +84,11 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Implement sales order management with inventory integration.
 
-| Status | Task ID  | Description                                                              | Component | Dependency |
-| :----: | :------- | :----------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `SAL-01` | Develop Sales Order CRUD API with status workflow.                       |  Backend  | `MST-01`   |
-|   🏃   | `SAL-02` | Build Sales Order management UI (list, create/edit, detail).             | Frontend  | `SAL-01`   |
-|   ⏳   | `SAL-03` | Integrate Delivery Order (DO): dispatching triggers outbound stock.      | Fullstack | `INV-02`   |
+| Status | Task ID  | Description                                                         | Component | Dependency |
+| :----: | :------- | :------------------------------------------------------------------ | :-------: | :--------- |
+|   ✅   | `SAL-01` | Develop Sales Order CRUD API with status workflow.                  |  Backend  | `MST-01`   |
+|   🏃   | `SAL-02` | Build Sales Order management UI (list, create/edit, detail).        | Frontend  | `SAL-01`   |
+|   ⏳   | `SAL-03` | Integrate Delivery Order (DO): dispatching triggers outbound stock. | Fullstack | `INV-02`   |
 
 ---
 
@@ -107,10 +107,10 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Automate the conversion of Raw Materials into Finished Goods via structured Bills of Materials (BOM).
 
-| Status | Task ID  | Description                                                                             | Component | Dependency |
-| :----: | :------- | :-------------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ⏳   | `MFG-01` | Develop Production Order APIs based on Recipe/BOM definitions.                          | Fullstack | `RCP-01`   |
-|   ⏳   | `MFG-02` | Implement WIP service: Record material consumption and yield output.                    | Fullstack | `INV-02`   |
+| Status | Task ID  | Description                                                          | Component | Dependency |
+| :----: | :------- | :------------------------------------------------------------------- | :-------: | :--------- |
+|   ⏳   | `MFG-01` | Develop Production Order APIs based on Recipe/BOM definitions.       | Fullstack | `RCP-01`   |
+|   ⏳   | `MFG-02` | Implement WIP service: Record material consumption and yield output. | Fullstack | `INV-02`   |
 
 ---
 
