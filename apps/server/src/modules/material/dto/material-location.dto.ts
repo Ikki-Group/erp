@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataSchema } from '@/core/validation'
-import { LocationDto } from '@/modules/location/dto'
+import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { LocationDto } from '@/modules/location'
 
 import { UomDto } from './uom.dto'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
   id: zId,
@@ -21,8 +21,7 @@ export const MaterialLocationDto = z.object({
   currentQty: zNum.default(0),
   currentAvgCost: zNum.default(0),
   currentValue: zNum.default(0),
-
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
@@ -30,7 +29,10 @@ export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Enriched view with location details — used in "locations assigned to material" */
-export const MaterialLocationWithLocationDto = z.object({ ...MaterialLocationDto.shape, location: LocationDto })
+export const MaterialLocationWithLocationDto = z.object({
+  ...MaterialLocationDto.shape,
+  location: LocationDto,
+})
 
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 

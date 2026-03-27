@@ -1,7 +1,7 @@
 import type { Logger } from 'pino'
 
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
-import { MokaSalesDetailRawSchema } from '../../dto/moka.dto'
+import { MokaSalesDetailRawDto } from '../../dto/moka.dto'
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 import { expandDates } from './moka-utils'
@@ -85,6 +85,6 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
     const response = await api.get<unknown>(`/order-reporting/backoffice/v1/orders/${token}`, {
       headers: this.getHeaders('OUTLET'),
     })
-    return MokaSalesDetailRawSchema.parse(response.data) as unknown as MokaSalesDetailRaw
+    return MokaSalesDetailRawDto.parse(response.data) as unknown as MokaSalesDetailRaw
   }
 }

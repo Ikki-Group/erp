@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
 
 import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
@@ -10,35 +10,35 @@ export const uomApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.material.uom.list,
-    params: z.object({ ...zHttp.pagination.shape, ...UomFilterDto.shape }),
-    result: zHttp.paginated(UomDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...UomFilterDto.shape }),
+    result: createPaginatedResponseSchema(UomDto.array()),
   }),
 
   detail: apiFactory({
     method: 'get',
     url: endpoint.material.uom.detail,
-    params: zSchema.recordId,
-    result: zHttp.ok(UomDto),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(UomDto),
   }),
 
   create: apiFactory({
     method: 'post',
     url: endpoint.material.uom.create,
     body: UomMutationDto,
-    result: zHttp.ok(zSchema.recordId),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 
   update: apiFactory({
     method: 'put',
     url: endpoint.material.uom.update,
-    body: z.object({ id: zPrimitive.id, ...UomMutationDto.shape }),
-    result: zHttp.ok(zSchema.recordId),
+    body: z.object({ id: zId, ...UomMutationDto.shape }),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 
   remove: apiFactory({
     method: 'delete',
     url: endpoint.material.uom.remove,
-    params: zSchema.recordId,
-    result: zHttp.ok(zSchema.recordId),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 }

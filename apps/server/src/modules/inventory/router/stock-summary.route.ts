@@ -3,14 +3,14 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
-  GenerateSummaryDto,
-  StockLedgerFilterDto,
-  StockLedgerSelectDto,
-  StockSummaryFilterDto,
-  StockSummarySelectDto,
+  generateSummarySchema,
+  stockLedgerFilterSchema,
+  stockLedgerSelectSchema,
+  stockSummaryFilterSchema,
+  stockSummarySelectSchema,
 } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
@@ -27,8 +27,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zPaginationSchema.shape, ...StockSummaryFilterDto.shape }),
-          response: createPaginatedResponseSchema(StockSummarySelectDto.array()),
+          query: stockSummaryFilterSchema.extend(zPaginationDto.shape),
+          response: createPaginatedResponseSchema(stockSummarySelectSchema.array()),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
         },
@@ -42,8 +42,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zPaginationSchema.shape, ...StockLedgerFilterDto.shape }),
-          response: createPaginatedResponseSchema(StockLedgerSelectDto.array()),
+          query: stockLedgerFilterSchema.extend(zPaginationDto.shape),
+          response: createPaginatedResponseSchema(stockLedgerSelectSchema.array()),
           auth: true,
           detail: { tags: ['Inventory Ledger'] },
         },
@@ -57,7 +57,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.ok(result)
         },
         {
-          body: GenerateSummaryDto,
+          body: generateSummarySchema,
           response: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
           auth: true,
           detail: { tags: ['Inventory Summary'] },

@@ -1,43 +1,43 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zStr, zBool, zId, zEmail, zPassword, zUsername, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/lib/zod'
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
 export const UserBase = z.object({
-  email: zPrimitive.email,
-  username: zPrimitive.username,
-  fullname: zPrimitive.str,
-  isRoot: zPrimitive.bool,
-  isActive: zPrimitive.bool,
+  email: zEmail,
+  username: zUsername,
+  fullname: zStr,
+  isRoot: zBool,
+  isActive: zBool,
 })
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const UserDto = z.object({
-  id: zPrimitive.id,
+  id: zId,
   ...UserBase.shape,
-  passwordHash: zPrimitive.str,
-  ...zSchema.metadata.shape,
+  passwordHash: zStr,
+  ...zMetadataDto.shape,
 })
 
 export type UserDto = z.infer<typeof UserDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const UserFilterDto = z.object({ search: zHttp.query.search, isActive: zHttp.query.boolean.optional() })
+export const UserFilterDto = z.object({ search: zQuerySearch, isActive: zQueryBoolean.optional() })
 
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
 export const UserOutputDto = z.object({
-  id: zPrimitive.id,
+  id: zId,
   ...UserBase.shape,
   assignments: z.array(UserAssignmentDetailDto),
-  ...zSchema.metadata.shape,
+  ...zMetadataDto.shape,
 })
 
 export type UserOutputDto = z.infer<typeof UserOutputDto>
@@ -46,7 +46,7 @@ export type UserOutputDto = z.infer<typeof UserOutputDto>
 
 export const UserCreateDto = z.object({
   ...UserBase.shape,
-  password: zPrimitive.password,
+  password: zPassword,
   assignments: z.array(UserAssignmentUpsertDto).default([]),
 })
 
@@ -56,7 +56,7 @@ export type UserCreateDto = z.infer<typeof UserCreateDto>
 
 export const UserUpdateDto = z.object({
   ...UserBase.shape,
-  password: zPrimitive.password.optional(),
+  password: zPassword.optional(),
   assignments: z.array(UserAssignmentUpsertDto).optional(),
 })
 
@@ -64,10 +64,10 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 
 /* ------------------------------ SPECIALIZED ------------------------------- */
 
-export const UserChangePasswordDto = z.object({ oldPassword: zPrimitive.password, newPassword: zPrimitive.password })
+export const UserChangePasswordDto = z.object({ oldPassword: zPassword, newPassword: zPassword })
 
 export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
 
-export const UserAdminUpdatePasswordDto = z.object({ id: zPrimitive.id, password: zPrimitive.password })
+export const UserAdminUpdatePasswordDto = z.object({ id: zId, password: zPassword })
 
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

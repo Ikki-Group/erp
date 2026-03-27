@@ -12,7 +12,7 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
     .use(authPluginMacro)
     .get(
       '/by-location/:locationId',
-      async ({ params }) => {
+      async function findByLocationId({ params }) {
         const result = await service.findByLocationId(Number(params.locationId))
         if (!result) return res.ok(null)
         return res.ok(MokaConfigurationOutputDto.parse(result))
@@ -21,7 +21,7 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
     )
     .post(
       '/create',
-      async ({ body, auth }) => {
+      async function create({ body, auth }) {
         const result = await service.handleCreate(body, auth.userId)
         return res.created(result)
       },
@@ -29,7 +29,7 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
     )
     .put(
       '/update/:id',
-      async ({ params, body, auth }) => {
+      async function update({ params, body, auth }) {
         const result = await service.handleUpdate(Number(params.id), body, auth.userId)
         return res.ok(result)
       },

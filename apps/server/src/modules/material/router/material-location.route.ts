@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   MaterialLocationAssignDto,
@@ -44,7 +44,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           query: MaterialLocationUnassignDto,
-          response: createSuccessResponseSchema(zRecordIdSchema),
+          response: createSuccessResponseSchema(zRecordIdDto),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
@@ -58,7 +58,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           return res.ok(data)
         },
         {
-          query: zRecordIdSchema,
+          query: zRecordIdDto,
           response: createSuccessResponseSchema(MaterialLocationWithLocationDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
@@ -73,7 +73,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zPaginationSchema.shape, ...MaterialLocationFilterDto.shape }),
+          query: z.object({ ...MaterialLocationFilterDto.shape, ...zPaginationDto.shape }),
           response: createPaginatedResponseSchema(MaterialLocationStockDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
@@ -89,7 +89,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           body: MaterialLocationConfigDto,
-          response: createSuccessResponseSchema(zRecordIdSchema),
+          response: createSuccessResponseSchema(zRecordIdDto),
           auth: true,
           detail: { tags: ['Material Location'] },
         },

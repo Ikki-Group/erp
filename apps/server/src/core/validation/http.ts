@@ -23,7 +23,7 @@ export const zQuerySearch = zStr.optional().transform((val) => val === '' ? unde
 
 export const zQueryNum = zNumCoerce
 
-export const zPaginationSchema = z.object({
+export const zPaginationDto = z.object({
   page: zNumCoerce.int().positive().default(1),
   limit: zNumCoerce.int().positive().max(100).default(10),
 })

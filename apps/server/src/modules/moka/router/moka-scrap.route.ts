@@ -13,7 +13,7 @@ export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaS
     .use(authPluginMacro)
     .post(
       '/trigger',
-      async ({ body, auth }) => {
+      async function trigger({ body, auth }) {
         const result = await scrapSvc.handleTrigger(body, auth.userId)
         return res.ok(result)
       },
@@ -21,7 +21,7 @@ export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaS
     )
     .get(
       '/history',
-      async ({ query }) => {
+      async function history({ query }) {
         const result = await historySvc.handleList(
           query.mokaConfigurationId ? Number(query.mokaConfigurationId) : undefined,
         )

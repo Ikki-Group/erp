@@ -1,26 +1,26 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataSchema } from '@/core/validation'
-import { LocationDto } from '@/modules/location/dto'
-import { RecipeDto } from '@/modules/recipe/dto'
+import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataDto } from '@/core/validation'
+import { LocationDto } from '@/modules/location'
+import { RecipeDto } from '@/modules/recipe'
 
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-const MaterialType = z.enum(['raw', 'semi'])
-type MaterialType = z.infer<typeof MaterialType>
+export const MaterialType = z.enum(['raw', 'semi'])
+export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- NESTED --------------------------------- */
 
-const MaterialConversionDto = z.object({
+export const MaterialConversionDto = z.object({
   toBaseFactor: zDecimal,
   uomId: zId,
   uom: UomDto.optional(),
 })
 
-type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
+export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -35,7 +35,7 @@ export const MaterialDto = z.object({
 
   locationIds: zId.array(),
   conversions: MaterialConversionDto.array(),
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>

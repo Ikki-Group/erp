@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zQuerySearch, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { RoleCreateDto, RoleDto, RoleUpdateDto } from '../dto'
+import { RoleCreateDto, RoleDto, RoleUpdateDto, RoleFilterDto } from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initRoleRoute(s: IamServiceModule) {
@@ -18,7 +18,7 @@ export function initRoleRoute(s: IamServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, search: zQuerySearch }),
+        query: z.object({ ...RoleFilterDto.shape, ...zPaginationDto.shape }),
         response: createPaginatedResponseSchema(RoleDto.array()),
         auth: true,
       },
@@ -29,7 +29,7 @@ export function initRoleRoute(s: IamServiceModule) {
         const role = await s.role.handleDetail(query.id)
         return res.ok(role)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(RoleDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(RoleDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initRoleRoute(s: IamServiceModule) {
         const result = await s.role.handleCreate(body, auth.userId)
         return res.created(result, 'ROLE_CREATED')
       },
-      { body: RoleCreateDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: RoleCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -45,7 +45,11 @@ export function initRoleRoute(s: IamServiceModule) {
         const result = await s.role.handleUpdate(body.id, body, auth.userId)
         return res.ok(result, 'ROLE_UPDATED')
       },
-      { body: RoleUpdateDto.extend({ id: zId }), response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      {
+        body: z.object({ id: zId, ...RoleUpdateDto.shape }),
+        response: createSuccessResponseSchema(zRecordIdDto),
+        auth: true,
+      },
     )
     .delete(
       '/delete',
@@ -53,6 +57,6 @@ export function initRoleRoute(s: IamServiceModule) {
         const result = await s.role.handleRemove(body.id)
         return res.ok(result, 'ROLE_DELETED')
       },
-      { body: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

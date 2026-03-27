@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zId, zDate, zMetadataSchema, zRecordIdSchema } from '@/core/validation'
+import { zId, zDate, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 export const MokaScrapType = z.enum(['sales', 'product', 'category'])
 export type MokaScrapType = z.infer<typeof MokaScrapType>
@@ -9,7 +9,7 @@ export const MokaScrapStatus = z.enum(['pending', 'processing', 'completed', 'fa
 export type MokaScrapStatus = z.infer<typeof MokaScrapStatus>
 
 export const MokaScrapHistoryDto = z.object({
-  ...zRecordIdSchema.shape,
+  ...zRecordIdDto.shape,
   mokaConfigurationId: zId,
   type: MokaScrapType,
   status: MokaScrapStatus,
@@ -18,7 +18,7 @@ export const MokaScrapHistoryDto = z.object({
   rawPath: z.string().nullable(),
   errorMessage: z.string().nullable(),
   metadata: z.record(z.string(), z.any()).nullable(),
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type MokaScrapHistoryDto = z.infer<typeof MokaScrapHistoryDto>
 

@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
 
 import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 
@@ -10,35 +10,35 @@ export const salesTypeApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.product.salesType.list,
-    params: z.object({ ...zHttp.pagination.shape, ...SalesTypeFilterDto.shape }),
-    result: zHttp.paginated(SalesTypeDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...SalesTypeFilterDto.shape }),
+    result: createPaginatedResponseSchema(SalesTypeDto.array()),
   }),
 
   detail: apiFactory({
     method: 'get',
     url: endpoint.product.salesType.detail,
-    params: zSchema.recordId,
-    result: zHttp.ok(SalesTypeDto),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(SalesTypeDto),
   }),
 
   create: apiFactory({
     method: 'post',
     url: endpoint.product.salesType.create,
     body: SalesTypeMutationDto,
-    result: zHttp.ok(zSchema.recordId),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 
   update: apiFactory({
     method: 'put',
     url: endpoint.product.salesType.update,
-    body: z.object({ id: zPrimitive.id, ...SalesTypeMutationDto.shape }),
-    result: zHttp.ok(zSchema.recordId),
+    body: z.object({ id: zId, ...SalesTypeMutationDto.shape }),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 
   remove: apiFactory({
     method: 'delete',
     url: endpoint.product.salesType.remove,
-    params: zSchema.recordId,
-    result: zHttp.ok(zSchema.recordId),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 }

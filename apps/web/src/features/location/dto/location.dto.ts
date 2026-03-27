@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zStr, zBool, zId, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -10,13 +10,13 @@ export type LocationType = z.infer<typeof LocationType>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const LocationDto = z.object({
-  id: zPrimitive.id,
-  code: zPrimitive.str,
-  name: zPrimitive.str,
+  id: zId,
+  code: zStr,
+  name: zStr,
   type: LocationType,
-  description: zPrimitive.str.nullable(),
-  isActive: zPrimitive.bool,
-  ...zSchema.metadata.shape,
+  description: zStr.nullable(),
+  isActive: zBool,
+  ...zMetadataDto.shape,
 })
 
 export type LocationDto = z.infer<typeof LocationDto>
@@ -24,9 +24,9 @@ export type LocationDto = z.infer<typeof LocationDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const LocationFilterDto = z.object({
-  search: zHttp.query.search,
+  search: zQuerySearch,
   type: LocationType.optional(),
-  isActive: zHttp.query.boolean.optional(),
+  isActive: zQueryBoolean.optional(),
 })
 
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

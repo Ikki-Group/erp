@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp, zSchema } from '@/lib/zod'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
 
 import {
   AdjustmentTransactionDto,
@@ -23,20 +23,20 @@ export const stockSummaryApi = {
   byLocation: apiFactory({
     method: 'get',
     url: endpoint.inventory.summary.byLocation,
-    params: z.object({ ...zHttp.pagination.shape, ...StockSummaryFilterDto.shape }),
-    result: zHttp.paginated(StockSummaryOutputDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...StockSummaryFilterDto.shape }),
+    result: createPaginatedResponseSchema(StockSummaryOutputDto.array()),
   }),
   ledger: apiFactory({
     method: 'get',
     url: endpoint.inventory.summary.ledger,
-    params: z.object({ ...zHttp.pagination.shape, ...StockLedgerFilterDto.shape }),
-    result: zHttp.paginated(StockLedgerOutputDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...StockLedgerFilterDto.shape }),
+    result: createPaginatedResponseSchema(StockLedgerOutputDto.array()),
   }),
   generate: apiFactory({
     method: 'post',
     url: endpoint.inventory.summary.generate,
     body: GenerateSummaryDto,
-    result: zHttp.ok(z.object({ generatedCount: z.number() })),
+    result: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
   }),
 }
 
@@ -44,32 +44,32 @@ export const stockTransactionApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.inventory.transaction.list,
-    params: z.object({ ...zHttp.pagination.shape, ...StockTransactionFilterDto.shape }),
-    result: zHttp.paginated(StockTransactionOutputDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...StockTransactionFilterDto.shape }),
+    result: createPaginatedResponseSchema(StockTransactionOutputDto.array()),
   }),
   detail: apiFactory({
     method: 'get',
     url: endpoint.inventory.transaction.detail,
-    params: zSchema.recordId,
-    result: zHttp.ok(StockTransactionDto),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(StockTransactionDto),
   }),
   purchase: apiFactory({
     method: 'post',
     url: endpoint.inventory.transaction.purchase,
     body: PurchaseTransactionDto,
-    result: zHttp.ok(TransactionResultDto),
+    result: createSuccessResponseSchema(TransactionResultDto),
   }),
   transfer: apiFactory({
     method: 'post',
     url: endpoint.inventory.transaction.transfer,
     body: TransferTransactionDto,
-    result: zHttp.ok(TransactionResultDto),
+    result: createSuccessResponseSchema(TransactionResultDto),
   }),
   adjustment: apiFactory({
     method: 'post',
     url: endpoint.inventory.transaction.adjustment,
     body: AdjustmentTransactionDto,
-    result: zHttp.ok(TransactionResultDto),
+    result: createSuccessResponseSchema(TransactionResultDto),
   }),
 }
 

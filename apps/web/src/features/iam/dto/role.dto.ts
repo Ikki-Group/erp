@@ -1,25 +1,25 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/lib/zod'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
 export const RoleBase = z.object({
-  code: zPrimitive.str,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  isSystem: zPrimitive.bool,
+  code: zStr,
+  name: zStr,
+  description: zStrNullable,
+  isSystem: zBool,
 })
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const RoleDto = z.object({ id: zPrimitive.id, ...RoleBase.shape, ...zSchema.metadata.shape })
+export const RoleDto = z.object({ id: zId, ...RoleBase.shape, ...zMetadataDto.shape })
 
 export type RoleDto = z.infer<typeof RoleDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const RoleFilterDto = z.object({ search: zHttp.query.search })
+export const RoleFilterDto = z.object({ search: zQuerySearch })
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 

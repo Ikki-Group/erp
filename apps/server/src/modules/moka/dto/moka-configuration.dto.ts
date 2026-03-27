@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-import { zId, zDate, zEmail, zMetadataSchema, zRecordIdSchema } from '@/core/validation'
+import { zId, zDate, zEmail, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 export const MokaConfigurationDto = z.object({
-  ...zRecordIdSchema.shape,
+  ...zRecordIdDto.shape,
   locationId: zId,
   email: zEmail,
   password: z.string(),
@@ -11,7 +11,7 @@ export const MokaConfigurationDto = z.object({
   outletId: z.number().nullable(),
   accessToken: z.string().nullable(),
   lastSyncedAt: zDate.nullable(),
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
 
@@ -25,7 +25,8 @@ export const MokaConfigurationCreateDto = z.object({
 })
 export type MokaConfigurationCreateDto = z.infer<typeof MokaConfigurationCreateDto>
 
-export const MokaConfigurationUpdateDto = MokaConfigurationCreateDto.partial().extend({
+export const MokaConfigurationUpdateDto = z.object({
+  ...MokaConfigurationCreateDto.partial().shape,
   locationId: zId.optional(),
 })
 export type MokaConfigurationUpdateDto = z.infer<typeof MokaConfigurationUpdateDto>

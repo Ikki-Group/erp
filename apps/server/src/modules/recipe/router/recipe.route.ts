@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 import type { RecipeServiceModule } from '../service'
@@ -18,7 +18,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, ...RecipeFilterDto.shape }),
+        query: z.object({ ...RecipeFilterDto.shape, ...zPaginationDto.shape }),
         response: createPaginatedResponseSchema(RecipeSelectDto.array()),
         auth: true,
       },
@@ -29,7 +29,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         const recipe = await s.recipe.handleDetail(query.id)
         return res.ok(recipe)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(RecipeSelectDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(RecipeSelectDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         const { id } = await s.recipe.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: RecipeMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: RecipeMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -47,7 +47,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
       },
       {
         body: z.object({ id: zId, ...RecipeMutationDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -57,6 +57,6 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         await s.recipe.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

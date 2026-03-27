@@ -1,10 +1,10 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zDecimal, zSortOrder, zQuerySearch, zQueryBoolean, zQueryId, zMetadataSchema } from '@/core/validation'
+import { zStrNullable, zStr, zBool, zId, zDecimal, zSortOrder, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto } from '@/core/validation'
 
 /* --------------------------------- NESTED --------------------------------- */
 
-const RecipeItemDto = z.object({
+export const RecipeItemDto = z.object({
   id: zId,
   recipeId: zId,
   materialId: zId,
@@ -17,11 +17,10 @@ const RecipeItemDto = z.object({
   // optional joins
   material: z.object({ name: z.string(), sku: z.string() }).optional(),
   uom: z.object({ code: z.string() }).optional(),
-
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
-type RecipeItemDto = z.infer<typeof RecipeItemDto>
+export type RecipeItemDto = z.infer<typeof RecipeItemDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -36,8 +35,7 @@ export const RecipeDto = z.object({
 
   // items can be populated
   items: RecipeItemDto.array().optional(),
-
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
 export type RecipeDto = z.infer<typeof RecipeDto>
@@ -56,13 +54,13 @@ export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const RecipeSelectDto = z.object({ ...RecipeDto.shape })
+export const RecipeSelectDto = RecipeDto
 
 export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const RecipeItemMutationDto = z.object({
+export const RecipeItemMutationDto = z.object({
   materialId: zId,
   qty: zDecimal,
   scrapPercentage: zDecimal.optional().default('0'),
@@ -71,7 +69,7 @@ const RecipeItemMutationDto = z.object({
   sortOrder: zSortOrder.optional().default(0),
 })
 
-type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
+export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
 
 export const RecipeMutationDto = z
   .object({

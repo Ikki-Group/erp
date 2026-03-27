@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { zDate, zId } from './primitive'
 
-export const zMetadataSchema = z.object({
+export const zMetadataDto = z.object({
   createdAt: zDate,
   updatedAt: zDate,
   createdBy: zId,
@@ -10,4 +10,4 @@ export const zMetadataSchema = z.object({
   syncAt: zDate.optional().nullable(),
 })
 
-export const zRecordIdSchema = z.object({ id: zId })
+export const zRecordIdDto = z.object({ id: zId })

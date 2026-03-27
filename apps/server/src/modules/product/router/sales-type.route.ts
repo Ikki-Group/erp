@@ -1,11 +1,10 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
+import { salesTypeSchema, salesTypeFilterSchema, salesTypeMutationSchema } from '../dto'
 import type { ProductServiceModule } from '../service'
 
 export function initSalesTypeRoute(s: ProductServiceModule) {
@@ -18,8 +17,8 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, ...SalesTypeFilterDto.shape }),
-        response: createPaginatedResponseSchema(SalesTypeDto.array()),
+        query: salesTypeFilterSchema.extend(zPaginationDto.shape),
+        response: createPaginatedResponseSchema(salesTypeSchema.array()),
         auth: true,
       },
     )
@@ -29,7 +28,7 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         const salesType = await s.salesType.handleDetail(query.id)
         return res.ok(salesType)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(salesTypeSchema), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +36,7 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         const { id } = await s.salesType.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: SalesTypeMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: salesTypeMutationSchema, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -46,8 +45,8 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...SalesTypeMutationDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        body: salesTypeMutationSchema.extend({ id: zId }),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -57,6 +56,6 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         await s.salesType.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

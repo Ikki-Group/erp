@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { LocationDto } from '@/features/location'
 import { RecipeDto } from '@/features/recipe'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zStrNullable, zStr, zId, zQuerySearch, zQueryId, zQueryIds, zMetadataDto } from '@/lib/zod'
 
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
@@ -15,8 +15,8 @@ export type MaterialType = z.infer<typeof MaterialType>
 /* --------------------------------- NESTED --------------------------------- */
 
 export const MaterialConversionDto = z.object({
-  toBaseFactor: zPrimitive.str,
-  uomId: zPrimitive.id,
+  toBaseFactor: zStr,
+  uomId: zId,
   uom: UomDto.optional(),
 })
 
@@ -25,17 +25,17 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
-  id: zPrimitive.id,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  sku: zPrimitive.str,
+  id: zId,
+  name: zStr,
+  description: zStrNullable,
+  sku: zStr,
   type: MaterialType,
-  categoryId: zPrimitive.id.nullable(),
-  baseUomId: zPrimitive.id,
+  categoryId: zId.nullable(),
+  baseUomId: zId,
 
-  locationIds: zPrimitive.id.array(),
+  locationIds: zId.array(),
   conversions: MaterialConversionDto.array(),
-  ...zSchema.metadata.shape,
+  ...zMetadataDto.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>
@@ -43,11 +43,11 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialFilterDto = z.object({
-  search: zHttp.query.search,
+  search: zQuerySearch,
   type: MaterialType.optional(),
-  categoryId: zHttp.query.id.optional(),
-  locationIds: zHttp.query.ids,
-  excludeLocationIds: zHttp.query.ids,
+  categoryId: zQueryId.optional(),
+  locationIds: zQueryIds.optional(),
+  excludeLocationIds: zQueryIds.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>

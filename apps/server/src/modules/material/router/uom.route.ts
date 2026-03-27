@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
+import { UomFilterDto, UomMutationDto, UomDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
 
 export function initMaterialUomRoute(s: MaterialServiceModule) {
@@ -18,7 +18,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, ...UomFilterDto.shape }),
+        query: z.object({ ...UomFilterDto.shape, ...zPaginationDto.shape }),
         response: createPaginatedResponseSchema(UomDto.array()),
         auth: true,
       },
@@ -29,7 +29,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         const category = await s.uom.handleDetail(query.id)
         return res.ok(category)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(UomDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(UomDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         const { id } = await s.uom.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -47,7 +47,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       },
       {
         body: z.object({ id: zId, ...UomMutationDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -57,6 +57,6 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         await s.uom.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

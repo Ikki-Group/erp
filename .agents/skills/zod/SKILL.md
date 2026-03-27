@@ -274,19 +274,43 @@ type Person = z.infer<typeof PersonSchema>;
 
 // Object methods
 PersonSchema.shape                 // Access shape
-PersonSchema.keyof()              // Get union of keys
-PersonSchema.extend({ role: z.string() })  // Add fields
+z.object({ ...PersonSchema.shape }) // Compose via spread (Recommended for tsc-efficiency)
 PersonSchema.pick({ name: true }) // Pick specific fields
 PersonSchema.omit({ age: true })  // Omit fields
 PersonSchema.partial()            // Make all fields optional
 PersonSchema.required()           // Make all fields required
 PersonSchema.deepPartial()        // Recursively optional
 
+// ⚠️ DEPRECATED/AVOID in Ikki ERP
+// .extend() and .merge() are discouraged for large schemas due to quadratic tsc complexity.
+// Use spread syntax (...shape) instead.
+
 // Strict vs loose objects
 z.strictObject({ ... })           // No extra keys allowed (throws)
 z.object({ ... })                 // Strips extra keys (default)
 z.looseObject({ ... })            // Allows extra keys
 ```
+
+## Best Practices (Ikki ERP Standard)
+
+### 1. Unified Naming (Value + Type)
+Use the same name for the DTO value and type to reduce import clutter.
+```typescript
+export const UserDto = z.object({ ... })
+export type UserDto = z.infer<typeof UserDto>
+```
+
+### 2. Composition via Shape Spreading
+Always use spreading for performance and compatibility.
+```typescript
+export const MutationDto = z.object({
+  ...BaseDto.pick({ id: true }).shape,
+  newField: z.string()
+})
+```
+
+### 3. Flattened Primitives
+Export individual primitives (e.g., `zStr`, `zId`) for better tree-shaking.
 
 ### Arrays
 

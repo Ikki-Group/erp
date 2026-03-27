@@ -1,21 +1,21 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const ProductCategoryDto = z.object({
-  id: zPrimitive.id,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  ...zSchema.metadata.shape,
+  id: zId,
+  name: zStr,
+  description: zStrNullable,
+  ...zMetadataDto.shape,
 })
 
 export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const ProductCategoryFilterDto = z.object({ search: zHttp.query.search })
+export const ProductCategoryFilterDto = z.object({ search: zQuerySearch })
 
 export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 

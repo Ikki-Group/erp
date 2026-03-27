@@ -1,12 +1,19 @@
 import { Elysia } from 'elysia'
-import { z } from 'zod'
+import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { ForbiddenError } from '@/core/http/errors'
 import { res } from '@/core/http/response'
-import { zId, zQuerySearch, zQueryBoolean, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { UserAdminUpdatePasswordDto, UserChangePasswordDto, UserCreateDto, UserOutputDto, UserUpdateDto } from '../dto'
+import {
+  UserAdminUpdatePasswordDto,
+  UserChangePasswordDto,
+  UserCreateDto,
+  UserOutputDto,
+  UserUpdateDto,
+  UserFilterDto,
+} from '../dto'
 import type { IamServiceModule } from '../service'
 
 export function initUserRoute(s: IamServiceModule) {
@@ -19,7 +26,7 @@ export function initUserRoute(s: IamServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, search: zQuerySearch, isActive: zQueryBoolean }),
+        query: z.object({ ...UserFilterDto.shape, ...zPaginationDto.shape }),
         response: createPaginatedResponseSchema(UserOutputDto.array()),
         auth: true,
       },
@@ -30,7 +37,7 @@ export function initUserRoute(s: IamServiceModule) {
         const user = await s.user.handleDetail(query.id)
         return res.ok(user)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(UserOutputDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(UserOutputDto), auth: true },
     )
     .post(
       '/create',
@@ -38,7 +45,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleCreate(body, auth.userId)
         return res.created(result, 'USER_CREATED')
       },
-      { body: UserCreateDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -48,7 +55,7 @@ export function initUserRoute(s: IamServiceModule) {
       },
       {
         body: z.object({ id: zId, ...UserUpdateDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -58,7 +65,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleRemove(body.id)
         return res.ok(result, 'USER_DELETED')
       },
-      { body: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/change-password',
@@ -66,7 +73,7 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleChangePassword(auth.userId, body)
         return res.ok(result, 'USER_PASSWORD_CHANGED')
       },
-      { body: UserChangePasswordDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: UserChangePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/admin-update-password',
@@ -75,6 +82,6 @@ export function initUserRoute(s: IamServiceModule) {
         const result = await s.user.handleAdminUpdatePassword(auth.userId, body)
         return res.ok(result, 'USER_PASSWORD_UPDATED_BY_ADMIN')
       },
-      { body: UserAdminUpdatePasswordDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: UserAdminUpdatePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

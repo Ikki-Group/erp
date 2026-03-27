@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zCodeUpper, zQuerySearch, zQueryBoolean, zMetadataSchema } from '@/core/validation'
+import { zStrNullable, zStr, zBool, zId, zCodeUpper, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-const LocationType = z.enum(['store', 'warehouse'])
-type LocationType = z.infer<typeof LocationType>
+export const LocationType = z.enum(['store', 'warehouse'])
+export type LocationType = z.infer<typeof LocationType>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -16,7 +16,7 @@ export const LocationDto = z.object({
   type: LocationType,
   description: zStrNullable,
   isActive: zBool,
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
 export type LocationDto = z.infer<typeof LocationDto>
@@ -34,7 +34,13 @@ export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const LocationMutationDto = z.object({
-  ...LocationDto.pick({ code: true, name: true, type: true, description: true, isActive: true }).shape,
+  ...LocationDto.pick({
+    code: true,
+    name: true,
+    type: true,
+    description: true,
+    isActive: true,
+  }).shape,
 })
 
 export type LocationMutationDto = z.infer<typeof LocationMutationDto>

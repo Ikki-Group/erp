@@ -3,9 +3,9 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zQueryId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema } from '@/core/validation'
 
-import { LocationFilterDto, LocationMutationDto } from '../dto'
+import { LocationFilterDto, LocationMutationDto, LocationDto } from '../dto'
 import type { LocationService } from '../service/location.service'
 
 export function initLocationRoute(service: LocationService) {
@@ -14,11 +14,13 @@ export function initLocationRoute(service: LocationService) {
     .get(
       '/list',
       async function list({ query }) {
-        const { isActive, search, type, page, limit } = query
-        const result = await service.handleList({ isActive, search, type }, { page, limit })
+        const result = await service.handleList(query, query)
         return res.paginated(result)
       },
-      { query: z.object({ ...zPaginationSchema.shape, ...LocationFilterDto.shape }), auth: true },
+      {
+        query: z.object({ ...LocationFilterDto.shape, ...zPaginationDto.shape }),
+        auth: true,
+      },
     )
     .get(
       '/detail',
@@ -26,7 +28,7 @@ export function initLocationRoute(service: LocationService) {
         const location = await service.handleDetail(query.id)
         return res.ok(location)
       },
-      { query: z.object({ id: zQueryId }), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(LocationDto), auth: true },
     )
     .post(
       '/create',
@@ -34,7 +36,7 @@ export function initLocationRoute(service: LocationService) {
         const { id } = await service.handleCreate(body, auth.userId)
         return res.created({ id }, 'LOCATION_CREATED')
       },
-      { body: LocationMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: LocationMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -44,7 +46,7 @@ export function initLocationRoute(service: LocationService) {
       },
       {
         body: z.object({ id: zId, ...LocationMutationDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -54,6 +56,6 @@ export function initLocationRoute(service: LocationService) {
         const result = await service.handleRemove(body.id)
         return res.ok(result, 'LOCATION_DELETED')
       },
-      { body: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zHttp, zPrimitive, zSchema } from '@/lib/zod'
+import { zNum, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
 
 import { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
 
@@ -10,26 +10,26 @@ export const locationApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.location.list,
-    params: z.object({ ...zHttp.pagination.shape, ...LocationFilterDto.shape }),
-    result: zHttp.paginated(LocationDto.array()),
+    params: z.object({ ...zPaginationDto.shape, ...LocationFilterDto.shape }),
+    result: createPaginatedResponseSchema(LocationDto.array()),
   }),
   detail: apiFactory({
     method: 'get',
     url: endpoint.location.detail,
-    params: zSchema.recordId,
-    result: zHttp.ok(LocationDto),
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(LocationDto),
   }),
   create: apiFactory({
     method: 'post',
     url: endpoint.location.create,
     body: LocationMutationDto,
-    result: zHttp.ok(zSchema.recordId),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
   update: apiFactory({
     method: 'put',
     url: endpoint.location.update,
-    body: z.object({ id: zPrimitive.num, ...LocationMutationDto.shape }),
-    result: zHttp.ok(zSchema.recordId),
+    body: z.object({ id: zNum, ...LocationMutationDto.shape }),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
-  remove: apiFactory({ method: 'delete', url: endpoint.location.remove, result: zHttp.ok(zSchema.recordId) }),
+  remove: apiFactory({ method: 'delete', url: endpoint.location.remove, result: createSuccessResponseSchema(zRecordIdDto) }),
 }

@@ -1,19 +1,25 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
+import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
-export const RoleBase = z.object({
+export const RoleBaseDto = z.object({
   code: zStr,
   name: zStr,
   description: zStrNullable,
   isSystem: zBool,
 })
 
+export type RoleBaseDto = z.infer<typeof RoleBaseDto>
+
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const RoleDto = z.object({ id: zId, ...RoleBase.shape, ...zMetadataSchema.shape })
+export const RoleDto = z.object({
+  id: zId,
+  ...RoleBaseDto.shape,
+  ...zMetadataDto.shape,
+})
 
 export type RoleDto = z.infer<typeof RoleDto>
 
@@ -25,12 +31,12 @@ export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
 /* --------------------------------- CREATE --------------------------------- */
 
-export const RoleCreateDto = z.object({ ...RoleBase.shape })
+export const RoleCreateDto = RoleBaseDto
 
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
 /* --------------------------------- UPDATE --------------------------------- */
 
-export const RoleUpdateDto = z.object({ ...RoleBase.shape })
+export const RoleUpdateDto = RoleBaseDto
 
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>

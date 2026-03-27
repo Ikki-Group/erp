@@ -1,27 +1,32 @@
 import z from 'zod'
 
-import { zStr, zBool, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
+import { zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const SalesTypeDto = z.object({
-  id: zId,
-  code: zStr,
-  name: zStr,
-  isSystem: zBool,
-  ...zMetadataSchema.shape,
-})
+export const salesTypeSchema = z
+  .object({
+    id: zId,
+    code: zStr,
+    name: zStr,
+    isSystem: zBool,
+  })
+  .extend(zMetadataDto.shape)
 
-export type SalesTypeDto = z.infer<typeof SalesTypeDto>
+export type SalesTypeDto = z.infer<typeof salesTypeSchema>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const SalesTypeFilterDto = z.object({ search: zQuerySearch })
+export const salesTypeFilterSchema = z.object({ search: zQuerySearch })
 
-export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
+export type SalesTypeFilterDto = z.infer<typeof salesTypeFilterSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const SalesTypeMutationDto = z.object({ ...SalesTypeDto.pick({ code: true, name: true, isSystem: true }).shape })
+export const salesTypeMutationSchema = salesTypeSchema.pick({
+  code: true,
+  name: true,
+  isSystem: true,
+})
 
-export type SalesTypeMutationDto = z.infer<typeof SalesTypeMutationDto>
+export type SalesTypeMutationDto = z.infer<typeof salesTypeMutationSchema>

@@ -6,14 +6,15 @@ import { MokaScrapType } from './moka-scrap-history.dto'
 
 /* ---------------------------------- RAW ---------------------------------- */
 
-export const MokaCategoryRawSchema = z.object({
+export const MokaCategoryRawDto = z.object({
   id: z.number(),
   name: z.string(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 })
+export type MokaCategoryRawDto = z.infer<typeof MokaCategoryRawDto>
 
-export const MokaProductRawSchema = z.object({
+export const MokaProductRawDto = z.object({
   id: z.number(),
   name: z.string(),
   category_name: z.string().nullable().optional(),
@@ -21,8 +22,9 @@ export const MokaProductRawSchema = z.object({
     z.object({ id: z.number(), name: z.string(), price: z.number(), sku: z.string().nullable().optional() }),
   ),
 })
+export type MokaProductRawDto = z.infer<typeof MokaProductRawDto>
 
-export const MokaSalesItemRawSchema = z.object({
+export const MokaSalesItemRawDto = z.object({
   id: z.number(),
   uuid: z.string(),
   item_id: z.number(),
@@ -33,8 +35,9 @@ export const MokaSalesItemRawSchema = z.object({
   quantity: z.number(),
   note: z.string().nullable().optional(),
 })
+export type MokaSalesItemRawDto = z.infer<typeof MokaSalesItemRawDto>
 
-export const MokaSalesDetailRawSchema = z
+export const MokaSalesDetailRawDto = z
   .object({
     id: z.number(),
     uuid: z.string(),
@@ -52,10 +55,12 @@ export const MokaSalesDetailRawSchema = z
     include_gratuity_tax: z.boolean().optional(),
     enable_tax: z.boolean().optional(),
     enable_gratuity: z.boolean().optional(),
-    items: z.array(MokaSalesItemRawSchema).optional(),
-    order_items: z.record(z.string(), z.array(MokaSalesItemRawSchema)).optional(),
+    items: z.array(MokaSalesItemRawDto).optional(),
+    order_items: z.record(z.string(), z.array(MokaSalesItemRawDto)).optional(),
   })
   .passthrough() // Use passthrough to allow other fields from the raw API
+
+export type MokaSalesDetailRawDto = z.infer<typeof MokaSalesDetailRawDto>
 
 /* ---------------------------------- DTO ---------------------------------- */
 

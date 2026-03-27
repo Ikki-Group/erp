@@ -1,18 +1,17 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
-  AdjustmentTransactionDto,
-  PurchaseTransactionDto,
-  StockTransactionDto,
-  StockTransactionFilterDto,
-  StockTransactionSelectDto,
-  TransactionResultDto,
-  TransferTransactionDto,
+  adjustmentTransactionSchema,
+  purchaseTransactionSchema,
+  stockTransactionFilterSchema,
+  stockTransactionSchema,
+  stockTransactionSelectSchema,
+  transactionResultSchema,
+  transferTransactionSchema,
 } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
@@ -29,8 +28,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.ok(result)
         },
         {
-          body: PurchaseTransactionDto,
-          response: createSuccessResponseSchema(TransactionResultDto),
+          body: purchaseTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -44,8 +43,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.ok(result)
         },
         {
-          body: TransferTransactionDto,
-          response: createSuccessResponseSchema(TransactionResultDto),
+          body: transferTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -59,8 +58,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.ok(result)
         },
         {
-          body: AdjustmentTransactionDto,
-          response: createSuccessResponseSchema(TransactionResultDto),
+          body: adjustmentTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -74,8 +73,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zPaginationSchema.shape, ...StockTransactionFilterDto.shape }),
-          response: createPaginatedResponseSchema(StockTransactionSelectDto.array()),
+          query: stockTransactionFilterSchema.extend(zPaginationDto.shape),
+          response: createPaginatedResponseSchema(stockTransactionSelectSchema.array()),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -89,8 +88,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.ok(data)
         },
         {
-          query: zRecordIdSchema,
-          response: createSuccessResponseSchema(StockTransactionDto),
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(stockTransactionSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },

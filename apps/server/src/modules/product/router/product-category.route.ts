@@ -1,11 +1,10 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutationDto } from '../dto'
+import { productCategoryFilterSchema, productCategoryMutationSchema, productCategorySchema } from '../dto'
 import type { ProductServiceModule } from '../service'
 
 export function initProductCategoryRoute(s: ProductServiceModule) {
@@ -18,8 +17,8 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zPaginationSchema.shape, ...ProductCategoryFilterDto.shape }),
-        response: createPaginatedResponseSchema(ProductCategoryDto.array()),
+        query: productCategoryFilterSchema.extend(zPaginationDto.shape),
+        response: createPaginatedResponseSchema(productCategorySchema.array()),
         auth: true,
       },
     )
@@ -29,7 +28,7 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
         const category = await s.category.handleDetail(query.id)
         return res.ok(category)
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(ProductCategoryDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(productCategorySchema), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +36,7 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
         const { id } = await s.category.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: ProductCategoryMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { body: productCategoryMutationSchema, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .put(
       '/update',
@@ -46,8 +45,8 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...ProductCategoryMutationDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdSchema),
+        body: productCategoryMutationSchema.extend({ id: zId }),
+        response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
@@ -57,6 +56,6 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
         await s.category.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

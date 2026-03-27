@@ -1,28 +1,30 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const ProductCategoryDto = z.object({
-  id: zId,
-  name: zStr,
-  description: zStrNullable,
-  ...zMetadataSchema.shape,
-})
+export const productCategorySchema = z
+  .object({
+    id: zId,
+    name: zStr,
+    description: zStrNullable,
+  })
+  .merge(zMetadataDto)
 
-export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
+export type ProductCategoryDto = z.infer<typeof productCategorySchema>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const ProductCategoryFilterDto = z.object({ search: zQuerySearch })
+export const productCategoryFilterSchema = z.object({ search: zQuerySearch })
 
-export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
+export type ProductCategoryFilterDto = z.infer<typeof productCategoryFilterSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const ProductCategoryMutationDto = z.object({
-  ...ProductCategoryDto.pick({ name: true, description: true }).shape,
+export const productCategoryMutationSchema = productCategorySchema.pick({
+  name: true,
+  description: true,
 })
 
-export type ProductCategoryMutationDto = z.infer<typeof ProductCategoryMutationDto>
+export type ProductCategoryMutationDto = z.infer<typeof productCategoryMutationSchema>

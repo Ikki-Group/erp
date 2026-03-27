@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zDecimal, zQuerySearch, zMetadataSchema } from '@/core/validation'
+import { zStrNullable, zStr, zNum, zId, zDate, zDecimal, zQuerySearch, zMetadataDto } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const SalesOrderStatusEnum = z.enum(['open', 'closed', 'void'])
-export type SalesOrderStatusEnum = z.infer<typeof SalesOrderStatusEnum>
+export const SalesOrderStatus = z.enum(['open', 'closed', 'void'])
+export type SalesOrderStatus = z.infer<typeof SalesOrderStatus>
 
 /* --------------------------------- NESTED --------------------------------- */
 
@@ -14,7 +14,7 @@ export const SalesOrderBatchDto = z.object({
   orderId: zId,
   batchNumber: zNum,
   status: zStr,
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type SalesOrderBatchDto = z.infer<typeof SalesOrderBatchDto>
 
@@ -30,7 +30,7 @@ export const SalesOrderItemDto = z.object({
   discountAmount: zDecimal,
   taxAmount: zDecimal,
   subtotal: zDecimal,
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type SalesOrderItemDto = z.infer<typeof SalesOrderItemDto>
 
@@ -40,7 +40,7 @@ export const SalesVoidDto = z.object({
   itemId: zId.nullable(),
   reason: zStrNullable,
   voidedBy: zId,
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type SalesVoidDto = z.infer<typeof SalesVoidDto>
 
@@ -50,7 +50,7 @@ export const SalesExternalRefDto = z.object({
   externalSource: zStr,
   externalOrderId: zStr,
   rawPayload: z.any().nullable(),
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 export type SalesExternalRefDto = z.infer<typeof SalesExternalRefDto>
 
@@ -61,12 +61,12 @@ export const SalesOrderDto = z.object({
   locationId: zId,
   customerId: zId.nullable(),
   salesTypeId: zId,
-  status: SalesOrderStatusEnum,
+  status: SalesOrderStatus,
   transactionDate: zDate,
   totalAmount: zDecimal,
   discountAmount: zDecimal,
   taxAmount: zDecimal,
-  ...zMetadataSchema.shape,
+  ...zMetadataDto.shape,
 })
 
 export type SalesOrderDto = z.infer<typeof SalesOrderDto>
@@ -76,7 +76,7 @@ export type SalesOrderDto = z.infer<typeof SalesOrderDto>
 export const SalesOrderFilterDto = z.object({
   search: zQuerySearch,
   locationId: zId.optional(),
-  status: SalesOrderStatusEnum.optional(),
+  status: SalesOrderStatus.optional(),
   salesTypeId: zId.optional(),
   startDate: zDate.optional(),
   endDate: zDate.optional(),
@@ -132,7 +132,9 @@ export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>
 
 /* --------------------------------- UPDATE --------------------------------- */
 
-export const SalesOrderUpdateDto = SalesOrderCreateDto.partial()
+export const SalesOrderUpdateDto = z.object({
+  ...SalesOrderCreateDto.partial().shape,
+})
 
 export type SalesOrderUpdateDto = z.infer<typeof SalesOrderUpdateDto>
 
