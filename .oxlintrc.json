@@ -46,7 +46,9 @@
         "typescript/no-unnecessary-template-expression": "off",
         "typescript/no-unnecessary-boolean-literal-compare": "off",
         "react/no-array-index-key": "off",
-        "oxc/const-comparisons": "off"
+        "oxc/const-comparisons": "off",
+        "unicorn/no-useless-fallback-in-spread": "off",
+        "eslint-plugin-react-hooks/exhaustive-deps": "warn"
       }
     },
     {
