@@ -22,8 +22,8 @@ export class SessionService {
   /**
    * Finds a single session by its ID. Cached.
    */
-  async findById(id: number): Promise<SessionDto | null> {
-    return record('SessionService.findById', async () => {
+  async getById(id: number): Promise<SessionDto | null> {
+    return record('SessionService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
         return takeFirst(result)
@@ -59,7 +59,7 @@ export class SessionService {
       try {
         const decoded = jwt.verify(token, env.JWT_SECRET)
         const valid = SessionPayloadDto.parse(decoded)
-        const session = await this.findById(valid.id)
+        const session = await this.getById(valid.id)
 
         if (!session) return null
 
@@ -83,7 +83,7 @@ export class SessionService {
   async deleteSession(id: number): Promise<void> {
     return record('SessionService.deleteSession', async () => {
       await db.delete(sessionsTable).where(eq(sessionsTable.id, id))
-      void cache.del(cacheKey.byId(id))
+      await cache.del(cacheKey.byId(id))
     })
   }
 

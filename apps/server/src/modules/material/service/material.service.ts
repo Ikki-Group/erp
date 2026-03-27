@@ -134,8 +134,8 @@ export class MaterialService {
     })
   }
 
-  async findById(id: number): Promise<MaterialDto> {
-    return record('MaterialService.findById', async () => {
+  async getById(id: number): Promise<MaterialDto> {
+    return record('MaterialService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         return this.getMaterialWithRelations(id)
       })
@@ -236,12 +236,12 @@ export class MaterialService {
 
   async handleDetail(id: number): Promise<MaterialSelectDto> {
     return record('MaterialService.handleDetail', async () => {
-      const material = await this.findById(id)
+      const material = await this.getById(id)
       const [category, uom, locations] = await Promise.all([
-        material.categoryId ? this.categorySvc.findById(material.categoryId) : null,
-        this.uomSvc.findById(material.baseUomId).catch(() => null),
+        material.categoryId ? this.categorySvc.getById(material.categoryId) : null,
+        this.uomSvc.getById(material.baseUomId).catch(() => null),
         material.locationIds.length > 0
-          ? Promise.all(material.locationIds.map((lId) => this.locationSvc.findById(lId)))
+          ? Promise.all(material.locationIds.map((lId) => this.locationSvc.getById(lId)))
           : [],
       ])
 
@@ -287,14 +287,14 @@ export class MaterialService {
 
       if (!inserted) throw new Error('Failed to create material')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
 
   async handleUpdate(id: number, data: MaterialMutationDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const sku = data.sku ? data.sku.trim() : existing.sku
       const name = data.name ? data.name.trim() : existing.name
@@ -333,7 +333,7 @@ export class MaterialService {
         }
       })
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -346,7 +346,7 @@ export class MaterialService {
         .returning({ id: materialsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

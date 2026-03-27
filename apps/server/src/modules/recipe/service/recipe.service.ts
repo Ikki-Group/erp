@@ -2,7 +2,13 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import {
+  paginate,
+  sortBy,
+  stampCreate,
+  stampUpdate,
+  takeFirstOrThrow,
+} from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -39,15 +45,18 @@ export class RecipeService {
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
 
-  async findById(id: number): Promise<RecipeDto> {
-    return record('RecipeService.findById', async () => {
+  /**
+   * Finds a single recipe by ID. Throws if not found.
+   */
+  async getById(id: number): Promise<RecipeDto> {
+    return record('RecipeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const [result] = await db.select().from(recipesTable).where(eq(recipesTable.id, id)).limit(1)
-        if (!result) throw err.notFound(id)
+        const result = await db.select().from(recipesTable).where(eq(recipesTable.id, id))
+        const recipe = takeFirstOrThrow(result, `Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND')
 
         const items = await this.getRecipeItems(id)
 
-        return { ...result, items }
+        return { ...recipe, items }
       })
     })
   }
@@ -121,7 +130,7 @@ export class RecipeService {
 
   async handleDetail(id: number): Promise<RecipeSelectDto> {
     return record('RecipeService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -205,14 +214,14 @@ export class RecipeService {
         return recipe
       })
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
 
   async handleUpdate(id: number, data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
     return record('RecipeService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const target = {
         materialId: data.materialId === undefined ? existing.materialId : data.materialId,
@@ -262,7 +271,7 @@ export class RecipeService {
         return { id }
       })
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return updated
     })
   }

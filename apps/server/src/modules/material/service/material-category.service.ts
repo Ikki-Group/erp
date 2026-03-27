@@ -58,8 +58,8 @@ export class MaterialCategoryService {
   /**
    * Finds a single material category by ID. Throws if not found.
    */
-  async findById(id: number): Promise<MaterialCategoryDto> {
-    return record('MaterialCategoryService.findById', async () => {
+  async getById(id: number): Promise<MaterialCategoryDto> {
+    return record('MaterialCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(materialCategoriesTable).where(eq(materialCategoriesTable.id, id))
         return takeFirstOrThrow(result, `Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND')
@@ -110,7 +110,7 @@ export class MaterialCategoryService {
    */
   async handleDetail(id: number): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -135,7 +135,7 @@ export class MaterialCategoryService {
 
       if (!inserted) throw new Error('Failed to create material category')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
@@ -145,7 +145,7 @@ export class MaterialCategoryService {
    */
   async handleUpdate(id: number, data: Partial<MaterialCategoryMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const name = data.name ? data.name.trim() : existing.name
 
@@ -162,7 +162,7 @@ export class MaterialCategoryService {
         .set({ ...data, name, ...stampUpdate(actorId) })
         .where(eq(materialCategoriesTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -178,7 +178,7 @@ export class MaterialCategoryService {
         .returning({ id: materialCategoriesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

@@ -59,7 +59,7 @@ export class LocationService {
             set: { name: d.name, type: d.type, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
-      void this.clearCache()
+      await this.clearCache()
     })
   }
 
@@ -77,8 +77,8 @@ export class LocationService {
   /**
    * Finds a single location by ID. Throws if not found.
    */
-  async findById(id: number): Promise<LocationDto> {
-    return record('LocationService.findById', async () => {
+  async getById(id: number): Promise<LocationDto> {
+    return record('LocationService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(locationsTable).where(eq(locationsTable.id, id))
         return takeFirstOrThrow(result, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
@@ -131,7 +131,7 @@ export class LocationService {
    */
   async handleDetail(id: number): Promise<LocationDto> {
     return record('LocationService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -159,7 +159,7 @@ export class LocationService {
    */
   async handleUpdate(id: number, data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
     return record('LocationService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       await checkConflict({
         table: locationsTable,
@@ -174,7 +174,7 @@ export class LocationService {
         .set({ ...data, ...stampUpdate(actorId) })
         .where(eq(locationsTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

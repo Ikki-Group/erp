@@ -5,6 +5,7 @@ import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
 
 import { paginate, stampCreate, takeFirstOrThrow } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import { transformDecimals } from '@/core/utils/decimal'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
@@ -365,15 +366,7 @@ export class StockTransactionService {
           .where(where),
       })
 
-      const data = result.data.map((r) => ({
-        ...r,
-        qty: Number(r.qty),
-        unitCost: Number(r.unitCost),
-        totalCost: Number(r.totalCost),
-        runningQty: Number(r.runningQty),
-        runningAvgCost: Number(r.runningAvgCost),
-      }))
-
+      const data = transformDecimals(result.data) as unknown as StockTransactionSelectDto[]
       return { data, meta: result.meta }
     })
   }
@@ -388,14 +381,7 @@ export class StockTransactionService {
       const result = await db.select().from(stockTransactionsTable).where(eq(stockTransactionsTable.id, id))
       const row = takeFirstOrThrow(result, `Transaction with ID ${id} not found`, 'TRANSACTION_NOT_FOUND')
 
-      return {
-        ...row,
-        qty: Number(row.qty),
-        unitCost: Number(row.unitCost),
-        totalCost: Number(row.totalCost),
-        runningQty: Number(row.runningQty),
-        runningAvgCost: Number(row.runningAvgCost),
-      }
+      return transformDecimals(row) as unknown as StockTransactionDto
     })
   }
 }

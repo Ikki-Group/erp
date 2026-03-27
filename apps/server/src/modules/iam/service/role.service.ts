@@ -69,8 +69,8 @@ export class RoleService {
   /**
    * Finds a single role by ID. Throws if not found.
    */
-  async findById(id: number): Promise<RoleDto> {
-    return record('RoleService.findById', async () => {
+  async getById(id: number): Promise<RoleDto> {
+    return record('RoleService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(rolesTable).where(eq(rolesTable.id, id))
         return takeFirstOrThrow(result, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
@@ -114,13 +114,6 @@ export class RoleService {
   }
 
   /**
-   * Serves role detail.
-   */
-  async handleDetail(id: number): Promise<RoleDto> {
-    return this.findById(id)
-  }
-
-  /**
    * Creates a new role. Invalidates cache.
    */
   async handleCreate(data: RoleCreateDto, actorId: number): Promise<{ id: number }> {
@@ -137,7 +130,7 @@ export class RoleService {
 
       if (!inserted) throw new Error('Failed to create role')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
@@ -147,7 +140,7 @@ export class RoleService {
    */
   async handleUpdate(id: number, data: RoleUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('RoleService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       if (existing.isSystem) throw err.systemRole()
 
@@ -167,8 +160,17 @@ export class RoleService {
         .set({ ...data, code, name, ...stampUpdate(actorId) })
         .where(eq(rolesTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
+    })
+  }
+
+  /**
+   * Serves role detail.
+   */
+  async handleDetail(id: number): Promise<RoleDto> {
+    return record('RoleService.handleDetail', async () => {
+      return this.getById(id)
     })
   }
 
@@ -177,13 +179,13 @@ export class RoleService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('RoleService.handleRemove', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
       if (existing.isSystem) throw err.systemRole()
 
       const result = await db.delete(rolesTable).where(eq(rolesTable.id, id)).returning({ id: rolesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

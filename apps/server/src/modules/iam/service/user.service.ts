@@ -106,8 +106,8 @@ export class UserService {
   /**
    * Basic user lookup by ID.
    */
-  async findById(id: number): Promise<UserDto> {
-    return record('UserService.findById', async () => {
+  async getById(id: number): Promise<UserDto> {
+    return record('UserService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(usersTable).where(eq(usersTable.id, id))
         return takeFirstOrThrow(result, `User with ID ${id} not found`, 'USER_NOT_FOUND')
@@ -146,7 +146,7 @@ export class UserService {
    */
   async getDetailById(id: number): Promise<UserOutputDto> {
     return record('UserService.getDetailById', async () => {
-      const user = await this.findById(id)
+      const user = await this.getById(id)
 
       return {
         ...user,
@@ -244,7 +244,7 @@ export class UserService {
    */
   async handleUpdate(id: number, data: UserUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const { password, assignments, email, username, ...rest } = data
 
@@ -280,10 +280,10 @@ export class UserService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleRemove', async () => {
-      await this.findById(id)
+      await this.getById(id)
       await db.delete(usersTable).where(eq(usersTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -294,7 +294,7 @@ export class UserService {
   async handleChangePassword(userId: number, data: UserChangePasswordDto): Promise<{ id: number }> {
     return record('UserService.handleChangePassword', async () => {
       const { oldPassword, newPassword } = data
-      const user = await this.findById(userId)
+      const user = await this.getById(userId)
 
       const isValid = await verifyPassword(oldPassword, user.passwordHash)
       if (!isValid) {
@@ -320,7 +320,7 @@ export class UserService {
   async handleAdminUpdatePassword(actorId: number, data: UserAdminUpdatePasswordDto): Promise<{ id: number }> {
     return record('UserService.handleAdminUpdatePassword', async () => {
       const { id: targetUserId, password } = data
-      await this.findById(targetUserId)
+      await this.getById(targetUserId)
 
       const passwordHash = await hashPassword(password)
       const metadata = stampUpdate(actorId)

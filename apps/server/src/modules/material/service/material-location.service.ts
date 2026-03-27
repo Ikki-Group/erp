@@ -104,12 +104,12 @@ export class MaterialLocationService {
 
       // 1. Validate all locations exist
       for (const locId of locationIds) {
-        await this.locationSvc.location.findById(locId)
+        await this.locationSvc.location.getById(locId)
       }
 
       // 2. Validate all materials exist
       for (const mId of materialIds) {
-        await this.materialSvc.findById(mId)
+        await this.materialSvc.getById(mId)
       }
 
       // 3. Find already assigned combinations
@@ -171,7 +171,7 @@ export class MaterialLocationService {
   async handleLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
     return record('MaterialLocationService.handleLocationsByMaterial', async () => {
       // Validate material exists
-      await this.materialSvc.findById(materialId)
+      await this.materialSvc.getById(materialId)
 
       const assignments = await db
         .select({ assignment: materialLocationsTable, location: locationsTable })
@@ -202,7 +202,7 @@ export class MaterialLocationService {
       const { locationId, search } = filter
 
       // Validate location exists
-      await this.locationSvc.location.findById(locationId)
+      await this.locationSvc.location.getById(locationId)
 
       const searchCondition = search
         ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))

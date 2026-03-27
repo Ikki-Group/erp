@@ -30,6 +30,11 @@ export const app = new Elysia({ precompile: true })
       return { status: 'error', code: 'VALIDATION_ERROR', message: 'Validation failed', errors: error.all }
     }
 
+    if (code === 'NOT_FOUND') {
+      set.status = 404
+      return { status: 'error', code: 'NOT_FOUND', message: 'Not found' }
+    }
+
     if (error instanceof HttpError) {
       set.status = error.statusCode
       return { status: 'error', code: error.code, message: error.message }

@@ -46,8 +46,8 @@ export class UomService {
   /**
    * Finds a single UOM by ID. Throws if not found.
    */
-  async findById(id: number): Promise<UomDto> {
-    return record('UomService.findById', async () => {
+  async getById(id: number): Promise<UomDto> {
+    return record('UomService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(uomsTable).where(eq(uomsTable.id, id))
         return takeFirstOrThrow(result, `UOM with ID ${id} not found`)
@@ -95,7 +95,7 @@ export class UomService {
    */
   async handleDetail(id: number): Promise<UomDto> {
     return record('UomService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -115,7 +115,7 @@ export class UomService {
 
       if (!inserted) throw new Error('Failed to create UOM')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
@@ -125,7 +125,7 @@ export class UomService {
    */
   async handleUpdate(id: number, data: Partial<UomMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('UomService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const code = data.code ? data.code.toUpperCase().trim() : existing.code
 
@@ -136,7 +136,7 @@ export class UomService {
         .set({ code, ...stampUpdate(actorId) })
         .where(eq(uomsTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -149,7 +149,7 @@ export class UomService {
       const result = await db.delete(uomsTable).where(eq(uomsTable.id, id)).returning({ id: uomsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -181,7 +181,7 @@ export class UomService {
 
       await db.insert(uomsTable).values(newUoms.map((d) => Object.assign({}, d, stampCreate(d.createdBy))))
 
-      void this.clearCache()
+      await this.clearCache()
     })
   }
 }

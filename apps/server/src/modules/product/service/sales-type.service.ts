@@ -54,8 +54,8 @@ export class SalesTypeService {
   /**
    * Finds a single sales type by ID. Throws if not found.
    */
-  async findById(id: number): Promise<SalesTypeDto> {
-    return record('SalesTypeService.findById', async () => {
+  async getById(id: number): Promise<SalesTypeDto> {
+    return record('SalesTypeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
         return takeFirstOrThrow(result, `Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
@@ -103,7 +103,7 @@ export class SalesTypeService {
    */
   async handleDetail(id: number): Promise<SalesTypeDto> {
     return record('SalesTypeService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -123,7 +123,7 @@ export class SalesTypeService {
             set: { name: d.name, isSystem: d.isSystem, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
-      void this.clearCache()
+      await this.clearCache()
     })
   }
 
@@ -159,7 +159,7 @@ export class SalesTypeService {
    */
   async handleUpdate(id: number, data: Partial<SalesTypeMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('SalesTypeService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       if (existing.isSystem) throw err.systemSalesType()
 
@@ -179,7 +179,7 @@ export class SalesTypeService {
         .set({ ...data, code, name, isSystem: false, ...stampUpdate(actorId) })
         .where(eq(salesTypesTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -189,7 +189,7 @@ export class SalesTypeService {
    */
   async handleRemove(id: number): Promise<{ id: number }> {
     return record('SalesTypeService.handleRemove', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
       if (existing.isSystem) throw err.systemSalesType()
 
       const result = await db
@@ -198,7 +198,7 @@ export class SalesTypeService {
         .returning({ id: salesTypesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

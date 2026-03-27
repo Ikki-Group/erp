@@ -187,8 +187,8 @@ export class ProductService {
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
 
-  async findById(id: number): Promise<ProductDto> {
-    return record('ProductService.findById', async () => {
+  async getById(id: number): Promise<ProductDto> {
+    return record('ProductService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const [result] = await db.select().from(productsTable).where(eq(productsTable.id, id)).limit(1)
         if (!result) throw err.notFound(id)
@@ -198,7 +198,7 @@ export class ProductService {
         const mappings = await db
           .select()
           .from(productExternalMappingsTable)
-          .where(eq(productExternalMappingsTable.productId, id))
+          .where(eq(productExternalMappingsTable.id, id))
 
         return { ...result, variants, prices, externalMappings: mappings }
       })
@@ -285,8 +285,8 @@ export class ProductService {
 
   async handleDetail(id: number): Promise<ProductSelectDto> {
     return record('ProductService.handleDetail', async () => {
-      const product = await this.findById(id)
-      const category = product.categoryId ? await this.categorySvc.findById(product.categoryId) : null
+      const product = await this.getById(id)
+      const category = product.categoryId ? await this.categorySvc.getById(product.categoryId) : null
       return { ...product, category }
     })
   }
@@ -369,14 +369,14 @@ export class ProductService {
         return product
       })
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
 
   async handleUpdate(id: number, data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
     return record('ProductService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const sku = data.sku ? data.sku.trim() : existing.sku
       const name = data.name ? data.name.trim() : existing.name
@@ -454,7 +454,7 @@ export class ProductService {
         }
       })
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -464,7 +464,7 @@ export class ProductService {
       const result = await db.delete(productsTable).where(eq(productsTable.id, id)).returning({ id: productsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

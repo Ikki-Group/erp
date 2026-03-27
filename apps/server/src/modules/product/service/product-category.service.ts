@@ -57,8 +57,8 @@ export class ProductCategoryService {
   /**
    * Finds a single product category by ID. Throws if not found.
    */
-  async findById(id: number): Promise<ProductCategoryDto> {
-    return record('ProductCategoryService.findById', async () => {
+  async getById(id: number): Promise<ProductCategoryDto> {
+    return record('ProductCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(productCategoriesTable).where(eq(productCategoriesTable.id, id))
         return takeFirstOrThrow(result, `Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
@@ -109,7 +109,7 @@ export class ProductCategoryService {
    */
   async handleDetail(id: number): Promise<ProductCategoryDto> {
     return record('ProductCategoryService.handleDetail', async () => {
-      return this.findById(id)
+      return this.getById(id)
     })
   }
 
@@ -144,7 +144,7 @@ export class ProductCategoryService {
    */
   async handleUpdate(id: number, data: Partial<ProductCategoryMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleUpdate', async () => {
-      const existing = await this.findById(id)
+      const existing = await this.getById(id)
 
       const name = data.name ? data.name.trim() : existing.name
 
