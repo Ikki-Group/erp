@@ -1,7 +1,7 @@
 import Elysia from 'elysia'
 import z from 'zod'
 
-import { authPluginMacro } from '@/core/http/auth-plugin'
+import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
 

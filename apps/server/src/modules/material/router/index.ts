@@ -6,7 +6,7 @@ import { initMaterialLocationRoute } from './material-location.route'
 import { initMaterialRoute } from './material.route'
 import { initMaterialUomRoute } from './uom.route'
 
-export function initMaterialsRouteModule(service: MaterialServiceModule) {
+export function initMaterialRouteModule(service: MaterialServiceModule) {
   const categoryRouter = initMaterialCategoryRoute(service)
   const uomRouter = initMaterialUomRoute(service)
   const materialRouter = initMaterialRoute(service)

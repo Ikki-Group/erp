@@ -79,10 +79,11 @@ export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<v
     if (changedFields.length === 0) return
 
     // Build OR conditions with only changed fields
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     const orConditions: SQL[] = changedFields.map((f) => eq(f.column, input[f.field] as never))
 
     // Combine: OR of field checks, AND exclude self on update
-    const whereClause = existing ? and(ne(pkColumn, existing.id), or(...orConditions)!) : or(...orConditions)!
+    const whereClause = existing ? and(ne(pkColumn, existing.id), or(...orConditions)) : or(...orConditions)!
 
     const [conflict] = await db.select().from(table).where(whereClause).limit(1)
 

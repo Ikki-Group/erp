@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-unnecessary-boolean-literal-compare
 'use client'
 
 import {

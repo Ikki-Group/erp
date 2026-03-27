@@ -8,6 +8,7 @@ import { MokaAuthEngine } from './moka-auth.service'
 // Mock Logger
 const mockLogger = { info: mock(() => {}), error: mock(() => {}) } as unknown as Logger
 
+// oxlint-disable-next-line typescript/no-floating-promises
 mock.module('axios', () => {
   return {
     default: {
@@ -25,6 +26,7 @@ describe('MokaAuthEngine', () => {
     expect(result.access_token).toBe('MOCK_TOKEN')
     expect(engine.token).toBe('MOCK_TOKEN')
     expect(engine.mokaOutletId).toBe(12345)
+    // oxlint-disable-next-line typescript/unbound-method
     expect(axios.post).toHaveBeenCalled()
   })
 })

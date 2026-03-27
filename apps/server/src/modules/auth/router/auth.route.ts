@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-plugin'
+import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { zResponse } from '@/core/validation'
 import { UserOutputDto } from '@/modules/iam/dto'

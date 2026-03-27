@@ -100,7 +100,7 @@ function FieldCheckbox({ label, description, required, className, ...props }: Fi
           name={field.name}
           checked={field.state.value}
           onBlur={field.handleBlur}
-          onCheckedChange={(checked) => field.handleChange(checked === true)}
+          onCheckedChange={(checked) => field.handleChange(checked)}
           {...props}
         />
       </FieldControl>

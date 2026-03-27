@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'bun:test'
 
 import { Elysia } from 'elysia'

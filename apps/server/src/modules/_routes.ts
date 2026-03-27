@@ -4,7 +4,7 @@ import { initDashboardRouteModule } from './dashboard'
 import { initIamRouteModule } from './iam'
 import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
-import { initMaterialsRouteModule } from './materials'
+import { initMaterialRouteModule } from './material'
 import { initMokaRouteModule } from './moka'
 import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
@@ -18,7 +18,7 @@ export function createRoutes(m: Modules) {
     initIamRouteModule(m.iam),
     initInventoryRouteModule(m.inventory),
     initLocationRouteModule(m.location),
-    initMaterialsRouteModule(m.material),
+    initMaterialRouteModule(m.material),
     initProductRouteModule(m.product),
     initRecipeRouteModule(m.recipe),
     initToolRouteModule(m.tool),

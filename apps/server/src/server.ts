@@ -12,6 +12,7 @@ async function main() {
   )
 }
 
+// oxlint-disable-next-line typescript/no-floating-promises
 main()
 
 // async function shutdown() {

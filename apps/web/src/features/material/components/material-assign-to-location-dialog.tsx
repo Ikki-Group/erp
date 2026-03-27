@@ -81,11 +81,13 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 
     const promise = assignMutation.mutateAsync({ body: { locationIds: selected, materialIds } })
 
-    await toast.promise(promise, {
-      loading: 'Menghubungkan ke lokasi...',
-      success: `Berhasil assign ${materialName} ke ${selected.length} lokasi`,
-      error: 'Gagal menghubungkan ke lokasi',
-    })
+    await toast
+      .promise(promise, {
+        loading: 'Menghubungkan ke lokasi...',
+        success: `Berhasil assign ${materialName} ke ${selected.length} lokasi`,
+        error: 'Gagal menghubungkan ke lokasi',
+      })
+      .unwrap()
 
     call.end()
   }

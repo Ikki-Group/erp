@@ -1,3 +1,4 @@
+// oxlint-disable typescript/unbound-method
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
@@ -67,19 +68,23 @@ export class SalesOrderService {
           await tx
             .insert(salesOrderItemsTable)
             .values(
-              items.map((item) => ({
-                orderId: order!.id,
-                batchId: item.batchId ?? null,
-                productId: item.productId ?? null,
-                variantId: item.variantId ?? null,
-                itemName: item.itemName,
-                quantity: item.quantity.toString(),
-                unitPrice: item.unitPrice.toString(),
-                discountAmount: item.discountAmount.toString(),
-                taxAmount: item.taxAmount.toString(),
-                subtotal: item.subtotal.toString(),
-                ...metadata,
-              })),
+              items.map((item) =>
+                Object.assign(
+                  {
+                    orderId: order!.id,
+                    batchId: item.batchId ?? null,
+                    productId: item.productId ?? null,
+                    variantId: item.variantId ?? null,
+                    itemName: item.itemName,
+                    quantity: item.quantity.toString(),
+                    unitPrice: item.unitPrice.toString(),
+                    discountAmount: item.discountAmount.toString(),
+                    taxAmount: item.taxAmount.toString(),
+                    subtotal: item.subtotal.toString(),
+                  },
+                  metadata,
+                ),
+              ),
             )
         }
 
@@ -173,7 +178,7 @@ export class SalesOrderService {
           .select({ status: salesOrdersTable.status })
           .from(salesOrdersTable)
           .where(eq(salesOrdersTable.id, orderId))
-        const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message, 'SALES_ORDER_NOT_FOUND')!
+        const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message, 'SALES_ORDER_NOT_FOUND')
 
         const metadata = stampCreate(actorId)
 
@@ -195,7 +200,7 @@ export class SalesOrderService {
             .select({ id: salesOrderItemsTable.id })
             .from(salesOrderItemsTable)
             .where(eq(salesOrderItemsTable.id, data.itemId))
-          takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message, 'SALES_ORDER_ITEM_NOT_FOUND')!
+          takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message, 'SALES_ORDER_ITEM_NOT_FOUND')
 
           // If only specific item is voided and order is open, we can recalculate totals.
           // Note: Full ERP might zero out the item line or just exclude it in recalculations.
@@ -333,7 +338,7 @@ export class SalesOrderService {
   async handleDetail(id: number): Promise<SalesOrderOutputDto> {
     return record('SalesOrderService.handleDetail', async () => {
       const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
-      const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')!
+      const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
 
       const [items, batches, voids] = await Promise.all([
         db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),

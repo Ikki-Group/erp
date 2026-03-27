@@ -286,7 +286,7 @@ function FormComponentsExample() {
                     onChange: ({ value }: { value: any }) => {
                       const result = z
                         .boolean()
-                        .refine((val) => val === true, { message: 'Anda harus menyetujui syarat dan ketentuan' })
+                        .refine((val) => val, { message: 'Anda harus menyetujui syarat dan ketentuan' })
                         .safeParse(value)
                       return result.success ? undefined : result.error.issues[0].message
                     },

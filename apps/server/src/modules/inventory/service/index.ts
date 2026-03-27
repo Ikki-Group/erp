@@ -1,4 +1,4 @@
-import type { MaterialServiceModule } from '@/modules/materials/service'
+import type { MaterialServiceModule } from '@/modules/material/service'
 
 import { StockSummaryService } from './stock-summary.service'
 import { StockTransactionService } from './stock-transaction.service'

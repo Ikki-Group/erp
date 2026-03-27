@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-base-to-string
+// oxlint-disable react/no-children-prop
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { useForm } from '@tanstack/react-form'
