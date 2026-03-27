@@ -10,7 +10,8 @@ COPY apps/server/package.json ./apps/server/
 # If server depended on other workspace packages, copy them here too.
 
 # Install dependencies (frozen-lockfile for consistency)
-RUN bun install --frozen-lockfile --production
+# RUN bun install --frozen-lockfile --production
+RUN bun install
 
 # --- Builder ---
 FROM base AS builder
