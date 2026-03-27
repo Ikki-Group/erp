@@ -1,4 +1,0 @@
-preload = ["./src/core/otel.ts"]
-
-[console]
-depth = 10
