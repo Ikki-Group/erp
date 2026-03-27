@@ -83,6 +83,7 @@ export function InputNumber({
   onChange,
   allowDecimal = true,
   decimalScale = 2,
+  // oxlint-disable-next-line no-unused-vars
   max,
   min,
   ref,

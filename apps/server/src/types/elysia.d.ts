@@ -4,4 +4,5 @@ declare module 'elysia' {
   }
 }
 
+// oxlint-disable-next-line unicorn/require-module-specifiers
 export {}
