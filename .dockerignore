@@ -1,0 +1,23 @@
+# Default .dockerignore for monorepo deployments
+.git
+.github
+.vscode
+.agents
+.cursor
+.gemini
+docs
+README.md
+
+# Build artifacts and local deps
+node_modules
+dist
+out
+
+# Local development files
+.env*
+*.log
+.DS_Store
+
+# Exclude other monorepo apps from the server build context if needed
+# apps/web (optional if we COPY specifically in Dockerfile, but helps upload speed)
+# apps/web

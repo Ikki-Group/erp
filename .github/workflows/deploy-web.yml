@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'web/**'
+      - 'apps/web/**'
 
 env:
   CLOUDFLARE_PROJECT_MAIN: ikki-erp
@@ -25,13 +25,13 @@ jobs:
         with:
           bun-version: latest
 
+      # Monorepo optimization: Install dependencies from the root to leverage the global lockfile and shared cache
       - name: Install dependencies
-        working-directory: web
-        run: bun install
+        run: bun install --frozen-lockfile
 
-      - name: Build
-        working-directory: web
-        run: bun run build
+      # Build specifically for the web package
+      - name: Build web app
+        run: bun --filter @ikki/web run build
 
       - name: Determine Cloudflare project
         id: cf
@@ -48,4 +48,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ steps.cf.outputs.project }}
-          directory: web/dist
+          # Cloudflare Pages context for workspace package output
+          directory: apps/web/dist

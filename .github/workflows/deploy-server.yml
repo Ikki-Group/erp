@@ -5,15 +5,19 @@ on:
   push:
     branches: [main]
     paths:
-      - 'server/**'
+      - 'apps/server/**'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    concurrency: deploy-group
+    concurrency: deploy-server
     steps:
       - uses: actions/checkout@v4
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: cd server && flyctl deploy --remote-only
+      
+      # Deploy from the root of the monorepo to ensure bun's workspace-wide lockfile is available for builds.
+      # Context is ROOT, config/Dockerfile pointed specifically to apps/server.
+      - run: flyctl deploy --remote-only --config apps/server/fly.toml --dockerfile apps/server/Dockerfile
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
