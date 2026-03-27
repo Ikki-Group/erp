@@ -75,6 +75,11 @@
       "source": "jeffallan/claude-skills",
       "sourceType": "github",
       "computedHash": "1676ebbc84a1d9506b46d7978b91c4bce30d189ac1c619a9e875becd6e1c2c55"
+    },
+    "zod": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "computedHash": "df8b575c28f7f93fbd7d7971d785d47b84055063654a05ddbebf8ebd3536b2c4"
     }
   }
 }
