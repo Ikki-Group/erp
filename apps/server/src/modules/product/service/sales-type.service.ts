@@ -149,7 +149,7 @@ export class SalesTypeService {
 
       if (!inserted) throw new Error('Failed to create sales type')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }

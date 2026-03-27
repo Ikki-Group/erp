@@ -1,13 +1,12 @@
-/* eslint-disable */
 import { describe, expect, it } from 'bun:test'
 
 import { StockTransactionService } from './stock-transaction.service'
 
 describe('StockTransactionService', () => {
   // @ts-ignore - access private method for testing
-  const service = new StockTransactionService(null as any)
+  const service = new StockTransactionService()
   // @ts-ignore
-  const calculateIncomingWAC = (service as any).calculateIncomingWAC.bind(service)
+  const calculateIncomingWAC = service.calculateIncomingWAC.bind(service)
 
   describe('calculateIncomingWAC', () => {
     it('should calculate WAC correctly for initial purchase', () => {

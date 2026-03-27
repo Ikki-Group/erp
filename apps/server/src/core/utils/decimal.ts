@@ -7,53 +7,67 @@
  * Useful for Drizzle Decimal columns which are returned as strings to preserve precision,
  * but often need to be numbers for the frontend or calculations.
  */
+/**
+ * Recursively converts string-encoded decimals in an object or array to numbers.
+ * This is specific to Drizzle's Decimal behavior where numeric precision is preserved via strings.
+ */
 export function transformDecimals<T>(data: T): T {
-  if (data === null || data === undefined) {
+  if (data === null || typeof data !== 'object') {
     return data
   }
 
   if (Array.isArray(data)) {
-    return data.map((item) => transformDecimals(item)) as unknown as T
+    return data.map(transformDecimals) as unknown as T
   }
 
-  if (typeof data === 'object') {
-    const result = { ...(data as object) } as any
-    for (const key in result) {
-      if (!Object.prototype.hasOwnProperty.call(result, key)) continue
+  const result = { ...data } as Record<string, any>
 
-      const value = result[key]
-
-      if (typeof value === 'string' && value !== '' && !isNaN(Number(value)) && isFinite(Number(value))) {
-        if (isDecimalKey(key)) {
-          result[key] = Number(value)
-        }
-      } else if (typeof value === 'object' && value !== null) {
-        result[key] = transformDecimals(value)
-      }
+  for (const [key, value] of Object.entries(result)) {
+    if (shouldTransformKey(key, value)) {
+      result[key] = Number(value)
+      continue
     }
-    return result as T
+
+    if (typeof value === 'object' && value !== null) {
+      result[key] = transformDecimals(value)
+    }
   }
 
-  return data as T
+  return result as T
 }
 
 /**
- * Checks if a key name suggests it's a decimal value (quantity, cost, price, etc.)
+ * Heuristic to determine if a value should be converted from string to number.
+ * Conditions:
+ * 1. Value is a non-empty string that represents a valid finite number.
+ * 2. Key name suggests it's a quantitative measurement (qty, cost, price, etc.).
  */
-function isDecimalKey(key: string): boolean {
-  const decimalPatterns = [
+function shouldTransformKey(key: string, value: any): boolean {
+  if (typeof value !== 'string' || value === '') {
+    return false
+  }
+
+  const num = Number(value)
+  if (isNaN(num) || !isFinite(num)) {
+    return false
+  }
+
+  const numericPatterns = [
     'qty',
     'cost',
     'price',
-    'total',
     'amount',
+    'total',
     'avg',
     'value',
     'balance',
     'rate',
     'discount',
     'tax',
+    'percentage',
+    'running',
   ]
+
   const lowerKey = key.toLowerCase()
-  return decimalPatterns.some((pattern) => lowerKey.includes(pattern))
+  return numericPatterns.some((pattern) => lowerKey.includes(pattern))
 }

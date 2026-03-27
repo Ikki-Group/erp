@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, count, eq, inArray, ne } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -153,7 +153,6 @@ export class RecipeService {
     }
 
     if (excludeId) {
-      const { ne } = await import('drizzle-orm')
       conditions.push(ne(recipesTable.id, excludeId))
     }
 
@@ -281,7 +280,7 @@ export class RecipeService {
       const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

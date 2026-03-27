@@ -22,13 +22,13 @@
     "style": "off"
   },
   "rules": {
-    "no-shadow": "off",
     "react/react-in-jsx-scope": "off",
     "unicorn/no-empty-file": "off",
     "no-await-in-loop": "off",
     "import/no-named-as-default": "off",
-    "@typescript-eslint/no-unsafe-type-assertion": "warn",
-    "typescript/no-unnecessary-template-expression": "off"
+    "no-shadow": "off",
+    "typescript/no-unnecessary-template-expression": "off",
+    "@typescript-eslint/no-unsafe-type-assertion": "warn"
   },
   "overrides": [
     {

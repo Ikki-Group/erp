@@ -99,7 +99,7 @@ export class UserService {
           await this.userAssignmentSvc.upsertUserAssignments(inserted.id, assignments, d.createdBy)
         }
       }
-      void this.clearCache()
+      await this.clearCache()
     })
   }
 
@@ -234,7 +234,7 @@ export class UserService {
 
       if (!inserted) throw new Error('Failed to create user')
 
-      void this.clearCache(inserted.id)
+      await this.clearCache(inserted.id)
       return inserted
     })
   }
@@ -270,7 +270,7 @@ export class UserService {
         }
       })
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }
@@ -309,7 +309,7 @@ export class UserService {
         .set({ passwordHash, ...metadata })
         .where(eq(usersTable.id, userId))
 
-      void this.clearCache(userId)
+      await this.clearCache(userId)
       return { id: userId }
     })
   }
@@ -330,7 +330,7 @@ export class UserService {
         .set({ passwordHash, ...metadata })
         .where(eq(usersTable.id, targetUserId))
 
-      void this.clearCache(targetUserId)
+      await this.clearCache(targetUserId)
       return { id: targetUserId }
     })
   }

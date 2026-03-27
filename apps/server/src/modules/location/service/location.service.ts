@@ -149,7 +149,7 @@ export class LocationService {
 
       if (!inserted) throw new Error('Failed to create location')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
@@ -190,7 +190,7 @@ export class LocationService {
         .returning({ id: locationsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

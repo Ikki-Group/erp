@@ -134,7 +134,7 @@ export class ProductCategoryService {
 
       if (!inserted) throw new Error('Failed to create product category')
 
-      void this.clearCache()
+      await this.clearCache()
       return inserted
     })
   }
@@ -161,7 +161,7 @@ export class ProductCategoryService {
         .set({ ...data, name, ...stampUpdate(actorId) })
         .where(eq(productCategoriesTable.id, id))
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

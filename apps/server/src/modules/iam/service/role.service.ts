@@ -51,7 +51,7 @@ export class RoleService {
             set: { name: d.name, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
           })
       }
-      void this.clearCache()
+      await this.clearCache()
     })
   }
 

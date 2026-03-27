@@ -7,6 +7,13 @@
   "tabWidth": 2,
   "sortPackageJson": true,
   "objectWrap": "collapse",
-  "sortImports": {},
+  "sortImports": {
+    "groups": [
+      ["^react$", "^elysia$"],
+      ["^@/"],
+      ["^\\.\\./"],
+      ["^\\./"]
+    ]
+  },
   "ignorePatterns": ["**/*.lock", ".agents/**"]
 }
