@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
+import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -18,8 +18,8 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zHttp.pagination.shape, ...UomFilterDto.shape }),
-        response: zResponse.paginated(UomDto.array()),
+        query: z.object({ ...zPaginationSchema.shape, ...UomFilterDto.shape }),
+        response: createPaginatedResponseSchema(UomDto.array()),
         auth: true,
       },
     )
@@ -29,7 +29,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         const category = await s.uom.handleDetail(query.id)
         return res.ok(category)
       },
-      { query: zHttp.recordId, response: zResponse.ok(UomDto), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(UomDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         const { id } = await s.uom.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: UomMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
+      { body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
     .put(
       '/update',
@@ -46,8 +46,8 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zPrimitive.id, ...UomMutationDto.shape }),
-        response: zResponse.ok(zSchema.recordId),
+        body: z.object({ id: zId, ...UomMutationDto.shape }),
+        response: createSuccessResponseSchema(zRecordIdSchema),
         auth: true,
       },
     )
@@ -57,6 +57,6 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         await s.uom.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 }

@@ -1,21 +1,21 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialCategoryDto = z.object({
-  id: zPrimitive.id,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  ...zSchema.metadata.shape,
+  id: zId,
+  name: zStr,
+  description: zStrNullable,
+  ...zMetadataSchema.shape,
 })
 
 export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryFilterDto = z.object({ search: zHttp.query.search })
+export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 

@@ -1,35 +1,31 @@
 import z from 'zod'
 
-import { zPrimitive } from './primitive'
+import { zId, zNumCoerce, zStr } from './primitive'
 
-const paginationMeta = z.object({ page: z.number(), limit: z.number(), total: z.number(), totalPages: z.number() })
+export const zPaginationMetaSchema = z.object({ page: z.number(), limit: z.number(), total: z.number(), totalPages: z.number() })
 
-export type PaginationMeta = z.infer<typeof paginationMeta>
+export type PaginationMeta = z.infer<typeof zPaginationMetaSchema>
 
-export const zHttp = {
-  query: {
-    id: zPrimitive.id,
-    ids: z
-      .preprocess(
-        (val) => (val === undefined ? undefined : Array.isArray(val) ? val : [val]),
-        z.array(zPrimitive.id).optional(),
-      )
-      .optional(),
+export const zQueryId = zId
 
-    boolean: z.boolean(),
-    search: zPrimitive.str.optional().transform((val) => val || undefined),
-    num: zPrimitive.numCoerce,
-  },
+export const zQueryIds = z.preprocess(
+  (val) => (val === undefined ? undefined : Array.isArray(val) ? val : [val]),
+  z.array(zId).optional(),
+)
 
-  pagination: z.object({
-    page: zPrimitive.numCoerce.int().positive().default(1),
-    limit: zPrimitive.numCoerce.int().positive().max(100).default(10),
-  }),
+export const zQueryBoolean = z.boolean()
+export const zQuerySearch = zStr.optional().transform((val) => val === '' ? undefined : val)
+export const zQueryNum = zNumCoerce
 
-  paginationMeta,
-  ok: <T extends z.ZodType>(data: T) =>
-    z.object({ success: z.literal(true), code: zPrimitive.str.default('OK'), data: data }),
+export const zPaginationSchema = z.object({
+  page: zNumCoerce.int().positive().default(1),
+  limit: zNumCoerce.int().positive().max(100).default(10),
+})
 
-  paginated: <T extends z.ZodType>(data: T) =>
-    z.object({ success: z.literal(true), code: zPrimitive.str.default('OK'), data: data, meta: paginationMeta }),
+export function createSuccessResponseSchema<T extends z.ZodType>(data: T) {
+  return z.object({ success: z.literal(true), code: zStr.default('OK'), data: data })
+}
+
+export function createPaginatedResponseSchema<T extends z.ZodType>(data: T) {
+  return z.object({ success: z.literal(true), code: zStr.default('OK'), data: data, meta: zPaginationMetaSchema })
 }

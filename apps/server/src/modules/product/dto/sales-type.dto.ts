@@ -1,22 +1,22 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStr, zBool, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const SalesTypeDto = z.object({
-  id: zPrimitive.id,
-  code: zPrimitive.str,
-  name: zPrimitive.str,
-  isSystem: zPrimitive.bool,
-  ...zSchema.metadata.shape,
+  id: zId,
+  code: zStr,
+  name: zStr,
+  isSystem: zBool,
+  ...zMetadataSchema.shape,
 })
 
 export type SalesTypeDto = z.infer<typeof SalesTypeDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const SalesTypeFilterDto = z.object({ search: zHttp.query.search })
+export const SalesTypeFilterDto = z.object({ search: zQuerySearch })
 
 export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
 

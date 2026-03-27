@@ -1,16 +1,16 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStr, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const UomDto = z.object({ id: zPrimitive.id, code: zPrimitive.str, ...zSchema.metadata.shape })
+export const UomDto = z.object({ id: zId, code: zStr, ...zMetadataSchema.shape })
 
 export type UomDto = z.infer<typeof UomDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const UomFilterDto = z.object({ search: zHttp.query.search })
+export const UomFilterDto = z.object({ search: zQuerySearch })
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>
 

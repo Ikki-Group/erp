@@ -1,38 +1,38 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataSchema } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 const StockSummaryDto = z.object({
-  id: zPrimitive.id,
-  materialId: zPrimitive.id,
-  locationId: zPrimitive.id,
-  date: zPrimitive.date,
+  id: zId,
+  materialId: zId,
+  locationId: zId,
+  date: zDate,
 
   // Opening balance
-  openingQty: zPrimitive.num,
-  openingAvgCost: zPrimitive.num,
-  openingValue: zPrimitive.num,
+  openingQty: zNum,
+  openingAvgCost: zNum,
+  openingValue: zNum,
 
   // Movements
-  purchaseQty: zPrimitive.num,
-  purchaseValue: zPrimitive.num,
-  transferInQty: zPrimitive.num,
-  transferInValue: zPrimitive.num,
-  transferOutQty: zPrimitive.num,
-  transferOutValue: zPrimitive.num,
-  adjustmentQty: zPrimitive.num,
-  adjustmentValue: zPrimitive.num,
-  sellQty: zPrimitive.num,
-  sellValue: zPrimitive.num,
+  purchaseQty: zNum,
+  purchaseValue: zNum,
+  transferInQty: zNum,
+  transferInValue: zNum,
+  transferOutQty: zNum,
+  transferOutValue: zNum,
+  adjustmentQty: zNum,
+  adjustmentValue: zNum,
+  sellQty: zNum,
+  sellValue: zNum,
 
   // Closing balance
-  closingQty: zPrimitive.num,
-  closingAvgCost: zPrimitive.num,
-  closingValue: zPrimitive.num,
+  closingQty: zNum,
+  closingAvgCost: zNum,
+  closingValue: zNum,
 
-  ...zSchema.metadata.shape,
+  ...zMetadataSchema.shape,
 })
 
 type StockSummaryDto = z.infer<typeof StockSummaryDto>
@@ -42,8 +42,8 @@ type StockSummaryDto = z.infer<typeof StockSummaryDto>
 /** Summary enriched with material info for display */
 export const StockSummarySelectDto = z.object({
   ...StockSummaryDto.shape,
-  materialName: zPrimitive.str,
-  materialSku: zPrimitive.str,
+  materialName: zStr,
+  materialSku: zStr,
 })
 
 export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
@@ -51,8 +51,8 @@ export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockSummaryFilterDto = z.object({
-  locationId: zHttp.query.id,
-  materialId: zHttp.query.id.optional(),
+  locationId: zQueryId,
+  materialId: zQueryId.optional(),
   dateFrom: z.coerce.date(),
   dateTo: z.coerce.date(),
 })
@@ -60,9 +60,9 @@ export const StockSummaryFilterDto = z.object({
 export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 
 export const StockLedgerFilterDto = z.object({
-  locationId: zHttp.query.id.optional(),
-  materialId: zHttp.query.id.optional(),
-  search: zHttp.query.search,
+  locationId: zQueryId.optional(),
+  materialId: zQueryId.optional(),
+  search: zQuerySearch,
   dateFrom: z.coerce.date(),
   dateTo: z.coerce.date(),
 })
@@ -72,29 +72,29 @@ export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 /** Generate daily summary for a specific date + location */
-export const GenerateSummaryDto = z.object({ locationId: zPrimitive.id, date: zPrimitive.date })
+export const GenerateSummaryDto = z.object({ locationId: zId, date: zDate })
 
 export type GenerateSummaryDto = z.infer<typeof GenerateSummaryDto>
 
 /* --------------------------------- LEDGER --------------------------------- */
 
 export const StockLedgerSelectDto = z.object({
-  materialId: zPrimitive.id,
-  materialName: zPrimitive.str,
-  materialSku: zPrimitive.str,
-  baseUomCode: zPrimitive.str,
+  materialId: zId,
+  materialName: zStr,
+  materialSku: zStr,
+  baseUomCode: zStr,
 
-  openingQty: zPrimitive.num,
+  openingQty: zNum,
 
-  purchaseQty: zPrimitive.num,
-  transferInQty: zPrimitive.num,
-  transferOutQty: zPrimitive.num,
-  sellQty: zPrimitive.num,
-  adjustmentQty: zPrimitive.num,
+  purchaseQty: zNum,
+  transferInQty: zNum,
+  transferOutQty: zNum,
+  sellQty: zNum,
+  adjustmentQty: zNum,
 
-  closingQty: zPrimitive.num,
-  closingValue: zPrimitive.num,
-  closingAvgCost: zPrimitive.num,
+  closingQty: zNum,
+  closingValue: zNum,
+  closingAvgCost: zNum,
 })
 
 export type StockLedgerSelectDto = z.infer<typeof StockLedgerSelectDto>

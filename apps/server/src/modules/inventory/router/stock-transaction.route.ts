@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zResponse } from '@/core/validation'
+import { zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   AdjustmentTransactionDto,
@@ -30,7 +30,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           body: PurchaseTransactionDto,
-          response: zResponse.ok(TransactionResultDto),
+          response: createSuccessResponseSchema(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -45,7 +45,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           body: TransferTransactionDto,
-          response: zResponse.ok(TransactionResultDto),
+          response: createSuccessResponseSchema(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -60,7 +60,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           body: AdjustmentTransactionDto,
-          response: zResponse.ok(TransactionResultDto),
+          response: createSuccessResponseSchema(TransactionResultDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -74,8 +74,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zHttp.pagination.shape, ...StockTransactionFilterDto.shape }),
-          response: zResponse.paginated(StockTransactionSelectDto.array()),
+          query: z.object({ ...zPaginationSchema.shape, ...StockTransactionFilterDto.shape }),
+          response: createPaginatedResponseSchema(StockTransactionSelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -89,8 +89,8 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           return res.ok(data)
         },
         {
-          query: zHttp.recordId,
-          response: zResponse.ok(StockTransactionDto),
+          query: zRecordIdSchema,
+          response: createSuccessResponseSchema(StockTransactionDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },

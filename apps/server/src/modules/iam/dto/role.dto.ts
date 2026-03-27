@@ -1,25 +1,25 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataSchema } from '@/core/validation'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
 export const RoleBase = z.object({
-  code: zPrimitive.str,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  isSystem: zPrimitive.bool,
+  code: zStr,
+  name: zStr,
+  description: zStrNullable,
+  isSystem: zBool,
 })
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const RoleDto = z.object({ id: zPrimitive.id, ...RoleBase.shape, ...zSchema.metadata.shape })
+export const RoleDto = z.object({ id: zId, ...RoleBase.shape, ...zMetadataSchema.shape })
 
 export type RoleDto = z.infer<typeof RoleDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const RoleFilterDto = z.object({ search: zHttp.query.search })
+export const RoleFilterDto = z.object({ search: zQuerySearch })
 
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 

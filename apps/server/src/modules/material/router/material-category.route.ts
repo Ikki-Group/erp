@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
+import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -18,8 +18,8 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zHttp.pagination.shape, ...MaterialCategoryFilterDto.shape }),
-        response: zResponse.paginated(MaterialCategoryDto.array()),
+        query: z.object({ ...zPaginationSchema.shape, ...MaterialCategoryFilterDto.shape }),
+        response: createPaginatedResponseSchema(MaterialCategoryDto.array()),
         auth: true,
       },
     )
@@ -29,7 +29,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         const materialCategory = await s.category.handleDetail(query.id)
         return res.ok(materialCategory)
       },
-      { query: zHttp.recordId, response: zResponse.ok(MaterialCategoryDto), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(MaterialCategoryDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         const { id } = await s.category.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: MaterialCategoryMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
+      { body: MaterialCategoryMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
     .put(
       '/update',
@@ -46,8 +46,8 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zPrimitive.id, ...MaterialCategoryMutationDto.shape }),
-        response: zResponse.ok(zSchema.recordId),
+        body: z.object({ id: zId, ...MaterialCategoryMutationDto.shape }),
+        response: createSuccessResponseSchema(zRecordIdSchema),
         auth: true,
       },
     )
@@ -57,6 +57,6 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         await s.category.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 }

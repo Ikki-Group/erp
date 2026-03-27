@@ -1,15 +1,13 @@
 import z from 'zod'
 
-import { zPrimitive } from './primitive'
+import { zDate, zId } from './primitive'
 
-const metadata = z.object({
-  createdAt: zPrimitive.date,
-  updatedAt: zPrimitive.date,
-  createdBy: zPrimitive.id,
-  updatedBy: zPrimitive.id,
-  syncAt: zPrimitive.date.optional().nullable(),
+export const zMetadataSchema = z.object({
+  createdAt: zDate,
+  updatedAt: zDate,
+  createdBy: zId,
+  updatedBy: zId,
+  syncAt: zDate.optional().nullable(),
 })
 
-const recordId = z.object({ id: zPrimitive.id })
-
-export const zSchema = { metadata, recordId }
+export const zRecordIdSchema = z.object({ id: zId })

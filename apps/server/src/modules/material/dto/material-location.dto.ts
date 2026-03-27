@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataSchema } from '@/core/validation'
 import { LocationDto } from '@/modules/location/dto'
 
 import { UomDto } from './uom.dto'
@@ -8,21 +8,21 @@ import { UomDto } from './uom.dto'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
-  id: zPrimitive.id,
-  materialId: zPrimitive.id,
-  locationId: zPrimitive.id,
+  id: zId,
+  materialId: zId,
+  locationId: zId,
 
   // Per-location configuration
-  minStock: zPrimitive.num.default(0),
-  maxStock: zPrimitive.num.nullable().default(null),
-  reorderPoint: zPrimitive.num.default(0),
+  minStock: zNum.default(0),
+  maxStock: zNum.nullable().default(null),
+  reorderPoint: zNum.default(0),
 
   // Current stock snapshot (maintained by inventory module)
-  currentQty: zPrimitive.num.default(0),
-  currentAvgCost: zPrimitive.num.default(0),
-  currentValue: zPrimitive.num.default(0),
+  currentQty: zNum.default(0),
+  currentAvgCost: zNum.default(0),
+  currentValue: zNum.default(0),
 
-  ...zSchema.metadata.shape,
+  ...zMetadataSchema.shape,
 })
 
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
@@ -37,26 +37,26 @@ export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWit
 /* ... */
 /** Stock view — used in "stock list per location" */
 export const MaterialLocationStockDto = z.object({
-  id: zPrimitive.id,
-  materialId: zPrimitive.id,
-  locationId: zPrimitive.id,
-  materialName: zPrimitive.str,
-  materialSku: zPrimitive.str,
-  baseUomId: zPrimitive.id,
+  id: zId,
+  materialId: zId,
+  locationId: zId,
+  materialName: zStr,
+  materialSku: zStr,
+  baseUomId: zId,
   uom: UomDto.nullable(),
-  minStock: zPrimitive.num,
-  maxStock: zPrimitive.num.nullable(),
-  reorderPoint: zPrimitive.num,
-  currentQty: zPrimitive.num,
-  currentAvgCost: zPrimitive.num,
-  currentValue: zPrimitive.num,
+  minStock: zNum,
+  maxStock: zNum.nullable(),
+  reorderPoint: zNum,
+  currentQty: zNum,
+  currentAvgCost: zNum,
+  currentValue: zNum,
 })
 
 export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialLocationFilterDto = z.object({ locationId: zHttp.query.id, search: zHttp.query.search })
+export const MaterialLocationFilterDto = z.object({ locationId: zQueryId, search: zQuerySearch })
 
 export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto>
 
@@ -64,23 +64,23 @@ export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto
 
 /** Assign materials to locations (batch) */
 export const MaterialLocationAssignDto = z.object({
-  locationIds: zPrimitive.id.array().min(1),
-  materialIds: zPrimitive.id.array().min(1),
+  locationIds: zId.array().min(1),
+  materialIds: zId.array().min(1),
 })
 
 export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto>
 
 /** Unassign a material from a location */
-export const MaterialLocationUnassignDto = z.object({ materialId: zPrimitive.id, locationId: zPrimitive.id })
+export const MaterialLocationUnassignDto = z.object({ materialId: zId, locationId: zId })
 
 export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassignDto>
 
 /** Update per-location config (min/max stock, reorder point) */
 export const MaterialLocationConfigDto = z.object({
-  id: zPrimitive.id,
-  minStock: zPrimitive.num.min(0).optional(),
-  maxStock: zPrimitive.num.min(0).nullable().optional(),
-  reorderPoint: zPrimitive.num.min(0).optional(),
+  id: zId,
+  minStock: zNum.min(0).optional(),
+  maxStock: zNum.min(0).nullable().optional(),
+  reorderPoint: zNum.min(0).optional(),
 })
 
 export type MaterialLocationConfigDto = z.infer<typeof MaterialLocationConfigDto>

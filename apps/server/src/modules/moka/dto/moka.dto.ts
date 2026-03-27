@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zPrimitive } from '@/core/validation'
+import { zId, zDate } from '@/core/validation'
 
 import { MokaScrapType } from './moka-scrap-history.dto'
 
@@ -60,19 +60,19 @@ export const MokaSalesDetailRawSchema = z
 /* ---------------------------------- DTO ---------------------------------- */
 
 export const MokaProductDetailDto = z.object({
-  id: zPrimitive.id,
+  id: zId,
   name: z.string(),
   category_name: z.string().nullable(),
   item_variants: z.array(
-    z.object({ id: zPrimitive.id, name: z.string(), price: z.number(), sku: z.string().nullable() }),
+    z.object({ id: zId, name: z.string(), price: z.number(), sku: z.string().nullable() }),
   ),
 })
 export type MokaProductDetailDto = z.infer<typeof MokaProductDetailDto>
 
 export const MokaTriggerInputDto = z.object({
-  locationId: zPrimitive.id,
+  locationId: zId,
   type: MokaScrapType,
-  dateFrom: zPrimitive.date.optional(),
-  dateTo: zPrimitive.date.optional(),
+  dateFrom: zDate.optional(),
+  dateTo: zDate.optional(),
 })
 export type MokaTriggerInputDto = z.infer<typeof MokaTriggerInputDto>

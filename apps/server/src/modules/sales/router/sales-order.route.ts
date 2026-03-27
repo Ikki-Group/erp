@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zResponse, zSchema } from '@/core/validation'
+import { zQuerySearch, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   SalesOrderAddBatchDto,
@@ -26,8 +26,8 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zHttp.pagination.shape, search: zHttp.query.search }).merge(SalesOrderFilterDto),
-        response: zResponse.paginated(SalesOrderDto.array()),
+        query: z.object({ ...zPaginationSchema.shape, search: zQuerySearch }).merge(SalesOrderFilterDto),
+        response: createPaginatedResponseSchema(SalesOrderDto.array()),
         auth: true,
       },
     )
@@ -38,7 +38,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleDetail(query.id)
         return res.ok(result)
       },
-      { query: zHttp.recordId, response: zResponse.ok(SalesOrderOutputDto), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(SalesOrderOutputDto), auth: true },
     )
 
     .post(
@@ -47,7 +47,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleCreate(body, auth.userId)
         return res.created(result, 'SALES_ORDER_CREATED')
       },
-      { body: SalesOrderCreateDto, response: zResponse.ok(zSchema.recordId), auth: true },
+      { body: SalesOrderCreateDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 
     .post(
@@ -57,9 +57,9 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         return res.ok(result, 'SALES_ORDER_BATCH_ADDED')
       },
       {
-        query: zHttp.recordId,
+        query: zRecordIdSchema,
         body: SalesOrderAddBatchDto,
-        response: zResponse.ok(z.object({ batchId: z.number() })),
+        response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
         auth: true,
       },
     )
@@ -70,7 +70,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleClose(query.id, auth.userId)
         return res.ok(result, 'SALES_ORDER_CLOSED')
       },
-      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 
     .post(
@@ -79,6 +79,6 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleVoid(query.id, body, auth.userId)
         return res.ok(result, 'SALES_ORDER_VOIDED')
       },
-      { query: zHttp.recordId, body: SalesOrderVoidDto, response: zResponse.ok(zSchema.recordId), auth: true },
+      { query: zRecordIdSchema, body: SalesOrderVoidDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 }

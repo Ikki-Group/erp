@@ -1,14 +1,14 @@
 import z from 'zod'
 
-import { zPrimitive } from '@/core/validation'
+import { zStr, zId, zDate, zEmail } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const SessionDto = z.object({
-  id: zPrimitive.id,
-  userId: zPrimitive.id,
-  createdAt: zPrimitive.date,
-  expiredAt: zPrimitive.date,
+  id: zId,
+  userId: zId,
+  createdAt: zDate,
+  expiredAt: zDate,
 })
 
 export type SessionDto = z.infer<typeof SessionDto>
@@ -16,10 +16,10 @@ export type SessionDto = z.infer<typeof SessionDto>
 /* --------------------------------- PAYLOAD -------------------------------- */
 
 export const SessionPayloadDto = z.object({
-  id: zPrimitive.id,
-  userId: zPrimitive.id,
-  email: zPrimitive.email,
-  username: zPrimitive.str,
+  id: zId,
+  userId: zId,
+  email: zEmail,
+  username: zStr,
 })
 
 export type SessionPayloadDto = z.infer<typeof SessionPayloadDto>

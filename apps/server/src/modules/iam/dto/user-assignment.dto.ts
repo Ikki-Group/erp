@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zPrimitive, zSchema } from '@/core/validation'
+import { zBool, zId, zMetadataSchema } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 
 import { RoleDto } from './role.dto'
@@ -8,25 +8,25 @@ import { RoleDto } from './role.dto'
 /* ---------------------------------- BASE ---------------------------------- */
 
 export const UserAssignmentBase = z.object({
-  locationId: zPrimitive.id,
-  roleId: zPrimitive.id,
-  isDefault: zPrimitive.bool,
+  locationId: zId,
+  roleId: zId,
+  isDefault: zBool,
 })
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const UserAssignmentDto = z.object({
-  id: zPrimitive.id,
-  userId: zPrimitive.id,
+  id: zId,
+  userId: zId,
   ...UserAssignmentBase.shape,
-  ...zSchema.metadata.shape,
+  ...zMetadataSchema.shape,
 })
 
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-export const UserAssignmentDetailDto = z.object({ isDefault: zPrimitive.bool, location: LocationDto, role: RoleDto })
+export const UserAssignmentDetailDto = z.object({ isDefault: zBool, location: LocationDto, role: RoleDto })
 
 export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
 

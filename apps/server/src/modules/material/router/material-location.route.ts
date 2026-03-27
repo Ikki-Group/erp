@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zResponse, zSchema } from '@/core/validation'
+import { zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   MaterialLocationAssignDto,
@@ -29,7 +29,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           body: MaterialLocationAssignDto,
-          response: zResponse.ok(z.object({ assignedCount: z.number() })),
+          response: createSuccessResponseSchema(z.object({ assignedCount: z.number() })),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
@@ -44,7 +44,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           query: MaterialLocationUnassignDto,
-          response: zResponse.ok(zSchema.recordId),
+          response: createSuccessResponseSchema(zRecordIdSchema),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
@@ -58,8 +58,8 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           return res.ok(data)
         },
         {
-          query: zHttp.recordId,
-          response: zResponse.ok(MaterialLocationWithLocationDto.array()),
+          query: zRecordIdSchema,
+          response: createSuccessResponseSchema(MaterialLocationWithLocationDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
@@ -73,8 +73,8 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zHttp.pagination.shape, ...MaterialLocationFilterDto.shape }),
-          response: zResponse.paginated(MaterialLocationStockDto.array()),
+          query: z.object({ ...zPaginationSchema.shape, ...MaterialLocationFilterDto.shape }),
+          response: createPaginatedResponseSchema(MaterialLocationStockDto.array()),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
@@ -89,7 +89,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           body: MaterialLocationConfigDto,
-          response: zResponse.ok(zSchema.recordId),
+          response: createSuccessResponseSchema(zRecordIdSchema),
           auth: true,
           detail: { tags: ['Material Location'] },
         },

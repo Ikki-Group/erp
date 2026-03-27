@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zResponse } from '@/core/validation'
+import { zPaginationSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   GenerateSummaryDto,
@@ -27,8 +27,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zHttp.pagination.shape, ...StockSummaryFilterDto.shape }),
-          response: zResponse.paginated(StockSummarySelectDto.array()),
+          query: z.object({ ...zPaginationSchema.shape, ...StockSummaryFilterDto.shape }),
+          response: createPaginatedResponseSchema(StockSummarySelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
         },
@@ -42,8 +42,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           return res.paginated(result)
         },
         {
-          query: z.object({ ...zHttp.pagination.shape, ...StockLedgerFilterDto.shape }),
-          response: zResponse.paginated(StockLedgerSelectDto.array()),
+          query: z.object({ ...zPaginationSchema.shape, ...StockLedgerFilterDto.shape }),
+          response: createPaginatedResponseSchema(StockLedgerSelectDto.array()),
           auth: true,
           detail: { tags: ['Inventory Ledger'] },
         },
@@ -58,7 +58,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
         },
         {
           body: GenerateSummaryDto,
-          response: zResponse.ok(z.object({ generatedCount: z.number() })),
+          response: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
         },

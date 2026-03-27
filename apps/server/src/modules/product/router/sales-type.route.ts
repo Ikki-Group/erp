@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zHttp, zPrimitive, zResponse, zSchema } from '@/core/validation'
+import { zId, zPaginationSchema, zRecordIdSchema, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 import type { ProductServiceModule } from '../service'
@@ -18,8 +18,8 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         return res.paginated(result)
       },
       {
-        query: z.object({ ...zHttp.pagination.shape, ...SalesTypeFilterDto.shape }),
-        response: zResponse.paginated(SalesTypeDto.array()),
+        query: z.object({ ...zPaginationSchema.shape, ...SalesTypeFilterDto.shape }),
+        response: createPaginatedResponseSchema(SalesTypeDto.array()),
         auth: true,
       },
     )
@@ -29,7 +29,7 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         const salesType = await s.salesType.handleDetail(query.id)
         return res.ok(salesType)
       },
-      { query: zHttp.recordId, response: zResponse.ok(SalesTypeDto), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
     )
     .post(
       '/create',
@@ -37,7 +37,7 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         const { id } = await s.salesType.handleCreate(body, auth.userId)
         return res.created({ id })
       },
-      { body: SalesTypeMutationDto, response: zResponse.ok(zSchema.recordId), auth: true },
+      { body: SalesTypeMutationDto, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
     .put(
       '/update',
@@ -46,8 +46,8 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zPrimitive.id, ...SalesTypeMutationDto.shape }),
-        response: zResponse.ok(zSchema.recordId),
+        body: z.object({ id: zId, ...SalesTypeMutationDto.shape }),
+        response: createSuccessResponseSchema(zRecordIdSchema),
         auth: true,
       },
     )
@@ -57,6 +57,6 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
         await s.salesType.handleRemove(query.id)
         return res.ok({ id: query.id })
       },
-      { query: zHttp.recordId, response: zResponse.ok(zSchema.recordId), auth: true },
+      { query: zRecordIdSchema, response: createSuccessResponseSchema(zRecordIdSchema), auth: true },
     )
 }

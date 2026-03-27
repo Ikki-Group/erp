@@ -1,34 +1,32 @@
 import z from 'zod'
 
-const str = z.string().trim()
-const strNullable = z
+export const zStr = z.string().trim()
+export const zStrNullable = z
   .string()
   .trim()
+  .transform((val) => (val === '' ? null : val))
   .nullable()
-  .transform((val) => val?.trim() || null)
 
-const num = z.number()
-const numCoerce = z.coerce.number()
+export const zNum = z.number()
+export const zNumCoerce = z.coerce.number()
 
-const date = z.coerce.date()
-const bool = z.boolean()
-const email = z.email().transform((v) => v.toLowerCase())
-const uuid = z.uuidv7()
+export const zDate = z.coerce.date()
+export const zBool = z.boolean()
+export const zEmail = z.email().transform((v) => v.toLowerCase())
+export const zUuid = z.uuidv7()
 
-const id = z.number().int().positive()
+export const zId = z.number().int().positive()
 
-const password = z
+export const zPassword = z
   .string()
   .trim()
   .min(8, 'Password must be at least 8 characters')
   .max(100, 'Password must not exceed 100 characters')
 
-const username = z
+export const zUsername = z
   .string()
   .trim()
   .min(3, 'Username must be at least 3 characters')
   .max(50, 'Username must not exceed 50 characters')
 
-const decimal = z.string().trim()
-
-export const zPrimitive = { str, strNullable, num, numCoerce, id, date, bool, email, uuid, password, username, decimal }
+export const zDecimal = z.string().trim()

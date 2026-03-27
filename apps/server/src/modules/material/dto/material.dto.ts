@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zHttp, zPrimitive, zSchema } from '@/core/validation'
+import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataSchema } from '@/core/validation'
 import { LocationDto } from '@/modules/location/dto'
 import { RecipeDto } from '@/modules/recipe/dto'
 
@@ -15,8 +15,8 @@ type MaterialType = z.infer<typeof MaterialType>
 /* --------------------------------- NESTED --------------------------------- */
 
 const MaterialConversionDto = z.object({
-  toBaseFactor: zPrimitive.decimal,
-  uomId: zPrimitive.id,
+  toBaseFactor: zDecimal,
+  uomId: zId,
   uom: UomDto.optional(),
 })
 
@@ -25,17 +25,17 @@ type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
-  id: zPrimitive.id,
-  name: zPrimitive.str,
-  description: zPrimitive.strNullable,
-  sku: zPrimitive.str,
+  id: zId,
+  name: zStr,
+  description: zStrNullable,
+  sku: zStr,
   type: MaterialType,
-  categoryId: zPrimitive.id.nullable(),
-  baseUomId: zPrimitive.id,
+  categoryId: zId.nullable(),
+  baseUomId: zId,
 
-  locationIds: zPrimitive.id.array(),
+  locationIds: zId.array(),
   conversions: MaterialConversionDto.array(),
-  ...zSchema.metadata.shape,
+  ...zMetadataSchema.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>
@@ -43,11 +43,11 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialFilterDto = z.object({
-  search: zHttp.query.search,
+  search: zQuerySearch,
   type: MaterialType.optional(),
-  categoryId: zHttp.query.id.optional(),
-  locationIds: zHttp.query.ids,
-  excludeLocationIds: zHttp.query.ids,
+  categoryId: zQueryId.optional(),
+  locationIds: zQueryIds,
+  excludeLocationIds: zQueryIds,
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
