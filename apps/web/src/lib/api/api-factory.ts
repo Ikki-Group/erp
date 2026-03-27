@@ -86,7 +86,7 @@ ${JSON.stringify(treeifyError(parsedResult.error), null, 2)}
        * if the response is JSON, parse it and throw an ApiError
        */
       if (error instanceof HTTPError && error.response.headers.get('content-type')?.includes('application/json')) {
-        const data = await error.response.json<TErr<any>>()
+        const data = await error.response.json<TErr>()
         throw new ApiError(data.message, error.response.status, data)
       }
 

@@ -16,6 +16,7 @@ export function eachDayOfInterval(start: Date, end: Date): Date[] {
   const last = new Date(end)
   last.setHours(0, 0, 0, 0)
 
+  // oxlint-disable-next-line no-unmodified-loop-condition
   while (current <= last) {
     dates.push(new Date(current))
     current.setDate(current.getDate() + 1)

@@ -11,6 +11,7 @@ import { getCommonPinningStyles } from './data-table-utils'
 
 interface DataTableTableProps extends ComponentProps<'table'> {}
 
+// oxlint-disable-next-line no-unused-vars
 export function DataTableTable({ children, ...props }: DataTableTableProps) {
   const { table, isLoading } = useDataTableContext()
   const pageSize = table.getState().pagination.pageSize

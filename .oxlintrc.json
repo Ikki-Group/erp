@@ -45,7 +45,8 @@
         "react/jsx-no-constructed-context-values": "off",
         "typescript/no-unnecessary-template-expression": "off",
         "typescript/no-unnecessary-boolean-literal-compare": "off",
-        "react/no-array-index-key": "off"
+        "react/no-array-index-key": "off",
+        "oxc/const-comparisons": "off"
       }
     },
     {

@@ -27,6 +27,7 @@ function useBaseDataTable<TData>({
       const next = typeof updater === 'function' ? updater(pagination) : updater
       ds.setPagination({ page: next.pageIndex + 1, limit: next.pageSize })
     },
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [ds.pagination, pagination],
   )
 

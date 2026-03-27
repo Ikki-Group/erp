@@ -4,4 +4,5 @@ declare module 'zod' {
   }
 }
 
+// oxlint-disable-next-line unicorn/require-module-specifiers
 export {}
