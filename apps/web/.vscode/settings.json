@@ -1,0 +1,23 @@
+{
+  "prettier.enable": true,
+  "prettier.configPath": "./prettier.config.js",
+  "eslint.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "always" },
+  "workbench.editor.labelFormat": "long",
+  "editor.snippetSuggestions": "bottom",
+
+  // Typescript
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  "files.watcherExclude": { "**/routeTree.gen.ts": true },
+  "search.exclude": { "**/routeTree.gen.ts": true },
+  "files.readonlyInclude": { "**/routeTree.gen.ts": true },
+
+  // Tailwind
+  "files.associations": { "*.css": "tailwindcss" }
+}

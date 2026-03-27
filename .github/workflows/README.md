@@ -3,7 +3,6 @@ This folder contains GitHub Actions used to deploy the monorepo apps.
 Required repository secrets
 
 - **Cloudflare Pages:**
-
   - `CLOUDFLARE_API_TOKEN` — API token with Pages deployment rights
   - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account ID
   - `CLOUDFLARE_PROJECT_MAIN` — Pages project name for the `main` branch (production)

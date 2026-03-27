@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "web/**"
+      - 'web/**'
 
 env:
   CLOUDFLARE_PROJECT_MAIN: ikki-erp

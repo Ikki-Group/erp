@@ -1,0 +1,67 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "builtin": true
+  },
+
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "react",
+    "oxc",
+    "import",
+    "jsdoc",
+    "node",
+    "promise",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn",
+    "style": "off"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "unicorn/no-empty-file": "off",
+    "no-await-in-loop": "off",
+    "import/no-named-as-default": "off",
+    "no-shadow": "off",
+    "typescript/no-unnecessary-template-expression": "off",
+    "@typescript-eslint/no-unsafe-type-assertion": "warn"
+  },
+  "overrides": [
+    {
+      "files": [
+        "apps/web/**/*"
+      ],
+      "rules": {
+        "typescript/no-floating-promises": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/restrict-template-expressions": "off",
+        "react/jsx-no-constructed-context-values": "off",
+        "typescript/no-unnecessary-template-expression": "off",
+        "typescript/no-unnecessary-boolean-literal-compare": "off",
+        "react/no-array-index-key": "off",
+        "oxc/const-comparisons": "off",
+        "unicorn/no-useless-fallback-in-spread": "off",
+        "eslint-plugin-react-hooks/exhaustive-deps": "warn"
+      }
+    },
+    {
+      "files": [
+        "*.test.ts"
+      ],
+      "rules": {
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "drizzle/**",
+    "**/*.lock",
+    ".agents/**"
+  ]
+}

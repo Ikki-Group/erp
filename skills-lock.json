@@ -1,6 +1,21 @@
 {
   "version": 1,
   "skills": {
+    "Skill Development": {
+      "source": "anthropics/claude-code",
+      "sourceType": "github",
+      "computedHash": "8d262f08f33825947ea20204ebf5101e36056c98090251bd973a552ec8ef0c0c"
+    },
+    "architecture-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "cf81f4523a2fd3017590cf2792fe305e4375d2f75d22037b92f05852e22feae2"
+    },
+    "create-architectural-decision-record": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "5c99e32293271aef0270c279c2af8b62301e29257bf85f2ebf7e810c740b4404"
+    },
     "drizzle-orm": {
       "source": "bobmatnyc/claude-mpm-skills",
       "sourceType": "github",
@@ -30,6 +45,11 @@
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
       "computedHash": "c44ff51d43e41ed4753e3cfbdde1100f3906124ee90f8e624bf159e5d8eaf45e"
+    },
+    "project-workflow-analysis-blueprint-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "3d55c341daf416e131919657ef92616619bfa52b6caea81029b79a64e4f958a3"
     },
     "shadcn": {
       "source": "shadcn/ui",
@@ -70,6 +90,11 @@
       "source": "jeffallan/claude-skills",
       "sourceType": "github",
       "computedHash": "1676ebbc84a1d9506b46d7978b91c4bce30d189ac1c619a9e875becd6e1c2c55"
+    },
+    "zod": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "computedHash": "df8b575c28f7f93fbd7d7971d785d47b84055063654a05ddbebf8ebd3536b2c4"
     }
   }
 }
