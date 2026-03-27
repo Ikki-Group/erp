@@ -1,3 +1,4 @@
+// oxlint-disable react/no-children-prop
 import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'

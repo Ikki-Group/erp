@@ -21,6 +21,7 @@ export type UseDataTableProps<TData, TFilter extends DataTableFilters = {}> = Om
 function useBaseDataTable<TData, TFilter extends DataTableFilters = {}>({
   data,
   columns,
+  // oxlint-disable-next-line no-unused-vars
   isLoading = false,
   ds,
   state = {},
@@ -45,6 +46,7 @@ function useBaseDataTable<TData, TFilter extends DataTableFilters = {}>({
         ds.setPagination({ page: next.pageIndex + 1, limit: next.pageSize })
       }
     },
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [ds.setPagination, pagination],
   )
 

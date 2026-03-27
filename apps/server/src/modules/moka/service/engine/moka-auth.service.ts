@@ -72,7 +72,7 @@ export class MokaAuthEngine {
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error)
       this.logger.error({ err: msg }, 'Moka login failed')
-      throw new Error(`Moka login failed: ${msg}`)
+      throw new Error(`Moka login failed: ${msg}`, { cause: error })
     }
   }
 

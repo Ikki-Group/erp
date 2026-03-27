@@ -12,6 +12,7 @@ export function useCopyToClipboard({ timeout = 2000, onCopy }: { timeout?: numbe
 
     if (!value) return
 
+    // oxlint-disable-next-line promise/always-return
     navigator.clipboard.writeText(value).then(() => {
       setIsCopied(true)
 

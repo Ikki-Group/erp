@@ -30,7 +30,8 @@
     "unicorn/no-empty-file": "off",
     "no-await-in-loop": "off",
     "import/no-named-as-default": "off",
-    "@typescript-eslint/no-unsafe-type-assertion": "warn"
+    "@typescript-eslint/no-unsafe-type-assertion": "warn",
+    "typescript/no-unnecessary-template-expression": "off"
   },
   "overrides": [
     {
@@ -42,7 +43,9 @@
         "typescript/no-unsafe-type-assertion": "off",
         "typescript/restrict-template-expressions": "off",
         "react/jsx-no-constructed-context-values": "off",
-        "typescript/no-unnecessary-template-expression": "off"
+        "typescript/no-unnecessary-template-expression": "off",
+        "typescript/no-unnecessary-boolean-literal-compare": "off",
+        "react/no-array-index-key": "off"
       }
     },
     {

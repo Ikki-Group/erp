@@ -280,6 +280,7 @@ export class StockSummaryService {
             AND "materialId" IN ${materialIds}
           ORDER BY "materialId", "date" DESC
         `
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const prevSummariesRaw = (await tx.execute(prevSummariesQuery)) as unknown as {
           materialId: number
           closingQty: string
@@ -322,6 +323,7 @@ export class StockSummaryService {
             AND "materialId" IN ${materialIds}
           ORDER BY "materialId", "id" DESC
         `
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const lastTransactionsRaw = (await tx.execute(lastTransactionsQuery)) as unknown as {
           materialId: number
           runningAvgCost: string
@@ -380,30 +382,31 @@ export class StockSummaryService {
           const closingAvgCost = lastTx ? Number(lastTx.runningAvgCost) : openingAvgCost
           const closingValue = closingQty * closingAvgCost
 
-          return {
-            materialId,
-            locationId,
-            date: dateKey,
-            openingQty: openingQty.toString(),
-            openingAvgCost: openingAvgCost.toString(),
-            openingValue: openingValue.toString(),
-            purchaseQty: purchaseQty.toString(),
-            purchaseValue: purchaseValue.toString(),
-            transferInQty: transferInQty.toString(),
-            transferInValue: transferInValue.toString(),
-            transferOutQty: transferOutQty.toString(),
-            transferOutValue: transferOutValue.toString(),
-            adjustmentQty: adjustmentQty.toString(),
-            adjustmentValue: adjustmentValue.toString(),
-            sellQty: sellQty.toString(),
-            sellValue: sellValue.toString(),
-            closingQty: closingQty.toString(),
-            closingAvgCost: closingAvgCost.toString(),
-            closingValue: closingValue.toString(),
-            ...stampCreate(actorId),
-            updatedAt: new Date(),
-            updatedBy: actorId,
-          }
+          return Object.assign(
+            {
+              materialId,
+              locationId,
+              date: dateKey,
+              openingQty: openingQty.toString(),
+              openingAvgCost: openingAvgCost.toString(),
+              openingValue: openingValue.toString(),
+              purchaseQty: purchaseQty.toString(),
+              purchaseValue: purchaseValue.toString(),
+              transferInQty: transferInQty.toString(),
+              transferInValue: transferInValue.toString(),
+              transferOutQty: transferOutQty.toString(),
+              transferOutValue: transferOutValue.toString(),
+              adjustmentQty: adjustmentQty.toString(),
+              adjustmentValue: adjustmentValue.toString(),
+              sellQty: sellQty.toString(),
+              sellValue: sellValue.toString(),
+              closingQty: closingQty.toString(),
+              closingAvgCost: closingAvgCost.toString(),
+              closingValue: closingValue.toString(),
+            },
+            stampCreate(actorId),
+            { updatedAt: new Date(), updatedBy: actorId },
+          )
         })
 
         // 6. Bulk Upsert using onConflictDoUpdate

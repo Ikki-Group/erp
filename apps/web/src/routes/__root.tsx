@@ -18,6 +18,7 @@ export const Route = createRootRouteWithContext<RouteContext>()({
     if (token) {
       await context.qc
         .ensureQueryData(authApi.me.query({}))
+        // oxlint-disable-next-line promise/always-return
         .then((res) => {
           useAppState.getState().invalidateSessionData(res.data)
         })
