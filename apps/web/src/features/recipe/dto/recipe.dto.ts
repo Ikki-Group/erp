@@ -81,7 +81,7 @@ export const RecipeMutationDto = z
     targetQty: zPrimitive.str.optional().default('1'),
     isActive: zPrimitive.bool.optional().default(true),
     instructions: zPrimitive.str.optional().nullable(),
-    items: RecipeItemMutationDto.array(),
+    items: RecipeItemMutationDto.array().default([]),
   })
   .refine(
     (data) => {

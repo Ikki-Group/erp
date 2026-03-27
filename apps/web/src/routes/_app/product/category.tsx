@@ -7,56 +7,49 @@ import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
-import type { SalesTypeDto } from '@/features/product'
-import { salesTypeApi } from '@/features/product'
-import { SalesTypeFormDialog } from '@/features/product/components/sales-type-form-dialog'
+import type { ProductCategoryDto } from '@/features/product'
+import { productCategoryApi } from '@/features/product'
+import { ProductCategoryFormDialog } from '@/features/product/components/product-category-form-dialog'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/products/sales-type')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/product/category')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Jenis Penjualan"
-        description="Pengaturan jenis penjualan untuk mengklasifikasikan transaksi dan pelaporan pendapatan."
+        title="Kategori Produk"
+        description="Kelola kategori produk untuk memudahkan pengorganisasian dan pencarian item menu."
       />
       <Page.Content>
-        <SalesTypeFormDialog.Root />
-        <SalesTypeTable />
+        <ProductCategoryFormDialog.Root />
+        <CategoryTable />
       </Page.Content>
     </Page>
   )
 }
 
-const ch = createColumnHelper<SalesTypeDto>()
+const ch = createColumnHelper<ProductCategoryDto>()
 
 const columns = [
-  ch.accessor('code', {
-    header: 'Kode',
-    cell: ({ row }) => (
-      <span className="font-medium text-xs text-muted-foreground uppercase tracking-wider">{row.original.code}</span>
-    ),
-    size: 120,
-    enableSorting: false,
-  }),
   ch.accessor('name', {
-    header: 'Jenis Penjualan',
+    header: 'Kategori',
     cell: ({ row }) => (
       <div className="flex flex-col gap-1 py-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
-          {row.original.isSystem && (
-            <span className="px-1.5 py-0.5 rounded-sm bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-tighter leading-none">
-              System
-            </span>
-          )}
-        </div>
+        <span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
       </div>
     ),
-    size: 300,
+    size: 250,
+    enableSorting: false,
+  }),
+  ch.accessor('description', {
+    header: 'Deskripsi',
+    cell: ({ row }) => (
+      <span className="text-xs text-muted-foreground line-clamp-1">{row.original.description || '-'}</span>
+    ),
+    size: 400,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
@@ -71,14 +64,13 @@ const columns = [
     id: 'action',
     header: '',
     cell: ({ row }) => {
-      if (row.original.isSystem) return null
       return (
         <div className="flex items-center justify-end px-2">
           <Button
             variant="ghost"
             size="icon-sm"
             className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => SalesTypeFormDialog.upsert({ id: row.original.id })}
+            onClick={() => ProductCategoryFormDialog.upsert({ id: row.original.id })}
           >
             <PencilIcon className="size-4" />
           </Button>
@@ -92,9 +84,9 @@ const columns = [
   }),
 ]
 
-function SalesTypeTable() {
+function CategoryTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(salesTypeApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(productCategoryApi.list.query({ ...ds.pagination, search: ds.search }))
 
   const table = useDataTable({
     columns: columns,
@@ -106,14 +98,14 @@ function SalesTypeTable() {
 
   return (
     <DataTableCard
-      title="Daftar Jenis Penjualan"
+      title="Daftar Kategori Produk"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
-      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari jenis penjualan...' }]} />}
+      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari kategori...' }]} />}
       action={
-        <Button size="sm" onClick={() => SalesTypeFormDialog.upsert({})}>
-          Tambah Tipe
+        <Button size="sm" onClick={() => ProductCategoryFormDialog.upsert({})}>
+          Tambah Kategori
         </Button>
       }
     />

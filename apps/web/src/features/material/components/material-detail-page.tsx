@@ -44,11 +44,11 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
       <Page.BlockHeader
         title={material.name}
         description={`Detail informasi untuk bahan baku ${material.sku}`}
-        back={{ to: '/materials' }}
+        back={{ to: '/material' }}
         action={
           <div className="flex items-center gap-2">
             <Link
-              to="/materials/$id/update"
+              to="/material/$id/update"
               params={{ id: String(id) }}
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
             >
@@ -124,7 +124,7 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
               icon={<ChefHatIcon className="size-4 text-primary" />}
               action={
                 <Link
-                  to="/materials/$id/recipe"
+                  to="/material/$id/recipe"
                   params={{ id: String(id) }}
                   className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8')}
                 >
@@ -142,7 +142,7 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
                     </p>
                   </div>
                   <Link
-                    to="/materials/$id/recipe"
+                    to="/material/$id/recipe"
                     params={{ id: String(id) }}
                     className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
                   >

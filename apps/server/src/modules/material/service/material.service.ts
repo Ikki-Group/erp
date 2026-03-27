@@ -126,8 +126,7 @@ export class MaterialService {
         const rawMaterials = await db.select().from(materialsTable).orderBy(materialsTable.name)
         const relationsMap = await this.getMaterialsBatchWithRelations(rawMaterials.map((m) => m.id))
 
-        return rawMaterials.map((m) => ({
-          ...m,
+        return rawMaterials.map((m) => Object.assign({}, m, {
           conversions: relationsMap.get(m.id)!.conversions,
           locationIds: relationsMap.get(m.id)!.locationIds,
         }))

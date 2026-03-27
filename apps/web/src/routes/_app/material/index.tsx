@@ -19,7 +19,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_app/materials/')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/material/')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
@@ -115,7 +115,7 @@ function MaterialTable() {
                 Assign {selectedIds.length} Lokasi
               </Button>
             )}
-            <Button size="sm" nativeButton={false} render={<Link from={Route.fullPath} to="/materials/create" />}>
+            <Button size="sm" nativeButton={false} render={<Link from={Route.fullPath} to="/material/create" />}>
               Tambah Bahan Baku
             </Button>
           </div>
@@ -155,7 +155,7 @@ function getColumns() {
           <div className="flex items-center gap-2">
             <Link
               from={Route.fullPath}
-              to="/materials/$id"
+              to="/material/$id"
               params={{ id: String(row.original.id) }}
               className="font-semibold text-sm tracking-tight hover:text-primary hover:underline"
             >
@@ -242,7 +242,7 @@ function getColumns() {
                 title="Kelola Resep"
                 nativeButton={false}
                 render={
-                  <Link from={Route.fullPath} to="/materials/$id/recipe" params={{ id: String(row.original.id) }} />
+                  <Link from={Route.fullPath} to="/material/$id/recipe" params={{ id: String(row.original.id) }} />
                 }
               >
                 <ChefHatIcon className="size-4" />
@@ -254,7 +254,7 @@ function getColumns() {
               className="size-8 text-muted-foreground hover:text-foreground"
               title="Lihat Detail"
               nativeButton={false}
-              render={<Link from={Route.fullPath} to="/materials/$id" params={{ id: String(row.original.id) }} />}
+              render={<Link from={Route.fullPath} to="/material/$id" params={{ id: String(row.original.id) }} />}
             >
               <EyeIcon className="size-4" />
             </Button>
@@ -265,7 +265,7 @@ function getColumns() {
               title="Edit Bahan Baku"
               nativeButton={false}
               render={
-                <Link from={Route.fullPath} to="/materials/$id/update" params={{ id: String(row.original.id) }} />
+                <Link from={Route.fullPath} to="/material/$id/update" params={{ id: String(row.original.id) }} />
               }
             >
               <PencilIcon className="size-4" />

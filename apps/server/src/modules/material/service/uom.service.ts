@@ -179,7 +179,7 @@ export class UomService {
 
       if (newUoms.length === 0) return
 
-      await db.insert(uomsTable).values(newUoms.map((d) => ({ ...d, ...stampCreate(d.createdBy) })))
+      await db.insert(uomsTable).values(newUoms.map((d) => Object.assign({}, d, stampCreate(d.createdBy))))
 
       void this.clearCache()
     })

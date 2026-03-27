@@ -34,7 +34,7 @@ export class RecipeService {
       .where(eq(recipeItemsTable.recipeId, recipeId))
       .orderBy(recipeItemsTable.sortOrder)
 
-    return results.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
+    return results.map((r) => Object.assign({}, r.item, { material: r.material, uom: r.uom }))
   }
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ export class RecipeService {
               .orderBy(recipeItemsTable.sortOrder)
           : []
 
-      const allItems = allItemsRaw.map((r) => ({ ...r.item, material: r.material, uom: r.uom }))
+      const allItems = allItemsRaw.map((r) => Object.assign({}, r.item, { material: r.material, uom: r.uom }))
 
       const itemsByRecipe = new Map<number, typeof allItems>()
       for (const item of allItems) {

@@ -6,47 +6,48 @@ import { PencilIcon } from 'lucide-react'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { MaterialCategoryDto } from '@/features/material'
-import { materialCategoryApi } from '@/features/material'
-import { MaterialCategoryFormDialog } from '@/features/material/components/material-category-form-dialog'
+import type { UomDto } from '@/features/material'
+import { uomApi } from '@/features/material'
+import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/materials/category')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/material/uom')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Kategori Bahan Baku"
-        description="Pengaturan kategori bahan baku untuk pengorganisasian inventaris dan klasifikasi produk yang lebih baik."
+        title="Satuan Bahan Baku"
+        description="Kelola Satuan (UOM) untuk bahan baku. Satuan ini akan digunakan dalam inventaris, resep, dan transaksi stok."
       />
       <Page.Content>
-        <MaterialCategoryFormDialog.Root />
-        <CategoryTable />
+        <UomFormDialog.Root />
+        <UomTable />
       </Page.Content>
     </Page>
   )
 }
 
-const ch = createColumnHelper<MaterialCategoryDto>()
+const ch = createColumnHelper<UomDto>()
 
 const columns = [
-  ch.accessor('name', {
-    header: 'Kategori',
+  ch.accessor('code', {
+    header: 'Kode Satuan',
     cell: ({ row }) => (
-      <div className="flex flex-col gap-1 py-1">
-        <span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
-        {row.original.description && (
-          <span className="text-xs text-muted-foreground/80 line-clamp-1 max-w-[400px]">
-            {row.original.description}
-          </span>
-        )}
+      <div className="flex items-center py-1">
+        <Badge
+          variant="outline"
+          className="h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30"
+        >
+          {row.original.code}
+        </Badge>
       </div>
     ),
-    size: 400,
+    size: 200,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
@@ -54,7 +55,7 @@ const columns = [
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground font-medium">{toDateTimeStamp(row.original.createdAt)}</span>
     ),
-    size: 180,
+    size: 200,
     enableSorting: false,
   }),
   ch.display({
@@ -67,7 +68,7 @@ const columns = [
             variant="ghost"
             size="icon-sm"
             className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => MaterialCategoryFormDialog.upsert({ id: row.original.id })}
+            onClick={() => UomFormDialog.upsert({ id: row.original.id })}
           >
             <PencilIcon className="size-4" />
           </Button>
@@ -81,9 +82,9 @@ const columns = [
   }),
 ]
 
-function CategoryTable() {
+function UomTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(materialCategoryApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, search: ds.search }))
 
   const table = useDataTable({
     columns: columns,
@@ -95,14 +96,14 @@ function CategoryTable() {
 
   return (
     <DataTableCard
-      title="Daftar Kategori"
+      title="Daftar Satuan"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
-      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari kategori...' }]} />}
+      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari satuan...' }]} />}
       action={
-        <Button size="sm" onClick={() => MaterialCategoryFormDialog.upsert({})}>
-          Tambah Kategori
+        <Button size="sm" onClick={() => UomFormDialog.upsert({})}>
+          Tambah Satuan
         </Button>
       }
     />

@@ -16,7 +16,7 @@ import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
-export const Route = createFileRoute('/_app/materials/ledger')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/material/ledger')({ component: RouteComponent })
 
 function getStartOfMonth() {
   const date = new Date()

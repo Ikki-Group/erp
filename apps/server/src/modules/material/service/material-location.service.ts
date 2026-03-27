@@ -69,8 +69,7 @@ export class MaterialLocationService {
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.materialId, materialId))
-      return results.map((r) => ({
-        ...r,
+      return results.map((r) => Object.assign({}, r, {
         currentQty: Number(r.currentQty),
         currentAvgCost: Number(r.currentAvgCost),
         currentValue: Number(r.currentValue),
@@ -85,8 +84,7 @@ export class MaterialLocationService {
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.locationId, locationId))
-      return results.map((r) => ({
-        ...r,
+      return results.map((r) => Object.assign({}, r, {
         currentQty: Number(r.currentQty),
         currentAvgCost: Number(r.currentAvgCost),
         currentValue: Number(r.currentValue),
@@ -181,8 +179,7 @@ export class MaterialLocationService {
         .innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
         .where(eq(materialLocationsTable.materialId, materialId))
 
-      return assignments.map((row) => ({
-        ...row.assignment,
+      return assignments.map((row) => Object.assign({}, row.assignment, {
         currentQty: Number(row.assignment.currentQty),
         currentAvgCost: Number(row.assignment.currentAvgCost),
         currentValue: Number(row.assignment.currentValue),

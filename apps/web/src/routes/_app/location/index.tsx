@@ -14,7 +14,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/locations/')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/location/')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
@@ -40,7 +40,7 @@ const columns = [
           <Button
             variant="outline"
             size="icon-sm"
-            render={<Link to="/locations/$id" params={{ id: String(row.original.id) }} />}
+            render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
           >
             <PencilIcon />
           </Button>
@@ -119,7 +119,7 @@ function LocationsTable() {
         />
       }
       action={
-        <Button size="sm" render={<Link from={Route.fullPath} to="/locations/create" />} nativeButton={false}>
+        <Button size="sm" render={<Link from={Route.fullPath} to="/location/create" />} nativeButton={false}>
           Tambah Lokasi
         </Button>
       }

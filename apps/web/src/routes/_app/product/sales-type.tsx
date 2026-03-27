@@ -6,48 +6,57 @@ import { PencilIcon } from 'lucide-react'
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { UomDto } from '@/features/material'
-import { uomApi } from '@/features/material'
-import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
+import type { SalesTypeDto } from '@/features/product'
+import { salesTypeApi } from '@/features/product'
+import { SalesTypeFormDialog } from '@/features/product/components/sales-type-form-dialog'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/materials/uom')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/product/sales-type')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Satuan Bahan Baku"
-        description="Kelola Satuan (UOM) untuk bahan baku. Satuan ini akan digunakan dalam inventaris, resep, dan transaksi stok."
+        title="Jenis Penjualan"
+        description="Pengaturan jenis penjualan untuk mengklasifikasikan transaksi dan pelaporan pendapatan."
       />
       <Page.Content>
-        <UomFormDialog.Root />
-        <UomTable />
+        <SalesTypeFormDialog.Root />
+        <SalesTypeTable />
       </Page.Content>
     </Page>
   )
 }
 
-const ch = createColumnHelper<UomDto>()
+const ch = createColumnHelper<SalesTypeDto>()
 
 const columns = [
   ch.accessor('code', {
-    header: 'Kode Satuan',
+    header: 'Kode',
     cell: ({ row }) => (
-      <div className="flex items-center py-1">
-        <Badge
-          variant="outline"
-          className="h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30"
-        >
-          {row.original.code}
-        </Badge>
+      <span className="font-medium text-xs text-muted-foreground uppercase tracking-wider">{row.original.code}</span>
+    ),
+    size: 120,
+    enableSorting: false,
+  }),
+  ch.accessor('name', {
+    header: 'Jenis Penjualan',
+    cell: ({ row }) => (
+      <div className="flex flex-col gap-1 py-1">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
+          {row.original.isSystem && (
+            <span className="px-1.5 py-0.5 rounded-sm bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-tighter leading-none">
+              System
+            </span>
+          )}
+        </div>
       </div>
     ),
-    size: 200,
+    size: 300,
     enableSorting: false,
   }),
   ch.accessor('createdAt', {
@@ -55,20 +64,21 @@ const columns = [
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground font-medium">{toDateTimeStamp(row.original.createdAt)}</span>
     ),
-    size: 200,
+    size: 180,
     enableSorting: false,
   }),
   ch.display({
     id: 'action',
     header: '',
     cell: ({ row }) => {
+      if (row.original.isSystem) return null
       return (
         <div className="flex items-center justify-end px-2">
           <Button
             variant="ghost"
             size="icon-sm"
             className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => UomFormDialog.upsert({ id: row.original.id })}
+            onClick={() => SalesTypeFormDialog.upsert({ id: row.original.id })}
           >
             <PencilIcon className="size-4" />
           </Button>
@@ -82,9 +92,9 @@ const columns = [
   }),
 ]
 
-function UomTable() {
+function SalesTypeTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(salesTypeApi.list.query({ ...ds.pagination, search: ds.search }))
 
   const table = useDataTable({
     columns: columns,
@@ -96,14 +106,14 @@ function UomTable() {
 
   return (
     <DataTableCard
-      title="Daftar Satuan"
+      title="Daftar Jenis Penjualan"
       table={table}
       isLoading={isLoading}
       recordCount={data?.meta.total || 0}
-      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari satuan...' }]} />}
+      toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari jenis penjualan...' }]} />}
       action={
-        <Button size="sm" onClick={() => UomFormDialog.upsert({})}>
-          Tambah Satuan
+        <Button size="sm" onClick={() => SalesTypeFormDialog.upsert({})}>
+          Tambah Tipe
         </Button>
       }
     />

@@ -169,21 +169,21 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Data Master (Global)',
       items: [
-        { title: 'Katalog Produk', href: '/products', icon: PackageIcon, isActive: pathname.startsWith('/products') },
+        { title: 'Katalog Produk', href: '/product', icon: PackageIcon, isActive: pathname.startsWith('/product') },
         {
           title: 'Bahan Baku Global',
-          href: '/materials',
+          href: '/material',
           icon: CirclePileIcon,
           children: [
-            { title: 'Daftar Bahan', href: '/materials', isActive: pathname === '/materials' },
-            { title: 'Kategori & UoM', href: '/materials/config', isActive: pathname.startsWith('/materials/config') },
+            { title: 'Daftar Bahan', href: '/material', isActive: pathname === '/material' },
+            { title: 'Kategori & UoM', href: '/material/config', isActive: pathname.startsWith('/material/config') },
           ],
         },
         {
           title: 'Lokasi & Outlet',
-          href: '/locations',
+          href: '/location',
           icon: WarehouseIcon,
-          isActive: pathname.startsWith('/locations'),
+          isActive: pathname.startsWith('/location'),
         },
       ],
     },

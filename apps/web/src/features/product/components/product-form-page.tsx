@@ -139,7 +139,7 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
       if (backTo) {
         navigate({ ...backTo, replace: true })
       } else {
-        navigate({ to: '/products', replace: true })
+        navigate({ to: '/product', replace: true })
       }
     },
   })
@@ -150,7 +150,7 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
         <Page size="md">
           <Page.BlockHeader
             title={mode === 'create' ? 'Tambah Produk' : 'Edit Produk'}
-            back={backTo ?? { to: '/products' }}
+            back={backTo ?? { to: '/product' }}
           />
           <form.Form>
             <Page.Content className="flex flex-col gap-6">

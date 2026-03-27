@@ -15,7 +15,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toCurrency, toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/products/')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/product/')({ component: RouteComponent })
 
 function RouteComponent() {
   return (
@@ -90,7 +90,7 @@ const columns = [
           <Button
             variant="ghost"
             size="icon-sm"
-            render={<Link to="/products/$id" params={{ id: String(row.original.id) }} />}
+            render={<Link to="/product/$id" params={{ id: String(row.original.id) }} />}
           >
             <PencilIcon />
           </Button>
@@ -175,7 +175,7 @@ function ProductTable() {
         />
       }
       action={
-        <Button size="sm" render={<Link to="/products/create" />}>
+        <Button size="sm" render={<Link to="/product/create" />}>
           <PlusIcon className="mr-2 size-4" />
           Tambah Produk
         </Button>
