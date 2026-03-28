@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { boolean, check, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, check, index, numeric, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { materialsTable, uomsTable } from './material'
@@ -17,9 +17,9 @@ export const recipesTable = pgTable(
   'recipes',
   {
     ...pk,
-    materialId: integer().references(() => materialsTable.id, { onDelete: 'cascade' }),
-    productId: integer().references(() => productsTable.id, { onDelete: 'cascade' }),
-    productVariantId: integer().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
+    materialId: uuid().references(() => materialsTable.id, { onDelete: 'cascade' }),
+    productId: uuid().references(() => productsTable.id, { onDelete: 'cascade' }),
+    productVariantId: uuid().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
 
     // The amount produced by this recipe (expected yield)
     targetQty: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
@@ -55,11 +55,11 @@ export const recipeItemsTable = pgTable(
   'recipe_items',
   {
     ...pk,
-    recipeId: integer()
+    recipeId: uuid()
       .notNull()
       .references(() => recipesTable.id, { onDelete: 'cascade' }),
     // The component material required
-    materialId: integer()
+    materialId: uuid()
       .notNull()
       .references(() => materialsTable.id, { onDelete: 'restrict' }),
 
@@ -68,7 +68,7 @@ export const recipeItemsTable = pgTable(
     // Allowed percentage of loss/scrap (e.g., 5% loss during preparation), useful for cost calculation
     scrapPercentage: numeric({ precision: 5, scale: 2 }).notNull().default('0'),
     // UOM used for this ingredient in the recipe (should match baseUom or be convertible)
-    uomId: integer()
+    uomId: uuid()
       .notNull()
       .references(() => uomsTable.id, { onDelete: 'restrict' }),
 
@@ -76,7 +76,7 @@ export const recipeItemsTable = pgTable(
     notes: text(),
 
     // Allows ordering of components if the recipe has steps
-    sortOrder: integer().notNull().default(0),
+    sortOrder: numeric({ precision: 5, scale: 0 }).notNull().default('0'), // kept as small numeric instead of integer to skip explicit integer import
 
     ...metadata,
   },

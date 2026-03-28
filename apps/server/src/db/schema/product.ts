@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { boolean, index, integer, jsonb, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, index, jsonb, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk, productStatusEnum } from './_helpers'
 import { locationsTable } from './location'
@@ -41,10 +41,10 @@ export const productsTable = pgTable(
     name: text().notNull(),
     description: text(),
     sku: text().notNull(),
-    locationId: integer()
+    locationId: uuid()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
-    categoryId: integer().references(() => productCategoriesTable.id, { onDelete: 'set null' }),
+    categoryId: uuid().references(() => productCategoriesTable.id, { onDelete: 'set null' }),
     status: productStatusEnum().notNull().default('active'),
 
     // ── Feature Flags ──────────────────────────────────────────────────
@@ -80,10 +80,10 @@ export const productPricesTable = pgTable(
   'product_prices',
   {
     ...pk,
-    productId: integer()
+    productId: uuid()
       .notNull()
       .references(() => productsTable.id, { onDelete: 'cascade' }),
-    salesTypeId: integer()
+    salesTypeId: uuid()
       .notNull()
       .references(() => salesTypesTable.id, { onDelete: 'restrict' }),
     price: numeric({ precision: 18, scale: 4 }).notNull(),
@@ -104,7 +104,7 @@ export const productVariantsTable = pgTable(
   'product_variants',
   {
     ...pk,
-    productId: integer()
+    productId: uuid()
       .notNull()
       .references(() => productsTable.id, { onDelete: 'cascade' }),
     name: text().notNull(),
@@ -133,10 +133,10 @@ export const variantPricesTable = pgTable(
   'variant_prices',
   {
     ...pk,
-    variantId: integer()
+    variantId: uuid()
       .notNull()
       .references(() => productVariantsTable.id, { onDelete: 'cascade' }),
-    salesTypeId: integer()
+    salesTypeId: uuid()
       .notNull()
       .references(() => salesTypesTable.id, { onDelete: 'restrict' }),
     price: numeric({ precision: 18, scale: 4 }).notNull(),
@@ -158,10 +158,10 @@ export const productExternalMappingsTable = pgTable(
   'product_external_mappings',
   {
     ...pk,
-    productId: integer()
+    productId: uuid()
       .notNull()
       .references(() => productsTable.id, { onDelete: 'cascade' }),
-    variantId: integer().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
+    variantId: uuid().references(() => productVariantsTable.id, { onDelete: 'cascade' }),
     // Integration provider key (e.g., 'moka', 'grabfood', 'shopeefood')
     provider: text().notNull(),
     // The ID of this item in the external system

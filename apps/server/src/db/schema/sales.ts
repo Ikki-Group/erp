@@ -1,4 +1,4 @@
-import { index, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { index, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { locationsTable } from './location'
@@ -14,12 +14,12 @@ export const salesOrdersTable = pgTable(
   'sales_orders',
   {
     ...pk,
-    locationId: integer()
+    locationId: uuid()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
     // CRM Integration future-proofing
-    customerId: integer(),
-    salesTypeId: integer()
+    customerId: uuid(),
+    salesTypeId: uuid()
       .notNull()
       .references(() => salesTypesTable.id, { onDelete: 'restrict' }),
     status: salesOrderStatusEnum().notNull().default('open'),
@@ -27,9 +27,9 @@ export const salesOrdersTable = pgTable(
     transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
 
     // Financial numbers
-    totalAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    discountAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    taxAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
     ...metadata,
   },
@@ -46,10 +46,10 @@ export const salesOrderBatchesTable = pgTable(
   'sales_order_batches',
   {
     ...pk,
-    orderId: integer()
+    orderId: uuid()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-    batchNumber: integer().notNull(),
+    batchNumber: numeric({ precision: 5, scale: 0 }).notNull(),
     status: text().notNull().default('pending'), // E.g., pending, prepared, delivered
     ...metadata,
   },
@@ -62,25 +62,26 @@ export const salesOrderItemsTable = pgTable(
   'sales_order_items',
   {
     ...pk,
-    orderId: integer()
+    orderId: uuid()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-    batchId: integer().references(() => salesOrderBatchesTable.id, { onDelete: 'set null' }),
+    batchId: uuid().references(() => salesOrderBatchesTable.id, { onDelete: 'set null' }),
 
     // Custom Items: products/variants optional
-    productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
-    variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
+    productId: uuid().references(() => productsTable.id, { onDelete: 'set null' }),
+    variantId: uuid().references(() => productVariantsTable.id, { onDelete: 'set null' }),
 
     // Immutable History: Item name must always be stored
     itemName: text().notNull(),
 
+    // Qty keeps scale 4 for fractional cases
     quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
 
-    // Immutable Financial History
-    unitPrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    discountAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    taxAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    subtotal: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    // Immutable Financial History (scale 2)
+    unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
     ...metadata,
   },
@@ -98,13 +99,13 @@ export const salesVoidsTable = pgTable(
   'sales_voids',
   {
     ...pk,
-    orderId: integer()
+    orderId: uuid()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
     // If itemId is null, it means the whole order is voided
-    itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
+    itemId: uuid().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
     reason: text(),
-    voidedBy: integer().notNull(),
+    voidedBy: uuid().notNull(), // Soft-link to IAM user UUID
 
     ...metadata,
   },
@@ -117,7 +118,7 @@ export const salesExternalRefsTable = pgTable(
   'sales_external_refs',
   {
     ...pk,
-    orderId: integer()
+    orderId: uuid()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
     externalSource: text().notNull(), // 'Grab', 'Shopee', 'Moka', etc.

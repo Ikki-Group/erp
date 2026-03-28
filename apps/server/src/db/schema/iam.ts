@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { locationsTable } from './location'
@@ -13,6 +13,7 @@ export const usersTable = pgTable(
     username: text().notNull(),
     fullname: text().notNull(),
     passwordHash: text().notNull(),
+    pinCode: text(), // Added pinCode for fast POS logins
     isRoot: boolean().notNull().default(false),
     isActive: boolean().notNull().default(true),
     ...metadata,
@@ -41,13 +42,13 @@ export const userAssignmentsTable = pgTable(
   'user_assignments',
   {
     ...pk,
-    userId: integer()
+    userId: uuid()
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    roleId: integer()
+    roleId: uuid()
       .notNull()
       .references(() => rolesTable.id, { onDelete: 'restrict' }),
-    locationId: integer()
+    locationId: uuid()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
     isDefault: boolean().notNull().default(false),
@@ -69,7 +70,7 @@ export const sessionsTable = pgTable(
   'sessions',
   {
     ...pk,
-    userId: integer()
+    userId: uuid()
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     createdAt: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
