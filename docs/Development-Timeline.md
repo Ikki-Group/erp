@@ -1,142 +1,108 @@
-# ERP Development Timeline & Tracker
+# Ikki ERP Development Timeline & Tracker
 
-> **Version**: 1.1  
-> **Last Updated**: 2026-03-26  
+> **Version**: 2.0  
+> **Last Updated**: 2026-03-28  
 > **Changelog**:
 >
-> - `v1.1` (2026-03-26) — Synced task statuses with actual codebase, added Moka integration phase, reordered phases to match reality
-> - `v1.0` (Initial) — Original timeline with placeholder statuses
+> - `v2.0` (2026-03-28) — Completely realigned phases to match Ikki F&B specific module blueprints (Layer 0 to Layer 3). Grouped into MVP and Enterprise Extensions.
+> - `v1.1` (2026-03-26) — Synced task statuses with actual codebase, added Moka integration.
 
-This document serves as the roadmap and sprint tracker for the Ikki ERP development lifecycle. The project is divided into distinct, manageable phases designed to prevent scope creep and ensure systematic delivery.
+This document serves as the roadmap and sprint tracker for the Ikki ERP development lifecycle.
 
 ---
 
-## Phase 1: Infrastructure & Core Setup ✅
+## MVP (Phase 1) - Core F&B Operations
 
-**Objective**: Establish a robust Monorepo architecture, configure high-performance development tooling (Linters/Formatters), and initialize the foundational Layer 0 database schemas.
+### Phase 1: Infrastructure & Core Setup ✅
+**Objective**: Establish Monorepo architecture, development tooling, and Drizzle schemas.
 
 | Status | Task ID  | Description                                                                            | Component | Dependency |
 | :----: | :------- | :------------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `INF-01` | Initialize Bun Workspaces for `apps/web`, `apps/server`, and `packages/*`.             | Monorepo  | -          |
+|   ✅   | `INF-01` | Initialize Bun Workspaces for `apps/web` and `apps/server`.                            | Monorepo  | -          |
 |   ✅   | `INF-02` | Implement Oxlint & Oxfmt for optimized workspace validation.                           |  Config   | `INF-01`   |
-|   ⏳   | `INF-03` | Establish standard OpenAPI specifications & Shared Zod Schemas within `packages/api`.  |  Backend  | `INF-01`   |
-|   ✅   | `DB-01`  | Design and generate Drizzle schemas for Master Data (`locations`, `materials`, `uom`). |  Backend  | -          |
+|   ✅   | `DB-01`  | Design and generate Drizzle schema representations derived from `ERD.md`.              |  Backend  | -          |
 |   ✅   | `WEB-01` | Scaffold frontend utilizing Vite, React 19, Tailwind v4, Base UI, and TanStack Router. | Frontend  | -          |
 
-> **Note**: `INF-03` (shared packages/api workspace) is deferred. Zod schemas currently reside within each server module's `dto/` directory.
-
----
-
-## Phase 2: IAM & Master Data ✅
-
-**Objective**: Implement system security via Role-Based Access Control (RBAC) and develop the core application interfaces for location and material management.
+### Phase 2: IAM & Security (Layer 1.5) ✅
+**Objective**: Build secure gateway using JWT/Argon2id and restrict data by Location.
 
 | Status | Task ID  | Description                                                                         | Component | Dependency |
 | :----: | :------- | :---------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `IAM-01` | Develop Auth Router (JWT) and RBAC Drizzle schemas.                                 |  Backend  | `INF-03`   |
-|   ✅   | `IAM-02` | Implement Login Page and protected routes managing state via Zustand.               | Frontend  | `WEB-01`   |
-|   ✅   | `MST-01` | Develop CRUD APIs for `locations` and `materials` (ensuring multi-UOM scale logic). |  Backend  | `DB-01`    |
-|   ✅   | `MST-02` | Build UI DataTables and TanStack Forms for Master Data management.                  | Frontend  | `MST-01`   |
+|   ✅   | `IAM-01` | Develop Auth Router (JWT, Argon2id) and User/Role schemas.                          |  Backend  | `DB-01`    |
+|   ✅   | `IAM-02` | Implement strict Location-Based Access Control (LBAC) filters in Elysia middleware. |  Backend  | `IAM-01`   |
+|   ✅   | `IAM-03` | Develop Login Page and global state authentication (Zustand).                       | Frontend  | `WEB-01`   |
 
----
+### Phase 3: Master Data / Layer 0 & 1 ✅
+**Objective**: Create the core catalogs for Locations (Outlets), Materials (Ingredients), and Products (Menus).
 
-## Phase 3: Products & Recipes ✅
+| Status | Task ID  | Description                                                                         | Component | Dependency |
+| :----: | :------- | :---------------------------------------------------------------------------------- | :-------: | :--------- |
+|   ✅   | `MD-01`  | Develop CRUD APIs for `locations` (Outlets/Warehouses).                             |  Backend  | `DB-01`    |
+|   ✅   | `MD-02`  | Develop CRUD APIs for `products` and `categories` (Moka POS mapping targets).       |  Backend  | `DB-01`    |
+|   ✅   | `MD-03`  | Develop CRUD APIs for `materials` and `uom_conversions` (Base -> Alt multipliers).  |  Backend  | `DB-01`    |
+|   ✅   | `MD-04`  | Build UI DataTables for Master Data management.                                     | Frontend  | `MD-01`    |
 
-**Objective**: Establish product catalog management and recipe/BOM definitions.
+### Phase 4: Recipes & BOM (Layer 2) 🏃
+**Objective**: Link materials to products, supporting sub-recipes and real-time HPP (Costing).
 
 | Status | Task ID  | Description                                                              | Component | Dependency |
 | :----: | :------- | :----------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `PRD-01` | Develop Product CRUD APIs (categories, sales types, external mappings).  |  Backend  | `DB-01`    |
-|   ✅   | `PRD-02` | Build Product management UI with DataTables and Forms.                   | Frontend  | `PRD-01`   |
-|   ✅   | `RCP-01` | Develop Recipe CRUD APIs with BOM item management.                       |  Backend  | `MST-01`   |
-|   🏃   | `RCP-02` | Build Recipe management UI (list, create/edit, detail, cost calculator). | Frontend  | `RCP-01`   |
+|   ✅   | `RCP-01` | Develop Recipe CRUD APIs, linking Products with Material Lines.          |  Backend  | `MD-02`    |
+|   🏃   | `RCP-02` | Implement Auto-Costing Engine (calculating recipe HPP via joined WAC).   |  Backend  | `RCP-01`   |
+|   🏃   | `RCP-03` | Build Recipe UI (Menu construction, sub-recipes, HPP viewer).            | Frontend  | `RCP-01`   |
 
----
-
-## Phase 4: Inventory Engine 🏃
-
-**Objective**: Construct the core warehouse operations module ensuring accurate tracking of stock movements, internal transfers, and physical adjustments.
+### Phase 5: Inventory Engine (Layer 2) 🏃
+**Objective**: Track movement of goods specifically for F&B workflows (Transfers, Waste, Opname).
 
 | Status | Task ID  | Description                                                                  | Component | Dependency |
 | :----: | :------- | :--------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `INV-01` | Establish database schemas for `stock_movements` and `stock_summaries`.      |  Backend  | `MST-01`   |
-|   ✅   | `INV-02` | Develop transactional APIs for Inbound, Outbound, and Internal Transfers.    |  Backend  | `INV-01`   |
-|   ✅   | `INV-03` | Implement Stock Summary generation with WAC calculation and material ledger. |  Backend  | `INV-02`   |
-|   🏃   | `INV-04` | Construct Stock Movement Dashboards and Opname data entry forms.             | Frontend  | `INV-02`   |
+|   ✅   | `INV-01` | Develop APIs for Internal Transfers (Warehouse -> Outlet).                   |  Backend  | `MD-01`    |
+|   ✅   | `INV-02` | Develop APIs for Manual Deductions (Waste/Spoilage).                         |  Backend  | `INV-01`   |
+|   ✅   | `INV-03` | Implement Material Ledger & dynamic WAC Cost accumulation.                   |  Backend  | `INV-01`   |
+|   🏃   | `INV-04` | Construct Stock Opname Forms (Expected vs Actual).                           | Frontend  | `INV-03`   |
 
----
-
-## Phase 5: External Integrations — Moka POS ✅
-
-**Objective**: Integrate with Moka POS for product sync, sales data scraping, and scrap/waste tracking.
-
-| Status | Task ID   | Description                                                       | Component | Dependency |
-| :----: | :-------- | :---------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `MOKA-01` | Implement Moka Auth service (OAuth token management).             |  Backend  | -          |
-|   ✅   | `MOKA-02` | Develop product, category, and sales scraping engine.             |  Backend  | `MOKA-01`  |
-|   ✅   | `MOKA-03` | Build Moka configuration management API (per-outlet settings).    |  Backend  | `MOKA-01`  |
-|   ✅   | `MOKA-04` | Implement scrap history tracking and data transformation service. |  Backend  | `MOKA-02`  |
-|   🏃   | `MOKA-05` | Build Moka management UI (configuration, sync status).            | Frontend  | `MOKA-03`  |
-
----
-
-## Phase 6: Sales Module 🏃
-
-**Objective**: Implement sales order management with inventory integration.
-
-| Status | Task ID  | Description                                                         | Component | Dependency |
-| :----: | :------- | :------------------------------------------------------------------ | :-------: | :--------- |
-|   ✅   | `SAL-01` | Develop Sales Order CRUD API with status workflow.                  |  Backend  | `MST-01`   |
-|   🏃   | `SAL-02` | Build Sales Order management UI (list, create/edit, detail).        | Frontend  | `SAL-01`   |
-|   ⏳   | `SAL-03` | Integrate Delivery Order (DO): dispatching triggers outbound stock. | Fullstack | `INV-02`   |
-
----
-
-## Phase 7: Purchasing & Procurement ⏳
-
-**Objective**: Manage the lifecycle of procurement from requisition to goods receipt.
+### Phase 6: Purchasing (Layer 2) ⏳
+**Objective**: Flow to acquire new raw materials and update base cost tracking.
 
 | Status | Task ID  | Description                                                                         | Component | Dependency |
 | :----: | :------- | :---------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ⏳   | `PUR-01` | Develop API and UI for Purchase Requisition (PR) to Purchase Order (PO) conversion. | Fullstack | `MST-01`   |
-|   ⏳   | `PUR-02` | Integrate Goods Receipt Note (GRN): Receiving triggers Inbound Stock automatically. | Fullstack | `INV-02`   |
+|   ⏳   | `PUR-01` | Develop Purchase Requisition (PR) and PO Approval endpoints.                        |  Backend  | `MD-03`    |
+|   ⏳   | `PUR-02` | Integrate Goods Receipt Note (GRN): Locks costs and triggers Inbound Stock.         |  Backend  | `INV-01`   |
+|   ⏳   | `PUR-03` | Build UI pipelines for Procurement tracking.                                        | Frontend  | `PUR-01`   |
 
----
+### Phase 7: External Integrations — Moka POS (Layer 3) 🏃
+**Objective**: Automate sales imports from cashiers and instantly deduct stock via Recipes.
 
-## Phase 8: Manufacturing & Production ⏳
+| Status | Task ID   | Description                                                       | Component | Dependency |
+| :----: | :-------- | :---------------------------------------------------------------- | :-------: | :--------- |
+|   ✅   | `MOKA-01` | Implement Moka OAuth API and token persistence.                   |  Backend  | `DB-01`    |
+|   ✅   | `MOKA-02` | Develop product, category, and sales scraping engine.             |  Backend  | `MOKA-01`  |
+|   🏃   | `MOKA-03` | Construct the Auto-Deduction trigger: Sales -> Recipe -> Inventory. |  Backend  | `RCP-01`   |
+|   🏃   | `MOKA-04` | Build Moka management UI (mapping unmatched items).               | Frontend  | `MOKA-02`  |
 
-**Objective**: Automate the conversion of Raw Materials into Finished Goods via structured Bills of Materials (BOM).
-
-| Status | Task ID  | Description                                                          | Component | Dependency |
-| :----: | :------- | :------------------------------------------------------------------- | :-------: | :--------- |
-|   ⏳   | `MFG-01` | Develop Production Order APIs based on Recipe/BOM definitions.       | Fullstack | `RCP-01`   |
-|   ⏳   | `MFG-02` | Implement WIP service: Record material consumption and yield output. | Fullstack | `INV-02`   |
-
----
-
-## Phase 9: Dashboard & Analytics 🏃
-
-**Objective**: Deliver high-level management dashboards and secure optimal system performance across all modules.
+### Phase 8: Dashboard & Analytics (Layer 3) ⏳
+**Objective**: Live KPIs for Owners and General Managers.
 
 | Status | Task ID   | Description                                                                             | Component | Dependency |
 | :----: | :-------- | :-------------------------------------------------------------------------------------- | :-------: | :--------- |
-|   ✅   | `DASH-01` | Implement Upstash Redis caching layer for heavy data aggregations.                      |  Backend  | All        |
-|   🏃   | `DASH-02` | Develop analytical charts via Recharts and review Sentry error tracking implementation. | Frontend  | All        |
+|   ⏳   | `DASH-01` | Implement Redis aggregation engine for Gross Profit Margins (Revenue minus COGS).       |  Backend  | All        |
+|   ⏳   | `DASH-02` | Develop Low-Stock Warning DataGrid per Outlet.                                          |  Backend  | `INV-03`   |
+|   ⏳   | `DASH-03` | Render analytical charts via Recharts (Top Revenue vs Cost Drivers).                    | Frontend  | `DASH-01`  |
 
 ---
 
-## Phase 10: Enterprise F&B Extensions (Phase 2) ⏳
+## Phase 9: Enterprise F&B Extensions (Phase 2) ⏳
 
-**Objective**: Expand the startup MVP into a full-scale corporate ERP by integrating Finance, HR, Asset, and Supplier management blueprints.
+**Objective**: Expand the startup MVP into a full-scale corporate ERP by integrating Back-office modules.
 
 | Status | Task ID    | Description                                                                             | Component | Dependency |
 | :----: | :--------- | :-------------------------------------------------------------------------------------- | :-------: | :--------- |
 |   ⏳   | `EXT-FIN`  | Develop Finance & Accounting APIs (General Ledger, AP/AR, Petty Cash, P&L generation).  | Fullstack | All        |
-|   ⏳   | `EXT-SRM`  | Develop Supplier & Vendor Management (SRM) APIs to lock Po prices and track lead times. | Fullstack | `MST-01`   |
+|   ⏳   | `EXT-SRM`  | Develop Supplier Management (SRM) APIs to lock PO prices and track vendor lead times.   | Fullstack | `PUR-01`   |
 |   ⏳   | `EXT-HRIS` | Implement HRIS & Payroll (Attendance, Shifts, Automated Salary/Service Charge split).   | Fullstack | `IAM-01`   |
 |   ⏳   | `EXT-AST`  | Build Fixed Asset Tracking and Automated Monthly Depreciation Journals.                 | Fullstack | `EXT-FIN`  |
-|   ⏳   | `EXT-MFG`  | Establish Central Kitchen / Roastery Work Orders and Shrinkage computations.            | Fullstack | `INV-02`   |
-|   ⏳   | `EXT-B2B`  | Create B2B Sales / Wholesale pipelines (Quotations, Credit Terms Invoices).             | Fullstack | `SAL-01`   |
+|   ⏳   | `EXT-MFG`  | Establish Central Kitchen Work Orders, batch cooking yields, and Shrinkage computations.| Fullstack | `RCP-01`   |
+|   ⏳   | `EXT-B2B`  | Create B2B Sales / Wholesale pipelines (Quotations, Delivery Orders, Credit Invoices).  | Fullstack | `INV-01`   |
 
 ---
 
