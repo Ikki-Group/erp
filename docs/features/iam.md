@@ -1,24 +1,24 @@
 # Identity and Access Management (IAM)
 
-The Identity and Access Management (IAM) module is the foundational security layer of Ikki ERP. It governs authentication, authorization, and resource access across multi-location operations, ensuring that the right users have the right access to the right data at the right time.
+The Identity and Access Management (IAM) module is the foundational security layer of Ikki ERP. It governs authentication, authorization, and resource access across Ikki Group's operations (Ikki Coffee, Ikki Resto, and Central Warehouses), ensuring that the right users have the right access to the right data.
 
 ## 1. Core Objectives
 - **Centralized Security**: Single point of control for all user identities and permissions.
-- **Data Isolation**: Robust multi-office/branch data segregation via Location-Based Access Control (LBAC).
+- **Data Isolation**: Robust operational data segregation via Location-Based Access Control (LBAC) to prevent data mixing between outlets.
 - **Auditability**: Complete transparency into user actions and access lifecycle.
-- **High Performance**: Optimized permission checks designed for low latency in high-traffic ERP environments.
+- **High Performance**: Optimized permission checks designed for low latency during peak restaurant hours.
 
 ## 2. User Hierarchy & Personas
 
 ### Root Accounts (Super Admin)
 - **Scope**: Global access across all modules and all physical locations.
 - **Capabilities**: Configuration of system-wide settings, management of other root accounts, and access to master data logs.
-- **Use Case**: System administrators and high-level corporate stakeholders.
+- **Use Case**: Business Owners (Owner) and General Managers.
 
 ### Standard Accounts (Non-Root)
-- **Scope**: Context-aware access restricted to assigned **Locations** (Branches/Warehouses).
+- **Scope**: Context-aware access restricted to assigned **Locations** (Outlets or Warehouses).
 - **Capabilities**: Defined by assigned **Roles**.
-- **Constraint**: Users cannot see or interact with data outside their assigned organizational unit unless explicitly granted "Cross-Location" permissions.
+- **Constraint**: Users cannot see or interact with data outside their assigned outlet/warehouse unless explicitly granted "Cross-Location" permissions.
 
 ## 3. Key Features
 
@@ -29,12 +29,12 @@ The Identity and Access Management (IAM) module is the foundational security lay
 
 ### Advanced Role-Based Access Control (RBAC)
 - **Granular Permissions**: Permissions follow a strict `<modules>:<action>` naming convention (e.g., `invoices:create`, `inventories:transfer`). For maximum reliability, these are defined as runtime constants rather than plain strings to ensure end-to-end type safety.
-- **Role Templates**: Pre-defined roles for common ERP personas (e.g., Warehouse Staff, Accountant, Branch Manager).
+- **Role Templates**: Pre-defined roles for common F&B personas (e.g., Barista, Chef, Cashier, Outlet Manager, Warehouse Staff).
 - **Hierarchical Roles**: Ability to inherit permissions from parent roles to simplify management.
 
 ### Location-Based Access Control (LBAC)
 - **Contextual Access**: Users are bound to specific `LocationID`s. All database queries are automatically filtered based on the active user's location context.
-- **Multi-Location Assignment**: Support for users who manage multiple branches.
+- **Multi-Location Assignment**: Support for users who manage or work across multiple outlets (e.g., Area Manager, hybrid staff).
 
 ## 4. High-Performance Architecture (Proposed)
 

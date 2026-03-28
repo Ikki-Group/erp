@@ -1,61 +1,49 @@
 # Location Management
 
-The Location Management module is a core (Layer 0) system that provides the hierarchical physical structure of the ERP. It defines where physical products are stored and serves as the backbone for Location-Based Access Control (LBAC).
+The Location Management module is a core (Layer 0) system that provides the physical structure of the ERP. It defines the operational areas specifically tailored for the Ikki Group (Ikki Coffee, Ikki Resto, and supporting warehouses) and serves as the backbone for Location-Based Access Control (LBAC).
 
 ## 1. Core Objectives
-- **Spatial Hierarchy**: Precisely represent physical warehouses in a structured tree format.
-- **Inventory Granularity**: Enable item tracking down to specific Bins or Racks.
-- **Authorization Context**: Act as the primary data filter for User Roles via LBAC.
-- **Accurate Classification**: Differentiate between physical storage, transit areas, and virtual reconciliation points.
+- **Operational Clarity**: Accurately mirror the client's business structure (Outlets and Storage/Warehouses).
+- **Inventory Tracking**: Provide dedicated spaces to monitor raw materials (e.g., coffee beans, syrups, food ingredients) and ready-to-sell products.
+- **Authorization Context**: Act as the primary data filter for User Roles via LBAC (e.g., separating Ikki Coffee data from Ikki Resto data).
+- **Simplicity**: Ensure minimal friction when transferring stock between central warehouses and individual outlets.
 
-## 2. Location Hierarchy (Tree Structure)
+## 2. Location Hierarchy (Simplified)
 
-Locations are organized using a recursive parent-child relationship to mirror physical reality:
-1.  **Warehouse / Branch**: The primary administrative unit (e.g., "Jakarta Central Hub", "Bandung Warehouse").
-2.  **Zone**: Specific functional areas (e.g., "Cold Storage", "Bulk Area", "Hazardous Materials").
-3.  **Rack / Aisle**: Organizational structures within a zone.
-4.  **Bin / Slot**: The smallest addressable physical unit where items are stored.
+Locations are kept flat and minimal to perfectly suit a restaurant/cafe business model operations:
+
+1.  **Warehouse (Gudang Utama)**: Centralized storage for bulk items and raw materials before they are distributed.
+2.  **Outlet (Cabang/Store)**: Active selling locations (e.g., "Ikki Coffee", "Ikki Resto"). 
+
+> **Note:** We avoid overly complex deep hierarchies (like Zone -> Rack -> Bin) in favor of a straightforward Outlet and Warehouse system to keep daily operations fast and practical.
 
 ## 3. Location Classifications
 
 ### Physical Locations
-- **Internal Storage**: Standard areas for long-term or short-term stock keeping.
-- **Transit / Shipping**: Temporary staging areas for Goods Receipts (Inbound) or Deliveries (Outbound).
-- **POS / Display**: Customer-facing areas where stock is available for immediate retail sale.
+- **Internal Storage**: Standard areas for stock keeping (Warehouses & Outlet Kitchens/Bars).
+- **POS / Display**: Customer-facing areas where stock (like retail coffee bags or merchandise) is available for immediate sale.
 
 ### Virtual Locations
-- **Quarantine / Damaged**: Restricted locations for items awaiting inspection or disposal.
-- **Lost & Found**: Tracking for physical stock discrepancies discovered during audits.
-- **Adjustment Hub**: A system-level virtual location used to balance stock during "Stock Opname" (Cycle Counting).
+- **Adjustment Hub / Waste**: A virtual location used to account for broken items, expired ingredients, or stock opname discrepancies.
 
 ## 4. Key Features
 
 ### Foundation for LBAC
-- Every user is bound to one or more **Locations**.
-- All transactional queries (Invoices, Transfers, Stock Ledgers) are automatically scoped by the user's active location context.
-- **Root Users** bypass these filters for a consolidated global view.
-
-### Materialized Path Navigation
-- System uses hierarchical pathing (e.g., `JKT-01/ZONE-A/RACK-05`) for high-speed child lookups and reporting aggregation across sub-locations.
+- Every user (e.g., Barista, Chef, Cashier) is bound to one or more **Locations**.
+- Transactional queries (Stock requests, Invoices, Opname) are automatically mapped to the user's active location context.
+- **Root Users (Owner/Manager)** bypass these filters to view consolidated reports across all Ikki Coffee and Ikki Resto operations.
 
 ### Status Lifecycle
-- **Active**: Open for all incoming and outgoing stock transactions.
-- **Locked / Maintenance**: Restricted from stock movement (useful during physical cleaning or inventory audits).
-- **Deactivated**: Hidden from operational menus but preserved for historical reporting.
+- **Active**: Open for daily transactions, material transfers, and sales.
+- **Deactivated**: Hidden from operational menus but preserved for historical reporting (e.g., a closed popup booth or old warehouse).
 
-## 5. Technical Architecture (Proposed)
+## 5. Technical Architecture
 
-### Performance Optimization
-- **Caching Level**: Cached location tree in Redis for rapid application-wide navigation components.
-- **Recursive Querying**: Optimized SQL using Common Table Expressions (CTE) or Materialized Paths for low-latency tree traversal.
+### Performance & Simplicity
+- **Flat Querying**: Since the hierarchy is shallow (Central Warehouse <-> Outlets), standard relational queries are highly performant without needing complex recursive SQL.
+- **Caching**: Frequently accessed location lists can be cached in Redis for fast UI rendering across the app.
 
-### Data Integrity
-- **Transactional Safety**: Strict foreign key constraints prevent deleting locations that contain active inventory balances.
-- **Semantic Validation**: Logic to prevent illogical hierarchies (e.g., placing a Warehouse inside a Bin).
+## 6. Next Phase Recommendations
 
-## 6. Roadmap & Next Phase Recommendations
-
-1.  **Unique QR/Barcode Labels**: Automated generation of labels for every specific Bin to support handheld scanning workflows.
-2.  **Warehouse Capacity Management**: Define maximum volume/weight limits per location to prevent physical overstocking.
-3.  **Spatial Mapping**: Visual floor plan integration to help warehouse staff locate items efficiently.
-4.  **Auto-Replenishment Logic**: Trigger internal transfers between Zones based on minimum threshold settings.
+1.  **Low-Stock Alerts per Outlet**: Dedicated minimum thresholds for Ikki Coffee vs. Ikki Resto.
+2.  **Simplified Internal Transfers**: 1-click stock request forms from Outlet to Central Warehouse.

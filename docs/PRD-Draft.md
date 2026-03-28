@@ -25,7 +25,7 @@
 
 ### 2.1 User and Operational Challenges
 
-- **Target Audience**: Internal personnel including Administrators, Warehouse Staff, Purchasing Officers, Sales Representatives, and Production Managers.
+- **Target Audience**: Internal personnel including Administrators, Inventory Staff (Gudang Utama), Purchasing Officers, Outlet Managers, and Head Chefs/Baristas.
 - **Current Issues**: Data is heavily siloed. Physical stock counting (Opname) relies on manual data input, increasing error margins. The purchasing division lacks immediate visibility into factory production requirements.
 - **Root Cause**: The absence of a centralized relational database and standardized application interfaces.
 - **Consequences**: Elevated operational overhead, increased order fulfillment times, and disjointed financial and inventory reporting.
@@ -54,11 +54,11 @@ A foundational tier containing product-level data structures that serve as refer
 The underlying tier of the ERP storing relatively static records required by all transactional operations.
 
 - **1. Location Management (Layer 0)**
-  - **Hierarchical Structure**: Capable of supporting Warehouse, Zone, Rack, and Bin designations.
-  - **Location Classifications**: Distinct types including Internal Storage, Transit/Shipping, and Virtual (designated for lost or damaged goods).
+  - **Hierarchical Structure**: Simplified flat structure supporting Warehouses and Outlets (e.g., Ikki Coffee, Ikki Resto).
+  - **Location Classifications**: Distinct types including Internal Storage (Gudang/Kitchen) and POS/Display areas.
 - **2. Material / Raw Material Data (Layer 1)**
   - **Categorization**: Hierarchical grouping of items (e.g., Raw Materials, Packaging, Semi-finished Goods).
-  - **Unit of Measure (UOM) System**: Advanced continuous conversion logic (e.g., 1 Pallet = 100 Boxes, 1 Box = 10 Packs).
+  - **Unit of Measure (UOM) System**: Advanced continuous conversion logic (e.g., 1 Dus = 12 Botol, 1 Botol = 1000 ml).
   - **Minimum Stock Thresholds**: Automated low-stock alerts triggered when physical inventory breaches predefined limits.
   - **Material-Location Binding**: Assignment and stock configuration per material per location.
 - **3. Business Partners (Future)**
@@ -109,7 +109,7 @@ Administers the client fulfillment operations.
 - **1. Sales Order (SO)**
   - Confirmed client orders. Approving an SO conceptually allocates required inventory to prevent overselling.
 - **2. Delivery Order (DO)** _(future)_
-  - Dispatch instructions directing warehouse staff to fulfill the SO. System inventory is deducted definitively once the DO status is finalized to 'Shipped'.
+  - Dispatch instructions directing warehouse/outlet staff to fulfill the SO. System inventory is deducted definitively once the DO status is finalized to 'Shipped'.
 
 ### 3.7 Purchasing & Procurement _(Planned)_
 
