@@ -125,6 +125,21 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 ---
 
+## Phase 10: Enterprise F&B Extensions (Phase 2) ⏳
+
+**Objective**: Expand the startup MVP into a full-scale corporate ERP by integrating Finance, HR, Asset, and Supplier management blueprints.
+
+| Status | Task ID    | Description                                                                             | Component | Dependency |
+| :----: | :--------- | :-------------------------------------------------------------------------------------- | :-------: | :--------- |
+|   ⏳   | `EXT-FIN`  | Develop Finance & Accounting APIs (General Ledger, AP/AR, Petty Cash, P&L generation).  | Fullstack | All        |
+|   ⏳   | `EXT-SRM`  | Develop Supplier & Vendor Management (SRM) APIs to lock Po prices and track lead times. | Fullstack | `MST-01`   |
+|   ⏳   | `EXT-HRIS` | Implement HRIS & Payroll (Attendance, Shifts, Automated Salary/Service Charge split).   | Fullstack | `IAM-01`   |
+|   ⏳   | `EXT-AST`  | Build Fixed Asset Tracking and Automated Monthly Depreciation Journals.                 | Fullstack | `EXT-FIN`  |
+|   ⏳   | `EXT-MFG`  | Establish Central Kitchen / Roastery Work Orders and Shrinkage computations.            | Fullstack | `INV-02`   |
+|   ⏳   | `EXT-B2B`  | Create B2B Sales / Wholesale pipelines (Quotations, Credit Terms Invoices).             | Fullstack | `SAL-01`   |
+
+---
+
 ### Status Legend
 
 - `⏳` : To Do (Ready for development)
