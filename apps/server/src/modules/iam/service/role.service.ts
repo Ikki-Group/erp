@@ -22,7 +22,7 @@ import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dt
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
+  notFound: (id: string) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
   systemRole: () => new BadRequestError('Cannot mutate a system role', 'ROLE_IS_SYSTEM'),
 }
 
@@ -31,7 +31,7 @@ const uniqueFields: ConflictField<'code' | 'name'>[] = [
   { field: 'name', column: rolesTable.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
 ]
 
-const cacheKey = { count: 'role.count', list: 'role.list', byId: (id: number) => `role.byId.${id}` }
+const cacheKey = { count: 'role.count', list: 'role.list', byId: (id: string) => `role.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -69,7 +69,7 @@ export class RoleService {
   /**
    * Finds a single role by ID. Throws if not found.
    */
-  async getById(id: number): Promise<RoleDto> {
+  async getById(id: string): Promise<RoleDto> {
     return record('RoleService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(rolesTable).where(eq(rolesTable.id, id))
@@ -116,7 +116,7 @@ export class RoleService {
   /**
    * Creates a new role. Invalidates cache.
    */
-  async handleCreate(data: RoleCreateDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: RoleCreateDto, actorId: string): Promise<{ id: string }> {
     return record('RoleService.handleCreate', async () => {
       const code = data.code.toUpperCase().trim()
       const name = data.name.trim()
@@ -138,7 +138,7 @@ export class RoleService {
   /**
    * Updates existing role. Invalidates cache.
    */
-  async handleUpdate(id: number, data: RoleUpdateDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: RoleUpdateDto, actorId: string): Promise<{ id: string }> {
     return record('RoleService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -168,7 +168,7 @@ export class RoleService {
   /**
    * Serves role detail.
    */
-  async handleDetail(id: number): Promise<RoleDto> {
+  async handleDetail(id: string): Promise<RoleDto> {
     return record('RoleService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -177,7 +177,7 @@ export class RoleService {
   /**
    * Removes role. Invalidates cache.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('RoleService.handleRemove', async () => {
       const existing = await this.getById(id)
       if (existing.isSystem) throw err.systemRole()
@@ -193,7 +193,7 @@ export class RoleService {
   /**
    * Clears relevant role caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

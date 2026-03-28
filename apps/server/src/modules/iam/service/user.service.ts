@@ -46,7 +46,7 @@ const uniqueFields: ConflictField<'email' | 'username'>[] = [
   },
 ]
 
-const cacheKey = { count: 'user.count', list: 'user.list', byId: (id: number) => `user.byId.${id}` }
+const cacheKey = { count: 'user.count', list: 'user.list', byId: (id: string) => `user.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -73,7 +73,7 @@ export class UserService {
   /**
    * Seed users.
    */
-  async seed(data: (UserCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
+  async seed(data: (UserCreateDto & { id?: string; createdBy: string })[]): Promise<void> {
     return record('UserService.seed', async () => {
       for (const d of data) {
         const { password, assignments, ...rest } = d
@@ -106,7 +106,7 @@ export class UserService {
   /**
    * Basic user lookup by ID.
    */
-  async getById(id: number): Promise<UserDto> {
+  async getById(id: string): Promise<UserDto> {
     return record('UserService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(usersTable).where(eq(usersTable.id, id))
@@ -144,7 +144,7 @@ export class UserService {
   /**
    * Resolves a user ID to a full select object including assignments.
    */
-  async getDetailById(id: number): Promise<UserOutputDto> {
+  async getDetailById(id: string): Promise<UserOutputDto> {
     return record('UserService.getDetailById', async () => {
       const user = await this.getById(id)
 
@@ -198,14 +198,14 @@ export class UserService {
   /**
    * Detail handler.
    */
-  async handleDetail(id: number): Promise<UserOutputDto> {
+  async handleDetail(id: string): Promise<UserOutputDto> {
     return this.getDetailById(id)
   }
 
   /**
    * Create user handler.
    */
-  async handleCreate(data: UserCreateDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: UserCreateDto, actorId: string): Promise<{ id: string }> {
     return record('UserService.handleCreate', async () => {
       const { password, assignments, email, username, ...rest } = data
 
@@ -242,7 +242,7 @@ export class UserService {
   /**
    * Update user handler.
    */
-  async handleUpdate(id: number, data: UserUpdateDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: UserUpdateDto, actorId: string): Promise<{ id: string }> {
     return record('UserService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -278,7 +278,7 @@ export class UserService {
   /**
    * Remove user handler.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('UserService.handleRemove', async () => {
       await this.getById(id)
       await db.delete(usersTable).where(eq(usersTable.id, id))
@@ -291,7 +291,7 @@ export class UserService {
   /**
    * Handle change password for CURRENT user.
    */
-  async handleChangePassword(userId: number, data: UserChangePasswordDto): Promise<{ id: number }> {
+  async handleChangePassword(userId: string, data: UserChangePasswordDto): Promise<{ id: string }> {
     return record('UserService.handleChangePassword', async () => {
       const { oldPassword, newPassword } = data
       const user = await this.getById(userId)
@@ -317,7 +317,7 @@ export class UserService {
   /**
    * Handle password update by ADMIN (bypass old password check).
    */
-  async handleAdminUpdatePassword(actorId: number, data: UserAdminUpdatePasswordDto): Promise<{ id: number }> {
+  async handleAdminUpdatePassword(actorId: string, data: UserAdminUpdatePasswordDto): Promise<{ id: string }> {
     return record('UserService.handleAdminUpdatePassword', async () => {
       const { id: targetUserId, password } = data
       await this.getById(targetUserId)
@@ -338,7 +338,7 @@ export class UserService {
   /**
    * Helper to clear caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

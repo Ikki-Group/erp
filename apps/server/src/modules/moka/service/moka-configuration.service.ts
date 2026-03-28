@@ -13,13 +13,13 @@ import {
 } from '../dto/moka-configuration.dto'
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Moka configuration ${id} not found`),
-  locationAlreadyHasConfig: (locationId: number) =>
+  notFound: (id: string) => new NotFoundError(`Moka configuration ${id} not found`),
+  locationAlreadyHasConfig: (locationId: string) =>
     new ConflictError(`Location ${locationId} already has a Moka configuration`),
 }
 
 export class MokaConfigurationService {
-  async findByLocationId(locationId: number): Promise<MokaConfigurationDto | null> {
+  async findByLocationId(locationId: string): Promise<MokaConfigurationDto | null> {
     const result = await db
       .select()
       .from(mokaConfigurationsTable)
@@ -28,14 +28,14 @@ export class MokaConfigurationService {
     return first ? MokaConfigurationDto.parse(first) : null
   }
 
-  async handleDetail(id: number): Promise<MokaConfigurationOutputDto> {
+  async handleDetail(id: string): Promise<MokaConfigurationOutputDto> {
     const result = await db.select().from(mokaConfigurationsTable).where(eq(mokaConfigurationsTable.id, id))
     const first = takeFirst(result)
     if (!first) throw err.notFound(id)
     return MokaConfigurationOutputDto.parse(first)
   }
 
-  async handleCreate(data: MokaConfigurationCreateDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: MokaConfigurationCreateDto, actorId: string): Promise<{ id: string }> {
     const existing = await this.findByLocationId(data.locationId)
     if (existing) throw err.locationAlreadyHasConfig(data.locationId)
 
@@ -48,7 +48,7 @@ export class MokaConfigurationService {
     return result
   }
 
-  async handleUpdate(id: number, data: MokaConfigurationUpdateDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: MokaConfigurationUpdateDto, actorId: string): Promise<{ id: string }> {
     const existing = await this.handleDetail(id)
 
     if (data.locationId && data.locationId !== existing.locationId) {
@@ -67,8 +67,8 @@ export class MokaConfigurationService {
   }
 
   async updateAuthData(
-    id: number,
-    authData: { businessId?: number | null; outletId?: number | null; accessToken?: string | null },
+    id: string,
+    authData: { businessId?: string | null; outletId?: string | null; accessToken?: string | null },
   ) {
     await db
       .update(mokaConfigurationsTable)

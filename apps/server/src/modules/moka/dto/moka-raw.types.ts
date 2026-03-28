@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface MokaSalesDetailRaw {
-  id: number
+  id?: string
   uuid: string
   payment_no: string
   parent_order_uuid: string
@@ -25,12 +25,12 @@ export interface MokaSalesDetailRaw {
   business_name: string
   business_logo: any
   business_address: string
-  outlet_id: number
+  outlet_id?: string
   outlet_name: string
   outlet_address: string
   outlet_phone: string
   outlet_logo: any
-  business_id: number
+  business_id?: string
   customer_email: string
   customer_phone: string
   customer_name: string
@@ -50,9 +50,9 @@ export interface MokaSalesDetailRaw {
 }
 
 export interface MokaSalesItemRaw {
-  id: number
+  id?: string
   uuid: string
-  item_id: number
+  item_id?: string
   item_name: string
   item_variant_name: string
   item_variant_sku: string
@@ -68,40 +68,40 @@ export interface MokaSalesItemRaw {
 }
 
 export interface MokaModifierRaw {
-  id: number
+  id?: string
   uuid: string
   created_at: string
   updated_at: any
   gross_sales: number
   net_sales: number
-  modifier_id: number
+  modifier_id?: string
   discount_amount: number
   modifier_option_name: string
   price: number
   modifier_name: string
-  modifier_option_id: number
+  modifier_option_id?: string
   cogs: number
   redeem_amount: number
   discounts: any[]
 }
 
 export interface MokaCategoryRaw {
-  id: number
+  id?: string
   name: string
   created_at: string
   updated_at: string
 }
 
 export interface MokaProductRaw {
-  id: number
+  id?: string
   name: string
   category_name: string | null
-  item_variants: Array<{ id: number; name: string; price: number; sku: string | null }>
+  item_variants: Array<{ id?: string; name: string; price: number; sku: string | null }>
 }
 
 export interface MokaLoginResponse {
   access_token: string
   token_type: string
   expires_in: number
-  outlets: Array<{ id: number; name: string }>
+  outlets: Array<{ id?: string; name: string }>
 }

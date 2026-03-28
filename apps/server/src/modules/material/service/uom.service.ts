@@ -21,13 +21,13 @@ import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`) }
+const err = { notFound: (id: string) => new NotFoundError(`UOM with ID ${id} not found`) }
 
 const uniqueFields: ConflictField<'code'>[] = [
   { field: 'code', column: uomsTable.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
 ]
 
-const cacheKey = { count: 'uom.count', list: 'uom.list', byId: (id: number) => `uom.byId.${id}` }
+const cacheKey = { count: 'uom.count', list: 'uom.list', byId: (id: string) => `uom.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -46,7 +46,7 @@ export class UomService {
   /**
    * Finds a single UOM by ID. Throws if not found.
    */
-  async getById(id: number): Promise<UomDto> {
+  async getById(id: string): Promise<UomDto> {
     return record('UomService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(uomsTable).where(eq(uomsTable.id, id))
@@ -93,7 +93,7 @@ export class UomService {
   /**
    * Serves UOM detail.
    */
-  async handleDetail(id: number): Promise<UomDto> {
+  async handleDetail(id: string): Promise<UomDto> {
     return record('UomService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -102,7 +102,7 @@ export class UomService {
   /**
    * Creates a new UOM. Invalidates cache.
    */
-  async handleCreate(data: UomMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: UomMutationDto, actorId: string): Promise<{ id: string }> {
     return record('UomService.handleCreate', async () => {
       const code = data.code.toUpperCase().trim()
 
@@ -123,7 +123,7 @@ export class UomService {
   /**
    * Updates existing UOM. Invalidates cache.
    */
-  async handleUpdate(id: number, data: Partial<UomMutationDto>, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: Partial<UomMutationDto>, actorId: string): Promise<{ id: string }> {
     return record('UomService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -144,7 +144,7 @@ export class UomService {
   /**
    * Removes UOM. Invalidates cache.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('UomService.handleRemove', async () => {
       const result = await db.delete(uomsTable).where(eq(uomsTable.id, id)).returning({ id: uomsTable.id })
       if (result.length === 0) throw err.notFound(id)
@@ -157,7 +157,7 @@ export class UomService {
   /**
    * Clears relevant UOM caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),
@@ -168,7 +168,7 @@ export class UomService {
   /**
    * Seed UOMs by skipping already existing ones.
    */
-  async seed(data: { code: string; createdBy: number }[]): Promise<void> {
+  async seed(data: { code: string; createdBy: string }[]): Promise<void> {
     return record('UomService.seed', async () => {
       const existing = await db.select({ code: uomsTable.code }).from(uomsTable)
       const existingCodes = new Set(existing.map((e) => e.code))

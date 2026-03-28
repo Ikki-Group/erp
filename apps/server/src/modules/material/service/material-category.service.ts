@@ -22,7 +22,7 @@ import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMu
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: number) =>
+  notFound: (id: string) =>
     new NotFoundError(`Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND'),
 }
 
@@ -38,7 +38,7 @@ const uniqueFields: ConflictField<'name'>[] = [
 const cacheKey = {
   count: 'materialCategory.count',
   list: 'materialCategory.list',
-  byId: (id: number) => `materialCategory.byId.${id}`,
+  byId: (id: string) => `materialCategory.byId.${id}`,
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -58,7 +58,7 @@ export class MaterialCategoryService {
   /**
    * Finds a single material category by ID. Throws if not found.
    */
-  async getById(id: number): Promise<MaterialCategoryDto> {
+  async getById(id: string): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(materialCategoriesTable).where(eq(materialCategoriesTable.id, id))
@@ -108,7 +108,7 @@ export class MaterialCategoryService {
   /**
    * Serves material category detail.
    */
-  async handleDetail(id: number): Promise<MaterialCategoryDto> {
+  async handleDetail(id: string): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -117,7 +117,7 @@ export class MaterialCategoryService {
   /**
    * Creates a new material category. Invalidates cache.
    */
-  async handleCreate(data: MaterialCategoryMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: MaterialCategoryMutationDto, actorId: string): Promise<{ id: string }> {
     return record('MaterialCategoryService.handleCreate', async () => {
       const name = data.name.trim()
 
@@ -143,7 +143,7 @@ export class MaterialCategoryService {
   /**
    * Updates existing material category. Invalidates cache.
    */
-  async handleUpdate(id: number, data: Partial<MaterialCategoryMutationDto>, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: Partial<MaterialCategoryMutationDto>, actorId: string): Promise<{ id: string }> {
     return record('MaterialCategoryService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -170,7 +170,7 @@ export class MaterialCategoryService {
   /**
    * Removes material category. Invalidates cache.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('MaterialCategoryService.handleRemove', async () => {
       const result = await db
         .delete(materialCategoriesTable)
@@ -186,7 +186,7 @@ export class MaterialCategoryService {
   /**
    * Clears relevant material category caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

@@ -9,9 +9,9 @@ import { MokaScrapHistoryDto, type MokaScrapStatus, type MokaScrapType } from '.
 
 export class MokaScrapHistoryService {
   async create(
-    data: { mokaConfigurationId: number; type: MokaScrapType; dateFrom: Date; dateTo: Date; status?: MokaScrapStatus },
-    actorId: number,
-  ): Promise<{ id: number }> {
+    data: { mokaConfigurationId: string; type: MokaScrapType; dateFrom: Date; dateTo: Date; status?: MokaScrapStatus },
+    actorId: string,
+  ): Promise<{ id: string }> {
     const [result] = await db
       .insert(mokaScrapHistoriesTable)
       .values({ ...data, ...stampCreate(actorId) })
@@ -22,7 +22,7 @@ export class MokaScrapHistoryService {
   }
 
   async updateStatus(
-    id: number,
+    id: string,
     status: MokaScrapStatus,
     extra?: { rawPath?: string; errorMessage?: string; metadata?: any },
   ) {
@@ -32,7 +32,7 @@ export class MokaScrapHistoryService {
       .where(eq(mokaScrapHistoriesTable.id, id))
   }
 
-  async handleList(configId?: number) {
+  async handleList(configId?: string) {
     const query = db.select().from(mokaScrapHistoriesTable)
 
     if (configId) {

@@ -19,7 +19,7 @@ export class SeedService {
     return record('SeedService.seed', async () => {
       // Use Drizzle transaction for the entire seed process
       await db.transaction(async () => {
-        const SYSTEM_ACTOR_ID = 1
+        const SYSTEM_ACTOR_ID = '550e8400-e29b-41d4-a716-446655440000'
 
         // 1. Seed Roles
         await this.iamSvc.role.seed([

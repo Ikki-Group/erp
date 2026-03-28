@@ -21,7 +21,7 @@ export class UserAssignmentService {
   /**
    * Fetches assignments for a user with joined role and location data.
    */
-  async findByUserId(userId: number): Promise<UserAssignmentDetailDto[]> {
+  async findByUserId(userId: string): Promise<UserAssignmentDetailDto[]> {
     return record('UserAssignmentService.findByUserId', async () => {
       const rows = await this.createDetailQuery().where(eq(userAssignmentsTable.userId, userId)).execute()
       return rows
@@ -31,7 +31,7 @@ export class UserAssignmentService {
   /**
    * Batch fetch assignments for multiple users.
    */
-  async findByUserIds(userIds: number[]): Promise<Map<number, UserAssignmentDetailDto[]>> {
+  async findByUserIds(userIds: string[]): Promise<Map<string, UserAssignmentDetailDto[]>> {
     return record('UserAssignmentService.findByUserIds', async () => {
       if (userIds.length === 0) return new Map()
 
@@ -45,9 +45,9 @@ export class UserAssignmentService {
    * This clears existing assignments and inserts new ones.
    */
   async upsertUserAssignments(
-    userId: number,
+    userId: string,
     assignments: UserAssignmentUpsertDto[],
-    actorId?: number,
+    actorId?: string,
   ): Promise<UserAssignmentDto[]> {
     return record('UserAssignmentService.upsertUserAssignments', async () => {
       const metadata = stampCreate(actorId || userId)
@@ -69,7 +69,7 @@ export class UserAssignmentService {
   /**
    * Clear all assignments for a user.
    */
-  async clearUserAssignments(userId: number): Promise<UserAssignmentDto[]> {
+  async clearUserAssignments(userId: string): Promise<UserAssignmentDto[]> {
     return record('UserAssignmentService.clearUserAssignments', async () => {
       return db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId)).returning()
     })

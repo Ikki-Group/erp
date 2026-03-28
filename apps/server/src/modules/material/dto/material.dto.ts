@@ -9,7 +9,7 @@ import { UomDto } from './uom.dto'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const MaterialType = z.enum(['raw', 'semi'])
+export const MaterialType = z.enum(['raw', 'semi', 'packaging'])
 export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- NESTED --------------------------------- */

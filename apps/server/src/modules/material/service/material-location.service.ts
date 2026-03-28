@@ -20,14 +20,14 @@ import type {
 import type { MaterialService } from './material.service'
 
 const err = {
-  notFound: (id: number) =>
+  notFound: (id: string) =>
     new NotFoundError(`Material-Location assignment with ID ${id} not found`, 'MATERIAL_LOCATION_NOT_FOUND'),
-  notAssigned: (materialId: number, locationId: number) =>
+  notAssigned: (materialId: string, locationId: string) =>
     new NotFoundError(
       `Material ${materialId} is not assigned to location ${locationId}`,
       'MATERIAL_NOT_ASSIGNED_TO_LOCATION',
     ),
-  alreadyAssigned: (materialId: number, locationId: number) =>
+  alreadyAssigned: (materialId: string, locationId: string) =>
     new ConflictError(
       `Material ${materialId} is already assigned to location ${locationId}`,
       'MATERIAL_LOCATION_ALREADY_ASSIGNED',
@@ -43,7 +43,7 @@ export class MaterialLocationService {
   /* ─────────────────────── INTERNAL QUERIES ─────────────────────── */
 
   /** Get a specific material-location assignment */
-  async findOne(materialId: number, locationId: number): Promise<MaterialLocationDto> {
+  async findOne(materialId: string, locationId: string): Promise<MaterialLocationDto> {
     return record('MaterialLocationService.findOne', async () => {
       const [result] = await db
         .select()
@@ -55,6 +55,9 @@ export class MaterialLocationService {
       if (!result) throw err.notAssigned(materialId, locationId)
       return {
         ...result,
+        minStock: Number(result.minStock),
+        maxStock: result.maxStock ? Number(result.maxStock) : null,
+        reorderPoint: Number(result.reorderPoint),
         currentQty: Number(result.currentQty),
         currentAvgCost: Number(result.currentAvgCost),
         currentValue: Number(result.currentValue),
@@ -63,32 +66,42 @@ export class MaterialLocationService {
   }
 
   /** Get all assignments for a specific material */
-  async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
+  async findByMaterialId(materialId: string): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByMaterialId', async () => {
       const results = await db
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.materialId, materialId))
-      return results.map((r) => Object.assign({}, r, {
-        currentQty: Number(r.currentQty),
-        currentAvgCost: Number(r.currentAvgCost),
-        currentValue: Number(r.currentValue),
-      }))
+      return results.map((r) =>
+        Object.assign({}, r, {
+          minStock: Number(r.minStock),
+          maxStock: r.maxStock ? Number(r.maxStock) : null,
+          reorderPoint: Number(r.reorderPoint),
+          currentQty: Number(r.currentQty),
+          currentAvgCost: Number(r.currentAvgCost),
+          currentValue: Number(r.currentValue),
+        }),
+      )
     })
   }
 
   /** Get all assignments for a specific location */
-  async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
+  async findByLocationId(locationId: string): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByLocationId', async () => {
       const results = await db
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.locationId, locationId))
-      return results.map((r) => Object.assign({}, r, {
-        currentQty: Number(r.currentQty),
-        currentAvgCost: Number(r.currentAvgCost),
-        currentValue: Number(r.currentValue),
-      }))
+      return results.map((r) =>
+        Object.assign({}, r, {
+          minStock: Number(r.minStock),
+          maxStock: r.maxStock ? Number(r.maxStock) : null,
+          reorderPoint: Number(r.reorderPoint),
+          currentQty: Number(r.currentQty),
+          currentAvgCost: Number(r.currentAvgCost),
+          currentValue: Number(r.currentValue),
+        }),
+      )
     })
   }
 
@@ -98,7 +111,7 @@ export class MaterialLocationService {
    * Assign multiple materials to multiple locations (batch).
    * Skips any that are already assigned (upsert-like).
    */
-  async handleAssign(data: MaterialLocationAssignDto, actorId: number): Promise<{ assignedCount: number }> {
+  async handleAssign(data: MaterialLocationAssignDto, actorId: string): Promise<{ assignedCount: number }> {
     return record('MaterialLocationService.handleAssign', async () => {
       const { locationIds, materialIds } = data
 
@@ -146,7 +159,7 @@ export class MaterialLocationService {
   /**
    * Unassign a material from a location.
    */
-  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: number }> {
+  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: string }> {
     return record('MaterialLocationService.handleUnassign', async () => {
       const { materialId, locationId } = data
 
@@ -168,7 +181,7 @@ export class MaterialLocationService {
   /**
    * List all locations assigned to a material, enriched with location details.
    */
-  async handleLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
+  async handleLocationsByMaterial(materialId: string): Promise<MaterialLocationWithLocationDto[]> {
     return record('MaterialLocationService.handleLocationsByMaterial', async () => {
       // Validate material exists
       await this.materialSvc.getById(materialId)
@@ -179,12 +192,17 @@ export class MaterialLocationService {
         .innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
         .where(eq(materialLocationsTable.materialId, materialId))
 
-      return assignments.map((row) => Object.assign({}, row.assignment, {
-        currentQty: Number(row.assignment.currentQty),
-        currentAvgCost: Number(row.assignment.currentAvgCost),
-        currentValue: Number(row.assignment.currentValue),
-        location: row.location,
-      }))
+      return assignments.map((row) =>
+        Object.assign({}, row.assignment, {
+          minStock: Number(row.assignment.minStock),
+          maxStock: row.assignment.maxStock ? Number(row.assignment.maxStock) : null,
+          reorderPoint: Number(row.assignment.reorderPoint),
+          currentQty: Number(row.assignment.currentQty),
+          currentAvgCost: Number(row.assignment.currentAvgCost),
+          currentValue: Number(row.assignment.currentValue),
+          location: row.location,
+        }),
+      )
     })
   }
 
@@ -244,9 +262,11 @@ export class MaterialLocationService {
           .where(where),
       })
 
-      // Convert numeric strings back to numbers for DTO compliance
       const data = result.data.map((stock) => ({
         ...stock,
+        minStock: Number(stock.minStock),
+        maxStock: stock.maxStock ? Number(stock.maxStock) : null,
+        reorderPoint: Number(stock.reorderPoint),
         currentQty: Number(stock.currentQty),
         currentAvgCost: Number(stock.currentAvgCost),
         currentValue: Number(stock.currentValue),
@@ -261,13 +281,19 @@ export class MaterialLocationService {
   /**
    * Update per-location config (minStock, maxStock, reorderPoint).
    */
-  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: string): Promise<{ id: string }> {
     return record('MaterialLocationService.handleUpdateConfig', async () => {
       const { id, ...update } = data
 
       const [result] = await db
         .update(materialLocationsTable)
-        .set({ ...update, ...stampUpdate(actorId) })
+        .set({
+          ...update,
+          minStock: update.minStock?.toString(),
+          maxStock: update.maxStock?.toString(),
+          reorderPoint: update.reorderPoint?.toString(),
+          ...stampUpdate(actorId),
+        })
         .where(eq(materialLocationsTable.id, id))
         .returning({ id: materialLocationsTable.id })
 
@@ -282,10 +308,10 @@ export class MaterialLocationService {
    * Update current stock snapshot. Called by the inventory module after recording a transaction.
    */
   async updateCurrentStock(
-    materialId: number,
-    locationId: number,
+    materialId: string,
+    locationId: string,
     stock: { currentQty: number; currentAvgCost: number; currentValue: number },
-    actorId: number,
+    actorId: string,
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
       await db

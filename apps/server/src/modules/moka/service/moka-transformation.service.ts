@@ -7,7 +7,7 @@ import { productCategoriesTable, productExternalMappingsTable, productsTable, pr
 import type { MokaCategoryRaw, MokaProductRaw } from '../dto/moka-raw.types'
 
 export class MokaTransformationService {
-  async transformCategories(_locationId: number, categories: MokaCategoryRaw[], actorId: number) {
+  async transformCategories(_locationId: string, categories: MokaCategoryRaw[], actorId: string) {
     for (const cat of categories) {
       const result = await db.select().from(productCategoriesTable).where(eq(productCategoriesTable.name, cat.name))
       const existing = takeFirst(result)
@@ -18,7 +18,7 @@ export class MokaTransformationService {
     }
   }
 
-  async transformProducts(locationId: number, products: MokaProductRaw[], actorId: number) {
+  async transformProducts(locationId: string, products: MokaProductRaw[], actorId: string) {
     for (const prod of products) {
       const result = await db
         .select()

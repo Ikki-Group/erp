@@ -25,7 +25,7 @@ describe('MokaAuthEngine', () => {
 
     expect(result.access_token).toBe('MOCK_TOKEN')
     expect(engine.token).toBe('MOCK_TOKEN')
-    expect(engine.mokaOutletId).toBe(12345)
+    expect(engine.mokaOutletId).toBe('12345')
     // oxlint-disable-next-line typescript/unbound-method
     expect(axios.post).toHaveBeenCalled()
   })

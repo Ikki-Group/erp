@@ -19,7 +19,7 @@ export class MokaScrapService {
     private readonly logger: Logger,
   ) {}
 
-  async handleTrigger(input: MokaTriggerInputDto, actorId: number) {
+  async handleTrigger(input: MokaTriggerInputDto, actorId: string) {
     const config = await this.configSvc.findByLocationId(input.locationId)
     if (!config) throw new Error('Moka configuration not found for this location')
 
@@ -39,10 +39,10 @@ export class MokaScrapService {
   }
 
   private async runScrapTask(
-    historyId: number,
+    historyId: string,
     config: MokaConfigurationDto,
     input: MokaTriggerInputDto,
-    actorId: number,
+    actorId: string,
   ) {
     const auth = new MokaAuthEngine(this.logger, { email: config.email, password: config.password })
 

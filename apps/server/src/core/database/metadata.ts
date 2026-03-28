@@ -24,7 +24,7 @@ interface StampOptions {
  * @param actorId - The integer ID of the user performing the action (from `auth.userId`).
  * @param options - Optional flags (e.g. `withSync`).
  */
-export function stampCreate(actorId: number, options?: StampOptions) {
+export function stampCreate(actorId: string, options?: StampOptions) {
   const now = options?.now || new Date()
   return {
     createdBy: actorId,
@@ -41,7 +41,7 @@ export function stampCreate(actorId: number, options?: StampOptions) {
  * @param actorId - The integer ID of the user performing the action (from `auth.userId`).
  * @param options - Optional flags (e.g. `withSync`).
  */
-export function stampUpdate(actorId: number, options?: StampOptions) {
+export function stampUpdate(actorId: string, options?: StampOptions) {
   const now = options?.now || new Date()
   return { updatedBy: actorId, updatedAt: now, ...(options?.withSync && { syncAt: now }) }
 }

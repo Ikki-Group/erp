@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import { UnauthorizedError } from '@/core/http/errors'
 
 export interface AuthenticatedUser {
-  id: number
+  id?: string
   email: string
   username: string
   fullname: string
@@ -17,9 +17,9 @@ export class AuthContext {
     return this.user !== null
   }
 
-  get userId(): number {
+  get userId(): string {
     if (!this.isAuthenticated) throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
-    return this.user!.id
+    return this.user!.id!
   }
 }
 

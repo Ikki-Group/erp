@@ -22,7 +22,7 @@ import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND'),
+  notFound: (id: string) => new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND'),
   systemSalesType: () => new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM'),
 }
 
@@ -35,7 +35,7 @@ const uniqueFields: ConflictField<'code'>[] = [
   },
 ]
 
-const cacheKey = { count: 'salesType.count', list: 'salesType.list', byId: (id: number) => `salesType.byId.${id}` }
+const cacheKey = { count: 'salesType.count', list: 'salesType.list', byId: (id: string) => `salesType.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -54,7 +54,7 @@ export class SalesTypeService {
   /**
    * Finds a single sales type by ID. Throws if not found.
    */
-  async getById(id: number): Promise<SalesTypeDto> {
+  async getById(id: string): Promise<SalesTypeDto> {
     return record('SalesTypeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
@@ -101,7 +101,7 @@ export class SalesTypeService {
   /**
    * Serves sales type detail.
    */
-  async handleDetail(id: number): Promise<SalesTypeDto> {
+  async handleDetail(id: string): Promise<SalesTypeDto> {
     return record('SalesTypeService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -110,7 +110,7 @@ export class SalesTypeService {
   /**
    * Seeds sales types
    */
-  async seed(data: (SalesTypeMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
+  async seed(data: (SalesTypeMutationDto & { id?: string; createdBy: string })[]): Promise<void> {
     return record('SalesTypeService.seed', async () => {
       for (const d of data) {
         const metadata = stampCreate(d.createdBy)
@@ -130,7 +130,7 @@ export class SalesTypeService {
   /**
    * Creates a new sales type. Invalidates cache.
    */
-  async handleCreate(data: SalesTypeMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: SalesTypeMutationDto, actorId: string): Promise<{ id: string }> {
     return record('SalesTypeService.handleCreate', async () => {
       const code = data.code.trim().toLowerCase()
       const name = data.name.trim()
@@ -157,7 +157,7 @@ export class SalesTypeService {
   /**
    * Updates existing sales type. Invalidates cache.
    */
-  async handleUpdate(id: number, data: Partial<SalesTypeMutationDto>, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: Partial<SalesTypeMutationDto>, actorId: string): Promise<{ id: string }> {
     return record('SalesTypeService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -187,7 +187,7 @@ export class SalesTypeService {
   /**
    * Removes sales type. Invalidates cache.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('SalesTypeService.handleRemove', async () => {
       const existing = await this.getById(id)
       if (existing.isSystem) throw err.systemSalesType()
@@ -206,7 +206,7 @@ export class SalesTypeService {
   /**
    * Clears relevant sales type caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

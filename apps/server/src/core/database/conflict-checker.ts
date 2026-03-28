@@ -41,7 +41,7 @@ interface CheckConflictOptions<T = string> {
    * 1. Skip unchanged fields
    * 2. Exclude the current record from the conflict query
    */
-  existing?: { id: number } & Partial<Record<FieldKeys<T>, unknown>>
+  existing?: { id?: string } & Partial<Record<FieldKeys<T>, unknown>>
 }
 
 /* -------------------------------------------------------------------------- */

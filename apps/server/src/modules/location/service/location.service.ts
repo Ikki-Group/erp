@@ -21,7 +21,7 @@ import type { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: number) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND') }
+const err = { notFound: (id: string) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND') }
 
 const uniqueFields: ConflictField<'code' | 'name'>[] = [
   {
@@ -38,7 +38,7 @@ const uniqueFields: ConflictField<'code' | 'name'>[] = [
   },
 ]
 
-const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: number) => `location.byId.${id}` }
+const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: string) => `location.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -77,7 +77,7 @@ export class LocationService {
   /**
    * Finds a single location by ID. Throws if not found.
    */
-  async getById(id: number): Promise<LocationDto> {
+  async getById(id: string): Promise<LocationDto> {
     return record('LocationService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(locationsTable).where(eq(locationsTable.id, id))
@@ -129,7 +129,7 @@ export class LocationService {
   /**
    * Serves location details for a single ID.
    */
-  async handleDetail(id: number): Promise<LocationDto> {
+  async handleDetail(id: string): Promise<LocationDto> {
     return record('LocationService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -138,7 +138,7 @@ export class LocationService {
   /**
    * Creates a new location. Invalidates cache.
    */
-  async handleCreate(data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: LocationMutationDto, actorId: string): Promise<{ id: string }> {
     return record('LocationService.handleCreate', async () => {
       await checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data })
 
@@ -157,7 +157,7 @@ export class LocationService {
   /**
    * Updates an existing location. Invalidates cache.
    */
-  async handleUpdate(id: number, data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: string, data: LocationMutationDto, actorId: string): Promise<{ id: string }> {
     return record('LocationService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -182,7 +182,7 @@ export class LocationService {
   /**
    * Removes a location. Invalidates cache.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: string): Promise<{ id: string }> {
     return record('LocationService.handleRemove', async () => {
       const result = await db
         .delete(locationsTable)
@@ -198,7 +198,7 @@ export class LocationService {
   /**
    * Utility to clear location caches.
    */
-  private async clearCache(id?: number) {
+  private async clearCache(id?: string) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

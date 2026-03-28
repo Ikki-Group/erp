@@ -24,15 +24,15 @@ import type {
 } from '../dto'
 
 const err = {
-  notFound: (id: number) => new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
-  itemNotFound: (id: number) => new NotFoundError(`Sales Order Item ${id} not found`, 'SALES_ORDER_ITEM_NOT_FOUND'),
-  notOpen: (id: number) => new BadRequestError(`Sales Order ${id} is not open`, 'SALES_ORDER_NOT_OPEN'),
+  notFound: (id: string) => new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
+  itemNotFound: (id: string) => new NotFoundError(`Sales Order Item ${id} not found`, 'SALES_ORDER_ITEM_NOT_FOUND'),
+  notOpen: (id: string) => new BadRequestError(`Sales Order ${id} is not open`, 'SALES_ORDER_NOT_OPEN'),
 }
 
 export class SalesOrderService {
   /* ──────────────────── HANDLER: CREATE / OPEN BILL ──────────────────── */
 
-  async handleCreate(data: SalesOrderCreateDto, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: SalesOrderCreateDto, actorId: string): Promise<{ id: string }> {
     return record('SalesOrderService.handleCreate', async () => {
       const {
         locationId,
@@ -95,7 +95,7 @@ export class SalesOrderService {
 
   /* ──────────────────── HANDLER: ADD BATCH ──────────────────── */
 
-  async handleAddBatch(orderId: number, data: SalesOrderAddBatchDto, actorId: number): Promise<{ batchId: number }> {
+  async handleAddBatch(orderId: string, data: SalesOrderAddBatchDto, actorId: string): Promise<{ batchId: string }> {
     return record('SalesOrderService.handleAddBatch', async () => {
       return db.transaction(async (tx) => {
         // Validate order is open
@@ -112,7 +112,7 @@ export class SalesOrderService {
         // Create Batch
         const [batch] = await tx
           .insert(salesOrderBatchesTable)
-          .values({ orderId, batchNumber: data.batchNumber, status: 'pending', ...metadata })
+          .values({ orderId, batchNumber: data.batchNumber.toString(), status: 'pending', ...metadata })
           .returning({ id: salesOrderBatchesTable.id })
 
         // Create Items Link to Batch
@@ -146,7 +146,7 @@ export class SalesOrderService {
 
   /* ──────────────────── HANDLER: CLOSE BILL ──────────────────── */
 
-  async handleClose(orderId: number, actorId: number): Promise<{ id: number }> {
+  async handleClose(orderId: string, actorId: string): Promise<{ id: string }> {
     return record('SalesOrderService.handleClose', async () => {
       await db.transaction(async (tx) => {
         const orderResult = await tx
@@ -171,7 +171,7 @@ export class SalesOrderService {
 
   /* ──────────────────── HANDLER: VOID ──────────────────── */
 
-  async handleVoid(orderId: number, data: SalesOrderVoidDto, actorId: number): Promise<{ id: number }> {
+  async handleVoid(orderId: string, data: SalesOrderVoidDto, actorId: string): Promise<{ id: string }> {
     return record('SalesOrderService.handleVoid', async () => {
       await db.transaction(async (tx) => {
         const orderResult = await tx
@@ -219,8 +219,8 @@ export class SalesOrderService {
   async handleExternalIngestion(
     data: SalesOrderCreateDto,
     externalRef: { source: string; extId: string; payload: any },
-    actorId: number,
-  ): Promise<{ id: number }> {
+    actorId: string,
+  ): Promise<{ id: string }> {
     return record('SalesOrderService.handleExternalIngestion', async () => {
       return db.transaction(async (tx) => {
         const existingRef = await tx
@@ -335,7 +335,7 @@ export class SalesOrderService {
 
   /* ──────────────────── HANDLER: DETAIL ──────────────────── */
 
-  async handleDetail(id: number): Promise<SalesOrderOutputDto> {
+  async handleDetail(id: string): Promise<SalesOrderOutputDto> {
     return record('SalesOrderService.handleDetail', async () => {
       const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
       const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
@@ -357,13 +357,13 @@ export class SalesOrderService {
 
   /* ──────────────────── INTERNAL HELPERS ──────────────────── */
 
-  private async recalculateOrderTotals(tx: any, orderId: number, actorId: number) {
+  private async recalculateOrderTotals(tx: any, orderId: string, actorId: string) {
     const allItems = await tx.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, orderId))
     const allVoids = await tx.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, orderId))
     const voidedItemIds = new Set(
       allVoids
-        .filter((v: { itemId: number | null }) => v.itemId !== null)
-        .map((v: { itemId: number | null }) => v.itemId),
+        .filter((v: { itemId: string | null }) => v.itemId !== null)
+        .map((v: { itemId: string | null }) => v.itemId),
     )
 
     let totalAmount = 0
