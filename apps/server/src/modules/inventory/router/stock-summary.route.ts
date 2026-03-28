@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   generateSummarySchema,
@@ -59,6 +59,36 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
         {
           body: generateSummarySchema,
           response: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
+          auth: true,
+          detail: { tags: ['Inventory Summary'] },
+        },
+      )
+
+      /* ─────── Soft delete summary ─────── */
+      .post(
+        '/remove',
+        async function remove({ query, auth }) {
+          await s.summary.handleRemove(query.id, auth.userId)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
+          auth: true,
+          detail: { tags: ['Inventory Summary'] },
+        },
+      )
+
+      /* ─────── Hard delete summary ─────── */
+      .post(
+        '/hard-remove',
+        async function hardRemove({ query }) {
+          await s.summary.handleHardRemove(query.id)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
         },

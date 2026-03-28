@@ -94,5 +94,35 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           detail: { tags: ['Inventory Transaction'] },
         },
       )
+
+      /* ─────── Soft delete transaction ─────── */
+      .post(
+        '/remove',
+        async function remove({ query, auth }) {
+          await s.transaction.handleRemove(query.id, auth.userId)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Hard delete transaction ─────── */
+      .post(
+        '/hard-remove',
+        async function hardRemove({ query }) {
+          await s.transaction.handleHardRemove(query.id)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
   )
 }

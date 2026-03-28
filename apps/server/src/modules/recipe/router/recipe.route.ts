@@ -51,10 +51,18 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         auth: true,
       },
     )
-    .delete(
+    .post(
       '/remove',
-      async function remove({ query }) {
-        await s.recipe.handleRemove(query.id)
+      async function remove({ query, auth }) {
+        await s.recipe.handleRemove(query.id, auth.userId)
+        return res.ok({ id: query.id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .post(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        await s.recipe.handleHardRemove(query.id)
         return res.ok({ id: query.id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
