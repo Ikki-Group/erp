@@ -8,13 +8,19 @@
   "editor.formatOnSave": true,
   "oxc.fmt.configPath": ".oxfmtrc.json",
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "editor.codeActionsOnSave": { "source.fixAll.oxc": "always" },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "always"
+  },
   // "[markdown]": {
   //   "editor.defaultFormatter": "vscode.markdown-language-features",
   //   "editor.formatOnSave": true
   // },
   // read-only generated files
-  "files.readonlyInclude": { "**/routeTree.gen.ts": true, "**/.tanstack/**/*": true, "bun.lock": true },
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true,
+    "**/.tanstack/**/*": true,
+    "bun.lock": true
+  },
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true,
     "**/.tanstack/**/*": true,

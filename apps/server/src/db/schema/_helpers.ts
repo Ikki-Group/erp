@@ -30,6 +30,7 @@ export const metadata = {
 // ─── Shared Enums ─────────────────────────────────────────────────────────────
 
 export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
+export const locationClassificationEnum = pgEnum('location_classification', ['physical', 'virtual'])
 
 // Enforced strictly: raw (e.g. Beans), semi (e.g. Pre-made sauces), packaging (e.g. Cups)
 export const materialTypeEnum = pgEnum('material_type', ['raw', 'semi', 'packaging'])

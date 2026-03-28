@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -47,7 +47,7 @@ export class LocationService {
    * Seed initial locations into the database.
    * Uses upsert pattern based on location code.
    */
-  async seed(data: Pick<LocationDto, 'code' | 'name' | 'type' | 'createdBy'>[]): Promise<void> {
+  async seed(data: Pick<LocationDto, 'code' | 'name' | 'type' | 'classification' | 'createdBy'>[]): Promise<void> {
     return record('LocationService.seed', async () => {
       for (const d of data) {
         const metadata = stampCreate(d.createdBy)
@@ -56,7 +56,14 @@ export class LocationService {
           .values({ ...d, description: '', isActive: true, ...metadata })
           .onConflictDoUpdate({
             target: locationsTable.code,
-            set: { name: d.name, type: d.type, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
+            set: {
+              name: d.name,
+              type: d.type,
+              classification: d.classification,
+              updatedAt: metadata.updatedAt,
+              updatedBy: metadata.updatedBy,
+              deletedAt: null, // Restore if was soft-deleted
+            },
           })
       }
       await this.clearCache()
@@ -65,34 +72,42 @@ export class LocationService {
 
   /**
    * Returns all active locations, cached.
+   * Excludes soft-deleted records.
    */
   async find(): Promise<LocationDto[]> {
     return record('LocationService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(locationsTable).where(eq(locationsTable.isActive, true)).orderBy(locationsTable.name)
+        return db
+          .select()
+          .from(locationsTable)
+          .where(and(eq(locationsTable.isActive, true), isNull(locationsTable.deletedAt)))
+          .orderBy(locationsTable.name)
       })
     })
   }
 
   /**
-   * Finds a single location by ID. Throws if not found.
+   * Finds a single location by ID. Throws if not found or soft-deleted.
    */
   async getById(id: string): Promise<LocationDto> {
     return record('LocationService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(locationsTable).where(eq(locationsTable.id, id))
+        const result = await db
+          .select()
+          .from(locationsTable)
+          .where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
         return takeFirstOrThrow(result, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
       })
     })
   }
 
   /**
-   * Returns total count of locations, cached.
+   * Returns total count of active locations, cached.
    */
   async count(): Promise<number> {
     return record('LocationService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(locationsTable)
+        const result = await db.select({ val: count() }).from(locationsTable).where(isNull(locationsTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -100,14 +115,17 @@ export class LocationService {
 
   /**
    * Fetches a paginated list of locations with optional filters.
+   * Enhanced search: searches both name and code.
    */
   async handleList(filter: LocationFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<LocationDto>> {
     return record('LocationService.handleList', async () => {
-      const { search, type, isActive } = filter
+      const { search, type, classification, isActive } = filter
 
       const where = and(
-        searchFilter(locationsTable.name, search),
+        isNull(locationsTable.deletedAt),
+        search ? or(searchFilter(locationsTable.name, search), searchFilter(locationsTable.code, search)) : undefined,
         type ? eq(locationsTable.type, type) : undefined,
+        classification ? eq(locationsTable.classification, classification) : undefined,
         typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined,
       )
 
@@ -180,14 +198,35 @@ export class LocationService {
   }
 
   /**
-   * Removes a location. Invalidates cache.
+   * Marks a location as deleted (Soft Delete).
+   * Used for crucial entities like Locations.
    */
-  async handleRemove(id: string): Promise<{ id: string }> {
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
     return record('LocationService.handleRemove', async () => {
+      const result = await db
+        .update(locationsTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(locationsTable.id, id))
+        .returning({ id: locationsTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a location (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('LocationService.handleHardRemove', async () => {
       const result = await db
         .delete(locationsTable)
         .where(eq(locationsTable.id, id))
         .returning({ id: locationsTable.id })
+
       if (result.length === 0) throw err.notFound(id)
 
       await this.clearCache(id)
