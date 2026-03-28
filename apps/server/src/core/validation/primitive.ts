@@ -19,8 +19,8 @@ export const zBool = z.boolean()
 export const zEmail = z.email().transform((v) => v.toLowerCase())
 export const zUuid = z.uuidv7()
 
-/** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
-export const zId = z.coerce.number().int().positive()
+/** UUID v4 / v7 ID. All Primary Keys are now UUIDs instead of integers. */
+export const zId = z.uuid()
 
 // ─── Domain-specific ──────────────────────────────────────────────────────────
 

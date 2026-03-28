@@ -7,6 +7,8 @@ export const zMetadataDto = z.object({
   updatedBy: zId,
   createdAt: zDate,
   updatedAt: zDate,
+  deletedAt: zDate.optional().nullable(),
+  deletedBy: zId.optional().nullable(),
   syncAt: zDate.optional().nullable(),
 })
 

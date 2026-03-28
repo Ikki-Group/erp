@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStr, zBool, zId, zEmail, zPassword, zUsername, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/core/validation'
+import { zStr, zStrNullable, zBool, zId, zEmail, zPassword, zUsername, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/core/validation'
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
@@ -10,6 +10,7 @@ export const UserBaseDto = z.object({
   email: zEmail,
   username: zUsername,
   fullname: zStr,
+  pinCode: zStrNullable.optional(),
   isRoot: zBool,
   isActive: zBool,
 })
