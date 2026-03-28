@@ -8,6 +8,7 @@ export const RoleBaseDto = z.object({
   code: zStr,
   name: zStr,
   description: zStrNullable,
+  permissions: z.string().array(),
   isSystem: zBool,
 })
 

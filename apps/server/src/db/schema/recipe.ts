@@ -34,15 +34,15 @@ export const recipesTable = pgTable(
     // Ensure a material can have at most one recipe
     uniqueIndex('recipes_material_idx')
       .on(t.materialId)
-      .where(sql`${t.materialId} IS NOT NULL`),
+      .where(sql`${t.materialId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Ensure a product can have at most one base recipe
     uniqueIndex('recipes_product_idx')
       .on(t.productId)
-      .where(sql`${t.productId} IS NOT NULL`),
+      .where(sql`${t.productId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Ensure a product variant can have at most one recipe
     uniqueIndex('recipes_product_variant_idx')
       .on(t.productVariantId)
-      .where(sql`${t.productVariantId} IS NOT NULL`),
+      .where(sql`${t.productVariantId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Check constraint: exactly one target must be set
     check('recipe_target_chk', sql`num_nonnulls("materialId", "productId", "productVariantId") = 1`),
   ],
@@ -82,7 +82,7 @@ export const recipeItemsTable = pgTable(
   },
   (t) => [
     // A material should only appear once per recipe
-    uniqueIndex('recipe_items_recipe_material_idx').on(t.recipeId, t.materialId),
+    uniqueIndex('recipe_items_recipe_material_idx').on(t.recipeId, t.materialId).where(sql`${t.deletedAt} IS NULL`),
     // Standalone indexes for reverse lookups
     index('recipe_items_material_idx').on(t.materialId),
     index('recipe_items_uom_idx').on(t.uomId),

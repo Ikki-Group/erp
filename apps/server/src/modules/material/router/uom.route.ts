@@ -53,9 +53,17 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
     )
     .delete(
       '/remove',
-      async function remove({ query }) {
-        await s.uom.handleRemove(query.id)
-        return res.ok({ id: query.id })
+      async function remove({ query, auth }) {
+        const { id } = await s.uom.handleRemove(query.id, auth.userId)
+        return res.ok({ id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        const { id } = await s.uom.handleHardRemove(query.id)
+        return res.ok({ id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )

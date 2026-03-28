@@ -1,3 +1,4 @@
+import { isNull, sql } from 'drizzle-orm'
 import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
@@ -18,7 +19,10 @@ export const usersTable = pgTable(
     isActive: boolean().notNull().default(true),
     ...metadata,
   },
-  (t) => [uniqueIndex('users_email_idx').on(t.email), uniqueIndex('users_username_idx').on(t.username)],
+  (t) => [
+    uniqueIndex('users_email_idx').on(t.email).where(isNull(t.deletedAt)),
+    uniqueIndex('users_username_idx').on(t.username).where(isNull(t.deletedAt)),
+  ],
 )
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
@@ -30,10 +34,17 @@ export const rolesTable = pgTable(
     code: text().notNull(),
     name: text().notNull(),
     description: text(),
+    permissions: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     isSystem: boolean().notNull().default(false),
     ...metadata,
   },
-  (t) => [uniqueIndex('roles_code_idx').on(t.code), uniqueIndex('roles_name_idx').on(t.name)],
+  (t) => [
+    uniqueIndex('roles_code_idx').on(t.code).where(isNull(t.deletedAt)),
+    uniqueIndex('roles_name_idx').on(t.name).where(isNull(t.deletedAt)),
+  ],
 )
 
 // ─── User Assignments ────────────────────────────────────────────────────────

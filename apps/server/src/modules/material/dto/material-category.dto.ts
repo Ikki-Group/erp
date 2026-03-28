@@ -8,6 +8,7 @@ export const MaterialCategoryDto = z.object({
   id: zId,
   name: zStr,
   description: zStrNullable,
+  parentId: zId.nullable(),
   ...zMetadataDto.shape,
 })
 
@@ -15,7 +16,7 @@ export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch })
+export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch, parentId: zId.optional() })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 
@@ -25,6 +26,7 @@ export const MaterialCategoryMutationDto = z.object({
   ...MaterialCategoryDto.pick({
     name: true,
     description: true,
+    parentId: true,
   }).shape,
 })
 

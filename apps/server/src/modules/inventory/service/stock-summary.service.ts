@@ -1,7 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, asc, count, desc, eq, gte, ilike, inArray, lt, lte, or, sql, sum } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, or, sql, sum } from 'drizzle-orm'
 
 import { paginate, stampCreate } from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -33,6 +34,7 @@ export class StockSummaryService {
       const { locationId, materialId, dateFrom, dateTo } = filter
 
       const where = and(
+        isNull(stockSummariesTable.deletedAt),
         eq(stockSummariesTable.locationId, locationId),
         materialId === undefined ? undefined : eq(stockSummariesTable.materialId, materialId),
         gte(stockSummariesTable.date, toWibDateKey(dateFrom)),
@@ -127,6 +129,7 @@ export class StockSummaryService {
 
       // 1. Paginate Materials matching filter
       const matWhere = and(
+        isNull(materialsTable.deletedAt),
         materialId === undefined ? undefined : eq(materialsTable.id, materialId),
         search ? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`)) : undefined,
       )
@@ -167,6 +170,7 @@ export class StockSummaryService {
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty"
           FROM stock_summaries
           WHERE "materialId" IN ${materialIds} AND "date" < ${startKey.toISOString()} ${locFilter}
+            AND "deletedAt" IS NULL
           ORDER BY "materialId", "locationId", "date" DESC
         ) latest
         GROUP BY "materialId"
@@ -187,6 +191,7 @@ export class StockSummaryService {
         .from(stockSummariesTable)
         .where(
           and(
+            isNull(stockSummariesTable.deletedAt),
             inArray(stockSummariesTable.materialId, materialIds),
             locationId === undefined ? undefined : eq(stockSummariesTable.locationId, locationId),
             gte(stockSummariesTable.date, startKey),
@@ -204,6 +209,7 @@ export class StockSummaryService {
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty", "closingValue"
           FROM stock_summaries
           WHERE "materialId" IN ${materialIds} AND "date" <= ${endKey.toISOString()} ${locFilter}
+            AND "deletedAt" IS NULL
           ORDER BY "materialId", "locationId", "date" DESC
         ) latest
         GROUP BY "materialId"
@@ -272,15 +278,14 @@ export class StockSummaryService {
 
       return await db.transaction(async (tx) => {
         // 2. Bulk fetch previous summaries (latest per material before today)
-        // PostgreSQL: DISTINCT ON is the cleanest way here
         const prevSummariesQuery = sql`
           SELECT DISTINCT ON ("materialId") "materialId", "closingQty", "closingAvgCost"
           FROM ${stockSummariesTable}
           WHERE "locationId" = ${locationId} AND "date" < ${dateKey.toISOString()}
             AND "materialId" IN ${materialIds}
+            AND "deletedAt" IS NULL
           ORDER BY "materialId", "date" DESC
         `
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const prevSummariesRaw = (await tx.execute(prevSummariesQuery)) as unknown as {
           materialId: string
           closingQty: string
@@ -300,6 +305,7 @@ export class StockSummaryService {
           .from(stockTransactionsTable)
           .where(
             and(
+              isNull(stockTransactionsTable.deletedAt),
               eq(stockTransactionsTable.locationId, locationId),
               gte(stockTransactionsTable.date, start),
               lt(stockTransactionsTable.date, end),
@@ -321,9 +327,9 @@ export class StockSummaryService {
           FROM ${stockTransactionsTable}
           WHERE "locationId" = ${locationId} AND "date" >= ${start.toISOString()} AND "date" < ${end.toISOString()}
             AND "materialId" IN ${materialIds}
+            AND "deletedAt" IS NULL
           ORDER BY "materialId", "id" DESC
         `
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const lastTransactionsRaw = (await tx.execute(lastTransactionsQuery)) as unknown as {
           materialId: string
           runningAvgCost: string
@@ -434,11 +440,46 @@ export class StockSummaryService {
               closingValue: sql`excluded."closingValue"`,
               updatedAt: sql`excluded."updatedAt"`,
               updatedBy: sql`excluded."updatedBy"`,
+              deletedAt: null, // Reset soft delete if regenerating
+              deletedBy: null,
             },
           })
 
         return { generatedCount: upsertData.length }
       })
+    })
+  }
+
+  /**
+   * Marks a summary as deleted (Soft Delete).
+   */
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+    return record('StockSummaryService.handleRemove', async () => {
+      const result = await db
+        .update(stockSummariesTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(stockSummariesTable.id, id))
+        .returning({ id: stockSummariesTable.id })
+
+      if (result.length === 0) throw new NotFoundError('Summary not found', 'SUMMARY_NOT_FOUND')
+
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a summary (Hard Delete).
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('StockSummaryService.handleHardRemove', async () => {
+      const result = await db
+        .delete(stockSummariesTable)
+        .where(eq(stockSummariesTable.id, id))
+        .returning({ id: stockSummariesTable.id })
+
+      if (result.length === 0) throw new NotFoundError('Summary not found', 'SUMMARY_NOT_FOUND')
+
+      return { id }
     })
   }
 }

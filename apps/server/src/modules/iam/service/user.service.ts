@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, or } from 'drizzle-orm'
+import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 import { cache } from '@/core/cache'
@@ -14,7 +14,7 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/core/database'
-import { UnauthorizedError } from '@/core/http/errors'
+import { UnauthorizedError, NotFoundError } from '@/core/http/errors'
 import { hashPassword, verifyPassword } from '@/core/password'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -35,6 +35,8 @@ import type { RoleService } from './role.service'
 import type { UserAssignmentService } from './user-assignment.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
+
+const err = { notFound: (id: string) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND') }
 
 const uniqueFields: ConflictField<'email' | 'username'>[] = [
   { field: 'email', column: usersTable.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
@@ -109,7 +111,10 @@ export class UserService {
   async getById(id: string): Promise<UserDto> {
     return record('UserService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(usersTable).where(eq(usersTable.id, id))
+        const result = await db
+          .select()
+          .from(usersTable)
+          .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
         return takeFirstOrThrow(result, `User with ID ${id} not found`, 'USER_NOT_FOUND')
       })
     })
@@ -124,7 +129,9 @@ export class UserService {
       const result = await db
         .select()
         .from(usersTable)
-        .where(or(eq(usersTable.email, lower), eq(usersTable.username, lower)))
+        .where(
+          and(or(eq(usersTable.email, lower), eq(usersTable.username, lower)), isNull(usersTable.deletedAt)),
+        )
       return takeFirst(result)
     })
   }
@@ -135,7 +142,7 @@ export class UserService {
   async count(): Promise<number> {
     return record('UserService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(usersTable)
+        const result = await db.select({ val: count() }).from(usersTable).where(isNull(usersTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -163,6 +170,7 @@ export class UserService {
       const { search, isActive } = filter
 
       const where = and(
+        isNull(usersTable.deletedAt),
         searchFilter(usersTable.fullname, search),
         typeof isActive === 'boolean' ? eq(usersTable.isActive, isActive) : undefined,
       )
@@ -276,12 +284,32 @@ export class UserService {
   }
 
   /**
-   * Remove user handler.
+   * Marks a user as deleted (Soft Delete).
+   * Used for crucial entities like Users.
    */
-  async handleRemove(id: string): Promise<{ id: string }> {
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
     return record('UserService.handleRemove', async () => {
-      await this.getById(id)
-      await db.delete(usersTable).where(eq(usersTable.id, id))
+      const result = await db
+        .update(usersTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(usersTable.id, id))
+        .returning({ id: usersTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a user (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('UserService.handleHardRemove', async () => {
+      const result = await db.delete(usersTable).where(eq(usersTable.id, id)).returning({ id: usersTable.id })
+      if (result.length === 0) throw err.notFound(id)
 
       await this.clearCache(id)
       return { id }

@@ -53,9 +53,17 @@ export function initMaterialRoute(s: MaterialServiceModule) {
     )
     .delete(
       '/remove',
-      async function remove({ query }) {
-        await s.material.handleRemove(query.id)
-        return res.ok({ id: query.id })
+      async function remove({ query, auth }) {
+        const { id } = await s.material.handleRemove(query.id, auth.userId)
+        return res.ok({ id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        const { id } = await s.material.handleHardRemove(query.id)
+        return res.ok({ id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )

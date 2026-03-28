@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray, ne } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, ne } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -37,7 +37,7 @@ export class RecipeService {
       .from(recipeItemsTable)
       .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
       .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
-      .where(eq(recipeItemsTable.recipeId, recipeId))
+      .where(and(eq(recipeItemsTable.recipeId, recipeId), isNull(recipeItemsTable.deletedAt)))
       .orderBy(recipeItemsTable.sortOrder)
 
     return results.map((r) =>
@@ -59,7 +59,7 @@ export class RecipeService {
   async getById(id: string): Promise<RecipeDto> {
     return record('RecipeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(recipesTable).where(eq(recipesTable.id, id))
+        const result = await db.select().from(recipesTable).where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
         const recipe = takeFirstOrThrow(result, `Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND')
 
         const items = await this.getRecipeItems(id)
@@ -72,7 +72,7 @@ export class RecipeService {
   async count(): Promise<number> {
     return record('RecipeService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(recipesTable)
+        const result = await db.select({ val: count() }).from(recipesTable).where(isNull(recipesTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -85,6 +85,7 @@ export class RecipeService {
       const { materialId, productId, productVariantId, isActive } = filter
 
       const where = and(
+        isNull(recipesTable.deletedAt),
         materialId === undefined ? undefined : eq(recipesTable.materialId, materialId),
         productId === undefined ? undefined : eq(recipesTable.productId, productId),
         productVariantId === undefined ? undefined : eq(recipesTable.productVariantId, productVariantId),
@@ -117,7 +118,7 @@ export class RecipeService {
               .from(recipeItemsTable)
               .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
               .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
-              .where(inArray(recipeItemsTable.recipeId, recipeIds))
+              .where(and(inArray(recipeItemsTable.recipeId, recipeIds), isNull(recipeItemsTable.deletedAt)))
               .orderBy(recipeItemsTable.sortOrder)
           : []
 
@@ -158,13 +159,13 @@ export class RecipeService {
     },
     excludeId?: string,
   ) {
-    const conditions = []
+    const conditions = [isNull(recipesTable.deletedAt)]
 
     if (target.materialId) conditions.push(eq(recipesTable.materialId, target.materialId))
     if (target.productId) conditions.push(eq(recipesTable.productId, target.productId))
     if (target.productVariantId) conditions.push(eq(recipesTable.productVariantId, target.productVariantId))
 
-    if (conditions.length !== 1) {
+    if (conditions.length !== 2) { // 1 for deletedAt, 1 for the target
       throw new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET')
     }
 
@@ -261,9 +262,9 @@ export class RecipeService {
             instructions: data.instructions,
             ...updateMeta,
           })
-          .where(eq(recipesTable.id, id))
+          .where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
 
-        // Recreate items
+        // Hard delete items before re-inserting is standard here as they don't have children
         await tx.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
 
         if (data.items?.length) {
@@ -291,9 +292,27 @@ export class RecipeService {
     })
   }
 
-  async handleRemove(id: string): Promise<{ id: string }> {
+  /**
+   * Marks a recipe as deleted (Soft Delete).
+   */
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
     return record('RecipeService.handleRemove', async () => {
-      const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
+      const result = await db.transaction(async (tx) => {
+        const timestamp = new Date()
+
+        // Also soft delete items
+        await tx
+          .update(recipeItemsTable)
+          .set({ deletedAt: timestamp, deletedBy: actorId })
+          .where(eq(recipeItemsTable.recipeId, id))
+
+        return tx
+          .update(recipesTable)
+          .set({ deletedAt: timestamp, deletedBy: actorId })
+          .where(eq(recipesTable.id, id))
+          .returning({ id: recipesTable.id })
+      })
+
       if (result.length === 0) throw err.notFound(id)
 
       await this.clearCache(id)
@@ -301,7 +320,18 @@ export class RecipeService {
     })
   }
 
-  // ─── Cache ────────────────────────────────────────────────────────────────
+  /**
+   * Permanently deletes a recipe (Hard Delete).
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('RecipeService.handleHardRemove', async () => {
+      const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
 
   private async clearCache(id?: string) {
     await Promise.all([

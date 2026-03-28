@@ -1,4 +1,5 @@
 import { date, index, numeric, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 import { metadata, pk, transactionTypeEnum } from './_helpers'
 import { locationsTable } from './location'
@@ -87,7 +88,7 @@ export const stockSummariesTable = pgTable(
     ...metadata,
   },
   (t) => [
-    uniqueIndex('stock_summaries_material_location_date_idx').on(t.materialId, t.locationId, t.date),
+    uniqueIndex('stock_summaries_material_location_date_idx').on(t.materialId, t.locationId, t.date).where(sql`${t.deletedAt} IS NULL`),
     index('stock_summaries_location_date_idx').on(t.locationId, t.date),
     index('stock_summaries_date_idx').on(t.date),
   ],

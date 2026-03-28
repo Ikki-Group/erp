@@ -52,10 +52,18 @@ export function initRoleRoute(s: IamServiceModule) {
       },
     )
     .delete(
-      '/delete',
-      async function remove({ body }) {
-        const result = await s.role.handleRemove(body.id)
+      '/remove',
+      async function remove({ body, auth }) {
+        const result = await s.role.handleRemove(body.id, auth.userId)
         return res.ok(result, 'ROLE_DELETED')
+      },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ body }) {
+        const result = await s.role.handleHardRemove(body.id)
+        return res.ok(result, 'ROLE_HARD_DELETED')
       },
       { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )

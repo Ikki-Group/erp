@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, desc, eq, gte, ilike, lte, or } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
 import { paginate, stampCreate, takeFirstOrThrow } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
@@ -309,6 +309,7 @@ export class StockTransactionService {
               : undefined
 
       const where = and(
+        isNull(stockTransactionsTable.deletedAt),
         locationId === undefined ? undefined : eq(stockTransactionsTable.locationId, locationId),
         materialId === undefined ? undefined : eq(stockTransactionsTable.materialId, materialId),
         type === undefined ? undefined : eq(stockTransactionsTable.type, type),
@@ -368,10 +369,46 @@ export class StockTransactionService {
    */
   async handleDetail(id: string): Promise<StockTransactionDto> {
     return record('StockTransactionService.handleDetail', async () => {
-      const result = await db.select().from(stockTransactionsTable).where(eq(stockTransactionsTable.id, id))
+      const result = await db
+        .select()
+        .from(stockTransactionsTable)
+        .where(and(eq(stockTransactionsTable.id, id), isNull(stockTransactionsTable.deletedAt)))
       const row = takeFirstOrThrow(result, `Transaction with ID ${id} not found`, 'TRANSACTION_NOT_FOUND')
 
       return transformDecimals(row) as unknown as StockTransactionDto
+    })
+  }
+
+  /**
+   * Marks a transaction as deleted (Soft Delete).
+   */
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+    return record('StockTransactionService.handleRemove', async () => {
+      const result = await db
+        .update(stockTransactionsTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(stockTransactionsTable.id, id))
+        .returning({ id: stockTransactionsTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a transaction (Hard Delete).
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('StockTransactionService.handleHardRemove', async () => {
+      const result = await db
+        .delete(stockTransactionsTable)
+        .where(eq(stockTransactionsTable.id, id))
+        .returning({ id: stockTransactionsTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      return { id }
     })
   }
 }

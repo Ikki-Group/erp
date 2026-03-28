@@ -61,9 +61,17 @@ export function initUserRoute(s: IamServiceModule) {
     )
     .delete(
       '/remove',
-      async function remove({ body }) {
-        const result = await s.user.handleRemove(body.id)
+      async function remove({ body, auth }) {
+        const result = await s.user.handleRemove(body.id, auth.userId)
         return res.ok(result, 'USER_DELETED')
+      },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ body }) {
+        const result = await s.user.handleHardRemove(body.id)
+        return res.ok(result, 'USER_HARD_DELETED')
       },
       { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
