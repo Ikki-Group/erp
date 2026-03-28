@@ -52,8 +52,16 @@ export function initProductRoute(s: ProductServiceModule) {
     )
     .delete(
       '/remove',
-      async function remove({ query }) {
-        await s.product.handleRemove(query.id)
+      async function remove({ query, auth }) {
+        await s.product.handleRemove(query.id, auth.userId)
+        return res.ok({ id: query.id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        await s.product.handleHardRemove(query.id)
         return res.ok({ id: query.id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },

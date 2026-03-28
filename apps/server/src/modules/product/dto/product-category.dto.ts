@@ -9,6 +9,7 @@ export const productCategorySchema = z
     id: zId,
     name: zStr,
     description: zStrNullable,
+    parentId: zId.nullable(),
   })
   .merge(zMetadataDto)
 
@@ -16,7 +17,10 @@ export type ProductCategoryDto = z.infer<typeof productCategorySchema>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const productCategoryFilterSchema = z.object({ search: zQuerySearch })
+export const productCategoryFilterSchema = z.object({
+  search: zQuerySearch,
+  parentId: zId.optional(),
+})
 
 export type ProductCategoryFilterDto = z.infer<typeof productCategoryFilterSchema>
 
@@ -25,6 +29,7 @@ export type ProductCategoryFilterDto = z.infer<typeof productCategoryFilterSchem
 export const productCategoryMutationSchema = productCategorySchema.pick({
   name: true,
   description: true,
+  parentId: true,
 })
 
 export type ProductCategoryMutationDto = z.infer<typeof productCategoryMutationSchema>

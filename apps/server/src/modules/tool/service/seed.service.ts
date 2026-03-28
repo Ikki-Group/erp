@@ -48,7 +48,13 @@ export class SeedService {
 
         // 3. Seed Locations
         await this.locationSvc.location.seed(
-          SEED_CONFIG.LOCATIONS.map((l) => ({ code: l.code, name: l.name, type: l.type, createdBy: SYSTEM_ACTOR_ID })),
+          SEED_CONFIG.LOCATIONS.map((l) => ({
+            code: l.code,
+            name: l.name,
+            type: l.type,
+            classification: 'physical',
+            createdBy: SYSTEM_ACTOR_ID,
+          })),
         )
 
         // 4. Seed Sales Types

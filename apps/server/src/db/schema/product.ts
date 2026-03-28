@@ -1,5 +1,16 @@
-import { sql } from 'drizzle-orm'
-import { boolean, index, jsonb, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { isNull, sql } from 'drizzle-orm'
+import {
+  boolean,
+  index,
+  jsonb,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  type AnyPgColumn,
+} from 'drizzle-orm/pg-core'
 
 import { metadata, pk, productStatusEnum } from './_helpers'
 import { locationsTable } from './location'
@@ -18,8 +29,14 @@ export const salesTypesTable = pgTable(
 
 export const productCategoriesTable = pgTable(
   'product_categories',
-  { ...pk, name: text().notNull(), description: text(), ...metadata },
-  (t) => [uniqueIndex('product_categories_name_idx').on(t.name)],
+  {
+    ...pk,
+    name: text().notNull(),
+    description: text(),
+    parentId: uuid().references((): AnyPgColumn => productCategoriesTable.id, { onDelete: 'set null' }),
+    ...metadata,
+  },
+  (t) => [uniqueIndex('product_categories_name_idx').on(t.name).where(isNull(t.deletedAt))],
 )
 
 // ─── Products ─────────────────────────────────────────────────────────────────
@@ -61,9 +78,13 @@ export const productsTable = pgTable(
   },
   (t) => [
     // SKU uniqueness scoped per location
-    uniqueIndex('products_sku_location_idx').on(t.sku, t.locationId),
+    uniqueIndex('products_sku_location_idx')
+      .on(t.sku, t.locationId)
+      .where(isNull(t.deletedAt)),
     // Name uniqueness scoped per location
-    uniqueIndex('products_name_location_idx').on(t.name, t.locationId),
+    uniqueIndex('products_name_location_idx')
+      .on(t.name, t.locationId)
+      .where(isNull(t.deletedAt)),
     // Standalone indexes for reverse lookups
     index('products_location_idx').on(t.locationId),
     index('products_category_idx').on(t.categoryId),

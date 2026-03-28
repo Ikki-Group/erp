@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, ilike, inArray, not, or } from 'drizzle-orm'
+import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -114,7 +114,7 @@ export class ProductService {
       map.set(id, [])
     }
     for (const v of variants) {
-      map.get(v.productId!)!.push(Object.assign({}, v, { prices: pricesByVariant.get(v.id) ?? [] }))
+      map.get(v.productId)!.push(Object.assign({}, v, { prices: pricesByVariant.get(v.id) ?? [] }))
     }
 
     return map
@@ -138,7 +138,7 @@ export class ProductService {
       map.set(id, [])
     }
     for (const m of mappings) {
-      map.get(m.productId!)!.push(m)
+      map.get(m.productId)!.push(m)
     }
 
     return map
@@ -150,6 +150,7 @@ export class ProductService {
   private async checkScopedConflict(locationId: string, input: { sku: string; name: string }, excludeId?: string) {
     const conditions = [
       eq(productsTable.locationId, locationId),
+      isNull(productsTable.deletedAt),
       or(eq(productsTable.sku, input.sku), eq(productsTable.name, input.name)),
     ]
 
@@ -189,7 +190,11 @@ export class ProductService {
   async getById(id: string): Promise<ProductDto> {
     return record('ProductService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const [result] = await db.select().from(productsTable).where(eq(productsTable.id, id)).limit(1)
+        const [result] = await db
+          .select()
+          .from(productsTable)
+          .where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
+          .limit(1)
         if (!result) throw err.notFound(id)
 
         const variants = result.hasVariants ? await this.getVariantsWithPrices(id) : []
@@ -207,7 +212,7 @@ export class ProductService {
   async count(): Promise<number> {
     return record('ProductService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(productsTable)
+        const result = await db.select({ val: count() }).from(productsTable).where(isNull(productsTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -218,10 +223,6 @@ export class ProductService {
   async handleList(filter: ProductFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<ProductSelectDto>> {
     return record('ProductService.handleList', async () => {
       const { search, status, categoryId, locationId, isExternal, provider } = filter
-
-      const searchCondition = search
-        ? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
-        : undefined
 
       const externalCondition =
         isExternal !== undefined || provider !== undefined
@@ -238,9 +239,10 @@ export class ProductService {
             )
           : undefined
 
-      // Invert if isExternal = false
+      // Enhanced search: searches both name and SKU
       const where = and(
-        searchCondition,
+        isNull(productsTable.deletedAt),
+        search ? or(searchFilter(productsTable.name, search), searchFilter(productsTable.sku, search)) : undefined,
         status ? eq(productsTable.status, status) : undefined,
         categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
         locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
@@ -458,8 +460,31 @@ export class ProductService {
     })
   }
 
-  async handleRemove(id: string): Promise<{ id: string }> {
+  /**
+   * Marks a product as deleted (Soft Delete).
+   * Used for crucial entities like Products.
+   */
+  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
     return record('ProductService.handleRemove', async () => {
+      const result = await db
+        .update(productsTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(productsTable.id, id))
+        .returning({ id: productsTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a product (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: string): Promise<{ id: string }> {
+    return record('ProductService.handleHardRemove', async () => {
       const result = await db.delete(productsTable).where(eq(productsTable.id, id)).returning({ id: productsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
