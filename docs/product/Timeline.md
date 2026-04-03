@@ -81,7 +81,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | :----: | :-------- | :------------------------------------------------------------------------------------- | :--------: |
 |   ✅   | `MOKA-01` | Implement Moka POS Integration: Sync catalogs, fetch transactions, and trace waste.    | Aggregator |
 |   ✅   | `FIN-02`  | Finance Sink: Double-entry General Ledger automation catching all module transactions. | Aggregator |
-|   ⏳   | `MIG-02`  | Execute comprehensive Data Migration staging test from old schema to new structure.    |  Tooling   |
+|   ⏭️   | `MIG-02`  | Execute comprehensive Data Migration staging test from old schema to new structure.    |  Tooling   |
 
 ### Phase 7: Analytics & QA (Layer 3)
 
@@ -89,7 +89,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 | Status | Task ID   | Description                                                                         | Component |
 | :----: | :-------- | :---------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `DASH-01` | Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.         | Fullstack |
+|   ✅   | `DASH-01` | Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.         | Fullstack |
 |   ⏳   | `QA-01`   | End-to-End integration testing across all layered modules and validation pipelines. |  Tooling  |
 
 ---

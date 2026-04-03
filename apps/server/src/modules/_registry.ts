@@ -47,7 +47,7 @@ export function createModules() {
   // Layer 3 — Aggregators
   const production = new ProductionServiceModule(recipe.recipe, inventory)
   const hr = new HRServiceModule(finance)
-  const dashboard = new DashboardServiceModule(iam, location)
+  const dashboard = new DashboardServiceModule(iam, location, finance, sales)
   const tool = new ToolServiceModule(iam, location, product, material)
 
   return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance, purchasing, production, hr }
