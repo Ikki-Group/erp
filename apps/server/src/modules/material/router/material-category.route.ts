@@ -39,7 +39,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       },
       { body: MaterialCategoryMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.category.handleUpdate(body.id, body, auth.userId)

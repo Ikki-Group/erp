@@ -40,8 +40,8 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | Status | Task ID  | Description                                                                    | Component |
 | :----: | :------- | :----------------------------------------------------------------------------- | :-------: |
 |   ✅   | `IAM-01` | Rebuild IAM Core: User, Role, Auth Engine, and LBAC middleware.                |  Backend  |
-|   🏃   | `MD-02`  | Rebuild Core Catalogs: Product, Category, Material, and UOM Conversion Engine. |  Backend  |
-|   ⏳   | `MD-03`  | Develop Stakeholder Catalogs: Supplier Profiles (SRM) & Employee Master.       |  Backend  |
+|   ✅   | `MD-02`  | Rebuild Core Catalogs: Product, Category, Material, and UOM Conversion Engine. |  Backend  |
+|   🏃   | `MD-03`  | Develop Stakeholder Catalogs: Supplier Profiles (SRM) & Employee Master.       |  Backend  |
 |   ⏳   | `FIN-01` | Define structural Chart of Accounts (CoA) definitions.                         |  Backend  |
 
 ### Phase 3: Procurement & Inventory (Layer 2)

@@ -38,7 +38,7 @@ export function initProductRoute(s: ProductServiceModule) {
       },
       { body: productMutationSchema, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.product.handleUpdate(body.id, body, auth.userId)

@@ -81,7 +81,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
       )
 
       /* ─────── Update per-location config ─────── */
-      .put(
+      .patch(
         '/config',
         async function config({ body, auth }) {
           const result = await s.mLocation.handleUpdateConfig(body, auth.userId)
