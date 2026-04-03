@@ -112,3 +112,4 @@ These modules are planned for future development cycles after the successful dep
 - `🏃` : In Progress
 - `✅` : Completed
 - `🛑` : Blocked
+- `⏭️` : Skipped
