@@ -98,11 +98,11 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 These modules are planned for future development cycles after the successful deployment of Phase 1-7.
 
-| Priority | Module             | Description                                                                            |
-| :------: | :----------------- | :------------------------------------------------------------------------------------- |
-|   Low    | **Asset & Maint.** | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.           |
-|   Low    | **B2B Sales**      | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable). |
-|   Low    | **Enterprise Workflows** | Implementing multi-step approval engines for critical transactions. |
+| Priority | Module                   | Description                                                                            |
+| :------: | :----------------------- | :------------------------------------------------------------------------------------- |
+|   Low    | **Asset & Maint.**       | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.           |
+|   Low    | **B2B Sales**            | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable). |
+|   Low    | **Enterprise Workflows** | Implementing multi-step approval engines for critical transactions.                    |
 
 ---
 
