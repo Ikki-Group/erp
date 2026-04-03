@@ -16,6 +16,8 @@ import { ToolServiceModule } from './tool'
 import { SupplierServiceModule } from './supplier'
 import { EmployeeServiceModule } from './employee'
 
+import { FinanceServiceModule } from './finance'
+
 export function createModules() {
   // Layer 0 — Core
   const location = new LocationServiceModule()
@@ -26,6 +28,7 @@ export function createModules() {
   const material = new MaterialServiceModule(location)
   const supplier = new SupplierServiceModule()
   const employee = new EmployeeServiceModule()
+  const finance = new FinanceServiceModule()
 
   // Layer 1.5 — Auth (Depends on Iam)
   const auth = new AuthServiceModule(iam)
@@ -40,7 +43,7 @@ export function createModules() {
   const tool = new ToolServiceModule(iam, location, product, material)
   const moka = new MokaServiceModule(logger)
 
-  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee }
+  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance }
 }
 
 export type Modules = ReturnType<typeof createModules>

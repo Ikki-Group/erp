@@ -32,6 +32,7 @@ import {
 } from './sales'
 import { suppliersTable } from './supplier'
 import { employeesTable } from './employee'
+import { accountsTable } from './finance'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -67,6 +68,7 @@ export {
 } from './sales'
 export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
+export { accountsTable, accountTypeEnum } from './finance'
 export * from './inventory'
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -110,6 +112,7 @@ export const relations = defineRelations(
     salesExternalRefsTable,
     suppliersTable,
     employeesTable,
+    accountsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
