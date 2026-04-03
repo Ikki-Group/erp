@@ -34,6 +34,8 @@ import { suppliersTable } from './supplier'
 import { employeesTable } from './employee'
 import { accountsTable } from './finance'
 import {
+  goodsReceiptNoteItemsTable,
+  goodsReceiptNotesTable,
   purchaseOrderItemsTable,
   purchaseOrdersTable,
   purchaseRequestItemsTable,
@@ -76,6 +78,9 @@ export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
 export { accountsTable, accountTypeEnum } from './finance'
 export {
+  goodsReceiptNoteItemsTable,
+  goodsReceiptNotesTable,
+  goodsReceiptStatusEnum,
   purchaseOrderItemsTable,
   purchaseOrdersTable,
   purchaseOrderStatusEnum,
@@ -132,6 +137,8 @@ export const relations = defineRelations(
     purchaseRequestItemsTable,
     purchaseOrdersTable,
     purchaseOrderItemsTable,
+    goodsReceiptNoteItemsTable,
+    goodsReceiptNotesTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -333,12 +340,27 @@ export const relations = defineRelations(
       location: r.one.locationsTable({ from: r.purchaseOrdersTable.locationId, to: r.locationsTable.id }),
       supplier: r.one.suppliersTable({ from: r.purchaseOrdersTable.supplierId, to: r.suppliersTable.id }),
       items: r.many.purchaseOrderItemsTable(),
+      receipts: r.many.goodsReceiptNotesTable(),
     },
 
     purchaseOrderItemsTable: {
       order: r.one.purchaseOrdersTable({ from: r.purchaseOrderItemsTable.orderId, to: r.purchaseOrdersTable.id }),
       requestItem: r.one.purchaseRequestItemsTable({ from: r.purchaseOrderItemsTable.requestItemId, to: r.purchaseRequestItemsTable.id }),
       material: r.one.materialsTable({ from: r.purchaseOrderItemsTable.materialId, to: r.materialsTable.id }),
+      receiptItems: r.many.goodsReceiptNoteItemsTable(),
+    },
+
+    goodsReceiptNotesTable: {
+      order: r.one.purchaseOrdersTable({ from: r.goodsReceiptNotesTable.orderId, to: r.purchaseOrdersTable.id }),
+      location: r.one.locationsTable({ from: r.goodsReceiptNotesTable.locationId, to: r.locationsTable.id }),
+      supplier: r.one.suppliersTable({ from: r.goodsReceiptNotesTable.supplierId, to: r.suppliersTable.id }),
+      items: r.many.goodsReceiptNoteItemsTable(),
+    },
+
+    goodsReceiptNoteItemsTable: {
+      grn: r.one.goodsReceiptNotesTable({ from: r.goodsReceiptNoteItemsTable.grnId, to: r.goodsReceiptNotesTable.id }),
+      purchaseOrderItem: r.one.purchaseOrderItemsTable({ from: r.goodsReceiptNoteItemsTable.purchaseOrderItemId, to: r.purchaseOrderItemsTable.id }),
+      material: r.one.materialsTable({ from: r.goodsReceiptNoteItemsTable.materialId, to: r.materialsTable.id }),
     },
   }),
 )

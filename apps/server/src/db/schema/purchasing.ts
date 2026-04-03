@@ -10,6 +10,7 @@ import { suppliersTable } from './supplier'
 
 export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', ['open', 'approved', 'rejected', 'void'])
 export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', ['open', 'closed', 'void'])
+export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
 
 // ─── Purchase Requests ────────────────────────────────────────────────────────
 
@@ -127,5 +128,67 @@ export const purchaseOrderItemsTable = pgTable(
   (t) => [
     index('purchase_order_items_order_idx').on(t.orderId),
     index('purchase_order_items_material_idx').on(t.materialId),
+  ],
+)
+// ─── Goods Receipt Notes ──────────────────────────────────────────────────────
+
+export const goodsReceiptNotesTable = pgTable(
+  'goods_receipt_notes',
+  {
+    ...pk,
+    orderId: integer()
+      .notNull()
+      .references(() => purchaseOrdersTable.id, { onDelete: 'restrict' }),
+    locationId: integer()
+      .notNull()
+      .references(() => locationsTable.id, { onDelete: 'restrict' }),
+    supplierId: integer()
+      .notNull()
+      .references(() => suppliersTable.id, { onDelete: 'restrict' }),
+    
+    receiveDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+    status: goodsReceiptStatusEnum().notNull().default('open'),
+    
+    // External reference (e.g., supplier's delivery note number)
+    referenceNumber: text(),
+    notes: text(),
+    
+    ...auditColumns,
+  },
+  (t) => [
+    index('goods_receipt_notes_order_idx').on(t.orderId),
+    index('goods_receipt_notes_location_idx').on(t.locationId),
+    index('goods_receipt_notes_supplier_idx').on(t.supplierId),
+    index('goods_receipt_notes_status_idx').on(t.status),
+  ],
+)
+
+// ─── Goods Receipt Note Items ─────────────────────────────────────────────────
+
+export const goodsReceiptNoteItemsTable = pgTable(
+  'goods_receipt_note_items',
+  {
+    ...pk,
+    grnId: integer()
+      .notNull()
+      .references(() => goodsReceiptNotesTable.id, { onDelete: 'cascade' }),
+    purchaseOrderItemId: integer()
+      .notNull()
+      .references(() => purchaseOrderItemsTable.id, { onDelete: 'restrict' }),
+    
+    materialId: integer()
+      .references(() => materialsTable.id, { onDelete: 'set null' }),
+    
+    itemName: text().notNull(),
+    quantityReceived: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    
+    notes: text(),
+    
+    ...auditColumns,
+  },
+  (t) => [
+    index('goods_receipt_note_items_grn_idx').on(t.grnId),
+    index('goods_receipt_note_items_po_item_idx').on(t.purchaseOrderItemId),
+    index('goods_receipt_note_items_material_idx').on(t.materialId),
   ],
 )
