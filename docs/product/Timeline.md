@@ -71,7 +71,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | Status | Task ID | Description                                                                        | Component |
 | :----: | :------ | :--------------------------------------------------------------------------------- | :-------: |
 |   ✅   | `HR-01` | Time & Attendance: Shift scheduling and digital Clock-In/Out mechanics.            |  Backend  |
-|   ⏳   | `HR-02` | Payroll Engine: Batch generation, manual adjustments, Service Charge distribution. |  Backend  |
+|   ✅   | `HR-02` | Payroll Engine: Batch generation, manual adjustments, Service Charge distribution. |  Backend  |
 
 ### Phase 6: Core Aggregation & Financials (Layer 3)
 
