@@ -7,13 +7,25 @@
   "tabWidth": 2,
   "sortPackageJson": true,
   "objectWrap": "collapse",
-  "sortImports": {
-    "groups": [
-      ["^react$", "^elysia$"],
-      ["^@/"],
-      ["^\\.\\./"],
-      ["^\\./"]
-    ]
-  },
-  "ignorePatterns": ["**/*.lock", ".agents/**"]
+  // "sortImports": {
+  //   "groups": [
+  //     [
+  //       "^react$",
+  //       "^elysia$"
+  //     ],
+  //     [
+  //       "^@/"
+  //     ],
+  //     [
+  //       "^\\.\\./"
+  //     ],
+  //     [
+  //       "^\\./"
+  //     ]
+  //   ]
+  // },
+  "ignorePatterns": [
+    "**/*.lock",
+    ".agents/**"
+  ],
 }

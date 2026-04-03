@@ -1,43 +1,52 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zBool, zId, zMetadataDto } from '@/core/validation'
-import { LocationDto } from '@/modules/location'
+import { zBool, zId, zMetadataDto, zPaginationDto } from '@/core/validation'
 
-import { RoleDto } from './role.dto'
-
-/* ---------------------------------- BASE ---------------------------------- */
-
-export const UserAssignmentBaseDto = z.object({
-  locationId: zId,
+/**
+ * Common User Assignment attributes.
+ */
+export const UserAssignmentBase = z.object({
+  userId: zId,
   roleId: zId,
+  locationId: zId,
   isDefault: zBool,
 })
+export type UserAssignmentBase = z.infer<typeof UserAssignmentBase>
 
-export type UserAssignmentBaseDto = z.infer<typeof UserAssignmentBaseDto>
-
-/* --------------------------------- ENTITY --------------------------------- */
-
-export const UserAssignmentDto = z.object({
-  id: zId,
-  userId: zId,
-  ...UserAssignmentBaseDto.shape,
+/**
+ * User Assignment database record.
+ */
+export const UserAssignment = z.object({
+  ...zId.shape,
+  ...UserAssignmentBase.shape,
   ...zMetadataDto.shape,
 })
+export type UserAssignment = z.infer<typeof UserAssignment>
 
-export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
-
-/* --------------------------------- OUTPUT --------------------------------- */
-
-export const UserAssignmentDetailDto = z.object({
-  isDefault: zBool,
-  location: LocationDto,
-  role: RoleDto,
+/**
+ * Detailed User Assignment (including role/location names/codes).
+ */
+export const UserAssignmentDetail = UserAssignment.extend({
+  roleName: z.string(),
+  roleCode: z.string(),
+  locationName: z.string(),
+  locationCode: z.string(),
 })
+export type UserAssignmentDetail = z.infer<typeof UserAssignmentDetail>
 
-export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+/**
+ * Input for upserting a User Assignment.
+ */
+export const UserAssignmentUpsert = UserAssignmentBase
+export type UserAssignmentUpsert = z.infer<typeof UserAssignmentUpsert>
 
-/* --------------------------------- UPSERT --------------------------------- */
-
-export const UserAssignmentUpsertDto = UserAssignmentBaseDto
-
-export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
+/**
+ * Filter criteria for listing User Assignments.
+ */
+export const UserAssignmentFilter = z.object({
+  ...zPaginationDto.shape,
+  userId: zId.optional(),
+  roleId: zId.optional(),
+  locationId: zId.optional(),
+})
+export type UserAssignmentFilter = z.infer<typeof UserAssignmentFilter>

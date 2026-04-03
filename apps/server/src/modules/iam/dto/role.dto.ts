@@ -1,43 +1,49 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zBool, zId, zMetadataDto, zPaginationDto, zStr, zStrNullable } from '@/core/validation'
 
-/* ---------------------------------- BASE ---------------------------------- */
-
-export const RoleBaseDto = z.object({
+/**
+ * Common Role attributes.
+ */
+export const RoleBase = z.object({
   code: zStr,
   name: zStr,
   description: zStrNullable,
   permissions: z.string().array(),
   isSystem: zBool,
 })
+export type RoleBase = z.infer<typeof RoleBase>
 
-export type RoleBaseDto = z.infer<typeof RoleBaseDto>
-
-/* --------------------------------- ENTITY --------------------------------- */
-
-export const RoleDto = z.object({
-  id: zId,
-  ...RoleBaseDto.shape,
+/**
+ * Role database record.
+ */
+export const Role = z.object({
+  ...zId.shape,
+  ...RoleBase.shape,
   ...zMetadataDto.shape,
 })
+export type Role = z.infer<typeof Role>
 
-export type RoleDto = z.infer<typeof RoleDto>
+/**
+ * Input for creating a new Role.
+ */
+export const RoleCreate = RoleBase
+export type RoleCreate = z.infer<typeof RoleCreate>
 
-/* --------------------------------- FILTER --------------------------------- */
+/**
+ * Input for updating an existing Role (Full Update).
+ */
+export const RoleUpdate = z.object({
+  ...zId.shape,
+  ...RoleBase.shape,
+})
+export type RoleUpdate = z.infer<typeof RoleUpdate>
 
-export const RoleFilterDto = z.object({ search: zQuerySearch })
-
-export type RoleFilterDto = z.infer<typeof RoleFilterDto>
-
-/* --------------------------------- CREATE --------------------------------- */
-
-export const RoleCreateDto = RoleBaseDto
-
-export type RoleCreateDto = z.infer<typeof RoleCreateDto>
-
-/* --------------------------------- UPDATE --------------------------------- */
-
-export const RoleUpdateDto = RoleBaseDto
-
-export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+/**
+ * Filter criteria for listing Roles.
+ */
+export const RoleFilter = z.object({
+  ...zPaginationDto.shape,
+  q: z.string().optional(),
+})
+export type RoleFilter = z.infer<typeof RoleFilter>

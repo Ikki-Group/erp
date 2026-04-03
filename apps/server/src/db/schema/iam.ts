@@ -1,5 +1,5 @@
 import { isNull, sql } from 'drizzle-orm'
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { metadata, pk } from './_helpers'
 import { locationsTable } from './location'
@@ -53,13 +53,13 @@ export const userAssignmentsTable = pgTable(
   'user_assignments',
   {
     ...pk,
-    userId: uuid()
+    userId: integer()
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    roleId: uuid()
+    roleId: integer()
       .notNull()
       .references(() => rolesTable.id, { onDelete: 'restrict' }),
-    locationId: uuid()
+    locationId: integer()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
     isDefault: boolean().notNull().default(false),
@@ -81,7 +81,7 @@ export const sessionsTable = pgTable(
   'sessions',
   {
     ...pk,
-    userId: uuid()
+    userId: integer()
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     createdAt: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),

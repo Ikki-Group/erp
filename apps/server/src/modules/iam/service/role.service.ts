@@ -1,226 +1,187 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import {
-  checkConflict,
-  paginate,
-  searchFilter,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-  type ConflictField,
-} from '@/core/database'
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import * as core from '@/core/database'
 import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
-import type { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto'
+import * as dto from '../dto/role.dto'
 
-/* -------------------------------- CONSTANTS -------------------------------- */
-
-const err = {
-  notFound: (id: string) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
-  systemRole: () => new BadRequestError('Cannot mutate a system role', 'ROLE_IS_SYSTEM'),
-}
-
-const uniqueFields: ConflictField<'code' | 'name'>[] = [
+const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
   { field: 'code', column: rolesTable.code, message: 'Role code already exists', code: 'ROLE_CODE_ALREADY_EXISTS' },
   { field: 'name', column: rolesTable.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
 ]
 
-const cacheKey = { count: 'role.count', list: 'role.list', byId: (id: string) => `role.byId.${id}` }
+const cacheKey = {
+  count: 'iam.role.count',
+  list: 'iam.role.list',
+  byId: (id: number) => `iam.role.byId.${id}`,
+}
 
-/* ----------------------------- IMPLEMENTATION ----------------------------- */
-
+// Role Service (Layer 0)
+// Handles authorization role definitions and permission sets.
 export class RoleService {
-  /**
-   * Seed roles.
-   */
-  async seed(data: Pick<RoleDto, 'code' | 'name' | 'createdBy' | 'description'>[]): Promise<void> {
-    return record('RoleService.seed', async () => {
+  // Seed initial roles.
+  async seed(data: (dto.RoleCreate & { createdBy: number })[]): Promise<void> {
+    await record('RoleService.seed', async () => {
       for (const d of data) {
-        const metadata = stampCreate(d.createdBy)
+        const metadata = core.stampCreate(d.createdBy)
         await db
           .insert(rolesTable)
-          .values({ ...d, permissions: [], isSystem: true, ...metadata })
+          .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: rolesTable.code,
-            set: { name: d.name, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
+            set: {
+              name: d.name,
+              description: d.description,
+              permissions: d.permissions,
+              updatedAt: metadata.updatedAt,
+              updatedBy: metadata.updatedBy,
+              deletedAt: null,
+            },
           })
       }
       await this.clearCache()
     })
   }
 
-  /**
-   * Returns all roles, cached.
-   * Excludes soft-deleted records.
-   */
-  async find(): Promise<RoleDto[]> {
-    return record('RoleService.find', async () => {
-      return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(rolesTable).where(isNull(rolesTable.deletedAt)).orderBy(rolesTable.name)
+  // Returns active roles.
+  async find(): Promise<dto.Role[]> {
+    const result = await record('RoleService.find', async () => {
+      const data = await cache.wrap(cacheKey.list, async () => {
+        const rows = await db.select().from(rolesTable).where(isNull(rolesTable.deletedAt)).orderBy(rolesTable.name)
+        return rows.map((r) => dto.Role.parse(r))
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Finds a single role by ID. Throws if not found or soft-deleted.
-   */
-  async getById(id: string): Promise<RoleDto> {
-    return record('RoleService.getById', async () => {
-      return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db
-          .select()
-          .from(rolesTable)
-          .where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
-        return takeFirstOrThrow(result, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
+  // Finds a role by ID.
+  async getById(id: number): Promise<dto.Role> {
+    const result = await record('RoleService.getById', async () => {
+      const data = await cache.wrap(cacheKey.byId(id), async () => {
+        const rows = await db.select().from(rolesTable).where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
+        const first = core.takeFirstOrThrow(rows, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
+        return dto.Role.parse(first)
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Returns total count of roles, cached.
-   */
+  // Returns total count.
   async count(): Promise<number> {
-    return record('RoleService.count', async () => {
-      return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(rolesTable).where(isNull(rolesTable.deletedAt))
-        return result[0]?.val ?? 0
+    const result = await record('RoleService.count', async () => {
+      const data = await cache.wrap(cacheKey.count, async () => {
+        const rows = await db.select({ val: count() }).from(rolesTable).where(isNull(rolesTable.deletedAt))
+        return rows[0]?.val ?? 0
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Fetches paginated list of roles.
-   */
-  async handleList(filter: RoleFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
-    return record('RoleService.handleList', async () => {
-      const { search } = filter
-      const where = and(isNull(rolesTable.deletedAt), searchFilter(rolesTable.name, search))
+  // Paginated list.
+  async handleList(filter: dto.RoleFilter): Promise<core.WithPaginationResult<dto.Role>> {
+    const result = await record('RoleService.handleList', async () => {
+      const { q, page, limit } = filter
+      const where = and(
+        isNull(rolesTable.deletedAt),
+        q === undefined ? undefined : or(core.searchFilter(rolesTable.name, q), core.searchFilter(rolesTable.code, q)),
+      )
 
-      return paginate<RoleDto>({
-        data: ({ limit, offset }) =>
-          db
-            .select()
-            .from(rolesTable)
-            .where(where)
-            .orderBy(sortBy(rolesTable.updatedAt, 'desc'))
-            .limit(limit)
-            .offset(offset),
-        pq,
+      const p = await core.paginate<dto.Role>({
+        data: async ({ limit: l, offset }) => {
+          const rows = await db.select().from(rolesTable).where(where).orderBy(core.sortBy(rolesTable.updatedAt, 'desc')).limit(l).offset(offset)
+          return rows.map((r) => dto.Role.parse(r))
+        },
+        pq: { page, limit },
         countQuery: db.select({ count: count() }).from(rolesTable).where(where),
       })
+      return p
     })
+    return result
   }
 
-  /**
-   * Creates a new role. Invalidates cache.
-   */
-  async handleCreate(data: RoleCreateDto, actorId: string): Promise<{ id: string }> {
-    return record('RoleService.handleCreate', async () => {
-      const code = data.code.toUpperCase().trim()
-      const name = data.name.trim()
-
-      await checkConflict({ table: rolesTable, pkColumn: rolesTable.id, fields: uniqueFields, input: { code, name } })
-
-      const [inserted] = await db
-        .insert(rolesTable)
-        .values({ ...data, code, name, ...stampCreate(actorId) })
-        .returning({ id: rolesTable.id })
-
-      if (!inserted) throw new Error('Failed to create role')
-
-      await this.clearCache()
-      return inserted
-    })
+  // Resource detail.
+  async handleDetail(id: number): Promise<dto.Role> {
+    return this.getById(id)
   }
 
-  /**
-   * Updates existing role. Invalidates cache.
-   */
-  async handleUpdate(id: string, data: RoleUpdateDto, actorId: string): Promise<{ id: string }> {
-    return record('RoleService.handleUpdate', async () => {
-      const existing = await this.getById(id)
-
-      if (existing.isSystem) throw err.systemRole()
-
-      const code = data.code ? data.code.toUpperCase().trim() : existing.code
-      const name = data.name ? data.name.trim() : existing.name
-
-      await checkConflict({
+  // Creation.
+  async handleCreate(data: dto.RoleCreate, actorId: number): Promise<{ id: number }> {
+    const result = await record('RoleService.handleCreate', async () => {
+      await core.checkConflict({
         table: rolesTable,
         pkColumn: rolesTable.id,
         fields: uniqueFields,
-        input: { code, name },
+        input: data as unknown as Record<string, unknown>,
+      })
+      const [inserted] = await db
+        .insert(rolesTable)
+        .values({ ...data, ...core.stampCreate(actorId) })
+        .returning({ id: rolesTable.id })
+      if (!inserted) throw new Error('Create failed')
+      await this.clearCache()
+      return inserted
+    })
+    return result
+  }
+
+  // Update.
+  async handleUpdate(id: number, data: dto.RoleBase, actorId: number): Promise<{ id: number }> {
+    const result = await record('RoleService.handleUpdate', async () => {
+      const existing = await this.getById(id)
+      if (existing.isSystem) throw new Error('Cannot update system role')
+      await core.checkConflict({
+        table: rolesTable,
+        pkColumn: rolesTable.id,
+        fields: uniqueFields,
+        input: { ...data, id } as unknown as Record<string, unknown>,
         existing,
       })
-
       await db
         .update(rolesTable)
-        .set({ ...data, code, name, ...stampUpdate(actorId) })
+        .set({ ...data, ...core.stampUpdate(actorId) })
         .where(eq(rolesTable.id, id))
-
       await this.clearCache(id)
       return { id }
     })
+    return result
   }
 
-  /**
-   * Serves role detail.
-   */
-  async handleDetail(id: string): Promise<RoleDto> {
-    return record('RoleService.handleDetail', async () => {
-      return this.getById(id)
-    })
-  }
-
-  /**
-   * Marks a role as deleted (Soft Delete).
-   * Used for crucial entities like Roles.
-   */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  // Removal.
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('RoleService.handleRemove', async () => {
       const existing = await this.getById(id)
-      if (existing.isSystem) throw err.systemRole()
-
-      const result = await db
+      if (existing.isSystem) throw new Error('Cannot remove system role')
+      const [result] = await db
         .update(rolesTable)
         .set({ deletedAt: new Date(), deletedBy: actorId })
         .where(eq(rolesTable.id, id))
         .returning({ id: rolesTable.id })
-
-      if (result.length === 0) throw err.notFound(id)
-
+      if (!result) throw new Error('Role not found')
       await this.clearCache(id)
-      return { id }
+      return result
     })
   }
 
-  /**
-   * Permanently deletes a role (Hard Delete).
-   * USE WITH CAUTION.
-   */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  // Hard Removal.
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('RoleService.handleHardRemove', async () => {
       const existing = await this.getById(id)
-      if (existing.isSystem) throw err.systemRole()
-
-      const result = await db.delete(rolesTable).where(eq(rolesTable.id, id)).returning({ id: rolesTable.id })
-      if (result.length === 0) throw err.notFound(id)
-
+      if (existing.isSystem) throw new Error('Cannot remove system role')
+      const [result] = await db.delete(rolesTable).where(eq(rolesTable.id, id)).returning({ id: rolesTable.id })
+      if (!result) throw new Error('Role not found')
       await this.clearCache(id)
-      return { id }
+      return result
     })
   }
 
-  /**
-   * Clears relevant role caches.
-   */
-  private async clearCache(id?: string) {
+  // Clear relevant caches.
+  private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

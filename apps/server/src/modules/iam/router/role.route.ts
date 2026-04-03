@@ -1,70 +1,81 @@
 import Elysia from 'elysia'
-import z from 'zod'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
-import { RoleCreateDto, RoleDto, RoleUpdateDto, RoleFilterDto } from '../dto'
-import type { IamServiceModule } from '../service'
+import * as dto from '../dto/role.dto'
+import type { RoleService } from '../service/role.service'
 
-export function initRoleRoute(s: IamServiceModule) {
-  return new Elysia({ prefix: '/role' })
+class RoleHandler {
+  constructor(private service: RoleService) {}
+
+  async list({ query }: { query: dto.RoleFilter }) {
+    const result = await this.service.handleList(query)
+    return res.paginated(result)
+  }
+
+  async detail({ query }: { query: z.infer<typeof zRecordIdDto> }) {
+    const result = await this.service.handleDetail(query.id)
+    return res.ok(result)
+  }
+
+  async create({ body, auth }: { body: dto.RoleCreate; auth: { userId: number } }) {
+    const result = await this.service.handleCreate(body, auth.userId)
+    return res.ok(result)
+  }
+
+  async update({ body, auth }: { body: dto.RoleUpdate; auth: { userId: number } }) {
+    const { id, ...data } = body
+    const result = await this.service.handleUpdate(id, data, auth.userId)
+    return res.ok(result)
+  }
+
+  async remove({ body, auth }: { body: z.infer<typeof zRecordIdDto>; auth: { userId: number } }) {
+    const result = await this.service.handleRemove(body.id, auth.userId)
+    return res.ok(result)
+  }
+
+  async hardRemove({ body }: { body: z.infer<typeof zRecordIdDto> }) {
+    const result = await this.service.handleHardRemove(body.id)
+    return res.ok(result)
+  }
+}
+
+export function initRoleRoute(service: RoleService) {
+  const h = new RoleHandler(service)
+
+  return new Elysia({ name: 'iam.role' })
     .use(authPluginMacro)
-    .get(
-      '/list',
-      async function list({ query }) {
-        const result = await s.role.handleList(query, query)
-        return res.paginated(result)
-      },
-      {
-        query: z.object({ ...RoleFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(RoleDto.array()),
-        auth: true,
-      },
-    )
-    .get(
-      '/detail',
-      async function detail({ query }) {
-        const role = await s.role.handleDetail(query.id)
-        return res.ok(role)
-      },
-      { query: zRecordIdDto, response: createSuccessResponseSchema(RoleDto), auth: true },
-    )
-    .post(
-      '/create',
-      async function create({ body, auth }) {
-        const result = await s.role.handleCreate(body, auth.userId)
-        return res.created(result, 'ROLE_CREATED')
-      },
-      { body: RoleCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
-    .put(
-      '/update',
-      async function update({ body, auth }) {
-        const result = await s.role.handleUpdate(body.id, body, auth.userId)
-        return res.ok(result, 'ROLE_UPDATED')
-      },
-      {
-        body: z.object({ id: zId, ...RoleUpdateDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
-    )
-    .delete(
-      '/remove',
-      async function remove({ body, auth }) {
-        const result = await s.role.handleRemove(body.id, auth.userId)
-        return res.ok(result, 'ROLE_DELETED')
-      },
-      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
-    .delete(
-      '/hard-remove',
-      async function hardRemove({ body }) {
-        const result = await s.role.handleHardRemove(body.id)
-        return res.ok(result, 'ROLE_HARD_DELETED')
-      },
-      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
+    .get('/list', h.list.bind(h), {
+      query: dto.RoleFilter,
+      response: createPaginatedResponseSchema(dto.Role),
+      auth: true,
+    })
+    .get('/detail', h.detail.bind(h), {
+      query: zRecordIdDto,
+      response: createSuccessResponseSchema(dto.Role),
+      auth: true,
+    })
+    .post('/create', h.create.bind(h), {
+      body: dto.RoleCreate,
+      response: createSuccessResponseSchema(zRecordIdDto),
+      auth: true,
+    })
+    .patch('/update', h.update.bind(h), {
+      body: dto.RoleUpdate,
+      response: createSuccessResponseSchema(zRecordIdDto),
+      auth: true,
+    })
+    .delete('/remove', h.remove.bind(h), {
+      body: zRecordIdDto,
+      response: createSuccessResponseSchema(zRecordIdDto),
+      auth: true,
+    })
+    .delete('/hard-remove', h.hardRemove.bind(h), {
+      body: zRecordIdDto,
+      response: createSuccessResponseSchema(zRecordIdDto),
+      auth: true,
+    })
 }

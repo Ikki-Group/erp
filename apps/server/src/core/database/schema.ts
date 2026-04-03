@@ -1,16 +1,14 @@
-import { timestamp, uuid } from 'drizzle-orm/pg-core'
+import { integer, serial, timestamp } from 'drizzle-orm/pg-core'
 
 import { stampCreate, stampUpdate } from './metadata'
 
 /**
- * Standard Primary Key column using UUID v4.
+ * Standard Primary Key column using Serial Integer.
  *
- * All domain tables MUST use this as their primary key for scalability
- * and to prevent ID enumeration attacks common in ERP systems.
+ * All domain tables use this for storage efficiency by default.
+ * UUIDs are reserved for extremely high-growth data only.
  */
-export const pk = {
-  id: uuid('id').primaryKey().defaultRandom(),
-} as const
+export const pk = { id: serial('id').primaryKey() } as const
 
 /**
  * Audit and Soft-Delete metadata columns.
@@ -28,9 +26,9 @@ export const auditColumns = {
   updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp('deleted_at', { mode: 'date', withTimezone: true }),
 
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull(),
-  deletedBy: uuid('deleted_by'),
+  createdBy: integer('created_by').notNull(),
+  updatedBy: integer('updated_by').notNull(),
+  deletedBy: integer('deleted_by'),
 
   syncAt: timestamp('sync_at', { mode: 'date', withTimezone: true }),
 } as const
@@ -38,7 +36,4 @@ export const auditColumns = {
 /**
  * Reusable stamping utility for Drizzle `insert` and `update` operations.
  */
-export const stamps = {
-  create: stampCreate,
-  update: stampUpdate,
-}
+export const stamps = { create: stampCreate, update: stampUpdate }

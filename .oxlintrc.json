@@ -3,7 +3,6 @@
   "env": {
     "builtin": true
   },
-
   "plugins": [
     "typescript",
     "unicorn",
@@ -30,7 +29,11 @@
     "import/no-named-as-default": "off",
     "no-shadow": "off",
     "typescript/no-unnecessary-template-expression": "off",
-    "@typescript-eslint/no-unsafe-type-assertion": "error"
+    "typescript/strict-boolean-expressions": "off",
+    "@typescript-eslint/no-unsafe-type-assertion": "error",
+    "jsdoc/require-returns": "off",
+    "jsdoc/require-param": "off",
+    "require-await": "off",
   },
   "overrides": [
     {

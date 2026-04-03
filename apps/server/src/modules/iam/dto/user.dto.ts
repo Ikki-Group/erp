@@ -1,12 +1,13 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStr, zStrNullable, zBool, zId, zEmail, zPassword, zUsername, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/core/validation'
+import { zBool, zEmail, zId, zMetadataDto, zPaginationDto, zPassword, zStr, zStrNullable, zUsername } from '@/core/validation'
 
-import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
+import { UserAssignmentDetail, UserAssignmentUpsert } from './user-assignment.dto'
 
-/* ---------------------------------- BASE ---------------------------------- */
-
-export const UserBaseDto = z.object({
+/**
+ * Common User attributes.
+ */
+export const UserBase = z.object({
   email: zEmail,
   username: zUsername,
   fullname: zStr,
@@ -14,69 +15,64 @@ export const UserBaseDto = z.object({
   isRoot: zBool,
   isActive: zBool,
 })
+export type UserBase = z.infer<typeof UserBase>
 
-export type UserBaseDto = z.infer<typeof UserBaseDto>
-
-/* --------------------------------- ENTITY --------------------------------- */
-
-export const UserDto = z.object({
-  id: zId,
-  passwordHash: zStr,
-  ...UserBaseDto.shape,
+/**
+ * User database record.
+ */
+export const User = z.object({
+  ...zId.shape,
+  ...UserBase.shape,
   ...zMetadataDto.shape,
+  assignments: z.array(UserAssignmentDetail).optional(),
 })
+export type User = z.infer<typeof User>
 
-export type UserDto = z.infer<typeof UserDto>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const UserFilterDto = z.object({ search: zQuerySearch, isActive: zQueryBoolean })
-
-export type UserFilterDto = z.infer<typeof UserFilterDto>
-
-/* --------------------------------- OUTPUT --------------------------------- */
-
-export const UserOutputDto = z.object({
-  id: zId,
-  assignments: z.array(UserAssignmentDetailDto),
-  ...UserBaseDto.shape,
-  ...zMetadataDto.shape,
-})
-
-export type UserOutputDto = z.infer<typeof UserOutputDto>
-
-/* --------------------------------- CREATE --------------------------------- */
-
-export const UserCreateDto = z.object({
-  ...UserBaseDto.shape,
+/**
+ * Input for creating a new User.
+ */
+export const UserCreate = z.object({
+  ...UserBase.shape,
   password: zPassword,
-  assignments: z.array(UserAssignmentUpsertDto).default([]),
+  assignments: z.array(UserAssignmentUpsert).default([]),
 })
+export type UserCreate = z.infer<typeof UserCreate>
 
-export type UserCreateDto = z.infer<typeof UserCreateDto>
-
-/* --------------------------------- UPDATE --------------------------------- */
-
-export const UserUpdateDto = z.object({
-  ...UserBaseDto.shape,
+/**
+ * Input for updating an existing User (Full Update).
+ */
+export const UserUpdate = z.object({
+  ...zId.shape,
+  ...UserBase.shape,
   password: zPassword.optional(),
-  assignments: z.array(UserAssignmentUpsertDto).optional(),
+  assignments: z.array(UserAssignmentUpsert).optional(),
 })
+export type UserUpdate = z.infer<typeof UserUpdate>
 
-export type UserUpdateDto = z.infer<typeof UserUpdateDto>
+/**
+ * Filter criteria for listing Users.
+ */
+export const UserFilter = z.object({
+  ...zPaginationDto.shape,
+  q: z.string().optional(),
+  isActive: z.boolean().optional(),
+})
+export type UserFilter = z.infer<typeof UserFilter>
 
-/* ------------------------------ SPECIALIZED ------------------------------- */
-
-export const UserChangePasswordDto = z.object({
+/**
+ * Input for user self-password change.
+ */
+export const UserChangePassword = z.object({
   oldPassword: zPassword,
   newPassword: zPassword,
 })
+export type UserChangePassword = z.infer<typeof UserChangePassword>
 
-export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
-
-export const UserAdminUpdatePasswordDto = z.object({
+/**
+ * Input for administrative password reset.
+ */
+export const UserAdminUpdatePassword = z.object({
   id: zId,
   password: zPassword,
 })
-
-export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>
+export type UserAdminUpdatePassword = z.infer<typeof UserAdminUpdatePassword>
