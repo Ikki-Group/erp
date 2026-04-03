@@ -1,9 +1,10 @@
 # Product Requirements Document (PRD): Ikki ERP
 
-> **Version**: 1.1  
-> **Last Updated**: 2026-03-26  
+> **Version**: 1.2  
+> **Last Updated**: 2026-04-03  
 > **Changelog**:
 >
+> - `v1.2` (2026-04-03) — Architectural Reboot: Switched to Serial Integer IDs globally, enforced Dto suffix naming, and transitioned to Functional Router patterns (Golden Path 2.1)
 > - `v1.1` (2026-03-26) — Added Product module separation, Moka POS integration section, architecture diagram, refined module scoping
 > - `v1.0` (Initial) — Original draft with core module definitions
 
@@ -75,7 +76,7 @@ Centralized security and user authorization protocols.
   - Strict, granular permission settings (Create, Read, Update, Delete, Approve) bound to designated user Roles.
   - User-to-location assignment for multi-warehouse access control.
 - **3. Audit Logging (Traceability)**
-  - Mandatory database tracking of `created_by` and `updated_at` properties across all tables. Hard deletions are restricted in favor of Soft-Delete/Void mechanisms to preserve historical data integrity.
+  - Mandatory database tracking of `metadata` properties (`createdBy`, `updatedBy`, `createdAt`, `updatedAt`, `syncAt`) across all tables. Hard deletions are restricted in favor of Soft-Delete/Void mechanisms to preserve historical data integrity.
 
 ### 3.4 Inventory Operations (Layer 2)
 
@@ -169,7 +170,7 @@ High-level management dashboards aggregating cross-module data.
 The system follows a **Monorepo Architecture** orchestrated by Bun Workspaces, enforcing strict domain-layered dependency injection across all modules.
 
 - **Repository Strategy**: Bun Workspaces with `apps/server`, `apps/web`, and `packages/*` workspaces.
-- **Backend Infrastructure**: ElysiaJS paired with Drizzle ORM running on PostgreSQL (Neon Serverless). The application relies heavily on strict Layer 0 to Layer 3 hierarchical domains to guarantee maintainability.
+- **Backend Infrastructure**: ElysiaJS paired with Drizzle ORM running on PostgreSQL (Neon Serverless). The application enforces a **Strict Integer ID** strategy (Serial PKs) for optimal storage and join performance, reserving UUIDs only for high-growth external data. It relies heavily on strict Layer 0 to Layer 3 hierarchical domains to guarantee maintainability.
 - **Frontend Infrastructure**: React 19 over Vite, managing complex client state via Zustand and server state via TanStack Query.
 - **API Standards**: Lightweight HTTP client (Ky) mapped against Zod schemas. OpenAPI/Swagger specifications for API documentation.
 

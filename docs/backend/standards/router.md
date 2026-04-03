@@ -1,6 +1,7 @@
-# Backend Standard: Router Layer (Layer 1)
-
 This document defines the standards for the Router layer within the Ikki ERP backend. It promotes **Functional Route Definitions** for clarity, modularity, and less boilerplate code.
+
+> [!NOTE]
+> **AI Context**: We prefer the destructuring of `{ body, query, auth }` in the handler signature. This allows Elysia's type system to accurately map the Zod schemas from the route options directly to the handler properties without redundant type casting.
 
 ## 1. Route Pattern
 

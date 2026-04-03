@@ -1,6 +1,7 @@
-# Backend Standard: Data Transfer Objects (DTO)
-
 This document defines the standards for Data Transfer Objects (DTO) using **Zod** and **TypeScript** within the Ikki ERP backend.
+
+> [!NOTE]
+> **AI Context**: We strictly avoid Zod's `.extend()` for primary compositions. We favor the **Spread Pattern** (`...BaseDto.shape`) because it provides cleaner TypeScript inference and prevents deep-nested property conflicts during complex merges.
 
 ## 1. Naming Convention (The `Dto` Suffix)
 

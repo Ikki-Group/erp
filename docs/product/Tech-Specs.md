@@ -1,9 +1,10 @@
 # Technical Specifications: Ikki ERP
 
-> **Version**: 1.1  
-> **Last Updated**: 2026-03-26  
+> **Version**: 1.2  
+> **Last Updated**: 2026-04-03  
 > **Changelog**:
 >
+> - `v1.2` (2026-04-03) — Architectural Reboot: Switched to Serial Integer IDs globally, introduced the Functional/Inline Router pattern, and standardized DTO suffixes (Golden Path 2.1)
 > - `v1.1` (2026-03-26) — Corrected workspace docs, removed Eden Treaty reference, fixed naming conventions, added Bun Catalog guidance, updated dependency versions
 > - `v1.0` (Initial) — Original technical specification
 
@@ -131,21 +132,21 @@ To completely eliminate architectural gridlocks (circular dependencies), all int
 
 > **Note**: The `moka` module is an external POS integration engine classified as a Layer 3 Aggregator.
 
-### 3.4 Strict Module Scaffolding
+### 3.4 Strict Module Scaffolding (Golden Path 2.1)
 
-Every designated domain application inside `server/src/modules/` must follow the prescribed hierarchical blueprint:
+Every designated domain application inside `server/src/modules/` must follow the prescribed hierarchical blueprint, prioritizing functional route definitions over class-based handlers:
 
 ```text
 modules/<domain>/
 ├── dto/                    # API contractual layers / Zod schema mapping
-│   ├── index.ts
-│   └── <entity>.dto.ts
-├── router/                 # Dedicated Elysia route handlers (Thin Controllers)
-│   ├── index.ts
-│   └── <entity>.route.ts
-├── service/                # Protected Business Logic & isolated Database executions
-│   ├── index.ts            # ServiceModule (Dependency Injection Class)
-│   └── <entity>.service.ts
+│   ├── index.ts            # Barrel export
+│   └── <entity>.dto.ts     # Zod schemas with 'Dto' suffix
+├── router/                 # Functional Elysia route definitions (Layer 1)
+│   ├── index.ts            # Mounting point
+│   └── <entity>.route.ts   # Inline async handlers
+├── service/                # Protected Business Logic & Database (Layer 0)
+│   ├── index.ts            # Barrel export
+│   └── <entity>.service.ts # Domain logic orchestration
 └── index.ts                # Master Module Barrel Export
 ```
 
@@ -183,13 +184,13 @@ const moka = new MokaServiceModule(logger)
 
 ### 3.7 Data Transfer Objects (DTO) Standardization
 
-Data validity requires robust mapping across the system boundaries. As such, five absolute schemas must exist for every business entity:
+To maintain perfect type safety across all system boundaries, all DTOs must append the **`Dto`** suffix and follow the standard lifecycle:
 
-1. `EntityDto`: Full representation of database tables.
-2. `EntityFilterDto`: Permitted query structures for LIST routes (pagination, limits, fuzzy searching).
-3. `EntityOutputDto`: Sanitized and verified payload format for public clients.
-4. `EntityCreateDto`: Creation mapping template.
-5. `EntityUpdateDto`: Modification mapping template.
+1.  **`BaseDto`**: Core business attributes with zero ID or meta fields.
+2.  **`EntityDto`**: The full database representation (ID + Base + Metadata).
+3.  **`CreateDto`**: Schema for resource creation (usually extending `BaseDto`).
+4.  **`UpdateDto`**: Schema for modification (ID + BaseDto).
+5.  **`FilterDto`**: Query structures for paginated list routes.
 
 ---
 
