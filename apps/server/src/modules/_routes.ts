@@ -1,4 +1,5 @@
 import type { Modules } from './_registry'
+/* eslint-disable eslint-plugin-import/max-dependencies */
 import { initAuthRoute } from './auth'
 import { initDashboardRouteModule } from './dashboard'
 import { initIamRouteModule } from './iam'
@@ -10,6 +11,9 @@ import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
 import { initToolRouteModule } from './tool'
+
+import { initEmployeeRouteModule } from './employee'
+import { initSupplierRouteModule } from './supplier'
 
 export function createRoutes(m: Modules) {
   return [
@@ -24,5 +28,7 @@ export function createRoutes(m: Modules) {
     initToolRouteModule(m.tool),
     initMokaRouteModule(m.moka),
     initSalesRouteModule(m.sales),
+    initEmployeeRouteModule(m.employee),
+    initSupplierRouteModule(m.supplier),
   ]
 }

@@ -1,5 +1,6 @@
 import { logger } from '@/core/logger'
 
+/* eslint-disable eslint-plugin-import/max-dependencies */
 import { AuthServiceModule } from './auth'
 import { DashboardServiceModule } from './dashboard'
 import { IamServiceModule } from './iam'
@@ -12,6 +13,9 @@ import { RecipeServiceModule } from './recipe'
 import { SalesServiceModule } from './sales'
 import { ToolServiceModule } from './tool'
 
+import { SupplierServiceModule } from './supplier'
+import { EmployeeServiceModule } from './employee'
+
 export function createModules() {
   // Layer 0 — Core
   const location = new LocationServiceModule()
@@ -20,6 +24,8 @@ export function createModules() {
   // Layer 1 — Masters
   const iam = new IamServiceModule()
   const material = new MaterialServiceModule(location)
+  const supplier = new SupplierServiceModule()
+  const employee = new EmployeeServiceModule()
 
   // Layer 1.5 — Auth (Depends on Iam)
   const auth = new AuthServiceModule(iam)
@@ -34,7 +40,7 @@ export function createModules() {
   const tool = new ToolServiceModule(iam, location, product, material)
   const moka = new MokaServiceModule(logger)
 
-  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales }
+  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee }
 }
 
 export type Modules = ReturnType<typeof createModules>

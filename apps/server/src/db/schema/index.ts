@@ -1,3 +1,4 @@
+/* eslint-disable eslint-plugin-import/max-dependencies */
 import { defineRelations } from 'drizzle-orm'
 // ─── Imports for Relations ────────────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ import {
   salesOrdersTable,
   salesVoidsTable,
 } from './sales'
+import { suppliersTable } from './supplier'
+import { employeesTable } from './employee'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -62,6 +65,8 @@ export {
   salesOrderStatusEnum,
   salesVoidsTable,
 } from './sales'
+export { suppliersTable } from './supplier'
+export { employeesTable } from './employee'
 export * from './inventory'
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -103,6 +108,8 @@ export const relations = defineRelations(
     salesOrderItemsTable,
     salesVoidsTable,
     salesExternalRefsTable,
+    suppliersTable,
+    employeesTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
