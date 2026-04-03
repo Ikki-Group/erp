@@ -61,8 +61,8 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 | Status | Task ID  | Description                                                                           | Component |
 | :----: | :------- | :------------------------------------------------------------------------------------ | :-------: |
-|   ⏳   | `RCP-01` | Recipe Engine: Nested Bill of Materials (BOM) and automated Costing (HPP) updates.    |  Backend  |
-|   ⏳   | `MFG-01` | Central Kitchen Work Orders, Batch Yield computing, and raw material Shrinkage logic. |  Backend  |
+|   ✅   | `PRO-01` | Simple Recipe/BOM Master & Product costing (Simulated).                             |  Backend  |
+|   ⏳   | `PRO-02` | Work Order (WO) - Manual process stock deduction & finish good stock add.             |  Backend  |
 
 ### Phase 5: HRIS Operations (Layer 2)
 

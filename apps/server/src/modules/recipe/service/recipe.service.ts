@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray, isNull, ne } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -12,9 +12,9 @@ import {
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
-import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
+import { materialLocationsTable, materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
 
-import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
+import type { RecipeCostDto, RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -339,5 +339,55 @@ export class RecipeService {
       cache.del(cacheKey.list),
       id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
     ])
+  }
+
+  /* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */
+
+  /**
+   * Calculates the estimated cost of a product variant based on its recipe.
+   * TotalCost = sum(item.qty * (1 + item.scrapPercentage/100) * material.avgCost)
+   */
+  async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
+    return record('RecipeService.handleCalculateCost', async () => {
+      const recipe = await this.getById(recipeId)
+      const items = recipe.items || []
+
+      let totalCost = 0
+      const detailedItems = []
+
+      for (const item of items) {
+        // Query average cost for this material across all locations
+        // We use COALESCE(AVG(...), 0) to handle materials with no stock/cost history
+        const [valuation] = await db
+          .select({ avgCost: sql<string>`COALESCE(AVG("currentAvgCost"), 0)` })
+          .from(materialLocationsTable)
+          .where(and(eq(materialLocationsTable.materialId, item.materialId), isNull(materialLocationsTable.deletedAt)))
+
+        const avgCost = Number(valuation?.avgCost || 0)
+        const qty = Number(item.qty)
+        const scrap = Number(item.scrapPercentage)
+
+        const scrapFactor = 1 + scrap / 100
+        const itemCost = qty * scrapFactor * avgCost
+
+        totalCost += itemCost
+        detailedItems.push({
+          ...item,
+          unitCost: avgCost,
+          extendedCost: itemCost,
+        })
+      }
+
+      const targetQty = Number(recipe.targetQty)
+      const unitCost = targetQty > 0 ? totalCost / targetQty : totalCost
+
+      return {
+        recipeId,
+        targetQty,
+        totalCost,
+        unitCost,
+        items: detailedItems,
+      }
+    })
   }
 }

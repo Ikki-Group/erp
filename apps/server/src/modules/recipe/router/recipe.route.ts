@@ -67,4 +67,16 @@ export function initRecipeRoute(s: RecipeServiceModule) {
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
+    .get(
+      '/cost',
+      async function calculateCost({ query }) {
+        const result = await s.recipe.handleCalculateCost(query.id)
+        return res.ok(result)
+      },
+      {
+        query: zRecordIdDto,
+        response: createSuccessResponseSchema(z.any()),
+        auth: true,
+      },
+    )
 }
