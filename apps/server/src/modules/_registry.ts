@@ -12,6 +12,7 @@ import { ProductServiceModule } from './product'
 import { RecipeServiceModule } from './recipe'
 import { SalesServiceModule } from './sales'
 import { ToolServiceModule } from './tool'
+import { PurchasingServiceModule } from './purchasing'
 
 import { SupplierServiceModule } from './supplier'
 import { EmployeeServiceModule } from './employee'
@@ -37,13 +38,14 @@ export function createModules() {
   const inventory = new InventoryServiceModule(material)
   const recipe = new RecipeServiceModule()
   const sales = new SalesServiceModule()
+  const purchasing = new PurchasingServiceModule()
 
   // Layer 3 — Aggregators
   const dashboard = new DashboardServiceModule(iam, location)
   const tool = new ToolServiceModule(iam, location, product, material)
   const moka = new MokaServiceModule(logger)
 
-  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance }
+  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance, purchasing }
 }
 
 export type Modules = ReturnType<typeof createModules>

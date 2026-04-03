@@ -33,6 +33,12 @@ import {
 import { suppliersTable } from './supplier'
 import { employeesTable } from './employee'
 import { accountsTable } from './finance'
+import {
+  purchaseOrderItemsTable,
+  purchaseOrdersTable,
+  purchaseRequestItemsTable,
+  purchaseRequestsTable,
+} from './purchasing'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -69,7 +75,16 @@ export {
 export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
 export { accountsTable, accountTypeEnum } from './finance'
+export {
+  purchaseOrderItemsTable,
+  purchaseOrdersTable,
+  purchaseOrderStatusEnum,
+  purchaseRequestItemsTable,
+  purchaseRequestsTable,
+  purchaseRequestStatusEnum,
+} from './purchasing'
 export * from './inventory'
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)
@@ -113,6 +128,10 @@ export const relations = defineRelations(
     suppliersTable,
     employeesTable,
     accountsTable,
+    purchaseRequestsTable,
+    purchaseRequestItemsTable,
+    purchaseOrdersTable,
+    purchaseOrderItemsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -293,6 +312,33 @@ export const relations = defineRelations(
 
     salesExternalRefsTable: {
       order: r.one.salesOrdersTable({ from: r.salesExternalRefsTable.orderId, to: r.salesOrdersTable.id }),
+    },
+
+    // ─── Purchasing ───────────────────────────────────────────────────
+
+    purchaseRequestsTable: {
+      location: r.one.locationsTable({ from: r.purchaseRequestsTable.locationId, to: r.locationsTable.id }),
+      items: r.many.purchaseRequestItemsTable(),
+      purchaseOrders: r.many.purchaseOrdersTable(),
+    },
+
+    purchaseRequestItemsTable: {
+      request: r.one.purchaseRequestsTable({ from: r.purchaseRequestItemsTable.requestId, to: r.purchaseRequestsTable.id }),
+      material: r.one.materialsTable({ from: r.purchaseRequestItemsTable.materialId, to: r.materialsTable.id }),
+      purchaseOrderItems: r.many.purchaseOrderItemsTable(),
+    },
+
+    purchaseOrdersTable: {
+      request: r.one.purchaseRequestsTable({ from: r.purchaseOrdersTable.requestId, to: r.purchaseRequestsTable.id }),
+      location: r.one.locationsTable({ from: r.purchaseOrdersTable.locationId, to: r.locationsTable.id }),
+      supplier: r.one.suppliersTable({ from: r.purchaseOrdersTable.supplierId, to: r.suppliersTable.id }),
+      items: r.many.purchaseOrderItemsTable(),
+    },
+
+    purchaseOrderItemsTable: {
+      order: r.one.purchaseOrdersTable({ from: r.purchaseOrderItemsTable.orderId, to: r.purchaseOrdersTable.id }),
+      requestItem: r.one.purchaseRequestItemsTable({ from: r.purchaseOrderItemsTable.requestItemId, to: r.purchaseRequestItemsTable.id }),
+      material: r.one.materialsTable({ from: r.purchaseOrderItemsTable.materialId, to: r.materialsTable.id }),
     },
   }),
 )

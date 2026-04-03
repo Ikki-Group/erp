@@ -11,6 +11,7 @@ import { initProductRouteModule } from './product'
 import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
 import { initToolRouteModule } from './tool'
+import { initPurchasingRouteModule } from './purchasing'
 
 import { initEmployeeRouteModule } from './employee'
 import { initSupplierRouteModule } from './supplier'
@@ -32,5 +33,6 @@ export function createRoutes(m: Modules) {
     initEmployeeRouteModule(m.employee),
     initSupplierRouteModule(m.supplier),
     initFinanceRouteModule(m.finance),
+    initPurchasingRouteModule(m.purchasing),
   ]
 }
