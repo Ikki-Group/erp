@@ -1,12 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 
 import {
   stampCreate,
   stampUpdate,
   takeFirstOrThrow,
 } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+import { ConflictError } from '@/core/http/errors'
 import { db } from '@/db'
 import {
   employeesTable,
@@ -21,11 +21,19 @@ import type {
   PayrollAdjustmentCreateDto,
   PayrollAdjustmentDto,
 } from '../dto/payroll.dto'
+import type { AccountService, GeneralLedgerService } from '../../finance/service'
+import type { InferSelectModel } from 'drizzle-orm'
+
+type PayrollBatch = InferSelectModel<typeof payrollBatchesTable>
 
 export class PayrollService {
+  constructor(
+    private readonly accountSvc: AccountService,
+    private readonly journalSvc: GeneralLedgerService,
+  ) {}
+
   async handleBatchCreate(data: PayrollBatchCreateDto, actorId: number): Promise<PayrollBatchDto> {
     return record('PayrollService.handleBatchCreate', async () => {
-      // 1. Check if batch for this period already exists and is not cancelled
       const existing = await db
         .select()
         .from(payrollBatchesTable)
@@ -44,7 +52,6 @@ export class PayrollService {
       return db.transaction(async (tx) => {
         const metadata = stampCreate(actorId)
         
-        // 2. Create batch
         const [batch] = await tx
           .insert(payrollBatchesTable)
           .values({
@@ -57,14 +64,14 @@ export class PayrollService {
             ...metadata,
           })
           .returning()
+        
+        if (!batch) throw new Error('Failed to create payroll batch')
 
-        // 3. Get all active employees
         const employees = await tx
           .select()
           .from(employeesTable)
           .where(isNull(employeesTable.deletedAt))
 
-        // 4. Create payroll items for each employee
         let totalAmount = 0
         for (const emp of employees) {
           totalAmount += Number(emp.baseSalary)
@@ -79,14 +86,13 @@ export class PayrollService {
           })
         }
 
-        // 5. Update batch total amount
-        const result = await tx
+        const [finalBatch] = await tx
           .update(payrollBatchesTable)
           .set({ totalAmount: totalAmount.toString() })
           .where(eq(payrollBatchesTable.id, batch.id))
           .returning()
 
-        return result[0] as unknown as PayrollBatchDto
+        return finalBatch as unknown as PayrollBatchDto
       })
     })
   }
@@ -96,7 +102,6 @@ export class PayrollService {
        return db.transaction(async (tx) => {
          const metadata = stampCreate(actorId)
          
-         // 1. Create adjustment
          const [adjustment] = await tx
            .insert(payrollAdjustmentsTable)
            .values({
@@ -108,13 +113,14 @@ export class PayrollService {
            })
            .returning()
          
-         // 2. Update item totals
-         const [item] = await tx
+         if (!adjustment) throw new Error('Failed to create payroll adjustment')
+
+         const itemResult = await tx
            .select()
            .from(payrollItemsTable)
            .where(eq(payrollItemsTable.id, data.payrollItemId))
          
-         if (!item) throw new NotFoundError('Payroll item not found')
+         const item = takeFirstOrThrow(itemResult, 'Payroll item not found', 'PAYROLL_ITEM_NOT_FOUND')
 
          const currentAdjustments = Number(item.adjustmentsAmount)
          const adjustmentAmount = data.type === 'addition' ? Number(data.amount) : -Number(data.amount)
@@ -130,12 +136,13 @@ export class PayrollService {
            })
            .where(eq(payrollItemsTable.id, item.id))
          
-         // 3. Update batch total
-         const [batch] = await tx
+         const batchResult = await tx
            .select()
            .from(payrollBatchesTable)
            .where(eq(payrollBatchesTable.id, item.batchId))
          
+         const batch = takeFirstOrThrow(batchResult, 'Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+
          const newBatchTotal = Number(batch.totalAmount) + adjustmentAmount
          await tx
            .update(payrollBatchesTable)
@@ -148,5 +155,60 @@ export class PayrollService {
          return adjustment as unknown as PayrollAdjustmentDto
        })
     })
+  }
+
+  async handleFinalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
+    return record('PayrollService.handleFinalizeBatch', async () => {
+      return db.transaction(async (tx) => {
+        const batchResult = await tx
+          .select()
+          .from(payrollBatchesTable)
+          .where(eq(payrollBatchesTable.id, batchId))
+        
+        const batch = takeFirstOrThrow(batchResult, 'Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+
+        if (batch.status !== 'draft') {
+          throw new ConflictError('Only draft batches can be finalized')
+        }
+
+        const [finalizedBatch] = await tx
+          .update(payrollBatchesTable)
+          .set({
+            status: 'approved',
+            ...stampUpdate(actorId)
+          })
+          .where(eq(payrollBatchesTable.id, batchId))
+          .returning()
+
+        if (!finalizedBatch) throw new Error('Failed to finalize batch')
+
+        // Automated General Ledger Posting (FIN-02)
+        await this.postPayrollToGL(finalizedBatch as PayrollBatch, actorId)
+
+        return finalizedBatch as unknown as PayrollBatchDto
+      })
+    })
+  }
+
+  private async postPayrollToGL(batch: PayrollBatch, actorId: number) {
+    const expenseAcc = await this.accountSvc.findByCode('5201')
+    const payableAcc = await this.accountSvc.findByCode('2102')
+
+    if (!expenseAcc || !payableAcc) {
+       console.warn('Accounting accounts for payroll not found, skipping GL posting')
+       return
+    }
+
+    await this.journalSvc.postEntry({
+      date: new Date(),
+      reference: `PAYROLL-${batch.periodYear}-${batch.periodMonth}`,
+      sourceType: 'payroll',
+      sourceId: batch.id,
+      note: `Automated posting from Payroll Finalization (Batch: ${batch.name})`,
+      items: [
+        { accountId: expenseAcc.id, debit: batch.totalAmount, credit: '0' },
+        { accountId: payableAcc.id, debit: '0', credit: batch.totalAmount },
+      ]
+    }, actorId)
   }
 }

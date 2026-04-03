@@ -14,7 +14,7 @@ export function initAccountRoute(module: FinanceServiceModule) {
     .get(
       '/list',
       async function list({ query }) {
-        const result = await service.handleList(query, query)
+        const result = await service.handleList(query)
         return res.paginated(result)
       },
       { query: dto.AccountFilterDto, response: createPaginatedResponseSchema(dto.AccountDto), auth: true },
@@ -39,7 +39,7 @@ export function initAccountRoute(module: FinanceServiceModule) {
       '/update',
       async function update({ body, auth }) {
         const { id, ...data } = body
-        const result = await service.handleUpdate(id, data, auth.userId)
+        const result = await service.handleUpdate(id, { id, ...data }, auth.userId)
         return res.ok(result)
       },
       { body: dto.AccountUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },

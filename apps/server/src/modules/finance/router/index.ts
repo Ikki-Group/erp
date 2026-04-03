@@ -1,10 +1,13 @@
 import Elysia from 'elysia'
 import type { FinanceServiceModule } from '../service'
 import { initAccountRoute } from './account.route'
+import { initJournalRoute } from './journal.route'
 
 export function initFinanceRouteModule(service: FinanceServiceModule) {
   const accountRouter = initAccountRoute(service)
-  return new Elysia({ prefix: '/finance' }).use(accountRouter)
-}
+  const journalRouter = initJournalRoute(service.journal)
 
-export * from './account.route'
+  return new Elysia({ prefix: '/finance' })
+    .use(accountRouter)
+    .use(journalRouter)
+}

@@ -5,7 +5,6 @@ import {
   zStr,
   zMetadataDto,
   zRecordIdDto,
-  zQuerySearch,
 } from '@/core/validation'
 import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema/hr'
 

@@ -42,11 +42,11 @@ export function createModules() {
   const sales = new SalesServiceModule()
   const purchasing = new PurchasingServiceModule(inventory)
 
-  const moka = new MokaServiceModule(logger)
+  const moka = new MokaServiceModule(logger, finance)
 
   // Layer 3 — Aggregators
   const production = new ProductionServiceModule(recipe.recipe, inventory)
-  const hr = new HRServiceModule()
+  const hr = new HRServiceModule(finance)
   const dashboard = new DashboardServiceModule(iam, location)
   const tool = new ToolServiceModule(iam, location, product, material)
 

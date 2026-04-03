@@ -39,7 +39,7 @@ import {
 } from './sales'
 import { suppliersTable } from './supplier'
 import { employeesTable } from './employee'
-import { accountsTable } from './finance'
+import { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
 import {
   goodsReceiptNoteItemsTable,
   goodsReceiptNotesTable,
@@ -84,7 +84,7 @@ export {
 } from './sales'
 export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
-export { accountTypeEnum, accountsTable } from './finance'
+export { accountTypeEnum, accountsTable, journalEntriesTable, journalItemsTable } from './finance'
 export {
   attendanceStatusEnum,
   attendancesTable,
@@ -152,6 +152,8 @@ export const relations = defineRelations(
     suppliersTable,
     employeesTable,
     accountsTable,
+    journalEntriesTable,
+    journalItemsTable,
     purchaseRequestsTable,
     purchaseRequestItemsTable,
     purchaseOrdersTable,
@@ -386,6 +388,16 @@ export const relations = defineRelations(
       grn: r.one.goodsReceiptNotesTable({ from: r.goodsReceiptNoteItemsTable.grnId, to: r.goodsReceiptNotesTable.id }),
       purchaseOrderItem: r.one.purchaseOrderItemsTable({ from: r.goodsReceiptNoteItemsTable.purchaseOrderItemId, to: r.purchaseOrderItemsTable.id }),
       material: r.one.materialsTable({ from: r.goodsReceiptNoteItemsTable.materialId, to: r.materialsTable.id }),
+    },
+    accountsTable: {
+      journalItems: r.many.journalItemsTable(),
+    },
+    journalEntriesTable: {
+      items: r.many.journalItemsTable(),
+    },
+    journalItemsTable: {
+      entry: r.one.journalEntriesTable({ from: r.journalItemsTable.journalEntryId, to: r.journalEntriesTable.id }),
+      account: r.one.accountsTable({ from: r.journalItemsTable.accountId, to: r.accountsTable.id }),
     },
     // ─── HR ───────────────────────────────────────────────────────────
     attendancesTable: {

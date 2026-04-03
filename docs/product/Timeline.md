@@ -79,8 +79,8 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 | Status | Task ID   | Description                                                                            | Component  |
 | :----: | :-------- | :------------------------------------------------------------------------------------- | :--------: |
-|   ⏳   | `MOKA-01` | Implement Moka POS Integration: Sync catalogs, fetch transactions, and trace waste.    | Aggregator |
-|   ⏳   | `FIN-02`  | Finance Sink: Double-entry General Ledger automation catching all module transactions. | Aggregator |
+|   ✅   | `MOKA-01` | Implement Moka POS Integration: Sync catalogs, fetch transactions, and trace waste.    | Aggregator |
+|   ✅   | `FIN-02`  | Finance Sink: Double-entry General Ledger automation catching all module transactions. | Aggregator |
 |   ⏳   | `MIG-02`  | Execute comprehensive Data Migration staging test from old schema to new structure.    |  Tooling   |
 
 ### Phase 7: Analytics & QA (Layer 3)
