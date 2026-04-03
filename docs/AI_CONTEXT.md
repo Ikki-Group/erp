@@ -50,5 +50,14 @@ export function initLocationRoute(service: LocationService) {
 
 ---
 
+## 📋 Template Library (AI Knowledge Base)
+
+To ensure zero syntax errors and 100% standard compliance, always refer to the perfect-state templates in `docs/templates/`:
+- **[DTO Template](./templates/module.dto.ts.txt)**: Spread-shape pattern and suffix rules.
+- **[Service Template](./templates/module.service.ts.txt)**: OpenTelemetry, auditing, and conflict logic.
+- **[Router Template](./templates/module.route.ts.txt)**: Functional routes and REST standards.
+
+---
+
 > [!TIP]
 > **To the AI Agent**: Always prioritize consistency with the reference implementations in `src/modules/location/` and `src/modules/iam/`. If a pattern conflicts with a legacy module, prioritize the **Golden Path 2.1** standards described here.

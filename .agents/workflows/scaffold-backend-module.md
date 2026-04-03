@@ -32,7 +32,7 @@ Generate the DTOs inside `dto/${DOMAIN_NAME}.dto.ts` according to the Golden Pat
 - Create the barrel export file `dto/index.ts`.
 
 ## Step 4: Implement Service (`service/`)
-Copy the structure from `docs/templates/module.service.template.ts`.
+Copy the structure from `docs/templates/module.service.ts.txt`.
 Generate the service inside `service/${DOMAIN_NAME}.service.ts`.
 **Rules**:
 - Must implement `handleList`, `handleDetail`, `handleCreate`, `handleUpdate`, `handleRemove`.
@@ -41,7 +41,7 @@ Generate the service inside `service/${DOMAIN_NAME}.service.ts`.
 - Create the barrel export file `service/index.ts`.
 
 ## Step 5: Implement Router (`router/`)
-Copy the structure from `docs/templates/module.route.template.ts`.
+Copy the structure from `docs/templates/module.route.ts.txt`.
 Generate the router inside `router/${DOMAIN_NAME}.route.ts`.
 **Rules**:
 - Must use the Functional Route Pattern.
