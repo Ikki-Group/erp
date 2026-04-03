@@ -18,8 +18,10 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "perf": "warn",
-    "style": "off"
+    "perf": "error",
+    "style": "off",
+    "pedantic": "warn",
+    "nursery": "off"
   },
   "rules": {
     "react/react-in-jsx-scope": "off",
@@ -28,7 +30,7 @@
     "import/no-named-as-default": "off",
     "no-shadow": "off",
     "typescript/no-unnecessary-template-expression": "off",
-    "@typescript-eslint/no-unsafe-type-assertion": "warn"
+    "@typescript-eslint/no-unsafe-type-assertion": "error"
   },
   "overrides": [
     {
