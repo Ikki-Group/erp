@@ -59,10 +59,10 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 **Objective**: Handling recipe hierarchies and kitchen processing.
 
-| Status | Task ID  | Description                                                                           | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------ | :-------: |
-|   ✅   | `PRO-01` | Simple Recipe/BOM Master & Product costing (Simulated).                             |  Backend  |
-|   ⏳   | `PRO-02` | Work Order (WO) - Manual process stock deduction & finish good stock add.             |  Backend  |
+| Status | Task ID  | Description                                                               | Component |
+| :----: | :------- | :------------------------------------------------------------------------ | :-------: |
+|   ✅   | `PRO-01` | Simple Recipe/BOM Master & Product costing (Simulated).                   |  Backend  |
+|   ⏳   | `PRO-02` | Work Order (WO) - Manual process stock deduction & finish good stock add. |  Backend  |
 
 ### Phase 5: HRIS Operations (Layer 2)
 

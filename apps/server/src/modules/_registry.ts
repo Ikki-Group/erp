@@ -18,6 +18,7 @@ import { SupplierServiceModule } from './supplier'
 import { EmployeeServiceModule } from './employee'
 
 import { FinanceServiceModule } from './finance'
+import { ProductionServiceModule } from './production'
 
 export function createModules() {
   // Layer 0 — Core
@@ -40,12 +41,14 @@ export function createModules() {
   const sales = new SalesServiceModule()
   const purchasing = new PurchasingServiceModule(inventory)
 
-  // Layer 3 — Aggregators
-  const dashboard = new DashboardServiceModule(iam, location)
-  const tool = new ToolServiceModule(iam, location, product, material)
   const moka = new MokaServiceModule(logger)
 
-  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance, purchasing }
+  // Layer 3 — Aggregators
+  const production = new ProductionServiceModule(recipe.recipe, inventory)
+  const dashboard = new DashboardServiceModule(iam, location)
+  const tool = new ToolServiceModule(iam, location, product, material)
+
+  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance, purchasing, production }
 }
 
 export type Modules = ReturnType<typeof createModules>

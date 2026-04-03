@@ -145,6 +145,28 @@ export const sellTransactionSchema = z.object({
 
 export type SellTransactionDto = z.infer<typeof sellTransactionSchema>
 
+/** Production In transactions (finished goods) */
+export const productionInTransactionSchema = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: purchaseItemSchema.array().min(1, 'At least one item is required'),
+})
+
+export type ProductionInTransactionDto = z.infer<typeof productionInTransactionSchema>
+
+/** Production Out transactions (material consumption) */
+export const productionOutTransactionSchema = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: usageItemSchema.array().min(1, 'At least one item is required'),
+})
+
+export type ProductionOutTransactionDto = z.infer<typeof productionOutTransactionSchema>
+
 /* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 
 /** Response for batch transaction operations */

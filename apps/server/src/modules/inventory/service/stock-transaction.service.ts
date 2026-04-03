@@ -22,6 +22,8 @@ import type {
   TransactionResultDto,
   TransferTransactionDto,
   UsageTransactionDto,
+  ProductionInTransactionDto,
+  ProductionOutTransactionDto,
 } from '../dto'
 
 const err = {
@@ -380,11 +382,71 @@ export class StockTransactionService {
   }
 
   /**
+   * Record production inputs (finished goods) at a location.
+   * - Recalculates WAC based on provided unitCost (actual production cost).
+   */
+  async handleProductionIn(data: ProductionInTransactionDto, actorId: number): Promise<TransactionResultDto> {
+    return record('StockTransactionService.handleProductionIn', async () => {
+      const { locationId, date, referenceNo, notes, items } = data
+
+      await db.transaction(async (tx) => {
+        const metadata = stampCreate(actorId)
+
+        for (const item of items) {
+          const { materialId, qty, unitCost } = item
+
+          await record(`StockTransactionService.handleProductionIn.item:${materialId}`, async () => {
+            const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+
+            const { newQty, newAvgCost } = this.calculateIncomingWAC(
+              assignment.currentQty,
+              assignment.currentAvgCost,
+              qty,
+              unitCost,
+            )
+
+            await tx.insert(stockTransactionsTable).values({
+              materialId,
+              locationId,
+              type: 'production_in',
+              date,
+              referenceNo,
+              notes: notes ?? null,
+              qty: qty.toString(),
+              unitCost: unitCost.toString(),
+              totalCost: (qty * unitCost).toString(),
+              runningQty: newQty.toString(),
+              runningAvgCost: newAvgCost.toString(),
+              ...metadata,
+            })
+
+            await this.mLocationSvc.updateCurrentStock(
+              materialId,
+              locationId,
+              { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+              actorId,
+            )
+          })
+        }
+      })
+
+      return { count: items.length, referenceNo }
+    })
+  }
+
+  /**
+   * Specialized production out (usage) for Work Orders.
+   */
+  async handleProductionOut(data: ProductionOutTransactionDto, actorId: number): Promise<TransactionResultDto> {
+    return this.handleStockOut('production_out', data, actorId)
+  }
+
+  /**
    * Core logic for generic stock reduction.
    */
   private async handleStockOut(
     type: 'usage' | 'sell' | 'production_out',
-    data: UsageTransactionDto | SellTransactionDto,
+    data: UsageTransactionDto | SellTransactionDto | ProductionOutTransactionDto,
     actorId: number,
   ): Promise<TransactionResultDto> {
     const { locationId, date, referenceNo, notes, items } = data
