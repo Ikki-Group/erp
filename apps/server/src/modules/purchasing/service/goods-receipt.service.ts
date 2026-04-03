@@ -1,15 +1,18 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, or } from 'drizzle-orm'
 
 import * as core from '@/core/database'
 import { db } from '@/db'
-import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
+import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable, purchaseOrderItemsTable } from '@/db/schema'
+import type { StockTransactionService } from '@/modules/inventory/service/stock-transaction.service'
 
 import * as dto from '../dto/goods-receipt.dto'
 
 // Goods Receipt Service (Layer 2)
 // Handles material intake against POs.
 export class GoodsReceiptService {
+  constructor(private readonly inventorySvc: StockTransactionService) {}
+
   async getById(id: number): Promise<dto.GoodsReceiptNoteDto> {
     const result = await record('GoodsReceiptService.getById', async () => {
       const rows = await db
@@ -104,6 +107,32 @@ export class GoodsReceiptService {
 
         if (itemValues.length > 0) {
           await tx.insert(goodsReceiptNoteItemsTable).values(itemValues)
+
+          // ─── INTEGRATION: Trigger Stock In ───
+          // 1. Fetch PO items to get unit prices/costs
+          const poItemIds = items.map(i => i.purchaseOrderItemId).filter(Boolean)
+          const poItems = await tx
+            .select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
+            .from(purchaseOrderItemsTable)
+            .where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
+
+          const poItemMap = new Map(poItems.map(i => [i.id, Number(i.unitPrice)]))
+
+          // 2. Record purchase transaction in inventory engine
+          await this.inventorySvc.handlePurchase({
+            locationId: headerData.locationId,
+            date: headerData.receiveDate,
+            referenceNo: `GRN-${insertedGrn.id}`, 
+            notes: headerData.notes ?? undefined,
+            items: items.map(item => {
+              const unitCost = item.purchaseOrderItemId ? (poItemMap.get(item.purchaseOrderItemId) ?? 0) : 0
+              return {
+                materialId: item.materialId!,
+                qty: Number(item.quantityReceived),
+                unitCost,
+              }
+            })
+          }, actorId)
         }
 
         return insertedGrn

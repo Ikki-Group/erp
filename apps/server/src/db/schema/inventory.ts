@@ -79,6 +79,12 @@ export const stockSummariesTable = pgTable(
     transferOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
     adjustmentQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
     adjustmentValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    usageQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    usageValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    productionInQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    productionInValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    productionOutQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    productionOutValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
     sellQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
     sellValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 

@@ -4,7 +4,7 @@ import { zStrNullable, zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadata
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const transactionTypeSchema = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
+export const transactionTypeSchema = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell', 'usage', 'production_in', 'production_out'])
 export type TransactionType = z.infer<typeof transactionTypeSchema>
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -81,6 +81,12 @@ export const adjustmentItemSchema = z.object({
   unitCost: zNum.nonnegative().optional(),
 })
 
+/** Single item within a stock out (usage/sell) transaction */
+export const usageItemSchema = z.object({
+  materialId: zId,
+  qty: zNum.positive('Quantity must be positive'),
+})
+
 /* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 
 /** Create purchase transactions (multiple materials at one location) */
@@ -116,6 +122,28 @@ export const adjustmentTransactionSchema = z.object({
 })
 
 export type AdjustmentTransactionDto = z.infer<typeof adjustmentTransactionSchema>
+
+/** Create usage transactions (multiple materials at one location) */
+export const usageTransactionSchema = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: usageItemSchema.array().min(1, 'At least one item is required'),
+})
+
+export type UsageTransactionDto = z.infer<typeof usageTransactionSchema>
+
+/** Create sales transactions (multiple materials at one location) */
+export const sellTransactionSchema = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: usageItemSchema.array().min(1, 'At least one item is required'),
+})
+
+export type SellTransactionDto = z.infer<typeof sellTransactionSchema>
 
 /* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 

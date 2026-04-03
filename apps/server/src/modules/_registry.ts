@@ -38,7 +38,7 @@ export function createModules() {
   const inventory = new InventoryServiceModule(material)
   const recipe = new RecipeServiceModule()
   const sales = new SalesServiceModule()
-  const purchasing = new PurchasingServiceModule()
+  const purchasing = new PurchasingServiceModule(inventory)
 
   // Layer 3 — Aggregators
   const dashboard = new DashboardServiceModule(iam, location)

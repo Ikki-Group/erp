@@ -51,9 +51,9 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | Status | Task ID  | Description                                                                         | Component |
 | :----: | :------- | :---------------------------------------------------------------------------------- | :-------: |
 |   ✅   | `PUR-01` | Purchasing Workflow: Purchase Requisition $\rightarrow$ PO (with Price Lock).       |  Backend  |
-|   🏃   | `PUR-02` | Goods Receipt Note (GRN) processing and invoice validation.                         |  Backend  |
-|   ⏳   | `INV-01` | Inventory Movement Engine: Stock In, Out, Internal Transfers.                       |  Backend  |
-|   ⏳   | `INV-02` | Material Ledger automation mapping real-time Weighted Average Cost (WAC) & Opnames. |  Backend  |
+|   ✅   | `PUR-02` | Goods Receipt Note (GRN) processing and invoice validation.                         |  Backend  |
+|   ✅   | `INV-01` | Inventory Movement Engine: Stock In, Out, Internal Transfers.                       |  Backend  |
+|   ✅   | `INV-02` | Material Ledger automation mapping real-time Weighted Average Cost (WAC) & Opnames. |  Backend  |
 
 ### Phase 4: Production & Costing (Layer 2)
 

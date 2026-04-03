@@ -60,6 +60,12 @@ export class StockSummaryService {
               transferOutValue: stockSummariesTable.transferOutValue,
               adjustmentQty: stockSummariesTable.adjustmentQty,
               adjustmentValue: stockSummariesTable.adjustmentValue,
+              usageQty: stockSummariesTable.usageQty,
+              usageValue: stockSummariesTable.usageValue,
+              productionInQty: stockSummariesTable.productionInQty,
+              productionInValue: stockSummariesTable.productionInValue,
+              productionOutQty: stockSummariesTable.productionOutQty,
+              productionOutValue: stockSummariesTable.productionOutValue,
               sellQty: stockSummariesTable.sellQty,
               sellValue: stockSummariesTable.sellValue,
               closingQty: stockSummariesTable.closingQty,
@@ -100,6 +106,12 @@ export class StockSummaryService {
         transferOutValue: Number(r.transferOutValue),
         adjustmentQty: Number(r.adjustmentQty),
         adjustmentValue: Number(r.adjustmentValue),
+        usageQty: Number(r.usageQty),
+        usageValue: Number(r.usageValue),
+        productionInQty: Number(r.productionInQty),
+        productionInValue: Number(r.productionInValue),
+        productionOutQty: Number(r.productionOutQty),
+        productionOutValue: Number(r.productionOutValue),
         sellQty: Number(r.sellQty),
         sellValue: Number(r.sellValue),
         closingQty: Number(r.closingQty),
@@ -186,6 +198,9 @@ export class StockSummaryService {
           transferInQty: sum(stockSummariesTable.transferInQty),
           transferOutQty: sum(stockSummariesTable.transferOutQty),
           adjustmentQty: sum(stockSummariesTable.adjustmentQty),
+          usageQty: sum(stockSummariesTable.usageQty),
+          productionInQty: sum(stockSummariesTable.productionInQty),
+          productionOutQty: sum(stockSummariesTable.productionOutQty),
           sellQty: sum(stockSummariesTable.sellQty),
         })
         .from(stockSummariesTable)
@@ -248,6 +263,9 @@ export class StockSummaryService {
           transferOutQty,
           sellQty,
           adjustmentQty,
+          usageQty: Number(mv?.usageQty || 0),
+          productionInQty: Number(mv?.productionInQty || 0),
+          productionOutQty: Number(mv?.productionOutQty || 0),
           closingQty,
           closingValue,
           closingAvgCost,
@@ -353,6 +371,12 @@ export class StockSummaryService {
             transferOutValue = 0,
             adjustmentQty = 0,
             adjustmentValue = 0,
+            usageQty = 0,
+            usageValue = 0,
+            productionInQty = 0,
+            productionInValue = 0,
+            productionOutQty = 0,
+            productionOutValue = 0,
             sellQty = 0,
             sellValue = 0
 
@@ -380,10 +404,22 @@ export class StockSummaryService {
                 sellQty += qty
                 sellValue += value
                 break
+              case 'usage':
+                usageQty += qty
+                usageValue += value
+                break
+              case 'production_in':
+                productionInQty += qty
+                productionInValue += value
+                break
+              case 'production_out':
+                productionOutQty += qty
+                productionOutValue += value
+                break
             }
           }
 
-          const closingQty = openingQty + purchaseQty + transferInQty - transferOutQty + adjustmentQty - sellQty
+          const closingQty = openingQty + purchaseQty + transferInQty - transferOutQty + adjustmentQty + (productionInQty - productionOutQty) - usageQty - sellQty
           const lastTx = lastTxMap.get(materialId)
           const closingAvgCost = lastTx ? Number(lastTx.runningAvgCost) : openingAvgCost
           const closingValue = closingQty * closingAvgCost
@@ -404,6 +440,12 @@ export class StockSummaryService {
               transferOutValue: transferOutValue.toString(),
               adjustmentQty: adjustmentQty.toString(),
               adjustmentValue: adjustmentValue.toString(),
+              usageQty: usageQty.toString(),
+              usageValue: usageValue.toString(),
+              productionInQty: productionInQty.toString(),
+              productionInValue: productionInValue.toString(),
+              productionOutQty: productionOutQty.toString(),
+              productionOutValue: productionOutValue.toString(),
               sellQty: sellQty.toString(),
               sellValue: sellValue.toString(),
               closingQty: closingQty.toString(),
@@ -433,6 +475,12 @@ export class StockSummaryService {
               transferOutValue: sql`excluded."transferOutValue"`,
               adjustmentQty: sql`excluded."adjustmentQty"`,
               adjustmentValue: sql`excluded."adjustmentValue"`,
+              usageQty: sql`excluded."usageQty"`,
+              usageValue: sql`excluded."usageValue"`,
+              productionInQty: sql`excluded."productionInQty"`,
+              productionInValue: sql`excluded."productionInValue"`,
+              productionOutQty: sql`excluded."productionOutQty"`,
+              productionOutValue: sql`excluded."productionOutValue"`,
               sellQty: sql`excluded."sellQty"`,
               sellValue: sql`excluded."sellValue"`,
               closingQty: sql`excluded."closingQty"`,

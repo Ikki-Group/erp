@@ -14,6 +14,7 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'transfer_out',
   'adjustment',
   'sell',
+  'usage',
   'production_in',
   'production_out',
 ])

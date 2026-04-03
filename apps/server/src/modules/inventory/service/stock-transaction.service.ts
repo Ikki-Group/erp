@@ -14,11 +14,14 @@ import type { MaterialLocationService } from '@/modules/material/service/materia
 import type {
   AdjustmentTransactionDto,
   PurchaseTransactionDto,
+  SellTransactionDto,
+  StockOpnameDto,
   StockTransactionDto,
   StockTransactionFilterDto,
   StockTransactionSelectDto,
   TransactionResultDto,
   TransferTransactionDto,
+  UsageTransactionDto,
 } from '../dto'
 
 const err = {
@@ -277,6 +280,159 @@ export class StockTransactionService {
 
       return { count: items.length, referenceNo }
     })
+  }
+
+  /* ──────────────────── HANDLER: USAGE ──────────────────── */
+
+  /**
+   * Record stock usage (Stock Out) for multiple materials at one location.
+   * Decreases stock using current average cost.
+   */
+  async handleUsage(data: UsageTransactionDto, actorId: number): Promise<TransactionResultDto> {
+    return record('StockTransactionService.handleUsage', async () => {
+      return this.handleStockOut('usage', data, actorId)
+    })
+  }
+
+  /* ──────────────────── HANDLER: SELL ──────────────────── */
+
+  /**
+   * Record stock sales (Stock Out) for multiple materials at one location.
+   * Decreases stock using current average cost.
+   */
+  async handleSell(data: SellTransactionDto, actorId: number): Promise<TransactionResultDto> {
+    return record('StockTransactionService.handleSell', async () => {
+      return this.handleStockOut('sell', data, actorId)
+    })
+  }
+
+  /* ──────────────────── HANDLER: OPNAME ──────────────────── */
+
+  /**
+   * Record Stock Opname (Physical Count Reconciliation).
+   * Calculates difference (physical - current) and performs an adjustment.
+   */
+  async handleOpname(data: StockOpnameDto, actorId: number): Promise<TransactionResultDto> {
+    return record('StockTransactionService.handleOpname', async () => {
+      const { locationId, date, referenceNo, notes, items } = data
+
+      await db.transaction(async (tx) => {
+        const metadata = stampCreate(actorId)
+
+        for (const item of items) {
+          const { materialId, physicalQty } = item
+
+          await record(`StockTransactionService.handleOpname.item:${materialId}`, async () => {
+            const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+
+            const currentQty = assignment.currentQty
+            const diffQty = physicalQty - currentQty
+
+            if (diffQty === 0) return // No adjustment needed
+
+            let newQty: number
+            let newAvgCost: number
+
+            if (diffQty > 0) {
+              const result = this.calculateIncomingWAC(
+                currentQty,
+                assignment.currentAvgCost,
+                diffQty,
+                assignment.currentAvgCost, // Use current avg cost for surplus
+              )
+              newQty = result.newQty
+              newAvgCost = result.newAvgCost
+            } else {
+              newQty = physicalQty
+              newAvgCost = assignment.currentAvgCost
+            }
+
+            const totalCost = Math.abs(diffQty) * assignment.currentAvgCost
+            const newValue = newQty * newAvgCost
+
+            await tx.insert(stockTransactionsTable).values({
+              materialId,
+              locationId,
+              type: 'adjustment',
+              date,
+              referenceNo,
+              notes: `Stock Opname: ${notes ?? ''}`.trim(),
+              qty: diffQty.toString(),
+              unitCost: assignment.currentAvgCost.toString(),
+              totalCost: totalCost.toString(),
+              runningQty: newQty.toString(),
+              runningAvgCost: newAvgCost.toString(),
+              ...metadata,
+            })
+
+            await this.mLocationSvc.updateCurrentStock(
+              materialId,
+              locationId,
+              { currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newValue },
+              actorId,
+            )
+          })
+        }
+      })
+
+      return { count: items.length, referenceNo }
+    })
+  }
+
+  /**
+   * Core logic for generic stock reduction.
+   */
+  private async handleStockOut(
+    type: 'usage' | 'sell' | 'production_out',
+    data: UsageTransactionDto | SellTransactionDto,
+    actorId: number,
+  ): Promise<TransactionResultDto> {
+    const { locationId, date, referenceNo, notes, items } = data
+
+    await db.transaction(async (tx) => {
+      const metadata = stampCreate(actorId)
+
+      for (const item of items) {
+        const { materialId, qty } = item
+
+        await record(`StockTransactionService.handleStockOut.${type}.item:${materialId}`, async () => {
+          const assignment = await this.mLocationSvc.findOne(materialId, locationId)
+
+          if (assignment.currentQty < qty) {
+            throw err.insufficientStock(materialId, assignment.currentQty, qty)
+          }
+
+          const currentAvgCost = assignment.currentAvgCost
+          const newQty = assignment.currentQty - qty
+          const totalCost = qty * currentAvgCost
+          const newValue = newQty * currentAvgCost
+
+          await tx.insert(stockTransactionsTable).values({
+            materialId,
+            locationId,
+            type,
+            date,
+            referenceNo,
+            notes: notes ?? null,
+            qty: qty.toString(),
+            unitCost: currentAvgCost.toString(),
+            totalCost: totalCost.toString(),
+            runningQty: newQty.toString(),
+            runningAvgCost: currentAvgCost.toString(),
+            ...metadata,
+          })
+
+          await this.mLocationSvc.updateCurrentStock(
+            materialId,
+            locationId,
+            { currentQty: newQty, currentAvgCost: currentAvgCost, currentValue: newValue },
+            actorId,
+          )
+        })
+      }
+    })
+
+    return { count: items.length, referenceNo }
   }
 
   /* ──────────────────── HANDLER: LIST ──────────────────── */

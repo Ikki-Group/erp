@@ -24,6 +24,12 @@ export const stockSummarySchema = z.object({
   transferOutValue: zNum,
   adjustmentQty: zNum,
   adjustmentValue: zNum,
+  usageQty: zNum,
+  usageValue: zNum,
+  productionInQty: zNum,
+  productionInValue: zNum,
+  productionOutQty: zNum,
+  productionOutValue: zNum,
   sellQty: zNum,
   sellValue: zNum,
 
@@ -89,6 +95,9 @@ export const stockLedgerSelectSchema = z.object({
   transferOutQty: zNum,
   sellQty: zNum,
   adjustmentQty: zNum,
+  usageQty: zNum,
+  productionInQty: zNum,
+  productionOutQty: zNum,
 
   closingQty: zNum,
   closingValue: zNum,
