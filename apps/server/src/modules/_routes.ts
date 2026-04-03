@@ -17,6 +17,7 @@ import { initEmployeeRouteModule } from './employee'
 import { initSupplierRouteModule } from './supplier'
 import { initFinanceRouteModule } from './finance'
 import { initProductionRouteModule } from './production'
+import { initHRRouteModule } from './hr'
 
 export function createRoutes(m: Modules) {
   return [
@@ -36,5 +37,6 @@ export function createRoutes(m: Modules) {
     initFinanceRouteModule(m.finance),
     initPurchasingRouteModule(m.purchasing),
     initProductionRouteModule(m.production),
+    initHRRouteModule(m.hr),
   ]
 }

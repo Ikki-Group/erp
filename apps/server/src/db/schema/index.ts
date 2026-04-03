@@ -5,6 +5,7 @@ import { defineRelations } from 'drizzle-orm'
 import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 import { stockSummariesTable, stockTransactionsTable } from './inventory'
 import { locationsTable } from './location'
+import { attendancesTable, shiftsTable } from './hr'
 import {
   materialCategoriesTable,
   materialConversionsTable,
@@ -41,6 +42,7 @@ import {
   purchaseRequestItemsTable,
   purchaseRequestsTable,
 } from './purchasing'
+import { workOrdersTable } from './production'
 
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
@@ -76,7 +78,8 @@ export {
 } from './sales'
 export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
-export { accountsTable, accountTypeEnum } from './finance'
+export { accountTypeEnum, accountsTable } from './finance'
+export { attendancesTable, shiftsTable, attendanceStatusEnum } from './hr'
 export {
   goodsReceiptNoteItemsTable,
   goodsReceiptNotesTable,
@@ -88,6 +91,7 @@ export {
   purchaseRequestsTable,
   purchaseRequestStatusEnum,
 } from './purchasing'
+export { workOrdersTable, workOrderStatusEnum } from './production'
 export * from './inventory'
 
 
@@ -139,6 +143,9 @@ export const relations = defineRelations(
     purchaseOrderItemsTable,
     goodsReceiptNoteItemsTable,
     goodsReceiptNotesTable,
+    workOrdersTable,
+    attendancesTable,
+    shiftsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -361,6 +368,20 @@ export const relations = defineRelations(
       grn: r.one.goodsReceiptNotesTable({ from: r.goodsReceiptNoteItemsTable.grnId, to: r.goodsReceiptNotesTable.id }),
       purchaseOrderItem: r.one.purchaseOrderItemsTable({ from: r.goodsReceiptNoteItemsTable.purchaseOrderItemId, to: r.purchaseOrderItemsTable.id }),
       material: r.one.materialsTable({ from: r.goodsReceiptNoteItemsTable.materialId, to: r.materialsTable.id }),
+    },
+    // ─── HR ───────────────────────────────────────────────────────────
+    attendancesTable: {
+      employee: r.one.employeesTable({ from: r.attendancesTable.employeeId, to: r.employeesTable.id }),
+      location: r.one.locationsTable({ from: r.attendancesTable.locationId, to: r.locationsTable.id }),
+      shift: r.one.shiftsTable({ from: r.attendancesTable.shiftId, to: r.shiftsTable.id }),
+    },
+    shiftsTable: {
+      attendances: r.many.attendancesTable(),
+    },
+    // ─── Production ───────────────────────────────────────────────────
+    workOrdersTable: {
+      recipe: r.one.recipesTable({ from: r.workOrdersTable.recipeId, to: r.recipesTable.id }),
+      location: r.one.locationsTable({ from: r.workOrdersTable.locationId, to: r.locationsTable.id }),
     },
   }),
 )
