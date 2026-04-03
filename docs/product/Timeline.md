@@ -29,7 +29,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
 |   ⏳   | `INF-01` | Setup strict Monorepo (Bun), linter config (Oxlint/Oxfmt), `tsconfig` strict checks.   | Tooling   |
 |   ⏳   | `INF-02` | Standardize Drizzle Base Schemas, Zod validation pipelines, and Error Handling.        | Config    |
-|   ⏳   | `MD-01`  | Rebuild Location Management (Outlets/Warehouse) module (Layer 0).                      | Backend   |
+|   ✅   | `MD-01`  | Rebuild Location Management (Outlets/Warehouse) module (Layer 0).                      | Backend   |
 |   ⏳   | `MIG-01` | Establish foundation and mappings for the legacy data migration script.                | Tooling   |
 
 ### Phase 2: Master Data & Security (Layer 1)
@@ -37,7 +37,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 | Status | Task ID  | Description                                                                            | Component |
 | :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `IAM-01` | Rebuild IAM Core: User, Role, Auth Engine, and LBAC middleware.                        | Backend   |
+|   🏃   | `IAM-01` | Rebuild IAM Core: User, Role, Auth Engine, and LBAC middleware.                        | Backend   |
 |   ⏳   | `MD-02`  | Rebuild Core Catalogs: Product, Category, Material, and UOM Conversion Engine.         | Backend   |
 |   ⏳   | `MD-03`  | Develop Stakeholder Catalogs: Supplier Profiles (SRM) & Employee Master.               | Backend   |
 |   ⏳   | `FIN-01` | Define structural Chart of Accounts (CoA) definitions.                                 | Backend   |

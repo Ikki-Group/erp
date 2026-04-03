@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zBool, zId, zMetadataDto, zPaginationDto, zStr, zStrNullable } from '@/core/validation'
+import { zBool, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
 
 /**
  * Common Role attributes.
@@ -18,7 +18,7 @@ export type RoleBaseDto = z.infer<typeof RoleBaseDto>
  * Role database record.
  */
 export const RoleDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   ...RoleBaseDto.shape,
   ...zMetadataDto.shape,
 })
@@ -34,7 +34,7 @@ export type RoleCreateDto = z.infer<typeof RoleCreateDto>
  * Input for updating an existing Role (Full Update).
  */
 export const RoleUpdateDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   ...RoleBaseDto.shape,
 })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>

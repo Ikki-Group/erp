@@ -18,7 +18,7 @@ export function createModules() {
   const product = new ProductServiceModule()
 
   // Layer 1 — Masters
-  const iam = new IamServiceModule(location)
+  const iam = new IamServiceModule()
   const material = new MaterialServiceModule(location)
 
   // Layer 1.5 — Auth (Depends on Iam)

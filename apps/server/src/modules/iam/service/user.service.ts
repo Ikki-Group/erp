@@ -11,14 +11,15 @@ import type { UserAssignmentService } from './user-assignment.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
   { field: 'email', column: usersTable.email, message: 'Email already exists', code: 'USER_EMAIL_ALREADY_EXISTS' },
-  { field: 'username', column: usersTable.username, message: 'Username already exists', code: 'USER_USERNAME_ALREADY_EXISTS' },
+  {
+    field: 'username',
+    column: usersTable.username,
+    message: 'Username already exists',
+    code: 'USER_USERNAME_ALREADY_EXISTS',
+  },
 ]
 
-const cacheKey = {
-  count: 'iam.user.count',
-  list: 'iam.user.list',
-  byId: (id: number) => `iam.user.byId.${id}`,
-}
+const cacheKey = { count: 'iam.user.count', list: 'iam.user.list', byId: (id: number) => `iam.user.byId.${id}` }
 
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
@@ -72,7 +73,10 @@ export class UserService {
   async getById(id: number): Promise<dto.UserDto> {
     const result = await record('UserService.getById', async () => {
       const data = await cache.wrap(cacheKey.byId(id), async () => {
-        const rows = await db.select().from(usersTable).where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+        const rows = await db
+          .select()
+          .from(usersTable)
+          .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
 
         // Fetch assignments for detail view.
@@ -102,13 +106,25 @@ export class UserService {
       const { q, page, limit, isActive } = filter
       const where = and(
         isNull(usersTable.deletedAt),
-        q === undefined ? undefined : or(core.searchFilter(usersTable.fullname, q), core.searchFilter(usersTable.username, q), core.searchFilter(usersTable.email, q)),
+        q === undefined
+          ? undefined
+          : or(
+              core.searchFilter(usersTable.fullname, q),
+              core.searchFilter(usersTable.username, q),
+              core.searchFilter(usersTable.email, q),
+            ),
         isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
       )
 
       const p = await core.paginate<dto.UserDto>({
         data: async ({ limit: l, offset }) => {
-          const rows = await db.select().from(usersTable).where(where).orderBy(core.sortBy(usersTable.updatedAt, 'desc')).limit(l).offset(offset)
+          const rows = await db
+            .select()
+            .from(usersTable)
+            .where(where)
+            .orderBy(core.sortBy(usersTable.updatedAt, 'desc'))
+            .limit(l)
+            .offset(offset)
           return rows.map((r) => dto.UserDto.parse(r))
         },
         pq: { page, limit },
@@ -119,20 +135,37 @@ export class UserService {
     return result
   }
 
+  // Finds a user by username or email.
+  // Internal use for authentication.
+  async findByIdentifier(identifier: string): Promise<(dto.UserDto & { passwordHash: string }) | null> {
+    return record('UserService.findByIdentifier', async () => {
+      const [user] = await db
+        .select()
+        .from(usersTable)
+        .where(
+          and(isNull(usersTable.deletedAt), or(eq(usersTable.username, identifier), eq(usersTable.email, identifier))),
+        )
+        .limit(1)
+
+      if (!user) return null
+      return { ...dto.UserDto.parse(user), passwordHash: user.passwordHash }
+    })
+  }
+
   // Resource detail.
   async handleDetail(id: number): Promise<dto.UserDto> {
+    return this.getById(id)
+  }
+
+  // Alias for detail retrieval, commonly used in Auth.
+  async getDetailById(id: number): Promise<dto.UserDto> {
     return this.getById(id)
   }
 
   // Creation.
   async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('UserService.handleCreate', async () => {
-      await core.checkConflict({
-        table: usersTable,
-        pkColumn: usersTable.id,
-        fields: uniqueFields,
-        input: data as unknown as Record<string, unknown>,
-      })
+      await core.checkConflict({ table: usersTable, pkColumn: usersTable.id, fields: uniqueFields, input: data })
 
       const { assignments, password, ...rest } = data
       const passwordHash = await Bun.password.hash(password)
@@ -164,7 +197,7 @@ export class UserService {
         table: usersTable,
         pkColumn: usersTable.id,
         fields: uniqueFields,
-        input: { ...data, id } as unknown as Record<string, unknown>,
+        input: { ...data },
         existing,
       })
 

@@ -14,7 +14,7 @@ import { SessionPayloadDto, type SessionDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const cacheKey = { byId: (id: string) => `session.byId.${id}` }
+const cacheKey = { byId: (id: number) => `session.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -22,7 +22,7 @@ export class SessionService {
   /**
    * Finds a single session by its ID. Cached.
    */
-  async getById(id: string): Promise<SessionDto | null> {
+  async getById(id: number): Promise<SessionDto | null> {
     return record('SessionService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
@@ -80,7 +80,7 @@ export class SessionService {
   /**
    * Explicitly deletes a session. Invalidates cache.
    */
-  async deleteSession(id: string): Promise<void> {
+  async deleteSession(id: number): Promise<void> {
     return record('SessionService.deleteSession', async () => {
       await db.delete(sessionsTable).where(eq(sessionsTable.id, id))
       await cache.del(cacheKey.byId(id))

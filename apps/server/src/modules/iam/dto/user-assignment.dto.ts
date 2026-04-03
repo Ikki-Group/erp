@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zBool, zId, zMetadataDto, zPaginationDto } from '@/core/validation'
+import { zBool, zId, zMetadataDto, zPaginationDto, zRecordIdDto } from '@/core/validation'
 
 /**
  * Common User Assignment attributes.
@@ -17,7 +17,7 @@ export type UserAssignmentBaseDto = z.infer<typeof UserAssignmentBaseDto>
  * User Assignment database record.
  */
 export const UserAssignmentDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   ...UserAssignmentBaseDto.shape,
   ...zMetadataDto.shape,
 })
@@ -26,7 +26,8 @@ export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 /**
  * Detailed User Assignment (including role/location names/codes).
  */
-export const UserAssignmentDetailDto = UserAssignmentDto.extend({
+export const UserAssignmentDetailDto = z.object({
+  ...UserAssignmentDto.shape,
   roleName: z.string(),
   roleCode: z.string(),
   locationName: z.string(),

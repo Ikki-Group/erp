@@ -1,6 +1,15 @@
 import { z } from 'zod'
 
-import { zBool, zEmail, zId, zMetadataDto, zPaginationDto, zPassword, zStr, zUsername } from '@/core/validation'
+import {
+  zBool,
+  zEmail,
+  zMetadataDto,
+  zPaginationDto,
+  zPassword,
+  zRecordIdDto,
+  zStr,
+  zUsername,
+} from '@/core/validation'
 
 import { UserAssignmentUpsertDto } from './user-assignment.dto'
 
@@ -19,17 +28,19 @@ export type UserBaseDto = z.infer<typeof UserBaseDto>
  * User database record (includes related assignments).
  */
 export const UserDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   ...UserBaseDto.shape,
   ...zMetadataDto.shape,
-  assignments: z.array(z.any()).optional(), // Detailed later in detail view
+  /** Detailed later in detail view */
+  assignments: z.array(z.any()).optional(),
 })
 export type UserDto = z.infer<typeof UserDto>
 
 /**
  * Input for creating a new User.
  */
-export const UserCreateDto = UserBaseDto.extend({
+export const UserCreateDto = z.object({
+  ...UserBaseDto.shape,
   password: zPassword,
   assignments: z.array(UserAssignmentUpsertDto).default([]),
 })
@@ -39,7 +50,7 @@ export type UserCreateDto = z.infer<typeof UserCreateDto>
  * Input for updating an existing User (Full Update).
  */
 export const UserUpdateDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   ...UserBaseDto.shape,
   password: zPassword.optional(),
   assignments: z.array(UserAssignmentUpsertDto).optional(),
@@ -69,7 +80,7 @@ export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
  * Administrative password reset.
  */
 export const UserAdminUpdatePasswordDto = z.object({
-  ...zId.shape,
+  ...zRecordIdDto.shape,
   password: zPassword,
 })
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>
