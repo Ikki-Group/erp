@@ -92,6 +92,16 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 |   ✅   | `DASH-01` | Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.         | Fullstack |
 |   ⏭️   | `QA-01`   | End-to-End integration testing across all layered modules and validation pipelines. |  Tooling  |
 
+### Phase 8: Technical Hardening & Modularization (Layer 3)
+
+**Objective**: Eliminate technical debt and ensure production-grade stability.
+
+| Status | Task ID   | Description                                                                               | Component |
+| :----: | :-------- | :---------------------------------------------------------------------------------------- | :-------: |
+|   ✅   | `HARD-01` | Refactor `stock-transaction.service.ts` (600+ lines) into modular sub-services.           |  Backend  |
+|   ⏳   | `HARD-02` | Modularize `schema/index.ts` to improve build times and maintainability (< 300 lines).    |  Backend  |
+|   ✅   | `HARD-03` | Achieve 100% Type Safety: Eliminate remaining `any` and unsafe assertions in all modules. |  Backend  |
+
 ---
 
 ## Backlog (Post-MVP Enhancements)
