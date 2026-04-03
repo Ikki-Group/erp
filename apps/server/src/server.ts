@@ -1,19 +1,16 @@
+// oxlint-disable-next-line import/no-unassigned-import
+import '@total-typescript/ts-reset'
 import { env } from '@/config/env'
 import { logger } from '@/core/logger'
 
-async function main() {
-  const app = await import('@/app').then((mod) => mod.app)
+const app = await import('@/app').then((mod) => mod.app)
 
-  app.listen({ port: env.PORT })
+app.listen({ port: env.PORT })
 
-  logger.info(
-    { port: env.PORT, host: env.HOST, env: env.NODE_ENV },
-    `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`,
-  )
-}
-
-// oxlint-disable-next-line typescript/no-floating-promises
-main()
+logger.info(
+  { port: env.PORT, host: env.HOST, env: env.NODE_ENV },
+  `${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`,
+)
 
 // async function shutdown() {
 //   logger.info('Shutting down')

@@ -1,52 +1,33 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zCodeUpper, zQuerySearch, zQueryBoolean, zMetadataDto } from '@/core/validation'
+import { zMetadataDto, zPaginationDto, zRecordIdDto } from '@/core/validation'
 
-/* ---------------------------------- ENUM ---------------------------------- */
+import { locationClassificationEnum, locationTypeEnum } from '@/db/schema/_helpers'
 
-export const LocationType = z.enum(['store', 'warehouse'])
-export type LocationType = z.infer<typeof LocationType>
+/** Base schema for Location attributes. */
+export const zLocationBase = z.object({
+  code: z.string().trim().toUpperCase().min(2).max(20),
+  name: z.string().trim().min(2).max(100),
+  type: z.enum(locationTypeEnum.enumValues),
+  classification: z.enum(locationClassificationEnum.enumValues).default('physical'),
+  address: z.string().trim().optional().nullable(),
+  phone: z.string().trim().optional().nullable(),
+})
 
-export const LocationClassification = z.enum(['physical', 'virtual'])
-export type LocationClassification = z.infer<typeof LocationClassification>
+/** DTO for Creating a Location. */
+export const zCreateLocationDto = zLocationBase
 
-/* --------------------------------- ENTITY --------------------------------- */
+/** DTO for Updating a Location. */
+export const zUpdateLocationDto = zLocationBase.partial()
 
-export const LocationDto = z.object({
-  id: zId,
-  code: zCodeUpper,
-  name: zStr,
-  type: LocationType,
-  classification: LocationClassification,
-  description: zStrNullable,
-  isActive: zBool,
+/** DTO for Filtering/Searching Locations. */
+export const zFilterLocationDto = zPaginationDto.extend({
+  q: z.string().optional(),
+  type: z.enum(locationTypeEnum.enumValues).optional(),
+})
+
+/** DTO for Location Response (Output). */
+export const zLocationDto = zLocationBase.extend({
+  ...zRecordIdDto.shape,
   ...zMetadataDto.shape,
 })
-
-export type LocationDto = z.infer<typeof LocationDto>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const LocationFilterDto = z.object({
-  search: zQuerySearch,
-  type: LocationType.optional(),
-  classification: LocationClassification.optional(),
-  isActive: zQueryBoolean,
-})
-
-export type LocationFilterDto = z.infer<typeof LocationFilterDto>
-
-/* -------------------------------- MUTATION -------------------------------- */
-
-export const LocationMutationDto = z.object({
-  ...LocationDto.pick({
-    code: true,
-    name: true,
-    type: true,
-    classification: true,
-    description: true,
-    isActive: true,
-  }).shape,
-})
-
-export type LocationMutationDto = z.infer<typeof LocationMutationDto>

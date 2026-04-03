@@ -1,59 +1,48 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { cache } from '@/core/cache'
-import {
-  checkConflict,
-  paginate,
-  searchFilter,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-  type ConflictField,
-} from '@/core/database'
+import * as core from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
 
-import type { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
+import type * as dto from '../dto/location.dto'
 
-/* -------------------------------- CONSTANTS -------------------------------- */
+const err = {
+  notFound: (id: string) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
+}
 
-const err = { notFound: (id: string) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND') }
-
-const uniqueFields: ConflictField<'code' | 'name'>[] = [
-  {
-    field: 'code',
-    column: locationsTable.code,
-    message: 'Location code already exists',
-    code: 'LOCATION_CODE_ALREADY_EXISTS',
-  },
-  {
-    field: 'name',
-    column: locationsTable.name,
-    message: 'Location name already exists',
-    code: 'LOCATION_NAME_ALREADY_EXISTS',
-  },
+const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
+  { field: 'code', column: locationsTable.code, message: 'Location code exists', code: 'LOCATION_CODE_EXISTS' },
+  { field: 'name', column: locationsTable.name, message: 'Location name exists', code: 'LOCATION_NAME_EXISTS' },
 ]
 
-const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: string) => `location.byId.${id}` }
+const cacheKey = {
+  count: 'location.count',
+  list: 'location.list',
+  byId: (id: string) => `location.byId.${id}`,
+}
 
-/* ----------------------------- IMPLEMENTATION ----------------------------- */
-
+/**
+ * Location Service (Layer 0)
+ * Handles physical and virtual location management.
+ */
 export class LocationService {
   /**
    * Seed initial locations into the database.
-   * Uses upsert pattern based on location code.
+   *
+   * @param {any[]} data - The location data to seed.
+   * @returns {Promise<void>} completion.
    */
-  async seed(data: Pick<LocationDto, 'code' | 'name' | 'type' | 'classification' | 'createdBy'>[]): Promise<void> {
-    return record('LocationService.seed', async () => {
+  async seed(data: (z.infer<typeof dto.zCreateLocationDto> & { createdBy: string })[]): Promise<void> {
+    await record('LocationService.seed', async () => {
       for (const d of data) {
-        const metadata = stampCreate(d.createdBy)
+        const metadata = core.stampCreate(d.createdBy)
         await db
           .insert(locationsTable)
-          .values({ ...d, description: '', isActive: true, ...metadata })
+          .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: locationsTable.code,
             set: {
@@ -62,7 +51,7 @@ export class LocationService {
               classification: d.classification,
               updatedAt: metadata.updatedAt,
               updatedBy: metadata.updatedBy,
-              deletedAt: null, // Restore if was soft-deleted
+              deletedAt: null,
             },
           })
       }
@@ -71,177 +60,176 @@ export class LocationService {
   }
 
   /**
-   * Returns all active locations, cached.
-   * Excludes soft-deleted records.
+   * Returns active locations.
+   *
+   * @returns {Promise<any[]>} locations.
    */
-  async find(): Promise<LocationDto[]> {
-    return record('LocationService.find', async () => {
-      return cache.wrap(cacheKey.list, async () => {
-        return db
-          .select()
-          .from(locationsTable)
-          .where(and(eq(locationsTable.isActive, true), isNull(locationsTable.deletedAt)))
-          .orderBy(locationsTable.name)
+  async find(): Promise<z.infer<typeof dto.zLocationDto>[]> {
+    const result = await record('LocationService.find', async () => {
+      const data = await cache.wrap(cacheKey.list, async () => {
+        const rows = await db.select().from(locationsTable).where(isNull(locationsTable.deletedAt)).orderBy(locationsTable.name)
+        return rows as unknown as z.infer<typeof dto.zLocationDto>[]
       })
+      return data
     })
+    return result
   }
 
   /**
-   * Finds a single location by ID. Throws if not found or soft-deleted.
+   * Finds a location by ID.
+   *
+   * @param {string} id - UUID.
+   * @returns {Promise<any>} location.
    */
-  async getById(id: string): Promise<LocationDto> {
-    return record('LocationService.getById', async () => {
-      return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db
-          .select()
-          .from(locationsTable)
-          .where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
-        return takeFirstOrThrow(result, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
+  async getById(id: string): Promise<z.infer<typeof dto.zLocationDto>> {
+    const result = await record('LocationService.getById', async () => {
+      const data = await cache.wrap(cacheKey.byId(id), async () => {
+        const rows = await db.select().from(locationsTable).where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+        const first = core.takeFirstOrThrow(rows, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
+        return first as unknown as z.infer<typeof dto.zLocationDto>
       })
+      return data
     })
+    return result
   }
 
   /**
-   * Returns total count of active locations, cached.
+   * Returns total count.
+   *
+   * @returns {Promise<number>} count.
    */
   async count(): Promise<number> {
-    return record('LocationService.count', async () => {
-      return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(locationsTable).where(isNull(locationsTable.deletedAt))
-        return result[0]?.val ?? 0
+    const result = await record('LocationService.count', async () => {
+      const data = await cache.wrap(cacheKey.count, async () => {
+        const rows = await db.select({ val: count() }).from(locationsTable).where(isNull(locationsTable.deletedAt))
+        return rows[0]?.val ?? 0
       })
+      return data
     })
+    return result
   }
 
   /**
-   * Fetches a paginated list of locations with optional filters.
-   * Enhanced search: searches both name and code.
+   * Paginated list.
+   *
+   * @param {any} filter - query.
+   * @returns {Promise<any>} result.
    */
-  async handleList(filter: LocationFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<LocationDto>> {
-    return record('LocationService.handleList', async () => {
-      const { search, type, classification, isActive } = filter
-
+  async handleList(filter: z.infer<typeof dto.zFilterLocationDto>): Promise<core.WithPaginationResult<z.infer<typeof dto.zLocationDto>>> {
+    const result = await record('LocationService.handleList', async () => {
+      const { q, page, limit, type } = filter
       const where = and(
         isNull(locationsTable.deletedAt),
-        search ? or(searchFilter(locationsTable.name, search), searchFilter(locationsTable.code, search)) : undefined,
-        type ? eq(locationsTable.type, type) : undefined,
-        classification ? eq(locationsTable.classification, classification) : undefined,
-        typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined,
+        q === undefined ? undefined : or(core.searchFilter(locationsTable.name, q), core.searchFilter(locationsTable.code, q)),
+        type === undefined ? undefined : eq(locationsTable.type, type),
       )
 
-      return paginate<LocationDto>({
-        data: ({ limit, offset }) =>
-          db
-            .select()
-            .from(locationsTable)
-            .where(where)
-            .orderBy(sortBy(locationsTable.updatedAt, 'desc'))
-            .limit(limit)
-            .offset(offset),
-        pq,
+      const p = await core.paginate<z.infer<typeof dto.zLocationDto>>({
+        data: async ({ limit: l, offset }) => {
+          const rows = await db.select().from(locationsTable).where(where).orderBy(core.sortBy(locationsTable.updatedAt, 'desc')).limit(l).offset(offset)
+          return rows as unknown as z.infer<typeof dto.zLocationDto>[]
+        },
+        pq: { page, limit },
         countQuery: db.select({ count: count() }).from(locationsTable).where(where),
       })
+      return p
     })
+    return result
   }
 
   /**
-   * Serves location details for a single ID.
+   * Resource detail.
+   *
+   * @param {string} id - UUID.
+   * @returns {Promise<any>} detail.
    */
-  async handleDetail(id: string): Promise<LocationDto> {
-    return record('LocationService.handleDetail', async () => {
-      return this.getById(id)
+  async handleDetail(id: string): Promise<z.infer<typeof dto.zLocationDto>> {
+    const result = await record('LocationService.handleDetail', async () => {
+      const detail = await this.getById(id)
+      return detail
     })
+    return result
   }
 
   /**
-   * Creates a new location. Invalidates cache.
+   * Creation.
+   *
+   * @param {any} data - payload.
+   * @param {string} actorId - user.
+   * @returns {Promise<any>} id.
    */
-  async handleCreate(data: LocationMutationDto, actorId: string): Promise<{ id: string }> {
-    return record('LocationService.handleCreate', async () => {
-      await checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data })
-
-      const [inserted] = await db
-        .insert(locationsTable)
-        .values({ ...data, ...stampCreate(actorId) })
-        .returning({ id: locationsTable.id })
-
-      if (!inserted) throw new Error('Failed to create location')
-
+  async handleCreate(data: z.infer<typeof dto.zCreateLocationDto>, actorId: string): Promise<{ id: string }> {
+    const result = await record('LocationService.handleCreate', async () => {
+      await core.checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data })
+      const [inserted] = await db.insert(locationsTable).values({ ...data, ...core.stampCreate(actorId) }).returning({ id: locationsTable.id })
+      if (!inserted) throw new Error('Create failed')
       await this.clearCache()
       return inserted
     })
+    return result
   }
 
   /**
-   * Updates an existing location. Invalidates cache.
+   * Update.
+   *
+   * @param {string} id - UUID.
+   * @param {any} data - payload.
+   * @param {string} actorId - user.
+   * @returns {Promise<any>} id.
    */
-  async handleUpdate(id: string, data: LocationMutationDto, actorId: string): Promise<{ id: string }> {
-    return record('LocationService.handleUpdate', async () => {
+  async handleUpdate(id: string, data: z.infer<typeof dto.zUpdateLocationDto>, actorId: string): Promise<{ id: string }> {
+    const result = await record('LocationService.handleUpdate', async () => {
       const existing = await this.getById(id)
-
-      await checkConflict({
-        table: locationsTable,
-        pkColumn: locationsTable.id,
-        fields: uniqueFields,
-        input: data,
-        existing,
-      })
-
-      await db
-        .update(locationsTable)
-        .set({ ...data, ...stampUpdate(actorId) })
-        .where(eq(locationsTable.id, id))
-
+      await core.checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data as any, existing })
+      await db.update(locationsTable).set({ ...data, ...core.stampUpdate(actorId) }).where(eq(locationsTable.id, id))
       await this.clearCache(id)
       return { id }
     })
+    return result
   }
 
   /**
-   * Marks a location as deleted (Soft Delete).
-   * Used for crucial entities like Locations.
+   * Soft Remove.
+   *
+   * @param {string} id - UUID.
+   * @param {string} actorId - user.
+   * @returns {Promise<any>} id.
    */
   async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
-    return record('LocationService.handleRemove', async () => {
-      const result = await db
-        .update(locationsTable)
-        .set({ deletedAt: new Date(), deletedBy: actorId })
-        .where(eq(locationsTable.id, id))
-        .returning({ id: locationsTable.id })
-
-      if (result.length === 0) throw err.notFound(id)
-
+    const result = await record('LocationService.handleRemove', async () => {
+      const rows = await db.update(locationsTable).set({ deletedAt: new Date(), deletedBy: actorId }).where(eq(locationsTable.id, id)).returning({ id: locationsTable.id })
+      const first = rows[0]
+      if (!first) throw err.notFound(id)
       await this.clearCache(id)
-      return { id }
+      return first
     })
+    return result
   }
 
   /**
-   * Permanently deletes a location (Hard Delete).
-   * USE WITH CAUTION.
+   * Hard Remove.
+   *
+   * @param {string} id - UUID.
+   * @returns {Promise<any>} id.
    */
   async handleHardRemove(id: string): Promise<{ id: string }> {
-    return record('LocationService.handleHardRemove', async () => {
-      const result = await db
-        .delete(locationsTable)
-        .where(eq(locationsTable.id, id))
-        .returning({ id: locationsTable.id })
-
-      if (result.length === 0) throw err.notFound(id)
-
+    const result = await record('LocationService.handleHardRemove', async () => {
+      const rows = await db.delete(locationsTable).where(eq(locationsTable.id, id)).returning({ id: locationsTable.id })
+      const first = rows[0]
+      if (!first) throw err.notFound(id)
       await this.clearCache(id)
-      return { id }
+      return first
     })
+    return result
   }
 
   /**
-   * Utility to clear location caches.
+   * Clear cache.
+   *
+   * @param {string} id - optional.
+   * @returns {Promise<void>} void.
    */
-  private async clearCache(id?: string) {
-    await Promise.all([
-      cache.del(cacheKey.count),
-      cache.del(cacheKey.list),
-      id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-    ])
+  private async clearCache(id?: string): Promise<void> {
+    await Promise.all([cache.del(cacheKey.count), cache.del(cacheKey.list), id === undefined ? Promise.resolve() : cache.del(cacheKey.byId(id))])
   }
 }
