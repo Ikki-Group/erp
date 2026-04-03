@@ -16,18 +16,21 @@ export const zMetadataDto = z.object({
 /** Single Record ID schema. */
 export const zRecordIdDto = z.object({ id: zId })
 
-/** Standard Pagination Query Parameters. */
-export const zPaginationDto = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(500).default(50),
+export const zPaginationMetaDto = z.object({
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
 })
+
+export type PaginationMeta = z.infer<typeof zPaginationMetaDto>
 
 /**
  * Standard Success Response Factory.
  * Wraps any schema into { success: true, code: string, data: T }
  */
 export function createSuccessResponseSchema<T extends z.ZodType>(dataSchema: T) {
-  return z.object({ success: z.literal(true), code: z.string(), data: dataSchema })
+  return z.object({ success: z.literal(true), code: z.string().default('OK'), data: dataSchema })
 }
 
 /**
@@ -37,8 +40,8 @@ export function createSuccessResponseSchema<T extends z.ZodType>(dataSchema: T) 
 export function createPaginatedResponseSchema<T extends z.ZodType>(itemSchema: T) {
   return z.object({
     success: z.literal(true),
-    code: z.string(),
+    code: z.string().default('OK'),
     data: z.array(itemSchema),
-    meta: z.object({ total: z.number(), page: z.number(), limit: z.number(), totalPages: z.number() }),
+    meta: zPaginationMetaDto,
   })
 }

@@ -19,7 +19,7 @@ export class SeedService {
     return record('SeedService.seed', async () => {
       // Use Drizzle transaction for the entire seed process
       await db.transaction(async () => {
-        const SYSTEM_ACTOR_ID = '550e8400-e29b-41d4-a716-446655440000'
+        const SYSTEM_ACTOR_ID = 1
 
         // 1. Seed Roles
         await this.iamSvc.role.seed([
@@ -27,19 +27,29 @@ export class SeedService {
             code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
             name: 'Administrator',
             description: 'Super administrator',
+            permissions: ['*'],
+            isSystem: true,
             createdBy: SYSTEM_ACTOR_ID,
           },
-          { code: 'MANAGER', name: 'Manager', description: null, createdBy: SYSTEM_ACTOR_ID },
+          {
+            code: 'MANAGER',
+            name: 'Manager',
+            description: null,
+            permissions: [],
+            isSystem: false,
+            createdBy: SYSTEM_ACTOR_ID,
+          },
         ])
 
         // 2. Seed Users
+        const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
         await this.iamSvc.user.seed([
           {
             email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
             username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
             fullname: 'Administrator',
             password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-            isRoot: true,
+            passwordHash: superAdminPasswordHash,
             isActive: true,
             createdBy: SYSTEM_ACTOR_ID,
             assignments: [],
@@ -53,6 +63,8 @@ export class SeedService {
             name: l.name,
             type: l.type,
             classification: 'physical',
+            address: null,
+            phone: null,
             createdBy: SYSTEM_ACTOR_ID,
           })),
         )

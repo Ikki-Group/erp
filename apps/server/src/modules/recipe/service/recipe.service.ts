@@ -18,16 +18,16 @@ import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } f
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: string) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND') }
+const err = { notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND') }
 
-const cacheKey = { count: 'recipe.count', list: 'recipe.list', byId: (id: string) => `recipe.byId.${id}` }
+const cacheKey = { count: 'recipe.count', list: 'recipe.list', byId: (id: number) => `recipe.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class RecipeService {
   // ─── Private Helpers ──────────────────────────────────────────────────────
 
-  private async getRecipeItems(recipeId: string) {
+  private async getRecipeItems(recipeId: number) {
     const results = await db
       .select({
         item: recipeItemsTable,
@@ -56,7 +56,7 @@ export class RecipeService {
   /**
    * Finds a single recipe by ID. Throws if not found.
    */
-  async getById(id: string): Promise<RecipeDto> {
+  async getById(id: number): Promise<RecipeDto> {
     return record('RecipeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db.select().from(recipesTable).where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
@@ -132,7 +132,7 @@ export class RecipeService {
         }),
       )
 
-      const itemsByRecipe = new Map<string, typeof allItems>()
+      const itemsByRecipe = new Map<number, typeof allItems>()
       for (const item of allItems) {
         const list = itemsByRecipe.get(item.recipeId) || []
         list.push(item)
@@ -145,7 +145,7 @@ export class RecipeService {
     })
   }
 
-  async handleDetail(id: string): Promise<RecipeSelectDto> {
+  async handleDetail(id: number): Promise<RecipeSelectDto> {
     return record('RecipeService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -153,11 +153,11 @@ export class RecipeService {
 
   private async checkTargetConflict(
     target: {
-      materialId?: string | null | undefined
-      productId?: string | null | undefined
-      productVariantId?: string | null | undefined
+      materialId?: number | null | undefined
+      productId?: number | null | undefined
+      productVariantId?: number | null | undefined
     },
-    excludeId?: string,
+    excludeId?: number,
   ) {
     const conditions = [isNull(recipesTable.deletedAt)]
 
@@ -184,7 +184,7 @@ export class RecipeService {
     }
   }
 
-  async handleCreate(data: RecipeMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleCreate(data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
     return record('RecipeService.handleCreate', async () => {
       await this.checkTargetConflict({
         materialId: data.materialId,
@@ -235,7 +235,7 @@ export class RecipeService {
     })
   }
 
-  async handleUpdate(id: string, data: RecipeMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleUpdate(id: number, data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
     return record('RecipeService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -295,7 +295,7 @@ export class RecipeService {
   /**
    * Marks a recipe as deleted (Soft Delete).
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('RecipeService.handleRemove', async () => {
       const result = await db.transaction(async (tx) => {
         const timestamp = new Date()
@@ -323,7 +323,7 @@ export class RecipeService {
   /**
    * Permanently deletes a recipe (Hard Delete).
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('RecipeService.handleHardRemove', async () => {
       const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
       if (result.length === 0) throw err.notFound(id)
@@ -333,7 +333,7 @@ export class RecipeService {
     })
   }
 
-  private async clearCache(id?: string) {
+  private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

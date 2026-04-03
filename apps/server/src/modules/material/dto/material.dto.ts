@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataDto, zRecordIdDto } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 import { RecipeDto } from '@/modules/recipe'
 
@@ -25,7 +25,7 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   name: zStr,
   description: zStrNullable,
   sku: zStr,

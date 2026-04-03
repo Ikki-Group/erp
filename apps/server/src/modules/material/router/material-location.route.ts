@@ -74,7 +74,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           query: z.object({ ...MaterialLocationFilterDto.shape, ...zPaginationDto.shape }),
-          response: createPaginatedResponseSchema(MaterialLocationStockDto.array()),
+          response: createPaginatedResponseSchema(MaterialLocationStockDto),
           auth: true,
           detail: { tags: ['Material Location'] },
         },

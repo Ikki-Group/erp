@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -9,31 +9,30 @@ export type TransactionType = z.infer<typeof transactionTypeSchema>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const stockTransactionSchema = z
-  .object({
-    id: zId,
-    materialId: zId,
-    locationId: zId,
+export const stockTransactionSchema = z.object({
+  ...zRecordIdDto.shape,
+  materialId: zId,
+  locationId: zId,
 
-    type: transactionTypeSchema,
-    date: zDate,
-    referenceNo: zStr,
-    notes: zStrNullable,
+  type: transactionTypeSchema,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable,
 
-    // Quantity & Cost
-    qty: zNum,
-    unitCost: zNum,
-    totalCost: zNum,
+  // Quantity & Cost
+  qty: zNum,
+  unitCost: zNum,
+  totalCost: zNum,
 
-    // Transfer-specific
-    counterpartLocationId: zId.nullable().default(null),
-    transferId: zStrNullable.default(null),
+  // Transfer-specific
+  counterpartLocationId: zId.nullable().default(null),
+  transferId: z.number().nullable().default(null),
 
-    // Running snapshot after this transaction
-    runningQty: zNum,
-    runningAvgCost: zNum,
-  })
-  .merge(zMetadataDto)
+  // Running snapshot after this transaction
+  runningQty: zNum,
+  runningAvgCost: zNum,
+  ...zMetadataDto.shape,
+})
 
 export type StockTransactionDto = z.infer<typeof stockTransactionSchema>
 

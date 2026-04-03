@@ -74,7 +74,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           query: stockTransactionFilterSchema.extend(zPaginationDto.shape),
-          response: createPaginatedResponseSchema(stockTransactionSelectSchema.array()),
+          response: createPaginatedResponseSchema(stockTransactionSelectSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },

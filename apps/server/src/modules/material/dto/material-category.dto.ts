@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialCategoryDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   name: zStr,
   description: zStrNullable,
   parentId: zId.nullable(),

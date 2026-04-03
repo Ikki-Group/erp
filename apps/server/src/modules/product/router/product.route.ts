@@ -2,7 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { productFilterSchema, productMutationSchema, productSelectSchema } from '../dto'
 import type { ProductServiceModule } from '../service'
@@ -18,7 +18,7 @@ export function initProductRoute(s: ProductServiceModule) {
       },
       {
         query: productFilterSchema.extend(zPaginationDto.shape),
-        response: createPaginatedResponseSchema(productSelectSchema.array()),
+        response: createPaginatedResponseSchema(productSelectSchema),
         auth: true,
       },
     )
@@ -45,7 +45,7 @@ export function initProductRoute(s: ProductServiceModule) {
         return res.ok({ id })
       },
       {
-        body: productMutationSchema.extend({ id: zId }),
+        body: productMutationSchema.extend(zRecordIdDto.shape),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },

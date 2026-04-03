@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 import type { RecipeServiceModule } from '../service'
@@ -19,7 +19,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
       },
       {
         query: z.object({ ...RecipeFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(RecipeSelectDto.array()),
+        response: createPaginatedResponseSchema(RecipeSelectDto),
         auth: true,
       },
     )
@@ -46,7 +46,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...RecipeMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...RecipeMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },

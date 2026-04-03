@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
   SalesOrderAddBatchDto,
@@ -25,7 +25,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
       },
       {
         query: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(SalesOrderOutputDto.array()),
+        response: createPaginatedResponseSchema(SalesOrderOutputDto),
         auth: true,
       },
     )
@@ -54,7 +54,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
       {
         query: zRecordIdDto,
         body: SalesOrderAddBatchDto,
-        response: createSuccessResponseSchema(z.object({ batchId: zId })),
+        response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
         auth: true,
       },
     )

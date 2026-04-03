@@ -3,7 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { MaterialCategoryFilterDto, MaterialCategoryMutationDto, MaterialCategoryDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -19,7 +19,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
       },
       {
         query: z.object({ ...MaterialCategoryFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(MaterialCategoryDto.array()),
+        response: createPaginatedResponseSchema(MaterialCategoryDto),
         auth: true,
       },
     )
@@ -46,7 +46,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...MaterialCategoryMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...MaterialCategoryMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },

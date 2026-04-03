@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'

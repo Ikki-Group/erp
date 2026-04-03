@@ -1,39 +1,38 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const stockSummarySchema = z
-  .object({
-    id: zId,
-    materialId: zId,
-    locationId: zId,
-    date: zDate,
+export const stockSummarySchema = z.object({
+  ...zRecordIdDto.shape,
+  materialId: zId,
+  locationId: zId,
+  date: zDate,
 
-    // Opening balance
-    openingQty: zNum,
-    openingAvgCost: zNum,
-    openingValue: zNum,
+  // Opening balance
+  openingQty: zNum,
+  openingAvgCost: zNum,
+  openingValue: zNum,
 
-    // Movements
-    purchaseQty: zNum,
-    purchaseValue: zNum,
-    transferInQty: zNum,
-    transferInValue: zNum,
-    transferOutQty: zNum,
-    transferOutValue: zNum,
-    adjustmentQty: zNum,
-    adjustmentValue: zNum,
-    sellQty: zNum,
-    sellValue: zNum,
+  // Movements
+  purchaseQty: zNum,
+  purchaseValue: zNum,
+  transferInQty: zNum,
+  transferInValue: zNum,
+  transferOutQty: zNum,
+  transferOutValue: zNum,
+  adjustmentQty: zNum,
+  adjustmentValue: zNum,
+  sellQty: zNum,
+  sellValue: zNum,
 
-    // Closing balance
-    closingQty: zNum,
-    closingAvgCost: zNum,
-    closingValue: zNum,
-  })
-  .merge(zMetadataDto)
+  // Closing balance
+  closingQty: zNum,
+  closingAvgCost: zNum,
+  closingValue: zNum,
+  ...zMetadataDto.shape,
+})
 
 export type StockSummaryDto = z.infer<typeof stockSummarySchema>
 

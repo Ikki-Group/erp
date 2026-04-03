@@ -29,7 +29,7 @@ import type { UomService } from './uom.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: string) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND') }
+const err = { notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND') }
 
 const uniqueFields: ConflictField<'sku' | 'name'>[] = [
   {
@@ -46,7 +46,7 @@ const uniqueFields: ConflictField<'sku' | 'name'>[] = [
   },
 ]
 
-const cacheKey = { count: 'material.count', list: 'material.list', byId: (id: string) => `material.byId.${id}` }
+const cacheKey = { count: 'material.count', list: 'material.list', byId: (id: number) => `material.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -60,7 +60,7 @@ export class MaterialService {
   /**
    * Helper to fetch full material detail including conversions and locationIds
    */
-  private async getMaterialWithRelations(id: string): Promise<MaterialDto> {
+  private async getMaterialWithRelations(id: number): Promise<MaterialDto> {
     const [result] = await db
       .select()
       .from(materialsTable)
@@ -93,9 +93,9 @@ export class MaterialService {
    * Batch fetch full material details including conversions and locationIds
    */
   private async getMaterialsBatchWithRelations(
-    ids: string[],
-  ): Promise<Map<string, { conversions: MaterialDto['conversions']; locationIds: string[] }>> {
-    if (ids.length === 0) return new Map<string, { conversions: MaterialDto['conversions']; locationIds: string[] }>()
+    ids: number[],
+  ): Promise<Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>> {
+    if (ids.length === 0) return new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
 
     const [conversions, locations] = await Promise.all([
       db
@@ -117,7 +117,7 @@ export class MaterialService {
         .where(and(inArray(materialLocationsTable.materialId, ids), isNull(materialLocationsTable.deletedAt))),
     ])
 
-    const map = new Map<string, { conversions: MaterialDto['conversions']; locationIds: string[] }>()
+    const map = new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
     for (const id of ids) {
       map.set(id, { conversions: [], locationIds: [] })
     }
@@ -153,7 +153,7 @@ export class MaterialService {
     })
   }
 
-  async getById(id: string): Promise<MaterialDto> {
+  async getById(id: number): Promise<MaterialDto> {
     return record('MaterialService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         return this.getMaterialWithRelations(id)
@@ -233,8 +233,8 @@ export class MaterialService {
       const materialIds = result.data.map((m) => m.id)
       const relationsMap = await this.getMaterialsBatchWithRelations(materialIds)
 
-      const categoriesMap = new Map<string, MaterialCategoryDto>()
-      const uomsMap = new Map<string, UomDto>()
+      const categoriesMap = new Map<number, MaterialCategoryDto>()
+      const uomsMap = new Map<number, UomDto>()
       const [allCategories, allUoms] = await Promise.all([this.categorySvc.find(), this.uomSvc.find()])
 
       for (const cat of allCategories) {
@@ -256,7 +256,7 @@ export class MaterialService {
     })
   }
 
-  async handleDetail(id: string): Promise<MaterialSelectDto> {
+  async handleDetail(id: number): Promise<MaterialSelectDto> {
     return record('MaterialService.handleDetail', async () => {
       const material = await this.getById(id)
       const [category, uom, locations] = await Promise.all([
@@ -271,7 +271,7 @@ export class MaterialService {
     })
   }
 
-  async handleCreate(data: MaterialMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleCreate(data: MaterialMutationDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleCreate', async () => {
       const sku = data.sku.trim()
       const name = data.name.trim()
@@ -314,7 +314,7 @@ export class MaterialService {
     })
   }
 
-  async handleUpdate(id: string, data: MaterialMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleUpdate(id: number, data: MaterialMutationDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -365,7 +365,7 @@ export class MaterialService {
   /**
    * Marks a material as deleted (Soft Delete).
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleRemove', async () => {
       // Also soft delete its relations if needed? 
       // Usually cascading soft delete is manual or handled by junction logic.
@@ -397,7 +397,7 @@ export class MaterialService {
    * Permanently deletes a material (Hard Delete).
    * USE WITH CAUTION.
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('MaterialService.handleHardRemove', async () => {
       // Drizzle references handle the cascade if configured in schema (materialId references onDelete cascade)
       const result = await db.delete(materialsTable).where(eq(materialsTable.id, id)).returning({ id: materialsTable.id })
@@ -411,7 +411,7 @@ export class MaterialService {
   /**
    * Clears relevant material caches.
    */
-  private async clearCache(id?: string) {
+  private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

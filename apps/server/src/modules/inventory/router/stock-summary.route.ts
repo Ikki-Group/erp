@@ -28,7 +28,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
         },
         {
           query: stockSummaryFilterSchema.extend(zPaginationDto.shape),
-          response: createPaginatedResponseSchema(stockSummarySelectSchema.array()),
+          response: createPaginatedResponseSchema(stockSummarySelectSchema),
           auth: true,
           detail: { tags: ['Inventory Summary'] },
         },
@@ -43,7 +43,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
         },
         {
           query: stockLedgerFilterSchema.extend(zPaginationDto.shape),
-          response: createPaginatedResponseSchema(stockLedgerSelectSchema.array()),
+          response: createPaginatedResponseSchema(stockLedgerSelectSchema),
           auth: true,
           detail: { tags: ['Inventory Ledger'] },
         },

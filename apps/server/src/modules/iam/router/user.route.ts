@@ -1,5 +1,5 @@
 import Elysia from 'elysia'
-import { z } from 'zod'
+
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -54,8 +54,7 @@ export function initUserRoute(service: UserService) {
     .patch(
       '/update',
       async function update({ body, auth }) {
-        const { id, ...data } = body
-        const result = await service.handleUpdate(id, data, auth.userId)
+        const result = await service.handleUpdate(body.id, body, auth.userId)
         return res.ok(result)
       },
       {

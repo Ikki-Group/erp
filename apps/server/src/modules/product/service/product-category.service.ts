@@ -22,7 +22,7 @@ import type { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutat
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
-  notFound: (id: string) => new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND'),
+  notFound: (id: number) => new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND'),
 }
 
 const uniqueFields: ConflictField<'name'>[] = [
@@ -37,7 +37,7 @@ const uniqueFields: ConflictField<'name'>[] = [
 const cacheKey = {
   count: 'productCategory.count',
   list: 'productCategory.list',
-  byId: (id: string) => `productCategory.byId.${id}`,
+  byId: (id: number) => `productCategory.byId.${id}`,
 }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
@@ -62,7 +62,7 @@ export class ProductCategoryService {
   /**
    * Finds a single product category by ID. Throws if not found or soft-deleted.
    */
-  async getById(id: string): Promise<ProductCategoryDto> {
+  async getById(id: number): Promise<ProductCategoryDto> {
     return record('ProductCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const result = await db
@@ -123,7 +123,7 @@ export class ProductCategoryService {
   /**
    * Serves product category detail.
    */
-  async handleDetail(id: string): Promise<ProductCategoryDto> {
+  async handleDetail(id: number): Promise<ProductCategoryDto> {
     return record('ProductCategoryService.handleDetail', async () => {
       return this.getById(id)
     })
@@ -132,7 +132,7 @@ export class ProductCategoryService {
   /**
    * Creates a new product category. Invalidates cache.
    */
-  async handleCreate(data: ProductCategoryMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleCreate(data: ProductCategoryMutationDto, actorId: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleCreate', async () => {
       const name = data.name.trim()
 
@@ -158,7 +158,7 @@ export class ProductCategoryService {
   /**
    * Updates existing product category. Invalidates cache.
    */
-  async handleUpdate(id: string, data: Partial<ProductCategoryMutationDto>, actorId: string): Promise<{ id: string }> {
+  async handleUpdate(id: number, data: Partial<ProductCategoryMutationDto>, actorId: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -186,7 +186,7 @@ export class ProductCategoryService {
    * Marks a product category as deleted (Soft Delete).
    * Used for crucial entities like Product Categories.
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleRemove', async () => {
       const result = await db
         .update(productCategoriesTable)
@@ -205,7 +205,7 @@ export class ProductCategoryService {
    * Permanently deletes a product category (Hard Delete).
    * USE WITH CAUTION.
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleHardRemove', async () => {
       const result = await db
         .delete(productCategoriesTable)
@@ -222,7 +222,7 @@ export class ProductCategoryService {
   /**
    * Clears relevant product category caches.
    */
-  private async clearCache(id?: string) {
+  private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

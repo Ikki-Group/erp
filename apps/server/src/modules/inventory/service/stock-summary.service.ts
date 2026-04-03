@@ -175,7 +175,7 @@ export class StockSummaryService {
         ) latest
         GROUP BY "materialId"
       `
-      const openingRaw = (await db.execute(openingQuery)) as unknown as { materialId: string; total_qty: string }[]
+      const openingRaw = (await db.execute(openingQuery)) as unknown as { materialId: number; total_qty: string }[]
       const openingMap = new Map(openingRaw.map((r) => [r.materialId, Number(r.total_qty)]))
 
       // B. Movements: Sum of all daily movements within date range
@@ -215,7 +215,7 @@ export class StockSummaryService {
         GROUP BY "materialId"
       `
       const closingRaw = (await db.execute(closingQuery)) as unknown as {
-        materialId: string
+        materialId: number
         total_qty: string
         total_value: string
       }[]
@@ -264,7 +264,7 @@ export class StockSummaryService {
    * Generate or regenerate daily summary for all materials at a location.
    * Aggregates transactions within the WIB day and computes opening/closing balances.
    */
-  async handleGenerate(data: GenerateSummaryDto, actorId: string): Promise<{ generatedCount: number }> {
+  async handleGenerate(data: GenerateSummaryDto, actorId: number): Promise<{ generatedCount: number }> {
     return record('StockSummaryService.handleGenerate', async () => {
       const { locationId, date } = data
       const dateKey = toWibDateKey(date)
@@ -287,7 +287,7 @@ export class StockSummaryService {
           ORDER BY "materialId", "date" DESC
         `
         const prevSummariesRaw = (await tx.execute(prevSummariesQuery)) as unknown as {
-          materialId: string
+          materialId: number
           closingQty: string
           closingAvgCost: string
         }[]
@@ -314,7 +314,7 @@ export class StockSummaryService {
           )
           .groupBy(stockTransactionsTable.materialId, stockTransactionsTable.type)
 
-        const movementMap = new Map<string, typeof movements>()
+        const movementMap = new Map<number, typeof movements>()
         for (const m of movements) {
           const list = movementMap.get(m.materialId) || []
           list.push(m)
@@ -331,7 +331,7 @@ export class StockSummaryService {
           ORDER BY "materialId", "id" DESC
         `
         const lastTransactionsRaw = (await tx.execute(lastTransactionsQuery)) as unknown as {
-          materialId: string
+          materialId: number
           runningAvgCost: string
         }[]
         const lastTxMap = new Map(lastTransactionsRaw.map((r) => [r.materialId, r]))
@@ -453,7 +453,7 @@ export class StockSummaryService {
   /**
    * Marks a summary as deleted (Soft Delete).
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('StockSummaryService.handleRemove', async () => {
       const result = await db
         .update(stockSummariesTable)
@@ -470,7 +470,7 @@ export class StockSummaryService {
   /**
    * Permanently deletes a summary (Hard Delete).
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('StockSummaryService.handleHardRemove', async () => {
       const result = await db
         .delete(stockSummariesTable)

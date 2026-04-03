@@ -1,6 +1,6 @@
-import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { integer, jsonb, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { metadata, pk } from './_helpers'
+import { auditColumns, pk } from '@/core/database/schema'
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -11,25 +11,30 @@ export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', ['pending', 'proc
 
 export const mokaConfigurationsTable = pgTable('moka_configurations', {
   ...pk,
-  locationId: uuid().notNull(), // Soft-link to Location ID
+  // Soft-link to Location ID
+  locationId: integer().notNull(),
   email: text().notNull(),
   password: text().notNull(),
-  businessId: text(), // Moka business IDs might be large or alphanumeric, change from int to text
-  outletId: text(), // Moka outlet IDs
+  // Moka business IDs might be large or alphanumeric, change from int to text
+  businessId: text(),
+  // Moka outlet IDs
+  outletId: text(),
   accessToken: text(),
   lastSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
-  ...metadata,
+  ...auditColumns,
 })
 
 export const mokaScrapHistoriesTable = pgTable('moka_scrap_histories', {
   ...pk,
-  mokaConfigurationId: uuid().notNull(), // Soft-link or strict reference to moka_configurations
+  // Soft-link or strict reference to moka_configurations
+  mokaConfigurationId: integer().notNull(),
   type: mokaScrapTypeEnum().notNull(),
   status: mokaScrapStatusEnum().notNull().default('pending'),
   dateFrom: timestamp({ mode: 'date', withTimezone: true }).notNull(),
   dateTo: timestamp({ mode: 'date', withTimezone: true }).notNull(),
-  rawPath: text(), // S3/R2 path
+  // S3/R2 path
+  rawPath: text(),
   errorMessage: text(),
   metadata: jsonb(),
-  ...metadata,
+  ...auditColumns,
 })

@@ -4,7 +4,6 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-  zId,
   zPaginationDto,
   zRecordIdDto,
   createSuccessResponseSchema,
@@ -25,7 +24,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       },
       {
         query: z.object({ ...UomFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(UomDto.array()),
+        response: createPaginatedResponseSchema(UomDto),
         auth: true,
       },
     )
@@ -52,7 +51,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...UomMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...UomMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },

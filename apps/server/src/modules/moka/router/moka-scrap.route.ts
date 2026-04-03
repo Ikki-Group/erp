@@ -25,6 +25,6 @@ export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaS
         const result = await historySvc.handleList(query.mokaConfigurationId)
         return res.ok(result)
       },
-      { query: z.object({ mokaConfigurationId: z.string().optional() }), auth: true },
+      { query: z.object({ mokaConfigurationId: z.coerce.number().optional() }), auth: true },
     )
 }

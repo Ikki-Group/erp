@@ -29,11 +29,11 @@ import type { ProductCategoryService } from './product-category.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: string) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND') }
+const err = { notFound: (id: number) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND') }
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
-const cacheKey = { count: 'product.count', list: 'product.list', byId: (id: string) => `product.byId.${id}` }
+const cacheKey = { count: 'product.count', list: 'product.list', byId: (id: number) => `product.byId.${id}` }
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -45,19 +45,19 @@ export class ProductService {
   /**
    * Fetches product-level prices (for non-variant products with sales type pricing).
    */
-  private async getProductPrices(productId: string): Promise<ProductPriceDto[]> {
+  private async getProductPrices(productId: number): Promise<ProductPriceDto[]> {
     return db.select().from(productPricesTable).where(eq(productPricesTable.productId, productId))
   }
 
   /**
    * Batch-fetches product-level prices for multiple products.
    */
-  private async getProductPricesBatch(productIds: string[]) {
-    if (productIds.length === 0) return new Map<string, ProductPriceDto[]>()
+  private async getProductPricesBatch(productIds: number[]) {
+    if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
 
     const prices = await db.select().from(productPricesTable).where(inArray(productPricesTable.productId, productIds))
 
-    const map = new Map<string, ProductPriceDto[]>()
+    const map = new Map<number, ProductPriceDto[]>()
     for (const id of productIds) map.set(id, [])
     for (const p of prices) map.get(p.productId)!.push(p)
 
@@ -67,7 +67,7 @@ export class ProductService {
   /**
    * Fetches variants + prices for a single product.
    */
-  private async getVariantsWithPrices(productId: string): Promise<ProductVariantDto[]> {
+  private async getVariantsWithPrices(productId: number): Promise<ProductVariantDto[]> {
     const variants = await db.select().from(productVariantsTable).where(eq(productVariantsTable.productId, productId))
 
     if (variants.length === 0) return []
@@ -75,7 +75,7 @@ export class ProductService {
     const variantIds = variants.map((v) => v.id)
     const prices = await db.select().from(variantPricesTable).where(inArray(variantPricesTable.variantId, variantIds))
 
-    const pricesByVariant = new Map<string, VariantPriceDto[]>()
+    const pricesByVariant = new Map<number, VariantPriceDto[]>()
     for (const p of prices) {
       const list = pricesByVariant.get(p.variantId) ?? []
       list.push(p)
@@ -88,8 +88,8 @@ export class ProductService {
   /**
    * Batch-fetches variants + prices for multiple products.
    */
-  private async getVariantsBatch(productIds: string[]) {
-    if (productIds.length === 0) return new Map<string, ProductVariantDto[]>()
+  private async getVariantsBatch(productIds: number[]) {
+    if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
     const variants = await db
       .select()
       .from(productVariantsTable)
@@ -102,14 +102,14 @@ export class ProductService {
         ? await db.select().from(variantPricesTable).where(inArray(variantPricesTable.variantId, variantIds))
         : []
 
-    const pricesByVariant = new Map<string, VariantPriceDto[]>()
+    const pricesByVariant = new Map<number, VariantPriceDto[]>()
     for (const p of prices) {
       const list = pricesByVariant.get(p.variantId) ?? []
       list.push(p)
       pricesByVariant.set(p.variantId, list)
     }
 
-    const map = new Map<string, ProductVariantDto[]>()
+    const map = new Map<number, ProductVariantDto[]>()
     for (const id of productIds) {
       map.set(id, [])
     }
@@ -124,8 +124,8 @@ export class ProductService {
    * Loads product external mappings in batch.
    */
   private async getProductExternalMappingsBatch(
-    productIds: string[],
-  ): Promise<Map<string, ProductExternalMappingDto[]>> {
+    productIds: number[],
+  ): Promise<Map<number, ProductExternalMappingDto[]>> {
     if (productIds.length === 0) return new Map()
 
     const mappings = await db
@@ -133,7 +133,7 @@ export class ProductService {
       .from(productExternalMappingsTable)
       .where(inArray(productExternalMappingsTable.productId, productIds))
 
-    const map = new Map<string, ProductExternalMappingDto[]>()
+    const map = new Map<number, ProductExternalMappingDto[]>()
     for (const id of productIds) {
       map.set(id, [])
     }
@@ -147,7 +147,7 @@ export class ProductService {
   /**
    * Checks uniqueness of SKU and name scoped to a location.
    */
-  private async checkScopedConflict(locationId: string, input: { sku: string; name: string }, excludeId?: string) {
+  private async checkScopedConflict(locationId: number, input: { sku: string; name: string }, excludeId?: number) {
     const conditions = [
       eq(productsTable.locationId, locationId),
       isNull(productsTable.deletedAt),
@@ -187,7 +187,7 @@ export class ProductService {
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
 
-  async getById(id: string): Promise<ProductDto> {
+  async getById(id: number): Promise<ProductDto> {
     return record('ProductService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
         const [result] = await db
@@ -267,7 +267,7 @@ export class ProductService {
       const pricesMap = await this.getProductPricesBatch(productIds)
       const mappingsMap = await this.getProductExternalMappingsBatch(productIds)
 
-      const categoriesMap = new Map<string, ProductCategoryDto>()
+      const categoriesMap = new Map<number, ProductCategoryDto>()
       const allCategories = await this.categorySvc.find()
       for (const cat of allCategories) {
         categoriesMap.set(cat.id, cat)
@@ -284,7 +284,7 @@ export class ProductService {
     })
   }
 
-  async handleDetail(id: string): Promise<ProductSelectDto> {
+  async handleDetail(id: number): Promise<ProductSelectDto> {
     return record('ProductService.handleDetail', async () => {
       const product = await this.getById(id)
       const category = product.categoryId ? await this.categorySvc.getById(product.categoryId) : null
@@ -292,7 +292,7 @@ export class ProductService {
     })
   }
 
-  async handleCreate(data: ProductMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleCreate(data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
     return record('ProductService.handleCreate', async () => {
       const sku = data.sku.trim()
       const name = data.name.trim()
@@ -375,7 +375,7 @@ export class ProductService {
     })
   }
 
-  async handleUpdate(id: string, data: ProductMutationDto, actorId: string): Promise<{ id: string }> {
+  async handleUpdate(id: number, data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
     return record('ProductService.handleUpdate', async () => {
       const existing = await this.getById(id)
 
@@ -464,7 +464,7 @@ export class ProductService {
    * Marks a product as deleted (Soft Delete).
    * Used for crucial entities like Products.
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('ProductService.handleRemove', async () => {
       const result = await db
         .update(productsTable)
@@ -483,7 +483,7 @@ export class ProductService {
    * Permanently deletes a product (Hard Delete).
    * USE WITH CAUTION.
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('ProductService.handleHardRemove', async () => {
       const result = await db.delete(productsTable).where(eq(productsTable.id, id)).returning({ id: productsTable.id })
       if (result.length === 0) throw err.notFound(id)
@@ -495,7 +495,7 @@ export class ProductService {
 
   // ─── Cache ────────────────────────────────────────────────────────────────
 
-  private async clearCache(id?: string) {
+  private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),

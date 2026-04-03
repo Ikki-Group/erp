@@ -1,11 +1,11 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zDecimal, zSortOrder, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zBool, zId, zDecimal, zSortOrder, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- NESTED --------------------------------- */
 
 export const RecipeItemDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   recipeId: zId,
   materialId: zId,
   qty: zDecimal,
@@ -25,7 +25,7 @@ export type RecipeItemDto = z.infer<typeof RecipeItemDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RecipeDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   materialId: zId.nullable(),
   productId: zId.nullable(),
   productVariantId: zId.nullable(),

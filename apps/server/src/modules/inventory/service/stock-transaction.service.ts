@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+
 
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
@@ -22,13 +22,13 @@ import type {
 } from '../dto'
 
 const err = {
-  notFound: (id: string) => new NotFoundError(`Transaction with ID ${id} not found`, 'TRANSACTION_NOT_FOUND'),
-  insufficientStock: (materialId: string, available: number, requested: number) =>
+  notFound: (id: number) => new NotFoundError(`Transaction with ID ${id} not found`, 'TRANSACTION_NOT_FOUND'),
+  insufficientStock: (materialId: number, available: number, requested: number) =>
     new BadRequestError(
       `Insufficient stock for material ${materialId}: available ${available}, requested ${requested}`,
       'INSUFFICIENT_STOCK',
     ),
-  negativeStock: (materialId: string) =>
+  negativeStock: (materialId: number) =>
     new BadRequestError(`Adjustment would result in negative stock for material ${materialId}`, 'NEGATIVE_STOCK'),
 }
 
@@ -59,7 +59,7 @@ export class StockTransactionService {
    * Record purchase transactions for multiple materials at one location.
    * Each item increases stock and recalculates WAC.
    */
-  async handlePurchase(data: PurchaseTransactionDto, actorId: string): Promise<TransactionResultDto> {
+  async handlePurchase(data: PurchaseTransactionDto, actorId: number): Promise<TransactionResultDto> {
     return record('StockTransactionService.handlePurchase', async () => {
       const { locationId, date, referenceNo, notes, items } = data
 
@@ -118,10 +118,10 @@ export class StockTransactionService {
    * Creates paired journal entries (transfer_out + transfer_in) per item.
    * Transfer cost uses source location's current average cost.
    */
-  async handleTransfer(data: TransferTransactionDto, actorId: string): Promise<TransactionResultDto> {
+  async handleTransfer(data: TransferTransactionDto, actorId: number): Promise<TransactionResultDto> {
     return record('StockTransactionService.handleTransfer', async () => {
       const { sourceLocationId, destinationLocationId, date, referenceNo, notes, items } = data
-      const transferId = randomUUID()
+      const transferId = Math.floor(Date.now() / 1000) // Usingunix timestamp as a simple grouping ID
 
       await db.transaction(async (tx) => {
         const metadata = stampCreate(actorId)
@@ -214,7 +214,7 @@ export class StockTransactionService {
    * - Positive qty: WAC recalculated (uses provided unitCost or current avg cost).
    * - Negative qty: WAC switched off, stock reduced.
    */
-  async handleAdjustment(data: AdjustmentTransactionDto, actorId: string): Promise<TransactionResultDto> {
+  async handleAdjustment(data: AdjustmentTransactionDto, actorId: number): Promise<TransactionResultDto> {
     return record('StockTransactionService.handleAdjustment', async () => {
       const { locationId, date, referenceNo, notes, items } = data
 
@@ -367,7 +367,7 @@ export class StockTransactionService {
   /**
    * Get a single transaction by ID.
    */
-  async handleDetail(id: string): Promise<StockTransactionDto> {
+  async handleDetail(id: number): Promise<StockTransactionDto> {
     return record('StockTransactionService.handleDetail', async () => {
       const result = await db
         .select()
@@ -382,7 +382,7 @@ export class StockTransactionService {
   /**
    * Marks a transaction as deleted (Soft Delete).
    */
-  async handleRemove(id: string, actorId: string): Promise<{ id: string }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('StockTransactionService.handleRemove', async () => {
       const result = await db
         .update(stockTransactionsTable)
@@ -399,7 +399,7 @@ export class StockTransactionService {
   /**
    * Permanently deletes a transaction (Hard Delete).
    */
-  async handleHardRemove(id: string): Promise<{ id: string }> {
+  async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('StockTransactionService.handleHardRemove', async () => {
       const result = await db
         .delete(stockTransactionsTable)

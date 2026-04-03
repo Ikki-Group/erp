@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zDecimal, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zNum, zId, zDate, zDecimal, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -10,7 +10,7 @@ export type SalesOrderStatus = z.infer<typeof SalesOrderStatus>
 /* --------------------------------- NESTED --------------------------------- */
 
 export const SalesOrderBatchDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   orderId: zId,
   batchNumber: zNum,
   status: zStr,
@@ -19,7 +19,7 @@ export const SalesOrderBatchDto = z.object({
 export type SalesOrderBatchDto = z.infer<typeof SalesOrderBatchDto>
 
 export const SalesOrderItemDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   orderId: zId,
   batchId: zId.nullable(),
   productId: zId.nullable(),
@@ -35,7 +35,7 @@ export const SalesOrderItemDto = z.object({
 export type SalesOrderItemDto = z.infer<typeof SalesOrderItemDto>
 
 export const SalesVoidDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   orderId: zId,
   itemId: zId.nullable(),
   reason: zStrNullable,
@@ -45,7 +45,7 @@ export const SalesVoidDto = z.object({
 export type SalesVoidDto = z.infer<typeof SalesVoidDto>
 
 export const SalesExternalRefDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   orderId: zId,
   externalSource: zStr,
   externalOrderId: zStr,
@@ -57,7 +57,7 @@ export type SalesExternalRefDto = z.infer<typeof SalesExternalRefDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const SalesOrderDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   locationId: zId,
   customerId: zId.nullable(),
   salesTypeId: zId,

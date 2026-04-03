@@ -1,7 +1,9 @@
-import { date, index, numeric, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
+import { date, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { metadata, pk, transactionTypeEnum } from './_helpers'
+import { auditColumns, pk } from '@/core/database/schema'
+
+import { transactionTypeEnum } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 
@@ -11,10 +13,10 @@ export const stockTransactionsTable = pgTable(
   'stock_transactions',
   {
     ...pk,
-    materialId: uuid()
+    materialId: integer()
       .notNull()
       .references(() => materialsTable.id, { onDelete: 'restrict' }),
-    locationId: uuid()
+    locationId: integer()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
 
@@ -31,14 +33,14 @@ export const stockTransactionsTable = pgTable(
     totalCost: numeric({ precision: 18, scale: 2 }).notNull(),
 
     // Transfer-specific
-    counterpartLocationId: uuid().references(() => locationsTable.id, { onDelete: 'restrict' }),
-    transferId: uuid(),
+    counterpartLocationId: integer().references(() => locationsTable.id, { onDelete: 'restrict' }),
+    transferId: integer(),
 
     // Running snapshot after this transaction
     runningQty: numeric({ precision: 18, scale: 4 }).notNull(),
     runningAvgCost: numeric({ precision: 18, scale: 2 }).notNull(),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     index('stock_txn_material_location_date_idx').on(t.materialId, t.locationId, t.date),
@@ -55,10 +57,10 @@ export const stockSummariesTable = pgTable(
   'stock_summaries',
   {
     ...pk,
-    materialId: uuid()
+    materialId: integer()
       .notNull()
       .references(() => materialsTable.id, { onDelete: 'restrict' }),
-    locationId: uuid()
+    locationId: integer()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
     date: date({ mode: 'date' }).notNull(),
@@ -85,10 +87,12 @@ export const stockSummariesTable = pgTable(
     closingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
     closingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
-    uniqueIndex('stock_summaries_material_location_date_idx').on(t.materialId, t.locationId, t.date).where(sql`${t.deletedAt} IS NULL`),
+    uniqueIndex('stock_summaries_material_location_date_idx')
+      .on(t.materialId, t.locationId, t.date)
+      .where(sql`${t.deletedAt} IS NULL`),
     index('stock_summaries_location_date_idx').on(t.locationId, t.date),
     index('stock_summaries_date_idx').on(t.date),
   ],

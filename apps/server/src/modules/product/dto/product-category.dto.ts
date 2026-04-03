@@ -1,17 +1,16 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const productCategorySchema = z
-  .object({
-    id: zId,
-    name: zStr,
-    description: zStrNullable,
-    parentId: zId.nullable(),
-  })
-  .merge(zMetadataDto)
+export const productCategorySchema = z.object({
+  ...zRecordIdDto.shape,
+  name: zStr,
+  description: zStrNullable,
+  parentId: zId.nullable(),
+  ...zMetadataDto.shape,
+})
 
 export type ProductCategoryDto = z.infer<typeof productCategorySchema>
 

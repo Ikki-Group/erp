@@ -20,14 +20,14 @@ import type {
 import type { MaterialService } from './material.service'
 
 const err = {
-  notFound: (id: string) =>
+  notFound: (id: number) =>
     new NotFoundError(`Material-Location assignment with ID ${id} not found`, 'MATERIAL_LOCATION_NOT_FOUND'),
-  notAssigned: (materialId: string, locationId: string) =>
+  notAssigned: (materialId: number, locationId: number) =>
     new NotFoundError(
       `Material ${materialId} is not assigned to location ${locationId}`,
       'MATERIAL_NOT_ASSIGNED_TO_LOCATION',
     ),
-  alreadyAssigned: (materialId: string, locationId: string) =>
+  alreadyAssigned: (materialId: number, locationId: number) =>
     new ConflictError(
       `Material ${materialId} is already assigned to location ${locationId}`,
       'MATERIAL_LOCATION_ALREADY_ASSIGNED',
@@ -43,7 +43,7 @@ export class MaterialLocationService {
   /* ─────────────────────── INTERNAL QUERIES ─────────────────────── */
 
   /** Get a specific material-location assignment */
-  async findOne(materialId: string, locationId: string): Promise<MaterialLocationDto> {
+  async findOne(materialId: number, locationId: number): Promise<MaterialLocationDto> {
     return record('MaterialLocationService.findOne', async () => {
       const [result] = await db
         .select()
@@ -66,7 +66,7 @@ export class MaterialLocationService {
   }
 
   /** Get all assignments for a specific material */
-  async findByMaterialId(materialId: string): Promise<MaterialLocationDto[]> {
+  async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByMaterialId', async () => {
       const results = await db
         .select()
@@ -86,7 +86,7 @@ export class MaterialLocationService {
   }
 
   /** Get all assignments for a specific location */
-  async findByLocationId(locationId: string): Promise<MaterialLocationDto[]> {
+  async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
     return record('MaterialLocationService.findByLocationId', async () => {
       const results = await db
         .select()
@@ -111,7 +111,7 @@ export class MaterialLocationService {
    * Assign multiple materials to multiple locations (batch).
    * Skips any that are already assigned (upsert-like).
    */
-  async handleAssign(data: MaterialLocationAssignDto, actorId: string): Promise<{ assignedCount: number }> {
+  async handleAssign(data: MaterialLocationAssignDto, actorId: number): Promise<{ assignedCount: number }> {
     return record('MaterialLocationService.handleAssign', async () => {
       const { locationIds, materialIds } = data
 
@@ -159,7 +159,7 @@ export class MaterialLocationService {
   /**
    * Unassign a material from a location.
    */
-  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: string }> {
+  async handleUnassign(data: MaterialLocationUnassignDto): Promise<{ id: number }> {
     return record('MaterialLocationService.handleUnassign', async () => {
       const { materialId, locationId } = data
 
@@ -181,7 +181,7 @@ export class MaterialLocationService {
   /**
    * List all locations assigned to a material, enriched with location details.
    */
-  async handleLocationsByMaterial(materialId: string): Promise<MaterialLocationWithLocationDto[]> {
+  async handleLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
     return record('MaterialLocationService.handleLocationsByMaterial', async () => {
       // Validate material exists
       await this.materialSvc.getById(materialId)
@@ -281,7 +281,7 @@ export class MaterialLocationService {
   /**
    * Update per-location config (minStock, maxStock, reorderPoint).
    */
-  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: string): Promise<{ id: string }> {
+  async handleUpdateConfig(data: MaterialLocationConfigDto, actorId: number): Promise<{ id: number }> {
     return record('MaterialLocationService.handleUpdateConfig', async () => {
       const { id, ...update } = data
 
@@ -308,10 +308,10 @@ export class MaterialLocationService {
    * Update current stock snapshot. Called by the inventory module after recording a transaction.
    */
   async updateCurrentStock(
-    materialId: string,
-    locationId: string,
+    materialId: number,
+    locationId: number,
     stock: { currentQty: number; currentAvgCost: number; currentValue: number },
-    actorId: string,
+    actorId: number,
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
       await db

@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 
 import { UomDto } from './uom.dto'
@@ -8,7 +8,7 @@ import { UomDto } from './uom.dto'
 /* ---------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   materialId: zId,
   locationId: zId,
 

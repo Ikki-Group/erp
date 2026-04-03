@@ -13,6 +13,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 ---
 
 ## Technical Strategy Decisions
+
 - **Frontend Architecture**: Monolithic Single Page Application (SPA) utilizing TanStack Router for file-based routing. No Micro-frontends.
 - **Analytics & Dashboarding**: Utilization of `cache-manager` with in-memory caching for the current phase to optimize analytical queries without external Redis overhead.
 - **Data Continuity**: Dedicated phase for developing migration scripts to map old schema data into the newly restructured databases.
@@ -23,67 +24,74 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 ## MVP Core Refactoring & Implementation
 
 ### Phase 1: Architecture Reboot & Foundation (Layer 0)
+
 **Objective**: Establish pristine Monorepo architecture, testing tools, and baseline foundation without dependencies.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `INF-01` | Setup strict Monorepo (Bun), linter config (Oxlint/Oxfmt), `tsconfig` strict checks.   | Tooling   |
-|   ⏳   | `INF-02` | Standardize Drizzle Base Schemas, Zod validation pipelines, and Error Handling.        | Config    |
-|   ✅   | `MD-01`  | Rebuild Location Management (Outlets/Warehouse) module (Layer 0).                      | Backend   |
-|   ⏳   | `MIG-01` | Establish foundation and mappings for the legacy data migration script.                | Tooling   |
+| Status | Task ID  | Description                                                                          | Component |
+| :----: | :------- | :----------------------------------------------------------------------------------- | :-------: |
+|   ✅   | `INF-01` | Setup strict Monorepo (Bun), linter config (Oxlint/Oxfmt), `tsconfig` strict checks. |  Tooling  |
+|   ✅   | `INF-02` | Standardize Drizzle Base Schemas, Zod validation pipelines, and Error Handling.      |  Config   |
+|   ✅   | `MD-01`  | Rebuild Location Management (Outlets/Warehouse) module (Layer 0).                    |  Backend  |
+|   ⏳   | `MIG-01` | Establish foundation and mappings for the legacy data migration script.              |  Tooling  |
 
 ### Phase 2: Master Data & Security (Layer 1)
+
 **Objective**: Build central registries that depend only on Location and configuration.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   🏃   | `IAM-01` | Rebuild IAM Core: User, Role, Auth Engine, and LBAC middleware.                        | Backend   |
-|   ⏳   | `MD-02`  | Rebuild Core Catalogs: Product, Category, Material, and UOM Conversion Engine.         | Backend   |
-|   ⏳   | `MD-03`  | Develop Stakeholder Catalogs: Supplier Profiles (SRM) & Employee Master.               | Backend   |
-|   ⏳   | `FIN-01` | Define structural Chart of Accounts (CoA) definitions.                                 | Backend   |
+| Status | Task ID  | Description                                                                    | Component |
+| :----: | :------- | :----------------------------------------------------------------------------- | :-------: |
+|   🏃   | `IAM-01` | Rebuild IAM Core: User, Role, Auth Engine, and LBAC middleware.                |  Backend  |
+|   ⏳   | `MD-02`  | Rebuild Core Catalogs: Product, Category, Material, and UOM Conversion Engine. |  Backend  |
+|   ⏳   | `MD-03`  | Develop Stakeholder Catalogs: Supplier Profiles (SRM) & Employee Master.       |  Backend  |
+|   ⏳   | `FIN-01` | Define structural Chart of Accounts (CoA) definitions.                         |  Backend  |
 
 ### Phase 3: Procurement & Inventory (Layer 2)
+
 **Objective**: Transactional engines managing external supply and internal physical movements.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `PUR-01` | Purchasing Workflow: Purchase Requisition $\rightarrow$ PO (with Price Lock).          | Backend   |
-|   ⏳   | `PUR-02` | Goods Receipt Note (GRN) processing and invoice validation.                            | Backend   |
-|   ⏳   | `INV-01` | Inventory Movement Engine: Stock In, Out, Internal Transfers.                          | Backend   |
-|   ⏳   | `INV-02` | Material Ledger automation mapping real-time Weighted Average Cost (WAC) & Opnames.    | Backend   |
+| Status | Task ID  | Description                                                                         | Component |
+| :----: | :------- | :---------------------------------------------------------------------------------- | :-------: |
+|   ⏳   | `PUR-01` | Purchasing Workflow: Purchase Requisition $\rightarrow$ PO (with Price Lock).       |  Backend  |
+|   ⏳   | `PUR-02` | Goods Receipt Note (GRN) processing and invoice validation.                         |  Backend  |
+|   ⏳   | `INV-01` | Inventory Movement Engine: Stock In, Out, Internal Transfers.                       |  Backend  |
+|   ⏳   | `INV-02` | Material Ledger automation mapping real-time Weighted Average Cost (WAC) & Opnames. |  Backend  |
 
 ### Phase 4: Production & Costing (Layer 2)
+
 **Objective**: Handling recipe hierarchies and kitchen processing.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `RCP-01` | Recipe Engine: Nested Bill of Materials (BOM) and automated Costing (HPP) updates.     | Backend   |
-|   ⏳   | `MFG-01` | Central Kitchen Work Orders, Batch Yield computing, and raw material Shrinkage logic.  | Backend   |
+| Status | Task ID  | Description                                                                           | Component |
+| :----: | :------- | :------------------------------------------------------------------------------------ | :-------: |
+|   ⏳   | `RCP-01` | Recipe Engine: Nested Bill of Materials (BOM) and automated Costing (HPP) updates.    |  Backend  |
+|   ⏳   | `MFG-01` | Central Kitchen Work Orders, Batch Yield computing, and raw material Shrinkage logic. |  Backend  |
 
 ### Phase 5: HRIS Operations (Layer 2)
+
 **Objective**: Full F&B staff lifecycle tracking.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `HR-01`  | Time & Attendance: Shift scheduling and digital Clock-In/Out mechanics.                | Backend   |
-|   ⏳   | `HR-02`  | Payroll Engine: Batch generation, manual adjustments, Service Charge distribution.     | Backend   |
+| Status | Task ID | Description                                                                        | Component |
+| :----: | :------ | :--------------------------------------------------------------------------------- | :-------: |
+|   ⏳   | `HR-01` | Time & Attendance: Shift scheduling and digital Clock-In/Out mechanics.            |  Backend  |
+|   ⏳   | `HR-02` | Payroll Engine: Batch generation, manual adjustments, Service Charge distribution. |  Backend  |
 
 ### Phase 6: Core Aggregation & Financials (Layer 3)
+
 **Objective**: External syncs and generating accounting truth.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `MOKA-01`| Implement Moka POS Integration: Sync catalogs, fetch transactions, and trace waste.    | Aggregator|
-|   ⏳   | `FIN-02` | Finance Sink: Double-entry General Ledger automation catching all module transactions. | Aggregator|
-|   ⏳   | `MIG-02` | Execute comprehensive Data Migration staging test from old schema to new structure.    | Tooling   |
+| Status | Task ID   | Description                                                                            | Component  |
+| :----: | :-------- | :------------------------------------------------------------------------------------- | :--------: |
+|   ⏳   | `MOKA-01` | Implement Moka POS Integration: Sync catalogs, fetch transactions, and trace waste.    | Aggregator |
+|   ⏳   | `FIN-02`  | Finance Sink: Double-entry General Ledger automation catching all module transactions. | Aggregator |
+|   ⏳   | `MIG-02`  | Execute comprehensive Data Migration staging test from old schema to new structure.    |  Tooling   |
 
 ### Phase 7: Analytics & QA (Layer 3)
+
 **Objective**: Front-facing executive dashboards and system-wide polishing.
 
-| Status | Task ID  | Description                                                                            | Component |
-| :----: | :------- | :------------------------------------------------------------------------------------- | :-------: |
-|   ⏳   | `DASH-01`| Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.            | Fullstack |
-|   ⏳   | `QA-01`  | End-to-End integration testing across all layered modules and validation pipelines.    | Tooling   |
+| Status | Task ID   | Description                                                                         | Component |
+| :----: | :-------- | :---------------------------------------------------------------------------------- | :-------: |
+|   ⏳   | `DASH-01` | Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.         | Fullstack |
+|   ⏳   | `QA-01`   | End-to-End integration testing across all layered modules and validation pipelines. |  Tooling  |
 
 ---
 
@@ -91,10 +99,10 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 
 These modules are planned for future development cycles after the successful deployment of Phase 1-7.
 
-| Priority | Module                | Description                                                                           |
-| :------: | :-------------------- | :------------------------------------------------------------------------------------ |
-|   Low    | **Asset & Maint.**    | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.          |
-|   Low    | **B2B Sales**         | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable).|
+| Priority | Module             | Description                                                                            |
+| :------: | :----------------- | :------------------------------------------------------------------------------------- |
+|   Low    | **Asset & Maint.** | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.           |
+|   Low    | **B2B Sales**      | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable). |
 
 ---
 
