@@ -1,6 +1,6 @@
 # Backend Standard: Project Structure
 
-This document defines the **Golden Path 2.0** standards for the project organization and module layout within the Ikki ERP backend.
+This document defines the standards for project organization and module layout within the Ikki ERP backend.
 
 ## 1. Module-Based Organization
 
@@ -41,7 +41,7 @@ Avoid reimplementing common patterns. Always check and use `@/core`:
 
 ## 4. Environment Variables
 
-All environment variables must be defined and validated in a central configuration or at the entry point. Avoid using `process.env` directly in domain modules; use a wrapper or injected config if possible.
+All environment variables must be defined and validated in a central configuration or at the entry point. Avoid using `Bun.env` directly in domain modules; use a wrapper or injected config if possible.
 
 ## 5. Coding Style
 

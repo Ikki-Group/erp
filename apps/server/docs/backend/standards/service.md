@@ -1,6 +1,6 @@
 # Backend Standard: Service Layer (Layer 0)
 
-This document defines the **Golden Path 2.0** standards for the Service layer within the Ikki ERP backend.
+This document defines the architectural standards for the Service layer within the Ikki ERP backend.
 
 ## 1. Responsibilities
 

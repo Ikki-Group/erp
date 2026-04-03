@@ -1,19 +1,14 @@
 # Backend Standard: Data Transfer Objects (DTO)
 
-This document defines the **Golden Path 2.0.1** standards for Data Transfer Objects (DTO) using **Zod** and **TypeScript** within the Ikki ERP backend.
+This document defines the standards for Data Transfer Objects (DTO) using **Zod** and **TypeScript** within the Ikki ERP backend.
 
 ## 1. Naming Convention (The `Dto` Suffix)
 
 To clearly distinguish data structures (Zod schemas and inferred types) from behavioral entities (Service and Router classes), all DTO-related exports must append the `Dto` suffix.
 
 ```typescript
-// ✅ CORRECT: Descriptive DTO with suffix
 export const LocationDto = z.object({ ... })
 export type LocationDto = z.infer<typeof LocationDto>
-
-// ❌ INCORRECT: Ambiguous naming
-export const Location = z.object({ ... })
-export type Location = z.infer<typeof Location>
 ```
 
 ## 2. Schema Composition (The Spread Pattern)

@@ -1,14 +1,14 @@
 # Backend Standard: Error & Validation
 
-This document defines the **Golden Path 2.0** standards for error handling and validation within the Ikki ERP backend.
+This document defines the standards for error handling and validation within the Ikki ERP backend.
 
 ## 1. Input Validation (Layer 1)
 
 Input validation must be handled at the **Router Layer** using **Zod** schemas. This prevents invalid or malicious data from reaching the Service layer.
 
 ```typescript
-.post('/create', h.create.bind(h), {
-  body: dto.UserCreate, // Unified Zod schema
+.post('/create', async function create({ body, auth }) { ... }, {
+  body: dto.UserCreateDto, // Unified Zod schema
   response: createSuccessResponseSchema(zRecordIdDto),
   auth: true,
 })
@@ -38,11 +38,7 @@ Always use the custom error classes from `@/core/http/errors` to ensure consiste
 Each error should include a unique **Error Code** in `UPPER_SNAKE_CASE` to enable frontend mapping for localized messages.
 
 ```typescript
-// ✅ CORRECT: Specific error code
 throw new ConflictError('Email already exists', 'USER_EMAIL_ALREADY_EXISTS')
-
-// ❌ INCORRECT: Generic error without code
-throw new Error('Something went wrong')
 ```
 
 ## 5. Error Tracing
@@ -50,15 +46,8 @@ throw new Error('Something went wrong')
 Avoid catching and silencing errors unless you are translating them into a domain-specific error. Let the **Elysia Centralized Error Handler** catch and log them for better observability.
 
 ```typescript
-// ✅ CORRECT: Let the error bubble to the global handler
+// Let the error bubble to the global handler
 const first = core.takeFirstOrThrow(rows, `User ${id} not found`, 'USER_NOT_FOUND')
-
-// ❌ INCORRECT: Manual try-catch for every query
-try {
-  const user = await db.select() ...
-} catch (e) {
-  return { error: 'Not Found' }
-}
 ```
 
 ## 6. Type-Safe Validation Styles

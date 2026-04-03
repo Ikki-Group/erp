@@ -1,13 +1,12 @@
 # Backend Standard: Router Layer (Layer 1)
 
-This document defines the **Golden Path 2.1** standards for the Router layer within the Ikki ERP backend. This standard promotes **Functional Route Definitions** for clarity, modularity, and less boilerplate code.
+This document defines the standards for the Router layer within the Ikki ERP backend. It promotes **Functional Route Definitions** for clarity, modularity, and less boilerplate code.
 
-## 1. Functional Route Pattern
+## 1. Route Pattern
 
-All routes should be defined using an inline functional approach within the Elysia instance. Avoid using separate Handler classes unless the logic is exceptionally complex and cannot be clearly represented inline.
+All routes should be defined using an inline functional approach within the Elysia instance.
 
 ```typescript
-// ✅ CORRECT: Functional/Inline Handler
 export function initMyDomainRoute(service: MyService) {
   return new Elysia({ prefix: '/my-domain' })
     .use(authPluginMacro)
@@ -24,9 +23,6 @@ export function initMyDomainRoute(service: MyService) {
       },
     )
 }
-
-// ❌ DEPRECATED: Class-based Handler
-class MyHandler { ... }
 ```
 
 ## 2. Standard Handler Methods & Paths

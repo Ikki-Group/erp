@@ -1,6 +1,6 @@
 # Backend Standard: Database Layer (Drizzle ORM)
 
-This document defines the **Golden Path 2.0** standards for the database layer using **Drizzle ORM** within the Ikki ERP backend.
+This document defines the standards for the database layer using **Drizzle ORM** within the Ikki ERP backend.
 
 ## 1. Naming Convention (Snake Case vs Camel Case)
 

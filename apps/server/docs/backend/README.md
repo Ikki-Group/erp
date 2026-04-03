@@ -1,6 +1,6 @@
 # Backend Style Guide & Standards
 
-Welcome to the Ikki ERP Backend Standards. This repository represents the **Golden Path 2.0** — our definitive architectural standard for building scalable, type-safe, and efficient enterprise backend services.
+Welcome to the Ikki ERP Backend Standards. This repository represents our definitive architectural standard for building scalable, type-safe, and efficient enterprise backend services.
 
 ## 🏛️ Core Architecture
 
@@ -15,7 +15,7 @@ This guide organizes our standards into the following areas:
 | [🗄️ Database (Drizzle ORM)](./standards/database.md) | Naming conventions, efficiency (Integers), and audit helpers. |
 | [🚨 Error & Validation](./standards/error-validation.md) | Standard error classes and validation rules. |
 
-## 🚀 The Golden Path 2.0 Principles
+## 🚀 Key Principles
 
 1.  **Strict Type Safety**: We eliminate all `any` and `@ts-ignore`. If a type is unknown, use Zod to narrow it.
 2.  **Storage Efficiency**: We favor **Serial Integers** for IDs unless a cross-system UUID is strictly required. High performance and low index latency are foundational.
