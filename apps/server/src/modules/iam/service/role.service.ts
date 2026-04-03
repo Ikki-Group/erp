@@ -23,7 +23,7 @@ const cacheKey = {
 // Handles authorization role definitions and permission sets.
 export class RoleService {
   // Seed initial roles.
-  async seed(data: (dto.RoleCreate & { createdBy: number })[]): Promise<void> {
+  async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
     await record('RoleService.seed', async () => {
       for (const d of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -47,11 +47,11 @@ export class RoleService {
   }
 
   // Returns active roles.
-  async find(): Promise<dto.Role[]> {
+  async find(): Promise<dto.RoleDto[]> {
     const result = await record('RoleService.find', async () => {
       const data = await cache.wrap(cacheKey.list, async () => {
         const rows = await db.select().from(rolesTable).where(isNull(rolesTable.deletedAt)).orderBy(rolesTable.name)
-        return rows.map((r) => dto.Role.parse(r))
+        return rows.map((r) => dto.RoleDto.parse(r))
       })
       return data
     })
@@ -59,12 +59,12 @@ export class RoleService {
   }
 
   // Finds a role by ID.
-  async getById(id: number): Promise<dto.Role> {
+  async getById(id: number): Promise<dto.RoleDto> {
     const result = await record('RoleService.getById', async () => {
       const data = await cache.wrap(cacheKey.byId(id), async () => {
         const rows = await db.select().from(rolesTable).where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
-        return dto.Role.parse(first)
+        return dto.RoleDto.parse(first)
       })
       return data
     })
@@ -84,7 +84,7 @@ export class RoleService {
   }
 
   // Paginated list.
-  async handleList(filter: dto.RoleFilter): Promise<core.WithPaginationResult<dto.Role>> {
+  async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
     const result = await record('RoleService.handleList', async () => {
       const { q, page, limit } = filter
       const where = and(
@@ -92,10 +92,10 @@ export class RoleService {
         q === undefined ? undefined : or(core.searchFilter(rolesTable.name, q), core.searchFilter(rolesTable.code, q)),
       )
 
-      const p = await core.paginate<dto.Role>({
+      const p = await core.paginate<dto.RoleDto>({
         data: async ({ limit: l, offset }) => {
           const rows = await db.select().from(rolesTable).where(where).orderBy(core.sortBy(rolesTable.updatedAt, 'desc')).limit(l).offset(offset)
-          return rows.map((r) => dto.Role.parse(r))
+          return rows.map((r) => dto.RoleDto.parse(r))
         },
         pq: { page, limit },
         countQuery: db.select({ count: count() }).from(rolesTable).where(where),
@@ -106,12 +106,12 @@ export class RoleService {
   }
 
   // Resource detail.
-  async handleDetail(id: number): Promise<dto.Role> {
+  async handleDetail(id: number): Promise<dto.RoleDto> {
     return this.getById(id)
   }
 
   // Creation.
-  async handleCreate(data: dto.RoleCreate, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('RoleService.handleCreate', async () => {
       await core.checkConflict({
         table: rolesTable,
@@ -131,7 +131,7 @@ export class RoleService {
   }
 
   // Update.
-  async handleUpdate(id: number, data: dto.RoleBase, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: dto.RoleBaseDto, actorId: number): Promise<{ id: number }> {
     const result = await record('RoleService.handleUpdate', async () => {
       const existing = await this.getById(id)
       if (existing.isSystem) throw new Error('Cannot update system role')

@@ -11,7 +11,7 @@ import type { RoleService } from '../service/role.service'
 class RoleHandler {
   constructor(private service: RoleService) {}
 
-  async list({ query }: { query: dto.RoleFilter }) {
+  async list({ query }: { query: dto.RoleFilterDto }) {
     const result = await this.service.handleList(query)
     return res.paginated(result)
   }
@@ -21,12 +21,12 @@ class RoleHandler {
     return res.ok(result)
   }
 
-  async create({ body, auth }: { body: dto.RoleCreate; auth: { userId: number } }) {
+  async create({ body, auth }: { body: dto.RoleCreateDto; auth: { userId: number } }) {
     const result = await this.service.handleCreate(body, auth.userId)
     return res.ok(result)
   }
 
-  async update({ body, auth }: { body: dto.RoleUpdate; auth: { userId: number } }) {
+  async update({ body, auth }: { body: dto.RoleUpdateDto; auth: { userId: number } }) {
     const { id, ...data } = body
     const result = await this.service.handleUpdate(id, data, auth.userId)
     return res.ok(result)
@@ -49,22 +49,22 @@ export function initRoleRoute(service: RoleService) {
   return new Elysia({ name: 'iam.role' })
     .use(authPluginMacro)
     .get('/list', h.list.bind(h), {
-      query: dto.RoleFilter,
-      response: createPaginatedResponseSchema(dto.Role),
+      query: dto.RoleFilterDto,
+      response: createPaginatedResponseSchema(dto.RoleDto),
       auth: true,
     })
     .get('/detail', h.detail.bind(h), {
       query: zRecordIdDto,
-      response: createSuccessResponseSchema(dto.Role),
+      response: createSuccessResponseSchema(dto.RoleDto),
       auth: true,
     })
     .post('/create', h.create.bind(h), {
-      body: dto.RoleCreate,
+      body: dto.RoleCreateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })
     .patch('/update', h.update.bind(h), {
-      body: dto.RoleUpdate,
+      body: dto.RoleUpdateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })

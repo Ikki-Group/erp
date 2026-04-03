@@ -16,7 +16,7 @@ const cacheKey = {
 // Handles the mapping between Users, Roles, and Locations.
 export class UserAssignmentService {
   // Returns detailed assignments for a user.
-  async findByUserId(userId: number): Promise<dto.UserAssignmentDetail[]> {
+  async findByUserId(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
     const result = await record('UserAssignmentService.findByUserId', async () => {
       const data = await cache.wrap(cacheKey.byUser(userId), async () => {
         const rows = await db
@@ -35,7 +35,7 @@ export class UserAssignmentService {
           .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
           .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
           .where(eq(userAssignmentsTable.userId, userId))
-        return rows.map((r) => dto.UserAssignmentDetail.parse(r))
+        return rows.map((r) => dto.UserAssignmentDetailDto.parse(r))
       })
       return data
     })
@@ -43,7 +43,7 @@ export class UserAssignmentService {
   }
 
   // Atomically replaces all assignments for a user.
-  async handleUpsertBulk(userId: number, assignments: dto.UserAssignmentUpsert[], actorId: number): Promise<void> {
+  async handleUpsertBulk(userId: number, assignments: dto.UserAssignmentUpsertDto[], actorId: number): Promise<void> {
     await record('UserAssignmentService.handleUpsertBulk', async () => {
       await db.transaction(async (tx) => {
         // Delete all existing assignments for this user.

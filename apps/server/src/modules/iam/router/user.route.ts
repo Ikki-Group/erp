@@ -11,7 +11,7 @@ import type { UserService } from '../service/user.service'
 class UserHandler {
   constructor(private service: UserService) {}
 
-  async list({ query }: { query: dto.UserFilter }) {
+  async list({ query }: { query: dto.UserFilterDto }) {
     const result = await this.service.handleList(query)
     return res.paginated(result)
   }
@@ -21,18 +21,18 @@ class UserHandler {
     return res.ok(result)
   }
 
-  async create({ body, auth }: { body: dto.UserCreate; auth: { userId: number } }) {
+  async create({ body, auth }: { body: dto.UserCreateDto; auth: { userId: number } }) {
     const result = await this.service.handleCreate(body, auth.userId)
     return res.ok(result)
   }
 
-  async update({ body, auth }: { body: dto.UserUpdate; auth: { userId: number } }) {
+  async update({ body, auth }: { body: dto.UserUpdateDto; auth: { userId: number } }) {
     const { id, ...data } = body
     const result = await this.service.handleUpdate(id, data, auth.userId)
     return res.ok(result)
   }
 
-  async adminUpdatePassword({ body, auth }: { body: dto.UserAdminUpdatePassword; auth: { userId: number } }) {
+  async adminUpdatePassword({ body, auth }: { body: dto.UserAdminUpdatePasswordDto; auth: { userId: number } }) {
     const result = await this.service.handleAdminUpdatePassword(body, auth.userId)
     return res.ok(result)
   }
@@ -54,27 +54,27 @@ export function initUserRoute(service: UserService) {
   return new Elysia({ name: 'iam.user' })
     .use(authPluginMacro)
     .get('/list', h.list.bind(h), {
-      query: dto.UserFilter,
-      response: createPaginatedResponseSchema(dto.User),
+      query: dto.UserFilterDto,
+      response: createPaginatedResponseSchema(dto.UserDto),
       auth: true,
     })
     .get('/detail', h.detail.bind(h), {
       query: zRecordIdDto,
-      response: createSuccessResponseSchema(dto.User),
+      response: createSuccessResponseSchema(dto.UserDto),
       auth: true,
     })
     .post('/create', h.create.bind(h), {
-      body: dto.UserCreate,
+      body: dto.UserCreateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })
     .patch('/update', h.update.bind(h), {
-      body: dto.UserUpdate,
+      body: dto.UserUpdateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })
     .patch('/admin/password-reset', h.adminUpdatePassword.bind(h), {
-      body: dto.UserAdminUpdatePassword,
+      body: dto.UserAdminUpdatePasswordDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })

@@ -26,7 +26,7 @@ export class UserService {
   constructor(private assignmentService: UserAssignmentService) {}
 
   // Seed initial users.
-  async seed(data: (dto.UserCreate & { passwordHash: string; createdBy: number })[]): Promise<void> {
+  async seed(data: (dto.UserCreateDto & { passwordHash: string; createdBy: number })[]): Promise<void> {
     await record('UserService.seed', async () => {
       for (const { assignments, ...d } of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -47,7 +47,7 @@ export class UserService {
             })
             .returning({ id: usersTable.id })
 
-          if (inserted && assignments.length > 0) {
+          if (inserted && assignments && assignments.length > 0) {
             await this.assignmentService.handleUpsertBulk(inserted.id, assignments, d.createdBy)
           }
         })
@@ -57,11 +57,11 @@ export class UserService {
   }
 
   // Returns active users.
-  async find(): Promise<dto.User[]> {
+  async find(): Promise<dto.UserDto[]> {
     const result = await record('UserService.find', async () => {
       const data = await cache.wrap(cacheKey.list, async () => {
         const rows = await db.select().from(usersTable).where(isNull(usersTable.deletedAt)).orderBy(usersTable.fullname)
-        return rows.map((r) => dto.User.parse(r))
+        return rows.map((r) => dto.UserDto.parse(r))
       })
       return data
     })
@@ -69,7 +69,7 @@ export class UserService {
   }
 
   // Finds a user by ID.
-  async getById(id: number): Promise<dto.User> {
+  async getById(id: number): Promise<dto.UserDto> {
     const result = await record('UserService.getById', async () => {
       const data = await cache.wrap(cacheKey.byId(id), async () => {
         const rows = await db.select().from(usersTable).where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
@@ -77,7 +77,7 @@ export class UserService {
 
         // Fetch assignments for detail view.
         const assignments = await this.assignmentService.findByUserId(id)
-        return dto.User.parse({ ...first, assignments })
+        return dto.UserDto.parse({ ...first, assignments })
       })
       return data
     })
@@ -97,7 +97,7 @@ export class UserService {
   }
 
   // Paginated list.
-  async handleList(filter: dto.UserFilter): Promise<core.WithPaginationResult<dto.User>> {
+  async handleList(filter: dto.UserFilterDto): Promise<core.WithPaginationResult<dto.UserDto>> {
     const result = await record('UserService.handleList', async () => {
       const { q, page, limit, isActive } = filter
       const where = and(
@@ -106,10 +106,10 @@ export class UserService {
         isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
       )
 
-      const p = await core.paginate<dto.User>({
+      const p = await core.paginate<dto.UserDto>({
         data: async ({ limit: l, offset }) => {
           const rows = await db.select().from(usersTable).where(where).orderBy(core.sortBy(usersTable.updatedAt, 'desc')).limit(l).offset(offset)
-          return rows.map((r) => dto.User.parse(r))
+          return rows.map((r) => dto.UserDto.parse(r))
         },
         pq: { page, limit },
         countQuery: db.select({ count: count() }).from(usersTable).where(where),
@@ -120,12 +120,12 @@ export class UserService {
   }
 
   // Resource detail.
-  async handleDetail(id: number): Promise<dto.User> {
+  async handleDetail(id: number): Promise<dto.UserDto> {
     return this.getById(id)
   }
 
   // Creation.
-  async handleCreate(data: dto.UserCreate, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('UserService.handleCreate', async () => {
       await core.checkConflict({
         table: usersTable,
@@ -143,7 +143,7 @@ export class UserService {
           .values({ ...rest, passwordHash, ...core.stampCreate(actorId) })
           .returning({ id: usersTable.id })
 
-        if (u && assignments.length > 0) {
+        if (u && assignments && assignments.length > 0) {
           await this.assignmentService.handleUpsertBulk(u.id, assignments, actorId)
         }
         return [u]
@@ -157,7 +157,7 @@ export class UserService {
   }
 
   // Update.
-  async handleUpdate(id: number, data: dto.UserUpdate, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: dto.UserUpdateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('UserService.handleUpdate', async () => {
       const existing = await this.getById(id)
       await core.checkConflict({
@@ -189,7 +189,7 @@ export class UserService {
   }
 
   // Administrative password reset.
-  async handleAdminUpdatePassword(data: dto.UserAdminUpdatePassword, actorId: number): Promise<{ id: number }> {
+  async handleAdminUpdatePassword(data: dto.UserAdminUpdatePasswordDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleAdminUpdatePassword', async () => {
       const { id, password } = data
       const passwordHash = await Bun.password.hash(password)

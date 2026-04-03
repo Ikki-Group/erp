@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zId, zRecordIdDto } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
 import * as dto from '../dto/location.dto'
 import type { LocationService } from '../service/location.service'
@@ -11,7 +11,7 @@ import type { LocationService } from '../service/location.service'
 class LocationHandler {
   constructor(private service: LocationService) {}
 
-  async list({ query }: { query: dto.LocationFilter }) {
+  async list({ query }: { query: dto.LocationFilterDto }) {
     const result = await this.service.handleList(query)
     return res.paginated(result)
   }
@@ -21,15 +21,15 @@ class LocationHandler {
     return res.ok(result)
   }
 
-  async create({ body, auth }: { body: dto.LocationCreate; auth: { userId: number } }) {
+  async create({ body, auth }: { body: dto.LocationCreateDto; auth: { userId: number } }) {
     const result = await this.service.handleCreate(body, auth.userId)
     return res.ok(result)
   }
 
-  async update({ body, auth }: { body: dto.LocationUpdate; auth: { userId: number } }) {
+  async update({ body, auth }: { body: dto.LocationUpdateDto; auth: { userId: number } }) {
     const { id, ...data } = body
     const result = await this.service.handleUpdate(id, data, auth.userId)
-    return res.ok(result, 'LOCATION_UPDATED')
+    return res.ok(result)
   }
 
   async remove({ body, auth }: { body: z.infer<typeof zRecordIdDto>; auth: { userId: number } }) {
@@ -45,26 +45,26 @@ class LocationHandler {
 
 export function initLocationRoute(service: LocationService) {
   const h = new LocationHandler(service)
-  
+
   return new Elysia({ name: 'location' })
     .use(authPluginMacro)
     .get('/list', h.list.bind(h), {
-      query: dto.LocationFilter,
-      response: createPaginatedResponseSchema(dto.Location),
+      query: dto.LocationFilterDto,
+      response: createPaginatedResponseSchema(dto.LocationDto),
       auth: true,
     })
     .get('/detail', h.detail.bind(h), {
       query: zRecordIdDto,
-      response: createSuccessResponseSchema(dto.Location),
+      response: createSuccessResponseSchema(dto.LocationDto),
       auth: true,
     })
     .post('/create', h.create.bind(h), {
-      body: dto.LocationCreate,
+      body: dto.LocationCreateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })
     .patch('/update', h.update.bind(h), {
-      body: dto.LocationUpdate,
+      body: dto.LocationUpdateDto,
       response: createSuccessResponseSchema(zRecordIdDto),
       auth: true,
     })

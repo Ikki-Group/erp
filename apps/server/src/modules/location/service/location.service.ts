@@ -29,7 +29,7 @@ const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: nu
 // Handles physical and virtual location management.
 export class LocationService {
   // Seed initial locations into the database.
-  async seed(data: (dto.LocationCreate & { createdBy: number })[]): Promise<void> {
+  async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
     await record('LocationService.seed', async () => {
       for (const d of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -53,7 +53,7 @@ export class LocationService {
   }
 
   // Returns active locations.
-  async find(): Promise<dto.Location[]> {
+  async find(): Promise<dto.LocationDto[]> {
     const result = await record('LocationService.find', async () => {
       const data = await cache.wrap(cacheKey.list, async () => {
         const rows = await db
@@ -61,7 +61,7 @@ export class LocationService {
           .from(locationsTable)
           .where(isNull(locationsTable.deletedAt))
           .orderBy(locationsTable.name)
-        return rows.map((r) => dto.Location.parse(r))
+        return rows.map((r) => dto.LocationDto.parse(r))
       })
       return data
     })
@@ -69,7 +69,7 @@ export class LocationService {
   }
 
   // Finds a location by ID.
-  async getById(id: number): Promise<dto.Location> {
+  async getById(id: number): Promise<dto.LocationDto> {
     const result = await record('LocationService.getById', async () => {
       const data = await cache.wrap(cacheKey.byId(id), async () => {
         const rows = await db
@@ -77,7 +77,7 @@ export class LocationService {
           .from(locationsTable)
           .where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
-        return dto.Location.parse(first)
+        return dto.LocationDto.parse(first)
       })
       return data
     })
@@ -97,7 +97,7 @@ export class LocationService {
   }
 
   // Paginated list.
-  async handleList(filter: dto.LocationFilter): Promise<core.WithPaginationResult<dto.Location>> {
+  async handleList(filter: dto.LocationFilterDto): Promise<core.WithPaginationResult<dto.LocationDto>> {
     const result = await record('LocationService.handleList', async () => {
       const { q, page, limit, type } = filter
       const where = and(
@@ -108,7 +108,7 @@ export class LocationService {
         type === undefined ? undefined : eq(locationsTable.type, type),
       )
 
-      const p = await core.paginate<dto.Location>({
+      const p = await core.paginate<dto.LocationDto>({
         data: async ({ limit: l, offset }) => {
           const rows = await db
             .select()
@@ -117,7 +117,7 @@ export class LocationService {
             .orderBy(core.sortBy(locationsTable.updatedAt, 'desc'))
             .limit(l)
             .offset(offset)
-          return rows.map((r) => dto.Location.parse(r))
+          return rows.map((r) => dto.LocationDto.parse(r))
         },
         pq: { page, limit },
         countQuery: db.select({ count: count() }).from(locationsTable).where(where),
@@ -128,7 +128,7 @@ export class LocationService {
   }
 
   // Resource detail.
-  async handleDetail(id: number): Promise<dto.Location> {
+  async handleDetail(id: number): Promise<dto.LocationDto> {
     const result = await record('LocationService.handleDetail', async () => {
       const detail = await this.getById(id)
       return detail
@@ -137,7 +137,7 @@ export class LocationService {
   }
 
   // Creation.
-  async handleCreate(data: dto.LocationCreate, actorId: number): Promise<{ id: number }> {
+  async handleCreate(data: dto.LocationCreateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('LocationService.handleCreate', async () => {
       await core.checkConflict({
         table: locationsTable,
@@ -157,7 +157,7 @@ export class LocationService {
   }
 
   // Update.
-  async handleUpdate(id: number, data: dto.LocationBase, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(id: number, data: dto.LocationBaseDto, actorId: number): Promise<{ id: number }> {
     const result = await record('LocationService.handleUpdate', async () => {
       const existing = await this.getById(id)
       await core.checkConflict({
