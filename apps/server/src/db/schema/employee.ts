@@ -1,5 +1,5 @@
 import { isNull } from 'drizzle-orm'
-import { integer, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
@@ -15,6 +15,8 @@ export const employeesTable = pgTable(
     phone: text(),
     jobTitle: text('job_title'),
     department: text('department'),
+    baseSalary: numeric('base_salary').notNull().default('0'),
+    bankAccount: text('bank_account'),
     userId: integer('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
     ...auditColumns,
   },

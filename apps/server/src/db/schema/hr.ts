@@ -1,5 +1,6 @@
 import {
   integer,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -50,6 +51,67 @@ export const attendancesTable = pgTable(
     status: attendanceStatusEnum().notNull().default('present'),
     note: text(),
     
+    ...auditColumns,
+  }
+)
+
+export const payrollStatusEnum = pgEnum('payroll_status', [
+  'draft',
+  'approved',
+  'paid',
+  'cancelled',
+])
+
+export const payrollBatchesTable = pgTable(
+  'payroll_batches',
+  {
+    ...pk,
+    name: text().notNull(), // e.g., 'March 2024 Payroll'
+    periodMonth: integer('period_month').notNull(),
+    periodYear: integer('period_year').notNull(),
+    status: payrollStatusEnum().notNull().default('draft'),
+    totalAmount: numeric('total_amount').notNull().default('0'),
+    note: text(),
+    ...auditColumns,
+  }
+)
+
+export const payrollItemsTable = pgTable(
+  'payroll_items',
+  {
+    ...pk,
+    batchId: integer('batch_id')
+      .notNull()
+      .references(() => payrollBatchesTable.id),
+    employeeId: integer('employee_id')
+      .notNull()
+      .references(() => employeesTable.id),
+    
+    baseSalary: numeric('base_salary').notNull().default('0'),
+    adjustmentsAmount: numeric('adjustments_amount').notNull().default('0'),
+    serviceChargeAmount: numeric('service_charge_amount').notNull().default('0'),
+    totalAmount: numeric('total_amount').notNull().default('0'),
+    
+    note: text(),
+    ...auditColumns,
+  }
+)
+
+export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
+  'addition',
+  'deduction',
+])
+
+export const payrollAdjustmentsTable = pgTable(
+  'payroll_adjustments',
+  {
+    ...pk,
+    payrollItemId: integer('payroll_item_id')
+      .notNull()
+      .references(() => payrollItemsTable.id),
+    type: payrollAdjustmentTypeEnum().notNull(),
+    amount: numeric('amount').notNull().default('0'),
+    reason: text().notNull(),
     ...auditColumns,
   }
 )

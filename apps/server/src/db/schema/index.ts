@@ -5,7 +5,13 @@ import { defineRelations } from 'drizzle-orm'
 import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 import { stockSummariesTable, stockTransactionsTable } from './inventory'
 import { locationsTable } from './location'
-import { attendancesTable, shiftsTable } from './hr'
+import {
+  attendancesTable,
+  payrollAdjustmentsTable,
+  payrollBatchesTable,
+  payrollItemsTable,
+  shiftsTable,
+} from './hr'
 import {
   materialCategoriesTable,
   materialConversionsTable,
@@ -79,7 +85,16 @@ export {
 export { suppliersTable } from './supplier'
 export { employeesTable } from './employee'
 export { accountTypeEnum, accountsTable } from './finance'
-export { attendancesTable, shiftsTable, attendanceStatusEnum } from './hr'
+export {
+  attendanceStatusEnum,
+  attendancesTable,
+  payrollAdjustmentTypeEnum,
+  payrollAdjustmentsTable,
+  payrollBatchesTable,
+  payrollItemsTable,
+  payrollStatusEnum,
+  shiftsTable,
+} from './hr'
 export {
   goodsReceiptNoteItemsTable,
   goodsReceiptNotesTable,
@@ -146,6 +161,9 @@ export const relations = defineRelations(
     workOrdersTable,
     attendancesTable,
     shiftsTable,
+    payrollBatchesTable,
+    payrollItemsTable,
+    payrollAdjustmentsTable,
   },
   (r) => ({
     // ─── IAM ──────────────────────────────────────────────────────────
@@ -377,6 +395,17 @@ export const relations = defineRelations(
     },
     shiftsTable: {
       attendances: r.many.attendancesTable(),
+    },
+    payrollBatchesTable: {
+      items: r.many.payrollItemsTable(),
+    },
+    payrollItemsTable: {
+      batch: r.one.payrollBatchesTable({ from: r.payrollItemsTable.batchId, to: r.payrollBatchesTable.id }),
+      employee: r.one.employeesTable({ from: r.payrollItemsTable.employeeId, to: r.employeesTable.id }),
+      adjustments: r.many.payrollAdjustmentsTable(),
+    },
+    payrollAdjustmentsTable: {
+      payrollItem: r.one.payrollItemsTable({ from: r.payrollAdjustmentsTable.payrollItemId, to: r.payrollItemsTable.id }),
     },
     // ─── Production ───────────────────────────────────────────────────
     workOrdersTable: {
