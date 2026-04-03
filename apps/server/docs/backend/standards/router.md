@@ -1,95 +1,85 @@
 # Backend Standard: Router Layer (Layer 1)
 
-This document defines the **Golden Path 2.0** standards for the Router layer within the Ikki ERP backend.
+This document defines the **Golden Path 2.1** standards for the Router layer within the Ikki ERP backend. This standard promotes **Functional Route Definitions** for clarity, modularity, and less boilerplate code.
 
-## 1. Handler Class Pattern
+## 1. Functional Route Pattern
 
-All route handlers must be organized into a class. This manages dependency injection (of the Service) and provides a clean namespace for handler methods.
+All routes should be defined using an inline functional approach within the Elysia instance. Avoid using separate Handler classes unless the logic is exceptionally complex and cannot be clearly represented inline.
 
 ```typescript
-// ✅ CORRECT: Handler Class
-class UserHandler {
-  constructor(private service: UserService) {}
-
-  async list({ query }: { query: dto.UserFilter }) {
-    const result = await this.service.handleList(query)
-    return res.paginated(result) // Consistent response format
-  }
-  // ...
+// ✅ CORRECT: Functional/Inline Handler
+export function initMyDomainRoute(service: MyService) {
+  return new Elysia({ prefix: '/my-domain' })
+    .use(authPluginMacro)
+    .get(
+      '/list',
+      async function list({ query }) {
+        const result = await service.handleList(query)
+        return res.paginated(result)
+      },
+      {
+        query: MyFilterDto,
+        response: createPaginatedResponseSchema(MyDto),
+        auth: true,
+      },
+    )
 }
+
+// ❌ DEPRECATED: Class-based Handler
+class MyHandler { ... }
 ```
 
-## 2. Standard Handler Methods
+## 2. Standard Handler Methods & Paths
 
-Every handler should implement at least the following standard methods:
+The following naming conventions and paths must be used consistently across all domain routers:
 
-| Method Name | Return Type | Status Code |
-| :--- | :--- | :--- |
-| `list` | `res.paginated` | 200 OK |
-| `detail` | `res.ok` | 200 OK |
-| `create` | `res.ok` or `res.created` | 201 Created / 200 OK |
-| `update` | `res.ok` | 200 OK |
-| `remove` | `res.ok` | 200 OK |
+| Method   | Path           | Action       | Description                                       |
+| :------- | :------------- | :----------- | :------------------------------------------------ |
+| `GET`    | `/list`        | `list`       | Paginated listing with filters.                   |
+| `GET`    | `/detail`      | `detail`     | Single record detail (query param: `id`).         |
+| `POST`   | `/create`      | `create`     | Resource creation.                                |
+| `PATCH`  | `/update`      | `update`     | Full resource update (prefer `PATCH` over `PUT`). |
+| `DELETE` | `/remove`      | `remove`     | Soft delete / archive (query param: `id`).        |
+| `DELETE` | `/hard-remove` | `hardRemove` | Permanent deletion (Admin only).                  |
 
-## 3. Standard Response Factories (`res`)
+## 3. Schema Composition in Routes
+
+Use Zod's spread-shape pattern directly in the route options for maximum clarity and to avoid defining redundant "RequestDTOs".
+
+```typescript
+    .patch(
+      '/update',
+      async function update({ body, auth }) {
+        const { id, ...data } = body
+        const result = await service.handleUpdate(id, data, auth.userId)
+        return res.ok(result)
+      },
+      {
+        body: LocationUpdateDto, // Use standardized DTOs
+        response: createSuccessResponseSchema(zRecordIdDto),
+        auth: true,
+      },
+    )
+```
+
+## 4. Response Factories (`res`)
 
 Handlers must use the `res` utility from `@/core/http/response` to guarantee a consistent API response structure.
 
 ```typescript
 import { res } from '@/core/http/response'
 
-// Success Response
 return res.ok(data) // { success: true, code: 'OK', data: { ... } }
-
-// Paginated Response
+return res.created(data) // { success: true, code: 'CREATED', data: { id: ... } }
 return res.paginated(result) // { success: true, code: 'OK', data: [ ... ], meta: { ... } }
-```
-
-## 4. Elysia Route Definitions
-
-Route definitions must be typed using Zod schemas for both input validation (`query`, `body`) and output documentation (`response`).
-
-```typescript
-import { createSuccessResponseSchema, createPaginatedResponseSchema, zRecordIdDto } from '@/core/validation'
-
-export function initUserRoute(service: UserService) {
-  const h = new UserHandler(service)
-
-  return new Elysia({ name: 'iam.user' })
-    .use(authPluginMacro)
-    .get('/list', h.list.bind(h), {
-      query: dto.UserFilter,
-      response: createPaginatedResponseSchema(dto.User),
-      auth: true, // Use authPluginMacro standard
-    })
-    .get('/detail', h.detail.bind(h), {
-      query: zRecordIdDto,
-      response: createSuccessResponseSchema(dto.User),
-      auth: true,
-    })
-    // ...
-}
 ```
 
 ## 5. Security & Authentication
 
 - **`authPluginMacro`**: Always use the global `authPluginMacro` for routes that require authentication.
-- **`auth: true`**: This macro ensures that `auth.userId` and `auth.isAuthenticated` are available in the handler context and that the request is authorized.
-- **Role/Permission checks**: If additional authorization is needed, implement it at the beginning of the handler method.
-
-## 6. Handler Signatures
-
-Avoid using `any` in handler parameters. Use `z.infer` where possible, or clearly defined types.
-
-```typescript
-// ✅ CORRECT: strictly typed handler signature
-async create({ body, auth }: { body: dto.UserCreate; auth: { userId: number } }) { ... }
-
-// ❌ INCORRECT: generic objects or 'any'
-async create(context: any) { ... }
-```
+- **`auth: true`**: This macro ensures that `auth.userId` is available in the handler context and that the request is authorized.
 
 ---
 
 > [!IMPORTANT]
-> The **Router Layer** should focus on request transformation and response orchestration. Business logic should stay in the **Service Layer**.
+> The **Router Layer** should focus strictly on request/response orchestration. Business logic and database operations MUST remain in the **Service Layer**.

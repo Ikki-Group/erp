@@ -3,89 +3,93 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
+import {
+  createPaginatedResponseSchema,
+  createSuccessResponseSchema,
+  zRecordIdDto,
+} from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
 import type { UserService } from '../service/user.service'
 
-class UserHandler {
-  constructor(private service: UserService) {}
-
-  async list({ query }: { query: dto.UserFilterDto }) {
-    const result = await this.service.handleList(query)
-    return res.paginated(result)
-  }
-
-  async detail({ query }: { query: z.infer<typeof zRecordIdDto> }) {
-    const result = await this.service.handleDetail(query.id)
-    return res.ok(result)
-  }
-
-  async create({ body, auth }: { body: dto.UserCreateDto; auth: { userId: number } }) {
-    const result = await this.service.handleCreate(body, auth.userId)
-    return res.ok(result)
-  }
-
-  async update({ body, auth }: { body: dto.UserUpdateDto; auth: { userId: number } }) {
-    const { id, ...data } = body
-    const result = await this.service.handleUpdate(id, data, auth.userId)
-    return res.ok(result)
-  }
-
-  async adminUpdatePassword({ body, auth }: { body: dto.UserAdminUpdatePasswordDto; auth: { userId: number } }) {
-    const result = await this.service.handleAdminUpdatePassword(body, auth.userId)
-    return res.ok(result)
-  }
-
-  async remove({ body, auth }: { body: z.infer<typeof zRecordIdDto>; auth: { userId: number } }) {
-    const result = await this.service.handleRemove(body.id, auth.userId)
-    return res.ok(result)
-  }
-
-  async hardRemove({ body }: { body: z.infer<typeof zRecordIdDto> }) {
-    const result = await this.service.handleHardRemove(body.id)
-    return res.ok(result)
-  }
-}
-
+/**
+ * User Module Route (Layer 1)
+ * Standard functional route pattern (Golden Path 2.1).
+ */
 export function initUserRoute(service: UserService) {
-  const h = new UserHandler(service)
-
-  return new Elysia({ name: 'iam.user' })
+  return new Elysia({ prefix: '/user' })
     .use(authPluginMacro)
-    .get('/list', h.list.bind(h), {
-      query: dto.UserFilterDto,
-      response: createPaginatedResponseSchema(dto.UserDto),
-      auth: true,
-    })
-    .get('/detail', h.detail.bind(h), {
-      query: zRecordIdDto,
-      response: createSuccessResponseSchema(dto.UserDto),
-      auth: true,
-    })
-    .post('/create', h.create.bind(h), {
-      body: dto.UserCreateDto,
-      response: createSuccessResponseSchema(zRecordIdDto),
-      auth: true,
-    })
-    .patch('/update', h.update.bind(h), {
-      body: dto.UserUpdateDto,
-      response: createSuccessResponseSchema(zRecordIdDto),
-      auth: true,
-    })
-    .patch('/admin/password-reset', h.adminUpdatePassword.bind(h), {
-      body: dto.UserAdminUpdatePasswordDto,
-      response: createSuccessResponseSchema(zRecordIdDto),
-      auth: true,
-    })
-    .delete('/remove', h.remove.bind(h), {
-      body: zRecordIdDto,
-      response: createSuccessResponseSchema(zRecordIdDto),
-      auth: true,
-    })
-    .delete('/hard-remove', h.hardRemove.bind(h), {
-      body: zRecordIdDto,
-      response: createSuccessResponseSchema(zRecordIdDto),
-      auth: true,
-    })
+    .get(
+      '/list',
+      async function list({ query }) {
+        const result = await service.handleList(query)
+        return res.paginated(result)
+      },
+      {
+        query: dto.UserFilterDto,
+        response: createPaginatedResponseSchema(dto.UserDto),
+        auth: true,
+      },
+    )
+    .get(
+      '/detail',
+      async function detail({ query }) {
+        const result = await service.handleDetail(query.id)
+        return res.ok(result)
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(dto.UserDto), auth: true },
+    )
+    .post(
+      '/create',
+      async function create({ body, auth }) {
+        const result = await service.handleCreate(body, auth.userId)
+        return res.ok(result)
+      },
+      {
+        body: dto.UserCreateDto,
+        response: createSuccessResponseSchema(zRecordIdDto),
+        auth: true,
+      },
+    )
+    .patch(
+      '/update',
+      async function update({ body, auth }) {
+        const { id, ...data } = body
+        const result = await service.handleUpdate(id, data, auth.userId)
+        return res.ok(result)
+      },
+      {
+        body: dto.UserUpdateDto,
+        response: createSuccessResponseSchema(zRecordIdDto),
+        auth: true,
+      },
+    )
+    .patch(
+      '/admin/password-reset',
+      async function adminUpdatePassword({ body, auth }) {
+        const result = await service.handleAdminUpdatePassword(body, auth.userId)
+        return res.ok(result)
+      },
+      {
+        body: dto.UserAdminUpdatePasswordDto,
+        response: createSuccessResponseSchema(zRecordIdDto),
+        auth: true,
+      },
+    )
+    .delete(
+      '/remove',
+      async function remove({ body, auth }) {
+        const result = await service.handleRemove(body.id, auth.userId)
+        return res.ok(result)
+      },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ body }) {
+        const result = await service.handleHardRemove(body.id)
+        return res.ok(result)
+      },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
 }

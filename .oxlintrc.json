@@ -34,6 +34,7 @@
     "jsdoc/require-returns": "off",
     "jsdoc/require-param": "off",
     "require-await": "off",
+    "max-lines-per-function": "off"
   },
   "overrides": [
     {

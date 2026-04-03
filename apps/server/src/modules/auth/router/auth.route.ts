@@ -21,8 +21,7 @@ export function initAuthRoute(svc: AuthService) {
     )
     .get(
       '/me',
-      // @ts-expect-error
-      async function me({ auth }) {
+      function me({ auth }) {
         return res.ok(auth.user!, 'AUTH_ME_SUCCESS')
       },
       { response: createSuccessResponseSchema(UserOutputDto), auth: true },
