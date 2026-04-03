@@ -90,7 +90,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | Status | Task ID   | Description                                                                         | Component |
 | :----: | :-------- | :---------------------------------------------------------------------------------- | :-------: |
 |   ✅   | `DASH-01` | Managerial Dashboards (P&L, Top Sales) utilizing in-memory `cache-manager`.         | Fullstack |
-|   ⏳   | `QA-01`   | End-to-End integration testing across all layered modules and validation pipelines. |  Tooling  |
+|   ⏭️   | `QA-01`   | End-to-End integration testing across all layered modules and validation pipelines. |  Tooling  |
 
 ---
 
@@ -100,9 +100,9 @@ These modules are planned for future development cycles after the successful dep
 
 | Priority | Module                   | Description                                                                            |
 | :------: | :----------------------- | :------------------------------------------------------------------------------------- |
-|   Low    | **Asset & Maint.**       | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.           |
-|   Low    | **B2B Sales**            | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable). |
-|   Low    | **Enterprise Workflows** | Implementing multi-step approval engines for critical transactions.                    |
+|    ⏭️    | **Asset & Maint.**       | Fixed Asset Tagging, Maintenance scheduling, and auto-depreciation journals.           |
+|    ⏭️    | **B2B Sales**            | Wholesale logistics: Quotations, Delivery Orders, B2B Invoicing (Accounts Receivable). |
+|    ⏭️    | **Enterprise Workflows** | Implementing multi-step approval engines for critical transactions.                    |
 
 ---
 
