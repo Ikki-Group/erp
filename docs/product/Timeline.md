@@ -99,7 +99,7 @@ This document serves as the roadmap and sprint tracker for the Ikki ERP developm
 | Status | Task ID   | Description                                                                               | Component |
 | :----: | :-------- | :---------------------------------------------------------------------------------------- | :-------: |
 |   ✅   | `HARD-01` | Refactor `stock-transaction.service.ts` (600+ lines) into modular sub-services.           |  Backend  |
-|   ⏳   | `HARD-02` | Modularize `schema/index.ts` to improve build times and maintainability (< 300 lines).    |  Backend  |
+|   ✅   | `HARD-02` | Modularize `schema/index.ts` to improve build times and maintainability (< 300 lines).    |  Backend  |
 |   ✅   | `HARD-03` | Achieve 100% Type Safety: Eliminate remaining `any` and unsafe assertions in all modules. |  Backend  |
 
 ---
