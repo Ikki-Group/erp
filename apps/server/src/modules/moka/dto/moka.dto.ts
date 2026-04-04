@@ -68,9 +68,7 @@ export const MokaProductDetailDto = z.object({
   id: z.number(),
   name: z.string(),
   category_name: z.string().nullable(),
-  item_variants: z.array(
-    z.object({ id: z.number(), name: z.string(), price: z.number(), sku: z.string().nullable() }),
-  ),
+  item_variants: z.array(z.object({ id: z.number(), name: z.string(), price: z.number(), sku: z.string().nullable() })),
 })
 export type MokaProductDetailDto = z.infer<typeof MokaProductDetailDto>
 

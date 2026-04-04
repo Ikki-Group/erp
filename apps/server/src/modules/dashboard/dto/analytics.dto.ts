@@ -1,10 +1,7 @@
 import { z } from 'zod'
 import { zDate } from '@/core/validation'
 
-export const PnLRequestDto = z.object({
-  startDate: zDate,
-  endDate: zDate,
-})
+export const PnLRequestDto = z.object({ startDate: zDate, endDate: zDate })
 
 export const TopSalesRequestDto = z.object({
   startDate: zDate,

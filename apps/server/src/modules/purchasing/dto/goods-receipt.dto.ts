@@ -40,9 +40,7 @@ export const GoodsReceiptNoteDto = z.object({
 })
 export type GoodsReceiptNoteDto = z.infer<typeof GoodsReceiptNoteDto>
 
-export const GoodsReceiptNoteCreateItemDto = z.object({
-  ...GoodsReceiptNoteItemBaseDto.shape,
-})
+export const GoodsReceiptNoteCreateItemDto = z.object({ ...GoodsReceiptNoteItemBaseDto.shape })
 export type GoodsReceiptNoteCreateItemDto = z.infer<typeof GoodsReceiptNoteCreateItemDto>
 
 export const GoodsReceiptNoteCreateDto = z.object({

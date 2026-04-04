@@ -2,13 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import {
-  paginate,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-} from '@/core/database'
+import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -59,7 +53,10 @@ export class RecipeService {
   async getById(id: number): Promise<RecipeDto> {
     return record('RecipeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(recipesTable).where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+        const result = await db
+          .select()
+          .from(recipesTable)
+          .where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
         const recipe = takeFirstOrThrow(result, `Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND')
 
         const items = await this.getRecipeItems(id)
@@ -165,7 +162,8 @@ export class RecipeService {
     if (target.productId) conditions.push(eq(recipesTable.productId, target.productId))
     if (target.productVariantId) conditions.push(eq(recipesTable.productVariantId, target.productVariantId))
 
-    if (conditions.length !== 2) { // 1 for deletedAt, 1 for the target
+    if (conditions.length !== 2) {
+      // 1 for deletedAt, 1 for the target
       throw new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET')
     }
 
@@ -371,23 +369,13 @@ export class RecipeService {
         const itemCost = qty * scrapFactor * avgCost
 
         totalCost += itemCost
-        detailedItems.push({
-          ...item,
-          unitCost: avgCost,
-          extendedCost: itemCost,
-        })
+        detailedItems.push({ ...item, unitCost: avgCost, extendedCost: itemCost })
       }
 
       const targetQty = Number(recipe.targetQty)
       const unitCost = targetQty > 0 ? totalCost / targetQty : totalCost
 
-      return {
-        recipeId,
-        targetQty,
-        totalCost,
-        unitCost,
-        items: detailedItems,
-      }
+      return { recipeId, targetQty, totalCost, unitCost, items: detailedItems }
     })
   }
 }

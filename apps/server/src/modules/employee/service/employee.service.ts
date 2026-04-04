@@ -7,7 +7,12 @@ import type { PaginationQuery, WithPaginationResult } from '@/core/utils/paginat
 import { db } from '@/db'
 import { employeesTable } from '@/db/schema/employee'
 
-import { EmployeeDto, type EmployeeCreateDto, type EmployeeFilterDto, type EmployeeUpdateDto } from '../dto/employee.dto'
+import {
+  EmployeeDto,
+  type EmployeeCreateDto,
+  type EmployeeFilterDto,
+  type EmployeeUpdateDto,
+} from '../dto/employee.dto'
 
 export class EmployeeService {
   async handleList(filter: EmployeeFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<EmployeeDto>> {
@@ -53,13 +58,23 @@ export class EmployeeService {
       await checkConflict({
         table: employeesTable,
         pkColumn: employeesTable.id,
-        fields: [{ field: 'code', column: employeesTable.code, message: 'Employee code already exists', code: 'EMPLOYEE_CODE_ALREADY_EXISTS' }],
+        fields: [
+          {
+            field: 'code',
+            column: employeesTable.code,
+            message: 'Employee code already exists',
+            code: 'EMPLOYEE_CODE_ALREADY_EXISTS',
+          },
+        ],
         input: data,
       })
 
       const stamps = stampCreate(userId)
-      const rows = await db.insert(employeesTable).values({ ...data, ...stamps }).returning({ id: employeesTable.id })
-      
+      const rows = await db
+        .insert(employeesTable)
+        .values({ ...data, ...stamps })
+        .returning({ id: employeesTable.id })
+
       return takeFirstOrThrow(rows, 'Failed to return employee data on create', 'EMPLOYEE_CREATE_ERROR')
     })
   }
@@ -71,7 +86,14 @@ export class EmployeeService {
       await checkConflict({
         table: employeesTable,
         pkColumn: employeesTable.id,
-        fields: [{ field: 'code', column: employeesTable.code, message: 'Employee code already exists', code: 'EMPLOYEE_CODE_ALREADY_EXISTS' }],
+        fields: [
+          {
+            field: 'code',
+            column: employeesTable.code,
+            message: 'Employee code already exists',
+            code: 'EMPLOYEE_CODE_ALREADY_EXISTS',
+          },
+        ],
         input: data,
         existing,
       })

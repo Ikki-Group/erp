@@ -3,13 +3,13 @@ import { db } from '@/db'
 import { stampCreate } from '@/core/database'
 import { stockTransactionsTable } from '@/db/schema'
 import { MovementLogic } from './movement-logic'
-import type { 
-  PurchaseTransactionDto, 
-  UsageTransactionDto, 
-  SellTransactionDto, 
-  ProductionInTransactionDto, 
+import type {
+  PurchaseTransactionDto,
+  UsageTransactionDto,
+  SellTransactionDto,
+  ProductionInTransactionDto,
   ProductionOutTransactionDto,
-  TransactionResultDto
+  TransactionResultDto,
 } from '@/modules/inventory/dto'
 
 export class StockExternalMovementService extends MovementLogic {
@@ -36,20 +36,22 @@ export class StockExternalMovementService extends MovementLogic {
               unitCost,
             )
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId,
-              locationId,
-              type: 'purchase',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: qty.toString(),
-              unitCost: unitCost.toString(),
-              totalCost: (qty * unitCost).toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId,
+                locationId,
+                type: 'purchase',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: qty.toString(),
+                unitCost: unitCost.toString(),
+                totalCost: (qty * unitCost).toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               materialId,
@@ -88,20 +90,22 @@ export class StockExternalMovementService extends MovementLogic {
               unitCost,
             )
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId,
-              locationId,
-              type: 'production_in',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: qty.toString(),
-              unitCost: unitCost.toString(),
-              totalCost: (qty * unitCost).toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId,
+                locationId,
+                type: 'production_in',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: qty.toString(),
+                unitCost: unitCost.toString(),
+                totalCost: (qty * unitCost).toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               materialId,

@@ -50,7 +50,25 @@ export function createModules() {
   const dashboard = new DashboardServiceModule(iam, location, finance, sales)
   const tool = new ToolServiceModule(iam, location, product, material)
 
-  return { location, product, iam, material, auth, inventory, recipe, dashboard, tool, moka, sales, supplier, employee, finance, purchasing, production, hr }
+  return {
+    location,
+    product,
+    iam,
+    material,
+    auth,
+    inventory,
+    recipe,
+    dashboard,
+    tool,
+    moka,
+    sales,
+    supplier,
+    employee,
+    finance,
+    purchasing,
+    production,
+    hr,
+  }
 }
 
 export type Modules = ReturnType<typeof createModules>

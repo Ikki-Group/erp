@@ -1,13 +1,8 @@
 import Elysia from 'elysia'
 
-
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
 import type { UserService } from '../service/user.service'
@@ -25,11 +20,7 @@ export function initUserRoute(service: UserService) {
         const result = await service.handleList(query)
         return res.paginated(result)
       },
-      {
-        query: dto.UserFilterDto,
-        response: createPaginatedResponseSchema(dto.UserDto),
-        auth: true,
-      },
+      { query: dto.UserFilterDto, response: createPaginatedResponseSchema(dto.UserDto), auth: true },
     )
     .get(
       '/detail',
@@ -45,11 +36,7 @@ export function initUserRoute(service: UserService) {
         const result = await service.handleCreate(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.UserCreateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .patch(
       '/update',
@@ -57,11 +44,7 @@ export function initUserRoute(service: UserService) {
         const result = await service.handleUpdate(body.id, body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.UserUpdateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.UserUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .patch(
       '/admin/password-reset',
@@ -69,11 +52,7 @@ export function initUserRoute(service: UserService) {
         const result = await service.handleAdminUpdatePassword(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.UserAdminUpdatePasswordDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.UserAdminUpdatePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .delete(
       '/remove',

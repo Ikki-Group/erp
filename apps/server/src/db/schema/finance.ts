@@ -1,5 +1,7 @@
 import { isNull } from 'drizzle-orm'
-import { boolean,  integer,
+import {
+  boolean,
+  integer,
   numeric,
   pgEnum,
   pgTable,
@@ -7,7 +9,8 @@ import { boolean,  integer,
   timestamp,
   uniqueIndex,
   index,
- type AnyPgColumn } from 'drizzle-orm/pg-core'
+  type AnyPgColumn,
+} from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
@@ -24,9 +27,7 @@ export const accountsTable = pgTable(
     parentId: integer('parent_id').references((): AnyPgColumn => accountsTable.id, { onDelete: 'restrict' }),
     ...auditColumns,
   },
-  (t) => [
-    uniqueIndex('accounts_code_idx').on(t.code).where(isNull(t.deletedAt)),
-  ],
+  (t) => [uniqueIndex('accounts_code_idx').on(t.code).where(isNull(t.deletedAt))],
 )
 
 export const journalEntriesTable = pgTable(
@@ -43,7 +44,7 @@ export const journalEntriesTable = pgTable(
   (t) => [
     index('journal_entries_date_idx').on(t.date),
     index('journal_entries_source_idx').on(t.sourceType, t.sourceId),
-  ]
+  ],
 )
 
 export const journalItemsTable = pgTable(
@@ -60,8 +61,5 @@ export const journalItemsTable = pgTable(
     credit: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
     ...auditColumns,
   },
-  (t) => [
-    index('journal_items_entry_idx').on(t.journalEntryId),
-    index('journal_items_account_idx').on(t.accountId),
-  ]
+  (t) => [index('journal_items_entry_idx').on(t.journalEntryId), index('journal_items_account_idx').on(t.accountId)],
 )

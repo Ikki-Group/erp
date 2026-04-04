@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 import type { RecipeServiceModule } from '../service'
@@ -73,10 +78,6 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         const result = await s.recipe.handleCalculateCost(query.id)
         return res.ok(result)
       },
-      {
-        query: zRecordIdDto,
-        response: createSuccessResponseSchema(z.any()),
-        auth: true,
-      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(z.any()), auth: true },
     )
 }

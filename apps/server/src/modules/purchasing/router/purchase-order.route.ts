@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
 import * as dto from '../dto/purchase-order.dto'
 import type { PurchaseOrderService } from '../service/purchase-order.service'
@@ -44,11 +40,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
         const result = await service.handleCreate(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.PurchaseOrderCreateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.PurchaseOrderCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .patch(
       '/update',
@@ -57,11 +49,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
         const result = await service.handleUpdate(id, data, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.PurchaseOrderUpdateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.PurchaseOrderUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .delete(
       '/remove',

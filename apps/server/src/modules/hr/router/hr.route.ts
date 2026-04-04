@@ -3,11 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zPaginationDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zPaginationDto } from '@/core/validation'
 
 import {
   attendanceFilterSchema,
@@ -29,11 +25,7 @@ export function initHRRoute(s: HRService) {
         const result = await s.handleShiftList(query)
         return res.paginated(result)
       },
-      {
-        query: zPaginationDto,
-        response: createPaginatedResponseSchema(shiftSchema),
-        auth: true,
-      },
+      { query: zPaginationDto, response: createPaginatedResponseSchema(shiftSchema), auth: true },
     )
     .post(
       '/shifts',
@@ -41,11 +33,7 @@ export function initHRRoute(s: HRService) {
         const result = await s.handleShiftCreate(body, auth.userId)
         return res.created(result)
       },
-      {
-        body: shiftCreateSchema,
-        response: createSuccessResponseSchema(shiftSchema),
-        auth: true,
-      },
+      { body: shiftCreateSchema, response: createSuccessResponseSchema(shiftSchema), auth: true },
     )
     .get(
       '/attendances',
@@ -65,11 +53,7 @@ export function initHRRoute(s: HRService) {
         const result = await s.handleClockIn(body as any, auth.userId)
         return res.created(result)
       },
-      {
-        body: clockInSchema,
-        response: createSuccessResponseSchema(attendanceSchema),
-        auth: true,
-      },
+      { body: clockInSchema, response: createSuccessResponseSchema(attendanceSchema), auth: true },
     )
     .post(
       '/clock-out',
@@ -77,10 +61,6 @@ export function initHRRoute(s: HRService) {
         const result = await s.handleClockOut(body as any, auth.userId)
         return res.ok(result)
       },
-      {
-        body: clockOutSchema,
-        response: createSuccessResponseSchema(attendanceSchema),
-        auth: true,
-      },
+      { body: clockOutSchema, response: createSuccessResponseSchema(attendanceSchema), auth: true },
     )
 }

@@ -11,10 +11,10 @@ export class DashboardServiceModule {
   public analytics: AnalyticsService
 
   constructor(
-    iam: IamServiceModule, 
+    iam: IamServiceModule,
     location: LocationServiceModule,
     _finance: FinanceServiceModule,
-    _sales: SalesServiceModule
+    _sales: SalesServiceModule,
   ) {
     this.settings = new SettingsService(iam, location)
     this.analytics = new AnalyticsService()

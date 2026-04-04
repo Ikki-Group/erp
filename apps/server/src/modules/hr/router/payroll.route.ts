@@ -2,9 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createSuccessResponseSchema,
-} from '@/core/validation'
+import { createSuccessResponseSchema } from '@/core/validation'
 
 import {
   payrollAdjustmentCreateSchema,
@@ -23,11 +21,7 @@ export function initPayrollRoute(s: PayrollService) {
         const result = await s.handleBatchCreate(body, auth.userId)
         return res.created(result)
       },
-      {
-        body: payrollBatchCreateSchema,
-        response: createSuccessResponseSchema(payrollBatchSchema),
-        auth: true,
-      },
+      { body: payrollBatchCreateSchema, response: createSuccessResponseSchema(payrollBatchSchema), auth: true },
     )
     .post(
       '/adjustments',

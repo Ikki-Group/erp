@@ -1,12 +1,6 @@
 import z from 'zod'
 
-import {
-  zId,
-  zStr,
-  zMetadataDto,
-  zRecordIdDto,
-  zQuerySearch,
-} from '@/core/validation'
+import { zId, zStr, zMetadataDto, zRecordIdDto, zQuerySearch } from '@/core/validation'
 import { attendanceStatusEnum } from '@/db/schema/hr'
 
 export const attendanceStatusSchema = z.enum(attendanceStatusEnum.enumValues)
@@ -18,7 +12,7 @@ export const shiftSchema = z.object({
   ...zRecordIdDto.shape,
   name: zStr,
   startTime: z.string(), // 'HH:mm:ss'
-  endTime: z.string(),   // 'HH:mm:ss'
+  endTime: z.string(), // 'HH:mm:ss'
   note: z.string().nullable(),
   ...zMetadataDto.shape,
 })
@@ -41,11 +35,11 @@ export const attendanceSchema = z.object({
   employeeId: zId,
   locationId: zId,
   shiftId: zId.nullable(),
-  
+
   date: z.coerce.date(),
   clockIn: z.coerce.date().nullable(),
   clockOut: z.coerce.date().nullable(),
-  
+
   status: attendanceStatusSchema,
   note: z.string().nullable(),
   ...zMetadataDto.shape,

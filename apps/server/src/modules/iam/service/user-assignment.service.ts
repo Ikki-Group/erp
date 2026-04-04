@@ -8,9 +8,7 @@ import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
 
 import * as dto from '../dto/user-assignment.dto'
 
-const cacheKey = {
-  byUser: (userId: number) => `iam.user-assignment.user.${userId}`,
-}
+const cacheKey = { byUser: (userId: number) => `iam.user-assignment.user.${userId}` }
 
 // User Assignment Service (Layer 0)
 // Handles the mapping between Users, Roles, and Locations.
@@ -51,13 +49,9 @@ export class UserAssignmentService {
 
         if (assignments.length > 0) {
           // Insert new assignments.
-          await tx.insert(userAssignmentsTable).values(
-            assignments.map((a) => ({
-              ...a,
-              userId,
-              ...core.stampCreate(actorId),
-            })),
-          )
+          await tx
+            .insert(userAssignmentsTable)
+            .values(assignments.map((a) => ({ ...a, userId, ...core.stampCreate(actorId) })))
         }
       })
       await this.clearCache(userId)

@@ -7,7 +7,7 @@ import * as dto from '../dto'
 export function AnalyticsRoute(service: AnalyticsService) {
   return new Elysia({ prefix: '/analytics', detail: { tags: ['Dashboard - Analytics'] } })
     .use(authPluginMacro)
-    
+
     .post(
       '/pnl',
       async ({ body }) => {
@@ -15,10 +15,7 @@ export function AnalyticsRoute(service: AnalyticsService) {
         const result = await service.getPnL(startDate, endDate)
         return res.ok(result)
       },
-      {
-        body: dto.PnLRequestDto,
-        auth: true,
-      }
+      { body: dto.PnLRequestDto, auth: true },
     )
 
     .post(
@@ -28,9 +25,6 @@ export function AnalyticsRoute(service: AnalyticsService) {
         const result = await service.getTopSales(startDate, endDate, limit)
         return res.ok(result)
       },
-      {
-        body: dto.TopSalesRequestDto,
-        auth: true,
-      }
+      { body: dto.TopSalesRequestDto, auth: true },
     )
 }

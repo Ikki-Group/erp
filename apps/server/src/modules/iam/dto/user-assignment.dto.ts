@@ -5,12 +5,7 @@ import { zBool, zId, zMetadataDto, zPaginationDto, zRecordIdDto } from '@/core/v
 /**
  * Common User Assignment attributes.
  */
-export const UserAssignmentBaseDto = z.object({
-  userId: zId,
-  roleId: zId,
-  locationId: zId,
-  isDefault: zBool,
-})
+export const UserAssignmentBaseDto = z.object({ userId: zId, roleId: zId, locationId: zId, isDefault: zBool })
 export type UserAssignmentBaseDto = z.infer<typeof UserAssignmentBaseDto>
 
 /**

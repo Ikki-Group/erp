@@ -23,11 +23,7 @@ export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCategoryMutationDto = z.object({
-  ...MaterialCategoryDto.pick({
-    name: true,
-    description: true,
-    parentId: true,
-  }).shape,
+  ...MaterialCategoryDto.pick({ name: true, description: true, parentId: true }).shape,
 })
 
 export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutationDto>

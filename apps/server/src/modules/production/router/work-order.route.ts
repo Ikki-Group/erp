@@ -40,11 +40,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
         const wo = await service.handleDetail(query.id)
         return res.ok(wo)
       },
-      {
-        query: zRecordIdDto,
-        response: createSuccessResponseSchema(workOrderSchema),
-        auth: true,
-      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(workOrderSchema), auth: true },
     )
     .post(
       '/create',
@@ -52,11 +48,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
         const result = await service.handleCreate(body as any, auth.userId)
         return res.created(result)
       },
-      {
-        body: workOrderCreateSchema,
-        response: createSuccessResponseSchema(workOrderSchema),
-        auth: true,
-      },
+      { body: workOrderCreateSchema, response: createSuccessResponseSchema(workOrderSchema), auth: true },
     )
     .post(
       '/start',
@@ -64,11 +56,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
         const result = await service.handleStart(query.id, auth.userId)
         return res.ok(result)
       },
-      {
-        query: zRecordIdDto,
-        response: createSuccessResponseSchema(workOrderSchema),
-        auth: true,
-      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(workOrderSchema), auth: true },
     )
     .post(
       '/complete',
@@ -76,9 +64,5 @@ export const workOrderRouter = (service: WorkOrderService) =>
         const result = await service.handleComplete(body.id, body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: workOrderCompleteSchema,
-        response: createSuccessResponseSchema(workOrderSchema),
-        auth: true,
-      },
+      { body: workOrderCompleteSchema, response: createSuccessResponseSchema(workOrderSchema), auth: true },
     )

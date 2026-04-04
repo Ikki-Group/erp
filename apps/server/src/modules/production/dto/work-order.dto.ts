@@ -1,20 +1,8 @@
 import z from 'zod'
 
-import {
-  zId,
-  zDecimal,
-  zStr,
-  zQuerySearch,
-  zMetadataDto,
-  zRecordIdDto,
-} from '@/core/validation'
+import { zId, zDecimal, zStr, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
-export const workOrderStatusSchema = z.enum([
-  'draft',
-  'in_progress',
-  'completed',
-  'cancelled',
-])
+export const workOrderStatusSchema = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
 
 export type WorkOrderStatus = z.infer<typeof workOrderStatusSchema>
 
@@ -25,16 +13,16 @@ export const workOrderSchema = z.object({
   recipeId: zId,
   locationId: zId,
   status: workOrderStatusSchema,
-  
+
   expectedQty: zDecimal,
   actualQty: zDecimal,
-  
+
   note: z.string().nullable(),
   totalCost: zDecimal,
-  
+
   startedAt: z.coerce.date().nullable(),
   completedAt: z.coerce.date().nullable(),
-  
+
   ...zMetadataDto.shape,
 })
 
@@ -78,10 +66,6 @@ export const workOrderUpdateSchema = z.object({
 
 export type WorkOrderUpdateDto = z.infer<typeof workOrderUpdateSchema>
 
-export const workOrderCompleteSchema = z.object({
-  id: zId,
-  actualQty: zDecimal,
-  note: zStr.optional(),
-})
+export const workOrderCompleteSchema = z.object({ id: zId, actualQty: zDecimal, note: zStr.optional() })
 
 export type WorkOrderCompleteDto = z.infer<typeof workOrderCompleteSchema>

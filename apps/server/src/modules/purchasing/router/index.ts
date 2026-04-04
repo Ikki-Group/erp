@@ -8,7 +8,5 @@ export function initPurchasingRouteModule(service: PurchasingServiceModule) {
   const purchaseOrderRouter = initPurchaseOrderRoute(service.purchaseOrder)
   const goodsReceiptRouter = initGoodsReceiptRoute(service.goodsReceipt)
 
-  return new Elysia({ prefix: '/purchasing' })
-    .use(purchaseOrderRouter)
-    .use(goodsReceiptRouter)
+  return new Elysia({ prefix: '/purchasing' }).use(purchaseOrderRouter).use(goodsReceiptRouter)
 }

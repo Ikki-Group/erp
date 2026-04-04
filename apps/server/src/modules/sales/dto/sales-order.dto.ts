@@ -1,6 +1,16 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zDecimal, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import {
+  zStrNullable,
+  zStr,
+  zNum,
+  zId,
+  zDate,
+  zDecimal,
+  zQuerySearch,
+  zMetadataDto,
+  zRecordIdDto,
+} from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -132,9 +142,7 @@ export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>
 
 /* --------------------------------- UPDATE --------------------------------- */
 
-export const SalesOrderUpdateDto = z.object({
-  ...SalesOrderCreateDto.partial().shape,
-})
+export const SalesOrderUpdateDto = z.object({ ...SalesOrderCreateDto.partial().shape })
 
 export type SalesOrderUpdateDto = z.infer<typeof SalesOrderUpdateDto>
 

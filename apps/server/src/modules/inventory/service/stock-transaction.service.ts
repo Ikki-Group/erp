@@ -1,18 +1,18 @@
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
-import type { 
-  AdjustmentTransactionDto, 
-  PurchaseTransactionDto, 
-  SellTransactionDto, 
-  StockOpnameDto, 
-  StockTransactionDto, 
-  StockTransactionFilterDto, 
-  StockTransactionSelectDto, 
-  TransactionResultDto, 
-  TransferTransactionDto, 
+import type {
+  AdjustmentTransactionDto,
+  PurchaseTransactionDto,
+  SellTransactionDto,
+  StockOpnameDto,
+  StockTransactionDto,
+  StockTransactionFilterDto,
+  StockTransactionSelectDto,
+  TransactionResultDto,
+  TransferTransactionDto,
   UsageTransactionDto,
   ProductionInTransactionDto,
-  ProductionOutTransactionDto
+  ProductionOutTransactionDto,
 } from '@/modules/inventory/dto'
 import { StockHistoryService } from './stock/stock-history.service'
 import { StockExternalMovementService } from './stock/stock-external-movement.service'

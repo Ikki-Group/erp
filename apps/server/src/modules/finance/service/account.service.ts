@@ -11,9 +11,7 @@ export class AccountService {
       const { search, type, parentId, limit = 50, page = 1 } = query
 
       const where = and(
-        search
-          ? or(ilike(accountsTable.name, `%${search}%`), ilike(accountsTable.code, `%${search}%`))
-          : undefined,
+        search ? or(ilike(accountsTable.name, `%${search}%`), ilike(accountsTable.code, `%${search}%`)) : undefined,
         isNull(accountsTable.deletedAt),
         type ? eq(accountsTable.type, type) : undefined,
         parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
@@ -49,7 +47,10 @@ export class AccountService {
   async handleCreate(data: AccountCreateDto, actorId: number) {
     return record('AccountService.handleCreate', async () => {
       const stamps = stampCreate(actorId)
-      const rows = await db.insert(accountsTable).values({ ...data, ...stamps }).returning({ id: accountsTable.id })
+      const rows = await db
+        .insert(accountsTable)
+        .values({ ...data, ...stamps })
+        .returning({ id: accountsTable.id })
 
       return takeFirstOrThrow(rows, 'Failed to create account', 'ACCOUNT_CREATE_FAILED')
     })
@@ -70,7 +71,11 @@ export class AccountService {
 
   async handleRemove(id: number, actorId: number) {
     return record('AccountService.handleRemove', async () => {
-      const children = await db.select({ id: accountsTable.id }).from(accountsTable).where(and(eq(accountsTable.parentId, id), isNull(accountsTable.deletedAt))).limit(1)
+      const children = await db
+        .select({ id: accountsTable.id })
+        .from(accountsTable)
+        .where(and(eq(accountsTable.parentId, id), isNull(accountsTable.deletedAt)))
+        .limit(1)
       if (children.length > 0) {
         throw new Error('Account has children, cannot delete')
       }
@@ -88,11 +93,11 @@ export class AccountService {
 
   async findByCode(code: string) {
     const [result] = await db
-        .select()
-        .from(accountsTable)
-        .where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
-        .limit(1)
-    
+      .select()
+      .from(accountsTable)
+      .where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
+      .limit(1)
+
     return result ?? null
   }
 }

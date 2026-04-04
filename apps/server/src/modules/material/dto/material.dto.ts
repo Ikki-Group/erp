@@ -1,6 +1,16 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zDecimal, zQuerySearch, zQueryId, zQueryIds, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import {
+  zStrNullable,
+  zStr,
+  zId,
+  zDecimal,
+  zQuerySearch,
+  zQueryId,
+  zQueryIds,
+  zMetadataDto,
+  zRecordIdDto,
+} from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 import { RecipeDto } from '@/modules/recipe'
 
@@ -14,11 +24,7 @@ export type MaterialType = z.infer<typeof MaterialType>
 
 /* --------------------------------- NESTED --------------------------------- */
 
-export const MaterialConversionDto = z.object({
-  toBaseFactor: zDecimal,
-  uomId: zId,
-  uom: UomDto.optional(),
-})
+export const MaterialConversionDto = z.object({ toBaseFactor: zDecimal, uomId: zId, uom: UomDto.optional() })
 
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 

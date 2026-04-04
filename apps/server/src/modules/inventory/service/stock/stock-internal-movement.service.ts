@@ -4,11 +4,11 @@ import { stampCreate } from '@/core/database'
 import { stockTransactionsTable } from '@/db/schema'
 import { MovementLogic } from './movement-logic'
 import { BadRequestError } from '@/core/http/errors'
-import type { 
-  TransferTransactionDto, 
-  AdjustmentTransactionDto, 
+import type {
+  TransferTransactionDto,
+  AdjustmentTransactionDto,
   StockOpnameDto,
-  TransactionResultDto
+  TransactionResultDto,
 } from '@/modules/inventory/dto'
 
 export class StockInternalMovementService extends MovementLogic {
@@ -31,21 +31,28 @@ export class StockInternalMovementService extends MovementLogic {
             const destAssignment = await this.mLocationSvc.findOne(materialId, destinationLocationId)
 
             if (sourceAssignment.currentQty < qty) {
-              throw new BadRequestError(`Insufficient stock for material ${materialId} at source: available ${sourceAssignment.currentQty}, requested ${qty}`)
+              throw new BadRequestError(
+                `Insufficient stock for material ${materialId} at source: available ${sourceAssignment.currentQty}, requested ${qty}`,
+              )
             }
 
             const transferCost = qty * sourceAssignment.currentAvgCost
 
             // ── Transfer OUT (Delegating to Logic)
-            await this.handleStockOut('transfer_out', {
-              locationId: sourceLocationId,
-              date,
-              referenceNo,
-              notes,
-              items: [{ materialId, qty }],
-              counterpartLocationId: destinationLocationId,
-              transferId
-            }, actorId, tx)
+            await this.handleStockOut(
+              'transfer_out',
+              {
+                locationId: sourceLocationId,
+                date,
+                referenceNo,
+                notes,
+                items: [{ materialId, qty }],
+                counterpartLocationId: destinationLocationId,
+                transferId,
+              },
+              actorId,
+              tx,
+            )
 
             // ── Transfer IN
             const { newQty, newAvgCost } = this.calculateIncomingWAC(
@@ -55,22 +62,24 @@ export class StockInternalMovementService extends MovementLogic {
               sourceAssignment.currentAvgCost,
             )
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId,
-              locationId: destinationLocationId,
-              type: 'transfer_in',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: qty.toString(),
-              unitCost: sourceAssignment.currentAvgCost.toString(),
-              totalCost: transferCost.toString(),
-              counterpartLocationId: sourceLocationId,
-              transferId,
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId,
+                locationId: destinationLocationId,
+                type: 'transfer_in',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: qty.toString(),
+                unitCost: sourceAssignment.currentAvgCost.toString(),
+                totalCost: transferCost.toString(),
+                counterpartLocationId: sourceLocationId,
+                transferId,
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               materialId,
@@ -105,24 +114,32 @@ export class StockInternalMovementService extends MovementLogic {
 
             if (diffQty === 0) return
 
-            const { newQty, newAvgCost } = diffQty > 0 
-              ? this.calculateIncomingWAC(assignment.currentQty, assignment.currentAvgCost, diffQty, assignment.currentAvgCost)
-              : { newQty: physicalQty, newAvgCost: assignment.currentAvgCost }
+            const { newQty, newAvgCost } =
+              diffQty > 0
+                ? this.calculateIncomingWAC(
+                    assignment.currentQty,
+                    assignment.currentAvgCost,
+                    diffQty,
+                    assignment.currentAvgCost,
+                  )
+                : { newQty: physicalQty, newAvgCost: assignment.currentAvgCost }
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId,
-              locationId,
-              type: 'adjustment',
-              date,
-              referenceNo,
-              notes: `Stock Opname: ${notes ?? ''}`.trim(),
-              qty: diffQty.toString(),
-              unitCost: assignment.currentAvgCost.toString(),
-              totalCost: (Math.abs(diffQty) * assignment.currentAvgCost).toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId,
+                locationId,
+                type: 'adjustment',
+                date,
+                referenceNo,
+                notes: `Stock Opname: ${notes ?? ''}`.trim(),
+                qty: diffQty.toString(),
+                unitCost: assignment.currentAvgCost.toString(),
+                totalCost: (Math.abs(diffQty) * assignment.currentAvgCost).toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               materialId,
@@ -155,26 +172,29 @@ export class StockInternalMovementService extends MovementLogic {
             const assignment = await this.mLocationSvc.findOne(materialId, locationId)
             const effectiveUnitCost = item.unitCost ?? assignment.currentAvgCost
 
-            const { newQty, newAvgCost } = qty > 0 
-              ? this.calculateIncomingWAC(assignment.currentQty, assignment.currentAvgCost, qty, effectiveUnitCost)
-              : { newQty: assignment.currentQty + qty, newAvgCost: assignment.currentAvgCost }
+            const { newQty, newAvgCost } =
+              qty > 0
+                ? this.calculateIncomingWAC(assignment.currentQty, assignment.currentAvgCost, qty, effectiveUnitCost)
+                : { newQty: assignment.currentQty + qty, newAvgCost: assignment.currentAvgCost }
 
             if (newQty < 0) throw new BadRequestError(`Adjustment results in negative stock for material ${materialId}`)
 
-            await tx.insert(stockTransactionsTable).values({
-              materialId,
-              locationId,
-              type: 'adjustment',
-              date,
-              referenceNo,
-              notes: notes ?? null,
-              qty: qty.toString(),
-              unitCost: effectiveUnitCost.toString(),
-              totalCost: (Math.abs(qty) * effectiveUnitCost).toString(),
-              runningQty: newQty.toString(),
-              runningAvgCost: newAvgCost.toString(),
-              ...metadata,
-            })
+            await tx
+              .insert(stockTransactionsTable)
+              .values({
+                materialId,
+                locationId,
+                type: 'adjustment',
+                date,
+                referenceNo,
+                notes: notes ?? null,
+                qty: qty.toString(),
+                unitCost: effectiveUnitCost.toString(),
+                totalCost: (Math.abs(qty) * effectiveUnitCost).toString(),
+                runningQty: newQty.toString(),
+                runningAvgCost: newAvgCost.toString(),
+                ...metadata,
+              })
 
             await this.mLocationSvc.updateCurrentStock(
               materialId,

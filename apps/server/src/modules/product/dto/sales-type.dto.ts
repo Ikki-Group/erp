@@ -22,10 +22,6 @@ export type SalesTypeFilterDto = z.infer<typeof salesTypeFilterSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const salesTypeMutationSchema = salesTypeSchema.pick({
-  code: true,
-  name: true,
-  isSystem: true,
-})
+export const salesTypeMutationSchema = salesTypeSchema.pick({ code: true, name: true, isSystem: true })
 
 export type SalesTypeMutationDto = z.infer<typeof salesTypeMutationSchema>

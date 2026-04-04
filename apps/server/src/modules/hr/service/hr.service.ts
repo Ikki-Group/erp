@@ -1,12 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, ilike, isNull, lte, or, sql } from 'drizzle-orm'
 
-import {
-  paginate,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-} from '@/core/database'
+import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -24,9 +19,11 @@ import type {
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Attendance with ID ${id} not found`, 'ATTENDANCE_NOT_FOUND'),
-  alreadyClockedIn: (employeeId: number) => new ConflictError(`Employee with ID ${employeeId} is already clocked in`, 'ALREADY_CLOCKED_IN'),
+  alreadyClockedIn: (employeeId: number) =>
+    new ConflictError(`Employee with ID ${employeeId} is already clocked in`, 'ALREADY_CLOCKED_IN'),
   notClockedIn: (id: number) => new ConflictError(`Attendance with ID ${id} is not clocked in`, 'NOT_CLOCKED_IN'),
-  alreadyClockedOut: (id: number) => new ConflictError(`Attendance with ID ${id} is already clocked out`, 'ALREADY_CLOCKED_OUT'),
+  alreadyClockedOut: (id: number) =>
+    new ConflictError(`Attendance with ID ${id} is already clocked out`, 'ALREADY_CLOCKED_OUT'),
 }
 
 export class HRService {
@@ -36,14 +33,12 @@ export class HRService {
     return record('HRService.handleShiftList', async () => {
       const result = await paginate({
         data: ({ limit, offset }) =>
-          db
-            .select()
-            .from(shiftsTable)
-            .where(isNull(shiftsTable.deletedAt))
-            .limit(limit)
-            .offset(offset),
+          db.select().from(shiftsTable).where(isNull(shiftsTable.deletedAt)).limit(limit).offset(offset),
         pq,
-        countQuery: db.select({ count: sql<number>`count(*)` }).from(shiftsTable).where(isNull(shiftsTable.deletedAt)),
+        countQuery: db
+          .select({ count: sql<number>`count(*)` })
+          .from(shiftsTable)
+          .where(isNull(shiftsTable.deletedAt)),
       })
 
       return result as unknown as WithPaginationResult<ShiftDto>
@@ -63,7 +58,7 @@ export class HRService {
           ...metadata,
         })
         .returning()
-      
+
       return result[0] as unknown as ShiftDto
     })
   }
@@ -78,10 +73,7 @@ export class HRService {
       const { search, employeeId, locationId, status, dateFrom, dateTo } = filter
 
       const searchCondition = search
-        ? or(
-            ilike(employeesTable.name, `%${search}%`),
-            ilike(employeesTable.code, `%${search}%`),
-          )
+        ? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
         : undefined
 
       const dateCondition =
@@ -155,9 +147,9 @@ export class HRService {
             eq(attendancesTable.employeeId, data.employeeId),
             isNull(attendancesTable.clockOut),
             isNull(attendancesTable.deletedAt),
-          )
+          ),
         )
-      
+
       if (existing.length > 0) throw err.alreadyClockedIn(data.employeeId)
 
       const metadata = stampCreate(actorId)
@@ -174,7 +166,7 @@ export class HRService {
           ...metadata,
         })
         .returning()
-      
+
       return result[0] as unknown as AttendanceDto
     })
   }
@@ -185,23 +177,19 @@ export class HRService {
         .select()
         .from(attendancesTable)
         .where(and(eq(attendancesTable.id, data.id), isNull(attendancesTable.deletedAt)))
-      
+
       const attendance = takeFirstOrThrow(result, `Attendance with ID ${data.id} not found`, 'ATTENDANCE_NOT_FOUND')
-      
+
       if (!attendance.clockIn) throw err.notClockedIn(data.id)
       if (attendance.clockOut) throw err.alreadyClockedOut(data.id)
 
       const metadata = stampUpdate(actorId)
       const updateResult = await db
         .update(attendancesTable)
-        .set({
-          clockOut: new Date(),
-          note: data.note ?? (attendance.note as any),
-          ...metadata,
-        })
+        .set({ clockOut: new Date(), note: data.note ?? (attendance.note as any), ...metadata })
         .where(eq(attendancesTable.id, data.id))
         .returning()
-      
+
       return updateResult[0] as unknown as AttendanceDto
     })
   }

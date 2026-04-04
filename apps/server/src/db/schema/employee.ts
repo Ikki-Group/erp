@@ -20,7 +20,5 @@ export const employeesTable = pgTable(
     userId: integer('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
     ...auditColumns,
   },
-  (t) => [
-    uniqueIndex('employees_code_idx').on(t.code).where(isNull(t.deletedAt)),
-  ],
+  (t) => [uniqueIndex('employees_code_idx').on(t.code).where(isNull(t.deletedAt))],
 )

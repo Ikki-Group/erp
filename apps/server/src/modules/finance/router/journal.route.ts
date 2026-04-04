@@ -19,13 +19,10 @@ export function initJournalRoute(_s: GeneralLedgerService) {
           .from(journalEntriesTable)
           .where(isNull(journalEntriesTable.deletedAt))
           .orderBy(desc(journalEntriesTable.date))
-        
+
         // Manual join/mapping since db.query is not used in this project
         const items = await db.select().from(journalItemsTable)
-        const result = rows.map(r => ({
-          ...r,
-          items: items.filter(i => i.journalEntryId === r.id)
-        }))
+        const result = rows.map((r) => ({ ...r, items: items.filter((i) => i.journalEntryId === r.id) }))
 
         return res.ok(result)
       },
@@ -38,19 +35,13 @@ export function initJournalRoute(_s: GeneralLedgerService) {
           .select()
           .from(journalEntriesTable)
           .where(and(eq(journalEntriesTable.id, id), isNull(journalEntriesTable.deletedAt)))
-        
+
         if (!entry) throw new NotFoundError('Journal entry not found', 'JOURNAL_ENTRY_NOT_FOUND')
 
-        const items = await db
-          .select()
-          .from(journalItemsTable)
-          .where(eq(journalItemsTable.journalEntryId, id))
+        const items = await db.select().from(journalItemsTable).where(eq(journalItemsTable.journalEntryId, id))
 
         return res.ok({ ...entry, items })
       },
-      {
-        params: t.Object({ id: t.Numeric() }),
-        auth: true
-      }
+      { params: t.Object({ id: t.Numeric() }), auth: true },
     )
 }

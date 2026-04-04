@@ -273,12 +273,14 @@ export class ProductService {
         categoriesMap.set(cat.id, cat)
       }
 
-      const data: ProductSelectDto[] = result.data.map((p) => Object.assign({}, p, {
-        variants: variantsMap.get(p.id) ?? [],
-        prices: pricesMap.get(p.id) ?? [],
-        externalMappings: mappingsMap.get(p.id) ?? [],
-        category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
-      }))
+      const data: ProductSelectDto[] = result.data.map((p) =>
+        Object.assign({}, p, {
+          variants: variantsMap.get(p.id) ?? [],
+          prices: pricesMap.get(p.id) ?? [],
+          externalMappings: mappingsMap.get(p.id) ?? [],
+          category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
+        }),
+      )
 
       return { data, meta: result.meta }
     })
@@ -336,7 +338,9 @@ export class ProductService {
           await tx
             .insert(productPricesTable)
             .values(
-              data.prices.map((p) => Object.assign({ productId: product.id, salesTypeId: p.salesTypeId, price: p.price }, meta)),
+              data.prices.map((p) =>
+                Object.assign({ productId: product.id, salesTypeId: p.salesTypeId, price: p.price }, meta),
+              ),
             )
         }
 
@@ -358,11 +362,9 @@ export class ProductService {
             await tx
               .insert(variantPricesTable)
               .values(
-                variant.prices.map((p) => Object.assign({
-                  variantId: insertedVariant.id,
-                  salesTypeId: p.salesTypeId,
-                  price: p.price,
-                }, meta)),
+                variant.prices.map((p) =>
+                  Object.assign({ variantId: insertedVariant.id, salesTypeId: p.salesTypeId, price: p.price }, meta),
+                ),
               )
           }
         }
@@ -415,7 +417,9 @@ export class ProductService {
           await tx
             .insert(productPricesTable)
             .values(
-              data.prices.map((p) => Object.assign({ productId: id, salesTypeId: p.salesTypeId, price: p.price }, createMeta)),
+              data.prices.map((p) =>
+                Object.assign({ productId: id, salesTypeId: p.salesTypeId, price: p.price }, createMeta),
+              ),
             )
         }
 
@@ -441,11 +445,12 @@ export class ProductService {
               await tx
                 .insert(variantPricesTable)
                 .values(
-                  variant.prices.map((p) => Object.assign({
-                    variantId: insertedVariant.id,
-                    salesTypeId: p.salesTypeId,
-                    price: p.price,
-                  }, createMeta)),
+                  variant.prices.map((p) =>
+                    Object.assign(
+                      { variantId: insertedVariant.id, salesTypeId: p.salesTypeId, price: p.price },
+                      createMeta,
+                    ),
+                  ),
                 )
             }
           }

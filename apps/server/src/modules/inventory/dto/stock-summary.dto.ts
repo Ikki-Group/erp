@@ -45,10 +45,7 @@ export type StockSummaryDto = z.infer<typeof stockSummarySchema>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
-export const stockSummarySelectSchema = stockSummarySchema.extend({
-  materialName: zStr,
-  materialSku: zStr,
-})
+export const stockSummarySelectSchema = stockSummarySchema.extend({ materialName: zStr, materialSku: zStr })
 
 export type StockSummarySelectDto = z.infer<typeof stockSummarySelectSchema>
 

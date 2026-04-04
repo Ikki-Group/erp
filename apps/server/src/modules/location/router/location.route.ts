@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
 import * as dto from '../dto/location.dto'
 import type { LocationService } from '../service/location.service'
@@ -24,11 +20,7 @@ export function initLocationRoute(service: LocationService) {
         const result = await service.handleList(query)
         return res.paginated(result)
       },
-      {
-        query: dto.LocationFilterDto,
-        response: createPaginatedResponseSchema(dto.LocationDto),
-        auth: true,
-      },
+      { query: dto.LocationFilterDto, response: createPaginatedResponseSchema(dto.LocationDto), auth: true },
     )
     .get(
       '/detail',
@@ -44,11 +36,7 @@ export function initLocationRoute(service: LocationService) {
         const result = await service.handleCreate(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.LocationCreateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.LocationCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .patch(
       '/update',
@@ -57,11 +45,7 @@ export function initLocationRoute(service: LocationService) {
         const result = await service.handleUpdate(id, data, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.LocationUpdateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.LocationUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .delete(
       '/remove',

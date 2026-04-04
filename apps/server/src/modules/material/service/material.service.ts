@@ -2,14 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, notExists, or, ilike } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import {
-  checkConflict,
-  paginate,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  type ConflictField,
-} from '@/core/database'
+import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -107,9 +100,7 @@ export class MaterialService {
         })
         .from(materialConversionsTable)
         .innerJoin(uomsTable, eq(materialConversionsTable.uomId, uomsTable.id))
-        .where(
-          and(inArray(materialConversionsTable.materialId, ids), isNull(materialConversionsTable.deletedAt)),
-        ),
+        .where(and(inArray(materialConversionsTable.materialId, ids), isNull(materialConversionsTable.deletedAt))),
 
       db
         .select({ materialId: materialLocationsTable.materialId, locationId: materialLocationsTable.locationId })
@@ -367,16 +358,22 @@ export class MaterialService {
    */
   async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleRemove', async () => {
-      // Also soft delete its relations if needed? 
+      // Also soft delete its relations if needed?
       // Usually cascading soft delete is manual or handled by junction logic.
       // For conversions and locations, they are tied to this material.
-      
+
       const result = await db.transaction(async (tx) => {
         const timestamp = new Date()
-        
+
         await Promise.all([
-          tx.update(materialConversionsTable).set({ deletedAt: timestamp, deletedBy: actorId }).where(eq(materialConversionsTable.materialId, id)),
-          tx.update(materialLocationsTable).set({ deletedAt: timestamp, deletedBy: actorId }).where(eq(materialLocationsTable.materialId, id)),
+          tx
+            .update(materialConversionsTable)
+            .set({ deletedAt: timestamp, deletedBy: actorId })
+            .where(eq(materialConversionsTable.materialId, id)),
+          tx
+            .update(materialLocationsTable)
+            .set({ deletedAt: timestamp, deletedBy: actorId })
+            .where(eq(materialLocationsTable.materialId, id)),
         ])
 
         return tx
@@ -400,7 +397,10 @@ export class MaterialService {
   async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('MaterialService.handleHardRemove', async () => {
       // Drizzle references handle the cascade if configured in schema (materialId references onDelete cascade)
-      const result = await db.delete(materialsTable).where(eq(materialsTable.id, id)).returning({ id: materialsTable.id })
+      const result = await db
+        .delete(materialsTable)
+        .where(eq(materialsTable.id, id))
+        .returning({ id: materialsTable.id })
       if (result.length === 0) throw err.notFound(id)
 
       await this.clearCache(id)

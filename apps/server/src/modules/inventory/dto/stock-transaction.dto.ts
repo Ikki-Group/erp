@@ -1,10 +1,29 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import {
+  zStrNullable,
+  zStr,
+  zNum,
+  zId,
+  zDate,
+  zQuerySearch,
+  zQueryId,
+  zMetadataDto,
+  zRecordIdDto,
+} from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const transactionTypeSchema = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell', 'usage', 'production_in', 'production_out'])
+export const transactionTypeSchema = z.enum([
+  'purchase',
+  'transfer_in',
+  'transfer_out',
+  'adjustment',
+  'sell',
+  'usage',
+  'production_in',
+  'production_out',
+])
 export type TransactionType = z.infer<typeof transactionTypeSchema>
 
 /* --------------------------------- ENTITY --------------------------------- */
@@ -39,10 +58,7 @@ export type StockTransactionDto = z.infer<typeof stockTransactionSchema>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const stockTransactionSelectSchema = stockTransactionSchema.extend({
-  materialName: zStr,
-  materialSku: zStr,
-})
+export const stockTransactionSelectSchema = stockTransactionSchema.extend({ materialName: zStr, materialSku: zStr })
 
 export type StockTransactionSelectDto = z.infer<typeof stockTransactionSelectSchema>
 
@@ -69,10 +85,7 @@ export const purchaseItemSchema = z.object({
 })
 
 /** Single item within a transfer transaction */
-export const transferItemSchema = z.object({
-  materialId: zId,
-  qty: zNum.positive('Quantity must be positive'),
-})
+export const transferItemSchema = z.object({ materialId: zId, qty: zNum.positive('Quantity must be positive') })
 
 /** Single item within an adjustment transaction */
 export const adjustmentItemSchema = z.object({
@@ -82,10 +95,7 @@ export const adjustmentItemSchema = z.object({
 })
 
 /** Single item within a stock out (usage/sell) transaction */
-export const usageItemSchema = z.object({
-  materialId: zId,
-  qty: zNum.positive('Quantity must be positive'),
-})
+export const usageItemSchema = z.object({ materialId: zId, qty: zNum.positive('Quantity must be positive') })
 
 /* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 

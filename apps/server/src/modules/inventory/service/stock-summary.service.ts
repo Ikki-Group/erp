@@ -419,7 +419,15 @@ export class StockSummaryService {
             }
           }
 
-          const closingQty = openingQty + purchaseQty + transferInQty - transferOutQty + adjustmentQty + (productionInQty - productionOutQty) - usageQty - sellQty
+          const closingQty =
+            openingQty +
+            purchaseQty +
+            transferInQty -
+            transferOutQty +
+            adjustmentQty +
+            (productionInQty - productionOutQty) -
+            usageQty -
+            sellQty
           const lastTx = lastTxMap.get(materialId)
           const closingAvgCost = lastTx ? Number(lastTx.runningAvgCost) : openingAvgCost
           const closingValue = closingQty * closingAvgCost

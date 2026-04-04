@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import {
   SalesOrderAddBatchDto,
@@ -72,11 +77,6 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleVoid(query.id, body, auth.userId)
         return res.ok(result)
       },
-      {
-        query: zRecordIdDto,
-        body: SalesOrderVoidDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { query: zRecordIdDto, body: SalesOrderVoidDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

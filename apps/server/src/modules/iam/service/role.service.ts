@@ -13,11 +13,7 @@ const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
   { field: 'name', column: rolesTable.name, message: 'Role name already exists', code: 'ROLE_NAME_ALREADY_EXISTS' },
 ]
 
-const cacheKey = {
-  count: 'iam.role.count',
-  list: 'iam.role.list',
-  byId: (id: number) => `iam.role.byId.${id}`,
-}
+const cacheKey = { count: 'iam.role.count', list: 'iam.role.list', byId: (id: number) => `iam.role.byId.${id}` }
 
 // Role Service (Layer 0)
 // Handles authorization role definitions and permission sets.
@@ -62,7 +58,10 @@ export class RoleService {
   async getById(id: number): Promise<dto.RoleDto> {
     const result = await record('RoleService.getById', async () => {
       const data = await cache.wrap(cacheKey.byId(id), async () => {
-        const rows = await db.select().from(rolesTable).where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
+        const rows = await db
+          .select()
+          .from(rolesTable)
+          .where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
         return dto.RoleDto.parse(first)
       })
@@ -94,7 +93,13 @@ export class RoleService {
 
       const p = await core.paginate<dto.RoleDto>({
         data: async ({ limit: l, offset }) => {
-          const rows = await db.select().from(rolesTable).where(where).orderBy(core.sortBy(rolesTable.updatedAt, 'desc')).limit(l).offset(offset)
+          const rows = await db
+            .select()
+            .from(rolesTable)
+            .where(where)
+            .orderBy(core.sortBy(rolesTable.updatedAt, 'desc'))
+            .limit(l)
+            .offset(offset)
           return rows.map((r) => dto.RoleDto.parse(r))
         },
         pq: { page, limit },

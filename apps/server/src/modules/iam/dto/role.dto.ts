@@ -17,11 +17,7 @@ export type RoleBaseDto = z.infer<typeof RoleBaseDto>
 /**
  * Role database record.
  */
-export const RoleDto = z.object({
-  ...zRecordIdDto.shape,
-  ...RoleBaseDto.shape,
-  ...zMetadataDto.shape,
-})
+export const RoleDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape, ...zMetadataDto.shape })
 export type RoleDto = z.infer<typeof RoleDto>
 
 /**
@@ -33,17 +29,11 @@ export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 /**
  * Input for updating an existing Role (Full Update).
  */
-export const RoleUpdateDto = z.object({
-  ...zRecordIdDto.shape,
-  ...RoleBaseDto.shape,
-})
+export const RoleUpdateDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
 
 /**
  * Filter criteria for listing Roles.
  */
-export const RoleFilterDto = z.object({
-  ...zPaginationDto.shape,
-  q: z.string().optional(),
-})
+export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional() })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>

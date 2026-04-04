@@ -31,7 +31,9 @@ export class GoodsReceiptService {
     return result
   }
 
-  async handleList(filter: dto.GoodsReceiptNoteFilterDto): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteBaseDto>> {
+  async handleList(
+    filter: dto.GoodsReceiptNoteFilterDto,
+  ): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteBaseDto>> {
     const result = await record('GoodsReceiptService.handleList', async () => {
       const { q, page, limit, status, orderId, locationId, supplierId } = filter
       const where = and(
@@ -40,12 +42,12 @@ export class GoodsReceiptService {
           ? undefined
           : or(
               core.searchFilter(goodsReceiptNotesTable.referenceNumber, q),
-              core.searchFilter(goodsReceiptNotesTable.notes, q)
+              core.searchFilter(goodsReceiptNotesTable.notes, q),
             ),
         status === undefined ? undefined : eq(goodsReceiptNotesTable.status, status),
         orderId === undefined ? undefined : eq(goodsReceiptNotesTable.orderId, orderId),
         locationId === undefined ? undefined : eq(goodsReceiptNotesTable.locationId, locationId),
-        supplierId === undefined ? undefined : eq(goodsReceiptNotesTable.supplierId, supplierId)
+        supplierId === undefined ? undefined : eq(goodsReceiptNotesTable.supplierId, supplierId),
       )
 
       const p = await core.paginate<dto.GoodsReceiptNoteBaseDto>({
@@ -81,15 +83,12 @@ export class GoodsReceiptService {
 
         const [insertedGrn] = await tx
           .insert(goodsReceiptNotesTable)
-          .values({ 
-            ...headerData, 
-            ...core.stampCreate(actorId) 
-          })
+          .values({ ...headerData, ...core.stampCreate(actorId) })
           .returning({ id: goodsReceiptNotesTable.id })
-        
+
         if (!insertedGrn) throw new Error('Create GRN header failed')
 
-        const itemValues = items.map(item => {
+        const itemValues = items.map((item) => {
           const stamp = core.stampCreate(actorId)
           return {
             grnId: insertedGrn.id,
@@ -110,29 +109,28 @@ export class GoodsReceiptService {
 
           // ─── INTEGRATION: Trigger Stock In ───
           // 1. Fetch PO items to get unit prices/costs
-          const poItemIds = items.map(i => i.purchaseOrderItemId).filter(Boolean)
+          const poItemIds = items.map((i) => i.purchaseOrderItemId).filter(Boolean)
           const poItems = await tx
             .select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
             .from(purchaseOrderItemsTable)
             .where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
 
-          const poItemMap = new Map(poItems.map(i => [i.id, Number(i.unitPrice)]))
+          const poItemMap = new Map(poItems.map((i) => [i.id, Number(i.unitPrice)]))
 
           // 2. Record purchase transaction in inventory engine
-          await this.inventorySvc.handlePurchase({
-            locationId: headerData.locationId,
-            date: headerData.receiveDate,
-            referenceNo: `GRN-${insertedGrn.id}`, 
-            notes: headerData.notes ?? undefined,
-            items: items.map(item => {
-              const unitCost = item.purchaseOrderItemId ? (poItemMap.get(item.purchaseOrderItemId) ?? 0) : 0
-              return {
-                materialId: item.materialId!,
-                qty: Number(item.quantityReceived),
-                unitCost,
-              }
-            })
-          }, actorId)
+          await this.inventorySvc.handlePurchase(
+            {
+              locationId: headerData.locationId,
+              date: headerData.receiveDate,
+              referenceNo: `GRN-${insertedGrn.id}`,
+              notes: headerData.notes ?? undefined,
+              items: items.map((item) => {
+                const unitCost = item.purchaseOrderItemId ? (poItemMap.get(item.purchaseOrderItemId) ?? 0) : 0
+                return { materialId: item.materialId!, qty: Number(item.quantityReceived), unitCost }
+              }),
+            },
+            actorId,
+          )
         }
 
         return insertedGrn

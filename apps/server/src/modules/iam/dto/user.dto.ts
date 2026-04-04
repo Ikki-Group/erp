@@ -16,12 +16,7 @@ import { UserAssignmentUpsertDto } from './user-assignment.dto'
 /**
  * Common User attributes.
  */
-export const UserBaseDto = z.object({
-  username: zUsername,
-  email: zEmail,
-  fullname: zStr,
-  isActive: zBool,
-})
+export const UserBaseDto = z.object({ username: zUsername, email: zEmail, fullname: zStr, isActive: zBool })
 export type UserBaseDto = z.infer<typeof UserBaseDto>
 
 /**
@@ -60,27 +55,17 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 /**
  * Filter criteria for listing Users.
  */
-export const UserFilterDto = z.object({
-  ...zPaginationDto.shape,
-  q: z.string().optional(),
-  isActive: zBool.optional(),
-})
+export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional(), isActive: zBool.optional() })
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /**
  * Password change DTO for current user.
  */
-export const UserChangePasswordDto = z.object({
-  oldPassword: zPassword,
-  newPassword: zPassword,
-})
+export const UserChangePasswordDto = z.object({ oldPassword: zPassword, newPassword: zPassword })
 export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
 
 /**
  * Administrative password reset.
  */
-export const UserAdminUpdatePasswordDto = z.object({
-  ...zRecordIdDto.shape,
-  password: zPassword,
-})
+export const UserAdminUpdatePasswordDto = z.object({ ...zRecordIdDto.shape, password: zPassword })
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

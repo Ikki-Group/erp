@@ -1,6 +1,19 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zDecimal, zSortOrder, zNum, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import {
+  zStrNullable,
+  zStr,
+  zBool,
+  zId,
+  zDecimal,
+  zSortOrder,
+  zNum,
+  zQuerySearch,
+  zQueryBoolean,
+  zQueryId,
+  zMetadataDto,
+  zRecordIdDto,
+} from '@/core/validation'
 
 // ... (rest should be the same, I'll use multi_replace for accuracy or just carefully replace the whole file if it's small, but actually 97 lines is fine for replace_file_content if I'm precise)
 
@@ -99,10 +112,7 @@ export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>
 
 /* ---------------------------------- COST ---------------------------------- */
 
-export const RecipeItemCostDto = RecipeItemDto.extend({
-  unitCost: zNum,
-  extendedCost: zNum,
-})
+export const RecipeItemCostDto = RecipeItemDto.extend({ unitCost: zNum, extendedCost: zNum })
 
 export type RecipeItemCostDto = z.infer<typeof RecipeItemCostDto>
 

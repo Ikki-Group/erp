@@ -1,12 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 
-import {
-  paginate,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-} from '@/core/database'
+import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import { transformDecimals } from '@/core/utils/decimal'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -16,16 +11,12 @@ import { workOrdersTable } from '@/db/schema/production'
 import type { InventoryServiceModule } from '@/modules/inventory/service'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
 
-import type {
-  WorkOrderCompleteDto,
-  WorkOrderCreateDto,
-  WorkOrderDto,
-  WorkOrderFilterDto,
-} from '../dto/work-order.dto'
+import type { WorkOrderCompleteDto, WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from '../dto/work-order.dto'
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Work Order with ID ${id} not found`, 'WORK_ORDER_NOT_FOUND'),
-  notInProgress: (id: number) => new ConflictError(`Work Order with ID ${id} is not in progress`, 'WORK_ORDER_STATUS_CONFLICT'),
+  notInProgress: (id: number) =>
+    new ConflictError(`Work Order with ID ${id} is not in progress`, 'WORK_ORDER_STATUS_CONFLICT'),
 }
 
 export class WorkOrderService {
@@ -54,13 +45,13 @@ export class WorkOrderService {
             .limit(limit)
             .offset(offset),
         pq,
-        countQuery: db.select({ count: sql<number>`count(*)` }).from(workOrdersTable).where(where),
+        countQuery: db
+          .select({ count: sql<number>`count(*)` })
+          .from(workOrdersTable)
+          .where(where),
       })
 
-      return {
-        data: transformDecimals(result.data) as unknown as WorkOrderDto[],
-        meta: result.meta,
-      }
+      return { data: transformDecimals(result.data) as unknown as WorkOrderDto[], meta: result.meta }
     })
   }
 
@@ -70,7 +61,7 @@ export class WorkOrderService {
         .select()
         .from(workOrdersTable)
         .where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
-      
+
       const row = takeFirstOrThrow(result, `Work Order with ID ${id} not found`, 'WORK_ORDER_NOT_FOUND')
       return transformDecimals(row) as unknown as WorkOrderDto
     })
@@ -92,7 +83,7 @@ export class WorkOrderService {
           ...metadata,
         })
         .returning()
-      
+
       return transformDecimals(result[0]) as unknown as WorkOrderDto
     })
   }
@@ -108,7 +99,7 @@ export class WorkOrderService {
         .set({ status: 'in_progress', startedAt: new Date(), ...metadata })
         .where(eq(workOrdersTable.id, id))
         .returning()
-      
+
       return transformDecimals(result[0]) as unknown as WorkOrderDto
     })
   }
@@ -128,50 +119,52 @@ export class WorkOrderService {
       const actualTotalCost = Number(costRes.totalCost) * multiplier
 
       return db.transaction(async (tx) => {
-         // 1. Consume raw materials
-         if (recipe.items) {
-           await this.inventorySvc.transaction.handleProductionOut({
-             locationId: wo.locationId,
-             date: new Date(),
-             referenceNo: `WO-OUT-${wo.id}`,
-             notes: `Consumed for Work Order #${wo.id}`,
-             items: recipe.items.map(item => ({
-               materialId: item.materialId,
-               qty: Number(item.qty) * multiplier * (1 + (Number(item.scrapPercentage) / 100))
-             }))
-           }, actorId)
-         }
+        // 1. Consume raw materials
+        if (recipe.items) {
+          await this.inventorySvc.transaction.handleProductionOut(
+            {
+              locationId: wo.locationId,
+              date: new Date(),
+              referenceNo: `WO-OUT-${wo.id}`,
+              notes: `Consumed for Work Order #${wo.id}`,
+              items: recipe.items.map((item) => ({
+                materialId: item.materialId,
+                qty: Number(item.qty) * multiplier * (1 + Number(item.scrapPercentage) / 100),
+              })),
+            },
+            actorId,
+          )
+        }
 
-         // 2. Add finished good
-         if (recipe.materialId) {
-           await this.inventorySvc.transaction.handleProductionIn({
-             locationId: wo.locationId,
-             date: new Date(),
-             referenceNo: `WO-IN-${wo.id}`,
-             notes: `Produced from Work Order #${wo.id}`,
-             items: [{
-               materialId: recipe.materialId,
-               qty: actualQty,
-               unitCost: actualTotalCost / actualQty
-             }]
-           }, actorId)
-         }
+        // 2. Add finished good
+        if (recipe.materialId) {
+          await this.inventorySvc.transaction.handleProductionIn(
+            {
+              locationId: wo.locationId,
+              date: new Date(),
+              referenceNo: `WO-IN-${wo.id}`,
+              notes: `Produced from Work Order #${wo.id}`,
+              items: [{ materialId: recipe.materialId, qty: actualQty, unitCost: actualTotalCost / actualQty }],
+            },
+            actorId,
+          )
+        }
 
-         // 3. Finalize Work Order
-         const metadata = stampUpdate(actorId)
-         const result = await tx
-           .update(workOrdersTable)
-           .set({
-             status: 'completed',
-             actualQty: actualQty.toString(),
-             totalCost: actualTotalCost.toString(),
-             completedAt: new Date(),
-             ...metadata
-           })
-           .where(eq(workOrdersTable.id, id))
-           .returning()
-         
-         return transformDecimals(result[0]) as unknown as WorkOrderDto
+        // 3. Finalize Work Order
+        const metadata = stampUpdate(actorId)
+        const result = await tx
+          .update(workOrdersTable)
+          .set({
+            status: 'completed',
+            actualQty: actualQty.toString(),
+            totalCost: actualTotalCost.toString(),
+            completedAt: new Date(),
+            ...metadata,
+          })
+          .where(eq(workOrdersTable.id, id))
+          .returning()
+
+        return transformDecimals(result[0]) as unknown as WorkOrderDto
       })
     })
   }

@@ -109,21 +109,15 @@ export class MokaTransformationService {
         .select()
         .from(salesExternalRefsTable)
         .where(
-          and(
-            eq(salesExternalRefsTable.externalSource, 'moka'),
-            eq(salesExternalRefsTable.externalOrderId, sale.uuid),
-          ),
+          and(eq(salesExternalRefsTable.externalSource, 'moka'), eq(salesExternalRefsTable.externalOrderId, sale.uuid)),
         )
-      
+
       if (existing) return
 
       // 2. Map Sales Type (or create default)
       const salesTypeName = sale.payment_type_label ?? 'Moka'
-      let [salesType] = await tx
-        .select()
-        .from(salesTypesTable)
-        .where(eq(salesTypesTable.name, salesTypeName))
-      
+      let [salesType] = await tx.select().from(salesTypesTable).where(eq(salesTypesTable.name, salesTypeName))
+
       if (!salesType) {
         const [newType] = await tx
           .insert(salesTypesTable)
@@ -148,11 +142,11 @@ export class MokaTransformationService {
           status: 'closed',
           transactionDate: new Date(sale.created_at),
           totalAmount: String(sale.total_collected_amount),
-          taxAmount: String(sale.subtotal * 0.1), 
+          taxAmount: String(sale.subtotal * 0.1),
           ...stampCreate(actorId),
         })
         .returning()
-      
+
       if (!order) throw new Error('Failed to create sales order')
 
       // 4. Link External Ref
@@ -177,17 +171,19 @@ export class MokaTransformationService {
               eq(productExternalMappingsTable.externalId, String(item.item_id)),
             ),
           )
-        
-        await tx.insert(salesOrderItemsTable).values({
-          orderId: order.id,
-          productId: mapping?.productId,
-          variantId: mapping?.variantId,
-          itemName: item.item_name,
-          quantity: String(item.quantity),
-          unitPrice: String(item.price),
-          subtotal: String(item.price * item.quantity),
-          ...stampCreate(actorId),
-        })
+
+        await tx
+          .insert(salesOrderItemsTable)
+          .values({
+            orderId: order.id,
+            productId: mapping?.productId,
+            variantId: mapping?.variantId,
+            itemName: item.item_name,
+            quantity: String(item.quantity),
+            unitPrice: String(item.price),
+            subtotal: String(item.price * item.quantity),
+            ...stampCreate(actorId),
+          })
       }
 
       // 6. Automated General Ledger Posting (FIN-02)
@@ -210,17 +206,20 @@ export class MokaTransformationService {
     const taxAmount = sale.subtotal * 0.1 // Simplified Tax logic
     const totalCollected = sale.total_collected_amount
 
-    await this.journalSvc.postEntry({
-      date: new Date(sale.created_at),
-      reference: `MOKA-SALE-${sale.payment_no}`,
-      sourceType: 'sales',
-      sourceId: orderId,
-      note: `Automated posting from Moka Sales Sync (Payment ID: ${sale.payment_no})`,
-      items: [
-        { accountId: cashAcc.id, debit: String(totalCollected), credit: '0' },
-        { accountId: salesAcc.id, debit: '0', credit: String(netSales) },
-        { accountId: taxAcc.id, debit: '0', credit: String(taxAmount) },
-      ]
-    }, actorId)
+    await this.journalSvc.postEntry(
+      {
+        date: new Date(sale.created_at),
+        reference: `MOKA-SALE-${sale.payment_no}`,
+        sourceType: 'sales',
+        sourceId: orderId,
+        note: `Automated posting from Moka Sales Sync (Payment ID: ${sale.payment_no})`,
+        items: [
+          { accountId: cashAcc.id, debit: String(totalCollected), credit: '0' },
+          { accountId: salesAcc.id, debit: '0', credit: String(netSales) },
+          { accountId: taxAcc.id, debit: '0', credit: String(taxAmount) },
+        ],
+      },
+      actorId,
+    )
   }
 }

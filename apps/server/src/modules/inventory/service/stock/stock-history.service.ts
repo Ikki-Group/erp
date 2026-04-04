@@ -6,11 +6,7 @@ import { transformDecimals } from '@/core/utils/decimal'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
-import type { 
-  StockTransactionFilterDto, 
-  StockTransactionSelectDto, 
-  StockTransactionDto 
-} from '@/modules/inventory/dto'
+import type { StockTransactionFilterDto, StockTransactionSelectDto, StockTransactionDto } from '@/modules/inventory/dto'
 
 export class StockHistoryService {
   /**

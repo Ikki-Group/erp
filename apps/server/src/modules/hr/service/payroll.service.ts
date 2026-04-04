@@ -1,19 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
-import {
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-} from '@/core/database'
+import { stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError } from '@/core/http/errors'
 import { db } from '@/db'
-import {
-  employeesTable,
-  payrollAdjustmentsTable,
-  payrollBatchesTable,
-  payrollItemsTable,
-} from '@/db/schema'
+import { employeesTable, payrollAdjustmentsTable, payrollBatchesTable, payrollItemsTable } from '@/db/schema'
 
 import type {
   PayrollBatchCreateDto,
@@ -42,16 +33,16 @@ export class PayrollService {
             eq(payrollBatchesTable.periodMonth, data.periodMonth),
             eq(payrollBatchesTable.periodYear, data.periodYear),
             isNull(payrollBatchesTable.deletedAt),
-          )
+          ),
         )
-      
+
       if (existing.length > 0) {
-          throw new ConflictError(`Payroll batch for ${data.periodMonth}/${data.periodYear} already exists`)
+        throw new ConflictError(`Payroll batch for ${data.periodMonth}/${data.periodYear} already exists`)
       }
 
       return db.transaction(async (tx) => {
         const metadata = stampCreate(actorId)
-        
+
         const [batch] = await tx
           .insert(payrollBatchesTable)
           .values({
@@ -64,26 +55,25 @@ export class PayrollService {
             ...metadata,
           })
           .returning()
-        
+
         if (!batch) throw new Error('Failed to create payroll batch')
 
-        const employees = await tx
-          .select()
-          .from(employeesTable)
-          .where(isNull(employeesTable.deletedAt))
+        const employees = await tx.select().from(employeesTable).where(isNull(employeesTable.deletedAt))
 
         let totalAmount = 0
         for (const emp of employees) {
           totalAmount += Number(emp.baseSalary)
-          await tx.insert(payrollItemsTable).values({
-            batchId: batch.id,
-            employeeId: emp.id,
-            baseSalary: emp.baseSalary,
-            adjustmentsAmount: '0',
-            serviceChargeAmount: '0',
-            totalAmount: emp.baseSalary,
-            ...metadata,
-          })
+          await tx
+            .insert(payrollItemsTable)
+            .values({
+              batchId: batch.id,
+              employeeId: emp.id,
+              baseSalary: emp.baseSalary,
+              adjustmentsAmount: '0',
+              serviceChargeAmount: '0',
+              totalAmount: emp.baseSalary,
+              ...metadata,
+            })
         }
 
         const [finalBatch] = await tx
@@ -99,72 +89,60 @@ export class PayrollService {
 
   async handleAddAdjustment(data: PayrollAdjustmentCreateDto, actorId: number): Promise<PayrollAdjustmentDto> {
     return record('PayrollService.handleAddAdjustment', async () => {
-       return db.transaction(async (tx) => {
-         const metadata = stampCreate(actorId)
-         
-         const [adjustment] = await tx
-           .insert(payrollAdjustmentsTable)
-           .values({
-             payrollItemId: data.payrollItemId,
-             type: data.type,
-             amount: data.amount,
-             reason: data.reason,
-             ...metadata
-           })
-           .returning()
-         
-         if (!adjustment) throw new Error('Failed to create payroll adjustment')
+      return db.transaction(async (tx) => {
+        const metadata = stampCreate(actorId)
 
-         const itemResult = await tx
-           .select()
-           .from(payrollItemsTable)
-           .where(eq(payrollItemsTable.id, data.payrollItemId))
-         
-         const item = takeFirstOrThrow(itemResult, 'Payroll item not found', 'PAYROLL_ITEM_NOT_FOUND')
+        const [adjustment] = await tx
+          .insert(payrollAdjustmentsTable)
+          .values({
+            payrollItemId: data.payrollItemId,
+            type: data.type,
+            amount: data.amount,
+            reason: data.reason,
+            ...metadata,
+          })
+          .returning()
 
-         const currentAdjustments = Number(item.adjustmentsAmount)
-         const adjustmentAmount = data.type === 'addition' ? Number(data.amount) : -Number(data.amount)
-         const newAdjustments = currentAdjustments + adjustmentAmount
-         const newTotal = Number(item.baseSalary) + newAdjustments + Number(item.serviceChargeAmount)
+        if (!adjustment) throw new Error('Failed to create payroll adjustment')
 
-         await tx
-           .update(payrollItemsTable)
-           .set({
-             adjustmentsAmount: newAdjustments.toString(),
-             totalAmount: newTotal.toString(),
-             ...stampUpdate(actorId)
-           })
-           .where(eq(payrollItemsTable.id, item.id))
-         
-         const batchResult = await tx
-           .select()
-           .from(payrollBatchesTable)
-           .where(eq(payrollBatchesTable.id, item.batchId))
-         
-         const batch = takeFirstOrThrow(batchResult, 'Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+        const itemResult = await tx.select().from(payrollItemsTable).where(eq(payrollItemsTable.id, data.payrollItemId))
 
-         const newBatchTotal = Number(batch.totalAmount) + adjustmentAmount
-         await tx
-           .update(payrollBatchesTable)
-           .set({
-             totalAmount: newBatchTotal.toString(),
-             ...stampUpdate(actorId)
-           })
-           .where(eq(payrollBatchesTable.id, batch.id))
+        const item = takeFirstOrThrow(itemResult, 'Payroll item not found', 'PAYROLL_ITEM_NOT_FOUND')
 
-         return adjustment as unknown as PayrollAdjustmentDto
-       })
+        const currentAdjustments = Number(item.adjustmentsAmount)
+        const adjustmentAmount = data.type === 'addition' ? Number(data.amount) : -Number(data.amount)
+        const newAdjustments = currentAdjustments + adjustmentAmount
+        const newTotal = Number(item.baseSalary) + newAdjustments + Number(item.serviceChargeAmount)
+
+        await tx
+          .update(payrollItemsTable)
+          .set({
+            adjustmentsAmount: newAdjustments.toString(),
+            totalAmount: newTotal.toString(),
+            ...stampUpdate(actorId),
+          })
+          .where(eq(payrollItemsTable.id, item.id))
+
+        const batchResult = await tx.select().from(payrollBatchesTable).where(eq(payrollBatchesTable.id, item.batchId))
+
+        const batch = takeFirstOrThrow(batchResult, 'Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+
+        const newBatchTotal = Number(batch.totalAmount) + adjustmentAmount
+        await tx
+          .update(payrollBatchesTable)
+          .set({ totalAmount: newBatchTotal.toString(), ...stampUpdate(actorId) })
+          .where(eq(payrollBatchesTable.id, batch.id))
+
+        return adjustment as unknown as PayrollAdjustmentDto
+      })
     })
   }
 
   async handleFinalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
     return record('PayrollService.handleFinalizeBatch', async () => {
       return db.transaction(async (tx) => {
-        const batchResult = await tx
-          .select()
-          .from(payrollBatchesTable)
-          .where(eq(payrollBatchesTable.id, batchId))
-        
+        const batchResult = await tx.select().from(payrollBatchesTable).where(eq(payrollBatchesTable.id, batchId))
+
         const batch = takeFirstOrThrow(batchResult, 'Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
 
         if (batch.status !== 'draft') {
@@ -173,10 +151,7 @@ export class PayrollService {
 
         const [finalizedBatch] = await tx
           .update(payrollBatchesTable)
-          .set({
-            status: 'approved',
-            ...stampUpdate(actorId)
-          })
+          .set({ status: 'approved', ...stampUpdate(actorId) })
           .where(eq(payrollBatchesTable.id, batchId))
           .returning()
 
@@ -195,20 +170,23 @@ export class PayrollService {
     const payableAcc = await this.accountSvc.findByCode('2102')
 
     if (!expenseAcc || !payableAcc) {
-       console.warn('Accounting accounts for payroll not found, skipping GL posting')
-       return
+      console.warn('Accounting accounts for payroll not found, skipping GL posting')
+      return
     }
 
-    await this.journalSvc.postEntry({
-      date: new Date(),
-      reference: `PAYROLL-${batch.periodYear}-${batch.periodMonth}`,
-      sourceType: 'payroll',
-      sourceId: batch.id,
-      note: `Automated posting from Payroll Finalization (Batch: ${batch.name})`,
-      items: [
-        { accountId: expenseAcc.id, debit: batch.totalAmount, credit: '0' },
-        { accountId: payableAcc.id, debit: '0', credit: batch.totalAmount },
-      ]
-    }, actorId)
+    await this.journalSvc.postEntry(
+      {
+        date: new Date(),
+        reference: `PAYROLL-${batch.periodYear}-${batch.periodMonth}`,
+        sourceType: 'payroll',
+        sourceId: batch.id,
+        note: `Automated posting from Payroll Finalization (Batch: ${batch.name})`,
+        items: [
+          { accountId: expenseAcc.id, debit: batch.totalAmount, credit: '0' },
+          { accountId: payableAcc.id, debit: '0', credit: batch.totalAmount },
+        ],
+      },
+      actorId,
+    )
   }
 }

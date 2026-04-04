@@ -1,6 +1,17 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zDecimal, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import {
+  zStrNullable,
+  zStr,
+  zBool,
+  zId,
+  zDecimal,
+  zQuerySearch,
+  zQueryBoolean,
+  zQueryId,
+  zMetadataDto,
+  zRecordIdDto,
+} from '@/core/validation'
 
 import { productCategorySchema } from './product-category.dto'
 
@@ -92,25 +103,17 @@ export type ProductFilterDto = z.infer<typeof productFilterSchema>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const productSelectSchema = productSchema.extend({
-  category: productCategorySchema.nullable(),
-})
+export const productSelectSchema = productSchema.extend({ category: productCategorySchema.nullable() })
 
 export type ProductSelectDto = z.infer<typeof productSelectSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const variantPriceMutationSchema = z.object({
-  salesTypeId: zId,
-  price: zDecimal,
-})
+export const variantPriceMutationSchema = z.object({ salesTypeId: zId, price: zDecimal })
 
 export type VariantPriceMutationDto = z.infer<typeof variantPriceMutationSchema>
 
-export const productPriceMutationSchema = z.object({
-  salesTypeId: zId,
-  price: zDecimal,
-})
+export const productPriceMutationSchema = z.object({ salesTypeId: zId, price: zDecimal })
 
 export type ProductPriceMutationDto = z.infer<typeof productPriceMutationSchema>
 

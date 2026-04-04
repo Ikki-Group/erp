@@ -12,11 +12,7 @@ export const res = {
    * @param {string} code - Optional success code.
    * @returns {object} The standard success response object.
    */
-  ok: <T>(data: T, code = 'OK') => ({
-    success: true as const,
-    code,
-    data,
-  }),
+  ok: <T>(data: T, code = 'OK') => ({ success: true as const, code, data }),
 
   /**
    * 201 Created - Succesfull resource creation.
@@ -25,11 +21,7 @@ export const res = {
    * @param {string} code - Optional success code.
    * @returns {object} The standard created response object.
    */
-  created: <T>(data: T, code = 'CREATED') => ({
-    success: true as const,
-    code,
-    data,
-  }),
+  created: <T>(data: T, code = 'CREATED') => ({ success: true as const, code, data }),
 
   /**
    * 200 OK - Standard paginated success.

@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
 import * as dto from '../dto/goods-receipt.dto'
 import type { GoodsReceiptService } from '../service/goods-receipt.service'
@@ -44,11 +40,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
         const result = await service.handleCreate(body, auth.userId)
         return res.ok(result)
       },
-      {
-        body: dto.GoodsReceiptNoteCreateDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { body: dto.GoodsReceiptNoteCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .delete(
       '/remove',

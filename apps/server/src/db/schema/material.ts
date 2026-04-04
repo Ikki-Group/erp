@@ -1,13 +1,5 @@
 import { isNull } from 'drizzle-orm'
-import {
-  index,
-  integer,
-  numeric,
-  pgTable,
-  text,
-  uniqueIndex,
-  type AnyPgColumn,
-} from 'drizzle-orm/pg-core'
+import { index, integer, numeric, pgTable, text, uniqueIndex, type AnyPgColumn } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 

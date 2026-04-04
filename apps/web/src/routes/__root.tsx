@@ -37,7 +37,7 @@ function RootComponent() {
     <ThemeProvider attribute="class">
       <TooltipProvider>
         <Sentry.ErrorBoundary
-          fallback={({ error }: { error: any }) => <div>Error: {error?.message || 'Unknown error'}</div>}
+          fallback={({ error }: { error: any }) => <div>Error: {error?.message ?? 'Unknown error'}</div>}
         >
           <Outlet />
         </Sentry.ErrorBoundary>

@@ -33,14 +33,10 @@ export class PurchaseOrderService {
       const { q, page, limit, status, locationId, supplierId } = filter
       const where = and(
         isNull(purchaseOrdersTable.deletedAt),
-        q === undefined
-          ? undefined
-          : or(
-              core.searchFilter(purchaseOrdersTable.notes, q)
-            ),
+        q === undefined ? undefined : or(core.searchFilter(purchaseOrdersTable.notes, q)),
         status === undefined ? undefined : eq(purchaseOrdersTable.status, status),
         locationId === undefined ? undefined : eq(purchaseOrdersTable.locationId, locationId),
-        supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId)
+        supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId),
       )
 
       const p = await core.paginate<dto.PurchaseOrderBaseDto>({
@@ -77,18 +73,18 @@ export class PurchaseOrderService {
 
         const [insertedOrder] = await tx
           .insert(purchaseOrdersTable)
-          .values({ 
-            ...orderData, 
+          .values({
+            ...orderData,
             totalAmount: orderData.totalAmount?.toString() ?? '0',
             discountAmount: orderData.discountAmount?.toString() ?? '0',
             taxAmount: orderData.taxAmount?.toString() ?? '0',
-            ...core.stampCreate(actorId) 
+            ...core.stampCreate(actorId),
           })
           .returning({ id: purchaseOrdersTable.id })
-        
+
         if (!insertedOrder) throw new Error('Create PO failed')
 
-        const itemValues = items.map(item => {
+        const itemValues = items.map((item) => {
           const stamp = core.stampCreate(actorId)
           return {
             materialId: item.materialId,
@@ -99,7 +95,7 @@ export class PurchaseOrderService {
             taxAmount: item.taxAmount?.toString(),
             subtotal: item.subtotal?.toString(),
             orderId: insertedOrder.id,
-            ...stamp
+            ...stamp,
           }
         })
 
@@ -111,31 +107,33 @@ export class PurchaseOrderService {
     return result
   }
 
-  async handleUpdate(id: number, data: Omit<dto.PurchaseOrderUpdateDto, 'id'>, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(
+    id: number,
+    data: Omit<dto.PurchaseOrderUpdateDto, 'id'>,
+    actorId: number,
+  ): Promise<{ id: number }> {
     const result = await record('PurchaseOrderService.handleUpdate', async () => {
       await this.getById(id)
-      
+
       return db.transaction(async (tx) => {
         const { totalAmount, discountAmount, taxAmount, items, ...remData } = data
 
         await tx
           .update(purchaseOrdersTable)
-          .set({ 
-            ...remData, 
+          .set({
+            ...remData,
             ...(totalAmount !== undefined && { totalAmount: totalAmount.toString() }),
             ...(discountAmount !== undefined && { discountAmount: discountAmount.toString() }),
             ...(taxAmount !== undefined && { taxAmount: taxAmount.toString() }),
-            ...core.stampUpdate(actorId) 
+            ...core.stampUpdate(actorId),
           })
           .where(eq(purchaseOrdersTable.id, id))
 
         if (items) {
           // Simplistic replace-all for items, can be optimized later
-          await tx
-            .delete(purchaseOrderItemsTable)
-            .where(eq(purchaseOrderItemsTable.orderId, id))
+          await tx.delete(purchaseOrderItemsTable).where(eq(purchaseOrderItemsTable.orderId, id))
 
-          const itemValues = items.map(item => {
+          const itemValues = items.map((item) => {
             const stamp = core.stampCreate(actorId)
             return {
               materialId: item.materialId,
@@ -146,7 +144,7 @@ export class PurchaseOrderService {
               taxAmount: item.taxAmount?.toString(),
               subtotal: item.subtotal?.toString(),
               orderId: id,
-              ...stamp
+              ...stamp,
             }
           })
 

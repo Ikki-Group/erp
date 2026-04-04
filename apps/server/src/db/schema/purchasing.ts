@@ -22,19 +22,16 @@ export const purchaseRequestsTable = pgTable(
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
     // User who requested (relates to usersTable but we keep integer constraint)
-    requestedBy: integer().notNull(), 
+    requestedBy: integer().notNull(),
     status: purchaseRequestStatusEnum().notNull().default('open'),
-    
+
     requestDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     expectedDate: timestamp({ mode: 'date', withTimezone: true }),
     notes: text(),
-    
+
     ...auditColumns,
   },
-  (t) => [
-    index('purchase_requests_location_idx').on(t.locationId),
-    index('purchase_requests_status_idx').on(t.status),
-  ],
+  (t) => [index('purchase_requests_location_idx').on(t.locationId), index('purchase_requests_status_idx').on(t.status)],
 )
 
 // ─── Purchase Request Items ───────────────────────────────────────────────────
@@ -46,13 +43,12 @@ export const purchaseRequestItemsTable = pgTable(
     requestId: integer()
       .notNull()
       .references(() => purchaseRequestsTable.id, { onDelete: 'cascade' }),
-    materialId: integer()
-      .references(() => materialsTable.id, { onDelete: 'set null' }),
-    
+    materialId: integer().references(() => materialsTable.id, { onDelete: 'set null' }),
+
     itemName: text().notNull(),
     quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
     notes: text(),
-    
+
     ...auditColumns,
   },
   (t) => [
@@ -68,7 +64,7 @@ export const purchaseOrdersTable = pgTable(
   {
     ...pk,
     // PR -> PO link
-    requestId: integer().references(() => purchaseRequestsTable.id, { onDelete: 'set null' }), 
+    requestId: integer().references(() => purchaseRequestsTable.id, { onDelete: 'set null' }),
     locationId: integer()
       .notNull()
       .references(() => locationsTable.id, { onDelete: 'restrict' }),
@@ -77,7 +73,7 @@ export const purchaseOrdersTable = pgTable(
       .references(() => suppliersTable.id, { onDelete: 'restrict' }),
     status: purchaseOrderStatusEnum().notNull().default('open'),
 
-    // PRs are turned to PO. PO is a promise to buy. 
+    // PRs are turned to PO. PO is a promise to buy.
     transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     expectedDeliveryDate: timestamp({ mode: 'date', withTimezone: true }),
 
@@ -108,8 +104,7 @@ export const purchaseOrderItemsTable = pgTable(
       .references(() => purchaseOrdersTable.id, { onDelete: 'cascade' }),
     requestItemId: integer().references(() => purchaseRequestItemsTable.id, { onDelete: 'set null' }),
 
-    materialId: integer()
-      .references(() => materialsTable.id, { onDelete: 'set null' }),
+    materialId: integer().references(() => materialsTable.id, { onDelete: 'set null' }),
 
     // Immutable History: Item name must always be stored
     itemName: text().notNull(),
@@ -145,14 +140,14 @@ export const goodsReceiptNotesTable = pgTable(
     supplierId: integer()
       .notNull()
       .references(() => suppliersTable.id, { onDelete: 'restrict' }),
-    
+
     receiveDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
     status: goodsReceiptStatusEnum().notNull().default('open'),
-    
+
     // External reference (e.g., supplier's delivery note number)
     referenceNumber: text(),
     notes: text(),
-    
+
     ...auditColumns,
   },
   (t) => [
@@ -175,15 +170,14 @@ export const goodsReceiptNoteItemsTable = pgTable(
     purchaseOrderItemId: integer()
       .notNull()
       .references(() => purchaseOrderItemsTable.id, { onDelete: 'restrict' }),
-    
-    materialId: integer()
-      .references(() => materialsTable.id, { onDelete: 'set null' }),
-    
+
+    materialId: integer().references(() => materialsTable.id, { onDelete: 'set null' }),
+
     itemName: text().notNull(),
     quantityReceived: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    
+
     notes: text(),
-    
+
     ...auditColumns,
   },
   (t) => [

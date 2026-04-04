@@ -7,7 +7,12 @@ import type { PaginationQuery, WithPaginationResult } from '@/core/utils/paginat
 import { db } from '@/db'
 import { suppliersTable } from '@/db/schema/supplier'
 
-import { SupplierDto, type SupplierCreateDto, type SupplierFilterDto, type SupplierUpdateDto } from '../dto/supplier.dto'
+import {
+  SupplierDto,
+  type SupplierCreateDto,
+  type SupplierFilterDto,
+  type SupplierUpdateDto,
+} from '../dto/supplier.dto'
 
 export class SupplierService {
   async handleList(filter: SupplierFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<SupplierDto>> {
@@ -53,13 +58,23 @@ export class SupplierService {
       await checkConflict({
         table: suppliersTable,
         pkColumn: suppliersTable.id,
-        fields: [{ field: 'code', column: suppliersTable.code, message: 'Supplier code already exists', code: 'SUPPLIER_CODE_ALREADY_EXISTS' }],
+        fields: [
+          {
+            field: 'code',
+            column: suppliersTable.code,
+            message: 'Supplier code already exists',
+            code: 'SUPPLIER_CODE_ALREADY_EXISTS',
+          },
+        ],
         input: data,
       })
 
       const stamps = stampCreate(userId)
-      const rows = await db.insert(suppliersTable).values({ ...data, ...stamps }).returning({ id: suppliersTable.id })
-      
+      const rows = await db
+        .insert(suppliersTable)
+        .values({ ...data, ...stamps })
+        .returning({ id: suppliersTable.id })
+
       return takeFirstOrThrow(rows, 'Failed to return supplier data on create', 'SUPPLIER_CREATE_ERROR')
     })
   }
@@ -71,7 +86,14 @@ export class SupplierService {
       await checkConflict({
         table: suppliersTable,
         pkColumn: suppliersTable.id,
-        fields: [{ field: 'code', column: suppliersTable.code, message: 'Supplier code already exists', code: 'SUPPLIER_CODE_ALREADY_EXISTS' }],
+        fields: [
+          {
+            field: 'code',
+            column: suppliersTable.code,
+            message: 'Supplier code already exists',
+            code: 'SUPPLIER_CODE_ALREADY_EXISTS',
+          },
+        ],
         input: data,
         existing,
       })
