@@ -1,6 +1,7 @@
 import { index, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { metadata, pk } from './_helpers'
+import { auditColumns, pk } from '@/core/database/schema'
+
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
 
@@ -27,11 +28,11 @@ export const salesOrdersTable = pgTable(
     transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
 
     // Financial numbers
-    totalAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    discountAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    taxAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     index('sales_orders_location_idx').on(t.locationId),
@@ -49,9 +50,10 @@ export const salesOrderBatchesTable = pgTable(
     orderId: integer()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-    batchNumber: integer().notNull(),
-    status: text().notNull().default('pending'), // E.g., pending, prepared, delivered
-    ...metadata,
+    batchNumber: numeric({ precision: 5, scale: 0 }).notNull(),
+    // E.g., pending, prepared, delivered
+    status: text().notNull().default('pending'),
+    ...auditColumns,
   },
   (t) => [index('sales_order_batches_order_idx').on(t.orderId)],
 )
@@ -74,15 +76,16 @@ export const salesOrderItemsTable = pgTable(
     // Immutable History: Item name must always be stored
     itemName: text().notNull(),
 
+    // Qty keeps scale 4 for fractional cases
     quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
 
-    // Immutable Financial History
-    unitPrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    discountAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    taxAmount: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-    subtotal: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+    // Immutable Financial History (scale 2)
+    unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+    subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     index('sales_order_items_order_idx').on(t.orderId),
@@ -106,7 +109,7 @@ export const salesVoidsTable = pgTable(
     reason: text(),
     voidedBy: integer().notNull(),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
 )
@@ -120,10 +123,11 @@ export const salesExternalRefsTable = pgTable(
     orderId: integer()
       .notNull()
       .references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-    externalSource: text().notNull(), // 'Grab', 'Shopee', 'Moka', etc.
+    // 'Grab', 'Shopee', 'Moka', etc.
+    externalSource: text().notNull(),
     externalOrderId: text().notNull(),
     rawPayload: jsonb(),
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),

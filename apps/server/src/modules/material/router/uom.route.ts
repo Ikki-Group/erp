@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import { UomFilterDto, UomMutationDto, UomDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -19,7 +24,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       },
       {
         query: z.object({ ...UomFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(UomDto.array()),
+        response: createPaginatedResponseSchema(UomDto),
         auth: true,
       },
     )
@@ -39,23 +44,31 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
       },
       { body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.uom.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...UomMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...UomMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
     .delete(
       '/remove',
-      async function remove({ query }) {
-        await s.uom.handleRemove(query.id)
-        return res.ok({ id: query.id })
+      async function remove({ query, auth }) {
+        const { id } = await s.uom.handleRemove(query.id, auth.userId)
+        return res.ok({ id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        const { id } = await s.uom.handleHardRemove(query.id)
+        return res.ok({ id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )

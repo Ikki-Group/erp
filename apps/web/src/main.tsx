@@ -1,6 +1,8 @@
+// oxlint-disable import/no-unassigned-import
+// oxlint-disable unicorn/prefer-query-selector
+
 // import './styles/main.css'
 // import 'geist/style.css'
-// oxlint-disable-next-line import/no-unassigned-import
 import './styles/backup.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'

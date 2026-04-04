@@ -1,42 +1,39 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zBool, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
 
-/* ---------------------------------- BASE ---------------------------------- */
-
+/**
+ * Common Role attributes.
+ */
 export const RoleBaseDto = z.object({
   code: zStr,
   name: zStr,
   description: zStrNullable,
+  permissions: z.string().array(),
   isSystem: zBool,
 })
-
 export type RoleBaseDto = z.infer<typeof RoleBaseDto>
 
-/* --------------------------------- ENTITY --------------------------------- */
-
-export const RoleDto = z.object({
-  id: zId,
-  ...RoleBaseDto.shape,
-  ...zMetadataDto.shape,
-})
-
+/**
+ * Role database record.
+ */
+export const RoleDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape, ...zMetadataDto.shape })
 export type RoleDto = z.infer<typeof RoleDto>
 
-/* --------------------------------- FILTER --------------------------------- */
-
-export const RoleFilterDto = z.object({ search: zQuerySearch })
-
-export type RoleFilterDto = z.infer<typeof RoleFilterDto>
-
-/* --------------------------------- CREATE --------------------------------- */
-
+/**
+ * Input for creating a new Role.
+ */
 export const RoleCreateDto = RoleBaseDto
-
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
-/* --------------------------------- UPDATE --------------------------------- */
-
-export const RoleUpdateDto = RoleBaseDto
-
+/**
+ * Input for updating an existing Role (Full Update).
+ */
+export const RoleUpdateDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+
+/**
+ * Filter criteria for listing Roles.
+ */
+export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional() })
+export type RoleFilterDto = z.infer<typeof RoleFilterDto>

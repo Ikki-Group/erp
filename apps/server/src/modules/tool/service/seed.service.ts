@@ -27,19 +27,29 @@ export class SeedService {
             code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
             name: 'Administrator',
             description: 'Super administrator',
+            permissions: ['*'],
+            isSystem: true,
             createdBy: SYSTEM_ACTOR_ID,
           },
-          { code: 'MANAGER', name: 'Manager', description: null, createdBy: SYSTEM_ACTOR_ID },
+          {
+            code: 'MANAGER',
+            name: 'Manager',
+            description: null,
+            permissions: [],
+            isSystem: false,
+            createdBy: SYSTEM_ACTOR_ID,
+          },
         ])
 
         // 2. Seed Users
+        const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
         await this.iamSvc.user.seed([
           {
             email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
             username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
             fullname: 'Administrator',
             password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-            isRoot: true,
+            passwordHash: superAdminPasswordHash,
             isActive: true,
             createdBy: SYSTEM_ACTOR_ID,
             assignments: [],
@@ -48,7 +58,15 @@ export class SeedService {
 
         // 3. Seed Locations
         await this.locationSvc.location.seed(
-          SEED_CONFIG.LOCATIONS.map((l) => ({ code: l.code, name: l.name, type: l.type, createdBy: SYSTEM_ACTOR_ID })),
+          SEED_CONFIG.LOCATIONS.map((l) => ({
+            code: l.code,
+            name: l.name,
+            type: l.type,
+            classification: 'physical',
+            address: null,
+            phone: null,
+            createdBy: SYSTEM_ACTOR_ID,
+          })),
         )
 
         // 4. Seed Sales Types

@@ -68,7 +68,7 @@ export class MokaConfigurationService {
 
   async updateAuthData(
     id: number,
-    authData: { businessId?: number | null; outletId?: number | null; accessToken?: string | null },
+    authData: { businessId?: string | null; outletId?: string | null; accessToken?: string | null },
   ) {
     await db
       .update(mokaConfigurationsTable)

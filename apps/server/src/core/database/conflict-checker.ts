@@ -41,7 +41,7 @@ interface CheckConflictOptions<T = string> {
    * 1. Skip unchanged fields
    * 2. Exclude the current record from the conflict query
    */
-  existing?: { id: number } & Partial<Record<FieldKeys<T>, unknown>>
+  existing?: { id?: string | number } & Partial<Record<FieldKeys<T>, unknown>>
 }
 
 /* -------------------------------------------------------------------------- */
@@ -72,7 +72,7 @@ export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<v
 
     // Determine which fields actually changed
     const changedFields = fields.filter((f) => {
-      if (!existing) return true // create → always check
+      if (!existing) return true
       return existing[f.field] !== input[f.field]
     })
 

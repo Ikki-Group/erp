@@ -2,7 +2,12 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import {
   adjustmentTransactionSchema,
@@ -74,7 +79,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           query: stockTransactionFilterSchema.extend(zPaginationDto.shape),
-          response: createPaginatedResponseSchema(stockTransactionSelectSchema.array()),
+          response: createPaginatedResponseSchema(stockTransactionSelectSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },
@@ -90,6 +95,36 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         {
           query: zRecordIdDto,
           response: createSuccessResponseSchema(stockTransactionSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Soft delete transaction ─────── */
+      .post(
+        '/remove',
+        async function remove({ query, auth }) {
+          await s.transaction.handleRemove(query.id, auth.userId)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Hard delete transaction ─────── */
+      .post(
+        '/hard-remove',
+        async function hardRemove({ query }) {
+          await s.transaction.handleHardRemove(query.id)
+          return res.ok({ id: query.id })
+        },
+        {
+          query: zRecordIdDto,
+          response: createSuccessResponseSchema(zRecordIdDto),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },
         },

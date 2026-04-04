@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 import type { RecipeServiceModule } from '../service'
@@ -19,7 +24,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
       },
       {
         query: z.object({ ...RecipeFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(RecipeSelectDto.array()),
+        response: createPaginatedResponseSchema(RecipeSelectDto),
         auth: true,
       },
     )
@@ -46,17 +51,33 @@ export function initRecipeRoute(s: RecipeServiceModule) {
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...RecipeMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...RecipeMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
-    .delete(
+    .post(
       '/remove',
-      async function remove({ query }) {
-        await s.recipe.handleRemove(query.id)
+      async function remove({ query, auth }) {
+        await s.recipe.handleRemove(query.id, auth.userId)
         return res.ok({ id: query.id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .post(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        await s.recipe.handleHardRemove(query.id)
+        return res.ok({ id: query.id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .get(
+      '/cost',
+      async function calculateCost({ query }) {
+        const result = await s.recipe.handleCalculateCost(query.id)
+        return res.ok(result)
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(z.any()), auth: true },
     )
 }

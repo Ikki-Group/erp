@@ -71,7 +71,7 @@ export class MokaScrapService {
           to: input.dateTo || new Date(),
         })
         const sales = await engine.fetch()
-        // TODO: Transform sales data
+        await this.transformSvc.transformSales(config.locationId, sales, actorId)
         await this.historySvc.updateStatus(historyId, 'completed', { metadata: { count: sales.length } })
       }
     } catch (error: any) {

@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { count, eq } from 'drizzle-orm'
+import { and, count, eq, isNull } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -50,7 +50,11 @@ export class MaterialCategoryService {
   async find(): Promise<MaterialCategoryDto[]> {
     return record('MaterialCategoryService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(materialCategoriesTable).orderBy(materialCategoriesTable.name)
+        return db
+          .select()
+          .from(materialCategoriesTable)
+          .where(isNull(materialCategoriesTable.deletedAt))
+          .orderBy(materialCategoriesTable.name)
       })
     })
   }
@@ -61,7 +65,10 @@ export class MaterialCategoryService {
   async getById(id: number): Promise<MaterialCategoryDto> {
     return record('MaterialCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(materialCategoriesTable).where(eq(materialCategoriesTable.id, id))
+        const result = await db
+          .select()
+          .from(materialCategoriesTable)
+          .where(and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)))
         return takeFirstOrThrow(result, `Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND')
       })
     })
@@ -73,7 +80,10 @@ export class MaterialCategoryService {
   async count(): Promise<number> {
     return record('MaterialCategoryService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(materialCategoriesTable)
+        const result = await db
+          .select({ val: count() })
+          .from(materialCategoriesTable)
+          .where(isNull(materialCategoriesTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -87,8 +97,12 @@ export class MaterialCategoryService {
     pq: PaginationQuery,
   ): Promise<WithPaginationResult<MaterialCategoryDto>> {
     return record('MaterialCategoryService.handleList', async () => {
-      const { search } = filter
-      const where = searchFilter(materialCategoriesTable.name, search)
+      const { search, parentId } = filter
+      const where = and(
+        isNull(materialCategoriesTable.deletedAt),
+        searchFilter(materialCategoriesTable.name, search),
+        parentId === undefined ? undefined : eq(materialCategoriesTable.parentId, parentId),
+      )
 
       return paginate<MaterialCategoryDto>({
         data: ({ limit, offset }) =>
@@ -168,10 +182,29 @@ export class MaterialCategoryService {
   }
 
   /**
-   * Removes material category. Invalidates cache.
+   * Marks a material category as deleted (Soft Delete).
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('MaterialCategoryService.handleRemove', async () => {
+      const result = await db
+        .update(materialCategoriesTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(materialCategoriesTable.id, id))
+        .returning({ id: materialCategoriesTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a material category (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: number): Promise<{ id: number }> {
+    return record('MaterialCategoryService.handleHardRemove', async () => {
       const result = await db
         .delete(materialCategoriesTable)
         .where(eq(materialCategoriesTable.id, id))

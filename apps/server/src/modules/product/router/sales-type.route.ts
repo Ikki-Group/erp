@@ -2,7 +2,12 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import { salesTypeSchema, salesTypeFilterSchema, salesTypeMutationSchema } from '../dto'
 import type { ProductServiceModule } from '../service'
@@ -18,7 +23,7 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
       },
       {
         query: salesTypeFilterSchema.extend(zPaginationDto.shape),
-        response: createPaginatedResponseSchema(salesTypeSchema.array()),
+        response: createPaginatedResponseSchema(salesTypeSchema),
         auth: true,
       },
     )
@@ -38,14 +43,14 @@ export function initSalesTypeRoute(s: ProductServiceModule) {
       },
       { body: salesTypeMutationSchema, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.salesType.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id })
       },
       {
-        body: salesTypeMutationSchema.extend({ id: zId }),
+        body: salesTypeMutationSchema.extend(zRecordIdDto.shape),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },

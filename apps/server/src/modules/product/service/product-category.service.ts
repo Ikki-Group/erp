@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { count, eq } from 'drizzle-orm'
+import { and, count, eq, isNull } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import {
@@ -45,22 +45,30 @@ const cacheKey = {
 export class ProductCategoryService {
   /**
    * Returns all product categories, cached.
+   * Excludes soft-deleted records.
    */
   async find(): Promise<ProductCategoryDto[]> {
     return record('ProductCategoryService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(productCategoriesTable).orderBy(productCategoriesTable.name)
+        return db
+          .select()
+          .from(productCategoriesTable)
+          .where(isNull(productCategoriesTable.deletedAt))
+          .orderBy(productCategoriesTable.name)
       })
     })
   }
 
   /**
-   * Finds a single product category by ID. Throws if not found.
+   * Finds a single product category by ID. Throws if not found or soft-deleted.
    */
   async getById(id: number): Promise<ProductCategoryDto> {
     return record('ProductCategoryService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(productCategoriesTable).where(eq(productCategoriesTable.id, id))
+        const result = await db
+          .select()
+          .from(productCategoriesTable)
+          .where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
         return takeFirstOrThrow(result, `Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
       })
     })
@@ -72,7 +80,10 @@ export class ProductCategoryService {
   async count(): Promise<number> {
     return record('ProductCategoryService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(productCategoriesTable)
+        const result = await db
+          .select({ val: count() })
+          .from(productCategoriesTable)
+          .where(isNull(productCategoriesTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -86,8 +97,13 @@ export class ProductCategoryService {
     pq: PaginationQuery,
   ): Promise<WithPaginationResult<ProductCategoryDto>> {
     return record('ProductCategoryService.handleList', async () => {
-      const { search } = filter
-      const where = searchFilter(productCategoriesTable.name, search)
+      const { search, parentId } = filter
+
+      const where = and(
+        isNull(productCategoriesTable.deletedAt),
+        searchFilter(productCategoriesTable.name, search),
+        parentId ? eq(productCategoriesTable.parentId, parentId) : undefined,
+      )
 
       return paginate<ProductCategoryDto>({
         data: ({ limit, offset }) =>
@@ -167,17 +183,38 @@ export class ProductCategoryService {
   }
 
   /**
-   * Removes product category. Invalidates cache.
+   * Marks a product category as deleted (Soft Delete).
+   * Used for crucial entities like Product Categories.
    */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('ProductCategoryService.handleRemove', async () => {
+      const result = await db
+        .update(productCategoriesTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(productCategoriesTable.id, id))
+        .returning({ id: productCategoriesTable.id })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a product category (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: number): Promise<{ id: number }> {
+    return record('ProductCategoryService.handleHardRemove', async () => {
       const result = await db
         .delete(productCategoriesTable)
         .where(eq(productCategoriesTable.id, id))
         .returning({ id: productCategoriesTable.id })
+
       if (result.length === 0) throw err.notFound(id)
 
-      void this.clearCache(id)
+      await this.clearCache(id)
       return { id }
     })
   }

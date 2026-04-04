@@ -19,7 +19,7 @@ export const zBool = z.boolean()
 export const zEmail = z.email().transform((v) => v.toLowerCase())
 export const zUuid = z.uuidv7()
 
-/** Integer ID (serial PK). Accepts string or number, coerces to positive integer. */
+/** Standard Primary Key validation (Coerced Integer). */
 export const zId = z.coerce.number().int().positive()
 
 // ─── Domain-specific ──────────────────────────────────────────────────────────

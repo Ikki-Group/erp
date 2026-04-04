@@ -18,7 +18,7 @@ const BASE_HEADERS: RawAxiosRequestHeaders = {
 export class MokaAuthEngine {
   private api: AxiosInstance
   public token: string | null = null
-  public mokaOutletId: number | null = null
+  public mokaOutletId: string | null = null
 
   constructor(
     private readonly logger: Logger,
@@ -65,7 +65,7 @@ export class MokaAuthEngine {
 
       const result = response.data as MokaLoginResponse
       this.token = result.access_token
-      this.mokaOutletId = result.outlets[0]?.id || null
+      this.mokaOutletId = result.outlets[0]?.id?.toString() || null
 
       this.logger.info({ outletId: this.mokaOutletId }, 'Moka login successful')
       return result

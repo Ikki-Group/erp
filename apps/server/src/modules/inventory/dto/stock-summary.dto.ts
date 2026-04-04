@@ -1,49 +1,51 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const stockSummarySchema = z
-  .object({
-    id: zId,
-    materialId: zId,
-    locationId: zId,
-    date: zDate,
+export const stockSummarySchema = z.object({
+  ...zRecordIdDto.shape,
+  materialId: zId,
+  locationId: zId,
+  date: zDate,
 
-    // Opening balance
-    openingQty: zNum,
-    openingAvgCost: zNum,
-    openingValue: zNum,
+  // Opening balance
+  openingQty: zNum,
+  openingAvgCost: zNum,
+  openingValue: zNum,
 
-    // Movements
-    purchaseQty: zNum,
-    purchaseValue: zNum,
-    transferInQty: zNum,
-    transferInValue: zNum,
-    transferOutQty: zNum,
-    transferOutValue: zNum,
-    adjustmentQty: zNum,
-    adjustmentValue: zNum,
-    sellQty: zNum,
-    sellValue: zNum,
+  // Movements
+  purchaseQty: zNum,
+  purchaseValue: zNum,
+  transferInQty: zNum,
+  transferInValue: zNum,
+  transferOutQty: zNum,
+  transferOutValue: zNum,
+  adjustmentQty: zNum,
+  adjustmentValue: zNum,
+  usageQty: zNum,
+  usageValue: zNum,
+  productionInQty: zNum,
+  productionInValue: zNum,
+  productionOutQty: zNum,
+  productionOutValue: zNum,
+  sellQty: zNum,
+  sellValue: zNum,
 
-    // Closing balance
-    closingQty: zNum,
-    closingAvgCost: zNum,
-    closingValue: zNum,
-  })
-  .merge(zMetadataDto)
+  // Closing balance
+  closingQty: zNum,
+  closingAvgCost: zNum,
+  closingValue: zNum,
+  ...zMetadataDto.shape,
+})
 
 export type StockSummaryDto = z.infer<typeof stockSummarySchema>
 
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
-export const stockSummarySelectSchema = stockSummarySchema.extend({
-  materialName: zStr,
-  materialSku: zStr,
-})
+export const stockSummarySelectSchema = stockSummarySchema.extend({ materialName: zStr, materialSku: zStr })
 
 export type StockSummarySelectDto = z.infer<typeof stockSummarySelectSchema>
 
@@ -90,6 +92,9 @@ export const stockLedgerSelectSchema = z.object({
   transferOutQty: zNum,
   sellQty: zNum,
   adjustmentQty: zNum,
+  usageQty: zNum,
+  productionInQty: zNum,
+  productionOutQty: zNum,
 
   closingQty: zNum,
   closingValue: zNum,

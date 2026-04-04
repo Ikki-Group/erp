@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import {
   MaterialLocationAssignDto,
@@ -74,14 +79,14 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
         },
         {
           query: z.object({ ...MaterialLocationFilterDto.shape, ...zPaginationDto.shape }),
-          response: createPaginatedResponseSchema(MaterialLocationStockDto.array()),
+          response: createPaginatedResponseSchema(MaterialLocationStockDto),
           auth: true,
           detail: { tags: ['Material Location'] },
         },
       )
 
       /* ─────── Update per-location config ─────── */
-      .put(
+      .patch(
         '/config',
         async function config({ body, auth }) {
           const result = await s.mLocation.handleUpdateConfig(body, auth.userId)

@@ -1,7 +1,7 @@
 import { UnauthorizedError } from '@/core/http/errors'
 import { verifyPassword } from '@/core/password'
 import type { AuthOutputDto, LoginDto } from '@/modules/auth/dto'
-import type { UserOutputDto } from '@/modules/iam/dto'
+import type { UserDto } from '@/modules/iam/dto'
 import type { UserService } from '@/modules/iam/service/user.service'
 
 import type { SessionService } from './session.service'
@@ -26,18 +26,18 @@ export class AuthService {
     }
 
     const session = await this.sessionSvc.createSession(targetUser)
-    const userDetail = await this.userSvc.getDetailById(targetUser.id)
+    const userDetail = await this.userSvc.getById(targetUser.id)
 
     return { user: userDetail, token: session.token }
   }
 
-  async verifyToken(token: string): Promise<UserOutputDto> {
+  async verifyToken(token: string): Promise<UserDto> {
     const session = await this.sessionSvc.verifySession(token)
     if (!session) {
       throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
     }
 
-    const userWithAccess = await this.userSvc.getDetailById(session.userId)
+    const userWithAccess = await this.userSvc.getById(session.userId)
     return userWithAccess
   }
 }

@@ -55,6 +55,9 @@ export class MaterialLocationService {
       if (!result) throw err.notAssigned(materialId, locationId)
       return {
         ...result,
+        minStock: Number(result.minStock),
+        maxStock: result.maxStock ? Number(result.maxStock) : null,
+        reorderPoint: Number(result.reorderPoint),
         currentQty: Number(result.currentQty),
         currentAvgCost: Number(result.currentAvgCost),
         currentValue: Number(result.currentValue),
@@ -69,11 +72,16 @@ export class MaterialLocationService {
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.materialId, materialId))
-      return results.map((r) => Object.assign({}, r, {
-        currentQty: Number(r.currentQty),
-        currentAvgCost: Number(r.currentAvgCost),
-        currentValue: Number(r.currentValue),
-      }))
+      return results.map((r) =>
+        Object.assign({}, r, {
+          minStock: Number(r.minStock),
+          maxStock: r.maxStock ? Number(r.maxStock) : null,
+          reorderPoint: Number(r.reorderPoint),
+          currentQty: Number(r.currentQty),
+          currentAvgCost: Number(r.currentAvgCost),
+          currentValue: Number(r.currentValue),
+        }),
+      )
     })
   }
 
@@ -84,11 +92,16 @@ export class MaterialLocationService {
         .select()
         .from(materialLocationsTable)
         .where(eq(materialLocationsTable.locationId, locationId))
-      return results.map((r) => Object.assign({}, r, {
-        currentQty: Number(r.currentQty),
-        currentAvgCost: Number(r.currentAvgCost),
-        currentValue: Number(r.currentValue),
-      }))
+      return results.map((r) =>
+        Object.assign({}, r, {
+          minStock: Number(r.minStock),
+          maxStock: r.maxStock ? Number(r.maxStock) : null,
+          reorderPoint: Number(r.reorderPoint),
+          currentQty: Number(r.currentQty),
+          currentAvgCost: Number(r.currentAvgCost),
+          currentValue: Number(r.currentValue),
+        }),
+      )
     })
   }
 
@@ -179,12 +192,17 @@ export class MaterialLocationService {
         .innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
         .where(eq(materialLocationsTable.materialId, materialId))
 
-      return assignments.map((row) => Object.assign({}, row.assignment, {
-        currentQty: Number(row.assignment.currentQty),
-        currentAvgCost: Number(row.assignment.currentAvgCost),
-        currentValue: Number(row.assignment.currentValue),
-        location: row.location,
-      }))
+      return assignments.map((row) =>
+        Object.assign({}, row.assignment, {
+          minStock: Number(row.assignment.minStock),
+          maxStock: row.assignment.maxStock ? Number(row.assignment.maxStock) : null,
+          reorderPoint: Number(row.assignment.reorderPoint),
+          currentQty: Number(row.assignment.currentQty),
+          currentAvgCost: Number(row.assignment.currentAvgCost),
+          currentValue: Number(row.assignment.currentValue),
+          location: row.location,
+        }),
+      )
     })
   }
 
@@ -244,9 +262,11 @@ export class MaterialLocationService {
           .where(where),
       })
 
-      // Convert numeric strings back to numbers for DTO compliance
       const data = result.data.map((stock) => ({
         ...stock,
+        minStock: Number(stock.minStock),
+        maxStock: stock.maxStock ? Number(stock.maxStock) : null,
+        reorderPoint: Number(stock.reorderPoint),
         currentQty: Number(stock.currentQty),
         currentAvgCost: Number(stock.currentAvgCost),
         currentValue: Number(stock.currentValue),
@@ -267,7 +287,13 @@ export class MaterialLocationService {
 
       const [result] = await db
         .update(materialLocationsTable)
-        .set({ ...update, ...stampUpdate(actorId) })
+        .set({
+          ...update,
+          minStock: update.minStock?.toString(),
+          maxStock: update.maxStock?.toString(),
+          reorderPoint: update.reorderPoint?.toString(),
+          ...stampUpdate(actorId),
+        })
         .where(eq(materialLocationsTable.id, id))
         .returning({ id: materialLocationsTable.id })
 

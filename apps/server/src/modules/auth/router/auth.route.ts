@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createSuccessResponseSchema } from '@/core/validation'
-import { UserOutputDto } from '@/modules/iam/dto'
+import { UserDto } from '@/modules/iam/dto'
 
 import { AuthOutputDto, LoginDto } from '../dto'
 import type { AuthService } from '../service/auth.service'
@@ -21,10 +21,9 @@ export function initAuthRoute(svc: AuthService) {
     )
     .get(
       '/me',
-      // @ts-expect-error
-      async function me({ auth }) {
+      function me({ auth }) {
         return res.ok(auth.user!, 'AUTH_ME_SUCCESS')
       },
-      { response: createSuccessResponseSchema(UserOutputDto), auth: true },
+      { response: createSuccessResponseSchema(UserDto), auth: true },
     )
 }

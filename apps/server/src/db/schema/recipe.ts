@@ -1,17 +1,12 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { metadata, pk } from './_helpers'
+import { auditColumns, pk } from '@/core/database/schema'
+
 import { materialsTable, uomsTable } from './material'
 import { productsTable, productVariantsTable } from './product'
 
 // ─── Recipes ──────────────────────────────────────────────────────────────────
-// A recipe defines how to make a target item.
-// The target can be ONE OF:
-// 1. materialId (type 'semi')
-// 2. productId (base recipe inherited by all variants)
-// 3. productVariantId (specific recipe overriding the product-level recipe)
-// We enforce that exactly one of (materialId, productId, productVariantId) is not null.
 
 export const recipesTable = pgTable(
   'recipes',
@@ -28,28 +23,27 @@ export const recipesTable = pgTable(
     // Optional preparation instructions for the whole recipe
     instructions: text(),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     // Ensure a material can have at most one recipe
     uniqueIndex('recipes_material_idx')
       .on(t.materialId)
-      .where(sql`${t.materialId} IS NOT NULL`),
+      .where(sql`${t.materialId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Ensure a product can have at most one base recipe
     uniqueIndex('recipes_product_idx')
       .on(t.productId)
-      .where(sql`${t.productId} IS NOT NULL`),
+      .where(sql`${t.productId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Ensure a product variant can have at most one recipe
     uniqueIndex('recipes_product_variant_idx')
       .on(t.productVariantId)
-      .where(sql`${t.productVariantId} IS NOT NULL`),
+      .where(sql`${t.productVariantId} IS NOT NULL AND ${t.deletedAt} IS NULL`),
     // Check constraint: exactly one target must be set
     check('recipe_target_chk', sql`num_nonnulls("materialId", "productId", "productVariantId") = 1`),
   ],
 )
 
 // ─── Recipe Items ─────────────────────────────────────────────────────────────
-// The ingredients/components required for a recipe.
 
 export const recipeItemsTable = pgTable(
   'recipe_items',
@@ -76,13 +70,15 @@ export const recipeItemsTable = pgTable(
     notes: text(),
 
     // Allows ordering of components if the recipe has steps
-    sortOrder: integer().notNull().default(0),
+    sortOrder: numeric({ precision: 5, scale: 0 }).notNull().default('0'),
 
-    ...metadata,
+    ...auditColumns,
   },
   (t) => [
     // A material should only appear once per recipe
-    uniqueIndex('recipe_items_recipe_material_idx').on(t.recipeId, t.materialId),
+    uniqueIndex('recipe_items_recipe_material_idx')
+      .on(t.recipeId, t.materialId)
+      .where(sql`${t.deletedAt} IS NULL`),
     // Standalone indexes for reverse lookups
     index('recipe_items_material_idx').on(t.materialId),
     index('recipe_items_uom_idx').on(t.uomId),

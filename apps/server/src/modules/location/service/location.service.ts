@@ -1,29 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import {
-  checkConflict,
-  paginate,
-  searchFilter,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-  type ConflictField,
-} from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import * as core from '@/core/database'
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
 
-import type { LocationDto, LocationFilterDto, LocationMutationDto } from '../dto'
+import * as dto from '../dto/location.dto'
 
-/* -------------------------------- CONSTANTS -------------------------------- */
-
-const err = { notFound: (id: number) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND') }
-
-const uniqueFields: ConflictField<'code' | 'name'>[] = [
+const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
   {
     field: 'code',
     column: locationsTable.code,
@@ -40,164 +25,186 @@ const uniqueFields: ConflictField<'code' | 'name'>[] = [
 
 const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: number) => `location.byId.${id}` }
 
-/* ----------------------------- IMPLEMENTATION ----------------------------- */
-
+// Location Service (Layer 0)
+// Handles physical and virtual location management.
 export class LocationService {
-  /**
-   * Seed initial locations into the database.
-   * Uses upsert pattern based on location code.
-   */
-  async seed(data: Pick<LocationDto, 'code' | 'name' | 'type' | 'createdBy'>[]): Promise<void> {
-    return record('LocationService.seed', async () => {
+  // Seed initial locations into the database.
+  async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
+    await record('LocationService.seed', async () => {
       for (const d of data) {
-        const metadata = stampCreate(d.createdBy)
+        const metadata = core.stampCreate(d.createdBy)
         await db
           .insert(locationsTable)
-          .values({ ...d, description: '', isActive: true, ...metadata })
+          .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: locationsTable.code,
-            set: { name: d.name, type: d.type, updatedAt: metadata.updatedAt, updatedBy: metadata.updatedBy },
+            set: {
+              name: d.name,
+              type: d.type,
+              classification: d.classification,
+              updatedAt: metadata.updatedAt,
+              updatedBy: metadata.updatedBy,
+              deletedAt: null,
+            },
           })
       }
       await this.clearCache()
     })
   }
 
-  /**
-   * Returns all active locations, cached.
-   */
-  async find(): Promise<LocationDto[]> {
-    return record('LocationService.find', async () => {
-      return cache.wrap(cacheKey.list, async () => {
-        return db.select().from(locationsTable).where(eq(locationsTable.isActive, true)).orderBy(locationsTable.name)
+  // Returns active locations.
+  async find(): Promise<dto.LocationDto[]> {
+    const result = await record('LocationService.find', async () => {
+      const data = await cache.wrap(cacheKey.list, async () => {
+        const rows = await db
+          .select()
+          .from(locationsTable)
+          .where(isNull(locationsTable.deletedAt))
+          .orderBy(locationsTable.name)
+        return rows.map((r) => dto.LocationDto.parse(r))
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Finds a single location by ID. Throws if not found.
-   */
-  async getById(id: number): Promise<LocationDto> {
-    return record('LocationService.getById', async () => {
-      return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(locationsTable).where(eq(locationsTable.id, id))
-        return takeFirstOrThrow(result, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
+  // Finds a location by ID.
+  async getById(id: number): Promise<dto.LocationDto> {
+    const result = await record('LocationService.getById', async () => {
+      const data = await cache.wrap(cacheKey.byId(id), async () => {
+        const rows = await db
+          .select()
+          .from(locationsTable)
+          .where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+        const first = core.takeFirstOrThrow(rows, `Location with ID ${id} not found`, 'LOCATION_NOT_FOUND')
+        return dto.LocationDto.parse(first)
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Returns total count of locations, cached.
-   */
+  // Returns total count.
   async count(): Promise<number> {
-    return record('LocationService.count', async () => {
-      return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(locationsTable)
-        return result[0]?.val ?? 0
+    const result = await record('LocationService.count', async () => {
+      const data = await cache.wrap(cacheKey.count, async () => {
+        const rows = await db.select({ val: count() }).from(locationsTable).where(isNull(locationsTable.deletedAt))
+        return rows[0]?.val ?? 0
       })
+      return data
     })
+    return result
   }
 
-  /**
-   * Fetches a paginated list of locations with optional filters.
-   */
-  async handleList(filter: LocationFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<LocationDto>> {
-    return record('LocationService.handleList', async () => {
-      const { search, type, isActive } = filter
-
+  // Paginated list.
+  async handleList(filter: dto.LocationFilterDto): Promise<core.WithPaginationResult<dto.LocationDto>> {
+    const result = await record('LocationService.handleList', async () => {
+      const { q, page, limit, type } = filter
       const where = and(
-        searchFilter(locationsTable.name, search),
-        type ? eq(locationsTable.type, type) : undefined,
-        typeof isActive === 'boolean' ? eq(locationsTable.isActive, isActive) : undefined,
+        isNull(locationsTable.deletedAt),
+        q === undefined
+          ? undefined
+          : or(core.searchFilter(locationsTable.name, q), core.searchFilter(locationsTable.code, q)),
+        type === undefined ? undefined : eq(locationsTable.type, type),
       )
 
-      return paginate<LocationDto>({
-        data: ({ limit, offset }) =>
-          db
+      const p = await core.paginate<dto.LocationDto>({
+        data: async ({ limit: l, offset }) => {
+          const rows = await db
             .select()
             .from(locationsTable)
             .where(where)
-            .orderBy(sortBy(locationsTable.updatedAt, 'desc'))
-            .limit(limit)
-            .offset(offset),
-        pq,
+            .orderBy(core.sortBy(locationsTable.updatedAt, 'desc'))
+            .limit(l)
+            .offset(offset)
+          return rows.map((r) => dto.LocationDto.parse(r))
+        },
+        pq: { page, limit },
         countQuery: db.select({ count: count() }).from(locationsTable).where(where),
       })
+      return p
     })
+    return result
   }
 
-  /**
-   * Serves location details for a single ID.
-   */
-  async handleDetail(id: number): Promise<LocationDto> {
-    return record('LocationService.handleDetail', async () => {
-      return this.getById(id)
+  // Resource detail.
+  async handleDetail(id: number): Promise<dto.LocationDto> {
+    const result = await record('LocationService.handleDetail', async () => {
+      const detail = await this.getById(id)
+      return detail
     })
+    return result
   }
 
-  /**
-   * Creates a new location. Invalidates cache.
-   */
-  async handleCreate(data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
-    return record('LocationService.handleCreate', async () => {
-      await checkConflict({ table: locationsTable, pkColumn: locationsTable.id, fields: uniqueFields, input: data })
-
+  // Creation.
+  async handleCreate(data: dto.LocationCreateDto, actorId: number): Promise<{ id: number }> {
+    const result = await record('LocationService.handleCreate', async () => {
+      await core.checkConflict({
+        table: locationsTable,
+        pkColumn: locationsTable.id,
+        fields: uniqueFields,
+        input: data,
+      })
       const [inserted] = await db
         .insert(locationsTable)
-        .values({ ...data, ...stampCreate(actorId) })
+        .values({ ...data, ...core.stampCreate(actorId) })
         .returning({ id: locationsTable.id })
-
-      if (!inserted) throw new Error('Failed to create location')
-
+      if (!inserted) throw new Error('Create failed')
       await this.clearCache()
       return inserted
     })
+    return result
   }
 
-  /**
-   * Updates an existing location. Invalidates cache.
-   */
-  async handleUpdate(id: number, data: LocationMutationDto, actorId: number): Promise<{ id: number }> {
-    return record('LocationService.handleUpdate', async () => {
+  // Update.
+  async handleUpdate(id: number, data: dto.LocationBaseDto, actorId: number): Promise<{ id: number }> {
+    const result = await record('LocationService.handleUpdate', async () => {
       const existing = await this.getById(id)
-
-      await checkConflict({
+      await core.checkConflict({
         table: locationsTable,
         pkColumn: locationsTable.id,
         fields: uniqueFields,
         input: data,
         existing,
       })
-
       await db
         .update(locationsTable)
-        .set({ ...data, ...stampUpdate(actorId) })
+        .set({ ...data, ...core.stampUpdate(actorId) })
         .where(eq(locationsTable.id, id))
-
       await this.clearCache(id)
       return { id }
     })
+    return result
   }
 
-  /**
-   * Removes a location. Invalidates cache.
-   */
-  async handleRemove(id: number): Promise<{ id: number }> {
+  // Soft Remove.
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('LocationService.handleRemove', async () => {
-      const result = await db
+      const [result] = await db
+        .update(locationsTable)
+        .set({ deletedAt: new Date(), deletedBy: actorId })
+        .where(eq(locationsTable.id, id))
+        .returning({ id: locationsTable.id })
+      if (!result) throw new Error('Location not found')
+      await this.clearCache(id)
+      return result
+    })
+  }
+
+  // Hard Remove.
+  async handleHardRemove(id: number): Promise<{ id: number }> {
+    return record('LocationService.handleHardRemove', async () => {
+      const [result] = await db
         .delete(locationsTable)
         .where(eq(locationsTable.id, id))
         .returning({ id: locationsTable.id })
-      if (result.length === 0) throw err.notFound(id)
-
+      if (!result) throw new Error('Location not found')
       await this.clearCache(id)
-      return { id }
+      return result
     })
   }
 
-  /**
-   * Utility to clear location caches.
-   */
+  // Clear relevant caches.
   private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),

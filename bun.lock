@@ -5,10 +5,12 @@
     "": {
       "name": "ikki-erp",
       "devDependencies": {
-        "oxfmt": "^0.42.0",
-        "oxlint": "^1.57.0",
-        "oxlint-tsgolint": "^0.17.3",
-        "typescript": "^6.0.2",
+        "dpdm": "catalog:",
+        "knip": "catalog:",
+        "oxfmt": "catalog:",
+        "oxlint": "catalog:",
+        "oxlint-tsgolint": "catalog:",
+        "typescript": "catalog:",
       },
     },
     "apps/server": {
@@ -134,6 +136,8 @@
     },
   },
   "catalog": {
+    "dpdm": "^4.0.1",
+    "knip": "^5.41.0",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
     "oxlint-tsgolint": "^0.17.3",

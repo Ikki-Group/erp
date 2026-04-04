@@ -7,7 +7,11 @@ export interface AuthenticatedUser {
   email: string
   username: string
   fullname: string
-  isRoot: boolean
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+  createdBy: number
+  updatedBy: number
 }
 
 export class AuthContext {

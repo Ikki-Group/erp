@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/core/validation'
+import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto, zRecordIdDto } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 
 import { UomDto } from './uom.dto'
@@ -8,7 +8,7 @@ import { UomDto } from './uom.dto'
 /* ---------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   materialId: zId,
   locationId: zId,
 
@@ -29,10 +29,7 @@ export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Enriched view with location details — used in "locations assigned to material" */
-export const MaterialLocationWithLocationDto = z.object({
-  ...MaterialLocationDto.shape,
-  location: LocationDto,
-})
+export const MaterialLocationWithLocationDto = z.object({ ...MaterialLocationDto.shape, location: LocationDto })
 
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 
@@ -65,10 +62,7 @@ export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto
 /* -------------------------------- MUTATION -------------------------------- */
 
 /** Assign materials to locations (batch) */
-export const MaterialLocationAssignDto = z.object({
-  locationIds: zId.array().min(1),
-  materialIds: zId.array().min(1),
-})
+export const MaterialLocationAssignDto = z.object({ locationIds: zId.array().min(1), materialIds: zId.array().min(1) })
 
 export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto>
 

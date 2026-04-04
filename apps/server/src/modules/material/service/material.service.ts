@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
+import { and, count, eq, exists, inArray, isNull, notExists, or, ilike } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
@@ -54,7 +54,11 @@ export class MaterialService {
    * Helper to fetch full material detail including conversions and locationIds
    */
   private async getMaterialWithRelations(id: number): Promise<MaterialDto> {
-    const [result] = await db.select().from(materialsTable).where(eq(materialsTable.id, id)).limit(1)
+    const [result] = await db
+      .select()
+      .from(materialsTable)
+      .where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
+      .limit(1)
 
     if (!result) throw err.notFound(id)
 
@@ -67,12 +71,12 @@ export class MaterialService {
         })
         .from(materialConversionsTable)
         .innerJoin(uomsTable, eq(materialConversionsTable.uomId, uomsTable.id))
-        .where(eq(materialConversionsTable.materialId, id)),
+        .where(and(eq(materialConversionsTable.materialId, id), isNull(materialConversionsTable.deletedAt))),
 
       db
         .select({ locationId: materialLocationsTable.locationId })
         .from(materialLocationsTable)
-        .where(eq(materialLocationsTable.materialId, id)),
+        .where(and(eq(materialLocationsTable.materialId, id), isNull(materialLocationsTable.deletedAt))),
     ])
 
     return { ...result, conversions, locationIds: locations.map((l) => l.locationId) }
@@ -96,12 +100,12 @@ export class MaterialService {
         })
         .from(materialConversionsTable)
         .innerJoin(uomsTable, eq(materialConversionsTable.uomId, uomsTable.id))
-        .where(inArray(materialConversionsTable.materialId, ids)),
+        .where(and(inArray(materialConversionsTable.materialId, ids), isNull(materialConversionsTable.deletedAt))),
 
       db
         .select({ materialId: materialLocationsTable.materialId, locationId: materialLocationsTable.locationId })
         .from(materialLocationsTable)
-        .where(inArray(materialLocationsTable.materialId, ids)),
+        .where(and(inArray(materialLocationsTable.materialId, ids), isNull(materialLocationsTable.deletedAt))),
     ])
 
     const map = new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
@@ -123,13 +127,19 @@ export class MaterialService {
   async find(): Promise<MaterialDto[]> {
     return record('MaterialService.find', async () => {
       return cache.wrap(cacheKey.list, async () => {
-        const rawMaterials = await db.select().from(materialsTable).orderBy(materialsTable.name)
+        const rawMaterials = await db
+          .select()
+          .from(materialsTable)
+          .where(isNull(materialsTable.deletedAt))
+          .orderBy(materialsTable.name)
         const relationsMap = await this.getMaterialsBatchWithRelations(rawMaterials.map((m) => m.id))
 
-        return rawMaterials.map((m) => Object.assign({}, m, {
-          conversions: relationsMap.get(m.id)!.conversions,
-          locationIds: relationsMap.get(m.id)!.locationIds,
-        }))
+        return rawMaterials.map((m) =>
+          Object.assign({}, m, {
+            conversions: relationsMap.get(m.id)!.conversions,
+            locationIds: relationsMap.get(m.id)!.locationIds,
+          }),
+        )
       })
     })
   }
@@ -145,7 +155,7 @@ export class MaterialService {
   async count(): Promise<number> {
     return record('MaterialService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(materialsTable)
+        const result = await db.select({ val: count() }).from(materialsTable).where(isNull(materialsTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -168,6 +178,7 @@ export class MaterialService {
                 and(
                   eq(materialLocationsTable.materialId, materialsTable.id),
                   inArray(materialLocationsTable.locationId, locationIds),
+                  isNull(materialLocationsTable.deletedAt),
                 ),
               ),
           )
@@ -182,12 +193,14 @@ export class MaterialService {
                 and(
                   eq(materialLocationsTable.materialId, materialsTable.id),
                   inArray(materialLocationsTable.locationId, excludeLocationIds),
+                  isNull(materialLocationsTable.deletedAt),
                 ),
               ),
           )
         : undefined
 
       const where = and(
+        isNull(materialsTable.deletedAt),
         searchCondition,
         type ? eq(materialsTable.type, type) : undefined,
         categoryId === undefined ? undefined : eq(materialsTable.categoryId, categoryId),
@@ -317,6 +330,8 @@ export class MaterialService {
           .where(eq(materialsTable.id, id))
 
         if (data.conversions !== undefined) {
+          // Hard delete conversions before re-inserting is standard for these relations
+          // UNLESS there are child relations. Here there aren't.
           await tx.delete(materialConversionsTable).where(eq(materialConversionsTable.materialId, id))
           if (data.conversions.length > 0) {
             await tx
@@ -338,8 +353,50 @@ export class MaterialService {
     })
   }
 
-  async handleRemove(id: number): Promise<{ id: number }> {
+  /**
+   * Marks a material as deleted (Soft Delete).
+   */
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('MaterialService.handleRemove', async () => {
+      // Also soft delete its relations if needed?
+      // Usually cascading soft delete is manual or handled by junction logic.
+      // For conversions and locations, they are tied to this material.
+
+      const result = await db.transaction(async (tx) => {
+        const timestamp = new Date()
+
+        await Promise.all([
+          tx
+            .update(materialConversionsTable)
+            .set({ deletedAt: timestamp, deletedBy: actorId })
+            .where(eq(materialConversionsTable.materialId, id)),
+          tx
+            .update(materialLocationsTable)
+            .set({ deletedAt: timestamp, deletedBy: actorId })
+            .where(eq(materialLocationsTable.materialId, id)),
+        ])
+
+        return tx
+          .update(materialsTable)
+          .set({ deletedAt: timestamp, deletedBy: actorId })
+          .where(eq(materialsTable.id, id))
+          .returning({ id: materialsTable.id })
+      })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a material (Hard Delete).
+   * USE WITH CAUTION.
+   */
+  async handleHardRemove(id: number): Promise<{ id: number }> {
+    return record('MaterialService.handleHardRemove', async () => {
+      // Drizzle references handle the cascade if configured in schema (materialId references onDelete cascade)
       const result = await db
         .delete(materialsTable)
         .where(eq(materialsTable.id, id))

@@ -1,20 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray, ne } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
-import {
-  paginate,
-  sortBy,
-  stampCreate,
-  stampUpdate,
-  takeFirstOrThrow,
-} from '@/core/database'
+import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
-import { materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
+import { materialLocationsTable, materialsTable, recipeItemsTable, recipesTable, uomsTable } from '@/db/schema'
 
-import type { RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
+import type { RecipeCostDto, RecipeDto, RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -37,10 +31,18 @@ export class RecipeService {
       .from(recipeItemsTable)
       .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
       .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
-      .where(eq(recipeItemsTable.recipeId, recipeId))
+      .where(and(eq(recipeItemsTable.recipeId, recipeId), isNull(recipeItemsTable.deletedAt)))
       .orderBy(recipeItemsTable.sortOrder)
 
-    return results.map((r) => Object.assign({}, r.item, { material: r.material, uom: r.uom }))
+    return results.map((r) =>
+      Object.assign({}, r.item, {
+        material: r.material,
+        uom: r.uom,
+        qty: Number(r.item.qty),
+        scrapPercentage: Number(r.item.scrapPercentage),
+        sortOrder: Number(r.item.sortOrder),
+      }),
+    )
   }
 
   // ─── Public Reads ─────────────────────────────────────────────────────────
@@ -51,7 +53,10 @@ export class RecipeService {
   async getById(id: number): Promise<RecipeDto> {
     return record('RecipeService.getById', async () => {
       return cache.wrap(cacheKey.byId(id), async () => {
-        const result = await db.select().from(recipesTable).where(eq(recipesTable.id, id))
+        const result = await db
+          .select()
+          .from(recipesTable)
+          .where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
         const recipe = takeFirstOrThrow(result, `Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND')
 
         const items = await this.getRecipeItems(id)
@@ -64,7 +69,7 @@ export class RecipeService {
   async count(): Promise<number> {
     return record('RecipeService.count', async () => {
       return cache.wrap(cacheKey.count, async () => {
-        const result = await db.select({ val: count() }).from(recipesTable)
+        const result = await db.select({ val: count() }).from(recipesTable).where(isNull(recipesTable.deletedAt))
         return result[0]?.val ?? 0
       })
     })
@@ -77,6 +82,7 @@ export class RecipeService {
       const { materialId, productId, productVariantId, isActive } = filter
 
       const where = and(
+        isNull(recipesTable.deletedAt),
         materialId === undefined ? undefined : eq(recipesTable.materialId, materialId),
         productId === undefined ? undefined : eq(recipesTable.productId, productId),
         productVariantId === undefined ? undefined : eq(recipesTable.productVariantId, productVariantId),
@@ -109,11 +115,19 @@ export class RecipeService {
               .from(recipeItemsTable)
               .innerJoin(materialsTable, eq(recipeItemsTable.materialId, materialsTable.id))
               .innerJoin(uomsTable, eq(recipeItemsTable.uomId, uomsTable.id))
-              .where(inArray(recipeItemsTable.recipeId, recipeIds))
+              .where(and(inArray(recipeItemsTable.recipeId, recipeIds), isNull(recipeItemsTable.deletedAt)))
               .orderBy(recipeItemsTable.sortOrder)
           : []
 
-      const allItems = allItemsRaw.map((r) => Object.assign({}, r.item, { material: r.material, uom: r.uom }))
+      const allItems = allItemsRaw.map((r) =>
+        Object.assign({}, r.item, {
+          material: r.material,
+          uom: r.uom,
+          qty: Number(r.item.qty),
+          scrapPercentage: Number(r.item.scrapPercentage),
+          sortOrder: Number(r.item.sortOrder),
+        }),
+      )
 
       const itemsByRecipe = new Map<number, typeof allItems>()
       for (const item of allItems) {
@@ -142,13 +156,14 @@ export class RecipeService {
     },
     excludeId?: number,
   ) {
-    const conditions = []
+    const conditions = [isNull(recipesTable.deletedAt)]
 
     if (target.materialId) conditions.push(eq(recipesTable.materialId, target.materialId))
     if (target.productId) conditions.push(eq(recipesTable.productId, target.productId))
     if (target.productVariantId) conditions.push(eq(recipesTable.productVariantId, target.productVariantId))
 
-    if (conditions.length !== 1) {
+    if (conditions.length !== 2) {
+      // 1 for deletedAt, 1 for the target
       throw new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET')
     }
 
@@ -204,7 +219,7 @@ export class RecipeService {
                 scrapPercentage: item.scrapPercentage,
                 uomId: item.uomId,
                 notes: item.notes,
-                sortOrder: item.sortOrder,
+                sortOrder: item.sortOrder.toString(),
                 ...meta,
               })),
             )
@@ -245,9 +260,9 @@ export class RecipeService {
             instructions: data.instructions,
             ...updateMeta,
           })
-          .where(eq(recipesTable.id, id))
+          .where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
 
-        // Recreate items
+        // Hard delete items before re-inserting is standard here as they don't have children
         await tx.delete(recipeItemsTable).where(eq(recipeItemsTable.recipeId, id))
 
         if (data.items?.length) {
@@ -261,7 +276,7 @@ export class RecipeService {
                 scrapPercentage: item.scrapPercentage,
                 uomId: item.uomId,
                 notes: item.notes ?? null,
-                sortOrder: item.sortOrder,
+                sortOrder: item.sortOrder.toString(),
                 ...createMeta,
               })),
             )
@@ -275,8 +290,39 @@ export class RecipeService {
     })
   }
 
-  async handleRemove(id: number): Promise<{ id: number }> {
+  /**
+   * Marks a recipe as deleted (Soft Delete).
+   */
+  async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('RecipeService.handleRemove', async () => {
+      const result = await db.transaction(async (tx) => {
+        const timestamp = new Date()
+
+        // Also soft delete items
+        await tx
+          .update(recipeItemsTable)
+          .set({ deletedAt: timestamp, deletedBy: actorId })
+          .where(eq(recipeItemsTable.recipeId, id))
+
+        return tx
+          .update(recipesTable)
+          .set({ deletedAt: timestamp, deletedBy: actorId })
+          .where(eq(recipesTable.id, id))
+          .returning({ id: recipesTable.id })
+      })
+
+      if (result.length === 0) throw err.notFound(id)
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  /**
+   * Permanently deletes a recipe (Hard Delete).
+   */
+  async handleHardRemove(id: number): Promise<{ id: number }> {
+    return record('RecipeService.handleHardRemove', async () => {
       const result = await db.delete(recipesTable).where(eq(recipesTable.id, id)).returning({ id: recipesTable.id })
       if (result.length === 0) throw err.notFound(id)
 
@@ -285,13 +331,51 @@ export class RecipeService {
     })
   }
 
-  // ─── Cache ────────────────────────────────────────────────────────────────
-
   private async clearCache(id?: number) {
     await Promise.all([
       cache.del(cacheKey.count),
       cache.del(cacheKey.list),
       id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
     ])
+  }
+
+  /* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */
+
+  /**
+   * Calculates the estimated cost of a product variant based on its recipe.
+   * TotalCost = sum(item.qty * (1 + item.scrapPercentage/100) * material.avgCost)
+   */
+  async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
+    return record('RecipeService.handleCalculateCost', async () => {
+      const recipe = await this.getById(recipeId)
+      const items = recipe.items || []
+
+      let totalCost = 0
+      const detailedItems = []
+
+      for (const item of items) {
+        // Query average cost for this material across all locations
+        // We use COALESCE(AVG(...), 0) to handle materials with no stock/cost history
+        const [valuation] = await db
+          .select({ avgCost: sql<string>`COALESCE(AVG("currentAvgCost"), 0)` })
+          .from(materialLocationsTable)
+          .where(and(eq(materialLocationsTable.materialId, item.materialId), isNull(materialLocationsTable.deletedAt)))
+
+        const avgCost = Number(valuation?.avgCost || 0)
+        const qty = Number(item.qty)
+        const scrap = Number(item.scrapPercentage)
+
+        const scrapFactor = 1 + scrap / 100
+        const itemCost = qty * scrapFactor * avgCost
+
+        totalCost += itemCost
+        detailedItems.push({ ...item, unitCost: avgCost, extendedCost: itemCost })
+      }
+
+      const targetQty = Number(recipe.targetQty)
+      const unitCost = targetQty > 0 ? totalCost / targetQty : totalCost
+
+      return { recipeId, targetQty, totalCost, unitCost, items: detailedItems }
+    })
   }
 }

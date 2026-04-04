@@ -1,0 +1,52 @@
+import { z } from 'zod'
+
+import { zStr, zStrNullable, zId, zQuerySearch, zMetadataDto, zPaginationDto } from '@/core/validation'
+
+/* ---------------------------------- ENUM ---------------------------------- */
+
+export const MyEntityStatusDto = z.enum(['active', 'inactive'])
+export type MyEntityStatusDto = z.infer<typeof MyEntityStatusDto>
+
+/* --------------------------------- NESTED --------------------------------- */
+
+export const MyEntityBaseDto = z.object({
+  code: zStr,
+  name: zStr,
+  description: zStrNullable,
+  status: MyEntityStatusDto,
+})
+
+/* --------------------------------- ENTITY --------------------------------- */
+
+export const MyEntityDto = z.object({
+  ...zId.shape,
+  ...MyEntityBaseDto.shape,
+  ...zMetadataDto.shape,
+})
+
+export type MyEntityDto = z.infer<typeof MyEntityDto>
+
+/* --------------------------------- FILTER --------------------------------- */
+
+export const MyEntityFilterDto = z.object({
+  ...zPaginationDto.shape,
+  search: zQuerySearch,
+  status: MyEntityStatusDto.optional(),
+})
+
+export type MyEntityFilterDto = z.infer<typeof MyEntityFilterDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
+
+export const MyEntityCreateDto = z.object({
+  ...MyEntityBaseDto.shape,
+})
+
+export type MyEntityCreateDto = z.infer<typeof MyEntityCreateDto>
+
+export const MyEntityUpdateDto = z.object({
+  ...zId.shape,
+  ...MyEntityBaseDto.shape,
+})
+
+export type MyEntityUpdateDto = z.infer<typeof MyEntityUpdateDto>

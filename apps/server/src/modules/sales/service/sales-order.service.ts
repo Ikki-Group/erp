@@ -1,4 +1,5 @@
 // oxlint-disable typescript/unbound-method
+// TODO
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
@@ -112,7 +113,7 @@ export class SalesOrderService {
         // Create Batch
         const [batch] = await tx
           .insert(salesOrderBatchesTable)
-          .values({ orderId, batchNumber: data.batchNumber, status: 'pending', ...metadata })
+          .values({ orderId, batchNumber: data.batchNumber.toString(), status: 'pending', ...metadata })
           .returning({ id: salesOrderBatchesTable.id })
 
         // Create Items Link to Batch
@@ -187,6 +188,7 @@ export class SalesOrderService {
           .insert(salesVoidsTable)
           .values({ orderId, itemId: data.itemId ?? null, reason: data.reason, voidedBy: actorId, ...metadata })
 
+        // oxlint-disable-next-line no-negated-condition
         if (!data.itemId) {
           // Void the entire order
           const updateMetadata = stampUpdate(actorId)
@@ -360,10 +362,10 @@ export class SalesOrderService {
   private async recalculateOrderTotals(tx: any, orderId: number, actorId: number) {
     const allItems = await tx.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, orderId))
     const allVoids = await tx.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, orderId))
-    const voidedItemIds = new Set(
+    const voidedItemIds = new Set<number>(
       allVoids
         .filter((v: { itemId: number | null }) => v.itemId !== null)
-        .map((v: { itemId: number | null }) => v.itemId),
+        .map((v: { itemId: number | null }) => v.itemId as number),
     )
 
     let totalAmount = 0

@@ -1,10 +1,10 @@
 import z from 'zod'
 
-import { zStr, zId, zQuerySearch, zMetadataDto } from '@/core/validation'
+import { zStr, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const UomDto = z.object({ id: zId, code: zStr, ...zMetadataDto.shape })
+export const UomDto = z.object({ ...zRecordIdDto.shape, code: zStr, ...zMetadataDto.shape })
 
 export type UomDto = z.infer<typeof UomDto>
 

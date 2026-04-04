@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import {
   SalesOrderAddBatchDto,
@@ -25,7 +30,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
       },
       {
         query: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(SalesOrderOutputDto.array()),
+        response: createPaginatedResponseSchema(SalesOrderOutputDto),
         auth: true,
       },
     )
@@ -54,7 +59,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
       {
         query: zRecordIdDto,
         body: SalesOrderAddBatchDto,
-        response: createSuccessResponseSchema(z.object({ batchId: zId })),
+        response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
         auth: true,
       },
     )
@@ -72,11 +77,6 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
         const result = await s.order.handleVoid(query.id, body, auth.userId)
         return res.ok(result)
       },
-      {
-        query: zRecordIdDto,
-        body: SalesOrderVoidDto,
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
-      },
+      { query: zRecordIdDto, body: SalesOrderVoidDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }

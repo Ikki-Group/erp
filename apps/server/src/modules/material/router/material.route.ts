@@ -3,7 +3,12 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import {
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/core/validation'
 
 import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
 import type { MaterialServiceModule } from '../service'
@@ -19,7 +24,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       },
       {
         query: z.object({ ...MaterialFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(MaterialSelectDto.array()),
+        response: createPaginatedResponseSchema(MaterialSelectDto),
         auth: true,
       },
     )
@@ -39,23 +44,31 @@ export function initMaterialRoute(s: MaterialServiceModule) {
       },
       { body: MaterialMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
         const { id } = await s.material.handleUpdate(body.id, body, auth.userId)
         return res.ok({ id })
       },
       {
-        body: z.object({ id: zId, ...MaterialMutationDto.shape }),
+        body: z.object({ ...zRecordIdDto.shape, ...MaterialMutationDto.shape }),
         response: createSuccessResponseSchema(zRecordIdDto),
         auth: true,
       },
     )
     .delete(
       '/remove',
-      async function remove({ query }) {
-        await s.material.handleRemove(query.id)
-        return res.ok({ id: query.id })
+      async function remove({ query, auth }) {
+        const { id } = await s.material.handleRemove(query.id, auth.userId)
+        return res.ok({ id })
+      },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ query }) {
+        const { id } = await s.material.handleHardRemove(query.id)
+        return res.ok({ id })
       },
       { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )

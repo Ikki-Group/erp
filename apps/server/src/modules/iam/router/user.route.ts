@@ -1,87 +1,73 @@
-import { Elysia } from 'elysia'
-import z from 'zod'
+import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
-import { ForbiddenError } from '@/core/http/errors'
 import { res } from '@/core/http/response'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/core/validation'
 
-import {
-  UserAdminUpdatePasswordDto,
-  UserChangePasswordDto,
-  UserCreateDto,
-  UserOutputDto,
-  UserUpdateDto,
-  UserFilterDto,
-} from '../dto'
-import type { IamServiceModule } from '../service'
+import * as dto from '../dto/user.dto'
+import type { UserService } from '../service/user.service'
 
-export function initUserRoute(s: IamServiceModule) {
+/**
+ * User Module Route (Layer 1)
+ * Standard functional route pattern (Golden Path 2.1).
+ */
+export function initUserRoute(service: UserService) {
   return new Elysia({ prefix: '/user' })
     .use(authPluginMacro)
     .get(
       '/list',
       async function list({ query }) {
-        const result = await s.user.handleList(query, query)
+        const result = await service.handleList(query)
         return res.paginated(result)
       },
-      {
-        query: z.object({ ...UserFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(UserOutputDto.array()),
-        auth: true,
-      },
+      { query: dto.UserFilterDto, response: createPaginatedResponseSchema(dto.UserDto), auth: true },
     )
     .get(
       '/detail',
       async function detail({ query }) {
-        const user = await s.user.handleDetail(query.id)
-        return res.ok(user)
+        const result = await service.handleDetail(query.id)
+        return res.ok(result)
       },
-      { query: zRecordIdDto, response: createSuccessResponseSchema(UserOutputDto), auth: true },
+      { query: zRecordIdDto, response: createSuccessResponseSchema(dto.UserDto), auth: true },
     )
     .post(
       '/create',
       async function create({ body, auth }) {
-        const result = await s.user.handleCreate(body, auth.userId)
-        return res.created(result, 'USER_CREATED')
+        const result = await service.handleCreate(body, auth.userId)
+        return res.ok(result)
       },
-      { body: UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+      { body: dto.UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
+    .patch(
       '/update',
       async function update({ body, auth }) {
-        const result = await s.user.handleUpdate(body.id, body, auth.userId)
-        return res.ok(result, 'USER_UPDATED')
+        const result = await service.handleUpdate(body.id, body, auth.userId)
+        return res.ok(result)
       },
-      {
-        body: z.object({ id: zId, ...UserUpdateDto.shape }),
-        response: createSuccessResponseSchema(zRecordIdDto),
-        auth: true,
+      { body: dto.UserUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .patch(
+      '/admin/password-reset',
+      async function adminUpdatePassword({ body, auth }) {
+        const result = await service.handleAdminUpdatePassword(body, auth.userId)
+        return res.ok(result)
       },
+      { body: dto.UserAdminUpdatePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .delete(
       '/remove',
-      async function remove({ body }) {
-        const result = await s.user.handleRemove(body.id)
-        return res.ok(result, 'USER_DELETED')
+      async function remove({ body, auth }) {
+        const result = await service.handleRemove(body.id, auth.userId)
+        return res.ok(result)
       },
       { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .put(
-      '/change-password',
-      async function changePassword({ body, auth }) {
-        const result = await s.user.handleChangePassword(auth.userId, body)
-        return res.ok(result, 'USER_PASSWORD_CHANGED')
+    .delete(
+      '/hard-remove',
+      async function hardRemove({ body }) {
+        const result = await service.handleHardRemove(body.id)
+        return res.ok(result)
       },
-      { body: UserChangePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
-    .put(
-      '/admin-update-password',
-      async function adminUpdatePassword({ body, auth }) {
-        if (!auth.user?.isRoot) throw new ForbiddenError('Forbidden', 'AUTH_FORBIDDEN')
-        const result = await s.user.handleAdminUpdatePassword(auth.userId, body)
-        return res.ok(result, 'USER_PASSWORD_UPDATED_BY_ADMIN')
-      },
-      { body: UserAdminUpdatePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
 }
