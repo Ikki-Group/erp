@@ -34,9 +34,18 @@
     "jsdoc/require-returns": "off",
     "jsdoc/require-param": "off",
     "require-await": "off",
-    "max-lines-per-function": "off"
+    "max-lines-per-function": "off",
+    "no-warning-comments": "off"
   },
   "overrides": [
+    {
+      "files": [
+        "apps/server/**/*"
+      ],
+      "rules": {
+        "no-inline-comments": "off"
+      }
+    },
     {
       "files": [
         "apps/web/**/*"

@@ -1,4 +1,5 @@
 // oxlint-disable typescript/unbound-method
+// TODO
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
@@ -187,6 +188,7 @@ export class SalesOrderService {
           .insert(salesVoidsTable)
           .values({ orderId, itemId: data.itemId ?? null, reason: data.reason, voidedBy: actorId, ...metadata })
 
+        // oxlint-disable-next-line no-negated-condition
         if (!data.itemId) {
           // Void the entire order
           const updateMetadata = stampUpdate(actorId)
