@@ -24,11 +24,11 @@ import {
 } from '@/components/ui/sidebar'
 import { getAppMenu } from '@/config/app-menu'
 import { UserSection } from '@/features/iam/components/user-section'
-import { LocationSwitcher } from '@/features/location/components/location-switcher'
 import { useAppState } from '@/hooks/use-app-state'
 import { cn } from '@/lib/utils'
 
 import { LoadingPage } from '../common/loading-page'
+import { Breadcrumbs } from './breadcrumbs'
 import { Separator } from '../ui/separator'
 
 export function AppLayout() {
@@ -98,7 +98,7 @@ function SidebarMenus() {
                       <SidebarMenuSub>
                         {menu.children.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.href}>
-                            <SidebarMenuSubButton isActive={subItem.isActive} render={<Link to={subItem.href} />}>
+                            <SidebarMenuSubButton isActive={!!subItem.isActive} render={<Link to={subItem.href} />}>
                               <span>{subItem.title}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -111,7 +111,7 @@ function SidebarMenus() {
 
               return (
                 <SidebarMenuItem key={menu.href}>
-                  <SidebarMenuButton isActive={menu.isActive} render={<Link to={menu.href} />} tooltip={menu.title}>
+                  <SidebarMenuButton isActive={!!menu.isActive} render={<Link to={menu.href} />} tooltip={menu.title}>
                     {menu.icon && <menu.icon />}
                     <span>{menu.title}</span>
                   </SidebarMenuButton>
@@ -130,8 +130,8 @@ function Header() {
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear top-0 sticky bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/20">
       <div className="flex items-center gap-2">
         <SidebarTrigger variant="outline" size="icon-lg" />
-        <Separator orientation="vertical" />
-        <LocationSwitcher />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumbs />
       </div>
       <div className="ml-auto flex items-center gap-2">
         <ThemeSwitcher />
