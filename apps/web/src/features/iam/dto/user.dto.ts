@@ -31,6 +31,11 @@ export const UserDto = z.object({
 })
 export type UserDto = z.infer<typeof UserDto>
 
+export const UserSelectDto = UserDto.extend({
+  assignments: z.array(z.any()).optional(),
+})
+export type UserSelectDto = z.infer<typeof UserSelectDto>
+
 /**
  * Input for creating a new User.
  */

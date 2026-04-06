@@ -8,7 +8,7 @@ import { BadgeDot } from '@/components/common/badge-dot'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
-import type { UserOutputDto } from '@/features/iam'
+import type { UserSelectDto } from '@/features/iam'
 import { userApi } from '@/features/iam'
 import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { getUserStatusBadge } from '@/features/iam/utils'
@@ -27,7 +27,7 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<UserOutputDto>()
+const ch = createColumnHelper<UserSelectDto>()
 const columns = [
   ch.accessor('fullname', {
     header: ({ column }) => <DataGridColumnHeader title="Nama" visibility={true} column={column} />,

@@ -11,7 +11,7 @@ export const materialCategoryApi = {
     method: 'get',
     url: endpoint.material.category.list,
     params: z.object({ ...zPaginationDto.shape, ...MaterialCategoryFilterDto.shape }),
-    result: createPaginatedResponseSchema(MaterialCategoryDto.array()),
+    result: createPaginatedResponseSchema(MaterialCategoryDto),
   }),
 
   detail: apiFactory({

@@ -11,7 +11,7 @@ export const uomApi = {
     method: 'get',
     url: endpoint.material.uom.list,
     params: z.object({ ...zPaginationDto.shape, ...UomFilterDto.shape }),
-    result: createPaginatedResponseSchema(UomDto.array()),
+    result: createPaginatedResponseSchema(UomDto),
   }),
 
   detail: apiFactory({

@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { userApi } from '../api'
-import type { UserOutputDto } from '../dto'
+import type { UserSelectDto } from '../dto'
 
 const FormDto = z.object({
   fullname: z.string().min(1, 'Nama lengkap wajib diisi'),
@@ -29,7 +29,7 @@ type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
 
-function getDefaultValues(v?: UserOutputDto): FormDto {
+function getDefaultValues(v?: UserSelectDto): FormDto {
   return {
     email: v?.email ?? '',
     fullname: v?.fullname ?? '',

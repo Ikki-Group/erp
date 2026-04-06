@@ -11,7 +11,7 @@ export const salesTypeApi = {
     method: 'get',
     url: endpoint.product.salesType.list,
     params: z.object({ ...zPaginationDto.shape, ...SalesTypeFilterDto.shape }),
-    result: createPaginatedResponseSchema(SalesTypeDto.array()),
+    result: createPaginatedResponseSchema(SalesTypeDto),
   }),
 
   detail: apiFactory({

@@ -19,7 +19,7 @@ export const materialLocationApi = {
     method: 'get',
     url: endpoint.material.location.stock,
     params: z.object({ ...zPaginationDto.shape, ...MaterialLocationFilterDto.shape }),
-    result: createPaginatedResponseSchema(MaterialLocationStockDto.array()),
+    result: createPaginatedResponseSchema(MaterialLocationStockDto),
   }),
 
   /** Assign materials to a location (batch) */

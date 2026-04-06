@@ -9,7 +9,7 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { locationApi } from '@/features/location'
-import type { ProductFilterDto, ProductOutputDto } from '@/features/product'
+import type { ProductFilterDto, ProductSelectDto } from '@/features/product'
 import { productApi, productCategoryApi } from '@/features/product'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -28,7 +28,7 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<ProductOutputDto>()
+const ch = createColumnHelper<ProductSelectDto>()
 
 const columns = [
   ch.accessor('sku', {

@@ -19,14 +19,14 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { toOptions } from '@/lib/utils'
 
 import { materialApi, materialCategoryApi, uomApi } from '../api'
-import { MaterialType } from '../dto'
-import type { MaterialOutputDto } from '../dto'
+import { MaterialTypeDto } from '../dto'
+import type { MaterialSelectDto } from '../dto'
 
 const FormDto = z.object({
   name: z.string().min(1, 'Nama bahan baku harus diisi'),
   description: z.string().optional(),
   sku: z.string().min(1, 'SKU harus diisi'),
-  type: MaterialType,
+  type: MaterialTypeDto,
   categoryId: z.coerce.number<number>().nullable(),
   baseUomId: z.coerce.number<number>().min(1, 'Satuan dasar harus dipilih'),
   conversions: z.array(
@@ -49,7 +49,7 @@ const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {}
  * @param v - Optional existing material data to derive default values from
  * @returns A FormDto populated from `v` when present, otherwise containing empty/default values. Conversions are copied from `v.conversions` when available.
  */
-function getDefaultValues(v?: MaterialOutputDto): FormDto {
+function getDefaultValues(v?: MaterialSelectDto): FormDto {
   const conversions: FormDto['conversions'] = []
 
   if (v?.conversions.length) {

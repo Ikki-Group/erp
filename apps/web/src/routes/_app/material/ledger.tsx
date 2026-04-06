@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataCombobox } from '@/components/ui/data-combobox'
 import { Input } from '@/components/ui/input'
-import type { StockLedgerOutputDto } from '@/features/inventory'
+import type { StockLedgerSelectDto } from '@/features/inventory'
 import { inventoryApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -91,7 +91,7 @@ function RouteComponent() {
 
 /* ─────────── Ledger Table ─────────── */
 
-const ch = createColumnHelper<StockLedgerOutputDto>()
+const ch = createColumnHelper<StockLedgerSelectDto>()
 
 function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; dateFrom: string; dateTo: string }) {
   const ds = useDataTableState()

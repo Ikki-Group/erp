@@ -11,7 +11,7 @@ export const productCategoryApi = {
     method: 'get',
     url: endpoint.product.category.list,
     params: z.object({ ...zPaginationDto.shape, ...ProductCategoryFilterDto.shape }),
-    result: createPaginatedResponseSchema(ProductCategoryDto.array()),
+    result: createPaginatedResponseSchema(ProductCategoryDto),
   }),
 
   detail: apiFactory({

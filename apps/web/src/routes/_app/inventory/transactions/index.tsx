@@ -8,14 +8,14 @@ import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { StockTransactionOutputDto } from '@/features/inventory'
+import type { StockTransactionSelectDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/inventory/transactions/')({ component: RouteComponent })
 
-const ch = createColumnHelper<StockTransactionOutputDto>()
+const ch = createColumnHelper<StockTransactionSelectDto>()
 
 function RouteComponent() {
   const ds = useDataTableState()

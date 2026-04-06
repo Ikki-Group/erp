@@ -17,7 +17,7 @@ import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { recipeApi } from '..'
-import type { RecipeOutputDto } from '..'
+import type { RecipeSelectDto } from '..'
 
 const FormDto = z
   .object({
@@ -65,7 +65,7 @@ const fopts = formOptions({
 })
 
 function getDefaultValues(
-  v?: RecipeOutputDto,
+  v?: RecipeSelectDto,
   target?: { materialId?: number | null; productId?: number | null; productVariantId?: number | null },
 ): FormDto {
   if (!v) {

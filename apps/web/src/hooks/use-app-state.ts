@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-import type { UserOutputDto } from '@/features/iam'
+import type { UserSelectDto } from '@/features/iam'
 
 type Location = Array<number> | null
 
@@ -10,9 +10,9 @@ interface AppState {
   location: Location
   sidebarOpen: boolean
 
-  invalidateSessionData: (user: UserOutputDto) => void
+  invalidateSessionData: (user: UserSelectDto) => void
   isAuthenticated: () => boolean
-  setToken: (token: string, user: UserOutputDto) => void
+  setToken: (token: string, user: UserSelectDto) => void
   clearToken: () => void
   setLocation: (location: Location) => void
   setSidebarOpen: (sidebarOpen: boolean) => void
@@ -40,7 +40,7 @@ export const useAppState = create<AppState>()(
   ),
 )
 
-function validateLocation(current: Location, user: UserOutputDto): Location {
+function validateLocation(current: Location, user: UserSelectDto): Location {
   if (user.assignments.length) {
     const userLocationIds = user.assignments.map((a) => a.location.id)
     if (current && current.length === 1) {

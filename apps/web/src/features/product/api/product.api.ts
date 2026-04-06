@@ -4,21 +4,21 @@ import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
 
-import { ProductFilterDto, ProductMutationDto, ProductOutputDto } from '../dto'
+import { ProductFilterDto, ProductMutationDto, ProductSelectDto } from '../dto'
 
 export const productApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.product.list,
     params: z.object({ ...zPaginationDto.shape, ...ProductFilterDto.shape }),
-    result: createPaginatedResponseSchema(ProductOutputDto.array()),
+    result: createPaginatedResponseSchema(ProductSelectDto),
   }),
 
   detail: apiFactory({
     method: 'get',
     url: endpoint.product.detail,
     params: zRecordIdDto,
-    result: createSuccessResponseSchema(ProductOutputDto),
+    result: createSuccessResponseSchema(ProductSelectDto),
   }),
 
   create: apiFactory({

@@ -1,9 +1,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { authApi } from '@/features/auth'
-import type { UserOutputDto } from '@/features/iam'
+import type { UserSelectDto } from '@/features/iam'
 
-export function useUser(): UserOutputDto {
+export function useUser(): UserSelectDto {
   const { data } = useSuspenseQuery(authApi.me.query({}))
   return data.data
 }

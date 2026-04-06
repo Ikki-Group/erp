@@ -18,7 +18,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { cn, toOptions } from '@/lib/utils'
 
 import { productApi, productCategoryApi, salesTypeApi } from '../api'
-import type { ProductOutputDto } from '../dto'
+import type { ProductSelectDto } from '../dto'
 
 const FormDto = z.object({
   name: z.string().min(1, 'Nama produk wajib diisi'),
@@ -51,7 +51,7 @@ type FormDto = z.infer<typeof FormDto>
 const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
 
 /**
- * Build a FormDto populated from an optional ProductOutputDto or with sensible defaults.
+ * Build a FormDto populated from an optional ProductSelectDto or with sensible defaults.
  *
  * @param v - Optional source product whose fields are used to seed the form
  * @returns A FormDto where:
@@ -63,7 +63,7 @@ const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultVal
  * - `prices` is an array of `{ salesTypeId, price }` with `price` as numbers.
  * - `variants` is an array of variant objects with `_id` as a string, numeric `basePrice`, `isDefault`, optional `sku`, and `prices` converted to numeric values.
  */
-function getDefaultValues(v?: ProductOutputDto): FormDto {
+function getDefaultValues(v?: ProductSelectDto): FormDto {
   return {
     name: v?.name ?? '',
     description: v?.description ?? '',

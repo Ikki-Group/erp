@@ -7,7 +7,7 @@ import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { DataCombobox } from '@/components/ui/data-combobox'
-import type { StockLedgerOutputDto } from '@/features/inventory'
+import type { StockLedgerSelectDto } from '@/features/inventory'
 import { stockSummaryApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -69,7 +69,7 @@ function RouteComponent() {
 
 /* ─────────── Summary Table ─────────── */
 
-const ch = createColumnHelper<StockLedgerOutputDto>()
+const ch = createColumnHelper<StockLedgerSelectDto>()
 
 function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; dateFrom: string; dateTo: string }) {
   const ds = useDataTableState()

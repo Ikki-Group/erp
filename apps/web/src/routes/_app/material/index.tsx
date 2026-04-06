@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { locationApi } from '@/features/location'
-import type { MaterialFilterDto, MaterialOutputDto } from '@/features/material'
+import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
 import { MaterialAssignToLocationDialog, MaterialBadgeProps, materialApi } from '@/features/material'
 import { materialCategoryApi } from '@/features/material/api/material-category.api'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -125,7 +125,7 @@ function MaterialTable() {
   )
 }
 
-const ch = createColumnHelper<MaterialOutputDto>()
+const ch = createColumnHelper<MaterialSelectDto>()
 function getColumns() {
   return [
     ch.display({
