@@ -2,20 +2,30 @@ import z from 'zod'
 
 import { LocationDto } from '@/features/location'
 import { RecipeDto } from '@/features/recipe'
-import { zStrNullable, zStr, zId, zQuerySearch, zQueryId, zQueryIds, zMetadataDto } from '@/lib/zod'
+import {
+  zDecimal,
+  zId,
+  zMetadataDto,
+  zQueryId,
+  zQueryIds,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/lib/zod'
 
 import { MaterialCategoryDto } from './material-category.dto'
 import { UomDto } from './uom.dto'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const MaterialType = z.enum(['raw', 'semi'])
-export type MaterialType = z.infer<typeof MaterialType>
+export const MaterialTypeDto = z.enum(['raw', 'semi', 'packaging'])
+export type MaterialTypeDto = z.infer<typeof MaterialTypeDto>
 
 /* --------------------------------- NESTED --------------------------------- */
 
 export const MaterialConversionDto = z.object({
-  toBaseFactor: zStr,
+  toBaseFactor: zDecimal,
   uomId: zId,
   uom: UomDto.optional(),
 })
@@ -25,11 +35,11 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   name: zStr,
   description: zStrNullable,
   sku: zStr,
-  type: MaterialType,
+  type: MaterialTypeDto,
   categoryId: zId.nullable(),
   baseUomId: zId,
 
@@ -44,17 +54,17 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 
 export const MaterialFilterDto = z.object({
   search: zQuerySearch,
-  type: MaterialType.optional(),
+  type: MaterialTypeDto.optional(),
   categoryId: zQueryId.optional(),
-  locationIds: zQueryIds.optional(),
-  excludeLocationIds: zQueryIds.optional(),
+  locationIds: zQueryIds,
+  excludeLocationIds: zQueryIds,
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
-/* --------------------------------- OUTPUT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
-export const MaterialOutputDto = z.object({
+export const MaterialSelectDto = z.object({
   ...MaterialDto.shape,
   category: MaterialCategoryDto.nullable(),
   uom: UomDto.nullable(),
@@ -62,7 +72,7 @@ export const MaterialOutputDto = z.object({
   recipe: RecipeDto.nullable().optional(),
 })
 
-export type MaterialOutputDto = z.infer<typeof MaterialOutputDto>
+export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 

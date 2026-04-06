@@ -2,19 +2,24 @@ import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  createPaginatedResponseSchema,
+  createSuccessResponseSchema,
+  zPaginationDto,
+  zRecordIdDto,
+} from '@/lib/zod'
 
 import {
   AdjustmentTransactionDto,
   GenerateSummaryDto,
   PurchaseTransactionDto,
   StockLedgerFilterDto,
-  StockLedgerOutputDto,
+  StockLedgerSelectDto,
   StockSummaryFilterDto,
-  StockSummaryOutputDto,
+  StockSummarySelectDto,
   StockTransactionDto,
   StockTransactionFilterDto,
-  StockTransactionOutputDto,
+  StockTransactionSelectDto,
   TransactionResultDto,
   TransferTransactionDto,
 } from '../dto'
@@ -24,19 +29,19 @@ export const stockSummaryApi = {
     method: 'get',
     url: endpoint.inventory.summary.byLocation,
     params: z.object({ ...zPaginationDto.shape, ...StockSummaryFilterDto.shape }),
-    result: createPaginatedResponseSchema(StockSummaryOutputDto.array()),
+    result: createPaginatedResponseSchema(StockSummarySelectDto),
   }),
   ledger: apiFactory({
     method: 'get',
     url: endpoint.inventory.summary.ledger,
     params: z.object({ ...zPaginationDto.shape, ...StockLedgerFilterDto.shape }),
-    result: createPaginatedResponseSchema(StockLedgerOutputDto.array()),
+    result: createPaginatedResponseSchema(StockLedgerSelectDto),
   }),
   generate: apiFactory({
     method: 'post',
     url: endpoint.inventory.summary.generate,
     body: GenerateSummaryDto,
-    result: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
+    result: createSuccessResponseSchema(z.object({ count: z.number() })),
   }),
 }
 
@@ -45,7 +50,7 @@ export const stockTransactionApi = {
     method: 'get',
     url: endpoint.inventory.transaction.list,
     params: z.object({ ...zPaginationDto.shape, ...StockTransactionFilterDto.shape }),
-    result: createPaginatedResponseSchema(StockTransactionOutputDto.array()),
+    result: createPaginatedResponseSchema(StockTransactionSelectDto),
   }),
   detail: apiFactory({
     method: 'get',

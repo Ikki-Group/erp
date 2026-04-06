@@ -2,14 +2,19 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  createPaginatedResponseSchema,
+  createSuccessResponseSchema,
+  zPaginationDto,
+  zRecordIdDto,
+} from '@/lib/zod'
 
 import {
   UserAdminUpdatePasswordDto,
   UserChangePasswordDto,
   UserCreateDto,
+  UserDto,
   UserFilterDto,
-  UserOutputDto,
   UserUpdateDto,
 } from '../dto'
 
@@ -18,13 +23,13 @@ export const userApi = {
     method: 'get',
     url: endpoint.iam.user.list,
     params: z.object({ ...zPaginationDto.shape, ...UserFilterDto.shape }),
-    result: createPaginatedResponseSchema(UserOutputDto.array()),
+    result: createPaginatedResponseSchema(UserDto),
   }),
   detail: apiFactory({
     method: 'get',
     url: endpoint.iam.user.detail,
     params: zRecordIdDto,
-    result: createSuccessResponseSchema(UserOutputDto),
+    result: createSuccessResponseSchema(UserDto),
   }),
   create: apiFactory({
     method: 'post',
@@ -35,7 +40,7 @@ export const userApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.iam.user.update,
-    body: z.object({ id: zId, ...UserUpdateDto.shape }),
+    body: UserUpdateDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
   remove: apiFactory({

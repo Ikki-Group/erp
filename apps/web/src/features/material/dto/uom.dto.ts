@@ -1,10 +1,10 @@
 import z from 'zod'
 
-import { zStr, zId, zQuerySearch, zMetadataDto } from '@/lib/zod'
+import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const UomDto = z.object({ id: zId, code: zStr, ...zMetadataDto.shape })
+export const UomDto = z.object({ ...zRecordIdDto.shape, code: zStr, ...zMetadataDto.shape })
 
 export type UomDto = z.infer<typeof UomDto>
 
@@ -16,6 +16,6 @@ export type UomFilterDto = z.infer<typeof UomFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const UomMutationDto = z.object({ ...UomDto.pick({ code: true }).shape })
+export const UomMutationDto = UomDto.pick({ code: true })
 
 export type UomMutationDto = z.infer<typeof UomMutationDto>

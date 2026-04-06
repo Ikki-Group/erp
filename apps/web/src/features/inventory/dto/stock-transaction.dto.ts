@@ -1,20 +1,39 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto } from '@/lib/zod'
+import {
+  zDate,
+  zId,
+  zMetadataDto,
+  zNum,
+  zQueryId,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const TransactionType = z.enum(['purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell'])
-export type TransactionType = z.infer<typeof TransactionType>
+export const TransactionTypeDto = z.enum([
+  'purchase',
+  'transfer_in',
+  'transfer_out',
+  'adjustment',
+  'sell',
+  'usage',
+  'production_in',
+  'production_out',
+])
+export type TransactionTypeDto = z.infer<typeof TransactionTypeDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const StockTransactionDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   materialId: zId,
   locationId: zId,
 
-  type: TransactionType,
+  type: TransactionTypeDto,
   date: zDate,
   referenceNo: zStr,
   notes: zStrNullable,
@@ -26,34 +45,32 @@ export const StockTransactionDto = z.object({
 
   // Transfer-specific
   counterpartLocationId: zId.nullable().default(null),
-  transferId: zStrNullable.default(null),
+  transferId: z.number().nullable().default(null),
 
   // Running snapshot after this transaction
   runningQty: zNum,
   runningAvgCost: zNum,
-
   ...zMetadataDto.shape,
 })
 
 export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 
-/* --------------------------------- OUTPUT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const StockTransactionOutputDto = z.object({
-  ...StockTransactionDto.shape,
+export const StockTransactionSelectDto = StockTransactionDto.extend({
   materialName: zStr,
   materialSku: zStr,
 })
 
-export type StockTransactionOutputDto = z.infer<typeof StockTransactionOutputDto>
+export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockTransactionFilterDto = z.object({
   locationId: zQueryId.optional(),
   materialId: zQueryId.optional(),
-  type: TransactionType.optional(),
+  type: TransactionTypeDto.optional(),
   search: zQuerySearch,
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
@@ -71,10 +88,7 @@ export const PurchaseItemDto = z.object({
 })
 
 /** Single item within a transfer transaction */
-export const TransferItemDto = z.object({
-  materialId: zId,
-  qty: zNum.positive('Quantity must be positive'),
-})
+export const TransferItemDto = z.object({ materialId: zId, qty: zNum.positive('Quantity must be positive') })
 
 /** Single item within an adjustment transaction */
 export const AdjustmentItemDto = z.object({
@@ -82,6 +96,9 @@ export const AdjustmentItemDto = z.object({
   qty: zNum.refine((v) => v !== 0, 'Quantity must not be zero'),
   unitCost: zNum.nonnegative().optional(),
 })
+
+/** Single item within a stock out (usage/sell) transaction */
+export const UsageItemDto = z.object({ materialId: zId, qty: zNum.positive('Quantity must be positive') })
 
 /* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 
@@ -118,6 +135,50 @@ export const AdjustmentTransactionDto = z.object({
 })
 
 export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
+
+/** Create usage transactions (multiple materials at one location) */
+export const UsageTransactionDto = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: UsageItemDto.array().min(1, 'At least one item is required'),
+})
+
+export type UsageTransactionDto = z.infer<typeof UsageTransactionDto>
+
+/** Create sales transactions (multiple materials at one location) */
+export const SellTransactionDto = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: UsageItemDto.array().min(1, 'At least one item is required'),
+})
+
+export type SellTransactionDto = z.infer<typeof SellTransactionDto>
+
+/** Production In transactions (finished goods) */
+export const ProductionInTransactionDto = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: PurchaseItemDto.array().min(1, 'At least one item is required'),
+})
+
+export type ProductionInTransactionDto = z.infer<typeof ProductionInTransactionDto>
+
+/** Production Out transactions (material consumption) */
+export const ProductionOutTransactionDto = z.object({
+  locationId: zId,
+  date: zDate,
+  referenceNo: zStr,
+  notes: zStrNullable.optional(),
+  items: UsageItemDto.array().min(1, 'At least one item is required'),
+})
+
+export type ProductionOutTransactionDto = z.infer<typeof ProductionOutTransactionDto>
 
 /* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 

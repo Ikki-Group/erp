@@ -1,43 +1,54 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zQuerySearch, zQueryBoolean, zQueryId, zMetadataDto } from '@/lib/zod'
+import {
+  zBool,
+  zDecimal,
+  zId,
+  zMetadataDto,
+  zQueryBoolean,
+  zQueryId,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/lib/zod'
 
 import { ProductCategoryDto } from './product-category.dto'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const ProductStatus = z.enum(['active', 'inactive', 'archived'])
-export type ProductStatus = z.infer<typeof ProductStatus>
+export const ProductStatusDto = z.enum(['active', 'inactive', 'archived'])
+export type ProductStatusDto = z.infer<typeof ProductStatusDto>
 
 /* --------------------------------- NESTED --------------------------------- */
 
 export const VariantPriceDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   variantId: zId,
   salesTypeId: zId,
-  price: zStr,
+  price: zDecimal,
   ...zMetadataDto.shape,
 })
 
 export type VariantPriceDto = z.infer<typeof VariantPriceDto>
 
 export const ProductPriceDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   productId: zId,
   salesTypeId: zId,
-  price: zStr,
+  price: zDecimal,
   ...zMetadataDto.shape,
 })
 
 export type ProductPriceDto = z.infer<typeof ProductPriceDto>
 
 export const ProductVariantDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   productId: zId,
   name: zStr,
   sku: zStrNullable,
   isDefault: zBool,
-  basePrice: zStr,
+  basePrice: zDecimal,
   prices: VariantPriceDto.array(),
   ...zMetadataDto.shape,
 })
@@ -45,7 +56,7 @@ export const ProductVariantDto = z.object({
 export type ProductVariantDto = z.infer<typeof ProductVariantDto>
 
 export const ProductExternalMappingDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   productId: zId,
   variantId: zId.nullable(),
   provider: zStr,
@@ -59,14 +70,14 @@ export type ProductExternalMappingDto = z.infer<typeof ProductExternalMappingDto
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const ProductDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   name: zStr,
   description: zStrNullable,
   sku: zStr,
-  basePrice: zStr,
+  basePrice: zDecimal,
   locationId: zId,
   categoryId: zId.nullable(),
-  status: ProductStatus,
+  status: ProductStatusDto,
   hasVariants: zBool,
   hasSalesTypePricing: zBool,
   variants: ProductVariantDto.array(),
@@ -81,7 +92,7 @@ export type ProductDto = z.infer<typeof ProductDto>
 
 export const ProductFilterDto = z.object({
   search: zQuerySearch,
-  status: ProductStatus.optional(),
+  status: ProductStatusDto.optional(),
   categoryId: zQueryId.optional(),
   locationId: zQueryId.optional(),
   isExternal: zQueryBoolean,
@@ -90,19 +101,19 @@ export const ProductFilterDto = z.object({
 
 export type ProductFilterDto = z.infer<typeof ProductFilterDto>
 
-/* --------------------------------- OUTPUT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
-export const ProductOutputDto = z.object({ ...ProductDto.shape, category: ProductCategoryDto.nullable() })
+export const ProductSelectDto = ProductDto.extend({ category: ProductCategoryDto.nullable() })
 
-export type ProductOutputDto = z.infer<typeof ProductOutputDto>
+export type ProductSelectDto = z.infer<typeof ProductSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const VariantPriceMutationDto = z.object({ salesTypeId: zId, price: zStr })
+export const VariantPriceMutationDto = z.object({ salesTypeId: zId, price: zDecimal })
 
 export type VariantPriceMutationDto = z.infer<typeof VariantPriceMutationDto>
 
-export const ProductPriceMutationDto = z.object({ salesTypeId: zId, price: zStr })
+export const ProductPriceMutationDto = z.object({ salesTypeId: zId, price: zDecimal })
 
 export type ProductPriceMutationDto = z.infer<typeof ProductPriceMutationDto>
 
@@ -110,26 +121,25 @@ export const ProductVariantMutationDto = z.object({
   name: zStr,
   sku: zStr.optional(),
   isDefault: zBool.optional().default(false),
-  basePrice: zStr.optional().default('0'),
-  prices: VariantPriceMutationDto.array().default([]),
+  basePrice: zDecimal.optional().default('0'),
+  prices: VariantPriceMutationDto.array(),
 })
 
 export type ProductVariantMutationDto = z.infer<typeof ProductVariantMutationDto>
 
-export const ProductMutationDto = z.object({
-  ...ProductDto.pick({
-    name: true,
-    description: true,
-    sku: true,
-    basePrice: true,
-    locationId: true,
-    categoryId: true,
-    status: true,
-    hasVariants: true,
-    hasSalesTypePricing: true,
-  }).shape,
-  variants: ProductVariantMutationDto.array().default([]),
-  prices: ProductPriceMutationDto.array().default([]),
+export const ProductMutationDto = ProductDto.pick({
+  name: true,
+  description: true,
+  sku: true,
+  basePrice: true,
+  locationId: true,
+  categoryId: true,
+  status: true,
+  hasVariants: true,
+  hasSalesTypePricing: true,
+}).extend({
+  variants: ProductVariantMutationDto.array().optional(),
+  prices: ProductPriceMutationDto.array().optional(),
 })
 
 export type ProductMutationDto = z.infer<typeof ProductMutationDto>

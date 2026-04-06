@@ -1,11 +1,20 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zDate, zQuerySearch, zQueryId, zMetadataDto } from '@/lib/zod'
+import {
+  zDate,
+  zId,
+  zMetadataDto,
+  zNum,
+  zQueryId,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+} from '@/lib/zod'
 
-/* ---------------------------------- ENTITY ---------------------------------- */
+/* --------------------------------- ENTITY --------------------------------- */
 
 export const StockSummaryDto = z.object({
-  id: zId,
+  ...zRecordIdDto.shape,
   materialId: zId,
   locationId: zId,
   date: zDate,
@@ -24,6 +33,12 @@ export const StockSummaryDto = z.object({
   transferOutValue: zNum,
   adjustmentQty: zNum,
   adjustmentValue: zNum,
+  usageQty: zNum,
+  usageValue: zNum,
+  productionInQty: zNum,
+  productionInValue: zNum,
+  productionOutQty: zNum,
+  productionOutValue: zNum,
   sellQty: zNum,
   sellValue: zNum,
 
@@ -31,43 +46,17 @@ export const StockSummaryDto = z.object({
   closingQty: zNum,
   closingAvgCost: zNum,
   closingValue: zNum,
-
   ...zMetadataDto.shape,
 })
 
 export type StockSummaryDto = z.infer<typeof StockSummaryDto>
 
-/* --------------------------------- OUTPUT --------------------------------- */
+/* --------------------------------- RESULT --------------------------------- */
 
 /** Summary enriched with material info for display */
-export const StockSummaryOutputDto = z.object({
-  ...StockSummaryDto.shape,
-  materialName: zStr,
-  materialSku: zStr,
-})
+export const StockSummarySelectDto = StockSummaryDto.extend({ materialName: zStr, materialSku: zStr })
 
-export type StockSummaryOutputDto = z.infer<typeof StockSummaryOutputDto>
-
-export const StockLedgerOutputDto = z.object({
-  materialId: zId,
-  materialName: zStr,
-  materialSku: zStr,
-  baseUomCode: zStr,
-
-  openingQty: zNum,
-
-  purchaseQty: zNum,
-  transferInQty: zNum,
-  transferOutQty: zNum,
-  sellQty: zNum,
-  adjustmentQty: zNum,
-
-  closingQty: zNum,
-  closingValue: zNum,
-  closingAvgCost: zNum,
-})
-
-export type StockLedgerOutputDto = z.infer<typeof StockLedgerOutputDto>
+export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
@@ -96,3 +85,29 @@ export type StockLedgerFilterDto = z.infer<typeof StockLedgerFilterDto>
 export const GenerateSummaryDto = z.object({ locationId: zId, date: zDate })
 
 export type GenerateSummaryDto = z.infer<typeof GenerateSummaryDto>
+
+/* --------------------------------- LEDGER --------------------------------- */
+
+export const StockLedgerSelectDto = z.object({
+  materialId: zId,
+  materialName: zStr,
+  materialSku: zStr,
+  baseUomCode: zStr,
+
+  openingQty: zNum,
+
+  purchaseQty: zNum,
+  transferInQty: zNum,
+  transferOutQty: zNum,
+  sellQty: zNum,
+  adjustmentQty: zNum,
+  usageQty: zNum,
+  productionInQty: zNum,
+  productionOutQty: zNum,
+
+  closingQty: zNum,
+  closingValue: zNum,
+  closingAvgCost: zNum,
+})
+
+export type StockLedgerSelectDto = z.infer<typeof StockLedgerSelectDto>

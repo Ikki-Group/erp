@@ -1,37 +1,48 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { LocationDto } from '@/features/location'
-import { zBool, zId, zMetadataDto } from '@/lib/zod'
+import { zBool, zId, zMetadataDto, zPaginationDto, zRecordIdDto } from '@/lib/zod'
 
-import { RoleDto } from './role.dto'
+/**
+ * Common User Assignment attributes.
+ */
+export const UserAssignmentBaseDto = z.object({ userId: zId, roleId: zId, locationId: zId, isDefault: zBool })
+export type UserAssignmentBaseDto = z.infer<typeof UserAssignmentBaseDto>
 
-/* ---------------------------------- BASE ---------------------------------- */
-
-export const UserAssignmentBase = z.object({
-  locationId: zId,
-  roleId: zId,
-  isDefault: zBool,
-})
-
-/* --------------------------------- ENTITY --------------------------------- */
-
+/**
+ * User Assignment database record.
+ */
 export const UserAssignmentDto = z.object({
-  id: zId,
-  userId: zId,
-  ...UserAssignmentBase.shape,
+  ...zRecordIdDto.shape,
+  ...UserAssignmentBaseDto.shape,
   ...zMetadataDto.shape,
 })
-
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
-/* --------------------------------- OUTPUT --------------------------------- */
-
-export const UserAssignmentDetailDto = z.object({ isDefault: zBool, location: LocationDto, role: RoleDto })
-
+/**
+ * Detailed User Assignment (including role/location names/codes).
+ */
+export const UserAssignmentDetailDto = z.object({
+  ...UserAssignmentDto.shape,
+  roleName: z.string(),
+  roleCode: z.string(),
+  locationName: z.string(),
+  locationCode: z.string(),
+})
 export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
 
-/* --------------------------------- UPSERT --------------------------------- */
-
-export const UserAssignmentUpsertDto = z.object({ ...UserAssignmentBase.shape })
-
+/**
+ * Input for upserting a User Assignment.
+ */
+export const UserAssignmentUpsertDto = UserAssignmentBaseDto
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
+
+/**
+ * Filter criteria for listing User Assignments.
+ */
+export const UserAssignmentFilterDto = z.object({
+  ...zPaginationDto.shape,
+  userId: zId.optional(),
+  roleId: zId.optional(),
+  locationId: zId.optional(),
+})
+export type UserAssignmentFilterDto = z.infer<typeof UserAssignmentFilterDto>
