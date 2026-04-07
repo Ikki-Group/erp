@@ -12,6 +12,7 @@ import {
 import {
   adjustmentTransactionSchema,
   purchaseTransactionSchema,
+  stockOpnameSchema,
   stockTransactionFilterSchema,
   stockTransactionSchema,
   stockTransactionSelectSchema,
@@ -64,6 +65,21 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
         {
           body: adjustmentTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Record stock opname (single material) ─────── */
+      .post(
+        '/opname',
+        async function opname({ body, auth }) {
+          const result = await s.transaction.handleOpname(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: stockOpnameSchema,
           response: createSuccessResponseSchema(transactionResultSchema),
           auth: true,
           detail: { tags: ['Inventory Transaction'] },

@@ -98,7 +98,140 @@ const inventory = {
     purchase: 'inventory/transaction/purchase',
     transfer: 'inventory/transaction/transfer',
     adjustment: 'inventory/transaction/adjustment',
+    opname: 'inventory/transaction/opname',
   },
 }
 
-export const endpoint = { auth, iam, location, material, product, recipe, inventory }
+const dashboard = {
+  analytics: {
+    pnl: 'dashboard/analytics/pnl',
+    topSales: 'dashboard/analytics/top-sales',
+  },
+  settings: {
+    summary: 'dashboard/settings/summary',
+  },
+}
+
+const employee = {
+  list: 'employee/list',
+  detail: 'employee/detail',
+  create: 'employee/create',
+  update: 'employee/update',
+  remove: 'employee/remove',
+}
+
+const finance = {
+  account: {
+    list: 'finance/account/list',
+    detail: 'finance/account/detail',
+    create: 'finance/account/create',
+    update: 'finance/account/update',
+    remove: 'finance/account/remove',
+  },
+  journal: {
+    entries: 'finance/entries',
+    detail: 'finance/entries/:id',
+  },
+}
+
+const hr = {
+  shifts: {
+    list: 'hr/shifts',
+    create: 'hr/shifts',
+  },
+  attendances: {
+    list: 'hr/attendances',
+  },
+  clockIn: 'hr/clock-in',
+  clockOut: 'hr/clock-out',
+  payroll: {
+    batches: {
+      create: 'hr/payroll/batches',
+    },
+    adjustments: {
+      create: 'hr/payroll/adjustments',
+    },
+  },
+}
+
+const moka = {
+  configuration: {
+    list: 'moka/configuration/list',
+    detail: 'moka/configuration/detail',
+    create: 'moka/configuration/create',
+    update: 'moka/configuration/update',
+    remove: 'moka/configuration/remove',
+  },
+  scrap: {
+    history: 'moka/scrap/history',
+    trigger: 'moka/scrap/trigger',
+  },
+}
+
+const production = {
+  workOrder: {
+    list: 'production/work-order/list',
+    detail: 'production/work-order/detail',
+    create: 'production/work-order/create',
+    update: 'production/work-order/update',
+    remove: 'production/work-order/remove',
+  },
+}
+
+const purchasing = {
+  order: {
+    list: 'purchasing/purchase-order/list',
+    detail: 'purchasing/purchase-order/detail',
+    create: 'purchasing/purchase-order/create',
+    update: 'purchasing/purchase-order/update',
+    remove: 'purchasing/purchase-order/remove',
+  },
+  goodsReceipt: {
+    list: 'purchasing/goods-receipt/list',
+    detail: 'purchasing/goods-receipt/detail',
+    create: 'purchasing/goods-receipt/create',
+    update: 'purchasing/goods-receipt/update',
+    remove: 'purchasing/goods-receipt/remove',
+  },
+}
+
+const sales = {
+  order: {
+    list: 'sales/order/list',
+    detail: 'sales/order/detail',
+    create: 'sales/order/create',
+    update: 'sales/order/update',
+    remove: 'sales/order/remove',
+    addBatch: 'sales/order/add-batch',
+    close: 'sales/order/close',
+    void: 'sales/order/void',
+  },
+}
+
+const supplier = {
+  list: 'supplier/list',
+  detail: 'supplier/detail',
+  create: 'supplier/create',
+  update: 'supplier/update',
+  remove: 'supplier/remove',
+}
+
+export const endpoint = {
+  auth,
+  iam,
+  location,
+  material,
+  product,
+  recipe,
+  inventory,
+  dashboard,
+  employee,
+  finance,
+  hr,
+  moka,
+  production,
+  purchasing,
+  sales,
+  supplier,
+}
+

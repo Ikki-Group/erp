@@ -76,6 +76,12 @@ export const stockTransactionApi = {
     body: AdjustmentTransactionDto,
     result: createSuccessResponseSchema(TransactionResultDto),
   }),
+  opname: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.opname,
+    body: StockOpnameDto,
+    result: createSuccessResponseSchema(TransactionResultDto),
+  }),
 }
 
 // Keep inventoryApi for backward compatibility

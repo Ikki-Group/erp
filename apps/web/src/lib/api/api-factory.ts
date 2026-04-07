@@ -7,7 +7,7 @@ import type { ZodType, z } from 'zod'
 import { apiClient } from './api-client'
 import { ApiError } from './api-error'
 
-type HttpMethod = 'get' | 'post' | 'put' | 'delete'
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 
 export interface TErr<T = any> {
   code: string | number
