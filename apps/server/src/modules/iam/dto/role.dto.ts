@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zBool, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import { zBool, zMetadataDto, zPaginationDto, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
 
 /**
  * Common Role attributes.
@@ -35,5 +35,5 @@ export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
 /**
  * Filter criteria for listing Roles.
  */
-export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional() })
+export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>

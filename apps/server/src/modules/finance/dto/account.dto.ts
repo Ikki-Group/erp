@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-import { zStr, zMetadataDto, zRecordIdDto, zQuerySearch, zPaginationDto, zId } from '@/core/validation'
+import {
+  zStr,
+  zMetadataDto,
+  zRecordIdDto,
+  zQuerySearch,
+  zPaginationDto,
+  zId,
+  zQueryId,
+} from '@/core/validation'
 
 export const AccountTypeEnum = z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
 export type AccountTypeEnum = z.infer<typeof AccountTypeEnum>
@@ -39,6 +47,6 @@ export const AccountFilterDto = z.object({
   ...zPaginationDto.shape,
   search: zQuerySearch,
   type: AccountTypeEnum.optional(),
-  parentId: zId.optional(),
+  parentId: zQueryId.optional(),
 })
 export type AccountFilterDto = z.infer<typeof AccountFilterDto>

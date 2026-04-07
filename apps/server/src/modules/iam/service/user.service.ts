@@ -37,6 +37,7 @@ export class UserService {
             .values({ ...d, ...metadata })
             .onConflictDoUpdate({
               target: usersTable.username,
+              targetWhere: isNull(usersTable.deletedAt),
               set: {
                 email: d.email,
                 fullname: d.fullname,

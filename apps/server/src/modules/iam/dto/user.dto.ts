@@ -6,6 +6,8 @@ import {
   zMetadataDto,
   zPaginationDto,
   zPassword,
+  zQueryBoolean,
+  zQuerySearch,
   zRecordIdDto,
   zStr,
   zUsername,
@@ -55,7 +57,7 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 /**
  * Filter criteria for listing Users.
  */
-export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional(), isActive: zBool.optional() })
+export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch, isActive: zQueryBoolean })
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /**

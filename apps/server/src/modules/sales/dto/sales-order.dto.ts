@@ -8,6 +8,7 @@ import {
   zDate,
   zDecimal,
   zQuerySearch,
+  zQueryId,
   zMetadataDto,
   zRecordIdDto,
 } from '@/core/validation'
@@ -85,9 +86,9 @@ export type SalesOrderDto = z.infer<typeof SalesOrderDto>
 
 export const SalesOrderFilterDto = z.object({
   search: zQuerySearch,
-  locationId: zId.optional(),
+  locationId: zQueryId.optional(),
   status: SalesOrderStatus.optional(),
-  salesTypeId: zId.optional(),
+  salesTypeId: zQueryId.optional(),
   startDate: zDate.optional(),
   endDate: zDate.optional(),
 })

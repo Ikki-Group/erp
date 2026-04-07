@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-import { zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import {
+  zMetadataDto,
+  zPaginationDto,
+  zQueryId,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/core/validation'
 
 export const purchaseOrderStatusEnum = z.enum(['open', 'closed', 'void'])
 
@@ -65,9 +73,9 @@ export type PurchaseOrderUpdateDto = z.infer<typeof PurchaseOrderUpdateDto>
 
 export const PurchaseOrderFilterDto = z.object({
   ...zPaginationDto.shape,
-  q: z.string().optional(),
+  q: zQuerySearch,
   status: purchaseOrderStatusEnum.optional(),
-  locationId: z.coerce.number().optional(),
-  supplierId: z.coerce.number().optional(),
+  locationId: zQueryId.optional(),
+  supplierId: zQueryId.optional(),
 })
 export type PurchaseOrderFilterDto = z.infer<typeof PurchaseOrderFilterDto>

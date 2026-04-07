@@ -28,6 +28,7 @@ export class RoleService {
           .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: rolesTable.code,
+            targetWhere: isNull(rolesTable.deletedAt),
             set: {
               name: d.name,
               description: d.description,
@@ -118,12 +119,7 @@ export class RoleService {
   // Creation.
   async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
     const result = await record('RoleService.handleCreate', async () => {
-      await core.checkConflict({
-        table: rolesTable,
-        pkColumn: rolesTable.id,
-        fields: uniqueFields,
-        input: data as unknown as Record<string, unknown>,
-      })
+      await core.checkConflict({ table: rolesTable, pkColumn: rolesTable.id, fields: uniqueFields, input: data })
       const [inserted] = await db
         .insert(rolesTable)
         .values({ ...data, ...core.stampCreate(actorId) })
@@ -144,7 +140,7 @@ export class RoleService {
         table: rolesTable,
         pkColumn: rolesTable.id,
         fields: uniqueFields,
-        input: { ...data, id } as unknown as Record<string, unknown>,
+        input: { ...data },
         existing,
       })
       await db

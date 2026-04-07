@@ -13,7 +13,6 @@ import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
 import { initToolRouteModule } from './tool'
 import { initPurchasingRouteModule } from './purchasing'
-
 import { initEmployeeRouteModule } from './employee'
 import { initSupplierRouteModule } from './supplier'
 import { initFinanceRouteModule } from './finance'

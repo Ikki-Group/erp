@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto, zRecordIdDto, zQueryId } from '@/core/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -16,7 +16,7 @@ export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch, parentId: zId.optional() })
+export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch, parentId: zQueryId.optional() })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 

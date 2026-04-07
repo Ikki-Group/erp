@@ -1,3 +1,5 @@
+// oxlint-disable max-lines
+// oxlint-disable sort-vars
 import { record } from '@elysiajs/opentelemetry'
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, or, sql, sum } from 'drizzle-orm'
 
@@ -187,6 +189,7 @@ export class StockSummaryService {
         ) latest
         GROUP BY "materialId"
       `
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const openingRaw = (await db.execute(openingQuery)) as unknown as { materialId: number; total_qty: string }[]
       const openingMap = new Map(openingRaw.map((r) => [r.materialId, Number(r.total_qty)]))
 
@@ -229,6 +232,7 @@ export class StockSummaryService {
         ) latest
         GROUP BY "materialId"
       `
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const closingRaw = (await db.execute(closingQuery)) as unknown as {
         materialId: number
         total_qty: string
@@ -241,15 +245,15 @@ export class StockSummaryService {
         const mv = movementMap.get(m.id)
         const cl = closingMap.get(m.id)
 
-        const openingQty = openingMap.get(m.id) || 0
-        const purchaseQty = Number(mv?.purchaseQty || 0)
-        const transferInQty = Number(mv?.transferInQty || 0)
-        const transferOutQty = Number(mv?.transferOutQty || 0)
-        const adjustmentQty = Number(mv?.adjustmentQty || 0)
-        const sellQty = Number(mv?.sellQty || 0)
+        const openingQty = openingMap.get(m.id) ?? 0
+        const purchaseQty = Number(mv?.purchaseQty ?? 0)
+        const transferInQty = Number(mv?.transferInQty ?? 0)
+        const transferOutQty = Number(mv?.transferOutQty ?? 0)
+        const adjustmentQty = Number(mv?.adjustmentQty ?? 0)
+        const sellQty = Number(mv?.sellQty ?? 0)
 
-        const closingQty = Number(cl?.total_qty || 0)
-        const closingValue = Number(cl?.total_value || 0)
+        const closingQty = Number(cl?.total_qty ?? 0)
+        const closingValue = Number(cl?.total_value ?? 0)
         const closingAvgCost = closingQty === 0 ? 0 : Math.abs(closingValue / closingQty)
 
         return {
@@ -263,9 +267,9 @@ export class StockSummaryService {
           transferOutQty,
           sellQty,
           adjustmentQty,
-          usageQty: Number(mv?.usageQty || 0),
-          productionInQty: Number(mv?.productionInQty || 0),
-          productionOutQty: Number(mv?.productionOutQty || 0),
+          usageQty: Number(mv?.usageQty ?? 0),
+          productionInQty: Number(mv?.productionInQty ?? 0),
+          productionOutQty: Number(mv?.productionOutQty ?? 0),
           closingQty,
           closingValue,
           closingAvgCost,
@@ -294,6 +298,7 @@ export class StockSummaryService {
 
       const materialIds = assignments.map((a) => a.materialId)
 
+      // oxlint-disable-next-line typescript/return-await
       return await db.transaction(async (tx) => {
         // 2. Bulk fetch previous summaries (latest per material before today)
         const prevSummariesQuery = sql`
@@ -304,6 +309,7 @@ export class StockSummaryService {
             AND "deletedAt" IS NULL
           ORDER BY "materialId", "date" DESC
         `
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const prevSummariesRaw = (await tx.execute(prevSummariesQuery)) as unknown as {
           materialId: number
           closingQty: string
@@ -334,7 +340,7 @@ export class StockSummaryService {
 
         const movementMap = new Map<number, typeof movements>()
         for (const m of movements) {
-          const list = movementMap.get(m.materialId) || []
+          const list = movementMap.get(m.materialId) ?? []
           list.push(m)
           movementMap.set(m.materialId, list)
         }
@@ -348,6 +354,7 @@ export class StockSummaryService {
             AND "deletedAt" IS NULL
           ORDER BY "materialId", "id" DESC
         `
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         const lastTransactionsRaw = (await tx.execute(lastTransactionsQuery)) as unknown as {
           materialId: number
           runningAvgCost: string
@@ -362,14 +369,14 @@ export class StockSummaryService {
           const openingAvgCost = prev ? Number(prev.closingAvgCost) : 0
           const openingValue = openingQty * openingAvgCost
 
-          const materialMovements = movementMap.get(materialId) || []
+          const materialMovements = movementMap.get(materialId) ?? []
           let purchaseQty = 0,
             purchaseValue = 0,
             transferInQty = 0,
             transferInValue = 0,
+            adjustmentQty = 0,
             transferOutQty = 0,
             transferOutValue = 0,
-            adjustmentQty = 0,
             adjustmentValue = 0,
             usageQty = 0,
             usageValue = 0,
@@ -381,8 +388,8 @@ export class StockSummaryService {
             sellValue = 0
 
           for (const m of materialMovements) {
-            const qty = Number(m.qty || 0)
-            const value = Number(m.totalCost || 0)
+            const qty = Number(m.qty ?? 0)
+            const value = Number(m.totalCost ?? 0)
             switch (m.type) {
               case 'purchase':
                 purchaseQty += qty
@@ -471,6 +478,7 @@ export class StockSummaryService {
           .values(upsertData)
           .onConflictDoUpdate({
             target: [stockSummariesTable.materialId, stockSummariesTable.locationId, stockSummariesTable.date],
+            targetWhere: isNull(stockSummariesTable.deletedAt),
             set: {
               openingQty: sql`excluded."openingQty"`,
               openingAvgCost: sql`excluded."openingAvgCost"`,

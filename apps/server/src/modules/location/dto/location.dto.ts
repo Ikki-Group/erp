@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-import { zCodeUpper, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import {
+  zCodeUpper,
+  zMetadataDto,
+  zPaginationDto,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/core/validation'
 
 /**
  * Types of operational locations.
@@ -60,7 +68,7 @@ export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
  */
 export const LocationFilterDto = z.object({
   ...zPaginationDto.shape,
-  q: z.string().optional(),
+  q: zQuerySearch,
   type: LocationTypeDto.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
