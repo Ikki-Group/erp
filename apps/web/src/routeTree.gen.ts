@@ -36,6 +36,10 @@ import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/
 import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
 import { Route as AppLocationIdRouteImport } from './routes/_app/location/$id'
 import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
+import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
+import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
+import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
+import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/accounts'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
 import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
@@ -198,6 +202,26 @@ const AppInventorySummaryRoute = AppInventorySummaryRouteImport.update({
   path: '/inventory/summary',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppFinanceLedgerArApRoute = AppFinanceLedgerArApRouteImport.update({
+  id: '/finance/ledger-ar-ap',
+  path: '/finance/ledger-ar-ap',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFinanceLedgerRoute = AppFinanceLedgerRouteImport.update({
+  id: '/finance/ledger',
+  path: '/finance/ledger',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFinanceExpensesRoute = AppFinanceExpensesRouteImport.update({
+  id: '/finance/expenses',
+  path: '/finance/expenses',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFinanceAccountsRoute = AppFinanceAccountsRouteImport.update({
+  id: '/finance/accounts',
+  path: '/finance/accounts',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
   id: '/examples/page-new',
   path: '/examples/page-new',
@@ -357,6 +381,10 @@ export interface FileRoutesByFullPath {
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/finance/accounts': typeof AppFinanceAccountsRoute
+  '/finance/expenses': typeof AppFinanceExpensesRoute
+  '/finance/ledger': typeof AppFinanceLedgerRoute
+  '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/$id': typeof AppLocationIdRoute
   '/location/create': typeof AppLocationCreateRoute
@@ -412,6 +440,10 @@ export interface FileRoutesByTo {
   '/examples/data-table': typeof AppExamplesDataTableRoute
   '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
+  '/finance/accounts': typeof AppFinanceAccountsRoute
+  '/finance/expenses': typeof AppFinanceExpensesRoute
+  '/finance/ledger': typeof AppFinanceLedgerRoute
+  '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/$id': typeof AppLocationIdRoute
   '/location/create': typeof AppLocationCreateRoute
@@ -470,6 +502,10 @@ export interface FileRoutesById {
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
   '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
+  '/_app/finance/accounts': typeof AppFinanceAccountsRoute
+  '/_app/finance/expenses': typeof AppFinanceExpensesRoute
+  '/_app/finance/ledger': typeof AppFinanceLedgerRoute
+  '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/_app/inventory/summary': typeof AppInventorySummaryRoute
   '/_app/location/$id': typeof AppLocationIdRoute
   '/_app/location/create': typeof AppLocationCreateRoute
@@ -527,6 +563,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/finance/accounts'
+    | '/finance/expenses'
+    | '/finance/ledger'
+    | '/finance/ledger-ar-ap'
     | '/inventory/summary'
     | '/location/$id'
     | '/location/create'
@@ -582,6 +622,10 @@ export interface FileRouteTypes {
     | '/examples/data-table'
     | '/examples/form-components'
     | '/examples/page-new'
+    | '/finance/accounts'
+    | '/finance/expenses'
+    | '/finance/ledger'
+    | '/finance/ledger-ar-ap'
     | '/inventory/summary'
     | '/location/$id'
     | '/location/create'
@@ -639,6 +683,10 @@ export interface FileRouteTypes {
     | '/_app/examples/data-table'
     | '/_app/examples/form-components'
     | '/_app/examples/page-new'
+    | '/_app/finance/accounts'
+    | '/_app/finance/expenses'
+    | '/_app/finance/ledger'
+    | '/_app/finance/ledger-ar-ap'
     | '/_app/inventory/summary'
     | '/_app/location/$id'
     | '/_app/location/create'
@@ -882,6 +930,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventorySummaryRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/finance/ledger-ar-ap': {
+      id: '/_app/finance/ledger-ar-ap'
+      path: '/finance/ledger-ar-ap'
+      fullPath: '/finance/ledger-ar-ap'
+      preLoaderRoute: typeof AppFinanceLedgerArApRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/ledger': {
+      id: '/_app/finance/ledger'
+      path: '/finance/ledger'
+      fullPath: '/finance/ledger'
+      preLoaderRoute: typeof AppFinanceLedgerRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/expenses': {
+      id: '/_app/finance/expenses'
+      path: '/finance/expenses'
+      fullPath: '/finance/expenses'
+      preLoaderRoute: typeof AppFinanceExpensesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/accounts': {
+      id: '/_app/finance/accounts'
+      path: '/finance/accounts'
+      fullPath: '/finance/accounts'
+      preLoaderRoute: typeof AppFinanceAccountsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/examples/page-new': {
       id: '/_app/examples/page-new'
       path: '/examples/page-new'
@@ -1103,6 +1179,10 @@ interface AppRouteRouteChildren {
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
   AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
+  AppFinanceAccountsRoute: typeof AppFinanceAccountsRoute
+  AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
+  AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
+  AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
   AppInventorySummaryRoute: typeof AppInventorySummaryRoute
   AppLocationIdRoute: typeof AppLocationIdRoute
   AppLocationCreateRoute: typeof AppLocationCreateRoute
@@ -1156,6 +1236,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
   AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
+  AppFinanceAccountsRoute: AppFinanceAccountsRoute,
+  AppFinanceExpensesRoute: AppFinanceExpensesRoute,
+  AppFinanceLedgerRoute: AppFinanceLedgerRoute,
+  AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
   AppInventorySummaryRoute: AppInventorySummaryRoute,
   AppLocationIdRoute: AppLocationIdRoute,
   AppLocationCreateRoute: AppLocationCreateRoute,
