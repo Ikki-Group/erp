@@ -6,6 +6,7 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/user.dto'
 import type { UserAssignmentService } from './user-assignment.service'
 
@@ -228,6 +229,26 @@ export class UserService {
       const { id, password } = data
       const passwordHash = await Bun.password.hash(password)
 
+      await db
+        .update(usersTable)
+        .set({ passwordHash, ...core.stampUpdate(actorId) })
+        .where(eq(usersTable.id, id))
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
+  // Password change for current user.
+  async handleChangePassword(id: number, data: dto.UserChangePasswordDto, actorId: number): Promise<{ id: number }> {
+    return record('UserService.handleChangePassword', async () => {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1)
+      if (!user) throw new NotFoundError('User not found', 'USER_NOT_FOUND')
+
+      const isMatch = await Bun.password.verify(data.oldPassword, user.passwordHash)
+      if (!isMatch) throw new BadRequestError('Old password does not match', 'USER_OLD_PASSWORD_MISMATCH')
+
+      const passwordHash = await Bun.password.hash(data.newPassword)
       await db
         .update(usersTable)
         .set({ passwordHash, ...core.stampUpdate(actorId) })

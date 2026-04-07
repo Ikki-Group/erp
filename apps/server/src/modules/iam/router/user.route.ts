@@ -47,6 +47,14 @@ export function initUserRoute(service: UserService) {
       { body: dto.UserUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
     .patch(
+      '/change-password',
+      async function changePassword({ body, auth }) {
+        const result = await service.handleChangePassword(auth.userId, body, auth.userId)
+        return res.ok(result)
+      },
+      { body: dto.UserChangePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
+    .patch(
       '/admin/password-reset',
       async function adminUpdatePassword({ body, auth }) {
         const result = await service.handleAdminUpdatePassword(body, auth.userId)
