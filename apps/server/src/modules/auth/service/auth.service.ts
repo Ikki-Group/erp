@@ -40,4 +40,8 @@ export class AuthService {
     const userWithAccess = await this.userSvc.getById(session.userId)
     return userWithAccess
   }
+
+  async getById(userId: number): Promise<UserDto> {
+    return this.userSvc.getById(userId)
+  }
 }

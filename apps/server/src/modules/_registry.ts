@@ -27,7 +27,7 @@ export function createModules() {
   const product = new ProductServiceModule()
 
   // Layer 1 — Masters
-  const iam = new IamServiceModule()
+  const iam = new IamServiceModule(location)
   const material = new MaterialServiceModule(location)
   const supplier = new SupplierServiceModule()
   const employee = new EmployeeServiceModule()

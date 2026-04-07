@@ -7,7 +7,10 @@ import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { LocationService } from '@/modules/location/service'
 import * as dto from '../dto/user.dto'
+import * as assignmentDto from '../dto/user-assignment.dto'
+import type { RoleService } from './role.service'
 import type { UserAssignmentService } from './user-assignment.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
@@ -25,10 +28,14 @@ const cacheKey = { count: 'iam.user.count', list: 'iam.user.list', byId: (id: nu
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
 export class UserService {
-  constructor(private assignmentService: UserAssignmentService) {}
+  constructor(
+    private assignmentService: UserAssignmentService,
+    private locationService: LocationService,
+    private roleService: RoleService,
+  ) {}
 
   // Seed initial users.
-  async seed(data: (dto.UserCreateDto & { passwordHash: string; createdBy: number })[]): Promise<void> {
+  async seed(data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[]): Promise<void> {
     await record('UserService.seed', async () => {
       for (const { assignments, ...d } of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -81,13 +88,46 @@ export class UserService {
           .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
 
-        // Fetch assignments for detail view.
-        const assignments = await this.assignmentService.findByUserId(id)
+        // Root users: resolve ALL locations at runtime (zero sync needed)
+        const assignments = first.isRoot
+          ? await this.resolveRootAssignments(first.id)
+          : await this.assignmentService.findByUserId(id)
+
         return dto.UserDto.parse({ ...first, assignments })
       })
       return data
     })
     return result
+  }
+
+  /**
+   * Resolves all locations as synthetic assignments for root users.
+   * This is the core of Opsi 3: no assignment rows needed in DB,
+   * locations are resolved at runtime from LocationService.
+   */
+  private async resolveRootAssignments(userId: number): Promise<assignmentDto.UserAssignmentDetailDto[]> {
+    const [allLocations, allRoles] = await Promise.all([
+      this.locationService.find(),
+      this.roleService.find(),
+    ])
+
+    // Find the SUPERADMIN role (isSystem + permissions: ['*'])
+    const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
+    if (!superAdminRole) return []
+
+    return allLocations.map((loc, idx) =>
+      assignmentDto.UserAssignmentDetailDto.parse({
+        id: -(idx + 1), // Negative IDs = synthetic (not in DB)
+        userId,
+        roleId: superAdminRole.id,
+        locationId: loc.id,
+        isDefault: idx === 0, // First location is default
+        roleName: superAdminRole.name,
+        roleCode: superAdminRole.code,
+        locationName: loc.name,
+        locationCode: loc.code,
+      }),
+    )
   }
 
   // Returns total count.

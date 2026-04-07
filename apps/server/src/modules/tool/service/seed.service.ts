@@ -50,6 +50,7 @@ export class SeedService {
             fullname: 'Administrator',
             password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
             passwordHash: superAdminPasswordHash,
+            isRoot: true,
             isActive: true,
             createdBy: SYSTEM_ACTOR_ID,
             assignments: [],

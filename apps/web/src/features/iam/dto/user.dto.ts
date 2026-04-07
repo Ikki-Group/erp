@@ -11,7 +11,7 @@ import {
   zUsername,
 } from '@/lib/zod'
 
-import { UserAssignmentUpsertDto } from './user-assignment.dto'
+import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
 /**
  * Common User attributes.
@@ -26,13 +26,13 @@ export const UserDto = z.object({
   ...zRecordIdDto.shape,
   ...UserBaseDto.shape,
   ...zMetadataDto.shape,
-  /** Detailed later in detail view */
-  assignments: z.array(z.any()).optional(),
+  isRoot: zBool,
+  assignments: z.array(UserAssignmentDetailDto).optional(),
 })
 export type UserDto = z.infer<typeof UserDto>
 
 export const UserSelectDto = UserDto.extend({
-  assignments: z.array(z.any()).optional(),
+  assignments: z.array(UserAssignmentDetailDto).optional(),
 })
 export type UserSelectDto = z.infer<typeof UserSelectDto>
 

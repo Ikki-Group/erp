@@ -12,19 +12,15 @@ import { useUser } from '@/hooks/use-user'
  * const { locationId, isConsolidated, label, locations, switchTo, switchToAll } = useActiveLocation()
  * ```
  */
-interface AssignmentLocation {
-  location: { id: number; name: string; code?: string }
-}
-
 export function useActiveLocation() {
   const { location, setLocation } = useAppState()
   const { assignments } = useUser()
 
   // Deduplicate locations from assignments (a user can have multiple roles at the same location)
   const locationsMap = new Map<number, { id: number; name: string; code: string }>()
-  for (const a of (assignments ?? []) as AssignmentLocation[]) {
-    if (a.location && !locationsMap.has(a.location.id)) {
-      locationsMap.set(a.location.id, { id: a.location.id, name: a.location.name, code: a.location.code ?? '' })
+  for (const a of assignments ?? []) {
+    if (a.locationId && !locationsMap.has(a.locationId)) {
+      locationsMap.set(a.locationId, { id: a.locationId, name: a.locationName, code: a.locationCode ?? '' })
     }
   }
   const locations = Array.from(locationsMap.values())
