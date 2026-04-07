@@ -77,9 +77,11 @@ export function LocationSwitcher() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-64 rounded-xl" align="start" sideOffset={8}>
-        <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-3 py-2">
-          Pilih Lokasi Kerja
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-3 py-2">
+            Pilih Lokasi Kerja
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
 
         {/* Consolidated View Option */}

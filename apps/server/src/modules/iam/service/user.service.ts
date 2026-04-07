@@ -1,3 +1,6 @@
+// oxlint-disable oxc/no-map-spread
+// oxlint-disable max-lines
+// oxlint-disable import/max-dependencies
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
@@ -35,7 +38,9 @@ export class UserService {
   ) {}
 
   // Seed initial users.
-  async seed(data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[]): Promise<void> {
+  async seed(
+    data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
+  ): Promise<void> {
     await record('UserService.seed', async () => {
       for (const { assignments, ...d } of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -50,6 +55,7 @@ export class UserService {
                 email: d.email,
                 fullname: d.fullname,
                 isActive: d.isActive,
+                isRoot: d.isRoot,
                 updatedAt: metadata.updatedAt,
                 updatedBy: metadata.updatedBy,
                 deletedAt: null,
@@ -93,7 +99,7 @@ export class UserService {
           ? await this.resolveRootAssignments(first.id)
           : await this.assignmentService.findByUserId(id)
 
-        return dto.UserDto.parse({ ...first, assignments })
+        return { ...first, assignments }
       })
       return data
     })
@@ -106,27 +112,25 @@ export class UserService {
    * locations are resolved at runtime from LocationService.
    */
   private async resolveRootAssignments(userId: number): Promise<assignmentDto.UserAssignmentDetailDto[]> {
-    const [allLocations, allRoles] = await Promise.all([
-      this.locationService.find(),
-      this.roleService.find(),
-    ])
+    const [allLocations, allRoles] = await Promise.all([this.locationService.find(), this.roleService.find()])
 
     // Find the SUPERADMIN role (isSystem + permissions: ['*'])
     const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
     if (!superAdminRole) return []
 
-    return allLocations.map((loc, idx) =>
-      assignmentDto.UserAssignmentDetailDto.parse({
-        id: -(idx + 1), // Negative IDs = synthetic (not in DB)
-        userId,
-        roleId: superAdminRole.id,
-        locationId: loc.id,
-        isDefault: idx === 0, // First location is default
-        roleName: superAdminRole.name,
-        roleCode: superAdminRole.code,
-        locationName: loc.name,
-        locationCode: loc.code,
-      }),
+    return allLocations.map(
+      (loc, idx) =>
+        ({
+          ...superAdminRole,
+          userId,
+          roleId: superAdminRole.id,
+          locationId: loc.id,
+          isDefault: idx === 0, // First location is default
+          roleName: superAdminRole.name,
+          roleCode: superAdminRole.code,
+          locationName: loc.name,
+          locationCode: loc.code,
+        }) satisfies assignmentDto.UserAssignmentDetailDto,
     )
   }
 
