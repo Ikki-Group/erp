@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils'
 import { LoadingPage } from '../common/loading-page'
 import { Breadcrumbs } from './breadcrumbs'
 import { Separator } from '../ui/separator'
+import { LocationSwitcher } from '@/features/location/components/location-switcher'
 
 export function AppLayout() {
   const { setSidebarOpen, sidebarOpen } = useAppState()
@@ -133,7 +134,9 @@ function Header() {
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumbs />
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-3">
+        <LocationSwitcher />
+        <Separator orientation="vertical" className="h-4" />
         <ThemeSwitcher />
       </div>
     </header>

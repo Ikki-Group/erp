@@ -1,5 +1,5 @@
-import { CheckIcon, ChevronsUpDownIcon, GalleryVerticalEndIcon, MapPinIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { CheckIcon, ChevronsUpDownIcon, LockIcon, MapPinIcon, WarehouseIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -11,85 +11,145 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAppState } from '@/hooks/use-app-state'
-import { useUser } from '@/hooks/use-user'
+import { useActiveLocation } from '@/hooks/use-active-location'
 
+/**
+ * LocationSwitcher — Global location context pill for the app header.
+ *
+ * Features:
+ * - Shows active location as a pill button
+ * - Dropdown to switch between assigned locations
+ * - "Consolidated View" option for multi-location users
+ * - Auto-locks on form/create pages to prevent mid-edit disruptions
+ * - Toast feedback on location change
+ */
 export function LocationSwitcher() {
-  const { location, setLocation } = useAppState()
-  const { assignments } = useUser()
+  const { locationId, isConsolidated, label, locations, hasMultiple, activeLocation, switchTo, switchToAll } =
+    useActiveLocation()
 
-  const mapLocations = useMemo(() => new Map(assignments.map((a) => [a.location.id, a.location.name])), [assignments])
+  // Detect if user is on a form/create route (contains /create, /edit, /adjustment, /transfer)
+  const isFormPage = useIsFormPage()
 
-  const hasAssignments = assignments.length > 0
-  if (!hasAssignments || !location || location.length === 0) return null
+  // Don't render if user has zero locations
+  if (locations.length === 0) return null
 
-  const hasConsolidated = assignments.length > 1
-  const isConsolidated = hasConsolidated && location.length === mapLocations.size
+  // Single location user — show static pill, no dropdown
+  if (!hasMultiple) {
+    return (
+      <div className="flex items-center gap-2 rounded-full border border-muted/60 bg-secondary/40 px-3 py-1.5 text-sm">
+        <MapPinIcon className="size-3.5 text-primary" />
+        <span className="font-medium text-foreground/80 truncate max-w-[160px]">{locations[0]?.name ?? 'Lokasi'}</span>
+      </div>
+    )
+  }
 
-  const label = isConsolidated ? 'Consolidated View' : (mapLocations.get(location[0]) ?? '-')
+  // Form page — show locked pill with tooltip
+  if (isFormPage && !isConsolidated) {
+    return (
+      <div
+        className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-sm cursor-not-allowed"
+        title="Lokasi terkunci saat mengisi formulir"
+      >
+        <LockIcon className="size-3.5 text-amber-600" />
+        <span className="font-medium text-amber-700 truncate max-w-[160px]">{activeLocation?.name ?? label}</span>
+      </div>
+    )
+  }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" className="w-50 px-1" size="lg" />}>
-        <div className="flex items-center gap-1 text-left">
-          <div className="flex size-6 items-center justify-center">
-            {!isConsolidated ? <MapPinIcon className="size-3" /> : <GalleryVerticalEndIcon className="size-3" />}
-          </div>
-          <div className="flex-1 grid text-left">
-            <span className="truncate">{label}</span>
-          </div>
-        </div>
-        <ChevronsUpDownIcon className="ml-auto size-4 opacity-50" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-50 rounded-lg" align="start" sideOffset={4}>
-        {hasConsolidated && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Scope</DropdownMenuLabel>
-
-              {/* Consolidated View Option */}
-              {assignments.length > 1 && (
-                <DropdownMenuItem
-                  onClick={() => setLocation(assignments.map((a) => a.location.id))}
-                  className="gap-2 p-2 text-xs"
-                >
-                  <div className="flex size-6 items-center justify-center rounded-sm border">
-                    <GalleryVerticalEndIcon className="size-4 shrink-0" />
-                  </div>
-                  Consolidated View
-                  {isConsolidated && <CheckIcon className="ml-auto h-4 w-4" />}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-          </>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2 rounded-full border-muted/60 bg-secondary/30 px-3 hover:bg-secondary/60 transition-colors"
+          />
+        }
+      >
+        {isConsolidated ? (
+          <WarehouseIcon className="size-3.5 text-primary" />
+        ) : (
+          <MapPinIcon className="size-3.5 text-primary" />
         )}
+        <span className="font-medium text-foreground/90 truncate max-w-[160px]">{label}</span>
+        <ChevronsUpDownIcon className="size-3.5 text-muted-foreground" />
+      </DropdownMenuTrigger>
 
+      <DropdownMenuContent className="w-64 rounded-xl" align="start" sideOffset={8}>
+        <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-3 py-2">
+          Pilih Lokasi Kerja
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {/* Consolidated View Option */}
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Locations</DropdownMenuLabel>
-
-          {assignments.map(({ location: userLocation }) => (
-            <DropdownMenuItem
-              key={userLocation.id}
-              onClick={() => setLocation([userLocation.id])}
-              className="gap-2 p-2 text-xs"
-            >
-              <div className="flex size-6 items-center justify-center rounded-sm border">
-                <span className="text-xs font-bold">{userLocation.name.charAt(0)}</span>
-              </div>
-              {userLocation.name}
-              {!isConsolidated && userLocation.id === location[0] && <CheckIcon className="ml-auto h-4 w-4" />}
-            </DropdownMenuItem>
-          ))}
+          <DropdownMenuItem
+            onClick={() => {
+              switchToAll()
+              toast.success('Menampilkan semua lokasi', { description: 'Data dari seluruh lokasi ditampilkan.' })
+            }}
+            className="gap-3 px-3 py-2.5 cursor-pointer"
+          >
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <WarehouseIcon className="size-4" />
+            </div>
+            <div className="flex-1">
+              <span className="font-medium">Semua Lokasi</span>
+              <p className="text-[11px] text-muted-foreground">{locations.length} lokasi (gabungan)</p>
+            </div>
+            {isConsolidated && <CheckIcon className="size-4 text-primary" />}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
-        {/* <DropdownMenuSeparator />
-        <DropdownMenuItem className='gap-2 p-2 text-xs' disabled>
-          <div className='flex size-6 items-center justify-center rounded-md border bg-background'>
-            <PlusIcon className='size-4' />
-          </div>
-          <div className='font-medium text-muted-foreground'>Add Location</div>
-        </DropdownMenuItem> */}
+
+        <DropdownMenuSeparator />
+
+        {/* Individual Locations */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] text-muted-foreground uppercase tracking-wider px-3 py-1">
+            Lokasi Spesifik
+          </DropdownMenuLabel>
+          {locations.map((loc) => {
+            const isActive = !isConsolidated && locationId === loc.id
+            return (
+              <DropdownMenuItem
+                key={loc.id}
+                onClick={() => {
+                  switchTo(loc.id)
+                  toast.success(`Lokasi aktif: ${loc.name}`, { description: `Data difilter ke ${loc.name}.` })
+                }}
+                className="gap-3 px-3 py-2.5 cursor-pointer"
+              >
+                <div className="flex size-8 items-center justify-center rounded-lg border bg-card text-foreground font-bold text-xs">
+                  {loc.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium truncate block">{loc.name}</span>
+                  {loc.code && <p className="text-[11px] text-muted-foreground font-mono">{loc.code}</p>}
+                </div>
+                {isActive && <CheckIcon className="size-4 text-primary shrink-0" />}
+              </DropdownMenuItem>
+            )
+          })}
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Data di seluruh halaman akan difilter sesuai lokasi yang Anda pilih.
+          </p>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+/**
+ * Detects if current route is a form/create/edit page.
+ * On these pages, the location switcher should be locked.
+ */
+function useIsFormPage(): boolean {
+  const pathname = window.location.pathname
+  const formPatterns = ['/adjustment', '/transfer', '/create', '/edit']
+  return formPatterns.some((p) => pathname.includes(p))
 }
