@@ -14,7 +14,8 @@ import { useUser } from '@/hooks/use-user'
  */
 export function useActiveLocation() {
   const { location, setLocation } = useAppState()
-  const { assignments } = useUser()
+  const user = useUser()
+  const { assignments } = user
 
   // Deduplicate locations from assignments (a user can have multiple roles at the same location)
   const locationsMap = new Map<number, { id: number; name: string; code: string }>()
@@ -39,6 +40,8 @@ export function useActiveLocation() {
     locationId: activeLocationId,
     /** Whether user is viewing all locations at once */
     isConsolidated,
+    /** Whether user is a root/superadmin (has all locations via runtime resolve) */
+    isRoot: user.isRoot,
     /** Human readable label for current context */
     label,
     /** All locations available to this user */

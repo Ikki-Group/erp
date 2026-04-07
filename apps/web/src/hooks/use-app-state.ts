@@ -41,14 +41,21 @@ export const useAppState = create<AppState>()(
 )
 
 function validateLocation(current: Location, user: UserSelectDto): Location {
-  if (user.assignments.length) {
-    const userLocationIds = user.assignments.map((a) => a.location.id)
-    if (current && current.length === 1) {
-      if (userLocationIds.includes(current[0])) return current
-      return null
-    } else {
-      return userLocationIds
-    }
+  const assignments = user.assignments ?? []
+  if (assignments.length === 0) return null
+
+  const userLocationIds = assignments.map((a) => a.locationId)
+
+  // If current selection is valid, keep it
+  if (current && current.length === 1 && current[0] !== undefined && userLocationIds.includes(current[0])) {
+    return current
   }
+
+  // Default to isDefault assignment (backend guarantees this exists)
+  const defaultAssignment = assignments.find((a) => a.isDefault)
+  if (defaultAssignment) return [defaultAssignment.locationId]
+
+  // Fallback to first location
+  if (userLocationIds.length > 0 && userLocationIds[0] !== undefined) return [userLocationIds[0]]
   return null
 }
