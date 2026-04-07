@@ -6,8 +6,10 @@ import { PlusIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Page } from '@/components/layout/page'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import type { StockTransactionSelectDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -59,9 +61,9 @@ function RouteComponent() {
     ch.accessor('materialName', {
       header: 'Bahan Baku',
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.original.materialName}</span>
-          <span className="text-xs text-muted-foreground">SKU: {row.original.materialSku}</span>
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-foreground/90">{row.original.materialName}</span>
+          <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">SKU: {row.original.materialSku}</span>
         </div>
       ),
       enableSorting: false,
@@ -71,28 +73,26 @@ function RouteComponent() {
       cell: ({ row }) => {
         const qty = row.original.qty
         const isOut = row.original.type === 'transfer_out' || row.original.type === 'sell'
-        const color = isOut
-          ? 'text-rose-600 dark:text-rose-400'
-          : qty < 0
-            ? 'text-rose-600 dark:text-rose-400'
-            : 'text-emerald-600 dark:text-emerald-400'
+        const color = isOut || qty < 0
+          ? 'text-rose-600 bg-rose-500/10'
+          : 'text-emerald-600 bg-emerald-500/10'
 
         return (
-          <span className={['font-medium whitespace-nowrap', color].join(' ')}>
+          <Badge variant="outline" className={['font-semibold tabular-nums px-2 shadow-none border-transparent', color].join(' ')}>
             {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
-          </span>
+          </Badge>
         )
       },
       enableSorting: false,
       size: 100,
     }),
     ch.accessor('totalCost', {
-      header: 'Total Nilai (Rp)',
+      header: 'Total Nilai',
       cell: ({ row }) => {
-        return <span className="tabular-nums">{row.original.totalCost.toLocaleString('id-ID')}</span>
+        return <span className="font-mono font-medium opacity-90 tabular-nums">Rp {row.original.totalCost.toLocaleString('id-ID')}</span>
       },
       enableSorting: false,
-      size: 140,
+      size: 150,
     }),
   ]
 
@@ -107,31 +107,57 @@ function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Riwayat Mutasi Transaksi"
-        description="Seluruh riwayat transaksi masuk, keluar, transfer, dan penyesuaian stok"
+        title="Riwayat Mutasi & Transaksi"
+        description="Pantau seluruh pergerakan barang (masuk, keluar, transfer, dan opname/penyesuaian)."
       />
-      <Page.Content>
-        <DataTableCard
-          title="Semua Transaksi"
-          table={table}
-          isLoading={isLoading}
-          recordCount={data?.meta.total || 0}
-          action={
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline">
-                <Link to="/inventory/transactions/adjustment">
-                  <PlusIcon className="size-4 mr-2" /> Adjustment
-                </Link>
-              </Button>
-              <Button size="sm">
-                <Link to="/inventory/transactions/transfer">
-                  <PlusIcon className="size-4 mr-2" /> Transfer
-                </Link>
-              </Button>
+      <Page.Content className="flex flex-col gap-6">
+
+        {/* Action & Filter Bar */}
+        <Card className="rounded-2xl shadow-sm border-muted/60">
+          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <div className="flex flex-col gap-1.5 min-w-[300px]">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pencarian Referensi</label>
+                <div className="relative">
+                  <Input 
+                    placeholder="Cari nomor pelacakan..." 
+                    className="h-10 bg-secondary/30 border-transparent focus-visible:bg-background" 
+                    value={ds.search}
+                    onChange={(e) => ds.setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-          }
-        />
+            
+            <div className="flex flex-col gap-1.5 sm:self-center">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">Aksi</label>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="secondary" className="h-10 shadow-none border hover:bg-secondary/80 font-medium">
+                  <Link to="/inventory/transactions/adjustment" className="flex items-center">
+                    <PlusIcon className="size-4 mr-2 text-muted-foreground" /> Opname (Adjust)
+                  </Link>
+                </Button>
+                <Button size="sm" className="h-10 shadow-md font-medium">
+                  <Link to="/inventory/transactions/transfer" className="flex items-center">
+                    <PlusIcon className="size-4 mr-2" /> Mutasi Internal
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Transactions Table */}
+        <div className="rounded-2xl overflow-hidden border border-muted/60 shadow-sm">
+          <DataTableCard
+            title="Daftar Mutasi Terkini"
+            table={table}
+            isLoading={isLoading}
+            recordCount={data?.meta.total || 0}
+          />
+        </div>
       </Page.Content>
     </Page>
   )
 }
+
