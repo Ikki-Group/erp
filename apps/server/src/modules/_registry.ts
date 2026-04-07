@@ -1,6 +1,5 @@
 import { logger } from '@/core/logger'
 
-/* eslint-disable eslint-plugin-import/max-dependencies */
 import { AuthServiceModule } from './auth'
 import { DashboardServiceModule } from './dashboard'
 import { IamServiceModule } from './iam'

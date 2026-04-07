@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { desc, eq } from 'drizzle-orm'
 
 import { stampCreate } from '@/core/database'

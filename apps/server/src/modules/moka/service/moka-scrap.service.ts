@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Logger } from 'pino'
 
 import type { MokaConfigurationDto } from '../dto/moka-configuration.dto'
@@ -23,8 +22,8 @@ export class MokaScrapService {
     const config = await this.configSvc.findByLocationId(input.locationId)
     if (!config) throw new Error('Moka configuration not found for this location')
 
-    const dateFrom = input.dateFrom || new Date()
-    const dateTo = input.dateTo || new Date()
+    const dateFrom = input.dateFrom ?? new Date()
+    const dateTo = input.dateTo ?? new Date()
 
     const { id: historyId } = await this.historySvc.create(
       { mokaConfigurationId: config.id, type: input.type, dateFrom, dateTo, status: 'processing' },
@@ -67,8 +66,8 @@ export class MokaScrapService {
         await this.historySvc.updateStatus(historyId, 'completed', { metadata: { count: products.length } })
       } else if (input.type === 'sales') {
         const engine = new MokaSalesEngine(auth, this.logger, {
-          from: input.dateFrom || new Date(),
-          to: input.dateTo || new Date(),
+          from: input.dateFrom ?? new Date(),
+          to: input.dateTo ?? new Date(),
         })
         const sales = await engine.fetch()
         await this.transformSvc.transformSales(config.locationId, sales, actorId)

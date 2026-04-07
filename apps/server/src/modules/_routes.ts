@@ -1,5 +1,4 @@
 import type { Modules } from './_registry'
-/* eslint-disable eslint-plugin-import/max-dependencies */
 import { initAuthRoute } from './auth'
 import { initDashboardRouteModule } from './dashboard'
 import { initIamRouteModule } from './iam'
