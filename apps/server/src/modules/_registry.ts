@@ -1,3 +1,4 @@
+// oxlint-disable import/max-dependencies
 import { logger } from '@/core/logger'
 
 import { AuthServiceModule } from './auth'

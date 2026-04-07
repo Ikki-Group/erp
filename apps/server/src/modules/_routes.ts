@@ -1,3 +1,5 @@
+// oxlint-disable import/max-dependencies
+
 import type { Modules } from './_registry'
 import { initAuthRoute } from './auth'
 import { initDashboardRouteModule } from './dashboard'
