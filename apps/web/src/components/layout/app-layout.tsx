@@ -103,7 +103,7 @@ function SidebarMenus() {
                   <Collapsible
                     key={menu.href}
                     className="group/collapsible"
-                    defaultOpen={menu.isActive}
+                    defaultOpen={menu.isActive ?? menu.children.some((x) => x.isActive)}
                     title={menu.title}
                   >
                     <SidebarMenuButton render={<CollapsibleTrigger />}>

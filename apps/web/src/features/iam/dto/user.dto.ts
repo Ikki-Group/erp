@@ -6,6 +6,7 @@ import {
   zMetadataDto,
   zPaginationDto,
   zPassword,
+  zQuerySearch,
   zRecordIdDto,
   zStr,
   zUsername,
@@ -31,9 +32,7 @@ export const UserDto = z.object({
 })
 export type UserDto = z.infer<typeof UserDto>
 
-export const UserSelectDto = UserDto.extend({
-  assignments: z.array(UserAssignmentDetailDto).optional(),
-})
+export const UserSelectDto = UserDto.extend({ assignments: z.array(UserAssignmentDetailDto).optional() })
 export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /**
@@ -60,7 +59,7 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 /**
  * Filter criteria for listing Users.
  */
-export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional(), isActive: zBool.optional() })
+export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch, isActive: zBool.optional() })
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /**

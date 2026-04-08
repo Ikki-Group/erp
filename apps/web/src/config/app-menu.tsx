@@ -70,7 +70,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
             {
               title: 'Mutasi & Transfer',
               href: '/inventory/transactions',
-              isActive: pathname === '/inventory/transactions' || pathname.startsWith('/inventory/transactions/transfer'),
+              isActive:
+                pathname === '/inventory/transactions' || pathname.startsWith('/inventory/transactions/transfer'),
             },
             {
               title: 'Penyesuaian (Opname)',
@@ -162,16 +163,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: UsersIcon,
           children: [
             { title: 'Daftar Staff', href: '/hr/employees', isActive: pathname.startsWith('/hr/employees') },
-            {
-              title: 'Absensi & Jadwal',
-              href: '/hr/attendance',
-              isActive: pathname.startsWith('/hr/attendance'),
-            },
-            {
-              title: 'Penggajian (Payroll)',
-              href: '/hr/payroll',
-              isActive: pathname.startsWith('/hr/payroll'),
-            },
+            { title: 'Absensi & Jadwal', href: '/hr/attendance', isActive: pathname.startsWith('/hr/attendance') },
+            { title: 'Penggajian (Payroll)', href: '/hr/payroll', isActive: pathname.startsWith('/hr/payroll') },
           ],
         },
       ],
@@ -200,12 +193,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Sistem',
       items: [
-        {
-          title: 'Akses & Keamanan',
-          href: '/iam',
-          icon: FingerprintIcon,
-          isActive: pathname.startsWith('/iam'),
-        },
+        { title: 'Akses & Keamanan', href: '/iam', icon: FingerprintIcon, isActive: pathname.startsWith('/iam') },
         { title: 'Pengaturan', href: '/settings', icon: Settings2Icon, isActive: pathname === '/settings' },
         { title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
       ],

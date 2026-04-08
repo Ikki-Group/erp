@@ -69,6 +69,7 @@ const columns = [
           <Button
             variant="outline"
             size="icon-sm"
+            // oxlint-disable-next-line typescript/no-misused-promises
             onClick={() => UserPasswordDialog.call({ id, username })}
             title="Ubah Password"
           >
@@ -92,7 +93,7 @@ const columns = [
 
 function UserTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, search: ds.search, ...ds.filters }))
+  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, ...ds.filters }))
 
   const table = useDataTable({
     columns: columns,
@@ -107,7 +108,7 @@ function UserTable() {
       title="Daftar Pengguna"
       table={table}
       isLoading={isLoading}
-      recordCount={data?.meta.total || 0}
+      recordCount={data?.meta.total ?? 0}
       toolbar={
         <DataGridFilter
           ds={ds}

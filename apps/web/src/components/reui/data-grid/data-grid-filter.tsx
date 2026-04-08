@@ -142,7 +142,9 @@ function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: Data
       <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
         value={internalValue}
-        onChange={(e) => setInternalValue(e.target.value)}
+        onChange={(e) => {
+          setInternalValue(e.target.value)
+        }}
         placeholder={placeholder}
         className="h-8 w-[180px] pl-8 lg:w-[250px]"
       />
@@ -165,7 +167,7 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
       value={value != null && value !== '' ? String(value) : ''}
       onValueChange={(val) => {
         if (val === '') {
-          onChange(undefined)
+          onChange()
           return
         }
 

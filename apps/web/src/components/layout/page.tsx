@@ -15,19 +15,9 @@ import { Button } from '../ui/button'
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-6 animate-enter', {
-  variants: {
-    size: {
-      sm: 'max-w-2xl',
-      md: 'max-w-4xl',
-      lg: 'max-w-5xl',
-      xl: 'max-w-6xl',
-      full: 'max-w-none',
-    },
-  },
-  defaultVariants: {
-    size: 'lg',
-  },
+const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-4 animate-enter', {
+  variants: { size: { sm: 'max-w-2xl', md: 'max-w-4xl', lg: 'max-w-5xl', xl: 'max-w-6xl', full: 'max-w-none' } },
+  defaultVariants: { size: 'lg' },
 })
 
 type PageProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof pageVariants>
@@ -56,7 +46,7 @@ function Title({ className, render, ...props }: useRender.ComponentProps<'h1'> &
   return useRender({
     defaultTagName: 'h1',
     props: mergeProps<'h1'>(
-      { className: cn('text-3xl font-bold tracking-tight text-foreground/90 lg:text-4xl', className) },
+      { className: cn('text-2xl font-bold tracking-tight text-foreground/90 lg:text-3xl', className) },
       props,
     ),
     render,

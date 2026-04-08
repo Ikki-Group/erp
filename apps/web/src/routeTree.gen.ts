@@ -21,6 +21,7 @@ import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/ind
 import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
 import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
+import { Route as AppSettingsSplatRouteImport } from './routes/_app/settings/$'
 import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
 import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
 import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
@@ -127,6 +128,11 @@ const DocsDocsLayerRoute = DocsDocsLayerRouteImport.update({
 const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
   id: '/settings/_tab',
   path: '/settings',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsSplatRoute = AppSettingsSplatRouteImport.update({
+  id: '/settings/$',
+  path: '/settings/$',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesOrdersRoute = AppSalesOrdersRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/docs/$layer': typeof DocsDocsLayerRoute
   '/location/': typeof AppLocationIndexRoute
@@ -481,6 +488,7 @@ export interface FileRoutesByTo {
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/docs/$layer': typeof DocsDocsLayerRoute
   '/location': typeof AppLocationIndexRoute
@@ -546,6 +554,7 @@ export interface FileRoutesById {
   '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/_app/sales/customers': typeof AppSalesCustomersRoute
   '/_app/sales/orders': typeof AppSalesOrdersRoute
+  '/_app/settings/$': typeof AppSettingsSplatRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_docs/docs/$layer': typeof DocsDocsLayerRoute
   '/_app/location/': typeof AppLocationIndexRoute
@@ -609,6 +618,7 @@ export interface FileRouteTypes {
     | '/production/work-orders'
     | '/sales/customers'
     | '/sales/orders'
+    | '/settings/$'
     | '/settings'
     | '/docs/$layer'
     | '/location/'
@@ -670,6 +680,7 @@ export interface FileRouteTypes {
     | '/production/work-orders'
     | '/sales/customers'
     | '/sales/orders'
+    | '/settings/$'
     | '/settings'
     | '/docs/$layer'
     | '/location'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/_app/production/work-orders'
     | '/_app/sales/customers'
     | '/_app/sales/orders'
+    | '/_app/settings/$'
     | '/_app/settings/_tab'
     | '/_docs/docs/$layer'
     | '/_app/location/'
@@ -855,6 +867,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsTabRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/$': {
+      id: '/_app/settings/$'
+      path: '/settings/$'
+      fullPath: '/settings/$'
+      preLoaderRoute: typeof AppSettingsSplatRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/sales/orders': {
@@ -1254,6 +1273,7 @@ interface AppRouteRouteChildren {
   AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
   AppSalesCustomersRoute: typeof AppSalesCustomersRoute
   AppSalesOrdersRoute: typeof AppSalesOrdersRoute
+  AppSettingsSplatRoute: typeof AppSettingsSplatRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppLocationIndexRoute: typeof AppLocationIndexRoute
   AppMaterialIndexRoute: typeof AppMaterialIndexRoute
@@ -1311,6 +1331,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
   AppSalesCustomersRoute: AppSalesCustomersRoute,
   AppSalesOrdersRoute: AppSalesOrdersRoute,
+  AppSettingsSplatRoute: AppSettingsSplatRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppLocationIndexRoute: AppLocationIndexRoute,
   AppMaterialIndexRoute: AppMaterialIndexRoute,
