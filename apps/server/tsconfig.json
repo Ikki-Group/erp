@@ -43,6 +43,7 @@
   },
   "include": [
     "src/**/*.ts",
+    "scripts/**/*.ts",
     "*.config.*",
     "drizzle.config.ts"
   ],

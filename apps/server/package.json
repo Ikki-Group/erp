@@ -11,6 +11,7 @@
     "db:generate": "bunx --bun drizzle-kit generate",
     "db:migrate": "bunx --bun drizzle-kit migrate",
     "db:studio": "bunx --bun drizzle-kit studio",
+    "db:reset": "bun run scripts/db-reset.ts",
     "seed": "bun run scripts/seed.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
