@@ -9,14 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DocsRouteImport } from './routes/_docs'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSplatRouteImport } from './routes/_app/$'
+import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
 import { Route as AppProductIndexRouteImport } from './routes/_app/product/index'
 import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/index'
 import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
+import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
 import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
@@ -69,6 +72,10 @@ import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/in
 import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
 import { Route as AppExamplesLayoutsOneRouteImport } from './routes/_app/examples/layouts/one'
 
+const DocsRoute = DocsRouteImport.update({
+  id: '/_docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -92,6 +99,11 @@ const AppSplatRoute = AppSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const DocsDocsIndexRoute = DocsDocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => DocsRoute,
+} as any)
 const AppProductIndexRoute = AppProductIndexRouteImport.update({
   id: '/product/',
   path: '/product/',
@@ -106,6 +118,11 @@ const AppLocationIndexRoute = AppLocationIndexRouteImport.update({
   id: '/location/',
   path: '/location/',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const DocsDocsLayerRoute = DocsDocsLayerRouteImport.update({
+  id: '/docs/$layer',
+  path: '/docs/$layer',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
   id: '/settings/_tab',
@@ -404,9 +421,11 @@ export interface FileRoutesByFullPath {
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/orders': typeof AppSalesOrdersRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
+  '/docs/$layer': typeof DocsDocsLayerRoute
   '/location/': typeof AppLocationIndexRoute
   '/material/': typeof AppMaterialIndexRoute
   '/product/': typeof AppProductIndexRoute
+  '/docs/': typeof DocsDocsIndexRoute
   '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
@@ -463,9 +482,11 @@ export interface FileRoutesByTo {
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/orders': typeof AppSalesOrdersRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
+  '/docs/$layer': typeof DocsDocsLayerRoute
   '/location': typeof AppLocationIndexRoute
   '/material': typeof AppMaterialIndexRoute
   '/product': typeof AppProductIndexRoute
+  '/docs': typeof DocsDocsIndexRoute
   '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
@@ -494,6 +515,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/_docs': typeof DocsRouteWithChildren
   '/_app/$': typeof AppSplatRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/': typeof AppIndexRoute
@@ -525,9 +547,11 @@ export interface FileRoutesById {
   '/_app/sales/customers': typeof AppSalesCustomersRoute
   '/_app/sales/orders': typeof AppSalesOrdersRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
+  '/_docs/docs/$layer': typeof DocsDocsLayerRoute
   '/_app/location/': typeof AppLocationIndexRoute
   '/_app/material/': typeof AppMaterialIndexRoute
   '/_app/product/': typeof AppProductIndexRoute
+  '/_docs/docs/': typeof DocsDocsIndexRoute
   '/_app/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
   '/_app/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/_app/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
@@ -586,9 +610,11 @@ export interface FileRouteTypes {
     | '/sales/customers'
     | '/sales/orders'
     | '/settings'
+    | '/docs/$layer'
     | '/location/'
     | '/material/'
     | '/product/'
+    | '/docs/'
     | '/examples/layouts/one'
     | '/examples/layouts/two'
     | '/inventory/transactions/$id'
@@ -645,9 +671,11 @@ export interface FileRouteTypes {
     | '/sales/customers'
     | '/sales/orders'
     | '/settings'
+    | '/docs/$layer'
     | '/location'
     | '/material'
     | '/product'
+    | '/docs'
     | '/examples/layouts/one'
     | '/examples/layouts/two'
     | '/inventory/transactions/$id'
@@ -675,6 +703,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/_docs'
     | '/_app/$'
     | '/_auth/login'
     | '/_app/'
@@ -706,9 +735,11 @@ export interface FileRouteTypes {
     | '/_app/sales/customers'
     | '/_app/sales/orders'
     | '/_app/settings/_tab'
+    | '/_docs/docs/$layer'
     | '/_app/location/'
     | '/_app/material/'
     | '/_app/product/'
+    | '/_docs/docs/'
     | '/_app/examples/layouts/one'
     | '/_app/examples/layouts/two'
     | '/_app/inventory/transactions/$id'
@@ -737,10 +768,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  DocsRoute: typeof DocsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_docs': {
+      id: '/_docs'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -776,6 +815,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSplatRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_docs/docs/': {
+      id: '/_docs/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsDocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/_app/product/': {
       id: '/_app/product/'
       path: '/product'
@@ -796,6 +842,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/location/'
       preLoaderRoute: typeof AppLocationIndexRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/_docs/docs/$layer': {
+      id: '/_docs/docs/$layer'
+      path: '/docs/$layer'
+      fullPath: '/docs/$layer'
+      preLoaderRoute: typeof DocsDocsLayerRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/_app/settings/_tab': {
       id: '/_app/settings/_tab'
@@ -1302,9 +1355,22 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
   AuthRouteRouteChildren,
 )
 
+interface DocsRouteChildren {
+  DocsDocsLayerRoute: typeof DocsDocsLayerRoute
+  DocsDocsIndexRoute: typeof DocsDocsIndexRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsDocsLayerRoute: DocsDocsLayerRoute,
+  DocsDocsIndexRoute: DocsDocsIndexRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  DocsRoute: DocsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

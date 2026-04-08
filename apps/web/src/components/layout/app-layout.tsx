@@ -27,7 +27,7 @@ import { UserSection } from '@/features/iam/components/user-section'
 import { useAppState } from '@/hooks/use-app-state'
 import { cn } from '@/lib/utils'
 
-import { LoadingPage } from '../common/loading-page'
+import { LoadingPage } from '@/components/blocks/feedback/loading-page'
 import { Breadcrumbs } from './breadcrumbs'
 import { Separator } from '../ui/separator'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
