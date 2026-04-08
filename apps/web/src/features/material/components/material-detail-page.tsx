@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
 
 import { CardSection } from '@/components/card/card-section'
-import { DataList } from '@/components/common/data-list'
+import { DataList } from '@/components/data-display/data-list'
 import { Page } from '@/components/layout/page'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'

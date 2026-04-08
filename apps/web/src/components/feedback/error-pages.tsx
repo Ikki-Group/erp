@@ -8,7 +8,7 @@ import {
   ServerCrashIcon,
 } from 'lucide-react'
 
-import { Inline, Stack } from '@/components/common/layout/primitives'
+import { Inline, Stack } from '@/components/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 

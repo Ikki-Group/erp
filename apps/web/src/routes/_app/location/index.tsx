@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/card/data-table-card'
-import { BadgeDot, getActiveStatusBadge } from '@/components/common/badge-dot'
+import { BadgeDot, getActiveStatusBadge } from '@/components/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'

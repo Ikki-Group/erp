@@ -11,7 +11,7 @@ import {
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/card/card-stat'
-import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/common/data-display/chart-card'
+import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

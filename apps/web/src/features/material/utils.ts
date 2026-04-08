@@ -1,4 +1,4 @@
-import type { BadgeDotProps } from '@/components/common/badge-dot'
+import type { BadgeDotProps } from '@/components/data-display/badge-dot'
 
 import type { MaterialTypeDto } from './dto'
 

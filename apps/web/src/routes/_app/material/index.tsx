@@ -5,7 +5,7 @@ import { ChefHatIcon, EyeIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-r
 import { useMemo, useState } from 'react'
 
 import { DataTableCard } from '@/components/card/data-table-card'
-import { BadgeDot } from '@/components/common/badge-dot'
+import { BadgeDot } from '@/components/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'

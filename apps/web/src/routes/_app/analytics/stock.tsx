@@ -3,7 +3,7 @@ import { ArrowDownRightIcon, ArrowUpRightIcon, BoxIcon, RefreshCcwIcon, Trending
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/card/card-stat'
-import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/common/data-display/chart-card'
+import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 import {
   ChartContainer,

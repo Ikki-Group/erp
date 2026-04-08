@@ -1,4 +1,4 @@
-import type { BadgeDotProps } from '@/components/common/badge-dot'
+import type { BadgeDotProps } from '@/components/data-display/badge-dot'
 
 export function getUserStatusBadge(isActive: boolean): BadgeDotProps {
   if (isActive) {

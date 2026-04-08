@@ -4,7 +4,7 @@ import { PlusIcon, WalletIcon, BuildingIcon, LandmarkIcon, SearchIcon } from 'lu
 
 import { DataTableCard } from '@/components/card/data-table-card'
 import { Card } from '@/components/ui/card'
-import { BadgeDot } from '@/components/common/badge-dot'
+import { BadgeDot } from '@/components/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PlusIcon, SettingsIcon, UserIcon } from 'lucide-react'
 
-import { Grid, Inline, Section, SectionHeader, Stack } from '@/components/common/layout/primitives'
+import { Grid, Inline, Section, SectionHeader, Stack } from '@/components/layout/primitives'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

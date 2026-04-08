@@ -6,7 +6,7 @@ import { initSentry } from '@/lib/sentry'
 import { queryClient } from '@/lib/tanstack-query'
 import { createRouter } from '@/lib/tanstack-router'
 
-import { ThemeListener } from './components/common/theme'
+import { ThemeListener } from './components/providers/theme'
 
 const router = createRouter()
 initSentry(router)
