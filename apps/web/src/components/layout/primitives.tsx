@@ -2,10 +2,6 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-/**
- * Section
- * Reusable section container with consistent spacing
- */
 interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'section' | 'div' | 'article'
 }
@@ -14,10 +10,6 @@ function Section({ as: Component = 'section', className, ...props }: SectionProp
   return <Component className={cn('space-y-6', className)} {...props} />
 }
 
-/**
- * SectionHeader
- * Header for a section with title and optional description/actions
- */
 interface SectionHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
   description?: string
@@ -29,7 +21,7 @@ function SectionHeader({ title, description, action, className, children, ...pro
 
   return (
     <div className={cn('flex items-center justify-between gap-4', className)} {...props}>
-      {(title || description || children) && (
+      {(title ?? description ?? children) && (
         <div className="space-y-1">
           {title && <h2 className="text-lg font-semibold tracking-tight">{title}</h2>}
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
@@ -41,10 +33,6 @@ function SectionHeader({ title, description, action, className, children, ...pro
   )
 }
 
-/**
- * Grid
- * Responsive grid with predefined column configurations
- */
 interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
   cols?: 1 | 2 | 3 | 4 | 6
   gap?: 'sm' | 'md' | 'lg'
@@ -72,10 +60,6 @@ function Grid({ cols = 2, gap = 'md', className, ...props }: GridProps) {
   )
 }
 
-/**
- * Stack
- * Vertical stack with consistent spacing
- */
 interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   gap?: 'sm' | 'md' | 'lg' | 'xl'
   align?: 'start' | 'center' | 'end' | 'stretch'

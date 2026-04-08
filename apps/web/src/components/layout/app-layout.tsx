@@ -58,10 +58,10 @@ export function AppLayout() {
           <UserSection />
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset className="bg-background-secondary/30">
         <Header />
         <Suspense fallback={<LoadingPage />}>
-          <main className="flex flex-1 flex-col h-full overflow-hidden @container">
+          <main className="flex flex-1 flex-col h-full overflow-hidden @container animate-enter">
             <Outlet />
           </main>
         </Suspense>
@@ -76,11 +76,13 @@ function SidebarMenus() {
   const groups = useMemo(() => getAppMenu(pathname), [pathname])
 
   return (
-    <>
+    <div className="px-2 py-4">
       {groups.map((group, groupIdx) => (
-        <SidebarGroup key={group.label} className={cn('py-2', groupIdx > 0 && 'pt-0')}>
-          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-          <SidebarMenu className="gap-1">
+        <SidebarGroup key={group.label} className={cn('py-3', groupIdx > 0 && 'pt-2')}>
+          <SidebarGroupLabel className="px-3 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
+            {group.label}
+          </SidebarGroupLabel>
+          <SidebarMenu className="gap-1.5 px-1">
             {group.items.map((menu) => {
               if (menu.children?.length) {
                 return (
@@ -90,17 +92,24 @@ function SidebarMenus() {
                     defaultOpen={menu.isActive}
                     title={menu.title}
                   >
-                    <SidebarMenuButton render={<CollapsibleTrigger />}>
-                      {menu.icon && <menu.icon />}
-                      <span>{menu.title}</span>
-                      <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                    <SidebarMenuButton
+                      className="transition-all duration-200 hover:bg-accent/50 group-data-active:bg-primary/5 group-data-active:text-primary"
+                      render={<CollapsibleTrigger />}
+                    >
+                      {menu.icon && <menu.icon className="size-4.5" />}
+                      <span className="font-medium">{menu.title}</span>
+                      <ChevronRightIcon className="ml-auto size-4 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                     </SidebarMenuButton>
                     <CollapsibleContent>
-                      <SidebarMenuSub>
+                      <SidebarMenuSub className="border-l-2 border-muted/50 ml-3 gap-1 pl-4 mt-1">
                         {menu.children.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.href}>
-                            <SidebarMenuSubButton isActive={!!subItem.isActive} render={<Link to={subItem.href} />}>
-                              <span>{subItem.title}</span>
+                            <SidebarMenuSubButton
+                              className="transition-all duration-200 hover:text-primary active:scale-[0.98]"
+                              isActive={!!subItem.isActive}
+                              render={<Link to={subItem.href} />}
+                            >
+                              <span className="text-sm font-normal">{subItem.title}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -112,9 +121,14 @@ function SidebarMenus() {
 
               return (
                 <SidebarMenuItem key={menu.href}>
-                  <SidebarMenuButton isActive={!!menu.isActive} render={<Link to={menu.href} />} tooltip={menu.title}>
-                    {menu.icon && <menu.icon />}
-                    <span>{menu.title}</span>
+                  <SidebarMenuButton
+                    className="transition-all duration-200 hover:bg-accent/50 active:scale-[0.98] data-active:bg-primary/5 data-active:text-primary"
+                    isActive={!!menu.isActive}
+                    render={<Link to={menu.href} />}
+                    tooltip={menu.title}
+                  >
+                    {menu.icon && <menu.icon className="size-4.5" />}
+                    <span className="font-medium">{menu.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )
@@ -122,21 +136,21 @@ function SidebarMenus() {
           </SidebarMenu>
         </SidebarGroup>
       ))}
-    </>
+    </div>
   )
 }
 
 function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear top-0 sticky bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/20">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger variant="outline" size="icon-lg" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 transition-all duration-300 top-0 sticky bg-background/60 backdrop-blur-2xl z-20 animate-fade-in shadow-sm/5">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger variant="ghost" size="icon-lg" className="hover:bg-accent/50 active:scale-90 transition-all" />
+        <Separator orientation="vertical" className="h-4 bg-border/50" />
         <Breadcrumbs />
       </div>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex items-center gap-4">
         <LocationSwitcher />
-        <Separator orientation="vertical" className="h-4" />
+        <Separator orientation="vertical" className="h-4 bg-border/50" />
         <ThemeSwitcher />
       </div>
     </header>

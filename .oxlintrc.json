@@ -35,7 +35,8 @@
     "jsdoc/require-param": "off",
     "require-await": "off",
     "max-lines-per-function": "off",
-    "no-warning-comments": "off"
+    "no-warning-comments": "off",
+    "import/max-dependencies": "off"
   },
   "overrides": [
     {

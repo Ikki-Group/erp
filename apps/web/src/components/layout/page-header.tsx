@@ -12,10 +12,6 @@ import {
 } from '@/components/ui/breadcrumb'
 import { cn } from '@/lib/utils'
 
-/* -------------------------------------------------------------------------- */
-/*  Types                                                                     */
-/* -------------------------------------------------------------------------- */
-
 export interface BreadcrumbStep {
   label: string
   href?: string
@@ -30,33 +26,28 @@ interface PageHeaderProps {
   className?: string
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Component                                                                 */
-/* -------------------------------------------------------------------------- */
-
-/**
- * PageHeader — Core layout component for page titles, breadcrumbs and actions.
- * Usually placed at the top of a Page.
- */
 export function PageHeader({ title, description, breadcrumbs, actions, children, className }: PageHeaderProps) {
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-6 animate-enter', className)}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="flex-wrap gap-y-1">
             {breadcrumbs.map((step, index) => {
               const isLast = index === breadcrumbs.length - 1
               return (
                 <Fragment key={step.label}>
                   <BreadcrumbItem>
                     {isLast || !step.href ? (
-                      <BreadcrumbPage>{step.label}</BreadcrumbPage>
+                      <BreadcrumbPage className="font-medium text-foreground/70">{step.label}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink render={<Link to={step.href as any}>{step.label}</Link>} />
+                      <BreadcrumbLink
+                        className="text-muted-foreground/60 transition-colors hover:text-foreground"
+                        render={<Link to={step.href}>{step.label}</Link>}
+                      />
                     )}
                   </BreadcrumbItem>
-                  {!isLast && <BreadcrumbSeparator />}
+                  {!isLast && <BreadcrumbSeparator className="text-muted-foreground/30" />}
                 </Fragment>
               )
             })}
@@ -65,12 +56,12 @@ export function PageHeader({ title, description, breadcrumbs, actions, children,
       )}
 
       {/* Title & Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1.5">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground/90 lg:text-4xl">{title}</h1>
+          {description && <p className="text-base text-muted-foreground/80 leading-relaxed max-w-2xl">{description}</p>}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
       </div>
 
       {/* Tabs or Extra content */}
