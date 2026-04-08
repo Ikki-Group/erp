@@ -1,4 +1,3 @@
-import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { Link } from '@tanstack/react-router'
 import * as React from 'react'
@@ -60,7 +59,7 @@ export function PageHeader({
                     ) : (
                       <BreadcrumbLink
                         className="text-muted-foreground/60 transition-colors hover:text-foreground"
-                        render={<Link to={step.href as any}>{step.label}</Link>}
+                        render={<Link to={step.href}>{step.label}</Link>}
                       />
                     )}
                   </BreadcrumbItem>
@@ -84,9 +83,5 @@ export function PageHeader({
     </div>
   )
 
-  return useRender({
-    defaultTagName: 'div',
-    props: { children: content },
-    render,
-  })
+  return useRender({ defaultTagName: 'div', props: { children: content }, render })
 }

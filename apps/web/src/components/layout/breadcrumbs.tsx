@@ -41,29 +41,19 @@ export function Breadcrumbs() {
   }, [menu, pathname])
 
   return (
-    <Breadcrumb className="animate-fade-in">
+    <Breadcrumb>
       <BreadcrumbList className="flex-wrap gap-y-1">
         <BreadcrumbItem>
-          <BreadcrumbLink
-            className="text-muted-foreground/60 transition-colors hover:text-foreground"
-            render={<Link to="/" />}
-          >
-            Home
-          </BreadcrumbLink>
+          <BreadcrumbLink render={<Link to="/" />}>Home</BreadcrumbLink>
         </BreadcrumbItem>
         {breadcrumbs.map((crumb, index) => (
           <React.Fragment key={crumb.href}>
-            <BreadcrumbSeparator className="text-muted-foreground/30" />
+            <BreadcrumbSeparator />
             <BreadcrumbItem>
               {index === breadcrumbs.length - 1 ? (
-                <BreadcrumbPage className="font-semibold text-foreground/80">{crumb.title}</BreadcrumbPage>
+                <BreadcrumbPage>{crumb.title}</BreadcrumbPage>
               ) : (
-                <BreadcrumbLink
-                  className="text-muted-foreground/60 transition-colors hover:text-foreground"
-                  render={<Link to={crumb.href} />}
-                >
-                  {crumb.title}
-                </BreadcrumbLink>
+                <BreadcrumbLink render={<Link to={crumb.href} />}>{crumb.title}</BreadcrumbLink>
               )}
             </BreadcrumbItem>
           </React.Fragment>

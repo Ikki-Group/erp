@@ -26,7 +26,6 @@ import {
 import { getAppMenu } from '@/config/app-menu'
 import { UserSection } from '@/features/iam/components/user-section'
 import { useAppState } from '@/hooks/use-app-state'
-import { cn } from '@/lib/utils'
 
 import { Separator } from '../ui/separator'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
@@ -76,7 +75,7 @@ function SidebarBrand() {
           <IkkiLogo />
           <div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
             <span className="truncate font-semibold text-foreground/90">Ikki Management</span>
-            <span className="truncate text-[10px] uppercase font-bold tracking-wider text-muted-foreground/60">
+            <span className="truncate text-[9px] uppercase font-bold tracking-wider text-muted-foreground/60">
               Backoffice
             </span>
           </div>
@@ -91,10 +90,10 @@ function SidebarMenus() {
   const groups = useMemo(() => getAppMenu(pathname), [pathname])
 
   return (
-    <div className="px-2 py-4">
-      {groups.map((group, groupIdx) => (
-        <SidebarGroup key={group.label} className={cn('py-3', groupIdx > 0 && 'pt-2')}>
-          <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
+    <div className="py-2 flex flex-col gap-1">
+      {groups.map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupLabel className="px-3 text-xs font-bold uppercase tracking-wide text-muted-foreground/80">
             {group.label}
           </SidebarGroupLabel>
           <SidebarMenu className="gap-1.5 px-1">
@@ -107,24 +106,17 @@ function SidebarMenus() {
                     defaultOpen={menu.isActive}
                     title={menu.title}
                   >
-                    <SidebarMenuButton
-                      className="transition-all duration-200 hover:bg-accent/50 group-data-active:bg-primary/5 group-data-active:text-primary"
-                      render={<CollapsibleTrigger />}
-                    >
-                      {menu.icon && <menu.icon className="size-4.5" />}
+                    <SidebarMenuButton render={<CollapsibleTrigger />}>
+                      {menu.icon && <menu.icon className="size-4" />}
                       <span className="font-medium">{menu.title}</span>
-                      <ChevronRightIcon className="ml-auto size-4 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                      <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                     </SidebarMenuButton>
                     <CollapsibleContent>
-                      <SidebarMenuSub className="border-l-2 border-muted/30 ml-3 gap-1 pl-4 mt-1">
+                      <SidebarMenuSub className="mt-1">
                         {menu.children.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.href}>
-                            <SidebarMenuSubButton
-                              className="transition-all duration-300 hover:text-primary active:scale-[0.98] data-active:text-primary data-active:font-semibold"
-                              isActive={!!subItem.isActive}
-                              render={<Link to={subItem.href} />}
-                            >
-                              <span className="text-sm">{subItem.title}</span>
+                            <SidebarMenuSubButton isActive={!!subItem.isActive} render={<Link to={subItem.href} />}>
+                              {subItem.title}
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -136,14 +128,9 @@ function SidebarMenus() {
 
               return (
                 <SidebarMenuItem key={menu.href}>
-                  <SidebarMenuButton
-                    className="transition-all duration-200 hover:bg-accent/50 active:scale-[0.98] data-active:bg-primary/5 data-active:text-primary"
-                    isActive={!!menu.isActive}
-                    render={<Link to={menu.href} />}
-                    tooltip={menu.title}
-                  >
-                    {menu.icon && <menu.icon className="size-4.5" />}
-                    <span className="font-medium">{menu.title}</span>
+                  <SidebarMenuButton isActive={!!menu.isActive} render={<Link to={menu.href} />} tooltip={menu.title}>
+                    {menu.icon && <menu.icon className="size-4" />}
+                    {menu.title}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )
@@ -161,19 +148,15 @@ function SidebarMenus() {
 
 function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 transition-all duration-300 top-0 sticky bg-background/60 backdrop-blur-2xl z-20 animate-fade-in shadow-sm/5">
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 transition-all duration-300 top-0 sticky bg-background/60 backdrop-blur-2xl z-20 animate-fade-in">
       <div className="flex items-center gap-3">
-        <SidebarTrigger
-          variant="ghost"
-          size="icon-lg"
-          className="hover:bg-accent/50 active:scale-90 transition-all text-muted-foreground hover:text-foreground"
-        />
-        <Separator orientation="vertical" className="h-4 bg-border/40" />
+        <SidebarTrigger variant="ghost" size="icon-lg" />
+        <Separator orientation="vertical" />
         <Breadcrumbs />
       </div>
       <div className="ml-auto flex items-center gap-4">
         <LocationSwitcher />
-        <Separator orientation="vertical" className="h-4 bg-border/40" />
+        <Separator orientation="vertical" />
         <ThemeSwitcher />
       </div>
     </header>

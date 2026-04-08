@@ -3,46 +3,8 @@ import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
-// import { create } from 'zustand'
-// import { createJSONStorage, persist } from 'zustand/middleware'
-
-// export type Theme = 'light' | 'dark'
-
-// interface State {
-//   theme: Theme
-//   set: (theme: Theme) => void
-//   toggle: () => void
-// }
-
-// export const useTheme = create<State>()(
-//   persist(
-//     (set) => ({
-//       theme: 'light',
-//       set: (theme) => set({ theme }),
-//       toggle: () =>
-//         set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
-//     }),
-//     {
-//       name: 'theme-provider',
-//       storage: createJSONStorage(() => localStorage),
-//     },
-//   ),
-// )
 
 export function ThemeListener() {
-  // const { theme } = useTheme()
-
-  // useEffect(() => {
-  //   // console.log({ theme })
-  //   // document.documentElement.classList.remove('light', 'dark')
-  //   // document.documentElement.classList.add(theme)
-  //   // // Update color scheme
-  //   // const meta = document.querySelector('meta[name="theme-color"]')
-  //   // if (meta) {
-  //   //   meta.setAttribute('content', theme === 'light' ? '#ffffff' : '#000000')
-  //   // }
-  // }, [theme])
-
   useEffect(() => {
     const isIphone = /iPhone/i.test(navigator.userAgent)
     if (isIphone) {
