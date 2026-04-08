@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'

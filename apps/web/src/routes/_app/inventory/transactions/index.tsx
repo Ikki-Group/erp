@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { PlusIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

@@ -6,7 +6,7 @@ import { PackageIcon, PlusIcon, StarIcon, Trash2Icon, Wand2Icon } from 'lucide-r
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'

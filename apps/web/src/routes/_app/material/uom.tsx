@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'

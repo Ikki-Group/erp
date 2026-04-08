@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from '@tanstack/react-router'
 import { ChevronRightIcon } from 'lucide-react'
 import { Suspense, useMemo } from 'react'
 
-import { IkkiLogo } from '@/components/brand/logo'
+import { IkkiLogo } from '@/components/blocks/brand/logo'
 import { ThemeSwitcher } from '@/components/providers/theme'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {

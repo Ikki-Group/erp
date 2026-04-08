@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { PackageSearchIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

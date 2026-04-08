@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
-import type { DescriptionItem } from '@/components/data-display/description-list'
-import { DescriptionList } from '@/components/data-display/description-list'
+import type { DescriptionItem } from '@/components/blocks/data-display/description-list'
+import { DescriptionList } from '@/components/blocks/data-display/description-list'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'

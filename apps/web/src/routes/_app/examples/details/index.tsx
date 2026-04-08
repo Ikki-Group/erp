@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CalendarIcon, CreditCardIcon, MailIcon, MapPinIcon } from 'lucide-react'
 
-import type { DescriptionItem } from '@/components/data-display/description-list'
-import { DescriptionList } from '@/components/data-display/description-list'
+import type { DescriptionItem } from '@/components/blocks/data-display/description-list'
+import { DescriptionList } from '@/components/blocks/data-display/description-list'
 import { Grid } from '@/components/layout/primitives'
 import { Page } from '@/components/layout/page'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useState } from 'react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { DataCombobox } from '@/components/ui/data-combobox'

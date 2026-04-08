@@ -5,7 +5,7 @@ import type { LinkOptions } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Separator } from '@/components/ui/separator'

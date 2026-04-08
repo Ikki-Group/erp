@@ -5,7 +5,7 @@ import { MapPinIcon, MoreHorizontalIcon, PackageIcon, SettingsIcon, Trash2Icon }
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
-import { DataTableCard } from '@/components/card/data-table-card'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
