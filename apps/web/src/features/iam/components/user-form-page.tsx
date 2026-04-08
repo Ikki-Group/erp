@@ -20,13 +20,13 @@ const FormDto = z.object({
   username: z.string().min(1, 'Username wajib diisi'),
   email: z.email('Email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter').optional(),
-  isRoot: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  assignments: z.array(z.object({ locationId: z.coerce.number(), roleId: z.coerce.number() })).default([]),
+  isRoot: z.boolean(),
+  isActive: z.boolean(),
+  assignments: z.array(z.object({ locationId: z.coerce.number<number>(), roleId: z.coerce.number<number>() })),
 })
 
 type FormDto = z.infer<typeof FormDto>
-const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
+const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: UserSelectDto): FormDto {
   return {
@@ -95,32 +95,18 @@ function UserInformationCard() {
   return (
     <CardSection title="Informasi Akun">
       <form.AppField name="fullname">
-        {(field) => (
-          <field.Base label="Nama Lengkap" required>
-            <field.Input placeholder="John Doe" />
-          </field.Base>
-        )}
+        {(field) => <field.Input label="Nama Lengkap" required placeholder="John Doe" />}
       </form.AppField>
       <form.AppField name="email">
-        {(field) => (
-          <field.Base label="Email" required>
-            <field.Input type="email" placeholder="user@example.com" />
-          </field.Base>
-        )}
+        {(field) => <field.Input label="Email" required type="email" placeholder="user@example.com" />}
       </form.AppField>
       <form.AppField name="username">
-        {(field) => (
-          <field.Base label="Username" required>
-            <field.Input placeholder="username" />
-          </field.Base>
-        )}
+        {(field) => <field.Input label="Username" required placeholder="username" />}
       </form.AppField>
       {isCreate && (
         <form.AppField name="password">
           {(field) => (
-            <field.Base label="Password" required>
-              <field.Input type="password" autoComplete="off" placeholder="••••••••" />
-            </field.Base>
+            <field.Input label="Password" required type="password" autoComplete="off" placeholder="••••••••" />
           )}
         </form.AppField>
       )}

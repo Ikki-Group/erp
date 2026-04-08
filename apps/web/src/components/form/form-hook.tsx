@@ -49,6 +49,11 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } = 
 
     // Templates
     FieldBase: FieldBase,
+    FieldInput: FieldInput,
+    FieldSelect: FieldSelect,
+    FieldCheckbox: FieldCheckbox,
+    FieldSwitch: FieldSwitch,
+    FieldDatePicker: FieldDatePicker,
   },
   formComponents: { Form: Form, Item: FormItem, SimpleActions: FormSimpleActions, DialogActions: FormDialogActions },
 })
