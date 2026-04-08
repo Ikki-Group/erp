@@ -12,7 +12,7 @@ import type { LocationService } from '../service/location.service'
  * Standard functional route pattern (Golden Path 2.1).
  */
 export function initLocationRoute(service: LocationService) {
-  return new Elysia({ prefix: '/location' })
+  return new Elysia()
     .use(authPluginMacro)
     .get(
       '/list',

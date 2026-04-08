@@ -1,3 +1,4 @@
+// oxlint-disable max-lines
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import type * as React from 'react'
@@ -22,7 +23,7 @@ import type { Option, StringOrNumber } from '@/types/common'
 import { useFieldContext } from './form-hook-context'
 import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from './form-tanstack'
 
-interface BaseFieldProps {
+export interface BaseFieldProps {
   label?: string
   description?: string
   required?: boolean
@@ -33,17 +34,16 @@ interface FieldBaseProps extends BaseFieldProps, Omit<React.ComponentProps<typeo
   children: React.ReactNode
 }
 
-function FieldBase({
+export function FieldBase({
   label,
-  required,
   description,
-  children,
+  required,
+  orientation = 'vertical',
   className,
-  orientation,
-  ...props
+  children,
 }: FieldBaseProps) {
   return (
-    <Field className={className} orientation={orientation} {...props}>
+    <Field orientation={orientation} className={className}>
       {label && <FieldLabel required={required}>{label}</FieldLabel>}
       {children}
       {description && <FieldDescription>{description}</FieldDescription>}
@@ -220,8 +220,7 @@ function FieldSwitch({
 }
 
 interface FieldSelectProps<TValue extends StringOrNumber>
-  extends Omit<React.ComponentProps<typeof Select>, 'value' | 'onValueChange' | 'children'>,
-    BaseFieldProps {
+  extends Omit<React.ComponentProps<typeof Select>, 'value' | 'onValueChange' | 'children'>, BaseFieldProps {
   placeholder?: string
   options: Array<Option<TValue>>
   orientation?: FieldBaseProps['orientation']
@@ -276,9 +275,7 @@ function FieldSelect<TValue extends StringOrNumber = string>({
   )
 }
 
-interface FieldComboboxProps<TItem>
-  extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>,
-    BaseFieldProps {
+interface FieldComboboxProps<TItem> extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>, BaseFieldProps {
   orientation?: FieldBaseProps['orientation']
 }
 
@@ -446,7 +443,6 @@ function FieldDatePicker({
 }
 
 export {
-  FieldBase,
   FieldInput,
   FieldInputPassword,
   FieldCheckbox,
