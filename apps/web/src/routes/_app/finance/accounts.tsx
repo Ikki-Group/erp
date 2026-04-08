@@ -1,10 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { PlusIcon, WalletIcon, BuildingIcon, LandmarkIcon, SearchIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Card } from '@/components/ui/card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import {
+  createColumnHelper,
+  currencyColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,38 +32,37 @@ type AccountType = (typeof mockAccounts)[0]
 const ch = createColumnHelper<AccountType>()
 
 const columns = [
-  ch.accessor('code', {
-    header: 'Kode Akun',
-    size: 120,
-    cell: ({ row }) => <span className="font-mono text-sm tracking-tight text-foreground/90 font-medium">{row.original.code}</span>,
-  }),
-  ch.accessor('name', {
-    header: 'Nama Akun',
-    cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
-  }),
-  ch.accessor('type', {
-    header: 'Kategori',
-    cell: ({ row }) => {
-      const type = row.original.type
-      if (type === 'ASSET') return <BadgeDot variant="success-outline">Aset</BadgeDot>
-      if (type === 'LIABILITY') return <BadgeDot variant="destructive-outline">Kewajiban</BadgeDot>
-      if (type === 'EQUITY') return <BadgeDot variant="primary-outline">Ekuitas</BadgeDot>
-      if (type === 'REVENUE') return <BadgeDot variant="success">Pendapatan</BadgeDot>
-      return <BadgeDot variant="warning-outline">Beban</BadgeDot>
-    },
-  }),
-  ch.accessor('balance', {
-    header: 'Saldo Berjalan',
-    cell: ({ row }) => {
-      const val = row.original.balance
-      const color = row.original.type === 'LIABILITY' || row.original.type === 'EXPENSE' ? 'text-rose-600' : 'text-foreground'
-      return (
-        <span className={`font-mono font-medium tracking-tight tabular-nums block text-right pr-4 ${color}`}>
-          Rp {val.toLocaleString('id-ID')}
-        </span>
-      )
-    },
-  }),
+  ch.accessor('code', textColumn({ header: 'Kode Akun', size: 120 })),
+  ch.accessor('name', textColumn({ header: 'Nama Akun', size: 250 })),
+  ch.accessor(
+    'type',
+    statusColumn({
+      header: 'Kategori',
+      render: (value: string) => {
+        if (value === 'ASSET') return <BadgeDot variant="success-outline">Aset</BadgeDot>
+        if (value === 'LIABILITY') return <BadgeDot variant="destructive-outline">Kewajiban</BadgeDot>
+        if (value === 'EQUITY') return <BadgeDot variant="primary-outline">Ekuitas</BadgeDot>
+        if (value === 'REVENUE') return <BadgeDot variant="success">Pendapatan</BadgeDot>
+        return <BadgeDot variant="warning-outline">Beban</BadgeDot>
+      },
+      size: 150,
+    }),
+  ),
+  ch.accessor(
+    'balance',
+    currencyColumn({
+      header: 'Saldo Berjalan',
+      render: (value: number | string | null | undefined, row: AccountType) => {
+        const color = row.type === 'LIABILITY' || row.type === 'EXPENSE' ? 'text-rose-600' : 'text-foreground'
+        return (
+          <span className={`font-mono font-medium tracking-tight tabular-nums block text-right pr-4 ${color}`}>
+            Rp {Number(value).toLocaleString('id-ID')}
+          </span>
+        )
+      },
+      size: 180,
+    }),
+  ),
 ]
 
 function FinanceAccountsPage() {

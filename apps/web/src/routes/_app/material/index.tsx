@@ -1,12 +1,18 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { ChefHatIcon, EyeIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
+import {
+  actionColumn,
+  createColumnHelper,
+  dateColumn,
+  linkColumn,
+  statusColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -104,12 +110,12 @@ function MaterialTable() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  MaterialAssignToLocationDialog.call({
+                onClick={() => {
+                  void MaterialAssignToLocationDialog.call({
                     materialIds: selectedIds,
                     materialName: `${selectedIds.length} Bahan Baku`,
                   })
-                }
+                }}
               >
                 <MapPinIcon />
                 Assign {selectedIds.length} Lokasi
@@ -148,135 +154,146 @@ function getColumns() {
       enableSorting: false,
       enableHiding: false,
     }),
-    ch.accessor('name', {
-      header: 'Bahan Baku',
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-1.5 py-1">
-          <div className="flex items-center gap-2">
-            <Link
-              from={Route.fullPath}
-              to="/material/$id"
-              params={{ id: String(row.original.id) }}
-              className="font-semibold text-sm tracking-tight hover:text-primary hover:underline"
-            >
-              {row.original.name}
-            </Link>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 font-medium">
-              {row.original.sku}
-            </span>
+    ch.accessor(
+      'name',
+      linkColumn({
+        header: 'Bahan Baku',
+        render: (value, row) => (
+          <div className="flex flex-col gap-1.5 py-1">
+            <div className="flex items-center gap-2">
+              <Link
+                from={Route.fullPath}
+                to="/material/$id"
+                params={{ id: String(row.id) }}
+                className="font-semibold text-sm tracking-tight hover:text-primary hover:underline"
+              >
+                {value}
+              </Link>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 font-medium">
+                {row.sku}
+              </span>
+            </div>
+            {row.description && (
+              <span className="text-xs text-muted-foreground/80 line-clamp-1 max-w-[300px]">{row.description}</span>
+            )}
           </div>
-          {row.original.description && (
-            <span className="text-xs text-muted-foreground/80 line-clamp-1 max-w-[300px]">
-              {row.original.description}
-            </span>
-          )}
-        </div>
-      ),
-      size: 350,
-    }),
-    ch.accessor('category.name', {
-      header: 'Kategori',
-      cell: ({ row }) => (
-        <Badge
-          variant="secondary"
-          className="bg-secondary/40 text-secondary-foreground rounded-md px-2 py-0 border-none font-medium text-[11px]"
-        >
-          {row.original.category?.name ?? 'Uncategorized'}
-        </Badge>
-      ),
-      size: 140,
-    }),
-    ch.accessor('type', {
-      header: 'Jenis',
-      cell: ({ row }) => <BadgeDot {...(MaterialBadgeProps as any)[row.original.type]} />,
-      size: 160,
-    }),
-    ch.accessor('uom.code', {
-      header: 'Satuan',
-      cell: ({ row }) => (
-        <div className="flex items-center">
+        ),
+        size: 350,
+      }),
+    ),
+    ch.accessor(
+      'category.name',
+      statusColumn({
+        header: 'Kategori',
+        render: (_, row) => (
           <Badge
-            variant="outline"
-            className="h-5 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 border-muted-foreground/20"
+            variant="secondary"
+            className="bg-secondary/40 text-secondary-foreground rounded-md px-2 py-0 border-none font-medium text-[11px]"
           >
-            {row.original.uom?.code ?? '-'}
+            {row.category?.name ?? 'Uncategorized'}
           </Badge>
-        </div>
-      ),
-      size: 90,
-    }),
-    ch.accessor('locationIds', {
-      header: 'Lokasi',
-      cell: ({ row }) => {
-        const count = row.original.locationIds.length
-        return (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 -ml-2"
-            onClick={() =>
-              MaterialAssignToLocationDialog.call({ materialIds: [row.original.id], materialName: row.original.name })
-            }
-          >
-            <MapPinIcon className="size-3.5 text-muted-foreground" />
-            <span className={cn('text-nowrap', count > 0 ? 'text-sm' : 'text-sm text-muted-foreground')}>
-              {count} Lokasi
-            </span>
-            <PlusIcon className="size-3 text-muted-foreground/50" />
-          </Button>
-        )
-      },
-      size: 120,
-    }),
-    ch.display({
-      id: 'action',
-      header: '',
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center justify-end gap-1 px-2">
-            {row.original.type === 'semi' && (
+        ),
+        size: 140,
+      }),
+    ),
+    ch.accessor(
+      'type',
+      statusColumn({
+        header: 'Jenis',
+        render: (_, row) => <BadgeDot {...(MaterialBadgeProps as any)[row.type]} />,
+        size: 160,
+      }),
+    ),
+    ch.accessor(
+      'uom.code',
+      statusColumn({
+        header: 'Satuan',
+        render: (_, row) => (
+          <div className="flex items-center">
+            <Badge
+              variant="outline"
+              className="h-5 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 border-muted-foreground/20"
+            >
+              {row.uom?.code ?? '-'}
+            </Badge>
+          </div>
+        ),
+        size: 90,
+      }),
+    ),
+    ch.accessor(
+      'locationIds',
+      statusColumn({
+        header: 'Lokasi',
+        render: (_, row) => {
+          const count = row.locationIds.length
+          return (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 -ml-2"
+              onClick={() => {
+                void MaterialAssignToLocationDialog.call({ materialIds: [row.id], materialName: row.name })
+              }}
+            >
+              <MapPinIcon className="size-3.5 text-muted-foreground" />
+              <span className={cn('text-nowrap', count > 0 ? 'text-sm' : 'text-sm text-muted-foreground')}>
+                {count} Lokasi
+              </span>
+              <PlusIcon className="size-3 text-muted-foreground/50" />
+            </Button>
+          )
+        },
+        size: 120,
+      }),
+    ),
+    ch.display(
+      actionColumn<MaterialSelectDto>({
+        id: 'action',
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center justify-end gap-1 px-2">
+              {row.original.type === 'semi' && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-8 text-primary/70 hover:text-primary hover:bg-primary/10"
+                  title="Kelola Resep"
+                  nativeButton={false}
+                  render={
+                    <Link from={Route.fullPath} to="/material/$id/recipe" params={{ id: String(row.original.id) }} />
+                  }
+                >
+                  <ChefHatIcon className="size-4" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="size-8 text-primary/70 hover:text-primary hover:bg-primary/10"
-                title="Kelola Resep"
+                className="size-8 text-muted-foreground hover:text-foreground"
+                title="Lihat Detail"
+                nativeButton={false}
+                render={<Link from={Route.fullPath} to="/material/$id" params={{ id: String(row.original.id) }} />}
+              >
+                <EyeIcon className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-8 text-muted-foreground hover:text-foreground"
+                title="Edit Bahan Baku"
                 nativeButton={false}
                 render={
-                  <Link from={Route.fullPath} to="/material/$id/recipe" params={{ id: String(row.original.id) }} />
+                  <Link from={Route.fullPath} to="/material/$id/update" params={{ id: String(row.original.id) }} />
                 }
               >
-                <ChefHatIcon className="size-4" />
+                <PencilIcon className="size-4" />
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-8 text-muted-foreground hover:text-foreground"
-              title="Lihat Detail"
-              nativeButton={false}
-              render={<Link from={Route.fullPath} to="/material/$id" params={{ id: String(row.original.id) }} />}
-            >
-              <EyeIcon className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-8 text-muted-foreground hover:text-foreground"
-              title="Edit Bahan Baku"
-              nativeButton={false}
-              render={
-                <Link from={Route.fullPath} to="/material/$id/update" params={{ id: String(row.original.id) }} />
-              }
-            >
-              <PencilIcon className="size-4" />
-            </Button>
-          </div>
-        )
-      },
-      size: 140,
-      enableSorting: false,
-      enableHiding: false,
-      enableResizing: false,
-    }),
+            </div>
+          )
+        },
+        size: 140,
+      }),
+    ),
   ]
 }

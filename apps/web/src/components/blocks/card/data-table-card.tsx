@@ -35,8 +35,7 @@ export function DataTableCard<TData extends object>({
       loadingMode="spinner"
       tableLayout={{
         cellBorder: false,
-        // cellBorder: true,
-        // columnsPinnable: true,
+        columnsPinnable: true,
       }}
       onRowClick={onRowClick}
     >

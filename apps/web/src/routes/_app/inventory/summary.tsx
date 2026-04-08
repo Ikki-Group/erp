@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+  createColumnHelper,
+  currencyColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { useState } from 'react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -29,7 +34,7 @@ function getToday() {
 }
 
 function RouteComponent() {
-  const [locationId, setLocationId] = useState<string | null>(null)
+  const [locationId, setLocationId] = React.useState<string | null>(null)
 
   // By default we get the period of this month
   const [dateFrom] = useState(() => getStartOfMonth())
@@ -138,65 +143,72 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
   )
 
   const columns = [
-    ch.accessor('materialName', {
-      header: 'Bahan Baku',
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-1">
-          <span className="font-semibold text-foreground/90">{row.original.materialName}</span>
-          <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">{row.original.materialSku}</span>
-        </div>
-      ),
-      enableSorting: false,
-    }),
-    ch.accessor('baseUomCode', {
-      header: 'Satuan',
-      cell: ({ row }) => <Badge variant="outline" className="font-medium text-muted-foreground bg-secondary/50 border-transparent shadow-none px-2 rounded-md">{row.original.baseUomCode}</Badge>,
-      enableSorting: false,
-      size: 90,
-    }),
-    ch.accessor('openingQty', {
-      header: 'Stok Awal',
-      cell: ({ row }) => <span className="font-medium text-muted-foreground tabular-nums">{row.original.openingQty}</span>,
-      enableSorting: false,
-      size: 110,
-    }),
-    ch.accessor('closingQty', {
-      header: 'Stok Terkini',
-      cell: ({ row }) => {
-        const qty = Number(row.original.closingQty)
-        const isLow = qty < 10 // Example margin threshold
-        return (
-          <div className="flex items-center gap-2">
-            <Badge variant={isLow ? 'destructive' : 'default'} className={`shadow-none font-bold tabular-nums rounded-md px-2 ${!isLow && 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'}`}>
-              {qty}
-            </Badge>
-            {isLow && <MoveDownIcon className="h-3 w-3 text-rose-500" />}
+    ch.accessor(
+      'materialName',
+      statusColumn({
+        header: 'Bahan Baku',
+        render: (value, row) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-foreground/90">{value}</span>
+            <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
+              {row.materialSku}
+            </span>
           </div>
-        )
-      },
-      enableSorting: false,
-      size: 130,
-    }),
-    ch.accessor('closingAvgCost', {
-      header: 'HPP (Avg Cost)',
-      cell: ({ row }) => (
-        <span className="font-mono text-[13px] text-muted-foreground tabular-nums opacity-80">
-          Rp {row.original.closingAvgCost.toLocaleString('id-ID')}
-        </span>
-      ),
-      enableSorting: false,
-      size: 150,
-    }),
-    ch.accessor('closingValue', {
-      header: 'Nilai Stok Akhir',
-      cell: ({ row }) => (
-        <span className="font-mono font-semibold text-foreground tracking-tight tabular-nums">
-          Rp {row.original.closingValue.toLocaleString('id-ID')}
-        </span>
-      ),
-      enableSorting: false,
-      size: 180,
-    }),
+        ),
+        size: 180,
+      }),
+    ),
+    ch.accessor(
+      'baseUomCode',
+      statusColumn({
+        header: 'Satuan',
+        render: (value) => (
+          <Badge
+            variant="outline"
+            className="font-medium text-muted-foreground bg-secondary/50 border-transparent shadow-none px-2 rounded-md"
+          >
+            {value}
+          </Badge>
+        ),
+        size: 90,
+      }),
+    ),
+    ch.accessor('openingQty', textColumn({ header: 'Stok Awal', size: 110 })),
+    ch.accessor(
+      'closingQty',
+      statusColumn({
+        header: 'Stok Terkini',
+        render: (value) => {
+          const qty = Number(value)
+          const isLow = qty < 10
+          return (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={isLow ? 'destructive' : 'default'}
+                className={`shadow-none font-bold tabular-nums rounded-md px-2 ${!isLow && 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'}`}
+              >
+                {qty}
+              </Badge>
+              {isLow && <MoveDownIcon className="h-3 w-3 text-rose-500" />}
+            </div>
+          )
+        },
+        size: 130,
+      }),
+    ),
+    ch.accessor('closingAvgCost', currencyColumn({ header: 'HPP (Avg Cost)', size: 150 })),
+    ch.accessor(
+      'closingValue',
+      currencyColumn({
+        header: 'Nilai Stok Akhir',
+        render: (value) => (
+          <span className="font-mono font-semibold text-foreground tracking-tight tabular-nums">
+            Rp {Number(value).toLocaleString('id-ID')}
+          </span>
+        ),
+        size: 180,
+      }),
+    ),
   ]
 
   const table = useDataTable({

@@ -1,15 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { ArrowDownRightIcon, ArrowUpRightIcon, SearchIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Card } from '@/components/ui/card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import {
+  createColumnHelper,
+  currencyColumn,
+  dateColumn,
+  statusColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDataTable } from '@/hooks/use-data-table'
-import { toDateTimeStamp } from '@/lib/formatter'
 
 export const Route = createFileRoute('/_app/finance/ledger-ar-ap')({ component: FinanceArApPage })
 
@@ -25,39 +29,44 @@ type ArApType = (typeof mockArAp)[0]
 const ch = createColumnHelper<ArApType>()
 
 const columns = [
-  ch.accessor('id', {
-    header: 'No. Tagihan',
-    size: 150,
-    cell: ({ row }) => (
-      <div className="flex flex-col gap-0.5">
-        <span className="font-semibold text-foreground/90">{row.original.id}</span>
-        <span className="text-xs text-muted-foreground font-medium">{row.original.partner}</span>
-      </div>
-    ),
-  }),
-  ch.accessor('type', {
-    header: 'Jenis Tagihan',
-    cell: ({ row }) => {
-      if (row.original.type === 'AR') return <BadgeDot variant="primary-outline">Piutang (AR)</BadgeDot>
-      return <BadgeDot variant="destructive-outline">Hutang (AP)</BadgeDot>
-    },
-  }),
-  ch.accessor('dueDate', {
-    header: 'Jatuh Tempo',
-    cell: ({ row }) => <span className="font-medium text-muted-foreground text-sm">{toDateTimeStamp(row.original.dueDate.toISOString()).split(',')[0]}</span>,
-  }),
-  ch.accessor('amount', {
-    header: 'Total Tagihan',
-    cell: ({ row }) => <span className="font-mono font-medium tracking-tight tabular-nums block text-right">Rp {row.original.amount.toLocaleString('id-ID')}</span>,
-  }),
-  ch.accessor('paid', {
-    header: 'Sisa Tagihan (Belum Lunas)',
-    cell: ({ row }) => {
-      const sisa = row.original.amount - row.original.paid
-      if (sisa === 0) return <span className="block text-right pr-4 text-muted-foreground/30 font-medium">Lunas</span>
-      return <span className="font-mono font-bold tracking-tight tabular-nums block text-right pr-4 text-rose-600">Rp {sisa.toLocaleString('id-ID')}</span>
-    },
-  }),
+  ch.accessor(
+    'id',
+    statusColumn({
+      header: 'No. Tagihan',
+      render: (value, row) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-foreground/90">{value}</span>
+          <span className="text-xs text-muted-foreground font-medium">{row.partner}</span>
+        </div>
+      ),
+      size: 150,
+    }),
+  ),
+  ch.accessor(
+    'type',
+    statusColumn({
+      header: 'Jenis Tagihan',
+      render: (value) => {
+        if (value === 'AR') return <BadgeDot variant="primary-outline">Piutang (AR)</BadgeDot>
+        return <BadgeDot variant="destructive-outline">Hutang (AP)</BadgeDot>
+      },
+      size: 130,
+    }),
+  ),
+  ch.accessor('dueDate', dateColumn({ header: 'Jatuh Tempo', size: 140 })),
+  ch.accessor('amount', currencyColumn({ header: 'Total Tagihan', size: 160 })),
+  ch.accessor(
+    'paid',
+    currencyColumn({
+      header: 'Sisa Tagihan (Belum Lunas)',
+      render: (value, row) => {
+        const sisa = Number(row.amount) - Number(value)
+        if (sisa === 0) return <span className="block text-right pr-4 text-muted-foreground/30 font-medium">Lunas</span>
+        return <span className="font-mono font-bold tracking-tight tabular-nums block text-right pr-4 text-rose-600">Rp {sisa.toLocaleString('id-ID')}</span>
+      },
+      size: 200,
+    }),
+  ),
 ]
 
 function FinanceArApPage() {

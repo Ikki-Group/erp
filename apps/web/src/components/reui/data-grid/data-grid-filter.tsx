@@ -1,4 +1,3 @@
-import { useDebounce } from '@uidotdev/usehooks'
 import { SearchIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -72,7 +71,6 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
           case 'search':
             return (
               <DataGridFilterSearch
-                // eslint-disable-next-line @eslint-react/no-array-index-key
                 key={`search-${index}`}
                 value={ds.search}
                 onChange={ds.setSearch}
@@ -82,10 +80,10 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
           case 'select':
             return (
               <DataGridFilterSelect
-                // eslint-disable-next-line @eslint-react/no-array-index-key
                 key={`select-${String(option.key)}-${index}`}
                 value={ds.filters[option.key]}
                 onChange={(val) => {
+                  // oxlint-disable-next-line typescript/no-unsafe-assignment
                   ds.setFilters((prev) => ({ ...prev, [option.key]: val }))
                 }}
                 options={option.options}
@@ -118,7 +116,7 @@ interface DataGridFilterSearchProps {
   placeholder?: string
 }
 
-function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: DataGridFilterSearchProps) {
+function DataGridFilterSearch({ value, onChange, placeholder = 'Cari (Tekan Enter)...' }: DataGridFilterSearchProps) {
   const [internalValue, setInternalValue] = React.useState(value)
   const prevValueRef = React.useRef(value)
 
@@ -128,15 +126,6 @@ function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: Data
     prevValueRef.current = value
   }
 
-  const debouncedValue = useDebounce(internalValue, 400)
-
-  // Call onChange only when debounced value changes
-  React.useEffect(() => {
-    if (debouncedValue !== value) {
-      onChange(debouncedValue)
-    }
-  }, [debouncedValue, onChange, value])
-
   return (
     <div className="relative">
       <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -145,8 +134,18 @@ function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: Data
         onChange={(e) => {
           setInternalValue(e.target.value)
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onChange(internalValue)
+          }
+        }}
+        onBlur={() => {
+          onChange(internalValue)
+        }}
         placeholder={placeholder}
-        className="h-8 w-[180px] pl-8 lg:w-[250px]"
+        title="Tekan Enter untuk mencari"
+        className="h-8 w-[180px] pl-8 lg:w-[250px] transition-colors focus-visible:ring-primary/30"
       />
     </div>
   )
@@ -164,6 +163,7 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
   return (
     <Select
       items={options}
+      // oxlint-disable-next-line eqeqeq
       value={value != null && value !== '' ? String(value) : ''}
       onValueChange={(val) => {
         if (val === '') {
