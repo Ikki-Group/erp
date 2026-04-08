@@ -23,7 +23,7 @@ export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const ProductCategoryFilterDto = z.object({ search: zQuerySearch, parentId: zId.optional() })
+export const ProductCategoryFilterDto = z.object({ q: zQuerySearch, parentId: zId.optional() })
 
 export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 

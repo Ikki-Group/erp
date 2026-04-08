@@ -71,7 +71,7 @@ export const StockTransactionFilterDto = z.object({
   locationId: zQueryId.optional(),
   materialId: zQueryId.optional(),
   type: TransactionTypeDto.optional(),
-  search: zQuerySearch,
+  q: zQuerySearch,
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
 })

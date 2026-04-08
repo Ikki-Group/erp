@@ -10,7 +10,7 @@ export type UomDto = z.infer<typeof UomDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const UomFilterDto = z.object({ search: zQuerySearch })
+export const UomFilterDto = z.object({ q: zQuerySearch })
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>
 

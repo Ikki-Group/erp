@@ -45,7 +45,7 @@ export const WorkOrderSelectDto = WorkOrderDto.extend({
 export type WorkOrderSelectDto = z.infer<typeof WorkOrderSelectDto>
 
 export const WorkOrderFilterDto = z.object({
-  search: zQuerySearch,
+  q: zQuerySearch,
   locationId: zId.optional(),
   status: WorkOrderStatusDto.optional(),
 })

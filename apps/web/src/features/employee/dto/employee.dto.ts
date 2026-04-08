@@ -46,5 +46,5 @@ export const EmployeeUpdateDto = z.object({
 })
 export type EmployeeUpdateDto = z.infer<typeof EmployeeUpdateDto>
 
-export const EmployeeFilterDto = z.object({ ...zPaginationDto.shape, search: zQuerySearch })
+export const EmployeeFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch })
 export type EmployeeFilterDto = z.infer<typeof EmployeeFilterDto>

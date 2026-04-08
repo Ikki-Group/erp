@@ -72,7 +72,7 @@ export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 export const StockLedgerFilterDto = z.object({
   locationId: zQueryId.optional(),
   materialId: zQueryId.optional(),
-  search: zQuerySearch,
+  q: zQuerySearch,
   dateFrom: z.coerce.date(),
   dateTo: z.coerce.date(),
 })

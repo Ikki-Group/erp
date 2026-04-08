@@ -84,7 +84,7 @@ export type SalesOrderDto = z.infer<typeof SalesOrderDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const SalesOrderFilterDto = z.object({
-  search: zQuerySearch,
+  q: zQuerySearch,
   locationId: zId.optional(),
   status: SalesOrderStatusDto.optional(),
   salesTypeId: zId.optional(),

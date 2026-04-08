@@ -55,7 +55,7 @@ export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialLocationFilterDto = z.object({ locationId: zQueryId, search: zQuerySearch })
+export const MaterialLocationFilterDto = z.object({ locationId: zQueryId, q: zQuerySearch })
 
 export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto>
 

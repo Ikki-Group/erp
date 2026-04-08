@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { ActivityIcon, CheckCircle2Icon, ClockIcon, DatabaseIcon, RefreshCwIcon, ServerIcon } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
@@ -8,10 +7,17 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
+import {
+  createColumnHelper,
+  dateColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { useDataTable } from '@/hooks/use-data-table'
-import { toDateTimeStamp } from '@/lib/formatter'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/moka/monitoring')({ component: MokaMonitoringPage })
 
@@ -68,41 +74,59 @@ type LogType = (typeof mockLogs)[0]
 const ch = createColumnHelper<LogType>()
 
 const columns = [
-  ch.accessor('timestamp', { header: 'Waktu', cell: ({ row }) => toDateTimeStamp(row.original.timestamp) }),
-  ch.accessor('entity', {
-    header: 'Entitas Data',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <DatabaseIcon className="h-3 w-3 text-muted-foreground" />
-        <span className="font-medium">{row.original.entity}</span>
-      </div>
-    ),
-  }),
-  ch.accessor('type', { header: 'Jenis Proses' }),
-  ch.accessor('records', { header: 'Jumlah Record', cell: ({ row }) => row.original.records.toLocaleString() }),
-  ch.accessor('status', {
-    header: 'Status',
-    cell: ({ row }) => {
-      if (row.original.status === 'success') {
-        return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
-      }
-      return (
+  ch.accessor('timestamp', dateColumn({ header: 'Waktu', size: 160 })),
+  ch.accessor(
+    'entity',
+    statusColumn({
+      header: 'Entitas Data',
+      render: (value) => (
         <div className="flex items-center gap-2">
-          <BadgeDot variant="destructive-outline">Gagal</BadgeDot>
-          <span className="text-[10px] text-destructive truncate max-w-[100px]">{row.original.error}</span>
+          <DatabaseIcon className="h-3 w-3 text-muted-foreground" />
+          <span className="font-medium">{value}</span>
         </div>
-      )
-    },
-  }),
+      ),
+      size: 180,
+    }),
+  ),
+  ch.accessor('type', textColumn({ header: 'Jenis Proses', size: 160 })),
+  ch.accessor(
+    'records',
+    statusColumn({
+      header: 'Jumlah Record',
+      render: (value) => <span className="tabular-nums font-mono">{Number(value).toLocaleString()}</span>,
+      size: 130,
+    }),
+  ),
+  ch.accessor(
+    'status',
+    statusColumn({
+      header: 'Status',
+      render: (value, row) => {
+        if (value === 'success') {
+          return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
+        }
+        return (
+          <div className="flex items-center gap-2">
+            <BadgeDot variant="destructive-outline">Gagal</BadgeDot>
+            <span className="text-[10px] text-destructive truncate max-w-[100px]">
+              {row.error}
+            </span>
+          </div>
+        )
+      },
+      size: 160,
+    }),
+  ),
 ]
 
 function MokaMonitoringPage() {
+  const ds = useDataTableState()
   const table = useDataTable({
     columns,
     data: mockLogs,
     pageCount: 1,
     rowCount: mockLogs.length,
-    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+    ds,
   })
 
   return (
@@ -162,7 +186,13 @@ function MokaMonitoringPage() {
           </ChartCard>
         </ChartGrid>
 
-        <DataTableCard title="Sync Logs" table={table as any} isLoading={false} recordCount={mockLogs.length} />
+        <DataTableCard
+          title="Sync Logs"
+          table={table}
+          isLoading={false}
+          recordCount={mockLogs.length}
+          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari log...' }]} />}
+        />
       </Page.Content>
     </Page>
   )

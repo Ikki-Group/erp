@@ -16,7 +16,7 @@ export type SalesTypeDto = z.infer<typeof SalesTypeDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const SalesTypeFilterDto = z.object({ search: zQuerySearch })
+export const SalesTypeFilterDto = z.object({ q: zQuerySearch })
 
 export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
 

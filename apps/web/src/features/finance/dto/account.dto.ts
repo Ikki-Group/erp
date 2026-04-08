@@ -44,7 +44,7 @@ export type AccountUpdateDto = z.infer<typeof AccountUpdateDto>
 
 export const AccountFilterDto = z.object({
   ...zPaginationDto.shape,
-  search: zQuerySearch,
+  q: zQuerySearch,
   type: AccountTypeEnum.optional(),
   parentId: zId.optional(),
 })

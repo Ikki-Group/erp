@@ -112,7 +112,7 @@ function StockTable({ locationId, locationName }: { locationId: number; location
   })
 
   const { data, isLoading } = useQuery(
-    materialLocationApi.stock.query({ locationId, ...ds.pagination, search: ds.search || undefined }),
+    materialLocationApi.stock.query({ locationId, ...ds.pagination, q: ds.search || undefined }),
   )
 
   const unassignMutation = useMutation({

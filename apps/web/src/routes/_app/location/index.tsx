@@ -1,18 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { PencilIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
+import {
+  actionColumn,
+  createColumnHelper,
+  dateColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { toDateTimeStamp } from '@/lib/formatter'
 
 export const Route = createFileRoute('/_app/location/')({ component: RouteComponent })
 
@@ -32,59 +37,56 @@ function RouteComponent() {
 
 const ch = createColumnHelper<LocationDto>()
 const columns = [
-  ch.display({
-    id: 'action',
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center justify-center">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
-          >
-            <PencilIcon />
-          </Button>
+  ch.accessor(
+    'name',
+    statusColumn({
+      header: 'Lokasi',
+      render: (value, row) => (
+        <div className="flex gap-2 flex-col">
+          <p className="font-medium text-foreground">{value}</p>
+          <p className="text-muted-foreground text-[10px] font-mono uppercase tracking-wider">
+            {row.code}
+          </p>
         </div>
-      )
-    },
-    size: 60,
-    enablePinning: true,
-  }),
-  ch.accessor('name', {
-    header: 'Lokasi',
-    cell: ({ row }) => (
-      <div className="flex gap-2 flex-col">
-        <p>{row.original.name}</p>
-        <p className="text-muted-foreground text-xs italic">({row.original.code})</p>
-      </div>
-    ),
-    enableSorting: false,
-    size: 200,
-  }),
-  ch.accessor('isActive', {
-    header: 'Status',
-    cell: ({ row }) => {
-      const { isActive } = row.original
-      return <BadgeDot {...getActiveStatusBadge(isActive)} />
-    },
-    enableSorting: false,
-  }),
-  ch.accessor('description', {
-    header: 'Deskripsi',
-    cell: ({ row }) => row.original.description || '-',
-    enableSorting: false,
-    size: 200,
-  }),
-  ch.accessor('createdAt', {
-    header: 'Dibuat Pada',
-    cell: ({ row }) => toDateTimeStamp(row.original.createdAt),
-    enableSorting: false,
-  }),
+      ),
+      size: 250,
+    }),
+  ),
+  ch.accessor(
+    'isActive',
+    statusColumn({
+      header: 'Status',
+      render: (value) => <BadgeDot {...getActiveStatusBadge(Boolean(value))} />,
+      size: 130,
+    }),
+  ),
+  ch.accessor('description', textColumn({ header: 'Deskripsi', size: 250 })),
+  ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 160 })),
+  ch.display(
+    actionColumn<LocationDto>({
+      id: 'action',
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center justify-end px-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
+            >
+              <PencilIcon className="size-4" />
+            </Button>
+          </div>
+        )
+      },
+      enablePinning: true,
+    }),
+  ),
 ]
 
 function LocationsTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(locationApi.list.query({ ...ds.pagination, search: ds.search, ...ds.filters }))
+  const { data, isLoading } = useQuery(locationApi.list.query({ ...ds.pagination, q: ds.search, ...ds.filters }))
 
   const table = useDataTable({
     columns: columns,

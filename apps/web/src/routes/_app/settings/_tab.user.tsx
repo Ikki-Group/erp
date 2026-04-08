@@ -51,10 +51,7 @@ const columns = [
   ),
   ch.accessor(
     'isActive',
-    statusColumn({
-      header: 'Aktif',
-      render: (value) => <BadgeDot {...getUserStatusBadge(value)} />,
-    }),
+    statusColumn({ header: 'Aktif', render: (value) => <BadgeDot {...getUserStatusBadge(value)} /> }),
   ),
   ch.accessor('username', {
     header: 'Username',
@@ -63,6 +60,7 @@ const columns = [
   }),
   ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
   ch.display(
+    // oxlint-disable-next-line typescript/no-unsafe-argument
     actionColumn<UserSelectDto>({
       id: 'action',
       cell: ({ row }) => {
@@ -73,7 +71,9 @@ const columns = [
               variant="ghost"
               size="icon-sm"
               // oxlint-disable-next-line typescript/no-misused-promises
-              onClick={() => { void UserPasswordDialog.call({ id, username }) }}
+              onClick={() => {
+                void UserPasswordDialog.call({ id, username })
+              }}
               title="Ubah Password"
               className="size-8 text-muted-foreground hover:text-foreground"
             >

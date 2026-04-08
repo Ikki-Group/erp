@@ -49,7 +49,7 @@ function MaterialTable() {
 
   const { data: locations } = useSuspenseQuery(locationApi.list.query({ limit: 100 }))
 
-  const { data, isLoading } = useQuery(materialApi.list.query({ ...ds.pagination, ...ds.filters, search: ds.search }))
+  const { data, isLoading } = useQuery(materialApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
   const columns = useMemo(getColumns, [])
   const table = useDataTable({

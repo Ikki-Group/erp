@@ -84,7 +84,7 @@ const columns = [
 
 function SalesTypeTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(salesTypeApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(salesTypeApi.list.query({ ...ds.pagination, q: ds.search }))
 
   const table = useDataTable({
     columns: columns,

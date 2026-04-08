@@ -62,7 +62,7 @@ export const AttendanceSelectDto = AttendanceDto.extend({
 export type AttendanceSelectDto = z.infer<typeof AttendanceSelectDto>
 
 export const AttendanceFilterDto = z.object({
-  search: zQuerySearch,
+  q: zQuerySearch,
   employeeId: zId.optional(),
   locationId: zId.optional(),
   status: AttendanceStatusDto.optional(),

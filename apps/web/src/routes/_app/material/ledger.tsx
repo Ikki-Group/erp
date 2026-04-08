@@ -104,7 +104,7 @@ function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; da
       isValidDateRange
         ? {
             ...ds.pagination,
-            search: ds.search || undefined,
+            q: ds.search || undefined,
             locationId,
             dateFrom: new Date(dateFrom),
             dateTo: new Date(dateTo),

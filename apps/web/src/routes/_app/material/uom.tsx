@@ -81,7 +81,7 @@ const columns = [
 
 function UomTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
 
   const table = useDataTable({
     columns: columns,

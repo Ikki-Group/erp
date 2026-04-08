@@ -10,7 +10,7 @@ import { useState } from 'react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/reui/badge'
 import { DataCombobox } from '@/components/ui/data-combobox'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -34,7 +34,7 @@ function getToday() {
 }
 
 function RouteComponent() {
-  const [locationId, setLocationId] = React.useState<string | null>(null)
+  const [locationId, setLocationId] = useState<string | null>(null)
 
   // By default we get the period of this month
   const [dateFrom] = useState(() => getStartOfMonth())
@@ -135,8 +135,8 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
   const { data, isLoading } = useQuery(
     stockSummaryApi.ledger.query({
       ...ds.pagination,
-      search: ds.search || undefined,
-      locationId,
+      q: ds.search || undefined,
+      locationId: locationId ?? undefined,
       dateFrom: new Date(dateFrom),
       dateTo: new Date(dateTo),
     }),
@@ -184,8 +184,8 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
           return (
             <div className="flex items-center gap-2">
               <Badge
-                variant={isLow ? 'destructive' : 'default'}
-                className={`shadow-none font-bold tabular-nums rounded-md px-2 ${!isLow && 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'}`}
+                variant={isLow ? 'destructive' : 'success-light'}
+                className="shadow-none font-bold tabular-nums rounded-md px-2"
               >
                 {qty}
               </Badge>

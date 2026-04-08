@@ -56,7 +56,7 @@ export type RecipeDto = z.infer<typeof RecipeDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const RecipeFilterDto = z.object({
-  search: zQuerySearch,
+  q: zQuerySearch,
   materialId: zQueryId.optional(),
   productId: zQueryId.optional(),
   productVariantId: zQueryId.optional(),

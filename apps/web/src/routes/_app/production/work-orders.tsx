@@ -1,16 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
+import { ActivityIcon, CalendarCheckIcon, PlusIcon, TimerIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { Card } from '@/components/ui/card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import {
+  createColumnHelper,
+  currencyColumn,
+  dateColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
 import { useDataTable } from '@/hooks/use-data-table'
-import { toDateTimeStamp } from '@/lib/formatter'
-import { ActivityIcon, CalendarCheckIcon, SearchIcon, TimerIcon } from 'lucide-react'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/production/work-orders')({ component: WorkOrdersPage })
 
@@ -54,38 +59,44 @@ type WorkOrderType = (typeof mockWorkOrders)[0]
 const ch = createColumnHelper<WorkOrderType>()
 
 const columns = [
-  ch.accessor('id', { header: 'No. WO', cell: ({ row }) => <span className="font-semibold text-foreground/90 tabular-nums">{row.original.id}</span> }),
-  ch.accessor('product', { header: 'Produk/Barang Jadi', cell: ({ row }) => <span className="font-medium text-foreground/90">{row.original.product}</span> }),
-  ch.accessor('qty', {
-    header: 'Target Qty',
-    cell: ({ row }) => (
-      <span className="font-bold tabular-nums text-foreground/80 pr-4">
-        {row.original.qty} <span className="text-xs text-muted-foreground font-normal">{row.original.uom}</span>
-      </span>
-    ),
-  }),
-  ch.accessor('deadline', {
-    header: 'Tenggat Waktu',
-    cell: ({ row }) => toDateTimeStamp(row.original.deadline.toISOString()),
-  }),
-  ch.accessor('status', {
-    header: 'Status',
-    cell: ({ row }) => {
-      const status = row.original.status
-      if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
-      if (status === 'in_progress') return <BadgeDot variant="warning-outline">Sedang Jalan</BadgeDot>
-      return <BadgeDot variant="primary-outline">Direncanakan</BadgeDot>
-    },
-  }),
+  ch.accessor('id', textColumn({ header: 'No. WO', size: 130 })),
+  ch.accessor('product', textColumn({ header: 'Produk/Barang Jadi', size: 250 })),
+  ch.accessor(
+    'qty',
+    statusColumn({
+      header: 'Target Qty',
+      render: (value, row) => (
+        <span className="font-bold tabular-nums text-foreground/80 pr-4">
+          {value} <span className="text-xs text-muted-foreground font-normal">{row.uom}</span>
+        </span>
+      ),
+      size: 130,
+    }),
+  ),
+  ch.accessor('deadline', dateColumn({ header: 'Tenggat Waktu', size: 160 })),
+  ch.accessor(
+    'status',
+    statusColumn({
+      header: 'Status',
+      render: (value) => {
+        const status = value as string
+        if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
+        if (status === 'in_progress') return <BadgeDot variant="warning-outline">Sedang Jalan</BadgeDot>
+        return <BadgeDot variant="primary-outline">Direncanakan</BadgeDot>
+      },
+      size: 130,
+    }),
+  ),
 ]
 
 function WorkOrdersPage() {
+  const ds = useDataTableState()
   const table = useDataTable({
     columns,
     data: mockWorkOrders,
     pageCount: 1,
     rowCount: mockWorkOrders.length,
-    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+    ds,
   })
 
   return (
@@ -130,37 +141,18 @@ function WorkOrdersPage() {
           </Card>
         </div>
 
-        {/* Action & Filter Bar */}
-        <Card className="rounded-2xl shadow-sm border-muted/60">
-          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <div className="flex flex-col gap-1.5 min-w-[300px]">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pencarian Batch</label>
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Cari No. WO atau nama produk..." className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-1.5 sm:self-center">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">Aksi</label>
-              <Button size="sm" className="h-10 shadow-md font-medium">
-                <PlusIcon className="size-4 mr-2" /> Buat WO Baru
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Main Table */}
-        <div className="rounded-2xl overflow-hidden border border-muted/60 shadow-sm">
-           <DataTableCard
-            title="Daftar Work Orders"
-            table={table as any}
-            isLoading={false}
-            recordCount={mockWorkOrders.length}
-          />
-        </div>
+        <DataTableCard
+          title="Daftar Work Orders"
+          table={table}
+          isLoading={false}
+          recordCount={mockWorkOrders.length}
+          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari No. WO...' }]} />}
+          action={
+            <Button size="sm" className="h-10 shadow-md font-medium">
+              <PlusIcon className="size-4 mr-2" /> Buat WO Baru
+            </Button>
+          }
+        />
       </Page.Content>
     </Page>
   )

@@ -64,7 +64,7 @@ const columns = [
 
 function CategoryTable() {
   const ds = useDataTableState()
-  const { data, isLoading } = useQuery(productCategoryApi.list.query({ ...ds.pagination, search: ds.search }))
+  const { data, isLoading } = useQuery(productCategoryApi.list.query({ ...ds.pagination, q: ds.search }))
 
   const table = useDataTable({
     columns: columns,

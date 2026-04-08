@@ -23,7 +23,7 @@ export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryFilterDto = z.object({ search: zQuerySearch, parentId: zId.optional() })
+export const MaterialCategoryFilterDto = z.object({ q: zQuerySearch, parentId: zId.optional() })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 

@@ -48,10 +48,7 @@ export function textColumn<TData, TValue = string>(
  * Renders the primary label and an optional secondary description.
  */
 export function linkColumn<TData, TValue = any>(
-  opts: {
-    header: string
-    render: (value: TValue, row: TData) => ReactNode
-  } & ColumnOptions,
+  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
@@ -85,11 +82,7 @@ export function dateColumn<TData>(
  * Creates an action column. Hardcoded to disable sort/hide/resize.
  * Typically pinned to the right.
  */
-export function actionColumn<TData>(opts: {
-  cell: ColumnDef<TData>['cell']
-  size?: number
-  id?: string
-}): any {
+export function actionColumn<TData>(opts: { cell: ColumnDef<TData>['cell']; size?: number; id?: string }): any {
   return {
     id: opts.id ?? 'action',
     header: '',
@@ -121,10 +114,7 @@ export function statusColumn<TData, TValue = any>(
  * Numeric column formatted with `toNumber`. Right aligns by default.
  */
 export function numberColumn<TData, TValue = number | null | undefined>(
-  opts: {
-    header: string
-    render?: (value: TValue, row: TData) => ReactNode
-  } & ColumnOptions,
+  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
@@ -144,10 +134,7 @@ export function numberColumn<TData, TValue = number | null | undefined>(
  * Currency column formatted with `toCurrency`. Right aligns by default.
  */
 export function currencyColumn<TData, TValue = number | string | null | undefined>(
-  opts: {
-    header: string
-    render?: (value: TValue, row: TData) => ReactNode
-  } & ColumnOptions,
+  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
@@ -155,7 +142,7 @@ export function currencyColumn<TData, TValue = number | string | null | undefine
       const value = getValue()
       if (opts.render) return opts.render(value, row.original)
       if (value === null || value === undefined) return '-'
-      return <p className="text-right tabular-nums">{toCurrency(value as any)}</p>
+      return <p className="text-right tabular-nums">{toCurrency(value)}</p>
     },
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,

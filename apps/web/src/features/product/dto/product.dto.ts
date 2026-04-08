@@ -91,7 +91,7 @@ export type ProductDto = z.infer<typeof ProductDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const ProductFilterDto = z.object({
-  search: zQuerySearch,
+  q: zQuerySearch,
   status: ProductStatusDto.optional(),
   categoryId: zQueryId.optional(),
   locationId: zQueryId.optional(),

@@ -102,7 +102,7 @@ export function ProductTable() {
   const { data: categories } = useQuery(productCategoryApi.list.query({ limit: 100 }))
   const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
-  const { data, isLoading } = useQuery(productApi.list.query({ ...ds.pagination, ...ds.filters, search: ds.search }))
+  const { data, isLoading } = useQuery(productApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
   const table = useDataTable({
     columns: columns,
