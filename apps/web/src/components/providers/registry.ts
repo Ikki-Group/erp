@@ -18,7 +18,8 @@ export const providersRegistry: ComponentRegistry = {
       name: 'ThemeSwitcher / ThemeListener',
       file: './theme',
       description: 'Theme toggle button (light/dark/system) and listener that syncs theme changes to meta tags.',
-      usage: '`<ThemeSwitcher />` renders a dropdown to switch themes. `<ThemeListener />` must be placed in the app root to sync meta-theme-color.',
+      usage:
+        '`<ThemeSwitcher />` renders a dropdown to switch themes. `<ThemeListener />` must be placed in the app root to sync meta-theme-color.',
       importPath: '@/components/providers/theme',
       tags: ['theme', 'dark-mode', 'light-mode', 'toggle', 'system'],
       exports: ['ThemeSwitcher', 'ThemeListener'],

@@ -1,9 +1,11 @@
+import { Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import type { ReactNode } from 'react'
 
 import { toCurrency, toDateTimeStamp, toNumber } from '@/lib/formatter'
+import { cn } from '@/lib/utils'
 
 /* -------------------------------------------------------------------------- */
 /*  Column Helper Utilities                                                   */
@@ -21,22 +23,103 @@ import { toCurrency, toDateTimeStamp, toNumber } from '@/lib/formatter'
  */
 export { createColumnHelper }
 
-type ColumnOptions = {
+export type ColumnOptions<_TData> = {
   size?: number
   enableSorting?: boolean
   enableHiding?: boolean
-  meta?: { className?: string; label?: string }
+  meta?: { className?: string; label?: string; headerTitle?: string }
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Composable Cell Components                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Standard text cell with hyphen fallback.
+ */
+function DataGridCellText({
+  value,
+  className,
+}: {
+  value: React.ReactNode | string | number | null | undefined
+  className?: string
+}) {
+  return <span className={className}>{value ?? '-'}</span>
+}
+
+/**
+ * Date cell using standard ERP formatting.
+ */
+function DataGridCellDate({
+  value,
+  className,
+}: {
+  value: Date | string | number | null | undefined
+  className?: string
+}) {
+  return <span className={cn('text-nowrap', className)}>{value ? toDateTimeStamp(value) : '-'}</span>
+}
+
+/**
+ * Numeric cell with IDR locale formatting and right-alignment.
+ */
+function DataGridCellNumber({ value, className }: { value: number | string | null | undefined; className?: string }) {
+  return (
+    <div className={cn('text-right tabular-nums w-full', className)}>
+      {value === null || value === undefined ? '-' : toNumber(value)}
+    </div>
+  )
+}
+
+/**
+ * Currency cell with IDR locale formatting and right-alignment.
+ */
+function DataGridCellCurrency({ value, className }: { value: number | string | null | undefined; className?: string }) {
+  return (
+    <div className={cn('text-right tabular-nums w-full font-medium', className)}>
+      {value === null || value === undefined ? '-' : toCurrency(value)}
+    </div>
+  )
+}
+
+/**
+ * Composable Link cell using TanStack Router.
+ */
+function DataGridCellLink(props: React.ComponentProps<typeof Link>) {
+  return (
+    <Link
+      {...props}
+      className={cn(
+        'font-medium text-primary hover:underline transition-all cursor-pointer inline-block',
+        props.className,
+      )}
+    />
+  )
+}
+
+export const DataGridCell = {
+  Text: DataGridCellText,
+  Date: DataGridCellDate,
+  Number: DataGridCellNumber,
+  Currency: DataGridCellCurrency,
+  Link: DataGridCellLink,
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Helper Functions                                                          */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Text column with optional truncation.
  */
-export function textColumn<TData, TValue = string>(
-  opts: { header: string } & ColumnOptions,
+export function textColumn<TData, TValue extends React.ReactNode = any>(
+  opts: { header: string } & ColumnOptions<TData>,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
-    cell: ({ getValue }: CellContext<TData, TValue>) => (getValue() ?? '-') as ReactNode,
+    cell: ({ getValue }: CellContext<TData, TValue>) => (
+      <DataGridCell.Text value={getValue()} className={opts.meta?.className} />
+    ),
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,
     meta: opts.meta,
@@ -48,7 +131,7 @@ export function textColumn<TData, TValue = string>(
  * Renders the primary label and an optional secondary description.
  */
 export function linkColumn<TData, TValue = any>(
-  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
+  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
@@ -62,16 +145,13 @@ export function linkColumn<TData, TValue = any>(
 /**
  * Creates a date column that auto-formats using `toDateTimeStamp`.
  */
-export function dateColumn<TData>(
-  opts: { header?: string } & ColumnOptions,
-): Partial<ColumnDef<TData, Date | string | number | null | undefined>> {
+export function dateColumn<TData>(opts: { header?: string } & ColumnOptions<TData>): Partial<ColumnDef<TData, any>> {
   return {
     header: opts.header ?? 'Tanggal',
-    cell: ({ getValue }: CellContext<TData, Date | string | number | null | undefined>) => {
-      const value = getValue()
-      if (!value) return '-'
-      return <p className="text-nowrap">{toDateTimeStamp(value)}</p>
-    },
+    cell: ({ getValue }: CellContext<TData, any>) => (
+      // oxlint-disable-next-line typescript/no-unsafe-assignment
+      <DataGridCell.Date value={getValue()} className={opts.meta?.className} />
+    ),
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,
     meta: opts.meta,
@@ -82,7 +162,11 @@ export function dateColumn<TData>(
  * Creates an action column. Hardcoded to disable sort/hide/resize.
  * Typically pinned to the right.
  */
-export function actionColumn<TData>(opts: { cell: ColumnDef<TData>['cell']; size?: number; id?: string }): any {
+export function actionColumn<TData>(opts: {
+  cell: (props: CellContext<TData, any>) => ReactNode
+  size?: number
+  id?: string
+}): ColumnDef<TData, any> {
   return {
     id: opts.id ?? 'action',
     header: '',
@@ -92,14 +176,14 @@ export function actionColumn<TData>(opts: { cell: ColumnDef<TData>['cell']; size
     enableHiding: false,
     enableResizing: false,
     enablePinning: true,
-  }
+  } as ColumnDef<TData, any>
 }
 
 /**
  * Badge/status column — renders any ReactNode returned by the `render` function.
  */
 export function statusColumn<TData, TValue = any>(
-  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
+  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
@@ -113,41 +197,37 @@ export function statusColumn<TData, TValue = any>(
 /**
  * Numeric column formatted with `toNumber`. Right aligns by default.
  */
-export function numberColumn<TData, TValue = number | null | undefined>(
-  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
+export function numberColumn<TData, TValue extends number | string | null | undefined = any>(
+  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
     cell: ({ getValue, row }: CellContext<TData, TValue>) => {
       const value = getValue()
       if (opts.render) return opts.render(value, row.original)
-      if (value === null || value === undefined) return '-'
-      // oxlint-disable-next-line typescript/no-unsafe-argument
-      return <p className="text-right tabular-nums">{toNumber(value as any)}</p>
+      return <DataGridCell.Number value={value} className={opts.meta?.className} />
     },
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,
-    meta: { className: 'text-right', ...opts.meta },
+    meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
   }
 }
 
 /**
  * Currency column formatted with `toCurrency`. Right aligns by default.
  */
-export function currencyColumn<TData, TValue = number | string | null | undefined>(
-  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
+export function currencyColumn<TData, TValue extends number | string | null | undefined = any>(
+  opts: { header: string; render?: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
 ): Partial<ColumnDef<TData, TValue>> {
   return {
     header: opts.header,
     cell: ({ getValue, row }: CellContext<TData, TValue>) => {
       const value = getValue()
       if (opts.render) return opts.render(value, row.original)
-      if (value === null || value === undefined) return '-'
-      // oxlint-disable-next-line typescript/no-unsafe-argument
-      return <p className="text-right tabular-nums">{toCurrency(value as any)}</p>
+      return <DataGridCell.Currency value={value} className={opts.meta?.className} />
     },
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,
-    meta: { className: 'text-right', ...opts.meta },
+    meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
   }
 }

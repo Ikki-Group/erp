@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import {
   createColumnHelper,
   currencyColumn,
+  DataGridCell,
   statusColumn,
   textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
@@ -99,13 +100,13 @@ function RouteComponent() {
                 <DataCombobox
                   className="h-10 bg-secondary/30 border-transparent hover:bg-secondary/50 transition-colors"
                   value={locationId}
-                  onValueChange={(val) => setLocationId(val)}
+                  onValueChange={(val) => { setLocationId(val) }}
                   placeholder="Semua Lokasi Gudang"
                   emptyText="Lokasi tidak ditemukan."
                   queryKey={['location-list']}
                   queryFn={async (search: string) => {
                     const res = await locationApi.list.fetch({
-                      params: { page: 1, limit: 20, search: search || undefined },
+                      params: { page: 1, limit: 20, q: search || undefined },
                     })
                     return res.data
                   }}
@@ -137,8 +138,8 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
       ...ds.pagination,
       q: ds.search || undefined,
       locationId: locationId ?? undefined,
-      dateFrom: new Date(dateFrom),
-      dateTo: new Date(dateTo),
+      dateFrom: new Date(dateFrom ?? getStartOfMonth()),
+      dateTo: new Date(dateTo ?? getToday()),
     }),
   )
 
@@ -149,10 +150,11 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
         header: 'Bahan Baku',
         render: (value, row) => (
           <div className="flex flex-col gap-1">
-            <span className="font-semibold text-foreground/90">{value}</span>
-            <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
-              {row.materialSku}
-            </span>
+            <DataGridCell.Text value={value} className="font-semibold text-foreground/90" />
+            <DataGridCell.Text 
+              value={row.materialSku} 
+              className="text-[11px] font-mono text-muted-foreground/80 tracking-tight" 
+            />
           </div>
         ),
         size: 180,
@@ -202,9 +204,10 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
       currencyColumn({
         header: 'Nilai Stok Akhir',
         render: (value) => (
-          <span className="font-mono font-semibold text-foreground tracking-tight tabular-nums">
-            Rp {Number(value).toLocaleString('id-ID')}
-          </span>
+          <DataGridCell.Currency 
+            value={value} 
+            className="font-semibold text-foreground tracking-tight" 
+          />
         ),
         size: 180,
       }),
@@ -228,7 +231,7 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
         title="Rincian Ledger Inventori" 
         table={table} 
         isLoading={isLoading} 
-        recordCount={data?.meta.total || 0} 
+        recordCount={data?.meta.total ?? 0} 
       />
     </div>
   )
