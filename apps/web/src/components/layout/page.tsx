@@ -1,35 +1,80 @@
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { Link } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 import { cva } from 'class-variance-authority'
 import type { VariantProps } from 'class-variance-authority'
 import { ArrowLeftIcon } from 'lucide-react'
-import type { ComponentProps } from 'react'
+import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
 import { Button } from '../ui/button'
 
+/* -------------------------------------------------------------------------- */
+/*  Page                                                                      */
+/* -------------------------------------------------------------------------- */
+
 const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-6 animate-enter', {
-  variants: { size: { sm: 'max-w-2xl', md: 'max-w-4xl', lg: 'max-w-5xl', xl: 'max-w-6xl', full: 'max-w-none' } },
+  variants: {
+    size: {
+      sm: 'max-w-2xl',
+      md: 'max-w-4xl',
+      lg: 'max-w-5xl',
+      xl: 'max-w-6xl',
+      full: 'max-w-none',
+    },
+  },
+  defaultVariants: {
+    size: 'lg',
+  },
 })
 
-function Page({ size = 'lg', className, ...props }: ComponentProps<'div'> & VariantProps<typeof pageVariants>) {
-  return <div {...props} className={cn(pageVariants({ size, className }))} />
+type PageProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof pageVariants>
+
+function Page({ size, render, className, ...props }: PageProps) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn(pageVariants({ size }), className) }, props),
+    render,
+  })
 }
 
-function Header({ className, ...props }: ComponentProps<'div'>) {
-  return <div {...props} className={cn('flex gap-4 px-6', className)} />
+/* -------------------------------------------------------------------------- */
+/*  Sub-components                                                            */
+/* -------------------------------------------------------------------------- */
+
+function Header({ className, render, ...props }: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn('flex gap-4 px-6', className) }, props),
+    render,
+  })
 }
 
-function Title({ className, ...props }: ComponentProps<'h1'>) {
-  return <h1 {...props} className={cn('text-3xl font-bold tracking-tight text-foreground/90 lg:text-4xl', className)} />
+function Title({ className, render, ...props }: useRender.ComponentProps<'h1'> & React.ComponentProps<'h1'>) {
+  return useRender({
+    defaultTagName: 'h1',
+    props: mergeProps<'h1'>(
+      { className: cn('text-3xl font-bold tracking-tight text-foreground/90 lg:text-4xl', className) },
+      props,
+    ),
+    render,
+  })
 }
 
-function Description({ className, ...props }: ComponentProps<'p'>) {
-  return <p {...props} className={cn('text-muted-foreground/80 text-base leading-relaxed max-w-2xl', className)} />
+function Description({ className, render, ...props }: useRender.ComponentProps<'p'> & React.ComponentProps<'p'>) {
+  return useRender({
+    defaultTagName: 'p',
+    props: mergeProps<'p'>(
+      { className: cn('text-muted-foreground/80 text-base leading-relaxed max-w-2xl', className) },
+      props,
+    ),
+    render,
+  })
 }
 
-function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
+function BackButton({ className, ...props }: React.ComponentProps<typeof Button>) {
   return (
     <Button
       variant="ghost"
@@ -46,13 +91,25 @@ function BackButton({ className, ...props }: ComponentProps<typeof Button>) {
   )
 }
 
-function Actions({ className, ...props }: ComponentProps<'div'>) {
-  return <div {...props} className={cn('flex gap-3 justify-end items-center', className)} />
+function Actions({ className, render, ...props }: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn('flex gap-3 justify-end items-center', className) }, props),
+    render,
+  })
 }
 
-function Content({ className, ...props }: ComponentProps<'div'>) {
-  return <div {...props} className={cn('px-6', className)} />
+function Content({ className, render, ...props }: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn('px-6', className) }, props),
+    render,
+  })
 }
+
+/* -------------------------------------------------------------------------- */
+/*  BlockHeader (Compound Template)                                           */
+/* -------------------------------------------------------------------------- */
 
 interface BlockHeaderProps {
   title: string
@@ -90,16 +147,16 @@ function BlockHeader({ title, description, action, back, border }: BlockHeaderPr
   )
 }
 
-// Primitive
+/* -------------------------------------------------------------------------- */
+/*  Exports                                                                   */
+/* -------------------------------------------------------------------------- */
+
 Page.Content = Content
 Page.Header = Header
 Page.Title = Title
 Page.Description = Description
 Page.BackButton = BackButton
 Page.Actions = Actions
-
-// Template
-// Page.SimpleHeader = SimpleHeader
 Page.BlockHeader = BlockHeader
 
 export { Page }

@@ -3,6 +3,7 @@ import { ChevronRightIcon } from 'lucide-react'
 import { Suspense, useMemo } from 'react'
 
 import { IkkiLogo } from '@/components/blocks/brand/logo'
+import { LoadingPage } from '@/components/blocks/feedback/loading-page'
 import { ThemeSwitcher } from '@/components/providers/theme'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -27,10 +28,13 @@ import { UserSection } from '@/features/iam/components/user-section'
 import { useAppState } from '@/hooks/use-app-state'
 import { cn } from '@/lib/utils'
 
-import { LoadingPage } from '@/components/blocks/feedback/loading-page'
-import { Breadcrumbs } from './breadcrumbs'
 import { Separator } from '../ui/separator'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
+import { Breadcrumbs } from './breadcrumbs'
+
+/* -------------------------------------------------------------------------- */
+/*  AppLayout                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export function AppLayout() {
   const { setSidebarOpen, sidebarOpen } = useAppState()
@@ -39,17 +43,7 @@ export function AppLayout() {
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <Sidebar>
         <SidebarHeader className="border-b h-16">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" render={<Link to="/" />}>
-                <IkkiLogo />
-                <div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
-                  <span className="truncate font-semibold">Ikki Management</span>
-                  <span className="truncate text-xs">Backoffice</span>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <SidebarBrand />
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenus />
@@ -70,16 +64,37 @@ export function AppLayout() {
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Sidebar Sub-components                                                    */
+/* -------------------------------------------------------------------------- */
+
+function SidebarBrand() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton size="lg" render={<Link to="/" />}>
+          <IkkiLogo />
+          <div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
+            <span className="truncate font-semibold text-foreground/90">Ikki Management</span>
+            <span className="truncate text-[10px] uppercase font-bold tracking-wider text-muted-foreground/60">
+              Backoffice
+            </span>
+          </div>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
 function SidebarMenus() {
   const { pathname } = useLocation()
-
   const groups = useMemo(() => getAppMenu(pathname), [pathname])
 
   return (
     <div className="px-2 py-4">
       {groups.map((group, groupIdx) => (
         <SidebarGroup key={group.label} className={cn('py-3', groupIdx > 0 && 'pt-2')}>
-          <SidebarGroupLabel className="px-3 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
+          <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
             {group.label}
           </SidebarGroupLabel>
           <SidebarMenu className="gap-1.5 px-1">
@@ -101,15 +116,15 @@ function SidebarMenus() {
                       <ChevronRightIcon className="ml-auto size-4 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                     </SidebarMenuButton>
                     <CollapsibleContent>
-                      <SidebarMenuSub className="border-l-2 border-muted/50 ml-3 gap-1 pl-4 mt-1">
+                      <SidebarMenuSub className="border-l-2 border-muted/30 ml-3 gap-1 pl-4 mt-1">
                         {menu.children.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.href}>
                             <SidebarMenuSubButton
-                              className="transition-all duration-200 hover:text-primary active:scale-[0.98]"
+                              className="transition-all duration-300 hover:text-primary active:scale-[0.98] data-active:text-primary data-active:font-semibold"
                               isActive={!!subItem.isActive}
                               render={<Link to={subItem.href} />}
                             >
-                              <span className="text-sm font-normal">{subItem.title}</span>
+                              <span className="text-sm">{subItem.title}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -140,17 +155,25 @@ function SidebarMenus() {
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Header                                                                     */
+/* -------------------------------------------------------------------------- */
+
 function Header() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 border-b px-6 transition-all duration-300 top-0 sticky bg-background/60 backdrop-blur-2xl z-20 animate-fade-in shadow-sm/5">
       <div className="flex items-center gap-3">
-        <SidebarTrigger variant="ghost" size="icon-lg" className="hover:bg-accent/50 active:scale-90 transition-all" />
-        <Separator orientation="vertical" className="h-4 bg-border/50" />
+        <SidebarTrigger
+          variant="ghost"
+          size="icon-lg"
+          className="hover:bg-accent/50 active:scale-90 transition-all text-muted-foreground hover:text-foreground"
+        />
+        <Separator orientation="vertical" className="h-4 bg-border/40" />
         <Breadcrumbs />
       </div>
       <div className="ml-auto flex items-center gap-4">
         <LocationSwitcher />
-        <Separator orientation="vertical" className="h-4 bg-border/50" />
+        <Separator orientation="vertical" className="h-4 bg-border/40" />
         <ThemeSwitcher />
       </div>
     </header>

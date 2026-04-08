@@ -1,25 +1,39 @@
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
+import { cva } from 'class-variance-authority'
+import type { VariantProps } from 'class-variance-authority'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-interface SectionProps extends React.HTMLAttributes<HTMLElement> {
-  as?: 'section' | 'div' | 'article'
+/* -------------------------------------------------------------------------- */
+/*  Section                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const sectionVariants = cva('space-y-6')
+
+type SectionProps = useRender.ComponentProps<'section'> & React.ComponentProps<'section'> & VariantProps<typeof sectionVariants>
+
+function Section({ render, className, ...props }: SectionProps) {
+  return useRender({
+    defaultTagName: 'section',
+    props: mergeProps<'section'>({ className: cn(sectionVariants(), className) }, props),
+    render,
+  })
 }
 
-function Section({ as: Component = 'section', className, ...props }: SectionProps) {
-  return <Component className={cn('space-y-6', className)} {...props} />
-}
+/* -------------------------------------------------------------------------- */
+/*  SectionHeader                                                             */
+/* -------------------------------------------------------------------------- */
 
-interface SectionHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+type SectionHeaderProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & {
   title?: string
   description?: string
   action?: React.ReactNode
 }
 
-function SectionHeader({ title, description, action, className, children, ...props }: SectionHeaderProps) {
-  if (!title && !description && !action && !children) return null
-
-  return (
+function SectionHeader({ title, description, action, className, children, render, ...props }: SectionHeaderProps) {
+  const content = (
     <div className={cn('flex items-center justify-between gap-4', className)} {...props}>
       {(title ?? description ?? children) && (
         <div className="space-y-1">
@@ -31,99 +45,128 @@ function SectionHeader({ title, description, action, className, children, ...pro
       {action && <div className="flex items-center gap-2">{action}</div>}
     </div>
   )
+
+  return useRender({
+    defaultTagName: 'div',
+    props: { children: content },
+    render,
+  })
 }
 
-interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
-  cols?: 1 | 2 | 3 | 4 | 6
-  gap?: 'sm' | 'md' | 'lg'
+/* -------------------------------------------------------------------------- */
+/*  Grid                                                                      */
+/* -------------------------------------------------------------------------- */
+
+const gridVariants = cva('grid', {
+  variants: {
+    cols: {
+      1: 'grid-cols-1',
+      2: 'grid-cols-1 md:grid-cols-2',
+      3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+      4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+      6: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
+    },
+    gap: {
+      sm: 'gap-4',
+      md: 'gap-6',
+      lg: 'gap-8',
+    },
+  },
+  defaultVariants: {
+    cols: 2,
+    gap: 'md',
+  },
+})
+
+type GridProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof gridVariants>
+
+function Grid({ cols, gap, render, className, ...props }: GridProps) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn(gridVariants({ cols, gap }), className) }, props),
+    render,
+  })
 }
 
-function Grid({ cols = 2, gap = 'md', className, ...props }: GridProps) {
-  return (
-    <div
-      className={cn(
-        'grid',
-        // Gap variants
-        gap === 'sm' && 'gap-4',
-        gap === 'md' && 'gap-6',
-        gap === 'lg' && 'gap-8',
-        // Column variants
-        cols === 1 && 'grid-cols-1',
-        cols === 2 && 'grid-cols-1 md:grid-cols-2',
-        cols === 3 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-        cols === 4 && 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
-        cols === 6 && 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
-        className,
-      )}
-      {...props}
-    />
-  )
+/* -------------------------------------------------------------------------- */
+/*  Stack                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const stackVariants = cva('flex flex-col', {
+  variants: {
+    gap: {
+      sm: 'gap-2',
+      md: 'gap-4',
+      lg: 'gap-6',
+      xl: 'gap-8',
+    },
+    align: {
+      start: 'items-start',
+      center: 'items-center',
+      end: 'items-end',
+      stretch: 'items-stretch',
+    },
+  },
+  defaultVariants: {
+    gap: 'md',
+    align: 'stretch',
+  },
+})
+
+type StackProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof stackVariants>
+
+function Stack({ gap, align, render, className, ...props }: StackProps) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn(stackVariants({ gap, align }), className) }, props),
+    render,
+  })
 }
 
-interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
-  gap?: 'sm' | 'md' | 'lg' | 'xl'
-  align?: 'start' | 'center' | 'end' | 'stretch'
-}
+/* -------------------------------------------------------------------------- */
+/*  Inline                                                                    */
+/* -------------------------------------------------------------------------- */
 
-function Stack({ gap = 'md', align = 'stretch', className, ...props }: StackProps) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col',
-        // Gap variants
-        gap === 'sm' && 'gap-2',
-        gap === 'md' && 'gap-4',
-        gap === 'lg' && 'gap-6',
-        gap === 'xl' && 'gap-8',
-        // Align variants
-        align === 'start' && 'items-start',
-        align === 'center' && 'items-center',
-        align === 'end' && 'items-end',
-        align === 'stretch' && 'items-stretch',
-        className,
-      )}
-      {...props}
-    />
-  )
-}
+const inlineVariants = cva('flex', {
+  variants: {
+    gap: {
+      sm: 'gap-2',
+      md: 'gap-4',
+      lg: 'gap-6',
+    },
+    align: {
+      start: 'items-start',
+      center: 'items-center',
+      end: 'items-end',
+      baseline: 'items-baseline',
+    },
+    justify: {
+      start: 'justify-start',
+      center: 'justify-center',
+      end: 'justify-end',
+      between: 'justify-between',
+    },
+    wrap: {
+      true: 'flex-wrap',
+      false: 'flex-nowrap',
+    },
+  },
+  defaultVariants: {
+    gap: 'md',
+    align: 'center',
+    justify: 'start',
+    wrap: false,
+  },
+})
 
-/**
- * Inline
- * Horizontal inline layout with consistent spacing
- */
-interface InlineProps extends React.HTMLAttributes<HTMLDivElement> {
-  gap?: 'sm' | 'md' | 'lg'
-  align?: 'start' | 'center' | 'end' | 'baseline'
-  justify?: 'start' | 'center' | 'end' | 'between'
-  wrap?: boolean
-}
+type InlineProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof inlineVariants>
 
-function Inline({ gap = 'md', align = 'center', justify = 'start', wrap = false, className, ...props }: InlineProps) {
-  return (
-    <div
-      className={cn(
-        'flex',
-        // Gap variants
-        gap === 'sm' && 'gap-2',
-        gap === 'md' && 'gap-4',
-        gap === 'lg' && 'gap-6',
-        // Align variants
-        align === 'start' && 'items-start',
-        align === 'center' && 'items-center',
-        align === 'end' && 'items-end',
-        align === 'baseline' && 'items-baseline',
-        // Justify variants
-        justify === 'start' && 'justify-start',
-        justify === 'center' && 'justify-center',
-        justify === 'end' && 'justify-end',
-        justify === 'between' && 'justify-between',
-        // Wrap
-        wrap && 'flex-wrap',
-        className,
-      )}
-      {...props}
-    />
-  )
+function Inline({ gap, align, justify, wrap, render, className, ...props }: InlineProps) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>({ className: cn(inlineVariants({ gap, align, justify, wrap }), className) }, props),
+    render,
+  })
 }
 
 export { Section, SectionHeader, Grid, Stack, Inline }

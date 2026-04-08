@@ -1,4 +1,7 @@
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { Link } from '@tanstack/react-router'
+import * as React from 'react'
 import { Fragment } from 'react'
 import type { ReactNode } from 'react'
 
@@ -12,24 +15,38 @@ import {
 } from '@/components/ui/breadcrumb'
 import { cn } from '@/lib/utils'
 
+/* -------------------------------------------------------------------------- */
+/*  Types                                                                     */
+/* -------------------------------------------------------------------------- */
+
 export interface BreadcrumbStep {
   label: string
   href?: string
 }
 
-interface PageHeaderProps {
+interface PageHeaderProps extends useRender.ComponentProps<'div'>, React.ComponentProps<'div'> {
   title: string
   description?: string
   breadcrumbs?: Array<BreadcrumbStep>
   actions?: ReactNode
-  children?: ReactNode
-  className?: string
 }
 
-export function PageHeader({ title, description, breadcrumbs, actions, children, className }: PageHeaderProps) {
-  return (
-    <div className={cn('flex flex-col gap-6 animate-enter', className)}>
-      {/* Breadcrumbs */}
+/* -------------------------------------------------------------------------- */
+/*  Component                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export function PageHeader({
+  title,
+  description,
+  breadcrumbs,
+  actions,
+  children,
+  className,
+  render,
+  ...props
+}: PageHeaderProps) {
+  const content = (
+    <div className={cn('flex flex-col gap-6 animate-enter', className)} {...props}>
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb>
           <BreadcrumbList className="flex-wrap gap-y-1">
@@ -43,7 +60,7 @@ export function PageHeader({ title, description, breadcrumbs, actions, children,
                     ) : (
                       <BreadcrumbLink
                         className="text-muted-foreground/60 transition-colors hover:text-foreground"
-                        render={<Link to={step.href}>{step.label}</Link>}
+                        render={<Link to={step.href as any}>{step.label}</Link>}
                       />
                     )}
                   </BreadcrumbItem>
@@ -55,7 +72,6 @@ export function PageHeader({ title, description, breadcrumbs, actions, children,
         </Breadcrumb>
       )}
 
-      {/* Title & Actions */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground/90 lg:text-4xl">{title}</h1>
@@ -64,8 +80,13 @@ export function PageHeader({ title, description, breadcrumbs, actions, children,
         {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
       </div>
 
-      {/* Tabs or Extra content */}
       {children && <div className="mt-2">{children}</div>}
     </div>
   )
+
+  return useRender({
+    defaultTagName: 'div',
+    props: { children: content },
+    render,
+  })
 }
