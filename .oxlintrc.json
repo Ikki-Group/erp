@@ -36,7 +36,8 @@
     "require-await": "off",
     "max-lines-per-function": "off",
     "no-warning-comments": "off",
-    "import/max-dependencies": "off"
+    "import/max-dependencies": "off",
+    "no-inline-comments": "off"
   },
   "overrides": [
     {

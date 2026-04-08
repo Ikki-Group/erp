@@ -122,6 +122,7 @@ export function numberColumn<TData, TValue = number | null | undefined>(
       const value = getValue()
       if (opts.render) return opts.render(value, row.original)
       if (value === null || value === undefined) return '-'
+      // oxlint-disable-next-line typescript/no-unsafe-argument
       return <p className="text-right tabular-nums">{toNumber(value as any)}</p>
     },
     enableSorting: opts.enableSorting ?? false,
@@ -142,7 +143,8 @@ export function currencyColumn<TData, TValue = number | string | null | undefine
       const value = getValue()
       if (opts.render) return opts.render(value, row.original)
       if (value === null || value === undefined) return '-'
-      return <p className="text-right tabular-nums">{toCurrency(value)}</p>
+      // oxlint-disable-next-line typescript/no-unsafe-argument
+      return <p className="text-right tabular-nums">{toCurrency(value as any)}</p>
     },
     enableSorting: opts.enableSorting ?? false,
     size: opts.size,

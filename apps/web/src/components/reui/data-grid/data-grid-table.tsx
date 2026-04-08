@@ -1,3 +1,5 @@
+// oxlint-disable max-lines
+// oxlint-disable typescript/no-confusing-void-expression
 import { flexRender } from '@tanstack/react-table'
 import type { Cell, Column, Header, HeaderGroup, Row } from '@tanstack/react-table'
 import { cva } from 'class-variance-authority'
@@ -121,7 +123,7 @@ function DataGridTableHeadRowCell<TData>({
           width: header.getSize(),
         }),
         ...(props.tableLayout?.columnsPinnable && column.getCanPin() && getPinningStyles(column)),
-        ...(dndStyle ? dndStyle : null),
+        ...(dndStyle ?? null),
       }}
       data-pinned={isPinned || undefined}
       data-last-col={isLastLeftPinned ? 'left' : isFirstRightPinned ? 'right' : undefined}
@@ -150,7 +152,9 @@ function DataGridTableHeadRowCellResize<TData>({ header }: { header: Header<TDat
   return (
     <div
       {...{
-        onDoubleClick: () => column.resetSize(),
+        onDoubleClick: () => {
+          column.resetSize()
+        },
         onMouseDown: header.getResizeHandler(),
         onTouchStart: header.getResizeHandler(),
         className:
@@ -245,7 +249,7 @@ function DataGridTableBodyRow<TData>({
   return (
     <tr
       ref={dndRef}
-      style={{ ...(dndStyle ? dndStyle : null) }}
+      style={{ ...(dndStyle ?? null) }}
       data-state={table.options.enableRowSelection && row.getIsSelected() ? 'selected' : undefined}
       onClick={() => props.onRowClick && props.onRowClick(row.original)}
       className={cn(
@@ -307,7 +311,7 @@ function DataGridTableBodyRowCell<TData>({
       style={{
         ...(props.tableLayout?.columnsResizable && { width: column.getSize() }),
         ...(props.tableLayout?.columnsPinnable && column.getCanPin() && getPinningStyles(column)),
-        ...(dndStyle ? dndStyle : null),
+        ...(dndStyle ?? null),
       }}
       data-pinned={isPinned || undefined}
       data-last-col={isLastLeftPinned ? 'left' : isFirstRightPinned ? 'right' : undefined}
@@ -337,7 +341,7 @@ function DataGridTableEmpty() {
   return (
     <tr>
       <td colSpan={totalColumns} className="text-muted-foreground text-sm py-6 text-center">
-        {props.emptyMessage || 'No data available'}
+        {props.emptyMessage ?? 'No data available'}
       </td>
     </tr>
   )
@@ -362,7 +366,7 @@ function DataGridTableLoader() {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        {props.loadingMessage || 'Loading...'}
+        {props.loadingMessage ?? 'Loading...'}
       </div>
     </div>
   )
@@ -372,9 +376,6 @@ function DataGridTableLoader() {
  * Renders a per-row selection control with a checkbox and a left-side selection indicator.
  *
  * The checkbox is bound to the row's selection state and toggles selection when changed.
- *
- * @param row - The table row whose selection state is displayed and controlled
- * @returns A React fragment containing a checkbox bound to the row's selection state and a left-side visual indicator shown when the row is selected
  */
 function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
   return (
@@ -384,7 +385,9 @@ function DataGridTableRowSelect<TData>({ row }: { row: Row<TData> }) {
       ></div>
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={(value) => {
+          row.toggleSelected(!!value)
+        }}
         aria-label="Select row"
         className="align-[inherit]"
       />
@@ -403,7 +406,9 @@ function DataGridTableRowSelectAll() {
       checked={isAllSelected}
       indeterminate={isSomeSelected && !isAllSelected}
       disabled={isLoading || recordCount === 0}
-      onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+      onCheckedChange={(value) => {
+        table.toggleAllPageRowsSelected(!!value)
+      }}
       aria-label="Select all"
       className="align-[inherit]"
     />
@@ -437,7 +442,7 @@ function DataGridTable<TData>() {
         })}
       </DataGridTableHead>
 
-      {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
+      {(props.tableLayout?.stripped ?? !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
 
       <DataGridTableBody>
         {isLoading && props.loadingMode === 'skeleton' && pagination?.pageSize ? (
@@ -471,11 +476,11 @@ function DataGridTable<TData>() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                {props.loadingMessage || 'Loading...'}
+                {props.loadingMessage ?? 'Loading...'}
               </div>
             </td>
           </tr>
-        ) : table.getRowModel().rows.length ? (
+        ) : table.getRowModel().rows.length > 0 ? (
           // Show actual data when not loading
           table.getRowModel().rows.map((row: Row<TData>, index) => {
             return (

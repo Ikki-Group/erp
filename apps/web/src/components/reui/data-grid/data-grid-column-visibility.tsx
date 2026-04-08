@@ -25,17 +25,21 @@ function DataGridColumnVisibility<TData>({
           <DropdownMenuLabel className="font-medium">Toggle Columns</DropdownMenuLabel>
           {table
             .getAllColumns()
-            .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
+            .filter((column) => column.accessorFn !== undefined && column.getCanHide())
             .map((column) => {
               return (
                 <DropdownMenuCheckboxItem
                   key={column.id}
                   className="capitalize"
                   checked={column.getIsVisible()}
-                  onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  onSelect={(event) => {
+                    event.preventDefault()
+                  }}
+                  onCheckedChange={(value) => {
+                    column.toggleVisibility(!!value)
+                  }}
                 >
-                  {column.columnDef.meta?.headerTitle || column.id}
+                  {column.columnDef.meta?.headerTitle ?? column.id}
                 </DropdownMenuCheckboxItem>
               )
             })}

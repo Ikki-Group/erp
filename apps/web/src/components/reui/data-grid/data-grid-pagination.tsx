@@ -1,3 +1,4 @@
+// oxlint-disable typescript/prefer-nullish-coalescing
 'use client'
 
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
@@ -104,7 +105,9 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
           size="icon-sm"
           className={btnBaseClasses}
           variant="ghost"
-          onClick={() => table.setPageIndex(currentGroupStart - 1)}
+          onClick={() => {
+            table.setPageIndex(currentGroupStart - 1)
+          }}
         >
           {mergedProps.ellipsisText}
         </Button>
@@ -121,7 +124,9 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
           className={btnBaseClasses}
           variant="ghost"
           size="icon-sm"
-          onClick={() => table.setPageIndex(currentGroupEnd)}
+          onClick={() => {
+            table.setPageIndex(currentGroupEnd)
+          }}
         >
           {mergedProps.ellipsisText}
         </Button>
@@ -177,7 +182,9 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
                   size="icon-sm"
                   variant="ghost"
                   className={btnArrowClasses}
-                  onClick={() => table.previousPage()}
+                  onClick={() => {
+                    table.previousPage()
+                  }}
                   disabled={!table.getCanPreviousPage()}
                 >
                   <span className="sr-only">{mergedProps.previousPageLabel}</span>
@@ -194,7 +201,9 @@ function DataGridPagination(props: DataGridPaginationProps): React.JSX.Element {
                   size="icon-sm"
                   variant="ghost"
                   className={btnArrowClasses}
-                  onClick={() => table.nextPage()}
+                  onClick={() => {
+                    table.nextPage()
+                  }}
                   disabled={!table.getCanNextPage()}
                 >
                   <span className="sr-only">{mergedProps.nextPageLabel}</span>

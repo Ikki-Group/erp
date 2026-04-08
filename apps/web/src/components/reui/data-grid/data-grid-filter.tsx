@@ -1,3 +1,4 @@
+// oxlint-disable typescript/ban-ts-comment
 import { SearchIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -167,6 +168,7 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
       value={value != null && value !== '' ? String(value) : ''}
       onValueChange={(val) => {
         if (val === '') {
+          // @ts-expect-error
           onChange()
           return
         }
@@ -188,6 +190,7 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
     >
       <SelectTrigger className="h-8 w-fit min-w-[130px] gap-2">
         <SelectValue placeholder={placeholder}>
+          {/* oxlint-disable-next-line eqeqeq */}
           {value != null && value !== ''
             ? options.find((opt) => String(opt.value) === String(value))?.label
             : undefined}
