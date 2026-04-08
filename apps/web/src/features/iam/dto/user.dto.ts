@@ -32,7 +32,7 @@ export const UserDto = z.object({
 })
 export type UserDto = z.infer<typeof UserDto>
 
-export const UserSelectDto = UserDto.extend({ assignments: z.array(UserAssignmentDetailDto).optional() })
+export const UserSelectDto = z.object({ ...UserDto.shape, assignments: z.array(UserAssignmentDetailDto).optional() })
 export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /**

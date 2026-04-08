@@ -18,7 +18,7 @@ import type { UserSelectDto } from '../dto'
 const FormDto = z.object({
   fullname: z.string().min(1, 'Nama lengkap wajib diisi'),
   username: z.string().min(1, 'Username wajib diisi'),
-  email: z.string().email('Email tidak valid'),
+  email: z.email('Email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter').optional(),
   isRoot: z.boolean().default(false),
   isActive: z.boolean().default(true),
@@ -26,7 +26,6 @@ const FormDto = z.object({
 })
 
 type FormDto = z.infer<typeof FormDto>
-
 const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: UserSelectDto): FormDto {
@@ -59,8 +58,8 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
     defaultValues: getDefaultValues(selectedUser.data?.data),
     onSubmit: async ({ value }) => {
       const promise = selectedUser.data?.data
-        ? update.mutateAsync({ body: { id: selectedUser.data.data.id, ...value } as any })
-        : create.mutateAsync({ body: { ...value, password: value.password ?? '' } as any })
+        ? update.mutateAsync({ body: { id: selectedUser.data.data.id, ...value } })
+        : create.mutateAsync({ body: { ...value, password: value.password ?? '' } })
 
       await toast.promise(promise, toastLabelMessage(mode, 'pengguna')).unwrap()
 

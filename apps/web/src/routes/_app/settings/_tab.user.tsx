@@ -1,16 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { KeyRoundIcon, PencilIcon } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
-import {
-  actionColumn,
-  createColumnHelper,
-  dateColumn,
-  linkColumn,
-  statusColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, dateColumn, linkColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import type { UserSelectDto } from '@/features/iam'
@@ -32,7 +27,7 @@ function RouteComponent() {
 }
 
 const ch = createColumnHelper<UserSelectDto>()
-const columns = [
+const columnDefs = [
   ch.accessor(
     'fullname',
     linkColumn({
@@ -49,59 +44,56 @@ const columns = [
       enableSorting: false,
     }),
   ),
-  ch.accessor(
-    'isActive',
-    statusColumn({ header: 'Aktif', render: (value) => <BadgeDot {...getUserStatusBadge(value)} /> }),
-  ),
+  ch.accessor('isActive', {
+    header: 'Aktif',
+    cell: ({ row }) => <BadgeDot {...getUserStatusBadge(row.original.isActive)} />,
+  }),
   ch.accessor('username', {
     header: 'Username',
     cell: ({ row }) => <span className="text-muted-foreground/80">@{row.original.username}</span>,
     enableSorting: false,
   }),
   ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
-  ch.display(
-    // oxlint-disable-next-line typescript/no-unsafe-argument
-    actionColumn<UserSelectDto>({
-      id: 'action',
-      cell: ({ row }) => {
-        const { id, username } = row.original
-        return (
-          <div className="flex items-center justify-end gap-1 px-2">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              // oxlint-disable-next-line typescript/no-misused-promises
-              onClick={() => {
-                void UserPasswordDialog.call({ id, username })
-              }}
-              title="Ubah Password"
-              className="size-8 text-muted-foreground hover:text-foreground"
-            >
-              <KeyRoundIcon className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              nativeButton={false}
-              render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
-              className="size-8 text-muted-foreground hover:text-foreground"
-            >
-              <PencilIcon className="size-4" />
-            </Button>
-          </div>
-        )
-      },
-      size: 100,
-    }),
-  ),
+  ch.display({
+    id: 'action',
+    cell: ({ row }) => {
+      const { id, username } = row.original
+      return (
+        <div className="flex items-center justify-end gap-1 px-2">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => {
+              void UserPasswordDialog.call({ id, username })
+            }}
+            title="Ubah Password"
+            className="size-8 text-muted-foreground hover:text-foreground"
+          >
+            <KeyRoundIcon className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            nativeButton={false}
+            render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
+            className="size-8 text-muted-foreground hover:text-foreground"
+          >
+            <PencilIcon className="size-4" />
+          </Button>
+        </div>
+      )
+    },
+    size: 100,
+  }),
 ]
 
 function UserTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
   const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, ...ds.filters }))
 
+  const columns = useMemo(() => columnDefs, [])
   const table = useDataTable({
-    columns: columns,
+    columns,
     data: data?.data ?? [],
     pageCount: data?.meta.totalPages ?? 0,
     rowCount: data?.meta.total ?? 0,

@@ -4,10 +4,9 @@ import {
   createColumnHelper,
   currencyColumn,
   DataGridCell,
-  statusColumn,
   textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
@@ -24,22 +23,22 @@ import { AlertCircleIcon, BoxIcon, MoveDownIcon, SearchIcon, TrendingUpIcon } fr
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 
-function getStartOfMonth() {
+function getStartOfMonth(): string {
   const date = new Date()
   date.setDate(1)
-  return date.toISOString().split('T')[0]
+  return date.toISOString().split('T')[0]!
 }
 
-function getToday() {
-  return new Date().toISOString().split('T')[0]
+function getToday(): string {
+  return new Date().toISOString().split('T')[0]!
 }
 
 function RouteComponent() {
   const [locationId, setLocationId] = useState<string | null>(null)
 
   // By default we get the period of this month
-  const [dateFrom] = useState(() => getStartOfMonth())
-  const [dateTo] = useState(() => getToday())
+  const [dateFrom] = useState<string>(() => getStartOfMonth())
+  const [dateTo] = useState<string>(() => getToday())
 
   const numericLocationId = locationId ? Number(locationId) : undefined
 
@@ -47,7 +46,6 @@ function RouteComponent() {
     <Page>
       <Page.BlockHeader title="Summary Stok" description="Lihat rangkuman nilai dan kuantitas stok bahan baku." />
       <Page.Content className="flex flex-col gap-6">
-        
         {/* Metric Cards Dashboard */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -88,26 +86,33 @@ function RouteComponent() {
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {/* Search */}
               <div className="flex flex-col gap-1.5 min-w-[280px]">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pencarian</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pencarian
+                </label>
                 <div className="relative">
                   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Cari nama bahan atau SKU..." className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background" />
+                  <Input
+                    placeholder="Cari nama bahan atau SKU..."
+                    className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background"
+                  />
                 </div>
               </div>
               {/* Location Filter */}
               <div className="flex flex-col gap-1.5 min-w-[240px]">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filter Gudang</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Filter Gudang
+                </label>
                 <DataCombobox
                   className="h-10 bg-secondary/30 border-transparent hover:bg-secondary/50 transition-colors"
                   value={locationId}
-                  onValueChange={(val) => { setLocationId(val) }}
+                  onValueChange={(val) => {
+                    setLocationId(val)
+                  }}
                   placeholder="Semua Lokasi Gudang"
                   emptyText="Lokasi tidak ditemukan."
                   queryKey={['location-list']}
                   queryFn={async (search: string) => {
-                    const res = await locationApi.list.fetch({
-                      params: { page: 1, limit: 20, q: search || undefined },
-                    })
+                    const res = await locationApi.list.fetch({ params: { page: 1, limit: 20, q: search || undefined } })
                     return res.data
                   }}
                   getLabel={(item) => `${item.name} (${item.code})`}
@@ -115,7 +120,6 @@ function RouteComponent() {
                 />
               </div>
             </div>
-            {/* Future Primary Actions can go here */}
           </div>
         </Card>
 
@@ -129,6 +133,55 @@ function RouteComponent() {
 /* ─────────── Summary Table ─────────── */
 
 const ch = createColumnHelper<StockLedgerSelectDto>()
+const columnDefs = [
+  ch.accessor('materialName', {
+    header: 'Bahan Baku',
+    cell: ({ row }) => (
+      <div className="flex flex-col gap-1">
+        <DataGridCell.Text value={row.original.materialName} className="font-semibold text-foreground/90" />
+        <DataGridCell.Text
+          value={row.original.materialSku}
+          className="text-[11px] font-mono text-muted-foreground/80 tracking-tight"
+        />
+      </div>
+    ),
+    size: 180,
+  }),
+  ch.accessor('baseUomCode', {
+    header: 'Satuan',
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className="font-medium text-muted-foreground bg-secondary/50 border-transparent shadow-none px-2 rounded-md"
+      >
+        {getValue()}
+      </Badge>
+    ),
+    size: 90,
+  }),
+  ch.accessor('openingQty', textColumn({ header: 'Stok Awal', size: 110 })),
+  ch.accessor('closingQty', {
+    header: 'Stok Terkini',
+    cell: ({ getValue }) => {
+      const qty = Number(getValue())
+      const isLow = qty < 10
+      return (
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={isLow ? 'destructive' : 'success-light'}
+            className="shadow-none font-bold tabular-nums rounded-md px-2"
+          >
+            {qty}
+          </Badge>
+          {isLow && <MoveDownIcon className="h-3 w-3 text-rose-500" />}
+        </div>
+      )
+    },
+    size: 130,
+  }),
+  ch.accessor('closingAvgCost', currencyColumn({ header: 'HPP (Avg Cost)', size: 150 })),
+  ch.accessor('closingValue', currencyColumn({ header: 'Nilai Stok Akhir', size: 180 })),
+]
 
 function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; dateFrom: string; dateTo: string }) {
   const ds = useDataTableState()
@@ -143,77 +196,7 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
     }),
   )
 
-  const columns = [
-    ch.accessor(
-      'materialName',
-      statusColumn({
-        header: 'Bahan Baku',
-        render: (value, row) => (
-          <div className="flex flex-col gap-1">
-            <DataGridCell.Text value={value} className="font-semibold text-foreground/90" />
-            <DataGridCell.Text 
-              value={row.materialSku} 
-              className="text-[11px] font-mono text-muted-foreground/80 tracking-tight" 
-            />
-          </div>
-        ),
-        size: 180,
-      }),
-    ),
-    ch.accessor(
-      'baseUomCode',
-      statusColumn({
-        header: 'Satuan',
-        render: (value) => (
-          <Badge
-            variant="outline"
-            className="font-medium text-muted-foreground bg-secondary/50 border-transparent shadow-none px-2 rounded-md"
-          >
-            {value}
-          </Badge>
-        ),
-        size: 90,
-      }),
-    ),
-    ch.accessor('openingQty', textColumn({ header: 'Stok Awal', size: 110 })),
-    ch.accessor(
-      'closingQty',
-      statusColumn({
-        header: 'Stok Terkini',
-        render: (value) => {
-          const qty = Number(value)
-          const isLow = qty < 10
-          return (
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={isLow ? 'destructive' : 'success-light'}
-                className="shadow-none font-bold tabular-nums rounded-md px-2"
-              >
-                {qty}
-              </Badge>
-              {isLow && <MoveDownIcon className="h-3 w-3 text-rose-500" />}
-            </div>
-          )
-        },
-        size: 130,
-      }),
-    ),
-    ch.accessor('closingAvgCost', currencyColumn({ header: 'HPP (Avg Cost)', size: 150 })),
-    ch.accessor(
-      'closingValue',
-      currencyColumn({
-        header: 'Nilai Stok Akhir',
-        render: (value) => (
-          <DataGridCell.Currency 
-            value={value} 
-            className="font-semibold text-foreground tracking-tight" 
-          />
-        ),
-        size: 180,
-      }),
-    ),
-  ]
-
+  const columns = useMemo(() => columnDefs, [])
   const table = useDataTable({
     columns,
     data: data?.data ?? [],
@@ -222,16 +205,13 @@ function SummaryTable({ locationId, dateFrom, dateTo }: { locationId?: number; d
     ds,
   })
 
-  // Calculate mock summary from current page data if needed
-  // For proper implementation, this should come from a dedicated `/summary` endpoint
-  
   return (
     <div className="rounded-2xl overflow-hidden border border-muted/60 shadow-sm">
-      <DataTableCard 
-        title="Rincian Ledger Inventori" 
-        table={table} 
-        isLoading={isLoading} 
-        recordCount={data?.meta.total ?? 0} 
+      <DataTableCard
+        title="Rincian Ledger Inventori"
+        table={table}
+        isLoading={isLoading}
+        recordCount={data?.meta.total ?? 0}
       />
     </div>
   )
