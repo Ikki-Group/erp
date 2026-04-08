@@ -33,7 +33,7 @@ export function useActiveLocation() {
 
   const label = isConsolidated
     ? `Semua Lokasi (${locations.length})`
-    : activeLocation?.name ?? locations[0]?.name ?? 'Tidak ada lokasi'
+    : (activeLocation?.name ?? locations[0]?.name ?? 'Tidak ada lokasi')
 
   return {
     /** The single active location ID, or undefined if consolidated */
@@ -51,9 +51,13 @@ export function useActiveLocation() {
     /** The full active location object */
     activeLocation,
     /** Switch to a single location */
-    switchTo: (id: number) => { setLocation([id]) },
+    switchTo: (id: number) => {
+      setLocation([id])
+    },
     /** Switch to consolidated (all locations) */
-    switchToAll: () => { setLocation(locations.map((l) => l.id)) },
+    switchToAll: () => {
+      setLocation(locations.map((l) => l.id))
+    },
     /** Raw location IDs array from state */
     rawLocationIds: location,
   }
