@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CopyIcon, CheckIcon, TagIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon, EyeIcon, TagIcon } from 'lucide-react'
 import { useState } from 'react'
 
+import { blocksPreviews } from '@/components/blocks/previews'
 import { componentRegistry } from '@/components/registry'
 import type { ComponentRegistryEntry } from '@/components/registry'
 
@@ -9,16 +10,23 @@ export const Route = createFileRoute('/_docs/docs/$layer')({
   component: LayerPage,
 })
 
+/** Map layer name → preview map */
+const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = {
+  blocks: blocksPreviews,
+}
+
 function LayerPage() {
   const { layer } = Route.useParams()
-
   const registry = componentRegistry.find((r) => r.layer === layer)
+  const previews = previewMaps[layer] ?? {}
 
   if (!registry) {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold">Layer not found</h1>
-        <p className="text-muted-foreground mt-2">No registry found for layer "{layer}".</p>
+        <p className="text-muted-foreground mt-2">
+          No registry found for layer &ldquo;{layer}&rdquo;.
+        </p>
       </div>
     )
   }
@@ -44,21 +52,29 @@ function LayerPage() {
       {/* Component Cards */}
       <div className="space-y-4">
         {registry.components.map((entry) => (
-          <ComponentCard key={entry.name} entry={entry} />
+          <ComponentCard key={entry.name} entry={entry} preview={previews[entry.name]} />
         ))}
       </div>
     </div>
   )
 }
 
-function ComponentCard({ entry }: { entry: ComponentRegistryEntry }) {
+function ComponentCard({
+  entry,
+  preview,
+}: {
+  entry: ComponentRegistryEntry
+  preview?: ComponentRegistryEntry['preview']
+}) {
   const [copied, setCopied] = useState(false)
 
   const handleCopyImport = () => {
     const importStr = `import { ${entry.exports[0]} } from '${entry.importPath}'`
     navigator.clipboard.writeText(importStr)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => {
+      setCopied(false)
+    }, 2000)
   }
 
   return (
@@ -73,11 +89,26 @@ function ComponentCard({ entry }: { entry: ComponentRegistryEntry }) {
         </div>
       </div>
 
+      {/* Preview */}
+      {preview && (
+        <div className="px-5 py-4 border-b">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            <EyeIcon className="size-3.5" />
+            Preview
+          </div>
+          <div className="rounded-lg border border-dashed bg-background p-4">
+            {preview()}
+          </div>
+        </div>
+      )}
+
       {/* Card Body */}
       <div className="px-5 py-4 space-y-4">
         {/* Usage */}
         <div>
-          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Kapan & Bagaimana Menggunakan</h4>
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+            Kapan &amp; Bagaimana Menggunakan
+          </h4>
           <p className="text-sm leading-relaxed">{entry.usage}</p>
         </div>
 
@@ -89,6 +120,7 @@ function ComponentCard({ entry }: { entry: ComponentRegistryEntry }) {
               {entry.importPath}
             </code>
             <button
+              type="button"
               onClick={handleCopyImport}
               className="shrink-0 flex items-center justify-center size-8 rounded-md border hover:bg-accent transition-colors"
               title="Copy import statement"
@@ -115,7 +147,10 @@ function ComponentCard({ entry }: { entry: ComponentRegistryEntry }) {
           <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Tags</h4>
           <div className="flex flex-wrap gap-1.5">
             {entry.tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[11px] px-2 py-0.5 rounded-full">
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[11px] px-2 py-0.5 rounded-full"
+              >
                 <TagIcon className="size-2.5" />
                 {tag}
               </span>

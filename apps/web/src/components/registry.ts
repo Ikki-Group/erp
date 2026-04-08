@@ -30,6 +30,8 @@ export interface ComponentRegistryEntry {
   tags: string[]
   /** Named exports available from this file */
   exports: string[]
+  /** Optional preview renderer — loaded lazily in docs UI */
+  preview?: () => React.ReactNode
 }
 
 export interface ComponentRegistry {
