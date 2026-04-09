@@ -1,7 +1,6 @@
 CREATE TYPE "account_type" AS ENUM('ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE');--> statement-breakpoint
 CREATE TYPE "attendance_status" AS ENUM('present', 'absent', 'late', 'on_leave');--> statement-breakpoint
 CREATE TYPE "goods_receipt_status" AS ENUM('open', 'completed', 'void');--> statement-breakpoint
-CREATE TYPE "location_classification" AS ENUM('physical', 'virtual');--> statement-breakpoint
 CREATE TYPE "location_type" AS ENUM('store', 'warehouse');--> statement-breakpoint
 CREATE TYPE "material_type" AS ENUM('raw', 'semi', 'packaging');--> statement-breakpoint
 CREATE TYPE "moka_scrap_status" AS ENUM('pending', 'processing', 'completed', 'failed');--> statement-breakpoint
@@ -140,9 +139,10 @@ CREATE TABLE "locations" (
 	"code" text NOT NULL,
 	"name" text NOT NULL,
 	"type" "location_type" NOT NULL,
-	"classification" "location_classification" DEFAULT 'physical'::"location_classification" NOT NULL,
+	"description" text,
 	"address" text,
 	"phone" text,
+	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,

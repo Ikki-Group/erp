@@ -1,5 +1,5 @@
 import { isNull } from 'drizzle-orm'
-import { pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, uniqueIndex, boolean } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
@@ -21,6 +21,7 @@ export const locationsTable = pgTable(
     description: text('description'),
     address: text('address'),
     phone: text('phone'),
+    isActive: boolean('is_active').notNull().default(true),
     ...auditColumns,
   },
   (t) => [

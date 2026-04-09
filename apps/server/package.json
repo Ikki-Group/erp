@@ -12,6 +12,7 @@
     "db:migrate": "bunx --bun drizzle-kit migrate",
     "db:studio": "bunx --bun drizzle-kit studio",
     "db:reset": "bun run scripts/db-reset.ts",
+    "db:seed": "bun run scripts/db-seed.ts",
     "seed": "bun run scripts/seed.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",

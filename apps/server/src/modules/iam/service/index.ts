@@ -19,4 +19,3 @@ export class IamServiceModule {
 export * from './role.service'
 export * from './user-assignment.service'
 export * from './user.service'
-

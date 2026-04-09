@@ -22,6 +22,7 @@ const iam = {
     adminPasswordReset: 'iam/user/admin/password-reset',
   },
   role: crud('iam/role'),
+  assignment: { list: 'iam/assignment/list', assign: 'iam/assignment/assign', remove: 'iam/assignment/remove' },
 }
 
 const location = crud('location')

@@ -23,6 +23,7 @@ export const LocationBaseDto = z.object({
   description: zStrNullable,
   address: zStrNullable,
   phone: zStrNullable,
+  isActive: z.boolean().default(true),
 })
 export type LocationBaseDto = z.infer<typeof LocationBaseDto>
 

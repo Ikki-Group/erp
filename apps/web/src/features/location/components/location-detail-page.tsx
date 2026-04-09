@@ -1,43 +1,117 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
+  AlertTriangleIcon,
   Building2Icon,
   CalendarIcon,
   ChevronRightIcon,
   EditIcon,
   HistoryIcon,
   InfoIcon,
+  Loader2Icon,
   MailIcon,
   MapPinIcon,
   PhoneIcon,
+  PowerIcon,
   StoreIcon,
+  TrashIcon,
+  UserMinusIcon,
   UsersIcon,
 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { DataList } from '@/components/blocks/data-display/data-list'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { userApi } from '@/features/iam'
+import { userApi, userAssignmentApi } from '@/features/iam'
 import { cn } from '@/lib/utils'
 
 import { locationApi } from '../api'
+import { LocationAssignMemberDialog } from './location-assign-member-dialog'
 
 interface LocationDetailPageProps {
   id: number
 }
 
 export function LocationDetailPage({ id }: LocationDetailPageProps) {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
   const { data: locationResult } = useSuspenseQuery({ ...locationApi.detail.query({ id }) })
   const location = locationResult.data
 
-  const { data: membersResult } = useSuspenseQuery({
-    ...userApi.list.query({ locationId: id, limit: 100 }),
-  })
+  const { data: membersResult } = useSuspenseQuery({ ...userApi.list.query({ locationId: id, limit: 100 }) })
   const members = membersResult.data ?? []
+
+  const updateMutation = useMutation({
+    mutationFn: locationApi.update.mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: locationApi.detail.query({ id }).queryKey })
+      queryClient.invalidateQueries({ queryKey: ['location'] })
+    },
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: locationApi.remove.mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['location'] })
+      navigate({ to: '/location', replace: true })
+    },
+  })
+
+  const removeMemberMutation = useMutation({
+    mutationFn: userAssignmentApi.remove.mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['iam', 'user', 'list', { locationId: id }] })
+    },
+  })
+
+  async function toggleStatus() {
+    const promise = updateMutation.mutateAsync({ body: { ...location, id, isActive: !location.isActive } })
+
+    toast.promise(promise, {
+      loading: 'Mengubah status...',
+      success: `Lokasi berhasil ${!location.isActive ? 'diaktifkan' : 'dinonaktifkan'}`,
+      error: 'Gagal mengubah status',
+    })
+  }
+
+  async function handleDelete() {
+    const promise = removeMutation.mutateAsync({ body: { id } })
+
+    toast.promise(promise, {
+      loading: 'Menghapus lokasi...',
+      success: 'Lokasi berhasil dihapus (soft delete)',
+      error: 'Gagal menghapus lokasi',
+    })
+  }
+
+  async function handleRemoveMember(userId: number, fullname: string) {
+    if (!confirm(`Hapus ${fullname} dari lokasi ini?`)) return
+
+    const promise = removeMemberMutation.mutateAsync({ body: { userId, locationId: id } })
+
+    toast.promise(promise, {
+      loading: 'Menghapus anggota...',
+      success: 'Anggota berhasil dihapus dari lokasi',
+      error: 'Gagal menghapus anggota',
+    })
+  }
 
   return (
     <Page size="lg">
@@ -46,14 +120,35 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
         description="Detail informasi lokasi dan daftar pengguna yang ditugaskan."
         back={{ to: '/location' }}
         action={
-          <Link
-            to="/location/$id/edit"
-            params={{ id: String(id) }}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
-          >
-            <EditIcon className="mr-2 size-4" />
-            Edit Lokasi
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={location.isActive ? 'outline' : 'info'}
+              size="sm"
+              onClick={toggleStatus}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? (
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
+              ) : (
+                <PowerIcon className="mr-2 size-4" />
+              )}
+              {location.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+            </Button>
+
+            <Link
+              to="/location/$id/edit"
+              params={{ id: String(id) }}
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+            >
+              <EditIcon className="mr-2 size-4" />
+              Edit
+            </Link>
+
+            <Button variant="destructive-outline" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
+              <TrashIcon className="mr-2 size-4" />
+              Hapus
+            </Button>
+          </div>
         }
       />
 
@@ -86,7 +181,7 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
                 }
               />
 
-              <DataList.Item label="Deskripsi" span={2} value={location.description || '-'} />
+              <DataList.Item label="Deskripsi" span={2} value={location.description ?? '-'} />
 
               {location.address && (
                 <DataList.Item
@@ -119,15 +214,37 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
             title="Daftar Anggota"
             icon={<UsersIcon className="size-4 text-primary" />}
             description={`${members.length} pengguna ditugaskan ke lokasi ini`}
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })}
+              >
+                <UserPlusIcon className="mr-2 size-3.5" />
+                Tugaskan Anggota
+              </Button>
+            }
           >
             <div className="border rounded-lg overflow-hidden divide-y">
               {members.length === 0 ? (
                 <div className="p-8 text-center bg-muted/20">
                   <p className="text-sm text-muted-foreground">Belum ada anggota yang ditugaskan.</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="mt-1"
+                    onClick={() => LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })}
+                  >
+                    Tugaskan Sekarang
+                  </Button>
                 </div>
               ) : (
                 members.map((user) => (
-                  <div key={user.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                  <div
+                    key={user.id}
+                    className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                         {user.fullname.charAt(0)}
@@ -142,13 +259,23 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
                         </div>
                       </div>
                     </div>
-                    <Link
-                      to="/settings/user/$id"
-                      params={{ id: String(user.id) }}
-                      className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }))}
-                    >
-                      <ChevronRightIcon className="size-4" />
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleRemoveMember(user.id, user.fullname)}
+                      >
+                        <UserMinusIcon className="size-4" />
+                      </Button>
+                      <Link
+                        to="/settings/user/$id"
+                        params={{ id: String(user.id) }}
+                        className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }))}
+                      >
+                        <ChevronRightIcon className="size-4" />
+                      </Link>
+                    </div>
                   </div>
                 ))
               )}
@@ -193,6 +320,34 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
           </CardSection>
         </div>
       </Page.Content>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <AlertTriangleIcon className="size-6 text-destructive" />
+            </div>
+            <AlertDialogTitle>Hapus Lokasi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini akan menghapus <span className="font-bold text-foreground">{location.name}</span> dari daftar
+              aktif. Data historis akan tetap tersimpan di sistem.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDelete()
+                setIsDeleteDialogOpen(false)
+              }}
+            >
+              Ya, Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   )
 }
