@@ -41,6 +41,6 @@ export const roleApi = {
     method: 'delete',
     url: endpoint.iam.role.remove,
     body: zRecordIdDto,
-    result: createSuccessResponseSchema(zId),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
 }
