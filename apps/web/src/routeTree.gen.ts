@@ -30,6 +30,7 @@ import { Route as AppProductCreateRouteImport } from './routes/_app/product/crea
 import { Route as AppProductCategoryRouteImport } from './routes/_app/product/category'
 import { Route as AppProductIdRouteImport } from './routes/_app/product/$id'
 import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
+import { Route as AppProcurementReceiptsRouteImport } from './routes/_app/procurement/receipts'
 import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
 import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
 import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
@@ -175,6 +176,11 @@ const AppProductIdRoute = AppProductIdRouteImport.update({
 const AppProcurementSuppliersRoute = AppProcurementSuppliersRouteImport.update({
   id: '/procurement/suppliers',
   path: '/procurement/suppliers',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProcurementReceiptsRoute = AppProcurementReceiptsRouteImport.update({
+  id: '/procurement/receipts',
+  path: '/procurement/receipts',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProcurementOrdersRoute = AppProcurementOrdersRouteImport.update({
@@ -430,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/material/uom': typeof AppMaterialUomRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/receipts': typeof AppProcurementReceiptsRoute
   '/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
@@ -494,6 +501,7 @@ export interface FileRoutesByTo {
   '/material/uom': typeof AppMaterialUomRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/receipts': typeof AppProcurementReceiptsRoute
   '/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
@@ -562,6 +570,7 @@ export interface FileRoutesById {
   '/_app/material/uom': typeof AppMaterialUomRoute
   '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
   '/_app/procurement/orders': typeof AppProcurementOrdersRoute
+  '/_app/procurement/receipts': typeof AppProcurementReceiptsRoute
   '/_app/procurement/suppliers': typeof AppProcurementSuppliersRoute
   '/_app/product/$id': typeof AppProductIdRoute
   '/_app/product/category': typeof AppProductCategoryRoute
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
     | '/material/uom'
     | '/moka/monitoring'
     | '/procurement/orders'
+    | '/procurement/receipts'
     | '/procurement/suppliers'
     | '/product/$id'
     | '/product/category'
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/material/uom'
     | '/moka/monitoring'
     | '/procurement/orders'
+    | '/procurement/receipts'
     | '/procurement/suppliers'
     | '/product/$id'
     | '/product/category'
@@ -759,6 +770,7 @@ export interface FileRouteTypes {
     | '/_app/material/uom'
     | '/_app/moka/monitoring'
     | '/_app/procurement/orders'
+    | '/_app/procurement/receipts'
     | '/_app/procurement/suppliers'
     | '/_app/product/$id'
     | '/_app/product/category'
@@ -957,6 +969,13 @@ declare module '@tanstack/react-router' {
       path: '/procurement/suppliers'
       fullPath: '/procurement/suppliers'
       preLoaderRoute: typeof AppProcurementSuppliersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/receipts': {
+      id: '/_app/procurement/receipts'
+      path: '/procurement/receipts'
+      fullPath: '/procurement/receipts'
+      preLoaderRoute: typeof AppProcurementReceiptsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/procurement/orders': {
@@ -1303,6 +1322,7 @@ interface AppRouteRouteChildren {
   AppMaterialUomRoute: typeof AppMaterialUomRoute
   AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
   AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
+  AppProcurementReceiptsRoute: typeof AppProcurementReceiptsRoute
   AppProcurementSuppliersRoute: typeof AppProcurementSuppliersRoute
   AppProductIdRoute: typeof AppProductIdRoute
   AppProductCategoryRoute: typeof AppProductCategoryRoute
@@ -1363,6 +1383,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialUomRoute: AppMaterialUomRoute,
   AppMokaMonitoringRoute: AppMokaMonitoringRoute,
   AppProcurementOrdersRoute: AppProcurementOrdersRoute,
+  AppProcurementReceiptsRoute: AppProcurementReceiptsRoute,
   AppProcurementSuppliersRoute: AppProcurementSuppliersRoute,
   AppProductIdRoute: AppProductIdRoute,
   AppProductCategoryRoute: AppProductCategoryRoute,

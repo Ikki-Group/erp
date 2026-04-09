@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, or } from 'drizzle-orm'
 
 import * as core from '@/core/database'
+import { ConflictError } from '@/core/http/errors'
 import { db } from '@/db'
 import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable, purchaseOrderItemsTable } from '@/db/schema'
 import type { StockTransactionService } from '@/modules/inventory/service/stock-transaction.service'
@@ -120,7 +121,7 @@ export class GoodsReceiptService {
         // 1. Get GRN detail and check status
         const grn = await this.getById(id)
         if (grn.status !== 'open') {
-          throw new core.ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')
+          throw new ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')
         }
 
         // 2. Fetch PO items for costs

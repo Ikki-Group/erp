@@ -13,17 +13,20 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { goodsReceiptApi } from '@/features/purchasing/api/purchasing.api'
 import { GoodsReceiptNoteDto } from '@/features/purchasing/dto/goods-receipt.dto'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/_app/procurement/receipts')({ component: GoodsReceiptPage })
 
 const ch = createColumnHelper<GoodsReceiptNoteDto>()
 
 function GoodsReceiptPage() {
-  const ds = useDataTableState({ limit: 10 })
-  const { data, isLoading, refetch } = goodsReceiptApi.list.useQuery({ ...ds.query, ...ds.pagination })
+  const ds = useDataTableState()
+  const { data, isLoading, refetch } = useQuery(
+    goodsReceiptApi.list.query({ ...ds.filters, q: ds.search, ...ds.pagination }),
+  )
 
-  const completeMutation = useMutation(goodsReceiptApi.complete, {
+  const completeMutation = useMutation({
+    mutationFn: goodsReceiptApi.complete.mutationFn,
     onSuccess: () => {
       toast.success('Penerimaan barang diselesaikan. Stok inventori telah diperbarui.')
       refetch()
@@ -59,8 +62,8 @@ function GoodsReceiptPage() {
               size="xs"
               variant="outline"
               className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-              onClick={() => completeMutation.mutate({ id: grn.id })}
-              loading={completeMutation.isPending}
+              onClick={() => completeMutation.mutate({ params: { id: grn.id } })}
+              disabled={completeMutation.isPending}
             >
               <CheckCircleIcon className="size-3 mr-1" /> Selesaikan
             </Button>
@@ -74,7 +77,7 @@ function GoodsReceiptPage() {
 
   const table = useDataTable({
     columns,
-    data: data?.data ?? [],
+    data: (data?.data ?? []) as any[],
     pageCount: data?.meta.pageCount ?? 0,
     rowCount: data?.meta.totalCount ?? 0,
     ds,
@@ -106,7 +109,7 @@ function GoodsReceiptPage() {
             </Card.Header>
             <Card.Content>
               <div className="text-2xl font-bold font-mono tracking-tight">
-                {data?.data.filter((d) => d.status === 'open').length ?? 0} GRN
+                {data?.data.filter((d: any) => d.status === 'open').length ?? 0} GRN
               </div>
               <p className="text-xs text-muted-foreground mt-1">Stok belum bertambah</p>
             </Card.Content>

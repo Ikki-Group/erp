@@ -18,6 +18,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { purchaseOrderApi } from '@/features/purchasing/api/purchasing.api'
 import { PurchaseOrderDto } from '@/features/purchasing/dto/purchase-order.dto'
+import { useQuery } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/_app/procurement/orders')({ component: ProcurementOrderPage })
 
@@ -34,10 +35,10 @@ const columns = [
       header: 'Status',
       render: (value) => {
         const status = value as string
-        if (status === 'closed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
-        if (status === 'open') return <BadgeDot variant="primary-outline">Terbuka</BadgeDot>
-        if (status === 'void') return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
-        return <BadgeDot variant="secondary-outline">{status}</BadgeDot>
+        if (status === 'closed') return <BadgeDot variant="success">Selesai</BadgeDot>
+        if (status === 'open') return <BadgeDot variant="focus">Terbuka</BadgeDot>
+        if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
+        return <BadgeDot variant="secondary">{status}</BadgeDot>
       },
       size: 130,
     }),
@@ -45,12 +46,12 @@ const columns = [
 ]
 
 function ProcurementOrderPage() {
-  const ds = useDataTableState({ limit: 10 })
-  const { data, isLoading } = purchaseOrderApi.list.useQuery({ ...ds.query, ...ds.pagination })
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(purchaseOrderApi.list.query({ ...ds.filters, q: ds.search, ...ds.pagination }))
 
   const table = useDataTable({
     columns,
-    data: data?.data ?? [],
+    data: (data?.data ?? []) as any[],
     pageCount: data?.meta.pageCount ?? 0,
     rowCount: data?.meta.totalCount ?? 0,
     ds,
@@ -81,7 +82,9 @@ function ProcurementOrderPage() {
               <ClockIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.filter(d => d.status === 'open').length ?? 0} PO</div>
+              <div className="text-2xl font-bold font-mono tracking-tight">
+                {data?.data.filter((d: any) => d.status === 'open').length ?? 0} PO
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
             </Card.Content>
           </Card>
@@ -91,7 +94,9 @@ function ProcurementOrderPage() {
               <TruckIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.filter(d => d.status === 'closed').length ?? 0} PO</div>
+              <div className="text-2xl font-bold font-mono tracking-tight">
+                {data?.data.filter((d: any) => d.status === 'closed').length ?? 0} PO
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
             </Card.Content>
           </Card>
@@ -113,4 +118,3 @@ function ProcurementOrderPage() {
     </Page>
   )
 }
-

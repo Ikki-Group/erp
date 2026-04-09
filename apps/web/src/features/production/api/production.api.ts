@@ -52,7 +52,8 @@ export const workOrderApi = {
   complete: apiFactory({
     method: 'post',
     url: endpoint.production.workOrder.complete,
-    body: WorkOrderCompleteDto,
+    params: zRecordIdDto,
+    body: WorkOrderCompleteDto.omit({ id: true }),
     result: createSuccessResponseSchema(WorkOrderDto),
   }),
 }

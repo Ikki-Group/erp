@@ -92,7 +92,7 @@ export class StockExternalMovementService extends MovementLogic {
       if (tx === db) {
         return db.transaction(async (trx) => this.executeProductionIn(data, actorId, trx))
       }
-      return this.executeProductionIn(data, actorId, tx)
+      return this.executeProductionIn(data, actorId, tx as DbTx)
     })
   }
 

@@ -67,7 +67,7 @@ export const goodsReceiptApi = {
   complete: apiFactory({
     method: 'post',
     url: endpoint.purchasing.goodsReceipt.complete,
-    body: zRecordIdDto,
+    params: zRecordIdDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
 }
