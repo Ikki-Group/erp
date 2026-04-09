@@ -5,14 +5,7 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { useAppForm } from '@/components/form'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/layout/form-dialog'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { userApi } from '../api'
@@ -31,7 +24,7 @@ interface UserPasswordDialogProps {
 export const UserPasswordDialog = createCallable<UserPasswordDialogProps>((props) => {
   const { call, id, username } = props
 
-  const updatePassword = useMutation({ mutationFn: userApi.adminUpdatePassword.mutationFn })
+  const updatePassword = useMutation({ mutationFn: userApi.adminPasswordReset.mutationFn })
 
   const form = useAppForm({
     ...fopts,
@@ -48,28 +41,22 @@ export const UserPasswordDialog = createCallable<UserPasswordDialogProps>((props
 
   return (
     <form.AppForm>
-      <Dialog open={!call.ended} onOpenChange={() => call.end()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle>Ubah Password @{username}</DialogTitle>
-            <DialogDescription>
-              Masukkan password baru untuk pengguna <span className="font-medium text-foreground">@{username}</span>.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <form.AppField name="password">
-              {(field) => (
-                <field.Base label="Password Baru" required>
-                  <field.InputPassword placeholder="Masukkan password baru" disabled={disabled} />
-                </field.Base>
-              )}
-            </form.AppField>
-          </div>
-          <DialogFooter>
-            <form.DialogActions onCancel={call.end} disabled={disabled} />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={!call.ended}
+        onOpenChange={() => call.end()}
+        title={`Ubah Password @${username}`}
+        description={`Masukkan password baru untuk pengguna @${username}.`}
+        className="sm:max-w-md"
+        footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
+      >
+        <div className="py-2">
+          <form.AppField name="password">
+            {(field) => (
+              <field.InputPassword label="Password Baru" required placeholder="Masukkan password baru" disabled={disabled} />
+            )}
+          </form.AppField>
+        </div>
+      </FormDialog>
     </form.AppForm>
   )
 }, 200)

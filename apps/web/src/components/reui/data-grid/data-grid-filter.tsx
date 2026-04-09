@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { DataTableState } from '@/hooks/use-data-table-state'
 import { cn } from '@/lib/utils'
 import type { Option, StringOrNumber } from '@/types/common'
+import { useDebounce } from '@uidotdev/usehooks'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -117,15 +118,27 @@ interface DataGridFilterSearchProps {
   placeholder?: string
 }
 
-function DataGridFilterSearch({ value, onChange, placeholder = 'Cari (Tekan Enter)...' }: DataGridFilterSearchProps) {
+function DataGridFilterSearch({ value, onChange, placeholder = 'Cari data...' }: DataGridFilterSearchProps) {
   const [internalValue, setInternalValue] = React.useState(value)
-  const prevValueRef = React.useRef(value)
+  const debouncedValue = useDebounce(internalValue, 500)
+  const isFirstRender = React.useRef(true)
 
   // Sync internal state when external value changes (e.g. reset)
-  if (value !== prevValueRef.current) {
+  React.useEffect(() => {
     setInternalValue(value)
-    prevValueRef.current = value
-  }
+  }, [value])
+
+  // Trigger onChange when debounced value changes
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    if (debouncedValue !== value) {
+      onChange(debouncedValue)
+    }
+  }, [debouncedValue, onChange, value])
 
   return (
     <div className="relative">
@@ -135,17 +148,7 @@ function DataGridFilterSearch({ value, onChange, placeholder = 'Cari (Tekan Ente
         onChange={(e) => {
           setInternalValue(e.target.value)
         }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            onChange(internalValue)
-          }
-        }}
-        onBlur={() => {
-          onChange(internalValue)
-        }}
         placeholder={placeholder}
-        title="Tekan Enter untuk mencari"
         className="h-8 w-[180px] pl-8 lg:w-[250px] transition-colors focus-visible:ring-primary/30"
       />
     </div>

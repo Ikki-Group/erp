@@ -45,14 +45,14 @@ export const userApi = {
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
   changePassword: apiFactory({
-    method: 'put',
+    method: 'post',
     url: endpoint.iam.user.changePassword,
     body: UserChangePasswordDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
-  adminUpdatePassword: apiFactory({
-    method: 'put',
-    url: endpoint.iam.user.adminUpdatePassword,
+  adminPasswordReset: apiFactory({
+    method: 'post',
+    url: endpoint.iam.user.adminPasswordReset,
     body: UserAdminUpdatePasswordDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),

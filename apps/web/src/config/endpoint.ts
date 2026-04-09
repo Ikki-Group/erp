@@ -1,29 +1,30 @@
-const p = (base: string, ...sub: string[]) => [base, ...sub].filter(Boolean).join('/');
+function p(base: string, ...sub: string[]) {
+  return [base, ...sub].filter(Boolean).join('/')
+}
 
-const crud = (base: string) => ({
-  list: p(base, 'list'),
-  detail: p(base, 'detail'),
-  create: p(base, 'create'),
-  update: p(base, 'update'),
-  remove: p(base, 'remove'),
-  _root: base,
-});
+function crud(base: string) {
+  return {
+    list: p(base, 'list'),
+    detail: p(base, 'detail'),
+    create: p(base, 'create'),
+    update: p(base, 'update'),
+    remove: p(base, 'remove'),
+    _root: base,
+  }
+}
 
-const auth = {
-  login: 'auth/login',
-  me: 'auth/me',
-};
+const auth = { login: 'auth/login', me: 'auth/me' }
 
 const iam = {
   user: {
     ...crud('iam/user'),
     changePassword: 'iam/user/change-password',
-    adminUpdatePassword: 'iam/user/admin-update-password',
+    adminPasswordReset: 'iam/user/admin/password-reset',
   },
   role: crud('iam/role'),
-};
+}
 
-const location = crud('location');
+const location = crud('location')
 
 const material = {
   ...crud('material'),
@@ -36,15 +37,11 @@ const material = {
     stock: 'material/location/stock',
     config: 'material/location/config',
   },
-};
+}
 
-const product = {
-  ...crud('product'),
-  category: crud('product/category'),
-  salesType: crud('product/sales-type'),
-};
+const product = { ...crud('product'), category: crud('product/category'), salesType: crud('product/sales-type') }
 
-const recipe = crud('recipe');
+const recipe = crud('recipe')
 
 const inventory = {
   summary: {
@@ -59,64 +56,36 @@ const inventory = {
     adjustment: 'inventory/transaction/adjustment',
     opname: 'inventory/transaction/opname',
   },
-};
+}
 
 const dashboard = {
-  analytics: {
-    pnl: 'dashboard/analytics/pnl',
-    topSales: 'dashboard/analytics/top-sales',
-  },
-  settings: {
-    summary: 'dashboard/settings/summary',
-  },
-};
+  analytics: { pnl: 'dashboard/analytics/pnl', topSales: 'dashboard/analytics/top-sales' },
+  settings: { summary: 'dashboard/settings/summary' },
+}
 
-const employee = crud('employee');
+const employee = crud('employee')
 
 const finance = {
   account: crud('finance/account'),
-  journal: {
-    entries: 'finance/entries',
-    detail: 'finance/entries/:id',
-  },
-};
+  journal: { entries: 'finance/entries', detail: 'finance/entries/:id' },
+}
 
 const hr = {
-  shifts: {
-    list: 'hr/shifts',
-    create: 'hr/shifts',
-  },
-  attendances: {
-    list: 'hr/attendances',
-  },
+  shifts: { list: 'hr/shifts', create: 'hr/shifts' },
+  attendances: { list: 'hr/attendances' },
   clockIn: 'hr/clock-in',
   clockOut: 'hr/clock-out',
-  payroll: {
-    batches: {
-      create: 'hr/payroll/batches',
-    },
-    adjustments: {
-      create: 'hr/payroll/adjustments',
-    },
-  },
-};
+  payroll: { batches: { create: 'hr/payroll/batches' }, adjustments: { create: 'hr/payroll/adjustments' } },
+}
 
 const moka = {
   configuration: crud('moka/configuration'),
-  scrap: {
-    history: 'moka/scrap/history',
-    trigger: 'moka/scrap/trigger',
-  },
-};
+  scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
+}
 
-const production = {
-  workOrder: crud('production/work-order'),
-};
+const production = { workOrder: crud('production/work-order') }
 
-const purchasing = {
-  order: crud('purchasing/purchase-order'),
-  goodsReceipt: crud('purchasing/goods-receipt'),
-};
+const purchasing = { order: crud('purchasing/purchase-order'), goodsReceipt: crud('purchasing/goods-receipt') }
 
 const sales = {
   order: {
@@ -125,9 +94,9 @@ const sales = {
     close: 'sales/order/close',
     void: 'sales/order/void',
   },
-};
+}
 
-const supplier = crud('supplier');
+const supplier = crud('supplier')
 
 export const endpoint = {
   auth,
@@ -146,5 +115,4 @@ export const endpoint = {
   purchasing,
   sales,
   supplier,
-} as const;
-
+} as const

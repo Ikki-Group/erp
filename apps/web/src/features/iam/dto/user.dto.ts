@@ -17,29 +17,30 @@ import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignm
 /**
  * Common User attributes.
  */
-export const UserBaseDto = z.object({ username: zUsername, email: zEmail, fullname: zStr, isActive: zBool })
+export const UserBaseDto = z.object({
+  username: zUsername,
+  email: zEmail,
+  fullname: zStr,
+  isActive: zBool,
+  isRoot: zBool,
+  assignments: z.array(UserAssignmentDetailDto).optional(),
+})
 export type UserBaseDto = z.infer<typeof UserBaseDto>
 
 /**
  * User database record (includes related assignments).
  */
-export const UserDto = z.object({
-  ...zRecordIdDto.shape,
-  ...UserBaseDto.shape,
-  ...zMetadataDto.shape,
-  isRoot: zBool,
-  assignments: z.array(UserAssignmentDetailDto).optional(),
-})
+export const UserDto = z.object({ ...zRecordIdDto.shape, ...UserBaseDto.shape, ...zMetadataDto.shape })
 export type UserDto = z.infer<typeof UserDto>
 
-export const UserSelectDto = z.object({ ...UserDto.shape, assignments: z.array(UserAssignmentDetailDto).optional() })
+export const UserSelectDto = z.object({ ...UserDto.shape })
 export type UserSelectDto = z.infer<typeof UserSelectDto>
 
 /**
  * Input for creating a new User.
  */
 export const UserCreateDto = z.object({
-  ...UserBaseDto.shape,
+  ...UserBaseDto.omit({ assignments: true }).shape,
   password: zPassword,
   assignments: z.array(UserAssignmentUpsertDto).default([]),
 })
@@ -50,9 +51,8 @@ export type UserCreateDto = z.infer<typeof UserCreateDto>
  */
 export const UserUpdateDto = z.object({
   ...zRecordIdDto.shape,
-  ...UserBaseDto.shape,
+  ...UserCreateDto.omit({ password: true }).shape,
   password: zPassword.optional(),
-  assignments: z.array(UserAssignmentUpsertDto).optional(),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 

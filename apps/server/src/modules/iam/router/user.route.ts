@@ -38,7 +38,7 @@ export function initUserRoute(service: UserService) {
       },
       { body: dto.UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .patch(
+    .put(
       '/update',
       async function update({ body, auth }) {
         const result = await service.handleUpdate(body.id, body, auth.userId)
@@ -46,7 +46,7 @@ export function initUserRoute(service: UserService) {
       },
       { body: dto.UserUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .patch(
+    .post(
       '/change-password',
       async function changePassword({ body, auth }) {
         const result = await service.handleChangePassword(auth.userId, body, auth.userId)
@@ -54,7 +54,7 @@ export function initUserRoute(service: UserService) {
       },
       { body: dto.UserChangePasswordDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .patch(
+    .post(
       '/admin/password-reset',
       async function adminUpdatePassword({ body, auth }) {
         const result = await service.handleAdminUpdatePassword(body, auth.userId)

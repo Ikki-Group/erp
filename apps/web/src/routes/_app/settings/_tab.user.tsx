@@ -89,7 +89,7 @@ const columnDefs = [
 
 function UserTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, ...ds.filters }))
+  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
   const columns = useMemo(() => columnDefs, [])
   const table = useDataTable({

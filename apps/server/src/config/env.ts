@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-unsafe-type-assertion
+
 import ms from 'ms'
 import z from 'zod'
 
@@ -15,12 +17,17 @@ const Env = z.object({
   JWT_EXPIRES_IN: z
     .string()
     .default('7d')
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     .transform((value) => ms(value as ms.StringValue)),
 
   // Observability
   AXIOM_TOKEN: z.string().optional(),
   AXIOM_DATASET: z.string().default('ikki'),
+
+  OTEL_LOGS_ENABLED: z
+    .string()
+    .transform((v) => v === 'true')
+    .default(true),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
   // App
   APP_NAME: z.string().default('ikki-erp'),

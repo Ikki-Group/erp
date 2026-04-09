@@ -73,29 +73,11 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
     defaultValues: getDefaultValues(selectedUser.data?.data),
     onSubmit: async ({ value }) => {
       const assignments = value.assignments.map((a) => ({ ...a, userId: id ?? 0 }))
+      const payload = { ...value, assignments }
 
       const promise = selectedUser.data?.data
-        ? update.mutateAsync({
-            body: {
-              id: selectedUser.data.data.id,
-              fullname: value.fullname,
-              username: value.username,
-              email: value.email,
-              isActive: value.isActive,
-              password: value.password,
-              assignments,
-            },
-          })
-        : create.mutateAsync({
-            body: {
-              fullname: value.fullname,
-              username: value.username,
-              email: value.email,
-              isActive: value.isActive,
-              password: value.password ?? '',
-              assignments,
-            },
-          })
+        ? update.mutateAsync({ body: { id: selectedUser.data.data.id, ...payload } })
+        : create.mutateAsync({ body: { ...payload, password: value.password! } })
 
       await toast.promise(promise, toastLabelMessage(mode, 'pengguna')).unwrap()
 

@@ -18,7 +18,13 @@ import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignm
 /**
  * Common User attributes.
  */
-export const UserBaseDto = z.object({ username: zUsername, email: zEmail, fullname: zStr, isActive: zBool })
+export const UserBaseDto = z.object({
+  username: zUsername,
+  email: zEmail,
+  fullname: zStr,
+  isActive: zBool,
+  isRoot: zBool,
+})
 export type UserBaseDto = z.infer<typeof UserBaseDto>
 
 /**
@@ -28,7 +34,6 @@ export const UserDto = z.object({
   ...zRecordIdDto.shape,
   ...UserBaseDto.shape,
   ...zMetadataDto.shape,
-  isRoot: zBool,
   assignments: z.array(UserAssignmentDetailDto).optional(),
 })
 export type UserDto = z.infer<typeof UserDto>
