@@ -16,7 +16,7 @@ export const otel = opentelemetry({
   autoDetectResources: true,
   spanProcessors: [new BatchSpanProcessor(axiomExporter)],
   // @ts-expect-error
-  logRecordProcessor: new logs.SimpleLogRecordProcessor(new logs.ConsoleLogRecordExporter()),
+  logRecordProcessor: new logs.BatchLogRecordProcessor(new logs.ConsoleLogRecordExporter()),
   instrumentations: [new PinoInstrumentation()],
   sampler: new AlwaysOnSampler(),
 })
