@@ -5,7 +5,6 @@ import {
   BoxIcon,
   CirclePileIcon,
   FactoryIcon,
-  FingerprintIcon,
   LayoutDashboardIcon,
   PackageIcon,
   Settings2Icon,
@@ -193,7 +192,6 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
     {
       label: 'Sistem',
       items: [
-        { title: 'Akses & Keamanan', href: '/iam', icon: FingerprintIcon, isActive: pathname.startsWith('/iam') },
         { title: 'Pengaturan', href: '/settings', icon: Settings2Icon, isActive: pathname === '/settings' },
         { title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
       ],
