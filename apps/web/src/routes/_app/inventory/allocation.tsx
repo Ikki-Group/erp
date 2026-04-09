@@ -26,7 +26,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-export const Route = createFileRoute('/_app/material/stock')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/inventory/allocation')({ component: RouteComponent })
 
 function RouteComponent() {
   const [locationId, setLocationId] = useState<string | null>(null)

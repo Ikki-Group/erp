@@ -33,12 +33,12 @@ import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procu
 import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
 import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
 import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
-import { Route as AppMaterialStockRouteImport } from './routes/_app/material/stock'
-import { Route as AppMaterialLedgerRouteImport } from './routes/_app/material/ledger'
 import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
 import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
 import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
 import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
+import { Route as AppInventoryLedgerRouteImport } from './routes/_app/inventory/ledger'
+import { Route as AppInventoryAllocationRouteImport } from './routes/_app/inventory/allocation'
 import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
 import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
 import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
@@ -191,16 +191,6 @@ const AppMaterialUomRoute = AppMaterialUomRouteImport.update({
   path: '/material/uom',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppMaterialStockRoute = AppMaterialStockRouteImport.update({
-  id: '/material/stock',
-  path: '/material/stock',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppMaterialLedgerRoute = AppMaterialLedgerRouteImport.update({
-  id: '/material/ledger',
-  path: '/material/ledger',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppMaterialCreateRoute = AppMaterialCreateRouteImport.update({
   id: '/material/create',
   path: '/material/create',
@@ -219,6 +209,16 @@ const AppLocationCreateRoute = AppLocationCreateRouteImport.update({
 const AppInventorySummaryRoute = AppInventorySummaryRouteImport.update({
   id: '/inventory/summary',
   path: '/inventory/summary',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
+  id: '/inventory/ledger',
+  path: '/inventory/ledger',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInventoryAllocationRoute = AppInventoryAllocationRouteImport.update({
+  id: '/inventory/allocation',
+  path: '/inventory/allocation',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceLedgerArApRoute = AppFinanceLedgerArApRouteImport.update({
@@ -414,12 +414,12 @@ export interface FileRoutesByFullPath {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
-  '/material/ledger': typeof AppMaterialLedgerRoute
-  '/material/stock': typeof AppMaterialStockRoute
   '/material/uom': typeof AppMaterialUomRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -477,12 +477,12 @@ export interface FileRoutesByTo {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
-  '/material/ledger': typeof AppMaterialLedgerRoute
-  '/material/stock': typeof AppMaterialStockRoute
   '/material/uom': typeof AppMaterialUomRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -544,12 +544,12 @@ export interface FileRoutesById {
   '/_app/finance/expenses': typeof AppFinanceExpensesRoute
   '/_app/finance/ledger': typeof AppFinanceLedgerRoute
   '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/_app/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/_app/inventory/ledger': typeof AppInventoryLedgerRoute
   '/_app/inventory/summary': typeof AppInventorySummaryRoute
   '/_app/location/create': typeof AppLocationCreateRoute
   '/_app/material/category': typeof AppMaterialCategoryRoute
   '/_app/material/create': typeof AppMaterialCreateRoute
-  '/_app/material/ledger': typeof AppMaterialLedgerRoute
-  '/_app/material/stock': typeof AppMaterialStockRoute
   '/_app/material/uom': typeof AppMaterialUomRoute
   '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
   '/_app/procurement/orders': typeof AppProcurementOrdersRoute
@@ -609,12 +609,12 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/inventory/allocation'
+    | '/inventory/ledger'
     | '/inventory/summary'
     | '/location/create'
     | '/material/category'
     | '/material/create'
-    | '/material/ledger'
-    | '/material/stock'
     | '/material/uom'
     | '/moka/monitoring'
     | '/procurement/orders'
@@ -672,12 +672,12 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/inventory/allocation'
+    | '/inventory/ledger'
     | '/inventory/summary'
     | '/location/create'
     | '/material/category'
     | '/material/create'
-    | '/material/ledger'
-    | '/material/stock'
     | '/material/uom'
     | '/moka/monitoring'
     | '/procurement/orders'
@@ -738,12 +738,12 @@ export interface FileRouteTypes {
     | '/_app/finance/expenses'
     | '/_app/finance/ledger'
     | '/_app/finance/ledger-ar-ap'
+    | '/_app/inventory/allocation'
+    | '/_app/inventory/ledger'
     | '/_app/inventory/summary'
     | '/_app/location/create'
     | '/_app/material/category'
     | '/_app/material/create'
-    | '/_app/material/ledger'
-    | '/_app/material/stock'
     | '/_app/material/uom'
     | '/_app/moka/monitoring'
     | '/_app/procurement/orders'
@@ -965,20 +965,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMaterialUomRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/material/stock': {
-      id: '/_app/material/stock'
-      path: '/material/stock'
-      fullPath: '/material/stock'
-      preLoaderRoute: typeof AppMaterialStockRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/material/ledger': {
-      id: '/_app/material/ledger'
-      path: '/material/ledger'
-      fullPath: '/material/ledger'
-      preLoaderRoute: typeof AppMaterialLedgerRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/material/create': {
       id: '/_app/material/create'
       path: '/material/create'
@@ -1005,6 +991,20 @@ declare module '@tanstack/react-router' {
       path: '/inventory/summary'
       fullPath: '/inventory/summary'
       preLoaderRoute: typeof AppInventorySummaryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/ledger': {
+      id: '/_app/inventory/ledger'
+      path: '/inventory/ledger'
+      fullPath: '/inventory/ledger'
+      preLoaderRoute: typeof AppInventoryLedgerRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/allocation': {
+      id: '/_app/inventory/allocation'
+      path: '/inventory/allocation'
+      fullPath: '/inventory/allocation'
+      preLoaderRoute: typeof AppInventoryAllocationRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/finance/ledger-ar-ap': {
@@ -1274,12 +1274,12 @@ interface AppRouteRouteChildren {
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
   AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
   AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
+  AppInventoryAllocationRoute: typeof AppInventoryAllocationRoute
+  AppInventoryLedgerRoute: typeof AppInventoryLedgerRoute
   AppInventorySummaryRoute: typeof AppInventorySummaryRoute
   AppLocationCreateRoute: typeof AppLocationCreateRoute
   AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
   AppMaterialCreateRoute: typeof AppMaterialCreateRoute
-  AppMaterialLedgerRoute: typeof AppMaterialLedgerRoute
-  AppMaterialStockRoute: typeof AppMaterialStockRoute
   AppMaterialUomRoute: typeof AppMaterialUomRoute
   AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
   AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
@@ -1333,12 +1333,12 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,
   AppFinanceLedgerRoute: AppFinanceLedgerRoute,
   AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
+  AppInventoryAllocationRoute: AppInventoryAllocationRoute,
+  AppInventoryLedgerRoute: AppInventoryLedgerRoute,
   AppInventorySummaryRoute: AppInventorySummaryRoute,
   AppLocationCreateRoute: AppLocationCreateRoute,
   AppMaterialCategoryRoute: AppMaterialCategoryRoute,
   AppMaterialCreateRoute: AppMaterialCreateRoute,
-  AppMaterialLedgerRoute: AppMaterialLedgerRoute,
-  AppMaterialStockRoute: AppMaterialStockRoute,
   AppMaterialUomRoute: AppMaterialUomRoute,
   AppMokaMonitoringRoute: AppMokaMonitoringRoute,
   AppProcurementOrdersRoute: AppProcurementOrdersRoute,

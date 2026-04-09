@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { PencilIcon } from 'lucide-react'
+import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
@@ -13,11 +14,13 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import type { UomDto } from '@/features/material'
 import { uomApi } from '@/features/material'
 import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+import { toastLabelMessage } from '@/lib/toast-message'
 
 export const Route = createFileRoute('/_app/material/uom')({ component: RouteComponent })
 
@@ -36,54 +39,72 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<UomDto>()
+function UomTable() {
+  const queryClient = useQueryClient()
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
 
-const columns = [
-  ch.accessor(
-    'code',
-    statusColumn({
-      header: 'Kode Satuan',
-      render: (value) => (
-        <div className="flex items-center py-1">
-          <Badge
-            variant="outline"
-            className="h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30"
-          >
-            {value}
-          </Badge>
-        </div>
-      ),
-      size: 200,
-      enableSorting: false,
-    }),
-  ),
-  ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 200 })),
-  ch.display(
+  const deleteMutation = useMutation({
+    mutationFn: uomApi.remove.mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: uomApi.list.queryKey() })
+    },
+  })
+
+  const handleDelete = async (id: number) => {
+    const promise = deleteMutation.mutateAsync({ params: { id } })
+    await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
+  }
+
+  const columns = [
+    ch.accessor(
+      'code',
+      statusColumn({
+        header: 'Kode Satuan',
+        render: (value) => (
+          <div className="flex items-center py-1">
+            <Badge
+              variant="outline"
+              className="h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30"
+            >
+              {value}
+            </Badge>
+          </div>
+        ),
+        size: 200,
+        enableSorting: false,
+      }),
+    ),
+    ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 200 })),
     actionColumn<UomDto>({
       id: 'action',
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-end px-2">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-8 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                void UomFormDialog.upsert({ id: row.original.id })
-              }}
-            >
-              <PencilIcon className="size-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                <MoreHorizontalIcon className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    void UomFormDialog.upsert({ id: row.original.id })
+                  }}
+                >
+                  <PencilIcon className="mr-2 size-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => void handleDelete(row.original.id)}>
+                  <Trash2Icon className="mr-2 size-4" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )
       },
     }),
-  ),
-]
-
-function UomTable() {
-  const ds = useDataTableState()
-  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
+  ]
 
   const table = useDataTable({
     columns: columns,
@@ -113,3 +134,5 @@ function UomTable() {
     />
   )
 }
+
+const ch = createColumnHelper<UomDto>()

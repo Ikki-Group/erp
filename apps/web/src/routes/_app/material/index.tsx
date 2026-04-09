@@ -1,7 +1,8 @@
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ChefHatIcon, EyeIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react'
+import { ChefHatIcon, EyeIcon, MapPinIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
@@ -11,12 +12,14 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { locationApi } from '@/features/location'
 import type { MaterialFilterDto, MaterialSelectDto } from '@/features/material'
 import { MaterialAssignToLocationDialog, MaterialBadgeProps, materialApi } from '@/features/material'
 import { materialCategoryApi } from '@/features/material/api/material-category.api'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+import { toastLabelMessage } from '@/lib/toast-message'
 import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_app/material/')({ component: RouteComponent })
@@ -36,6 +39,7 @@ function RouteComponent() {
 }
 
 function MaterialTable() {
+  const queryClient = useQueryClient()
   const ds = useDataTableState<MaterialFilterDto>()
   const [rowSelection, setRowSelection] = useState({})
 
@@ -45,7 +49,19 @@ function MaterialTable() {
 
   const { data, isLoading } = useQuery(materialApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
-  const columns = useMemo(getColumns, [])
+  const deleteMutation = useMutation({
+    mutationFn: materialApi.remove.mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: materialApi.list.queryKey() })
+    },
+  })
+
+  const handleDelete = async (id: number) => {
+    const promise = deleteMutation.mutateAsync({ body: { id } })
+    await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
+  }
+
+  const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
   const table = useDataTable({
     columns: columns,
     data: data?.data ?? [],
@@ -126,7 +142,7 @@ function MaterialTable() {
 }
 
 const ch = createColumnHelper<MaterialSelectDto>()
-function getColumns() {
+function getColumns(handleDelete: (id: number) => Promise<void>) {
   return [
     ch.display({
       id: 'select',
@@ -248,20 +264,6 @@ function getColumns() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-end gap-1 px-2">
-            {row.original.type === 'semi' && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-8 text-primary/70 hover:text-primary hover:bg-primary/10"
-                title="Kelola Resep"
-                nativeButton={false}
-                render={
-                  <Link from={Route.fullPath} to="/material/$id/recipe" params={{ id: String(row.original.id) }} />
-                }
-              >
-                <ChefHatIcon className="size-4" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon-sm"
@@ -272,16 +274,37 @@ function getColumns() {
             >
               <EyeIcon className="size-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-8 text-muted-foreground hover:text-foreground"
-              title="Edit Bahan Baku"
-              nativeButton={false}
-              render={<Link from={Route.fullPath} to="/material/$id/update" params={{ id: String(row.original.id) }} />}
-            >
-              <PencilIcon className="size-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                <MoreHorizontalIcon className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {row.original.type === 'semi' && (
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={
+                      <Link from={Route.fullPath} to="/material/$id/recipe" params={{ id: String(row.original.id) }} />
+                    }
+                  >
+                    <ChefHatIcon className="mr-2 size-4" />
+                    Kelola Resep
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  nativeButton={false}
+                  render={
+                    <Link from={Route.fullPath} to="/material/$id/update" params={{ id: String(row.original.id) }} />
+                  }
+                >
+                  <PencilIcon className="mr-2 size-4" />
+                  Edit Bahan
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => void handleDelete(row.original.id)}>
+                  <Trash2Icon className="mr-2 size-4" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )
       },

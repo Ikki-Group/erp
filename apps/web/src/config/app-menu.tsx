@@ -58,13 +58,19 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
       items: [
         {
           title: 'Inventori',
-          href: '/inventory',
+          href: '/inventory/summary',
           icon: BoxIcon,
           children: [
             {
               title: 'Stok per Lokasi',
               href: '/inventory/summary',
               isActive: pathname.startsWith('/inventory/summary'),
+            },
+            { title: 'Buku Ledger', href: '/inventory/ledger', isActive: pathname.startsWith('/inventory/ledger') },
+            {
+              title: 'Alokasi Gudang',
+              href: '/inventory/allocation',
+              isActive: pathname.startsWith('/inventory/allocation'),
             },
             {
               title: 'Mutasi & Transfer',
@@ -178,7 +184,8 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: CirclePileIcon,
           children: [
             { title: 'Daftar Bahan', href: '/material', isActive: pathname === '/material' },
-            { title: 'Kategori & UoM', href: '/material/config', isActive: pathname.startsWith('/material/config') },
+            { title: 'Kategori', href: '/material/category', isActive: pathname.startsWith('/material/category') },
+            { title: 'Satuan (UoM)', href: '/material/uom', isActive: pathname.startsWith('/material/uom') },
           ],
         },
         {
