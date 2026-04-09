@@ -46,7 +46,7 @@ function Title({ className, render, ...props }: useRender.ComponentProps<'h1'> &
   return useRender({
     defaultTagName: 'h1',
     props: mergeProps<'h1'>(
-      { className: cn('text-2xl font-bold tracking-tight text-foreground/90 lg:text-3xl', className) },
+      { className: cn('text-xl font-bold tracking-tight text-foreground/90 lg:text-2xl', className) },
       props,
     ),
     render,
@@ -57,7 +57,7 @@ function Description({ className, render, ...props }: useRender.ComponentProps<'
   return useRender({
     defaultTagName: 'p',
     props: mergeProps<'p'>(
-      { className: cn('text-muted-foreground/80 text-base leading-relaxed max-w-2xl', className) },
+      { className: cn('text-muted-foreground/80 text-sm leading-relaxed max-w-2xl', className) },
       props,
     ),
     render,
@@ -114,7 +114,7 @@ function BlockHeader({ title, description, action, back, border }: BlockHeaderPr
     <Header
       className={cn(
         'items-start transition-all duration-300',
-        border ? 'border-b bg-accent/5 backdrop-blur-sm pb-8 mb-4 sticky top-0 z-10 -mx-6 px-12' : 'mb-4',
+        border ? 'border-b bg-accent/5 backdrop-blur-sm pb-8 mb-4 sticky top-0 z-10 -mx-6 px-8' : 'mb-4',
       )}
     >
       {back && (
@@ -127,7 +127,7 @@ function BlockHeader({ title, description, action, back, border }: BlockHeaderPr
         </div>
       )}
       <div className="flex flex-wrap gap-y-6 grow gap-x-12 items-center">
-        <div className="flex flex-col grow gap-1.5">
+        <div className="flex flex-col grow gap-1">
           <Title className="grow">{title}</Title>
           {description && <Description className="text-wrap">{description}</Description>}
         </div>

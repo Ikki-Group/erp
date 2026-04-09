@@ -120,31 +120,29 @@ interface DataGridFilterSearchProps {
 
 function DataGridFilterSearch({ value, onChange, placeholder = 'Cari data...' }: DataGridFilterSearchProps) {
   const [internalValue, setInternalValue] = React.useState(value)
-  const debouncedValue = useDebounce(internalValue, 500)
-  const isFirstRender = React.useRef(true)
 
   // Sync internal state when external value changes (e.g. reset)
   React.useEffect(() => {
     setInternalValue(value)
   }, [value])
 
-  // Trigger onChange when debounced value changes
+  // Custom debounced onChange to handle reset safely
   React.useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
+    // If internal and external value are already the same, no need to trigger onChange
+    if (internalValue === value) return
 
-    if (debouncedValue !== value) {
-      onChange(debouncedValue)
-    }
-  }, [debouncedValue, onChange, value])
+    const timer = setTimeout(() => {
+      onChange(internalValue ?? '')
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [internalValue, onChange, value])
 
   return (
     <div className="relative">
       <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
-        value={internalValue}
+        value={internalValue ?? ''}
         onChange={(e) => {
           setInternalValue(e.target.value)
         }}

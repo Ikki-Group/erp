@@ -9,7 +9,6 @@ import {
   EditIcon,
   HistoryIcon,
   InfoIcon,
-  Loader2Icon,
   MailIcon,
   MapPinIcon,
   PhoneIcon,
@@ -38,6 +37,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { ButtonLoading } from '@/components/ui/button-loading'
 import { Separator } from '@/components/ui/separator'
 import { userApi, userAssignmentApi } from '@/features/iam'
 import { cn } from '@/lib/utils'
@@ -130,20 +130,16 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
         back={{ to: '/location' }}
         action={
           <div className="flex items-center gap-2">
-            <Button
+            <ButtonLoading
               variant={location.isActive ? 'destructive' : 'default'}
               size="sm"
+              loading={updateMutation.isPending}
               // oxlint-disable-next-line typescript/no-misused-promises
               onClick={toggleStatus}
-              disabled={updateMutation.isPending}
             >
-              {updateMutation.isPending ? (
-                <Loader2Icon className="mr-2 size-4 animate-spin" />
-              ) : (
-                <PowerIcon className="mr-2 size-4" />
-              )}
+              <PowerIcon className="mr-2" />
               {location.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-            </Button>
+            </ButtonLoading>
 
             <Link
               to="/location/$id/edit"
