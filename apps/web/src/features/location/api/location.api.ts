@@ -2,19 +2,9 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zPaginationDto,
-  zRecordIdDto,
-} from '@/lib/zod'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zPaginationDto, zRecordIdDto } from '@/lib/zod'
 
-import {
-  LocationCreateDto,
-  LocationDto,
-  LocationFilterDto,
-  LocationUpdateDto,
-} from '../dto'
+import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 
 export const locationApi = {
   list: apiFactory({
@@ -44,6 +34,7 @@ export const locationApi = {
   remove: apiFactory({
     method: 'delete',
     url: endpoint.location.remove,
+    body: zRecordIdDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
 }

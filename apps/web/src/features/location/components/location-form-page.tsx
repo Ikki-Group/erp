@@ -14,12 +14,13 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { locationApi } from '../api'
 import type { LocationDto } from '../dto'
 
-
 const FormDto = z.object({
   name: z.string().min(1),
   code: z.string().min(1),
   type: z.enum(['store', 'warehouse']),
-  description: z.string().min(1),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
   isActive: z.boolean(),
 })
 
@@ -30,6 +31,8 @@ function getDefaultValues(v?: LocationDto): FormDto {
     name: v?.name ?? '',
     code: v?.code ?? '',
     type: v?.type ?? 'store',
+    address: v?.address ?? '',
+    phone: v?.phone ?? '',
     description: v?.description ?? '',
     isActive: v?.isActive ?? true,
   }
@@ -56,9 +59,18 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
     ...fopts,
     defaultValues: getDefaultValues(selectedLocation.data?.data),
     onSubmit: async ({ value }) => {
+      const payload = {
+        name: value.name,
+        code: value.code,
+        type: value.type,
+        isActive: value.isActive,
+        address: value.address || null,
+        phone: value.phone || null,
+        description: value.description || null,
+      }
       const promise = isCreate
-        ? create.mutateAsync({ body: value })
-        : update.mutateAsync({ body: { id: Number(id), ...value } })
+        ? create.mutateAsync({ body: payload })
+        : update.mutateAsync({ body: { id: Number(id), ...payload } })
 
       await toast.promise(promise, toastLabelMessage(mode, 'location')).unwrap()
 
@@ -93,13 +105,32 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
                 <form.AppField name="type">
                   {(field) => (
                     <field.Base label="Tipe Lokasi" required>
-                      <field.Select placeholder="Pilih tipe lokasi...">
-                        <option value="store">Toko</option>
-                        <option value="warehouse">Warehouse</option>
-                      </field.Select>
+                      <field.Select
+                        placeholder="Pilih tipe lokasi..."
+                        options={[
+                          { label: 'Toko', value: 'store' },
+                          { label: 'Warehouse', value: 'warehouse' },
+                        ]}
+                      />
                     </field.Base>
                   )}
                 </form.AppField>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <form.AppField name="address">
+                    {(field) => (
+                      <field.Base label="Alamat">
+                        <field.Input placeholder="Alamat lengkap..." />
+                      </field.Base>
+                    )}
+                  </form.AppField>
+                  <form.AppField name="phone">
+                    {(field) => (
+                      <field.Base label="Nomor Telepon">
+                        <field.Input placeholder="Contoh: 08123456789" />
+                      </field.Base>
+                    )}
+                  </form.AppField>
+                </div>
                 <form.AppField name="description">
                   {(field) => (
                     <field.Base label="Deskripsi">

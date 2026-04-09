@@ -1,3 +1,4 @@
+// oxlint-disable max-lines
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
@@ -16,6 +17,7 @@ import {
   StoreIcon,
   TrashIcon,
   UserMinusIcon,
+  UserPlusIcon,
   UsersIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -84,21 +86,26 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
   async function toggleStatus() {
     const promise = updateMutation.mutateAsync({ body: { ...location, id, isActive: !location.isActive } })
 
-    toast.promise(promise, {
-      loading: 'Mengubah status...',
-      success: `Lokasi berhasil ${!location.isActive ? 'diaktifkan' : 'dinonaktifkan'}`,
-      error: 'Gagal mengubah status',
-    })
+    await toast
+      .promise(promise, {
+        loading: 'Mengubah status...',
+        // oxlint-disable-next-line no-negated-condition
+        success: `Lokasi berhasil ${!location.isActive ? 'diaktifkan' : 'dinonaktifkan'}`,
+        error: 'Gagal mengubah status',
+      })
+      .unwrap()
   }
 
   async function handleDelete() {
     const promise = removeMutation.mutateAsync({ body: { id } })
 
-    toast.promise(promise, {
-      loading: 'Menghapus lokasi...',
-      success: 'Lokasi berhasil dihapus (soft delete)',
-      error: 'Gagal menghapus lokasi',
-    })
+    await toast
+      .promise(promise, {
+        loading: 'Menghapus lokasi...',
+        success: 'Lokasi berhasil dihapus (soft delete)',
+        error: 'Gagal menghapus lokasi',
+      })
+      .unwrap()
   }
 
   async function handleRemoveMember(userId: number, fullname: string) {
@@ -106,11 +113,13 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
 
     const promise = removeMemberMutation.mutateAsync({ body: { userId, locationId: id } })
 
-    toast.promise(promise, {
-      loading: 'Menghapus anggota...',
-      success: 'Anggota berhasil dihapus dari lokasi',
-      error: 'Gagal menghapus anggota',
-    })
+    await toast
+      .promise(promise, {
+        loading: 'Menghapus anggota...',
+        success: 'Anggota berhasil dihapus dari lokasi',
+        error: 'Gagal menghapus anggota',
+      })
+      .unwrap()
   }
 
   return (
@@ -122,8 +131,9 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
         action={
           <div className="flex items-center gap-2">
             <Button
-              variant={location.isActive ? 'outline' : 'info'}
+              variant={location.isActive ? 'destructive' : 'default'}
               size="sm"
+              // oxlint-disable-next-line typescript/no-misused-promises
               onClick={toggleStatus}
               disabled={updateMutation.isPending}
             >
@@ -140,12 +150,12 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
               params={{ id: String(id) }}
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
             >
-              <EditIcon className="mr-2 size-4" />
+              <EditIcon className="mr-2" />
               Edit
             </Link>
 
-            <Button variant="destructive-outline" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
-              <TrashIcon className="mr-2 size-4" />
+            <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
+              <TrashIcon className="mr-2" />
               Hapus
             </Button>
           </div>
@@ -219,7 +229,9 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
                 variant="outline"
                 size="sm"
                 className="h-8"
-                onClick={() => LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })}
+                onClick={() => {
+                  LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })
+                }}
               >
                 <UserPlusIcon className="mr-2 size-3.5" />
                 Tugaskan Anggota
@@ -234,7 +246,9 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
                     variant="link"
                     size="sm"
                     className="mt-1"
-                    onClick={() => LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })}
+                    onClick={() => {
+                      LocationAssignMemberDialog.call({ locationId: id, locationName: location.name })
+                    }}
                   >
                     Tugaskan Sekarang
                   </Button>
@@ -264,7 +278,9 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
                         variant="ghost"
                         size="icon-sm"
                         className="text-muted-foreground hover:text-destructive"
-                        onClick={() => handleRemoveMember(user.id, user.fullname)}
+                        onClick={() => {
+                          handleRemoveMember(user.id, user.fullname)
+                        }}
                       >
                         <UserMinusIcon className="size-4" />
                       </Button>

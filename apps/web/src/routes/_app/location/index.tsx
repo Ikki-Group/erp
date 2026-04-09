@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { Building2Icon, GlobeIcon, InfoIcon, MapPinIcon, PencilIcon, StoreIcon, WarehouseIcon } from 'lucide-react'
+import { Building2Icon, InfoIcon, MapPinIcon, PencilIcon, StoreIcon, WarehouseIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
