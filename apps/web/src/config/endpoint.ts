@@ -1,52 +1,34 @@
-const auth = { login: 'auth/login', me: 'auth/me' }
+const p = (base: string, ...sub: string[]) => [base, ...sub].filter(Boolean).join('/');
+
+const crud = (base: string) => ({
+  list: p(base, 'list'),
+  detail: p(base, 'detail'),
+  create: p(base, 'create'),
+  update: p(base, 'update'),
+  remove: p(base, 'remove'),
+  _root: base,
+});
+
+const auth = {
+  login: 'auth/login',
+  me: 'auth/me',
+};
 
 const iam = {
   user: {
-    list: 'iam/user/list',
-    detail: 'iam/user/detail',
-    create: 'iam/user/create',
-    update: 'iam/user/update',
-    remove: 'iam/user/remove',
+    ...crud('iam/user'),
     changePassword: 'iam/user/change-password',
     adminUpdatePassword: 'iam/user/admin-update-password',
   },
-  role: {
-    list: 'iam/role/list',
-    detail: 'iam/role/detail',
-    create: 'iam/role/create',
-    update: 'iam/role/update',
-    remove: 'iam/role/remove',
-  },
-}
+  role: crud('iam/role'),
+};
 
-const location = {
-  list: 'location/list',
-  detail: 'location/detail',
-  create: 'location/create',
-  update: 'location/update',
-  remove: 'location/remove',
-}
+const location = crud('location');
 
 const material = {
-  list: 'material/list',
-  detail: 'material/detail',
-  create: 'material/create',
-  update: 'material/update',
-  remove: 'material/remove',
-  category: {
-    list: 'material/category/list',
-    detail: 'material/category/detail',
-    create: 'material/category/create',
-    update: 'material/category/update',
-    remove: 'material/category/remove',
-  },
-  uom: {
-    list: 'material/uom/list',
-    detail: 'material/uom/detail',
-    create: 'material/uom/create',
-    update: 'material/uom/update',
-    remove: 'material/uom/remove',
-  },
+  ...crud('material'),
+  category: crud('material/category'),
+  uom: crud('material/uom'),
   location: {
     assign: 'material/location/assign',
     unassign: 'material/location/unassign',
@@ -54,37 +36,15 @@ const material = {
     stock: 'material/location/stock',
     config: 'material/location/config',
   },
-}
+};
 
 const product = {
-  list: 'product/list',
-  detail: 'product/detail',
-  create: 'product/create',
-  update: 'product/update',
-  remove: 'product/remove',
-  category: {
-    list: 'product/category/list',
-    detail: 'product/category/detail',
-    create: 'product/category/create',
-    update: 'product/category/update',
-    remove: 'product/category/remove',
-  },
-  salesType: {
-    list: 'product/sales-type/list',
-    detail: 'product/sales-type/detail',
-    create: 'product/sales-type/create',
-    update: 'product/sales-type/update',
-    remove: 'product/sales-type/remove',
-  },
-}
+  ...crud('product'),
+  category: crud('product/category'),
+  salesType: crud('product/sales-type'),
+};
 
-const recipe = {
-  list: 'recipe/list',
-  detail: 'recipe/detail',
-  create: 'recipe/create',
-  update: 'recipe/update',
-  remove: 'recipe/remove',
-}
+const recipe = crud('recipe');
 
 const inventory = {
   summary: {
@@ -93,14 +53,13 @@ const inventory = {
     generate: 'inventory/summary/generate',
   },
   transaction: {
-    list: 'inventory/transaction/list',
-    detail: 'inventory/transaction/detail',
+    ...crud('inventory/transaction'),
     purchase: 'inventory/transaction/purchase',
     transfer: 'inventory/transaction/transfer',
     adjustment: 'inventory/transaction/adjustment',
     opname: 'inventory/transaction/opname',
   },
-}
+};
 
 const dashboard = {
   analytics: {
@@ -110,29 +69,17 @@ const dashboard = {
   settings: {
     summary: 'dashboard/settings/summary',
   },
-}
+};
 
-const employee = {
-  list: 'employee/list',
-  detail: 'employee/detail',
-  create: 'employee/create',
-  update: 'employee/update',
-  remove: 'employee/remove',
-}
+const employee = crud('employee');
 
 const finance = {
-  account: {
-    list: 'finance/account/list',
-    detail: 'finance/account/detail',
-    create: 'finance/account/create',
-    update: 'finance/account/update',
-    remove: 'finance/account/remove',
-  },
+  account: crud('finance/account'),
   journal: {
     entries: 'finance/entries',
     detail: 'finance/entries/:id',
   },
-}
+};
 
 const hr = {
   shifts: {
@@ -152,69 +99,35 @@ const hr = {
       create: 'hr/payroll/adjustments',
     },
   },
-}
+};
 
 const moka = {
-  configuration: {
-    list: 'moka/configuration/list',
-    detail: 'moka/configuration/detail',
-    create: 'moka/configuration/create',
-    update: 'moka/configuration/update',
-    remove: 'moka/configuration/remove',
-  },
+  configuration: crud('moka/configuration'),
   scrap: {
     history: 'moka/scrap/history',
     trigger: 'moka/scrap/trigger',
   },
-}
+};
 
 const production = {
-  workOrder: {
-    list: 'production/work-order/list',
-    detail: 'production/work-order/detail',
-    create: 'production/work-order/create',
-    update: 'production/work-order/update',
-    remove: 'production/work-order/remove',
-  },
-}
+  workOrder: crud('production/work-order'),
+};
 
 const purchasing = {
-  order: {
-    list: 'purchasing/purchase-order/list',
-    detail: 'purchasing/purchase-order/detail',
-    create: 'purchasing/purchase-order/create',
-    update: 'purchasing/purchase-order/update',
-    remove: 'purchasing/purchase-order/remove',
-  },
-  goodsReceipt: {
-    list: 'purchasing/goods-receipt/list',
-    detail: 'purchasing/goods-receipt/detail',
-    create: 'purchasing/goods-receipt/create',
-    update: 'purchasing/goods-receipt/update',
-    remove: 'purchasing/goods-receipt/remove',
-  },
-}
+  order: crud('purchasing/purchase-order'),
+  goodsReceipt: crud('purchasing/goods-receipt'),
+};
 
 const sales = {
   order: {
-    list: 'sales/order/list',
-    detail: 'sales/order/detail',
-    create: 'sales/order/create',
-    update: 'sales/order/update',
-    remove: 'sales/order/remove',
+    ...crud('sales/order'),
     addBatch: 'sales/order/add-batch',
     close: 'sales/order/close',
     void: 'sales/order/void',
   },
-}
+};
 
-const supplier = {
-  list: 'supplier/list',
-  detail: 'supplier/detail',
-  create: 'supplier/create',
-  update: 'supplier/update',
-  remove: 'supplier/remove',
-}
+const supplier = crud('supplier');
 
 export const endpoint = {
   auth,
@@ -233,5 +146,5 @@ export const endpoint = {
   purchasing,
   sales,
   supplier,
-}
+} as const;
 
