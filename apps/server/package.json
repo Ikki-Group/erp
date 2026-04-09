@@ -13,6 +13,7 @@
     "db:studio": "bunx --bun drizzle-kit studio",
     "db:reset": "bun run scripts/db-reset.ts",
     "db:seed": "bun run scripts/db-seed.ts",
+    "db:seed-dev": "bun run scripts/db-seed-dev.ts",
     "seed": "bun run scripts/seed.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
