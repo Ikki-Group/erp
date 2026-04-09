@@ -42,7 +42,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: BarChart3Icon,
           children: [
             { title: 'Laporan Penjualan', href: '/analytics/sales', isActive: pathname === '/analytics/sales' },
-            { title: 'Laporan Stok', href: '/analytics/stock', isActive: pathname === '/analytics/stock' },
+
             {
               title: 'Laporan Produksi',
               href: '/analytics/production',

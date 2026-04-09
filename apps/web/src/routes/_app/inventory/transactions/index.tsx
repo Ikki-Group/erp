@@ -12,6 +12,14 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import type { StockTransactionSelectDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
@@ -107,24 +115,38 @@ function RouteComponent() {
           table={table}
           isLoading={isLoading}
           recordCount={data?.meta.total || 0}
-          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor pelacakan...' }]} />}
+          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor pelacakan atau bahan...' }]} />}
           action={
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-10 shadow-none border hover:bg-secondary/80 font-medium"
-                render={<Link to="/inventory/transactions/adjustment" />}
-              >
-                <PlusIcon className="size-4 mr-2 text-muted-foreground" /> Opname (Adjust)
-              </Button>
-              <Button
-                size="sm"
-                className="h-10 shadow-md font-medium"
-                render={<Link to="/inventory/transactions/transfer" />}
-              >
-                <PlusIcon className="size-4 mr-2" /> Mutasi Internal
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="h-10 shadow-md font-medium">
+                    <PlusIcon className="size-4 mr-2" /> Catat Transaksi
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Penerimaan Barang</DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link to="/inventory/transactions/purchase">Pembelian</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Pengeluaran Barang</DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link to="/inventory/transactions/usage">Pemakaian / Konsumsi</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Mutasi & Stok Fisik</DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link to="/inventory/transactions/transfer">Mutasi Internal (Transfer)</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/inventory/transactions/opname">Stock Opname</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/inventory/transactions/adjustment">Koreksi / Adjustment</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           }
         />

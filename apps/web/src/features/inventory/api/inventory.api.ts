@@ -15,8 +15,21 @@ import {
   StockTransactionDto,
   StockTransactionFilterDto,
   StockTransactionSelectDto,
+  StockOpnameDto,
   TransactionResultDto,
   TransferTransactionDto,
+  UsageTransactionDto,
+  SellTransactionDto,
+  ProductionInTransactionDto,
+  ProductionOutTransactionDto,
+  type StockAlertFilterDto,
+  stockAlertFilterSchema,
+  type StockAlertSelectDto,
+  stockAlertSelectSchema,
+  type DashboardKpiFilterDto,
+  dashboardKpiFilterSchema,
+  type DashboardKpiSelectDto,
+  dashboardKpiSelectSchema,
 } from '../dto'
 
 export const stockSummaryApi = {
@@ -77,7 +90,52 @@ export const stockTransactionApi = {
     body: StockOpnameDto,
     result: createSuccessResponseSchema(TransactionResultDto),
   }),
+  usage: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.usage,
+    body: UsageTransactionDto,
+    result: createSuccessResponseSchema(TransactionResultDto),
+  }),
+  sell: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.sell,
+    body: SellTransactionDto,
+    result: createSuccessResponseSchema(TransactionResultDto),
+  }),
+  productionIn: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.productionIn,
+    body: ProductionInTransactionDto,
+    result: createSuccessResponseSchema(TransactionResultDto),
+  }),
+  productionOut: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.productionOut,
+    body: ProductionOutTransactionDto,
+    result: createSuccessResponseSchema(TransactionResultDto),
+  }),
 }
 
-// Keep inventoryApi for backward compatibility
-export const inventoryApi = stockSummaryApi
+export const stockAlertApi = {
+  list: apiFactory({
+    method: 'get',
+    url: endpoint.inventoryAlert.list,
+    params: z.object({ ...zPaginationDto.shape, ...stockAlertFilterSchema.shape }),
+    result: createPaginatedResponseSchema(stockAlertSelectSchema),
+  }),
+  count: apiFactory({
+    method: 'get',
+    url: endpoint.inventoryAlert.count,
+    params: stockAlertFilterSchema,
+    result: createSuccessResponseSchema(z.object({ count: z.number() })),
+  }),
+}
+
+export const stockDashboardApi = {
+  kpi: apiFactory({
+    method: 'get',
+    url: endpoint.inventoryDashboard.kpi,
+    params: dashboardKpiFilterSchema,
+    result: createSuccessResponseSchema(dashboardKpiSelectSchema),
+  }),
+}

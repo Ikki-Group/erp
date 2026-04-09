@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { DataCombobox } from '@/components/ui/data-combobox'
 import { Input } from '@/components/ui/input'
 import type { StockLedgerSelectDto } from '@/features/inventory'
-import { inventoryApi } from '@/features/inventory'
+import { stockSummaryApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -100,7 +100,7 @@ function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; da
   const isValidDateRange = dateFrom && dateTo
 
   const { data, isLoading } = useQuery(
-    inventoryApi.ledger.query(
+    stockSummaryApi.ledger.query(
       isValidDateRange
         ? {
             ...ds.pagination,

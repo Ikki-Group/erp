@@ -14,7 +14,7 @@ import { locationApi } from '@/features/location'
 import { materialLocationApi } from '@/features/material/api/material-location.api'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-export const Route = createFileRoute('/_app/inventory/transactions/adjustment')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/inventory/transactions/opname')({ component: RouteComponent })
 
 const FormDto = z.object({
   locationId: z.number().min(1, 'Lokasi wajib dipilih'),
@@ -25,8 +25,8 @@ const FormDto = z.object({
     .array(
       z.object({
         materialId: z.number().min(1, 'Bahan baku wajib dipilih'),
-        qty: z.number().refine((v) => v !== 0, 'Kuantitas tidak boleh nol'),
-        unitCost: z.number().nonnegative().optional(),
+        physicalQty: z.number().nonnegative('Kuantitas fisik tidak boleh negatif'),
+        notes: z.string().optional().nullable(),
       }),
     )
     .min(1, 'Minimal satu item harus ditambahkan'),
@@ -41,21 +41,21 @@ const fopts = formOptions({
     date: new Date(),
     referenceNo: '',
     notes: '',
-    items: [{ materialId: undefined as any, qty: 0 }],
+    items: [{ materialId: undefined as any, physicalQty: 0 }],
   } as FormDto,
 })
 
 function RouteComponent() {
   const navigate = useNavigate()
 
-  const submitMut = useMutation({ mutationFn: stockTransactionApi.adjustment.mutationFn })
+  const submitMut = useMutation({ mutationFn: stockTransactionApi.opname.mutationFn })
 
   const form = useAppForm({
     ...fopts,
     onSubmit: async ({ value }) => {
       const promise = submitMut.mutateAsync({ body: value })
 
-      await toast.promise(promise, toastLabelMessage('create', 'penyesuaian stok')).unwrap()
+      await toast.promise(promise, toastLabelMessage('create', 'stock opname')).unwrap()
 
       void navigate({ to: '/inventory/transactions' })
     },
@@ -66,14 +66,14 @@ function RouteComponent() {
       <FormConfig mode="create" backTo={{ to: '/inventory/transactions' }}>
         <Page size="sm">
           <Page.BlockHeader
-            title="Adjustment Stok"
-            description="Formulir penyesuaian stok bahan baku (Opname/Koreksi)."
+            title="Stock Opname"
+            description="Formulir pencatatan perhitungan fisik stok di gudang."
             back={{ to: '/inventory/transactions' }}
           />
           <form.Form>
             <Page.Content className="flex flex-col gap-6 max-w-4xl">
-              <AdjustmentInfoCard />
-              <AdjustmentItemsCard />
+              <OpnameInfoCard />
+              <OpnameItemsCard />
               <form.SimpleActions />
             </Page.Content>
           </form.Form>
@@ -83,11 +83,11 @@ function RouteComponent() {
   )
 }
 
-function AdjustmentInfoCard() {
+function OpnameInfoCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <CardSection title="Informasi Penyesuaian">
+    <CardSection title="Informasi Opname">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <form.AppField name="locationId">
           {(field) => (
@@ -130,13 +130,13 @@ function AdjustmentInfoCard() {
   )
 }
 
-function AdjustmentItemsCard() {
+function OpnameItemsCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
     <CardSection
-      title="Bahan Baku"
-      description="Masukkan angka kuantitas. Positif (+10) untuk menambah stok, Negatif (-5) untuk mengurangi stok."
+      title="Daftar Bahan Baku"
+      description="Masukkan kuantitas fisik yang sebenarnya."
     >
       <div className="flex flex-col gap-4">
         <form.Subscribe selector={(s) => ({ items: s.values.items, locationId: s.values.locationId })}>
@@ -168,27 +168,23 @@ function AdjustmentItemsCard() {
                   </div>
 
                   <div className="w-48">
-                    <form.AppField name={`items[${i}].qty`}>
+                    <form.AppField name={`items[${i}].physicalQty`}>
                       {(field) => (
                         <field.Number
-                          label={i === 0 ? 'Kuantitas Penyesuaian' : undefined}
+                          label={i === 0 ? 'Kuantitas Fisik' : undefined}
                           required
-                          description={
-                            items[i]?.qty > 0 ? 'Akan Menambah Stok' : items[i]?.qty < 0 ? 'Akan Mengurangi Stok' : ''
-                          }
+                          min={0}
                         />
                       )}
                     </form.AppField>
                   </div>
 
                   <div className="w-48">
-                    <form.AppField name={`items[${i}].unitCost`}>
+                    <form.AppField name={`items[${i}].notes`}>
                       {(field) => (
-                        <field.Currency
-                          label={i === 0 ? 'HPP Baru (Jika Plus)' : undefined}
-                          min={0}
-                          placeholder="Otomatis Hitung"
-                        />
+                        <field.Base label={i === 0 ? 'Catatan Item' : undefined}>
+                          <field.Input placeholder="Selisih hilang dll" />
+                        </field.Base>
                       )}
                     </form.AppField>
                   </div>
@@ -215,7 +211,7 @@ function AdjustmentItemsCard() {
                 variant="outline"
                 onClick={() => {
                   const curr = [...items]
-                  curr.push({ materialId: undefined as any, qty: 0 })
+                  curr.push({ materialId: undefined as any, physicalQty: 0 })
                   form.setFieldValue('items', curr)
                 }}
               >

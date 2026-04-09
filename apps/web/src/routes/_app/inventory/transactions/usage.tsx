@@ -14,7 +14,7 @@ import { locationApi } from '@/features/location'
 import { materialLocationApi } from '@/features/material/api/material-location.api'
 import { toastLabelMessage } from '@/lib/toast-message'
 
-export const Route = createFileRoute('/_app/inventory/transactions/adjustment')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/inventory/transactions/usage')({ component: RouteComponent })
 
 const FormDto = z.object({
   locationId: z.number().min(1, 'Lokasi wajib dipilih'),
@@ -25,8 +25,7 @@ const FormDto = z.object({
     .array(
       z.object({
         materialId: z.number().min(1, 'Bahan baku wajib dipilih'),
-        qty: z.number().refine((v) => v !== 0, 'Kuantitas tidak boleh nol'),
-        unitCost: z.number().nonnegative().optional(),
+        qty: z.number().positive('Kuantitas harus positif'),
       }),
     )
     .min(1, 'Minimal satu item harus ditambahkan'),
@@ -48,14 +47,14 @@ const fopts = formOptions({
 function RouteComponent() {
   const navigate = useNavigate()
 
-  const submitMut = useMutation({ mutationFn: stockTransactionApi.adjustment.mutationFn })
+  const submitMut = useMutation({ mutationFn: stockTransactionApi.usage.mutationFn })
 
   const form = useAppForm({
     ...fopts,
     onSubmit: async ({ value }) => {
       const promise = submitMut.mutateAsync({ body: value })
 
-      await toast.promise(promise, toastLabelMessage('create', 'penyesuaian stok')).unwrap()
+      await toast.promise(promise, toastLabelMessage('create', 'pemakaian bahan')).unwrap()
 
       void navigate({ to: '/inventory/transactions' })
     },
@@ -66,14 +65,14 @@ function RouteComponent() {
       <FormConfig mode="create" backTo={{ to: '/inventory/transactions' }}>
         <Page size="sm">
           <Page.BlockHeader
-            title="Adjustment Stok"
-            description="Formulir penyesuaian stok bahan baku (Opname/Koreksi)."
+            title="Pemakaian Bahan"
+            description="Formulir pencatatan pemakaian bahan baku yang akan mengurangi stok."
             back={{ to: '/inventory/transactions' }}
           />
           <form.Form>
             <Page.Content className="flex flex-col gap-6 max-w-4xl">
-              <AdjustmentInfoCard />
-              <AdjustmentItemsCard />
+              <UsageInfoCard />
+              <UsageItemsCard />
               <form.SimpleActions />
             </Page.Content>
           </form.Form>
@@ -83,11 +82,11 @@ function RouteComponent() {
   )
 }
 
-function AdjustmentInfoCard() {
+function UsageInfoCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <CardSection title="Informasi Penyesuaian">
+    <CardSection title="Informasi Pemakaian">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <form.AppField name="locationId">
           {(field) => (
@@ -130,13 +129,13 @@ function AdjustmentInfoCard() {
   )
 }
 
-function AdjustmentItemsCard() {
+function UsageItemsCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
     <CardSection
-      title="Bahan Baku"
-      description="Masukkan angka kuantitas. Positif (+10) untuk menambah stok, Negatif (-5) untuk mengurangi stok."
+      title="Daftar Bahan Baku"
+      description="Masukkan angka kuantitas yang dipakai."
     >
       <div className="flex flex-col gap-4">
         <form.Subscribe selector={(s) => ({ items: s.values.items, locationId: s.values.locationId })}>
@@ -171,23 +170,9 @@ function AdjustmentItemsCard() {
                     <form.AppField name={`items[${i}].qty`}>
                       {(field) => (
                         <field.Number
-                          label={i === 0 ? 'Kuantitas Penyesuaian' : undefined}
+                          label={i === 0 ? 'Kuantitas' : undefined}
                           required
-                          description={
-                            items[i]?.qty > 0 ? 'Akan Menambah Stok' : items[i]?.qty < 0 ? 'Akan Mengurangi Stok' : ''
-                          }
-                        />
-                      )}
-                    </form.AppField>
-                  </div>
-
-                  <div className="w-48">
-                    <form.AppField name={`items[${i}].unitCost`}>
-                      {(field) => (
-                        <field.Currency
-                          label={i === 0 ? 'HPP Baru (Jika Plus)' : undefined}
-                          min={0}
-                          placeholder="Otomatis Hitung"
+                          min={1}
                         />
                       )}
                     </form.AppField>

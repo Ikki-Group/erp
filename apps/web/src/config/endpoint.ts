@@ -56,7 +56,20 @@ const inventory = {
     transfer: 'inventory/transaction/transfer',
     adjustment: 'inventory/transaction/adjustment',
     opname: 'inventory/transaction/opname',
+    usage: 'inventory/transaction/usage',
+    sell: 'inventory/transaction/sell',
+    productionIn: 'inventory/transaction/production-in',
+    productionOut: 'inventory/transaction/production-out',
   },
+}
+
+const inventoryAlert = {
+  list: 'inventory/alert/list',
+  count: 'inventory/alert/count',
+}
+
+const inventoryDashboard = {
+  kpi: 'inventory/dashboard/kpi',
 }
 
 const dashboard = {
@@ -107,6 +120,8 @@ export const endpoint = {
   product,
   recipe,
   inventory,
+  inventoryAlert,
+  inventoryDashboard,
   dashboard,
   employee,
   finance,
