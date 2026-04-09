@@ -37,21 +37,19 @@ function RouteComponent() {
 
 const ch = createColumnHelper<LocationDto>()
 const columns = [
-  ch.accessor(
-    'name',
-    statusColumn({
-      header: 'Lokasi',
-      render: (value, row) => (
+  ch.accessor('name', {
+    header: 'Lokasi',
+    size: 250,
+    cell: ({ row }) => {
+      const { name, code } = row.original
+      return (
         <div className="flex gap-2 flex-col">
-          <p className="font-medium text-foreground">{value}</p>
-          <p className="text-muted-foreground text-[10px] font-mono uppercase tracking-wider">
-            {row.code}
-          </p>
+          <p className="font-medium text-foreground">{name}</p>
+          <p className="text-muted-foreground text-[10px] font-mono uppercase tracking-wider">{code}</p>
         </div>
-      ),
-      size: 250,
-    }),
-  ),
+      )
+    },
+  }),
   ch.accessor(
     'isActive',
     statusColumn({
@@ -101,7 +99,7 @@ function LocationsTable() {
       title="Daftar Lokasi"
       table={table}
       isLoading={isLoading}
-      recordCount={data?.meta.total || 0}
+      recordCount={data?.meta.total ?? 0}
       toolbar={
         <DataGridFilter
           ds={ds}

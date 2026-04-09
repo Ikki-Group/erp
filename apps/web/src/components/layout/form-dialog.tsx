@@ -14,7 +14,7 @@ interface FormDialogProps {
   /** Called when the dialog is dismissed (overlay click, escape key) */
   onOpenChange: (open: boolean) => void
   /** Dialog title, displayed in the header */
-  title: string
+  title: React.ReactNode
   /** Optional description below the title */
   description?: string
   /** Form fields — rendered in the dialog body */
