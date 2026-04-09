@@ -5,20 +5,24 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { useAppForm } from '@/components/form'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { FormDialog } from '@/components/layout/form-dialog'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { roleApi } from '../api'
 import type { RoleDto } from '../dto'
 
-const FormDto = z.object({ name: z.string().min(1), code: z.string().min(1) })
+const FormDto = z.object({
+  name: z.string().min(1, 'Nama role wajib diisi'),
+  code: z.string().min(1, 'Kode wajib diisi'),
+  description: z.string().nullable(),
+})
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
+const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: RoleDto): FormDto {
-  return { code: v?.code ?? '', name: v?.name ?? '' }
+  return { code: v?.code ?? '', name: v?.name ?? '', description: v?.description ?? '' }
 }
 
 interface RoleFormDialogProps {
@@ -38,9 +42,16 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
     ...fopts,
     defaultValues: getDefaultValues(selectedRole.data?.data),
     onSubmit: async ({ value }) => {
+      const payload = {
+        ...value,
+        description: value.description ?? null,
+        permissions: selectedRole.data?.data.permissions ?? [],
+        isSystem: selectedRole.data?.data.isSystem ?? false,
+      }
+
       const promise = isCreate
-        ? create.mutateAsync({ body: value as any })
-        : update.mutateAsync({ body: { id, ...value } as any })
+        ? create.mutateAsync({ body: payload })
+        : update.mutateAsync({ body: { id: id, ...payload } })
 
       await toast.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'role')).unwrap()
 
@@ -52,30 +63,23 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
 
   return (
     <form.AppForm>
-      <Dialog open={!call.ended} onOpenChange={() => call.end()}>
-        <DialogContent>
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle>Scrollable Content</DialogTitle>
-          </DialogHeader>
-          <form.AppField name="name">
-            {(field) => (
-              <field.Base label="Role" required>
-                <field.Input placeholder="Masukkan nama role" disabled={disabled} />
-              </field.Base>
-            )}
-          </form.AppField>
-          <form.AppField name="code">
-            {(field) => (
-              <field.Base label="Kode" required>
-                <field.Input placeholder="Masukkan kode role" disabled={disabled} />
-              </field.Base>
-            )}
-          </form.AppField>
-          <DialogFooter>
-            <form.DialogActions onCancel={call.end} />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={!call.ended}
+        onOpenChange={(open) => !open && call.end()}
+        title={isCreate ? 'Tambah Role' : 'Edit Role'}
+        description="Kelola role untuk mengatur hak akses pengguna."
+        footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
+      >
+        <form.AppField name="name">
+          {(field) => <field.Input label="Nama Role" required placeholder="Masukkan nama role" disabled={disabled} />}
+        </form.AppField>
+        <form.AppField name="code">
+          {(field) => <field.Input label="Kode" required placeholder="Masukkan kode role" disabled={disabled} />}
+        </form.AppField>
+        <form.AppField name="description">
+          {(field) => <field.Textarea label="Deskripsi" placeholder="Masukkan deskripsi role" disabled={disabled} />}
+        </form.AppField>
+      </FormDialog>
     </form.AppForm>
   )
 }, 200)

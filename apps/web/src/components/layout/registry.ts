@@ -40,6 +40,16 @@ export const layoutRegistry: ComponentRegistry = {
       exports: ['FormLayout'],
     },
     {
+      name: 'FormDialog',
+      file: './form-dialog',
+      description: 'Standard layout for simple form dialogs. Provides consistent header/body/footer structure.',
+      usage:
+        'Use with `createCallable` for dialog forms. Pass `form.DialogActions` as footer. Children are form fields.',
+      importPath: '@/components/layout/form-dialog',
+      tags: ['form', 'dialog', 'modal', 'create', 'edit'],
+      exports: ['FormDialog'],
+    },
+    {
       name: 'Breadcrumbs',
       file: './breadcrumbs',
       description: 'Auto-generated navigation trail with refined typography and smooth transitions.',

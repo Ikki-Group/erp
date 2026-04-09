@@ -35,7 +35,7 @@ export const roleApi = {
     method: 'put',
     url: endpoint.iam.role.update,
     body: RoleUpdateDto,
-    result: createSuccessResponseSchema(zId),
+    result: createSuccessResponseSchema(zRecordIdDto),
   }),
   remove: apiFactory({
     method: 'delete',
