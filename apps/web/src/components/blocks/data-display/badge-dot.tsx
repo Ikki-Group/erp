@@ -7,7 +7,7 @@ export interface BadgeDotProps extends ComponentProps<typeof Badge> {}
 export function BadgeDot({ children, ...props }: BadgeDotProps) {
   return (
     <Badge {...props}>
-      <span className="ms-px size-1.25 rounded-full! bg-[currentColor]" />
+      <span className="ms-px size-1.25 rounded-full! bg-current" />
       {children}
     </Badge>
   )

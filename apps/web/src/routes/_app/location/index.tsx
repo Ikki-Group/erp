@@ -50,15 +50,7 @@ const columns = [
       )
     },
   }),
-  ch.accessor(
-    'isActive',
-    statusColumn({
-      header: 'Status',
-      render: (value) => <BadgeDot {...getActiveStatusBadge(Boolean(value))} />,
-      size: 130,
-    }),
-  ),
-  ch.accessor('description', textColumn({ header: 'Deskripsi', size: 250 })),
+  ch.accessor('classification', textColumn({ header: 'Deskripsi', size: 250 })),
   ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 160 })),
   ch.display(
     actionColumn<LocationDto>({
