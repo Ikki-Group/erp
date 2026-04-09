@@ -2,12 +2,12 @@
 // oxlint-disable max-lines
 // oxlint-disable import/max-dependencies
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
 import { db } from '@/db'
-import { usersTable } from '@/db/schema'
+import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { LocationService } from '@/modules/location/service'
@@ -160,6 +160,20 @@ export class UserService {
               core.searchFilter(usersTable.email, q),
             ),
         isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
+        filter.locationId === undefined
+          ? undefined
+          : exists(
+              db
+                .select()
+                .from(userAssignmentsTable)
+                .where(
+                  and(
+                    eq(userAssignmentsTable.userId, usersTable.id),
+                    eq(userAssignmentsTable.locationId, filter.locationId),
+                    isNull(userAssignmentsTable.deletedAt),
+                  ),
+                ),
+            ),
       )
 
       const p = await core.paginate<dto.UserDto>({

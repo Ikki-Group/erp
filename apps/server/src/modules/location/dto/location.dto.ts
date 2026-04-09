@@ -22,24 +22,13 @@ export const LocationTypeDto = z.enum([
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
 /**
- * Theoretical vs Physical classification.
- */
-export const LocationClassificationDto = z.enum([
-  /** Real-world physical address. */
-  'physical',
-  /** Logical grouping or shipping transit. */
-  'virtual',
-])
-export type LocationClassificationDto = z.infer<typeof LocationClassificationDto>
-
-/**
  * Common Location attributes.
  */
 export const LocationBaseDto = z.object({
   code: zCodeUpper.min(2).max(20),
   name: zStr.min(2).max(100),
   type: LocationTypeDto,
-  classification: LocationClassificationDto.default('physical'),
+  description: zStrNullable,
   address: zStrNullable,
   phone: zStrNullable,
 })

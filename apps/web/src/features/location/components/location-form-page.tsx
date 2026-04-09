@@ -14,6 +14,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { locationApi } from '../api'
 import type { LocationDto } from '../dto'
 
+
 const FormDto = z.object({
   name: z.string().min(1),
   code: z.string().min(1),
@@ -89,19 +90,19 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
                     </field.Base>
                   )}
                 </form.AppField>
-                {/* <form.AppField name="type">
-                {(field) => (
-                  <field.Base label="Tipe Lokasi" required>
-                    <field.Select placeholder="Pilih tipe lokasi...">
-                      <option value="store">Toko</option>
-                      <option value="warehouse">Warehouse</option>
-                    </field.Select>
-                  </field.Base>
-                )}
-              </form.AppField> */}
+                <form.AppField name="type">
+                  {(field) => (
+                    <field.Base label="Tipe Lokasi" required>
+                      <field.Select placeholder="Pilih tipe lokasi...">
+                        <option value="store">Toko</option>
+                        <option value="warehouse">Warehouse</option>
+                      </field.Select>
+                    </field.Base>
+                  )}
+                </form.AppField>
                 <form.AppField name="description">
                   {(field) => (
-                    <field.Base label="Deskripsi" required>
+                    <field.Base label="Deskripsi">
                       <field.Textarea placeholder="Deskripsi Lokasi..." />
                     </field.Base>
                   )}

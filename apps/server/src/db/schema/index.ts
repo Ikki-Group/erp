@@ -1,12 +1,6 @@
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
-export {
-  locationClassificationEnum,
-  locationTypeEnum,
-  materialTypeEnum,
-  productStatusEnum,
-  transactionTypeEnum,
-} from './_helpers'
+export { locationTypeEnum, materialTypeEnum, productStatusEnum, transactionTypeEnum } from './_helpers'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 export { stockSummariesTable, stockTransactionsTable } from './inventory'
 export { locationsTable } from './location'

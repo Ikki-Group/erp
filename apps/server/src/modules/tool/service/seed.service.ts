@@ -63,9 +63,9 @@ export class SeedService {
             code: l.code,
             name: l.name,
             type: l.type,
-            classification: 'physical',
             address: null,
             phone: null,
+            description: null,
             createdBy: SYSTEM_ACTOR_ID,
           })),
         )

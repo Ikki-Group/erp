@@ -42,7 +42,6 @@ export class LocationService {
             set: {
               name: d.name,
               type: d.type,
-              classification: d.classification,
               updatedAt: metadata.updatedAt,
               updatedBy: metadata.updatedBy,
               deletedAt: null,

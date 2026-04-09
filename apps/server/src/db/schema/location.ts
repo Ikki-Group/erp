@@ -3,7 +3,7 @@ import { pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { locationClassificationEnum, locationTypeEnum } from './_helpers'
+import { locationTypeEnum } from './_helpers'
 
 /**
  * Locations Table (Layer 0)
@@ -18,7 +18,7 @@ export const locationsTable = pgTable(
     code: text('code').notNull(),
     name: text('name').notNull(),
     type: locationTypeEnum('type').notNull(),
-    classification: locationClassificationEnum('classification').notNull().default('physical'),
+    description: text('description'),
     address: text('address'),
     phone: text('phone'),
     ...auditColumns,

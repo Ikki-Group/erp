@@ -59,7 +59,12 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 /**
  * Filter criteria for listing Users.
  */
-export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch, isActive: zBool.optional() })
+export const UserFilterDto = z.object({
+  ...zPaginationDto.shape,
+  q: zQuerySearch,
+  isActive: zBool.optional(),
+  locationId: z.coerce.number().optional(),
+})
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /**

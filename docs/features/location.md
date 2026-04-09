@@ -17,16 +17,12 @@ Locations are kept flat and minimal to perfectly suit a restaurant/cafe business
 
 > **Note:** We avoid overly complex deep hierarchies (like Zone -> Rack -> Bin) in favor of a straightforward Outlet and Warehouse system to keep daily operations fast and practical.
 
-## 3. Location Classifications
+## 3. Key Features
 
-### Physical Locations
-- **Internal Storage**: Standard areas for stock keeping (Warehouses & Outlet Kitchens/Bars).
-- **POS / Display**: Customer-facing areas where stock (like retail coffee bags or merchandise) is available for immediate sale.
-
-### Virtual Locations
-- **Adjustment Hub / Waste**: A virtual location used to account for broken items, expired ingredients, or stock opname discrepancies.
-
-## 4. Key Features
+### Location Detail & Audit
+- Dedicated detail page for each location.
+- **Audit Tracking**: Visibility into who created and last updated the location record.
+- **Member Management**: List of all users assigned to a specific location for operational clarity.
 
 ### Foundation for LBAC
 - Every user (e.g., Barista, Chef, Cashier) is bound to one or more **Locations**.
@@ -40,8 +36,9 @@ Locations are kept flat and minimal to perfectly suit a restaurant/cafe business
 ## 5. Technical Architecture
 
 ### Performance & Simplicity
-- **Flat Querying**: Since the hierarchy is shallow (Central Warehouse <-> Outlets), standard relational queries are highly performant without needing complex recursive SQL.
-- **Caching**: Frequently accessed location lists can be cached in Redis for fast UI rendering across the app.
+- **Flat Querying**: Since the hierarchy is flat (Central Warehouse <-> Outlets), standard relational queries are highly performant.
+- **Caching**: Frequently accessed location lists are cached for fast UI rendering.
+- **Extended Metadata**: Includes `description`, `address`, and `phone` for operational context.
 
 ## 6. Next Phase Recommendations
 

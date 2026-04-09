@@ -38,7 +38,6 @@ import { Route as AppMaterialLedgerRouteImport } from './routes/_app/material/le
 import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
 import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
 import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
-import { Route as AppLocationIdRouteImport } from './routes/_app/location/$id'
 import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
 import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
 import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
@@ -50,6 +49,7 @@ import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples
 import { Route as AppAnalyticsStockRouteImport } from './routes/_app/analytics/stock'
 import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
 import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
+import { Route as AppLocationIdIndexRouteImport } from './routes/_app/location/$id/index'
 import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
 import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
 import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
@@ -67,6 +67,7 @@ import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
 import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
 import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
+import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
 import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
 import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
 import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
@@ -215,11 +216,6 @@ const AppLocationCreateRoute = AppLocationCreateRouteImport.update({
   path: '/location/create',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppLocationIdRoute = AppLocationIdRouteImport.update({
-  id: '/location/$id',
-  path: '/location/$id',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppInventorySummaryRoute = AppInventorySummaryRouteImport.update({
   id: '/inventory/summary',
   path: '/inventory/summary',
@@ -274,6 +270,11 @@ const AppAnalyticsProductionRoute = AppAnalyticsProductionRouteImport.update({
 const AppMaterialIdIndexRoute = AppMaterialIdIndexRouteImport.update({
   id: '/material/$id/',
   path: '/material/$id/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppLocationIdIndexRoute = AppLocationIdIndexRouteImport.update({
+  id: '/location/$id/',
+  path: '/location/$id/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppInventoryTransactionsIndexRoute =
@@ -366,6 +367,11 @@ const AppMaterialIdRecipeRoute = AppMaterialIdRecipeRouteImport.update({
   path: '/material/$id/recipe',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppLocationIdEditRoute = AppLocationIdEditRouteImport.update({
+  id: '/location/$id/edit',
+  path: '/location/$id/edit',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppInventoryTransactionsTransferRoute =
   AppInventoryTransactionsTransferRouteImport.update({
     id: '/inventory/transactions/transfer',
@@ -409,7 +415,6 @@ export interface FileRoutesByFullPath {
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
-  '/location/$id': typeof AppLocationIdRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
@@ -438,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
@@ -455,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search/': typeof AppExamplesSearchIndexRoute
   '/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
+  '/location/$id/': typeof AppLocationIdIndexRoute
   '/material/$id/': typeof AppMaterialIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -471,7 +478,6 @@ export interface FileRoutesByTo {
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
-  '/location/$id': typeof AppLocationIdRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
@@ -500,6 +506,7 @@ export interface FileRoutesByTo {
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
@@ -517,6 +524,7 @@ export interface FileRoutesByTo {
   '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
   '/examples/search': typeof AppExamplesSearchIndexRoute
   '/inventory/transactions': typeof AppInventoryTransactionsIndexRoute
+  '/location/$id': typeof AppLocationIdIndexRoute
   '/material/$id': typeof AppMaterialIdIndexRoute
 }
 export interface FileRoutesById {
@@ -537,7 +545,6 @@ export interface FileRoutesById {
   '/_app/finance/ledger': typeof AppFinanceLedgerRoute
   '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/_app/inventory/summary': typeof AppInventorySummaryRoute
-  '/_app/location/$id': typeof AppLocationIdRoute
   '/_app/location/create': typeof AppLocationCreateRoute
   '/_app/material/category': typeof AppMaterialCategoryRoute
   '/_app/material/create': typeof AppMaterialCreateRoute
@@ -566,6 +573,7 @@ export interface FileRoutesById {
   '/_app/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/_app/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/_app/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/_app/location/$id/edit': typeof AppLocationIdEditRoute
   '/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
@@ -583,6 +591,7 @@ export interface FileRoutesById {
   '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
   '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
   '/_app/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
+  '/_app/location/$id/': typeof AppLocationIdIndexRoute
   '/_app/material/$id/': typeof AppMaterialIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -601,7 +610,6 @@ export interface FileRouteTypes {
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
     | '/inventory/summary'
-    | '/location/$id'
     | '/location/create'
     | '/material/category'
     | '/material/create'
@@ -630,6 +638,7 @@ export interface FileRouteTypes {
     | '/inventory/transactions/$id'
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/transfer'
+    | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
     | '/settings/role'
@@ -647,6 +656,7 @@ export interface FileRouteTypes {
     | '/examples/page-layouts/'
     | '/examples/search/'
     | '/inventory/transactions/'
+    | '/location/$id/'
     | '/material/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -663,7 +673,6 @@ export interface FileRouteTypes {
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
     | '/inventory/summary'
-    | '/location/$id'
     | '/location/create'
     | '/material/category'
     | '/material/create'
@@ -692,6 +701,7 @@ export interface FileRouteTypes {
     | '/inventory/transactions/$id'
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/transfer'
+    | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
     | '/settings/role'
@@ -709,6 +719,7 @@ export interface FileRouteTypes {
     | '/examples/page-layouts'
     | '/examples/search'
     | '/inventory/transactions'
+    | '/location/$id'
     | '/material/$id'
   id:
     | '__root__'
@@ -728,7 +739,6 @@ export interface FileRouteTypes {
     | '/_app/finance/ledger'
     | '/_app/finance/ledger-ar-ap'
     | '/_app/inventory/summary'
-    | '/_app/location/$id'
     | '/_app/location/create'
     | '/_app/material/category'
     | '/_app/material/create'
@@ -757,6 +767,7 @@ export interface FileRouteTypes {
     | '/_app/inventory/transactions/$id'
     | '/_app/inventory/transactions/adjustment'
     | '/_app/inventory/transactions/transfer'
+    | '/_app/location/$id/edit'
     | '/_app/material/$id/recipe'
     | '/_app/material/$id/update'
     | '/_app/settings/_tab/role'
@@ -774,6 +785,7 @@ export interface FileRouteTypes {
     | '/_app/examples/page-layouts/'
     | '/_app/examples/search/'
     | '/_app/inventory/transactions/'
+    | '/_app/location/$id/'
     | '/_app/material/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -988,13 +1000,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLocationCreateRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/location/$id': {
-      id: '/_app/location/$id'
-      path: '/location/$id'
-      fullPath: '/location/$id'
-      preLoaderRoute: typeof AppLocationIdRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/inventory/summary': {
       id: '/_app/inventory/summary'
       path: '/inventory/summary'
@@ -1070,6 +1075,13 @@ declare module '@tanstack/react-router' {
       path: '/material/$id'
       fullPath: '/material/$id/'
       preLoaderRoute: typeof AppMaterialIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/location/$id/': {
+      id: '/_app/location/$id/'
+      path: '/location/$id'
+      fullPath: '/location/$id/'
+      preLoaderRoute: typeof AppLocationIdIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/inventory/transactions/': {
@@ -1191,6 +1203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMaterialIdRecipeRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/location/$id/edit': {
+      id: '/_app/location/$id/edit'
+      path: '/location/$id/edit'
+      fullPath: '/location/$id/edit'
+      preLoaderRoute: typeof AppLocationIdEditRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/inventory/transactions/transfer': {
       id: '/_app/inventory/transactions/transfer'
       path: '/inventory/transactions/transfer'
@@ -1256,7 +1275,6 @@ interface AppRouteRouteChildren {
   AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
   AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
   AppInventorySummaryRoute: typeof AppInventorySummaryRoute
-  AppLocationIdRoute: typeof AppLocationIdRoute
   AppLocationCreateRoute: typeof AppLocationCreateRoute
   AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
   AppMaterialCreateRoute: typeof AppMaterialCreateRoute
@@ -1283,6 +1301,7 @@ interface AppRouteRouteChildren {
   AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
   AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
   AppInventoryTransactionsTransferRoute: typeof AppInventoryTransactionsTransferRoute
+  AppLocationIdEditRoute: typeof AppLocationIdEditRoute
   AppMaterialIdRecipeRoute: typeof AppMaterialIdRecipeRoute
   AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
@@ -1298,6 +1317,7 @@ interface AppRouteRouteChildren {
   AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
   AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
   AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
+  AppLocationIdIndexRoute: typeof AppLocationIdIndexRoute
   AppMaterialIdIndexRoute: typeof AppMaterialIdIndexRoute
 }
 
@@ -1314,7 +1334,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFinanceLedgerRoute: AppFinanceLedgerRoute,
   AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
   AppInventorySummaryRoute: AppInventorySummaryRoute,
-  AppLocationIdRoute: AppLocationIdRoute,
   AppLocationCreateRoute: AppLocationCreateRoute,
   AppMaterialCategoryRoute: AppMaterialCategoryRoute,
   AppMaterialCreateRoute: AppMaterialCreateRoute,
@@ -1342,6 +1361,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppInventoryTransactionsAdjustmentRoute:
     AppInventoryTransactionsAdjustmentRoute,
   AppInventoryTransactionsTransferRoute: AppInventoryTransactionsTransferRoute,
+  AppLocationIdEditRoute: AppLocationIdEditRoute,
   AppMaterialIdRecipeRoute: AppMaterialIdRecipeRoute,
   AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
@@ -1357,6 +1377,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
   AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
   AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,
+  AppLocationIdIndexRoute: AppLocationIdIndexRoute,
   AppMaterialIdIndexRoute: AppMaterialIdIndexRoute,
 }
 

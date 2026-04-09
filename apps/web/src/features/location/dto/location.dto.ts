@@ -1,13 +1,6 @@
 import { z } from 'zod'
 
-import {
-  zCodeUpper,
-  zMetadataDto,
-  zPaginationDto,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/lib/zod'
+import { zCodeUpper, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
 /**
  * Types of operational locations.
@@ -21,24 +14,13 @@ export const LocationTypeDto = z.enum([
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
 /**
- * Theoretical vs Physical classification.
- */
-export const LocationClassificationDto = z.enum([
-  /** Real-world physical address. */
-  'physical',
-  /** Logical grouping or shipping transit. */
-  'virtual',
-])
-export type LocationClassificationDto = z.infer<typeof LocationClassificationDto>
-
-/**
  * Common Location attributes.
  */
 export const LocationBaseDto = z.object({
   code: zCodeUpper.min(2).max(20),
   name: zStr.min(2).max(100),
   type: LocationTypeDto,
-  classification: LocationClassificationDto.default('physical'),
+  description: zStrNullable,
   address: zStrNullable,
   phone: zStrNullable,
 })
@@ -47,11 +29,7 @@ export type LocationBaseDto = z.infer<typeof LocationBaseDto>
 /**
  * Location database record.
  */
-export const LocationDto = z.object({
-  ...zRecordIdDto.shape,
-  ...LocationBaseDto.shape,
-  ...zMetadataDto.shape,
-})
+export const LocationDto = z.object({ ...zRecordIdDto.shape, ...LocationBaseDto.shape, ...zMetadataDto.shape })
 export type LocationDto = z.infer<typeof LocationDto>
 
 /**
