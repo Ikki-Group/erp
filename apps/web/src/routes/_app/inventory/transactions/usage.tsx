@@ -11,7 +11,9 @@ import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { stockTransactionApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
+import type { LocationDto } from '@/features/location/dto'
 import { materialLocationApi } from '@/features/material/api/material-location.api'
+import type { MaterialLocationStockDto } from '@/features/material/dto'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 export const Route = createFileRoute('/_app/inventory/transactions/usage')({ component: RouteComponent })
@@ -35,14 +37,18 @@ type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
   validators: { onSubmit: FormDto as any },
-  defaultValues: {
-    locationId: undefined as any,
+  defaultValues: getDefaultValues(),
+})
+
+function getDefaultValues(): FormDto {
+  return {
+    locationId: null!,
     date: new Date(),
     referenceNo: '',
     notes: '',
-    items: [{ materialId: undefined as any, qty: 0 }],
-  } as FormDto,
-})
+    items: [{ materialId: null!, qty: 0 }],
+  } as FormDto
+}
 
 function RouteComponent() {
   const navigate = useNavigate()
@@ -102,8 +108,8 @@ function UsageInfoCard() {
                 })
                 return res.data
               }}
-              getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => loc.id}
+              getLabel={(loc: LocationDto) => `${loc.name} (${loc.code})`}
+              getValue={(loc: LocationDto) => loc.id.toString()}
             />
           )}
         </form.AppField>
@@ -159,8 +165,8 @@ function UsageItemsCard() {
                             })
                             return res.data
                           }}
-                          getLabel={(mat: any) => `${mat.materialName} (${mat.materialSku})`}
-                          getValue={(mat: any) => mat.materialId}
+                          getLabel={(mat: MaterialLocationStockDto) => `${mat.materialName} (${mat.materialSku})`}
+                          getValue={(mat: MaterialLocationStockDto) => mat.materialId.toString()}
                         />
                       )}
                     </form.AppField>
@@ -200,7 +206,7 @@ function UsageItemsCard() {
                 variant="outline"
                 onClick={() => {
                   const curr = [...items]
-                  curr.push({ materialId: undefined as any, qty: 0 })
+                  curr.push({ materialId: null!, qty: 0 })
                   form.setFieldValue('items', curr)
                 }}
               >

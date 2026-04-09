@@ -37,7 +37,6 @@ import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/cr
 import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
 import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
 import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
-import { Route as AppInventoryLedgerRouteImport } from './routes/_app/inventory/ledger'
 import { Route as AppInventoryAllocationRouteImport } from './routes/_app/inventory/allocation'
 import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
 import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
@@ -211,11 +210,6 @@ const AppLocationCreateRoute = AppLocationCreateRouteImport.update({
 const AppInventorySummaryRoute = AppInventorySummaryRouteImport.update({
   id: '/inventory/summary',
   path: '/inventory/summary',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
-  id: '/inventory/ledger',
-  path: '/inventory/ledger',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppInventoryAllocationRoute = AppInventoryAllocationRouteImport.update({
@@ -429,7 +423,6 @@ export interface FileRoutesByFullPath {
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/allocation': typeof AppInventoryAllocationRoute
-  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
@@ -494,7 +487,6 @@ export interface FileRoutesByTo {
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/inventory/allocation': typeof AppInventoryAllocationRoute
-  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/inventory/summary': typeof AppInventorySummaryRoute
   '/location/create': typeof AppLocationCreateRoute
   '/material/category': typeof AppMaterialCategoryRoute
@@ -563,7 +555,6 @@ export interface FileRoutesById {
   '/_app/finance/ledger': typeof AppFinanceLedgerRoute
   '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
   '/_app/inventory/allocation': typeof AppInventoryAllocationRoute
-  '/_app/inventory/ledger': typeof AppInventoryLedgerRoute
   '/_app/inventory/summary': typeof AppInventorySummaryRoute
   '/_app/location/create': typeof AppLocationCreateRoute
   '/_app/material/category': typeof AppMaterialCategoryRoute
@@ -630,7 +621,6 @@ export interface FileRouteTypes {
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
     | '/inventory/allocation'
-    | '/inventory/ledger'
     | '/inventory/summary'
     | '/location/create'
     | '/material/category'
@@ -695,7 +685,6 @@ export interface FileRouteTypes {
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
     | '/inventory/allocation'
-    | '/inventory/ledger'
     | '/inventory/summary'
     | '/location/create'
     | '/material/category'
@@ -763,7 +752,6 @@ export interface FileRouteTypes {
     | '/_app/finance/ledger'
     | '/_app/finance/ledger-ar-ap'
     | '/_app/inventory/allocation'
-    | '/_app/inventory/ledger'
     | '/_app/inventory/summary'
     | '/_app/location/create'
     | '/_app/material/category'
@@ -1018,13 +1006,6 @@ declare module '@tanstack/react-router' {
       path: '/inventory/summary'
       fullPath: '/inventory/summary'
       preLoaderRoute: typeof AppInventorySummaryRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/inventory/ledger': {
-      id: '/_app/inventory/ledger'
-      path: '/inventory/ledger'
-      fullPath: '/inventory/ledger'
-      preLoaderRoute: typeof AppInventoryLedgerRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/inventory/allocation': {
@@ -1315,7 +1296,6 @@ interface AppRouteRouteChildren {
   AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
   AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
   AppInventoryAllocationRoute: typeof AppInventoryAllocationRoute
-  AppInventoryLedgerRoute: typeof AppInventoryLedgerRoute
   AppInventorySummaryRoute: typeof AppInventorySummaryRoute
   AppLocationCreateRoute: typeof AppLocationCreateRoute
   AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
@@ -1376,7 +1356,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFinanceLedgerRoute: AppFinanceLedgerRoute,
   AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
   AppInventoryAllocationRoute: AppInventoryAllocationRoute,
-  AppInventoryLedgerRoute: AppInventoryLedgerRoute,
   AppInventorySummaryRoute: AppInventorySummaryRoute,
   AppLocationCreateRoute: AppLocationCreateRoute,
   AppMaterialCategoryRoute: AppMaterialCategoryRoute,

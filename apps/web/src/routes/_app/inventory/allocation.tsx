@@ -36,7 +36,7 @@ function RouteComponent() {
 
   return (
     <Page>
-      <Page.BlockHeader title="Stok Bahan Baku" description="Kelola stok bahan baku per lokasi" />
+      <Page.BlockHeader title="Alokasi Gudang" description="Kelola penugasan bahan baku per lokasi gudang" />
       <Page.Content className="flex flex-col gap-4">
         {/* Location Selector */}
         <div className="flex items-end gap-3">
@@ -44,25 +44,18 @@ function RouteComponent() {
             <label className="text-sm font-medium">Pilih Lokasi</label>
             <DataCombobox
               value={locationId}
-              onValueChange={(val) => {
-                setLocationId(val)
-                if (!val) setLocationName('')
-              }}
-              placeholder="Cari lokasi..."
+              onValueChange={setLocationId}
+              onItemSelect={(item) => setLocationName(item?.name || '')}
+              placeholder="Cari lokasi gudang..."
               emptyText="Lokasi tidak ditemukan."
               queryKey={['location-list']}
               queryFn={async (search: string) => {
                 const res = await locationApi.list.fetch({
-                  params: { page: 1, limit: 20, search: search || undefined },
+                  params: { page: 1, limit: 20, q: search || undefined },
                 })
                 return res.data
               }}
-              getLabel={(item) => {
-                if (String(item.id) === locationId) {
-                  setLocationName(item.name)
-                }
-                return `${item.name} (${item.code})`
-              }}
+              getLabel={(item) => `${item.name} (${item.code})`}
               getValue={(item) => String(item.id)}
             />
           </div>
@@ -118,7 +111,7 @@ function StockTable({ locationId, locationName }: { locationId: number; location
   const unassignMutation = useMutation({
     mutationFn: materialLocationApi.unassign.mutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
+      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
     },
   })
 

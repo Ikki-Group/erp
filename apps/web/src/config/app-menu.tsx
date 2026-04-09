@@ -62,26 +62,19 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           icon: BoxIcon,
           children: [
             {
-              title: 'Stok per Lokasi',
+              title: 'Dashboard Stok',
               href: '/inventory/summary',
-              isActive: pathname.startsWith('/inventory/summary'),
+              isActive: pathname === '/inventory/summary',
             },
-            { title: 'Buku Ledger', href: '/inventory/ledger', isActive: pathname.startsWith('/inventory/ledger') },
             {
               title: 'Alokasi Gudang',
               href: '/inventory/allocation',
               isActive: pathname.startsWith('/inventory/allocation'),
             },
             {
-              title: 'Mutasi & Transfer',
+              title: 'Mutasi Stok',
               href: '/inventory/transactions',
-              isActive:
-                pathname === '/inventory/transactions' || pathname.startsWith('/inventory/transactions/transfer'),
-            },
-            {
-              title: 'Penyesuaian (Opname)',
-              href: '/inventory/transactions/adjustment',
-              isActive: pathname.startsWith('/inventory/transactions/adjustment'),
+              isActive: pathname.startsWith('/inventory/transactions'),
             },
           ],
         },

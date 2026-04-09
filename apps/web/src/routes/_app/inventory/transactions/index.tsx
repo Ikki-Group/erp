@@ -54,7 +54,7 @@ function RouteComponent() {
                 : 'secondary'
 
           const label = typeStr.replace('_', ' ').toUpperCase()
-          return <Badge variant={color as any}>{label}</Badge>
+          return <Badge variant={color}>{label}</Badge>
         },
         size: 110,
       }),
@@ -84,7 +84,7 @@ function RouteComponent() {
           const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
 
           return (
-            <Badge variant={color as any} className="font-semibold tabular-nums px-2 shadow-none border-transparent">
+            <Badge variant={color} className="font-semibold tabular-nums px-2 shadow-none border-transparent">
               {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
             </Badge>
           )
@@ -121,31 +121,44 @@ function RouteComponent() {
           action={
             <div className="flex items-center gap-2">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="h-10 shadow-md font-medium">
-                    <PlusIcon className="size-4 mr-2" /> Catat Transaksi
-                  </Button>
+                <DropdownMenuTrigger render={<Button size="sm" className="h-10 shadow-md font-medium" />}>
+                  <PlusIcon className="size-4 mr-2" /> Catat Transaksi
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Penerimaan Barang</DropdownMenuLabel>
-                  <DropdownMenuItem asChild>
-                    <Link to="/inventory/transactions/purchase">Pembelian</Link>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/purchase" className="flex items-center w-full" />}
+                  >
+                    Pembelian
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Pengeluaran Barang</DropdownMenuLabel>
-                  <DropdownMenuItem asChild>
-                    <Link to="/inventory/transactions/usage">Pemakaian / Konsumsi</Link>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/usage" className="flex items-center w-full" />}
+                  >
+                    Pemakaian / Konsumsi
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Mutasi & Stok Fisik</DropdownMenuLabel>
-                  <DropdownMenuItem asChild>
-                    <Link to="/inventory/transactions/transfer">Mutasi Internal (Transfer)</Link>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/transfer" className="flex items-center w-full" />}
+                  >
+                    Mutasi Internal (Transfer)
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/inventory/transactions/opname">Stock Opname</Link>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/opname" className="flex items-center w-full" />}
+                  >
+                    Stock Opname
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/inventory/transactions/adjustment">Koreksi / Adjustment</Link>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/adjustment" className="flex items-center w-full" />}
+                  >
+                    Koreksi / Adjustment
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

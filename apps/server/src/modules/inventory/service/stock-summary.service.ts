@@ -184,7 +184,7 @@ export class StockSummaryService {
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty"
           FROM stock_summaries
           WHERE "materialId" IN ${materialIds} AND "date" < ${startKey.toISOString()} ${locFilter}
-            AND "deletedAt" IS NULL
+            AND "deleted_at" IS NULL
           ORDER BY "materialId", "locationId", "date" DESC
         ) latest
         GROUP BY "materialId"
@@ -227,7 +227,7 @@ export class StockSummaryService {
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty", "closingValue"
           FROM stock_summaries
           WHERE "materialId" IN ${materialIds} AND "date" <= ${endKey.toISOString()} ${locFilter}
-            AND "deletedAt" IS NULL
+            AND "deleted_at" IS NULL
           ORDER BY "materialId", "locationId", "date" DESC
         ) latest
         GROUP BY "materialId"

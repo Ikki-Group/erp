@@ -110,6 +110,12 @@ export const stockTransactionApi = {
     body: ProductionOutTransactionDto,
     result: createSuccessResponseSchema(TransactionResultDto),
   }),
+  remove: apiFactory({
+    method: 'post',
+    url: endpoint.inventory.transaction.remove,
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(zRecordIdDto),
+  }),
 }
 
 export const stockAlertApi = {
