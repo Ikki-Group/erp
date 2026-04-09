@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -22,6 +24,8 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
 
+const ch = createColumnHelper<UomDto>()
+
 export const Route = createFileRoute('/_app/material/uom')({ component: RouteComponent })
 
 function RouteComponent() {
@@ -39,24 +43,9 @@ function RouteComponent() {
   )
 }
 
-function UomTable() {
-  const queryClient = useQueryClient()
-  const ds = useDataTableState()
-  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
 
-  const deleteMutation = useMutation({
-    mutationFn: uomApi.remove.mutationFn,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: uomApi.list.queryKey() })
-    },
-  })
-
-  const handleDelete = async (id: number) => {
-    const promise = deleteMutation.mutateAsync({ params: { id } })
-    await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
-  }
-
-  const columns = [
+function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<UomDto, any>[] {
+  return [
     ch.accessor(
       'code',
       statusColumn({
@@ -76,9 +65,9 @@ function UomTable() {
       }),
     ),
     ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 200 })),
-    actionColumn<UomDto>({
+    ch.display({
       id: 'action',
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<UomDto, any>) => {
         return (
           <div className="flex items-center justify-end px-2">
             <DropdownMenu>
@@ -103,8 +92,32 @@ function UomTable() {
           </div>
         )
       },
-    }),
+      size: 100,
+      enableSorting: false,
+      enableHiding: false,
+      enablePinning: true,
+    } as any),
   ]
+}
+
+function UomTable() {
+  const queryClient = useQueryClient()
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
+
+  const deleteMutation = useMutation({
+    mutationFn: uomApi.remove.mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [uomApi.list.queryKey(undefined)[0]] })
+    },
+  })
+
+  const handleDelete = async (id: number) => {
+    const promise = deleteMutation.mutateAsync({ params: { id } })
+    await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
+  }
+
+  const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
   const table = useDataTable({
     columns: columns,
@@ -135,4 +148,3 @@ function UomTable() {
   )
 }
 
-const ch = createColumnHelper<UomDto>()

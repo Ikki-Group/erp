@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { ChefHatIcon, EyeIcon, MapPinIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -21,6 +22,8 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { cn } from '@/lib/utils'
+
+const ch = createColumnHelper<MaterialSelectDto>()
 
 export const Route = createFileRoute('/_app/material/')({ component: RouteComponent })
 
@@ -52,7 +55,7 @@ function MaterialTable() {
   const deleteMutation = useMutation({
     mutationFn: materialApi.remove.mutationFn,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: materialApi.list.queryKey() })
+      void queryClient.invalidateQueries({ queryKey: [materialApi.list.queryKey(undefined)[0]] })
     },
   })
 
@@ -141,8 +144,7 @@ function MaterialTable() {
   )
 }
 
-const ch = createColumnHelper<MaterialSelectDto>()
-function getColumns(handleDelete: (id: number) => Promise<void>) {
+function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<MaterialSelectDto, any>[] {
   return [
     ch.display({
       id: 'select',
@@ -153,7 +155,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
           aria-label="Select all"
         />
       ),
-      cell: ({ row }) => (
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -168,7 +170,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
       header: 'Bahan Baku',
       size: 350,
       enableSorting: true,
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => {
         const value = row.original.name
         return (
           <div className="flex flex-col gap-1.5 py-1">
@@ -199,7 +201,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
       header: 'Kategori',
       size: 140,
       enableSorting: false,
-      cell: ({ row }) => (
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => (
         <Badge
           variant="secondary"
           className="bg-secondary/40 text-secondary-foreground rounded-md px-2 py-0 border-none font-medium text-[11px]"
@@ -212,14 +214,14 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
       header: 'Jenis',
       size: 160,
       enableSorting: false,
-      cell: ({ row }) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
     }),
     ch.accessor((row) => row.uom?.code, {
       id: 'uom',
       header: 'Satuan',
       size: 90,
       enableSorting: false,
-      cell: ({ row }) => (
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => (
         <div className="flex items-center">
           <Badge
             variant="outline"
@@ -234,7 +236,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
       header: 'Lokasi',
       size: 120,
       enableSorting: false,
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => {
         const count = row.original.locationIds.length
         return (
           <Button
@@ -258,10 +260,10 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
       },
     }),
     ch.accessor('updatedAt', dateColumn({ header: 'Diperbarui', size: 140 })),
-    actionColumn<MaterialSelectDto>({
+    ch.display({
       id: 'action',
       size: 140,
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<MaterialSelectDto, any>) => {
         return (
           <div className="flex items-center justify-end gap-1 px-2">
             <Button
@@ -308,6 +310,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
           </div>
         )
       },
-    }),
+      enablePinning: true,
+    } as any),
   ]
 }

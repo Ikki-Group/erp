@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { actionColumn, createColumnHelper, dateColumn, linkColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, dateColumn, linkColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -15,6 +17,8 @@ import { MaterialCategoryFormDialog } from '@/features/material/components/mater
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
+
+const ch = createColumnHelper<MaterialCategoryDto>()
 
 export const Route = createFileRoute('/_app/material/category')({ component: RouteComponent })
 
@@ -33,24 +37,8 @@ function RouteComponent() {
   )
 }
 
-function CategoryTable() {
-  const queryClient = useQueryClient()
-  const ds = useDataTableState()
-  const { data, isLoading } = useQuery(materialCategoryApi.list.query({ ...ds.pagination, q: ds.search }))
-
-  const deleteMutation = useMutation({
-    mutationFn: materialCategoryApi.remove.mutationFn,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: materialCategoryApi.list.queryKey() })
-    },
-  })
-
-  const handleDelete = async (id: number) => {
-    const promise = deleteMutation.mutateAsync({ params: { id } })
-    await toast.promise(promise, toastLabelMessage('delete', 'kategori')).unwrap()
-  }
-
-  const columns = [
+function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<MaterialCategoryDto, any>[] {
+  return [
     ch.accessor(
       'name',
       linkColumn({
@@ -68,9 +56,9 @@ function CategoryTable() {
       }),
     ),
     ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 180 })),
-    actionColumn<MaterialCategoryDto>({
+    ch.display({
       id: 'action',
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<MaterialCategoryDto, any>) => {
         return (
           <div className="flex items-center justify-end px-2">
             <DropdownMenu>
@@ -95,8 +83,32 @@ function CategoryTable() {
           </div>
         )
       },
-    }),
+      size: 100,
+      enableSorting: false,
+      enableHiding: false,
+      enablePinning: true,
+    } as any),
   ]
+}
+
+function CategoryTable() {
+  const queryClient = useQueryClient()
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(materialCategoryApi.list.query({ ...ds.pagination, q: ds.search }))
+
+  const deleteMutation = useMutation({
+    mutationFn: materialCategoryApi.remove.mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [materialCategoryApi.list.queryKey()[0]] })
+    },
+  })
+
+  const handleDelete = async (id: number) => {
+    const promise = deleteMutation.mutateAsync({ params: { id } })
+    await toast.promise(promise, toastLabelMessage('delete', 'kategori')).unwrap()
+  }
+
+  const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
   const table = useDataTable({
     columns: columns,
@@ -126,5 +138,3 @@ function CategoryTable() {
     />
   )
 }
-
-const ch = createColumnHelper<MaterialCategoryDto>()
