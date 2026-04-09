@@ -2,18 +2,9 @@ import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import {
-  createPaginatedResponseSchema,
-  createSuccessResponseSchema,
-  zRecordIdDto,
-} from '@/lib/zod'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/lib/zod'
 
-import {
-  AccountCreateDto,
-  AccountDto,
-  AccountFilterDto,
-  AccountUpdateDto,
-} from '../dto/account.dto'
+import { AccountCreateDto, AccountDto, AccountFilterDto, AccountUpdateDto } from '../dto/account.dto'
 
 export const accountApi = {
   list: apiFactory({

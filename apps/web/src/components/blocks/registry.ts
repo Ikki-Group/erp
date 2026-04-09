@@ -19,15 +19,18 @@ import type { ComponentRegistry } from '../registry'
 export const blocksRegistry: ComponentRegistry = {
   layer: 'blocks',
   title: 'Blocks',
-  description: 'Composable, feature-agnostic UI blocks. Organized into sub-groups: data-display, feedback, card, brand, patterns.',
+  description:
+    'Composable, feature-agnostic UI blocks. Organized into sub-groups: data-display, feedback, card, brand, patterns.',
   readonly: false,
   components: [
     // ── data-display ────────────────────────────────────────────────────
     {
       name: 'StatusBadge',
       file: './data-display/status-badge',
-      description: 'Generic status badge driven by a status map config. Supports dot indicators and variant styling. Includes `createStatusBadge` factory for presets.',
-      usage: 'Define a `StatusMap` for your domain, then use `<StatusBadge status={value} statusMap={map} />`. Or create a preset with `createStatusBadge(map)` for zero-config usage.',
+      description:
+        'Generic status badge driven by a status map config. Supports dot indicators and variant styling. Includes `createStatusBadge` factory for presets.',
+      usage:
+        'Define a `StatusMap` for your domain, then use `<StatusBadge status={value} statusMap={map} />`. Or create a preset with `createStatusBadge(map)` for zero-config usage.',
       importPath: '@/components/blocks/data-display/status-badge',
       tags: ['badge', 'status', 'active', 'inactive', 'factory', 'preset'],
       exports: ['StatusBadge', 'createStatusBadge', 'ActiveStatusBadge', 'activeStatusMap', 'toActiveStatus'],
@@ -45,7 +48,8 @@ export const blocksRegistry: ComponentRegistry = {
       name: 'DataList',
       file: './data-display/data-list',
       description: 'Key-value list component for displaying structured data in label-value pairs.',
-      usage: 'Use in detail pages or side panels to display entity attributes. Pass an array of `{ label, value }` items.',
+      usage:
+        'Use in detail pages or side panels to display entity attributes. Pass an array of `{ label, value }` items.',
       importPath: '@/components/blocks/data-display/data-list',
       tags: ['key-value', 'list', 'detail', 'attributes'],
       exports: ['DataList'],
@@ -63,7 +67,8 @@ export const blocksRegistry: ComponentRegistry = {
       name: 'DetailCard',
       file: './data-display/detail-card',
       description: 'Card wrapper that combines a card header with a DescriptionList body for entity detail views.',
-      usage: 'Use on detail pages: `<DetailCard title="Info" items={[...]} />`. Automatically renders key-value pairs inside a card.',
+      usage:
+        'Use on detail pages: `<DetailCard title="Info" items={[...]} />`. Automatically renders key-value pairs inside a card.',
       importPath: '@/components/blocks/data-display/detail-card',
       tags: ['card', 'detail', 'description', 'entity'],
       exports: ['DetailCard'],
@@ -72,7 +77,8 @@ export const blocksRegistry: ComponentRegistry = {
       name: 'ChartCard',
       file: './data-display/chart-card',
       description: 'Card-based chart container with title, footer content, and responsive grid wrapper.',
-      usage: 'Use `<ChartGrid>` for dashboard layouts, `<ChartCard>` to wrap individual Recharts charts with title and metadata.',
+      usage:
+        'Use `<ChartGrid>` for dashboard layouts, `<ChartCard>` to wrap individual Recharts charts with title and metadata.',
       importPath: '@/components/blocks/data-display/chart-card',
       tags: ['chart', 'card', 'dashboard', 'recharts', 'grid'],
       exports: ['ChartCard', 'ChartFooterContent', 'ChartGrid'],
@@ -82,8 +88,10 @@ export const blocksRegistry: ComponentRegistry = {
     {
       name: 'EmptyState',
       file: './feedback/empty-state',
-      description: 'Placeholder shown when a list or table has no data. Supports icon, title, description, and an action button.',
-      usage: 'Use when query returns empty results: `<EmptyState icon={BoxIcon} title="No items" action={<Button>Create</Button>} />`.',
+      description:
+        'Placeholder shown when a list or table has no data. Supports icon, title, description, and an action button.',
+      usage:
+        'Use when query returns empty results: `<EmptyState icon={BoxIcon} title="No items" action={<Button>Create</Button>} />`.',
       importPath: '@/components/blocks/feedback/empty-state',
       tags: ['empty', 'placeholder', 'no-data', 'zero-state'],
       exports: ['EmptyState'],
@@ -91,8 +99,10 @@ export const blocksRegistry: ComponentRegistry = {
     {
       name: 'ConfirmDialog',
       file: './feedback/confirm-dialog',
-      description: 'Imperative confirmation dialog using `react-call`. Supports destructive, warning, and default variants.',
-      usage: 'Call imperatively: `await ConfirmDialog({ title: "Delete?", variant: "destructive", onConfirm: handleDelete })`. Must have `<ConfirmDialog.Root />` in the app tree.',
+      description:
+        'Imperative confirmation dialog using `react-call`. Supports destructive, warning, and default variants.',
+      usage:
+        'Call imperatively: `await ConfirmDialog({ title: "Delete?", variant: "destructive", onConfirm: handleDelete })`. Must have `<ConfirmDialog.Root />` in the app tree.',
       importPath: '@/components/blocks/feedback/confirm-dialog',
       tags: ['confirm', 'dialog', 'modal', 'imperative', 'delete', 'destructive'],
       exports: ['ConfirmDialog'],
@@ -101,7 +111,8 @@ export const blocksRegistry: ComponentRegistry = {
       name: 'LoadingPage',
       file: './feedback/loading-page',
       description: 'Full-page loading spinner used as a pending/fallback component.',
-      usage: 'Use in route `pendingComponent` or `<Suspense fallback={<LoadingPage />}>`. Already integrated in AppLayout.',
+      usage:
+        'Use in route `pendingComponent` or `<Suspense fallback={<LoadingPage />}>`. Already integrated in AppLayout.',
       importPath: '@/components/blocks/feedback/loading-page',
       tags: ['loading', 'spinner', 'pending', 'suspense'],
       exports: ['LoadingPage'],
@@ -129,8 +140,10 @@ export const blocksRegistry: ComponentRegistry = {
     {
       name: 'DataTableCard',
       file: './card/data-table-card',
-      description: 'Standard card-wrapped data table with header, toolbar slot, scrollable table body, and pagination footer.',
-      usage: 'The standard pattern for list pages. Pass a TanStack Table instance, toolbar, and action: `<DataTableCard title="Products" table={table} toolbar={...} action={...} />`.',
+      description:
+        'Standard card-wrapped data table with header, toolbar slot, scrollable table body, and pagination footer.',
+      usage:
+        'The standard pattern for list pages. Pass a TanStack Table instance, toolbar, and action: `<DataTableCard title="Products" table={table} toolbar={...} action={...} />`.',
       importPath: '@/components/blocks/card/data-table-card',
       tags: ['card', 'table', 'list-page', 'standard', 'pagination'],
       exports: ['DataTableCard'],

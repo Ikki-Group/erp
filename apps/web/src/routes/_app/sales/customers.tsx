@@ -3,11 +3,7 @@ import { PlusIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  createColumnHelper,
-  statusColumn,
-  textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { useDataTable } from '@/hooks/use-data-table'
@@ -53,9 +49,7 @@ const columns = [
     'segment',
     statusColumn({
       header: 'Segmen',
-      render: (value) => (
-        <span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{value}</span>
-      ),
+      render: (value) => <span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{value}</span>,
       size: 100,
     }),
   ),
@@ -63,14 +57,8 @@ const columns = [
 
 function SalesCustomersPage() {
   const ds = useDataTableState()
-  
-  const table = useDataTable({
-    columns,
-    data: mockCustomers,
-    pageCount: 1,
-    rowCount: mockCustomers.length,
-    ds,
-  })
+
+  const table = useDataTable({ columns, data: mockCustomers, pageCount: 1, rowCount: mockCustomers.length, ds })
 
   return (
     <Page>

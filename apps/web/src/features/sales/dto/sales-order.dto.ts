@@ -1,16 +1,6 @@
 import z from 'zod'
 
-import {
-  zDate,
-  zDecimal,
-  zId,
-  zMetadataDto,
-  zNum,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/lib/zod'
+import { zDate, zDecimal, zId, zMetadataDto, zNum, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -138,9 +128,7 @@ export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>
 
 /* --------------------------------- UPDATE --------------------------------- */
 
-export const SalesOrderUpdateDto = SalesOrderCreateDto.partial().extend({
-  id: zId,
-})
+export const SalesOrderUpdateDto = SalesOrderCreateDto.partial().extend({ id: zId })
 
 export type SalesOrderUpdateDto = z.infer<typeof SalesOrderUpdateDto>
 

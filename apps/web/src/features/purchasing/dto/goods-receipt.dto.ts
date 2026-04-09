@@ -1,14 +1,6 @@
 import { z } from 'zod'
 
-import {
-  zMetadataDto,
-  zPaginationDto,
-  zQueryId,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/lib/zod'
+import { zMetadataDto, zPaginationDto, zQueryId, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
 export const GoodsReceiptStatusEnum = z.enum(['open', 'completed', 'void'])
 export type GoodsReceiptStatusEnum = z.infer<typeof GoodsReceiptStatusEnum>

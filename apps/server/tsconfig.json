@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
@@ -31,24 +29,9 @@
     "outDir": "./dist",
     "rootDir": "./",
     "composite": false,
-    "types": [
-      "bun",
-      "node"
-    ],
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+    "types": ["bun", "node"],
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": [
-    "src/**/*.ts",
-    "scripts/**/*.ts",
-    "*.config.*",
-    "drizzle.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "*.config.*", "drizzle.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

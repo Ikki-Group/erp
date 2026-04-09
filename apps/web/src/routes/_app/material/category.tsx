@@ -4,12 +4,7 @@ import { PencilIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import {
-  actionColumn,
-  createColumnHelper,
-  dateColumn,
-  linkColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { actionColumn, createColumnHelper, dateColumn, linkColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import type { MaterialCategoryDto } from '@/features/material'
@@ -65,7 +60,9 @@ const columns = [
               variant="ghost"
               size="icon-sm"
               className="size-8 text-muted-foreground hover:text-foreground"
-              onClick={() => { void MaterialCategoryFormDialog.upsert({ id: row.original.id }) }}
+              onClick={() => {
+                void MaterialCategoryFormDialog.upsert({ id: row.original.id })
+              }}
             >
               <PencilIcon className="size-4" />
             </Button>
@@ -96,7 +93,12 @@ function CategoryTable() {
       recordCount={data?.meta.total ?? 0}
       toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari kategori...' }]} />}
       action={
-        <Button size="sm" onClick={() => { void MaterialCategoryFormDialog.upsert({}) }}>
+        <Button
+          size="sm"
+          onClick={() => {
+            void MaterialCategoryFormDialog.upsert({})
+          }}
+        >
           Tambah Kategori
         </Button>
       }

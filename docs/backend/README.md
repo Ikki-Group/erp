@@ -6,14 +6,14 @@ Welcome to the Ikki ERP Backend Standards. This repository represents our defini
 
 This guide organizes our standards into the following areas:
 
-| Area | Purpose |
-| :--- | :--- |
-| [📂 Project Structure](./standards/project-structure.md) | Module-based organization and the layered architecture. |
-| [📝 DTO (Data Transfer Objects)](./standards/dto.md) | Zod schema composition and type-name matching patterns. |
-| [🛠️ Service Layer (Layer 0)](./standards/service.md) | Business logic orchestration, performance, and caching. |
-| [🚦 Router Layer (Layer 1)](./standards/router.md) | Elysia route definitions, validation, and response handlers. |
-| [🗄️ Database (Drizzle ORM)](./standards/database.md) | Naming conventions, efficiency (Integers), and audit helpers. |
-| [🚨 Error & Validation](./standards/error-validation.md) | Standard error classes and validation rules. |
+| Area                                                     | Purpose                                                       |
+| :------------------------------------------------------- | :------------------------------------------------------------ |
+| [📂 Project Structure](./standards/project-structure.md) | Module-based organization and the layered architecture.       |
+| [📝 DTO (Data Transfer Objects)](./standards/dto.md)     | Zod schema composition and type-name matching patterns.       |
+| [🛠️ Service Layer (Layer 0)](./standards/service.md)     | Business logic orchestration, performance, and caching.       |
+| [🚦 Router Layer (Layer 1)](./standards/router.md)       | Elysia route definitions, validation, and response handlers.  |
+| [🗄️ Database (Drizzle ORM)](./standards/database.md)     | Naming conventions, efficiency (Integers), and audit helpers. |
+| [🚨 Error & Validation](./standards/error-validation.md) | Standard error classes and validation rules.                  |
 
 ## 🚀 Key Principles
 
@@ -26,6 +26,7 @@ This guide organizes our standards into the following areas:
 ## 🤝 Reference Implementations
 
 The following modules represent the "Perfect Implementation" of these standards:
+
 - `src/modules/location/`
 - `src/modules/iam/`
 

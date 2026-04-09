@@ -26,9 +26,9 @@ Standardize PK and Audit columns using the helpers in `@/db/schema/_helpers`. Th
 import { pk, metadata } from './_helpers'
 
 export const myTable = pgTable('my_table', {
-  ...pk,              // serial primary key 'id'
+  ...pk, // serial primary key 'id'
   code: text('code').notNull(),
-  ...metadata,        // all audit columns
+  ...metadata, // all audit columns
 })
 ```
 
@@ -61,6 +61,7 @@ roleId: integer('role_id')
 ## 6. Migration Workflow
 
 Migrations should be generated and applied using the **Drizzle Kit**.
+
 1. Modify the schema in `src/db/schema/`.
 2. Run `drizzle-kit generate`.
 3. Review the generated SQL in `drizzle/`.

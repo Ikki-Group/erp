@@ -50,9 +50,7 @@ const topProductsData = [
   { name: 'Spaghetti Carbonara', sales: 240 },
 ]
 
-const productConfig = {
-  sales: { label: 'Terjual', color: 'oklch(var(--primary))' },
-}
+const productConfig = { sales: { label: 'Terjual', color: 'oklch(var(--primary))' } }
 
 const lowStockData = [
   { item: 'Biji Kopi House Blend', location: 'Ikki Coffee Bar', stock: '2.5 kg', min: '5 kg' },
@@ -83,12 +81,7 @@ function Dashboard() {
             icon={DollarSignIcon}
             className="border-primary/20 bg-primary/5"
           />
-          <CardStat
-            title="Total HPP (COGS)"
-            value="Rp 4.000.000"
-            description="45.4% Margin"
-            icon={PackageIcon}
-          />
+          <CardStat title="Total HPP (COGS)" value="Rp 4.000.000" description="45.4% Margin" icon={PackageIcon} />
           <CardStat
             title="Gross Profit Margin"
             value="54.6%"
@@ -155,14 +148,7 @@ function Dashboard() {
             <ChartContainer config={productConfig} className="aspect-auto h-[350px] w-full">
               <BarChart data={topProductsData} layout="vertical" margin={{ left: -20 }}>
                 <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={12}
-                  width={140}
-                />
+                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} fontSize={12} width={140} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                 <Bar dataKey="sales" fill="oklch(var(--primary))" radius={4} />
               </BarChart>
@@ -175,7 +161,9 @@ function Dashboard() {
           <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
             <div className="p-6 pb-3 flex items-center justify-between">
               <h3 className="font-semibold leading-none tracking-tight">Peringatan Stok Rendah</h3>
-              <Button variant="ghost" size="sm" className="text-xs">Lihat Semua</Button>
+              <Button variant="ghost" size="sm" className="text-xs">
+                Lihat Semua
+              </Button>
             </div>
             <div className="px-6 pb-6">
               <Table>
@@ -210,14 +198,19 @@ function Dashboard() {
             </div>
             <div className="px-6 pb-6 space-y-4">
               {pendingRequests.map((req) => (
-                <div key={req.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
+                <div
+                  key={req.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-background border shadow-sm">
                       <BoxIcon className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="grid gap-0.5">
                       <p className="text-sm font-medium leading-none">{req.item}</p>
-                      <p className="text-xs text-muted-foreground">{req.from} • {req.qty}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {req.from} • {req.qty}
+                      </p>
                     </div>
                   </div>
                   <ArrowRightIcon className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -229,7 +222,6 @@ function Dashboard() {
             </div>
           </div>
         </div>
-
       </Page.Content>
     </Page>
   )

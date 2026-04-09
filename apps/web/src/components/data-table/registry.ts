@@ -12,14 +12,16 @@ import type { ComponentRegistry } from '../registry'
 export const dataTableRegistry: ComponentRegistry = {
   layer: 'data-table',
   title: 'Data Table Engine',
-  description: 'Server-side paginated data table system built on TanStack Table. Provides hooks, context, pagination, toolbar, and column helpers.',
+  description:
+    'Server-side paginated data table system built on TanStack Table. Provides hooks, context, pagination, toolbar, and column helpers.',
   readonly: false,
   components: [
     {
       name: 'DataTable',
       file: './data-table',
       description: 'Core data table component that renders a TanStack Table instance with the standard table layout.',
-      usage: 'Prefer using `DataTableCard` from blocks for the standard card-wrapped pattern. Use this directly only for custom layouts.',
+      usage:
+        'Prefer using `DataTableCard` from blocks for the standard card-wrapped pattern. Use this directly only for custom layouts.',
       importPath: '@/components/data-table',
       tags: ['table', 'core', 'render'],
       exports: ['DataTable'],
@@ -37,7 +39,8 @@ export const dataTableRegistry: ComponentRegistry = {
       name: 'useDataTableState',
       file: './use-data-table-state',
       description: 'Hook managing URL-synced table state: search, pagination, sorting, and filters.',
-      usage: 'Use as the first step in any table page: `const ds = useDataTableState<FilterDto>()`. Pass `ds` to `useDataTable` and `DataGridFilter`.',
+      usage:
+        'Use as the first step in any table page: `const ds = useDataTableState<FilterDto>()`. Pass `ds` to `useDataTable` and `DataGridFilter`.',
       importPath: '@/components/data-table/use-data-table-state',
       tags: ['hook', 'state', 'url', 'search', 'pagination', 'filters'],
       exports: ['useDataTableState'],
@@ -64,7 +67,8 @@ export const dataTableRegistry: ComponentRegistry = {
       name: 'DataTableToolbar',
       file: './data-table-toolbar',
       description: 'Toolbar container with search input and column visibility toggles.',
-      usage: 'Use for tables needing built-in search and column visibility. For advanced filtering, use DataGridFilter from reui instead.',
+      usage:
+        'Use for tables needing built-in search and column visibility. For advanced filtering, use DataGridFilter from reui instead.',
       importPath: '@/components/data-table/data-table-toolbar',
       tags: ['toolbar', 'search', 'column-toggle'],
       exports: ['DataTableToolbar'],

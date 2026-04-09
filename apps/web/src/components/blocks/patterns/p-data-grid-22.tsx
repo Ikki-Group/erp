@@ -395,9 +395,8 @@ export function Pattern() {
             return <Badge variant="destructive-outline">Blocked</Badge>
           } else if (status == 'Inactive') {
             return <Badge variant="info-outline">Inactive</Badge>
-          } else {
-            return <Badge variant="warning-outline">Pending</Badge>
           }
+          return <Badge variant="warning-outline">Pending</Badge>
         },
         size: 100,
         enableSorting: true,

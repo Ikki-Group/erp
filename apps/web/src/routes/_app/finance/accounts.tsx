@@ -81,7 +81,6 @@ function FinanceAccountsPage() {
         description="Kelola hierarki akun Kas, Bank, Aset, hingga Biaya Operasional untuk pembukuan."
       />
       <Page.Content className="flex flex-col gap-6">
-
         {/* Metric Cards Dashboard */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -123,16 +122,23 @@ function FinanceAccountsPage() {
           <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <div className="flex flex-col gap-1.5 min-w-[300px]">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cari Akun</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Cari Akun
+                </label>
                 <div className="relative">
                   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Ketik nama atau kode akun..." className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background" />
+                  <Input
+                    placeholder="Ketik nama atau kode akun..."
+                    className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background"
+                  />
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-1.5 sm:self-center">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">Aksi</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">
+                Aksi
+              </label>
               <Button size="sm" className="h-10 shadow-md font-medium">
                 <PlusIcon className="size-4 mr-2" /> Tambah Akun Baru
               </Button>

@@ -13,19 +13,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 /* -------------------------------------------------------------------------- */
 
 const formLayoutVariants = cva('flex flex-1 flex-col animate-enter', {
-  variants: {
-    gap: {
-      sm: 'gap-6',
-      md: 'gap-8',
-      lg: 'gap-10',
-    },
-  },
-  defaultVariants: {
-    gap: 'md',
-  },
+  variants: { gap: { sm: 'gap-6', md: 'gap-8', lg: 'gap-10' } },
+  defaultVariants: { gap: 'md' },
 })
 
-type FormLayoutProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof formLayoutVariants>
+type FormLayoutProps = useRender.ComponentProps<'div'> &
+  React.ComponentProps<'div'> &
+  VariantProps<typeof formLayoutVariants>
 
 function FormLayout({ gap, render, className, ...props }: FormLayoutProps) {
   return useRender({
@@ -55,12 +49,12 @@ const formGridVariants = cva('grid gap-y-8 items-start', {
       3: 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-x-12',
     },
   },
-  defaultVariants: {
-    columns: 2,
-  },
+  defaultVariants: { columns: 2 },
 })
 
-type FormGridProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof formGridVariants>
+type FormGridProps = useRender.ComponentProps<'div'> &
+  React.ComponentProps<'div'> &
+  VariantProps<typeof formGridVariants>
 
 function FormGrid({ columns, render, className, ...props }: FormGridProps) {
   return useRender({
@@ -74,10 +68,8 @@ function FormGrid({ columns, render, className, ...props }: FormGridProps) {
 /*  FormSection                                                               */
 /* -------------------------------------------------------------------------- */
 
-type FormSectionProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & {
-  title?: string
-  description?: string
-}
+type FormSectionProps = useRender.ComponentProps<'div'> &
+  React.ComponentProps<'div'> & { title?: string; description?: string }
 
 function FormSection({ title, description, className, children, render, ...props }: FormSectionProps) {
   const content = (
@@ -92,11 +84,7 @@ function FormSection({ title, description, className, children, render, ...props
     </div>
   )
 
-  return useRender({
-    defaultTagName: 'div',
-    props: { children: content },
-    render,
-  })
+  return useRender({ defaultTagName: 'div', props: { children: content }, render })
 }
 
 /* -------------------------------------------------------------------------- */

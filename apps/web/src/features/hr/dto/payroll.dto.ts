@@ -1,11 +1,6 @@
 import { z } from 'zod'
 
-import {
-  zId,
-  zMetadataDto,
-  zRecordIdDto,
-  zStr,
-} from '@/lib/zod'
+import { zId, zMetadataDto, zRecordIdDto, zStr } from '@/lib/zod'
 
 export const PayrollStatusDto = z.enum(['draft', 'approved', 'paid', 'cancelled'])
 export type PayrollStatusDto = z.infer<typeof PayrollStatusDto>

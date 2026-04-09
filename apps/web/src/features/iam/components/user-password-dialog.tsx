@@ -52,7 +52,12 @@ export const UserPasswordDialog = createCallable<UserPasswordDialogProps>((props
         <div className="py-2">
           <form.AppField name="password">
             {(field) => (
-              <field.InputPassword label="Password Baru" required placeholder="Masukkan password baru" disabled={disabled} />
+              <field.InputPassword
+                label="Password Baru"
+                required
+                placeholder="Masukkan password baru"
+                disabled={disabled}
+              />
             )}
           </form.AppField>
         </div>

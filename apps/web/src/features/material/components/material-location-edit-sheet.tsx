@@ -60,7 +60,7 @@ function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose
   const updateConfig = useMutation({
     mutationFn: materialLocationApi.updateConfig.mutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
+      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
     },
   })
 

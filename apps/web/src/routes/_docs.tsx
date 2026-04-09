@@ -1,12 +1,18 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
-import { ArrowLeftIcon, BookOpenIcon, ComponentIcon, LayersIcon, LayoutDashboardIcon, TableIcon, PaletteIcon } from 'lucide-react'
+import {
+  ArrowLeftIcon,
+  BookOpenIcon,
+  ComponentIcon,
+  LayersIcon,
+  LayoutDashboardIcon,
+  TableIcon,
+  PaletteIcon,
+} from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { componentRegistry } from '@/components/registry'
 
-export const Route = createFileRoute('/_docs')({
-  component: DocsLayout,
-})
+export const Route = createFileRoute('/_docs')({ component: DocsLayout })
 
 const layerIcons: Record<string, typeof ComponentIcon> = {
   layout: LayoutDashboardIcon,
@@ -22,7 +28,10 @@ function DocsLayout() {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/30 flex flex-col shrink-0 sticky top-0 h-dvh overflow-y-auto">
         <div className="p-4 border-b">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeftIcon className="size-4" />
             Kembali ke App
           </Link>
@@ -53,7 +62,8 @@ function DocsLayout() {
         </nav>
         <div className="p-4 border-t">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            <span className="font-medium">Readonly layers</span> (ui, reui) are managed by external registries and excluded from this docs.
+            <span className="font-medium">Readonly layers</span> (ui, reui) are managed by external registries and
+            excluded from this docs.
           </p>
         </div>
       </aside>

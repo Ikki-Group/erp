@@ -52,12 +52,7 @@ function FormItem({ className, ...props }: React.ComponentProps<typeof scn.Field
 
   return (
     <FormItemContext value={{ id }}>
-      <scn.Field
-        data-slot="form-item"
-        data-invalid={hasError ? 'true' : undefined}
-        className={className}
-        {...props}
-      />
+      <scn.Field data-slot="form-item" data-invalid={hasError ? 'true' : undefined} className={className} {...props} />
     </FormItemContext>
   )
 }

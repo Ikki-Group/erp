@@ -3,9 +3,7 @@ import { BookOpenIcon, ComponentIcon, LayersIcon, LayoutDashboardIcon, PaletteIc
 
 import { componentRegistry } from '@/components/registry'
 
-export const Route = createFileRoute('/_docs/docs/')({
-  component: DocsIndex,
-})
+export const Route = createFileRoute('/_docs/docs/')({ component: DocsIndex })
 
 const layerIcons: Record<string, typeof ComponentIcon> = {
   layout: LayoutDashboardIcon,
@@ -62,7 +60,8 @@ function DocsIndex() {
         <h3 className="font-medium text-sm mb-1">Readonly Registries</h3>
         <p className="text-xs text-muted-foreground max-w-md mx-auto">
           <code className="bg-muted px-1.5 py-0.5 rounded text-[11px]">ui/</code> (Shadcn) and{' '}
-          <code className="bg-muted px-1.5 py-0.5 rounded text-[11px]">reui/</code> (Internal) are managed by external registries and not listed here.
+          <code className="bg-muted px-1.5 py-0.5 rounded text-[11px]">reui/</code> (Internal) are managed by external
+          registries and not listed here.
         </p>
       </div>
     </div>

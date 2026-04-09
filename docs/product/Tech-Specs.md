@@ -202,14 +202,14 @@ To maintain perfect type safety across all system boundaries, all DTOs must appe
 
 ### 4.1 Key Development Commands
 
-| Command | Scope | Purpose |
-|---------|-------|---------|
-| `bun run dev:server` | Root | Start server with watch mode |
-| `bun run dev:web` | Root | Start frontend dev server on port 3000 |
-| `bun run lint` | Root | Run Oxlint across entire workspace |
-| `bun run format` | Root | Run Oxfmt across entire workspace |
-| `bun run check` | Root | Lint + format check |
-| `bun run verify` | Server | Full verification: lint + typecheck + knip + check-deps |
-| `bun run db:generate` | Server | Generate Drizzle migrations |
-| `bun run db:migrate` | Server | Apply Drizzle migrations |
-| `bun run db:studio` | Server | Open Drizzle Studio GUI |
+| Command               | Scope  | Purpose                                                 |
+| --------------------- | ------ | ------------------------------------------------------- |
+| `bun run dev:server`  | Root   | Start server with watch mode                            |
+| `bun run dev:web`     | Root   | Start frontend dev server on port 3000                  |
+| `bun run lint`        | Root   | Run Oxlint across entire workspace                      |
+| `bun run format`      | Root   | Run Oxfmt across entire workspace                       |
+| `bun run check`       | Root   | Lint + format check                                     |
+| `bun run verify`      | Server | Full verification: lint + typecheck + knip + check-deps |
+| `bun run db:generate` | Server | Generate Drizzle migrations                             |
+| `bun run db:migrate`  | Server | Apply Drizzle migrations                                |
+| `bun run db:studio`   | Server | Open Drizzle Studio GUI                                 |

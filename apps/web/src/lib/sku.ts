@@ -13,17 +13,17 @@ export function generateSku(prefix: string, reference?: string): string {
   )}${String(now.getDate()).padStart(2, '0')}`
 
   // 3 characters of random alphanumeric (Base36)
-  const random = Math.random().toString(36).substring(2, 5).toUpperCase()
+  const random = Math.random().toString(36).slice(2, 5).toUpperCase()
 
-  const cleanPrefix = prefix.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const cleanPrefix = prefix.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
   let mnemonic = ''
 
   if (reference) {
     // Extract first 4 alphanumeric characters from reference
     mnemonic = reference
       .toUpperCase()
-      .replace(/[^A-Z0-9]/g, '')
-      .substring(0, 4)
+      .replaceAll(/[^A-Z0-9]/g, '')
+      .slice(0, 4)
   }
 
   const parts = [cleanPrefix, mnemonic, datePart, random].filter(Boolean)

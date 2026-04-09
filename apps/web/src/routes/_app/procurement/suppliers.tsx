@@ -3,11 +3,7 @@ import { Building2Icon, PlusIcon, ShieldAlertIcon, StarIcon } from 'lucide-react
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
-import {
-  createColumnHelper,
-  statusColumn,
-  textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
@@ -47,9 +43,7 @@ const columns = [
     'products',
     statusColumn({
       header: 'Total Produk Supply',
-      render: (value) => (
-        <span className="font-medium tabular-nums text-muted-foreground">{value} Item</span>
-      ),
+      render: (value) => <span className="font-medium tabular-nums text-muted-foreground">{value} Item</span>,
       size: 150,
     }),
   ),
@@ -82,19 +76,15 @@ const columns = [
 
 function SuppliersPage() {
   const ds = useDataTableState()
-  const table = useDataTable({
-    columns,
-    data: mockSuppliers,
-    pageCount: 1,
-    rowCount: mockSuppliers.length,
-    ds,
-  })
+  const table = useDataTable({ columns, data: mockSuppliers, pageCount: 1, rowCount: mockSuppliers.length, ds })
 
   return (
     <Page>
-      <Page.BlockHeader title="Data Supplier" description="Direktori kelola vendor bahan baku dan layanan operasional Anda." />
+      <Page.BlockHeader
+        title="Data Supplier"
+        description="Direktori kelola vendor bahan baku dan layanan operasional Anda."
+      />
       <Page.Content className="flex flex-col gap-6">
-
         {/* Metric Cards Dashboard */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -104,7 +94,9 @@ function SuppliersPage() {
             </Card.Header>
             <Card.Content>
               <div className="text-2xl font-bold">24 Vendor</div>
-              <p className="text-xs text-emerald-600 mt-1 flex items-center"><StarIcon className="size-3 mr-1 fill-current"/> Avg Rating: 4.6</p>
+              <p className="text-xs text-emerald-600 mt-1 flex items-center">
+                <StarIcon className="size-3 mr-1 fill-current" /> Avg Rating: 4.6
+              </p>
             </Card.Content>
           </Card>
           <Card>

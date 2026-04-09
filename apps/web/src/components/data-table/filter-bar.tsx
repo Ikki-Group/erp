@@ -93,7 +93,7 @@ function FilterSelect<TValue extends StringOrNumber>({
       value={value != null ? String(value) : '__all__'}
       onValueChange={(val) => {
         if (val === '__all__') {
-          onValueChange(undefined)
+          onValueChange()
         } else {
           // Attempt to recover original type
           const numVal = Number(val)

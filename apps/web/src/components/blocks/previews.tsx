@@ -29,12 +29,7 @@ export const blocksPreviews: Record<string, ComponentRegistryEntry['preview']> =
   ),
 
   EmptyState: () => (
-    <EmptyState
-      icon={InboxIcon}
-      title="Belum ada data"
-      description="Mulai dengan menambahkan item baru."
-      compact
-    />
+    <EmptyState icon={InboxIcon} title="Belum ada data" description="Mulai dengan menambahkan item baru." compact />
   ),
 
   LoadingPage: () => (

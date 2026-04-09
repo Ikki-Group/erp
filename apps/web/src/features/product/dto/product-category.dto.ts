@@ -1,13 +1,6 @@
 import z from 'zod'
 
-import {
-  zId,
-  zMetadataDto,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/lib/zod'
+import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -29,10 +22,6 @@ export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const ProductCategoryMutationDto = ProductCategoryDto.pick({
-  name: true,
-  description: true,
-  parentId: true,
-})
+export const ProductCategoryMutationDto = ProductCategoryDto.pick({ name: true, description: true, parentId: true })
 
 export type ProductCategoryMutationDto = z.infer<typeof ProductCategoryMutationDto>

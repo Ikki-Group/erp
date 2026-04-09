@@ -6,14 +6,10 @@ import { blocksPreviews } from '@/components/blocks/previews'
 import { componentRegistry } from '@/components/registry'
 import type { ComponentRegistryEntry } from '@/components/registry'
 
-export const Route = createFileRoute('/_docs/docs/$layer')({
-  component: LayerPage,
-})
+export const Route = createFileRoute('/_docs/docs/$layer')({ component: LayerPage })
 
 /** Map layer name → preview map */
-const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = {
-  blocks: blocksPreviews,
-}
+const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = { blocks: blocksPreviews }
 
 function LayerPage() {
   const { layer } = Route.useParams()
@@ -24,9 +20,7 @@ function LayerPage() {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold">Layer not found</h1>
-        <p className="text-muted-foreground mt-2">
-          No registry found for layer &ldquo;{layer}&rdquo;.
-        </p>
+        <p className="text-muted-foreground mt-2">No registry found for layer &ldquo;{layer}&rdquo;.</p>
       </div>
     )
   }
@@ -96,9 +90,7 @@ function ComponentCard({
             <EyeIcon className="size-3.5" />
             Preview
           </div>
-          <div className="rounded-lg border border-dashed bg-background p-4">
-            {preview()}
-          </div>
+          <div className="rounded-lg border border-dashed bg-background p-4">{preview()}</div>
         </div>
       )}
 

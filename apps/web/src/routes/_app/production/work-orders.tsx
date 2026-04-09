@@ -91,13 +91,7 @@ const columns = [
 
 function WorkOrdersPage() {
   const ds = useDataTableState()
-  const table = useDataTable({
-    columns,
-    data: mockWorkOrders,
-    pageCount: 1,
-    rowCount: mockWorkOrders.length,
-    ds,
-  })
+  const table = useDataTable({ columns, data: mockWorkOrders, pageCount: 1, rowCount: mockWorkOrders.length, ds })
 
   return (
     <Page>
@@ -106,7 +100,6 @@ function WorkOrdersPage() {
         description="Jadwal dan status real-time untuk lini produksi barang setengah/jadi."
       />
       <Page.Content className="flex flex-col gap-6">
-
         {/* Metric Cards Dashboard */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>

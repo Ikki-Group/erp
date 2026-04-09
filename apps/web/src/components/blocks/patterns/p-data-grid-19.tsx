@@ -269,9 +269,8 @@ export function PDataGrid19() {
 
           if (status == 'active') {
             return <Badge variant="primary-outline">Approved</Badge>
-          } else {
-            return <Badge variant="destructive-outline">Pending</Badge>
           }
+          return <Badge variant="destructive-outline">Pending</Badge>
         },
         size: 100,
         enableSorting: true,

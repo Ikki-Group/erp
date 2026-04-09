@@ -12,7 +12,9 @@ import { cn } from '@/lib/utils'
 
 const sectionVariants = cva('space-y-6')
 
-type SectionProps = useRender.ComponentProps<'section'> & React.ComponentProps<'section'> & VariantProps<typeof sectionVariants>
+type SectionProps = useRender.ComponentProps<'section'> &
+  React.ComponentProps<'section'> &
+  VariantProps<typeof sectionVariants>
 
 function Section({ render, className, ...props }: SectionProps) {
   return useRender({
@@ -26,11 +28,8 @@ function Section({ render, className, ...props }: SectionProps) {
 /*  SectionHeader                                                             */
 /* -------------------------------------------------------------------------- */
 
-type SectionHeaderProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & {
-  title?: string
-  description?: string
-  action?: React.ReactNode
-}
+type SectionHeaderProps = useRender.ComponentProps<'div'> &
+  React.ComponentProps<'div'> & { title?: string; description?: string; action?: React.ReactNode }
 
 function SectionHeader({ title, description, action, className, children, render, ...props }: SectionHeaderProps) {
   const content = (
@@ -46,11 +45,7 @@ function SectionHeader({ title, description, action, className, children, render
     </div>
   )
 
-  return useRender({
-    defaultTagName: 'div',
-    props: { children: content },
-    render,
-  })
+  return useRender({ defaultTagName: 'div', props: { children: content }, render })
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,16 +61,9 @@ const gridVariants = cva('grid', {
       4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
       6: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
     },
-    gap: {
-      sm: 'gap-4',
-      md: 'gap-6',
-      lg: 'gap-8',
-    },
+    gap: { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' },
   },
-  defaultVariants: {
-    cols: 2,
-    gap: 'md',
-  },
+  defaultVariants: { cols: 2, gap: 'md' },
 })
 
 type GridProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof gridVariants>
@@ -94,23 +82,10 @@ function Grid({ cols, gap, render, className, ...props }: GridProps) {
 
 const stackVariants = cva('flex flex-col', {
   variants: {
-    gap: {
-      sm: 'gap-2',
-      md: 'gap-4',
-      lg: 'gap-6',
-      xl: 'gap-8',
-    },
-    align: {
-      start: 'items-start',
-      center: 'items-center',
-      end: 'items-end',
-      stretch: 'items-stretch',
-    },
+    gap: { sm: 'gap-2', md: 'gap-4', lg: 'gap-6', xl: 'gap-8' },
+    align: { start: 'items-start', center: 'items-center', end: 'items-end', stretch: 'items-stretch' },
   },
-  defaultVariants: {
-    gap: 'md',
-    align: 'stretch',
-  },
+  defaultVariants: { gap: 'md', align: 'stretch' },
 })
 
 type StackProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof stackVariants>
@@ -129,34 +104,12 @@ function Stack({ gap, align, render, className, ...props }: StackProps) {
 
 const inlineVariants = cva('flex', {
   variants: {
-    gap: {
-      sm: 'gap-2',
-      md: 'gap-4',
-      lg: 'gap-6',
-    },
-    align: {
-      start: 'items-start',
-      center: 'items-center',
-      end: 'items-end',
-      baseline: 'items-baseline',
-    },
-    justify: {
-      start: 'justify-start',
-      center: 'justify-center',
-      end: 'justify-end',
-      between: 'justify-between',
-    },
-    wrap: {
-      true: 'flex-wrap',
-      false: 'flex-nowrap',
-    },
+    gap: { sm: 'gap-2', md: 'gap-4', lg: 'gap-6' },
+    align: { start: 'items-start', center: 'items-center', end: 'items-end', baseline: 'items-baseline' },
+    justify: { start: 'justify-start', center: 'justify-center', end: 'justify-end', between: 'justify-between' },
+    wrap: { true: 'flex-wrap', false: 'flex-nowrap' },
   },
-  defaultVariants: {
-    gap: 'md',
-    align: 'center',
-    justify: 'start',
-    wrap: false,
-  },
+  defaultVariants: { gap: 'md', align: 'center', justify: 'start', wrap: false },
 })
 
 type InlineProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'> & VariantProps<typeof inlineVariants>

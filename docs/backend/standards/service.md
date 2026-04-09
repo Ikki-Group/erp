@@ -5,6 +5,7 @@ This document defines the architectural standards for the Service layer within t
 ## 1. Responsibilities
 
 The Service layer is responsible for:
+
 - Orchestrating database operations (Drizzle).
 - Managing business logic and validation beyond simple schema checks.
 - Handling cache invalidation and wrapping (`cache-manager`).
@@ -15,18 +16,19 @@ The Service layer is responsible for:
 
 Each domain service should implement the following standard methods to ensure a consistent API across modules:
 
-| Method Name | Description | Pattern |
-| :--- | :--- | :--- |
-| `handleList` | Paginated listing with filters. | `Promise<WithPaginationResult<T>>` |
-| `handleDetail` | Fetch a single resource by ID. | `Promise<T>` |
-| `handleCreate` | Business logic for creating a resource. | `Promise<{ id: number }>` |
-| `handleUpdate` | Business logic for full resource update. | `Promise<{ id: number }>` |
-| `handleRemove` | Soft delete/Archive a resource. | `Promise<{ id: number }>` |
-| `handleHardRemove` | Permanent deletion (Admin only). | `Promise<{ id: number }>` |
+| Method Name        | Description                              | Pattern                            |
+| :----------------- | :--------------------------------------- | :--------------------------------- |
+| `handleList`       | Paginated listing with filters.          | `Promise<WithPaginationResult<T>>` |
+| `handleDetail`     | Fetch a single resource by ID.           | `Promise<T>`                       |
+| `handleCreate`     | Business logic for creating a resource.  | `Promise<{ id: number }>`          |
+| `handleUpdate`     | Business logic for full resource update. | `Promise<{ id: number }>`          |
+| `handleRemove`     | Soft delete/Archive a resource.          | `Promise<{ id: number }>`          |
+| `handleHardRemove` | Permanent deletion (Admin only).         | `Promise<{ id: number }>`          |
 
 ## 3. Performance & Caching
 
 ### Opentelemetry Recording
+
 Every service method must be wrapped in `record()` to enable distributed tracing.
 
 ```typescript
@@ -40,6 +42,7 @@ async handleDetail(id: number) {
 ```
 
 ### Cache Wrapping
+
 Use `cache.wrap` for expensive read operations (e.g., `getById`, `count`, `list`).
 
 ```typescript

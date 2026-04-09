@@ -68,7 +68,9 @@ const columns = [
               variant="ghost"
               size="icon-sm"
               className="size-8 text-muted-foreground hover:text-foreground"
-              onClick={() => { void UomFormDialog.upsert({ id: row.original.id }) }}
+              onClick={() => {
+                void UomFormDialog.upsert({ id: row.original.id })
+              }}
             >
               <PencilIcon className="size-4" />
             </Button>
@@ -99,7 +101,12 @@ function UomTable() {
       recordCount={data?.meta.total ?? 0}
       toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari satuan...' }]} />}
       action={
-        <Button size="sm" onClick={() => { void UomFormDialog.upsert({}) }}>
+        <Button
+          size="sm"
+          onClick={() => {
+            void UomFormDialog.upsert({})
+          }}
+        >
           Tambah Satuan
         </Button>
       }

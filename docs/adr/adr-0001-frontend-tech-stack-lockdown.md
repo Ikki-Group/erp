@@ -1,11 +1,11 @@
 ---
-title: "ADR-0001: Frontend Ecosystem Lockdown for UX/DX Overhaul"
-status: "Accepted"
-date: "2026-04-07"
-authors: "Antigravity, Rizqy"
-tags: ["architecture", "frontend", "decision", "ui", "ux"]
-supersedes: ""
-superseded_by: ""
+title: 'ADR-0001: Frontend Ecosystem Lockdown for UX/DX Overhaul'
+status: 'Accepted'
+date: '2026-04-07'
+authors: 'Antigravity, Rizqy'
+tags: ['architecture', 'frontend', 'decision', 'ui', 'ux']
+supersedes: ''
+superseded_by: ''
 ---
 
 # ADR-0001: Frontend Ecosystem Lockdown for UX/DX Overhaul
@@ -21,6 +21,7 @@ The Ikki ERP application is undergoing a massive UI, UX, and DX overhaul, priori
 ## Decision
 
 We will lock down the frontend technology stack for the UI/UX overhaul to the following existing ecosystem:
+
 - **Routing & State**: `@tanstack/react-router`, `@tanstack/react-query`, `@tanstack/react-form`.
 - **Data Visualization**: `@tanstack/react-table`.
 - **UI Components & Styling**: `shadcn` (with strict no-edit policy on `apps/web/src/components/ui/`), `@base-ui/react`, and `@tailwindcss/vite` (Tailwind V4).
@@ -55,7 +56,7 @@ Any custom styling or layout composition must be done at the page or composite-c
 
 ## Implementation Notes
 
-- **IMP-001**: All new pages (starting with *Operasional & Stok*) must be routed through `@tanstack/react-router`.
+- **IMP-001**: All new pages (starting with _Operasional & Stok_) must be routed through `@tanstack/react-router`.
 - **IMP-002**: Any UI variations (e.g., a differently styled button) must be achieved by wrapping the base `Button` component and passing custom Tailwind V4 utility classes.
 - **IMP-003**: Data fetching must route through `@tanstack/react-query` to ensure caching and synchronization with the Elysia/Drizzle backend.
 

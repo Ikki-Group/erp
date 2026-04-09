@@ -29,66 +29,63 @@ function RouteComponent() {
     stockTransactionApi.list.query({ ...ds.pagination, q: ds.search || undefined, locationId: undefined }),
   )
 
-const columns = [
-  ch.accessor('date', dateColumn({ header: 'Tanggal', size: 130 })),
-  ch.accessor('referenceNo', textColumn({ header: 'No Referensi', size: 150 })),
-  ch.accessor(
-    'type',
-    statusColumn({
-      header: 'Tipe',
-      render: (value) => {
-        const typeStr = value as string
-        const color =
-          typeStr.includes('in') || typeStr === 'purchase'
-            ? 'success'
-            : typeStr.includes('out') || typeStr === 'sell'
-              ? 'destructive'
-              : 'secondary'
+  const columns = [
+    ch.accessor('date', dateColumn({ header: 'Tanggal', size: 130 })),
+    ch.accessor('referenceNo', textColumn({ header: 'No Referensi', size: 150 })),
+    ch.accessor(
+      'type',
+      statusColumn({
+        header: 'Tipe',
+        render: (value) => {
+          const typeStr = value as string
+          const color =
+            typeStr.includes('in') || typeStr === 'purchase'
+              ? 'success'
+              : typeStr.includes('out') || typeStr === 'sell'
+                ? 'destructive'
+                : 'secondary'
 
-        const label = typeStr.replace('_', ' ').toUpperCase()
-        return <Badge variant={color as any}>{label}</Badge>
-      },
-      size: 110,
-    }),
-  ),
-  ch.accessor(
-    'materialName',
-    statusColumn({
-      header: 'Bahan Baku',
-      render: (value, row) => (
-        <div className="flex flex-col gap-1">
-          <span className="font-semibold text-foreground/90">{value}</span>
-          <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
-            SKU: {row.materialSku}
-          </span>
-        </div>
-      ),
-      size: 200,
-    }),
-  ),
-  ch.accessor(
-    'qty',
-    statusColumn({
-      header: 'Qty',
-      render: (value, row) => {
-        const qty = Number(value)
-        const isOut = row.type === 'transfer_out' || row.type === 'sell'
-        const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
+          const label = typeStr.replace('_', ' ').toUpperCase()
+          return <Badge variant={color as any}>{label}</Badge>
+        },
+        size: 110,
+      }),
+    ),
+    ch.accessor(
+      'materialName',
+      statusColumn({
+        header: 'Bahan Baku',
+        render: (value, row) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-foreground/90">{value}</span>
+            <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
+              SKU: {row.materialSku}
+            </span>
+          </div>
+        ),
+        size: 200,
+      }),
+    ),
+    ch.accessor(
+      'qty',
+      statusColumn({
+        header: 'Qty',
+        render: (value, row) => {
+          const qty = Number(value)
+          const isOut = row.type === 'transfer_out' || row.type === 'sell'
+          const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
 
-        return (
-          <Badge
-            variant={color as any}
-            className="font-semibold tabular-nums px-2 shadow-none border-transparent"
-          >
-            {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
-          </Badge>
-        )
-      },
-      size: 100,
-    }),
-  ),
-  ch.accessor('totalCost', currencyColumn({ header: 'Total Nilai', size: 150 })),
-]
+          return (
+            <Badge variant={color as any} className="font-semibold tabular-nums px-2 shadow-none border-transparent">
+              {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
+            </Badge>
+          )
+        },
+        size: 100,
+      }),
+    ),
+    ch.accessor('totalCost', currencyColumn({ header: 'Total Nilai', size: 150 })),
+  ]
 
   const table = useDataTable({
     columns,
@@ -105,7 +102,6 @@ const columns = [
         description="Pantau seluruh pergerakan barang (masuk, keluar, transfer, dan opname/penyesuaian)."
       />
       <Page.Content className="flex flex-col gap-6">
-
         <DataTableCard
           title="Daftar Mutasi Terkini"
           table={table}
@@ -122,7 +118,11 @@ const columns = [
               >
                 <PlusIcon className="size-4 mr-2 text-muted-foreground" /> Opname (Adjust)
               </Button>
-              <Button size="sm" className="h-10 shadow-md font-medium" render={<Link to="/inventory/transactions/transfer" />}>
+              <Button
+                size="sm"
+                className="h-10 shadow-md font-medium"
+                render={<Link to="/inventory/transactions/transfer" />}
+              >
                 <PlusIcon className="size-4 mr-2" /> Mutasi Internal
               </Button>
             </div>
@@ -132,4 +132,3 @@ const columns = [
     </Page>
   )
 }
-

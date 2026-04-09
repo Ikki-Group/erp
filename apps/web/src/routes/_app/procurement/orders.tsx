@@ -77,19 +77,15 @@ const columns = [
 
 function ProcurementOrderPage() {
   const ds = useDataTableState()
-  const table = useDataTable({
-    columns,
-    data: mockOrders,
-    pageCount: 1,
-    rowCount: mockOrders.length,
-    ds,
-  })
+  const table = useDataTable({ columns, data: mockOrders, pageCount: 1, rowCount: mockOrders.length, ds })
 
   return (
     <Page>
-      <Page.BlockHeader title="Pesanan Pembelian (PO)" description="Manajemen dokumen Purchase Order (PO) dan pantau status pemesanan ke Supplier." />
+      <Page.BlockHeader
+        title="Pesanan Pembelian (PO)"
+        description="Manajemen dokumen Purchase Order (PO) dan pantau status pemesanan ke Supplier."
+      />
       <Page.Content className="flex flex-col gap-6">
-
         {/* Metric Cards Dashboard */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>

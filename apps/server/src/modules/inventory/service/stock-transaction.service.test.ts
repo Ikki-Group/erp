@@ -3,9 +3,9 @@ import { describe, expect, it } from 'bun:test'
 import { StockTransactionService } from './stock-transaction.service'
 
 describe('StockTransactionService', () => {
-  // @ts-ignore - access private method for testing
+  // @ts-expect-error - access private method for testing
   const service = new StockTransactionService()
-  // @ts-ignore
+  // @ts-expect-error
   const calculateIncomingWAC = service.calculateIncomingWAC.bind(service)
 
   describe('calculateIncomingWAC', () => {

@@ -36,7 +36,7 @@ export class MokaAuthEngine {
           error.config.headers['Authorization'] = `${this.token}`
           return this.api.request(error.config)
         }
-        return Promise.reject(error)
+        throw error
       },
     )
   }

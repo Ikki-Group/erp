@@ -1,19 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "env": {
-    "builtin": true
-  },
-  "plugins": [
-    "typescript",
-    "unicorn",
-    "react",
-    "oxc",
-    "import",
-    "jsdoc",
-    "node",
-    "promise",
-    "vitest"
-  ],
+  "env": { "builtin": true },
+  "plugins": ["typescript", "unicorn", "react", "oxc", "import", "jsdoc", "node", "promise", "vitest"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -41,18 +29,9 @@
     "no-inline-comments": "off"
   },
   "overrides": [
+    { "files": ["apps/server/**/*"], "rules": { "no-inline-comments": "off" } },
     {
-      "files": [
-        "apps/server/**/*"
-      ],
-      "rules": {
-        "no-inline-comments": "off"
-      }
-    },
-    {
-      "files": [
-        "apps/web/**/*"
-      ],
+      "files": ["apps/web/**/*"],
       "rules": {
         "typescript/no-floating-promises": "off",
         "typescript/no-unsafe-type-assertion": "off",
@@ -66,20 +45,7 @@
         "eslint-plugin-react-hooks/exhaustive-deps": "warn"
       }
     },
-    {
-      "files": [
-        "*.test.ts"
-      ],
-      "rules": {
-        "typescript/no-unsafe-type-assertion": "off"
-      }
-    }
+    { "files": ["*.test.ts"], "rules": { "typescript/no-unsafe-type-assertion": "off" } }
   ],
-  "ignorePatterns": [
-    "dist/**",
-    "node_modules/**",
-    "drizzle/**",
-    "**/*.lock",
-    ".agents/**"
-  ]
+  "ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
 }

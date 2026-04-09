@@ -4,13 +4,7 @@ import { zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/lib/zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const SalesTypeDto = z.object({
-  id: zId,
-  code: zStr,
-  name: zStr,
-  isSystem: zBool,
-  ...zMetadataDto.shape,
-})
+export const SalesTypeDto = z.object({ id: zId, code: zStr, name: zStr, isSystem: zBool, ...zMetadataDto.shape })
 
 export type SalesTypeDto = z.infer<typeof SalesTypeDto>
 

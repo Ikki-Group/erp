@@ -1,16 +1,6 @@
 import z from 'zod'
 
-import {
-  zDate,
-  zId,
-  zMetadataDto,
-  zNum,
-  zQueryId,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/lib/zod'
+import { zDate, zId, zMetadataDto, zNum, zQueryId, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -58,10 +48,7 @@ export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const StockTransactionSelectDto = StockTransactionDto.extend({
-  materialName: zStr,
-  materialSku: zStr,
-})
+export const StockTransactionSelectDto = StockTransactionDto.extend({ materialName: zStr, materialSku: zStr })
 
 export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto>
 

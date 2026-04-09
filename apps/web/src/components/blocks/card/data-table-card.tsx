@@ -33,10 +33,7 @@ export function DataTableCard<TData extends object>({
       tableClassNames={{ edgeCell: 'px-5' }}
       isLoading={isLoading}
       loadingMode="spinner"
-      tableLayout={{
-        cellBorder: false,
-        columnsPinnable: true,
-      }}
+      tableLayout={{ cellBorder: false, columnsPinnable: true }}
       onRowClick={onRowClick}
     >
       <Card className="w-full gap-0! py-3.5" size="sm">

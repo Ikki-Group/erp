@@ -1,12 +1,6 @@
 import { z } from 'zod'
 
-import {
-  zId,
-  zMetadataDto,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-} from '@/lib/zod'
+import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/zod'
 
 export const AttendanceStatusDto = z.enum(['present', 'absent', 'late', 'on_leave'])
 export type AttendanceStatusDto = z.infer<typeof AttendanceStatusDto>
@@ -74,12 +68,7 @@ export type AttendanceFilterDto = z.infer<typeof AttendanceFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const ClockInDto = z.object({
-  employeeId: zId,
-  locationId: zId,
-  shiftId: zId.optional(),
-  note: zStr.optional(),
-})
+export const ClockInDto = z.object({ employeeId: zId, locationId: zId, shiftId: zId.optional(), note: zStr.optional() })
 
 export type ClockInDto = z.infer<typeof ClockInDto>
 

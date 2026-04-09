@@ -7,17 +7,22 @@ Welcome to the central documentation for **Ikki ERP**. This repository contains 
 The documentation is organized into the following sections:
 
 ### 🚀 [Product & Strategy](./product/PRD.md)
+
 Contains the vision, requirements, and product roadmap.
+
 - **[Requirements (PRD)](./product/PRD.md)**: Product Requirements Document.
 - **[Technical Specifications](./product/Tech-Specs.md)**: High-level technical architecture and system design.
 - **[Development Timeline](./product/Timeline.md)**: Project phases and milestones.
 
 ### 🛠️ [Backend Standards](./backend/README.md)
+
 Comprehensive guides for building the Ikki ERP backend.
+
 - **[Backend README](./backend/README.md)**: Overview of backend architecture and principles.
 - **[Standards Portfolio](./backend/standards/)**: Rules for DTOs, Services, Routers, Database, and more.
 
 ### ✨ [Features](./features/)
+
 Detailed documentation for individual system features.
 
 ---

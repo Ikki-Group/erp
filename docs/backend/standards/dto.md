@@ -18,16 +18,13 @@ To maintain clean and DRY code, avoid using Zod's `.extend()` where possible. In
 
 ```typescript
 /** Common attributes */
-export const UserBaseDto = z.object({ 
-  email: zEmail, 
-  username: zUsername 
-})
+export const UserBaseDto = z.object({ email: zEmail, username: zUsername })
 
 /** Full record includes ID and Metadata */
 export const UserDto = z.object({
-  ...zId.shape,           // include 'id'
-  ...UserBaseDto.shape,   // include email, username
-  ...zMetadataDto.shape   // include createdAt, updatedAt, etc.
+  ...zId.shape, // include 'id'
+  ...UserBaseDto.shape, // include email, username
+  ...zMetadataDto.shape, // include createdAt, updatedAt, etc.
 })
 ```
 
@@ -35,13 +32,13 @@ export const UserDto = z.object({
 
 Each domain module should define the following standard DTOs:
 
-| DTO Name | Description | Pattern |
-| :--- | :--- | :--- |
-| `BaseDto` | Core business attributes (no ID, no metadata). | `z.object({ ... })` |
-| `[Domain]Dto` | The full database representation (ID + Base + Metadata). | `z.object({ ...zId.shape, ...BaseDto.shape, ...zMetadataDto.shape })` |
-| `CreateDto` | Data required for insertion (usually `BaseDto` + extras). | `BaseDto` or `BaseDto.extend({ ... })` |
-| `UpdateDto` | Data required for a **Full Update** (ID + BaseDto). | `z.object({ ...zId.shape, ...BaseDto.shape })` |
-| `FilterDto` | Query parameters for listing (Pagination + Search). | `z.object({ ...zPaginationDto.shape, ... })` |
+| DTO Name      | Description                                               | Pattern                                                               |
+| :------------ | :-------------------------------------------------------- | :-------------------------------------------------------------------- |
+| `BaseDto`     | Core business attributes (no ID, no metadata).            | `z.object({ ... })`                                                   |
+| `[Domain]Dto` | The full database representation (ID + Base + Metadata).  | `z.object({ ...zId.shape, ...BaseDto.shape, ...zMetadataDto.shape })` |
+| `CreateDto`   | Data required for insertion (usually `BaseDto` + extras). | `BaseDto` or `BaseDto.extend({ ... })`                                |
+| `UpdateDto`   | Data required for a **Full Update** (ID + BaseDto).       | `z.object({ ...zId.shape, ...BaseDto.shape })`                        |
+| `FilterDto`   | Query parameters for listing (Pagination + Search).       | `z.object({ ...zPaginationDto.shape, ... })`                          |
 
 ## 4. Integer IDs & Primitives
 
@@ -52,8 +49,8 @@ All primary and foreign keys must use strictly typed **Serial Integers** via sta
 
 ```typescript
 export const MyRecordDto = z.object({
-  id: zId,         // Primary Key
-  userId: zId,     // Foreign Key
+  id: zId, // Primary Key
+  userId: zId, // Foreign Key
 })
 ```
 

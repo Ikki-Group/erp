@@ -7,12 +7,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
-import {
-  createColumnHelper,
-  dateColumn,
-  statusColumn,
-  textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, dateColumn, statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
@@ -108,9 +103,7 @@ const columns = [
         return (
           <div className="flex items-center gap-2">
             <BadgeDot variant="destructive-outline">Gagal</BadgeDot>
-            <span className="text-[10px] text-destructive truncate max-w-[100px]">
-              {row.error}
-            </span>
+            <span className="text-[10px] text-destructive truncate max-w-[100px]">{row.error}</span>
           </div>
         )
       },
@@ -121,13 +114,7 @@ const columns = [
 
 function MokaMonitoringPage() {
   const ds = useDataTableState()
-  const table = useDataTable({
-    columns,
-    data: mockLogs,
-    pageCount: 1,
-    rowCount: mockLogs.length,
-    ds,
-  })
+  const table = useDataTable({ columns, data: mockLogs, pageCount: 1, rowCount: mockLogs.length, ds })
 
   return (
     <Page>

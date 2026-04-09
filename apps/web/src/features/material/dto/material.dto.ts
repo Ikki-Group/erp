@@ -24,11 +24,7 @@ export type MaterialTypeDto = z.infer<typeof MaterialTypeDto>
 
 /* --------------------------------- NESTED --------------------------------- */
 
-export const MaterialConversionDto = z.object({
-  toBaseFactor: zDecimal,
-  uomId: zId,
-  uom: UomDto.optional(),
-})
+export const MaterialConversionDto = z.object({ toBaseFactor: zDecimal, uomId: zId, uom: UomDto.optional() })
 
 export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
@@ -56,8 +52,8 @@ export const MaterialFilterDto = z.object({
   q: zQuerySearch,
   type: MaterialTypeDto.optional(),
   categoryId: zQueryId.optional(),
-  locationIds: zQueryIds,
-  excludeLocationIds: zQueryIds,
+  locationIds: zQueryIds.optional(),
+  excludeLocationIds: zQueryIds.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>

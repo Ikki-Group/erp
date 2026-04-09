@@ -95,7 +95,6 @@ const columns = [
   ),
 ]
 
-
 export function ProductTable() {
   const ds = useDataTableState<ProductFilterDto>()
 

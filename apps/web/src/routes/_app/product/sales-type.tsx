@@ -71,7 +71,9 @@ const columns = [
               variant="ghost"
               size="icon-sm"
               className="size-8 text-muted-foreground hover:text-foreground"
-              onClick={() => { void SalesTypeFormDialog.upsert({ id: row.original.id }) }}
+              onClick={() => {
+                void SalesTypeFormDialog.upsert({ id: row.original.id })
+              }}
             >
               <PencilIcon className="size-4" />
             </Button>
@@ -102,7 +104,12 @@ function SalesTypeTable() {
       recordCount={data?.meta.total ?? 0}
       toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari jenis penjualan...' }]} />}
       action={
-        <Button size="sm" onClick={() => { void SalesTypeFormDialog.upsert({}) }}>
+        <Button
+          size="sm"
+          onClick={() => {
+            void SalesTypeFormDialog.upsert({})
+          }}
+        >
           Tambah Tipe
         </Button>
       }
