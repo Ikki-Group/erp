@@ -114,8 +114,10 @@ function RouteComponent() {
           title="Daftar Mutasi Terkini"
           table={table}
           isLoading={isLoading}
-          recordCount={data?.meta.total || 0}
-          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor pelacakan atau bahan...' }]} />}
+          recordCount={data?.meta.total ?? 0}
+          toolbar={
+            <DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor pelacakan atau bahan...' }]} />
+          }
           action={
             <div className="flex items-center gap-2">
               <DropdownMenu>

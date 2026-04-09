@@ -62,15 +62,7 @@ export class StockAlertService {
 
     const total = countRes[0]?.count ?? 0
 
-    return {
-      data,
-      meta: {
-        page,
-        limit,
-        total: total,
-        totalPages: Math.ceil(total / limit),
-      },
-    }
+    return { data, meta: { page, limit, total: total, totalPages: Math.ceil(total / limit) } }
   }
 
   async handleCount(filter: StockAlertFilterDto) {

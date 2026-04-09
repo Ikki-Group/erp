@@ -98,9 +98,7 @@ function OpnameInfoCard() {
               emptyText="Lokasi tidak ditemukan"
               queryKey={['location-list']}
               queryFn={async (search) => {
-                const res = await locationApi.list.fetch({
-                  params: { page: 1, limit: 20, q: search || undefined },
-                })
+                const res = await locationApi.list.fetch({ params: { page: 1, limit: 20, q: search || undefined } })
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
@@ -134,10 +132,7 @@ function OpnameItemsCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <CardSection
-      title="Daftar Bahan Baku"
-      description="Masukkan kuantitas fisik yang sebenarnya."
-    >
+    <CardSection title="Daftar Bahan Baku" description="Masukkan kuantitas fisik yang sebenarnya.">
       <div className="flex flex-col gap-4">
         <form.Subscribe selector={(s) => ({ items: s.values.items, locationId: s.values.locationId })}>
           {({ items, locationId }) => (
@@ -169,13 +164,7 @@ function OpnameItemsCard() {
 
                   <div className="w-48">
                     <form.AppField name={`items[${i}].physicalQty`}>
-                      {(field) => (
-                        <field.Number
-                          label={i === 0 ? 'Kuantitas Fisik' : undefined}
-                          required
-                          min={0}
-                        />
-                      )}
+                      {(field) => <field.Number label={i === 0 ? 'Kuantitas Fisik' : undefined} required min={0} />}
                     </form.AppField>
                   </div>
 

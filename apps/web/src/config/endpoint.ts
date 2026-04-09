@@ -63,14 +63,9 @@ const inventory = {
   },
 }
 
-const inventoryAlert = {
-  list: 'inventory/alert/list',
-  count: 'inventory/alert/count',
-}
+const inventoryAlert = { list: 'inventory/alert/list', count: 'inventory/alert/count' }
 
-const inventoryDashboard = {
-  kpi: 'inventory/dashboard/kpi',
-}
+const inventoryDashboard = { kpi: 'inventory/dashboard/kpi' }
 
 const dashboard = {
   analytics: { pnl: 'dashboard/analytics/pnl', topSales: 'dashboard/analytics/top-sales' },

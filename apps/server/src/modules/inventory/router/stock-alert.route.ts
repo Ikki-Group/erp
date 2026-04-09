@@ -9,7 +9,8 @@ import type { InventoryServiceModule } from '../service'
 import z from 'zod'
 
 export function initStockAlertRoute(s: InventoryServiceModule) {
-  return new Elysia({ prefix: '/alert' }).use(authPluginMacro)
+  return new Elysia({ prefix: '/alert' })
+    .use(authPluginMacro)
     .get(
       '/list',
       async function list({ query }) {

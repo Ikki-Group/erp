@@ -83,7 +83,5 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           detail: { tags: ['Inventory Summary'] },
         },
       )
-
-
   )
 }

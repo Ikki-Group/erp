@@ -37,7 +37,7 @@ type FormDto = z.infer<typeof FormDto>
 const fopts = formOptions({
   validators: { onSubmit: FormDto as any },
   defaultValues: {
-    locationId: undefined as any,
+    locationId: null!,
     date: new Date(),
     referenceNo: '',
     notes: '',
@@ -98,9 +98,7 @@ function PurchaseInfoCard() {
               emptyText="Lokasi tidak ditemukan"
               queryKey={['location-list']}
               queryFn={async (search) => {
-                const res = await locationApi.list.fetch({
-                  params: { page: 1, limit: 20, q: search || undefined },
-                })
+                const res = await locationApi.list.fetch({ params: { page: 1, limit: 20, q: search || undefined } })
                 return res.data
               }}
               getLabel={(loc: any) => `${loc.name} (${loc.code})`}
@@ -134,10 +132,7 @@ function PurchaseItemsCard() {
   const form = useTypedAppFormContext({ ...fopts })
 
   return (
-    <CardSection
-      title="Daftar Bahan Baku"
-      description="Masukkan kuantitas dan harga beli per unit."
-    >
+    <CardSection title="Daftar Bahan Baku" description="Masukkan kuantitas dan harga beli per unit.">
       <div className="flex flex-col gap-4">
         <form.Subscribe selector={(s) => ({ items: s.values.items, locationId: s.values.locationId })}>
           {({ items, locationId }) => (
@@ -169,24 +164,14 @@ function PurchaseItemsCard() {
 
                   <div className="w-48">
                     <form.AppField name={`items[${i}].qty`}>
-                      {(field) => (
-                        <field.Number
-                          label={i === 0 ? 'Kuantitas' : undefined}
-                          required
-                          min={1}
-                        />
-                      )}
+                      {(field) => <field.Number label={i === 0 ? 'Kuantitas' : undefined} required min={1} />}
                     </form.AppField>
                   </div>
 
                   <div className="w-48">
                     <form.AppField name={`items[${i}].unitCost`}>
                       {(field) => (
-                        <field.Currency
-                          label={i === 0 ? 'HPP per Satuan' : undefined}
-                          min={0}
-                          placeholder="Rp 0"
-                        />
+                        <field.Currency label={i === 0 ? 'HPP per Satuan' : undefined} min={0} placeholder="Rp 0" />
                       )}
                     </form.AppField>
                   </div>

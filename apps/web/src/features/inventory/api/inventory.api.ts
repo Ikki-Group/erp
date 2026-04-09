@@ -22,13 +22,9 @@ import {
   SellTransactionDto,
   ProductionInTransactionDto,
   ProductionOutTransactionDto,
-  type StockAlertFilterDto,
   stockAlertFilterSchema,
-  type StockAlertSelectDto,
   stockAlertSelectSchema,
-  type DashboardKpiFilterDto,
   dashboardKpiFilterSchema,
-  type DashboardKpiSelectDto,
   dashboardKpiSelectSchema,
 } from '../dto'
 

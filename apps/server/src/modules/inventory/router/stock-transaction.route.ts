@@ -194,7 +194,5 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
           detail: { tags: ['Inventory Transaction'] },
         },
       )
-
-
   )
 }

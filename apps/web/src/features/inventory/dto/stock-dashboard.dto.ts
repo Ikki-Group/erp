@@ -2,9 +2,7 @@ import { z } from 'zod'
 
 import { zId } from '@/lib/zod'
 
-export const dashboardKpiFilterSchema = z.object({
-  locationId: zId.optional(),
-})
+export const dashboardKpiFilterSchema = z.object({ locationId: zId.optional() })
 
 export type DashboardKpiFilterDto = z.infer<typeof dashboardKpiFilterSchema>
 

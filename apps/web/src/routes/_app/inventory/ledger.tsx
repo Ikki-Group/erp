@@ -52,10 +52,8 @@ function RouteComponent() {
               placeholder="Semua Lokasi (Konsolidasi)..."
               emptyText="Lokasi tidak ditemukan."
               queryKey={['location-list']}
-              queryFn={async (search: string) => {
-                const res = await locationApi.list.fetch({
-                  params: { page: 1, limit: 20, search: search || undefined },
-                })
+              queryFn={async () => {
+                const res = await locationApi.list.fetch({ params: { page: 1, limit: 20 } })
                 return res.data
               }}
               getLabel={(item) => `${item.name} (${item.code})`}
@@ -93,7 +91,7 @@ function RouteComponent() {
 
 const ch = createColumnHelper<StockLedgerSelectDto>()
 
-function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; dateFrom: string; dateTo: string }) {
+function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; dateFrom?: string; dateTo?: string }) {
   const ds = useDataTableState()
 
   // Make sure to pass well-formatted dates to API
@@ -226,6 +224,6 @@ function LedgerTable({ locationId, dateFrom, dateTo }: { locationId?: number; da
   }
 
   return (
-    <DataTableCard title="Ledger Bahan Baku" table={table} isLoading={isLoading} recordCount={data?.meta.total || 0} />
+    <DataTableCard title="Ledger Bahan Baku" table={table} isLoading={isLoading} recordCount={data?.meta.total ?? 0} />
   )
 }
