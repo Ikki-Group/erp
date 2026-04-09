@@ -147,13 +147,19 @@ function WorkOrdersPage() {
               <ActivityIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>
-              {isLoading ? <Skeleton className="h-8 w-20" /> : <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} WO</div>}
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} WO</div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Total tugas produksi</p>
             </Card.Content>
           </Card>
           <Card className="border-muted/60 shadow-sm overflow-hidden">
             <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
-              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">Aktif (In Progress)</Card.Title>
+              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                Aktif (In Progress)
+              </Card.Title>
               <TimerIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
@@ -169,7 +175,9 @@ function WorkOrdersPage() {
           </Card>
           <Card className="border-muted/60 shadow-sm overflow-hidden">
             <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
-              <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">Draft / Rencana</Card.Title>
+              <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">
+                Draft / Rencana
+              </Card.Title>
               <CalendarCheckIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content>

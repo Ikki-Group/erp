@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircleIcon, PackageIcon, PlusIcon, ReceiptIcon } from 'lucide-react'
+import { CheckCircleIcon, PlusIcon, ReceiptIcon, TimerIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -99,13 +99,19 @@ function GoodsReceiptPage() {
               <ReceiptIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>
-              {isLoading ? <Skeleton className="h-8 w-20" /> : <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} GRN</div>}
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} GRN</div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Total penerimaan</p>
             </Card.Content>
           </Card>
           <Card className="border-muted/60 shadow-sm overflow-hidden">
             <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
-              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">Menunggu (Open)</Card.Title>
+              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                Menunggu (Open)
+              </Card.Title>
               <TimerIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
@@ -121,7 +127,9 @@ function GoodsReceiptPage() {
           </Card>
           <Card className="border-muted/60 shadow-sm overflow-hidden">
             <Card.Header className="flex flex-row items-center justify-between pb-2 bg-emerald-50/50 dark:bg-emerald-950/20">
-              <Card.Title className="text-sm font-semibold text-emerald-800 dark:text-emerald-400">Selesai (Completed)</Card.Title>
+              <Card.Title className="text-sm font-semibold text-emerald-800 dark:text-emerald-400">
+                Selesai (Completed)
+              </Card.Title>
               <CheckCircleIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>

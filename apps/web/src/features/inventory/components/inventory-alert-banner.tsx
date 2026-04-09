@@ -18,11 +18,10 @@ export function InventoryAlertBanner() {
           <AlertTriangleIcon className="size-4" />
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-          <p className="text-sm font-semibold text-warning-foreground">
-            Peringatan Stok Rendah
-          </p>
+          <p className="text-sm font-semibold text-warning-foreground">Peringatan Stok Rendah</p>
           <p className="text-xs text-warning-foreground/70">
-            Ada <span className="font-bold text-warning-foreground">{count} item</span> yang berada di bawah level stok minimum.
+            Ada <span className="font-bold text-warning-foreground">{count} item</span> yang berada di bawah level stok
+            minimum.
           </p>
         </div>
       </div>

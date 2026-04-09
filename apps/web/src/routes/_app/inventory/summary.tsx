@@ -1,3 +1,4 @@
+// oxlint-disable max-lines
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper, currencyColumn, DataGridCell } from '@/components/reui/data-grid/data-grid-columns'
@@ -52,7 +53,9 @@ function RouteComponent() {
 
   const numericLocationId = locationId ? Number(locationId) : undefined
 
-  const { data: kpiData, isLoading: kpiLoading } = useQuery(stockDashboardApi.kpi.query({ locationId: numericLocationId }))
+  const { data: kpiData, isLoading: kpiLoading } = useQuery(
+    stockDashboardApi.kpi.query({ locationId: numericLocationId }),
+  )
   const kpi = kpiData?.data
 
   return (

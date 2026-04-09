@@ -65,13 +65,9 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
           title: 'Inventori',
           href: '/inventory/summary',
           icon: BoxIcon,
-          badge: counts.inventoryAlerts || undefined,
+          badge: counts.inventoryAlerts ?? undefined,
           children: [
-            {
-              title: 'Dashboard Stok',
-              href: '/inventory/summary',
-              isActive: pathname === '/inventory/summary',
-            },
+            { title: 'Dashboard Stok', href: '/inventory/summary', isActive: pathname === '/inventory/summary' },
             {
               title: 'Alokasi Gudang',
               href: '/inventory/allocation',

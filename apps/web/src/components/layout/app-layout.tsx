@@ -92,13 +92,11 @@ function SidebarBrand() {
 
 function SidebarMenus() {
   const { pathname } = useLocation()
-  
+
   const { data: alertCountData } = useQuery(stockAlertApi.count.query({}))
   const alertCount = alertCountData?.data.count ?? 0
 
-  const groups = useMemo(() => getAppMenu(pathname, { 
-    inventoryAlerts: alertCount 
-  }), [pathname, alertCount])
+  const groups = useMemo(() => getAppMenu(pathname, { inventoryAlerts: alertCount }), [pathname, alertCount])
 
   return (
     <div className="py-2 flex flex-col gap-1">
