@@ -14,6 +14,8 @@ import { stockSummaryApi, stockDashboardApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+import { Skeleton } from '@/components/ui/skeleton'
+import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import {
   AlertCircleIcon,
   BoxIcon,
@@ -50,7 +52,7 @@ function RouteComponent() {
 
   const numericLocationId = locationId ? Number(locationId) : undefined
 
-  const { data: kpiData } = useQuery(stockDashboardApi.kpi.query({ locationId: numericLocationId }))
+  const { data: kpiData, isLoading: kpiLoading } = useQuery(stockDashboardApi.kpi.query({ locationId: numericLocationId }))
   const kpi = kpiData?.data
 
   return (
@@ -70,7 +72,11 @@ function RouteComponent() {
               <TrendingUpIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content className="pt-4">
-              <div className="text-2xl font-bold">Rp {kpi?.totalStockValue.toLocaleString('id-ID') ?? '0'}</div>
+              {kpiLoading ? (
+                <Skeleton className="h-8 w-32" />
+              ) : (
+                <div className="text-2xl font-bold">Rp {kpi?.totalStockValue.toLocaleString('id-ID') ?? '0'}</div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Estimasi nilai aset saat ini</p>
             </Card.Content>
           </Card>
@@ -82,7 +88,11 @@ function RouteComponent() {
               <BoxIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content className="pt-4">
-              <div className="text-2xl font-bold">{kpi?.totalActiveSku ?? '0'}</div>
+              {kpiLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{kpi?.totalActiveSku ?? '0'}</div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Stok aktif di lokasi terpilih</p>
             </Card.Content>
           </Card>
@@ -94,7 +104,11 @@ function RouteComponent() {
               <AlertCircleIcon className="h-4 w-4 text-rose-500" />
             </Card.Header>
             <Card.Content className="pt-4">
-              <div className="text-2xl font-bold text-rose-600">{kpi?.lowStockCount ?? '0'} SKU</div>
+              {kpiLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className="text-2xl font-bold text-rose-600">{kpi?.lowStockCount ?? '0'} SKU</div>
+              )}
               <p className="text-xs mt-1 text-rose-600/80">Butuh pengadaan ulang segera</p>
             </Card.Content>
           </Card>
@@ -187,7 +201,9 @@ function RouteComponent() {
         </Card>
 
         {/* Dashboard Table */}
-        <SummaryTable ds={ds} locationId={numericLocationId} dateFrom={dateFrom} dateTo={dateTo} />
+        <SectionErrorBoundary title="Ledger Inventori">
+          <SummaryTable ds={ds} locationId={numericLocationId} dateFrom={dateFrom} dateTo={dateTo} />
+        </SectionErrorBoundary>
       </Page.Content>
     </Page>
   )

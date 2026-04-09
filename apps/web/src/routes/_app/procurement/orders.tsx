@@ -14,6 +14,7 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { purchaseOrderApi } from '@/features/purchasing/api/purchasing.api'
@@ -35,8 +36,8 @@ const columns = [
       header: 'Status',
       render: (value) => {
         const status = value as string
-        if (status === 'closed') return <BadgeDot variant="success">Selesai</BadgeDot>
-        if (status === 'open') return <BadgeDot variant="focus">Terbuka</BadgeDot>
+        if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
+        if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
         if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
         return <BadgeDot variant="secondary">{status}</BadgeDot>
       },
@@ -51,9 +52,9 @@ function ProcurementOrderPage() {
 
   const table = useDataTable({
     columns,
-    data: (data?.data ?? []) as any[],
-    pageCount: data?.meta.pageCount ?? 0,
-    rowCount: data?.meta.totalCount ?? 0,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
     ds,
   })
 
@@ -72,31 +73,39 @@ function ProcurementOrderPage() {
               <ClipboardListIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">--</div>
-              <p className="text-xs text-muted-foreground mt-1">Status Real-time</p>
+              {isLoading ? <Skeleton className="h-8 w-20" /> : <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} PO</div>}
+              <p className="text-xs text-muted-foreground mt-1">Total pesanan aktif</p>
             </Card.Content>
           </Card>
-          <Card>
-            <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">PO Terbuka</Card.Title>
+          <Card className="border-muted/60 shadow-sm overflow-hidden">
+            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
+              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">Terbuka (Open)</Card.Title>
               <ClockIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">
-                {data?.data.filter((d: any) => d.status === 'open').length ?? 0} PO
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">
+                  {data?.data.filter((d: any) => d.status === 'open').length ?? 0} PO
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
             </Card.Content>
           </Card>
-          <Card>
-            <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">Selesai/Diterima</Card.Title>
+          <Card className="border-muted/60 shadow-sm overflow-hidden">
+            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
+              <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">Selesai (Closed)</Card.Title>
               <TruckIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">
-                {data?.data.filter((d: any) => d.status === 'closed').length ?? 0} PO
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">
+                  {data?.data.filter((d: any) => d.status === 'closed').length ?? 0} PO
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
             </Card.Content>
           </Card>
@@ -106,7 +115,7 @@ function ProcurementOrderPage() {
           title="Daftar Pesanan Pembelian"
           table={table}
           isLoading={isLoading}
-          recordCount={data?.meta.totalCount ?? 0}
+          recordCount={data?.meta.total ?? 0}
           toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor PO...' }]} />}
           action={
             <Button size="sm" className="h-10 shadow-md font-medium">

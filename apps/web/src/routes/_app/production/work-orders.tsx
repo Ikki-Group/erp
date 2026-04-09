@@ -10,6 +10,7 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 import { workOrderApi } from '@/features/production/api/production.api'
@@ -125,9 +126,9 @@ function WorkOrdersPage() {
 
   const table = useDataTable({
     columns,
-    data: (data?.data ?? []) as any[],
-    pageCount: data?.meta.pageCount ?? 0,
-    rowCount: data?.meta.totalCount ?? 0,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
     ds,
   })
 
@@ -146,31 +147,39 @@ function WorkOrdersPage() {
               <ActivityIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">--%</div>
-              <p className="text-xs text-muted-foreground mt-1">Status Real-time</p>
+              {isLoading ? <Skeleton className="h-8 w-20" /> : <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} WO</div>}
+              <p className="text-xs text-muted-foreground mt-1">Total tugas produksi</p>
             </Card.Content>
           </Card>
-          <Card>
-            <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">Sedang Berjalan</Card.Title>
+          <Card className="border-muted/60 shadow-sm overflow-hidden">
+            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
+              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">Aktif (In Progress)</Card.Title>
               <TimerIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">
-                {data?.data.filter((d: any) => d.status === 'in_progress').length ?? 0} WO
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">
+                  {data?.data.filter((d: any) => d.status === 'in_progress').length ?? 0} WO
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Bahan baku dialokasikan</p>
             </Card.Content>
           </Card>
-          <Card>
-            <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">Antrian Draft</Card.Title>
+          <Card className="border-muted/60 shadow-sm overflow-hidden">
+            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
+              <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">Draft / Rencana</Card.Title>
               <CalendarCheckIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">
-                {data?.data.filter((d: any) => d.status === 'draft').length ?? 0} Rencana
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">
+                  {data?.data.filter((d: any) => d.status === 'draft').length ?? 0} Rencana
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">Siap untuk diproduksi</p>
             </Card.Content>
           </Card>
@@ -180,7 +189,7 @@ function WorkOrdersPage() {
           title="Daftar Work Orders"
           table={table}
           isLoading={isLoading}
-          recordCount={data?.meta.totalCount ?? 0}
+          recordCount={data?.meta.total ?? 0}
           toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari No. WO...' }]} />}
           action={
             <Button size="sm" className="h-10 shadow-md font-medium">

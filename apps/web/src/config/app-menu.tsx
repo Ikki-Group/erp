@@ -22,6 +22,7 @@ export interface AppMenu {
   icon?: LucideIcon
   isHide?: boolean
   isActive?: boolean
+  badge?: number | string
   children?: Array<Omit<AppMenu, 'children' | 'icon'>>
 }
 
@@ -30,7 +31,11 @@ export interface AppMenuGroup {
   items: Array<AppMenu>
 }
 
-export function getAppMenu(pathname: string): Array<AppMenuGroup> {
+export interface AppMenuCounts {
+  inventoryAlerts?: number
+}
+
+export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<AppMenuGroup> {
   return [
     {
       label: 'Ringkasan',
@@ -60,6 +65,7 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
           title: 'Inventori',
           href: '/inventory/summary',
           icon: BoxIcon,
+          badge: counts.inventoryAlerts || undefined,
           children: [
             {
               title: 'Dashboard Stok',

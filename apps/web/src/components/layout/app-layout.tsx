@@ -30,6 +30,10 @@ import { useAppState } from '@/hooks/use-app-state'
 import { Separator } from '../ui/separator'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'
 import { Breadcrumbs } from './breadcrumbs'
+import { InventoryAlertBanner } from '@/features/inventory/components/inventory-alert-banner'
+import { useQuery } from '@tanstack/react-query'
+import { stockAlertApi } from '@/features/inventory/api/inventory.api'
+import { SidebarMenuBadge } from '../ui/sidebar'
 
 /* -------------------------------------------------------------------------- */
 /*  AppLayout                                                                 */
@@ -53,6 +57,7 @@ export function AppLayout() {
       </Sidebar>
       <SidebarInset className="bg-background-secondary/30">
         <Header />
+        <InventoryAlertBanner />
         <Suspense fallback={<LoadingPage />}>
           <main className="flex flex-1 flex-col h-full overflow-hidden @container animate-enter">
             <Outlet />
@@ -87,7 +92,13 @@ function SidebarBrand() {
 
 function SidebarMenus() {
   const { pathname } = useLocation()
-  const groups = useMemo(() => getAppMenu(pathname), [pathname])
+  
+  const { data: alertCountData } = useQuery(stockAlertApi.count.query({}))
+  const alertCount = alertCountData?.data.count ?? 0
+
+  const groups = useMemo(() => getAppMenu(pathname, { 
+    inventoryAlerts: alertCount 
+  }), [pathname, alertCount])
 
   return (
     <div className="py-2 flex flex-col gap-1">
@@ -132,6 +143,11 @@ function SidebarMenus() {
                     {menu.icon && <menu.icon className="size-4" />}
                     {menu.title}
                   </SidebarMenuButton>
+                  {menu.badge !== undefined && (
+                    <SidebarMenuBadge className="bg-warning text-warning-foreground font-bold">
+                      {menu.badge}
+                    </SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               )
             })}
