@@ -42,6 +42,14 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
       },
       { body: dto.GoodsReceiptNoteCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
+    .post(
+      '/complete',
+      async function complete({ body, auth }) {
+        const result = await service.handleComplete(body.id, auth.userId)
+        return res.ok(result)
+      },
+      { body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+    )
     .delete(
       '/remove',
       async function remove({ body, auth }) {

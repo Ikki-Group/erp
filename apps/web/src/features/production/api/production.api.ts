@@ -4,7 +4,13 @@ import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zPaginationDto, zRecordIdDto } from '@/lib/zod'
 
-import { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto, WorkOrderUpdateDto } from '../dto/work-order.dto'
+import {
+  WorkOrderCompleteDto,
+  WorkOrderCreateDto,
+  WorkOrderDto,
+  WorkOrderFilterDto,
+  WorkOrderUpdateDto,
+} from '../dto/work-order.dto'
 
 export const workOrderApi = {
   list: apiFactory({
@@ -36,5 +42,17 @@ export const workOrderApi = {
     url: endpoint.production.workOrder.remove,
     params: zRecordIdDto,
     result: createSuccessResponseSchema(zRecordIdDto),
+  }),
+  start: apiFactory({
+    method: 'post',
+    url: endpoint.production.workOrder.start,
+    params: zRecordIdDto,
+    result: createSuccessResponseSchema(WorkOrderDto),
+  }),
+  complete: apiFactory({
+    method: 'post',
+    url: endpoint.production.workOrder.complete,
+    body: WorkOrderCompleteDto,
+    result: createSuccessResponseSchema(WorkOrderDto),
   }),
 }

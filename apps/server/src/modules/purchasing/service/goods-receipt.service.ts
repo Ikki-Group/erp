@@ -106,37 +106,57 @@ export class GoodsReceiptService {
 
         if (itemValues.length > 0) {
           await tx.insert(goodsReceiptNoteItemsTable).values(itemValues)
-
-          // ─── INTEGRATION: Trigger Stock In ───
-          // 1. Fetch PO items to get unit prices/costs
-          const poItemIds = items.map((i) => i.purchaseOrderItemId).filter(Boolean)
-          const poItems = await tx
-            .select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
-            .from(purchaseOrderItemsTable)
-            .where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
-
-          const poItemMap = new Map(poItems.map((i) => [i.id, Number(i.unitPrice)]))
-
-          // 2. Record purchase transaction in inventory engine
-          await this.inventorySvc.handlePurchase(
-            {
-              locationId: headerData.locationId,
-              date: headerData.receiveDate,
-              referenceNo: `GRN-${insertedGrn.id}`,
-              notes: headerData.notes ?? undefined,
-              items: items.map((item) => {
-                const unitCost = item.purchaseOrderItemId ? (poItemMap.get(item.purchaseOrderItemId) ?? 0) : 0
-                return { materialId: item.materialId!, qty: Number(item.quantityReceived), unitCost }
-              }),
-            },
-            actorId,
-          )
         }
 
         return insertedGrn
       })
     })
     return result
+  }
+
+  async handleComplete(id: number, actorId: number): Promise<{ id: number }> {
+    return record('GoodsReceiptService.handleComplete', async () => {
+      return db.transaction(async (tx) => {
+        // 1. Get GRN detail and check status
+        const grn = await this.getById(id)
+        if (grn.status !== 'open') {
+          throw new core.ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')
+        }
+
+        // 2. Fetch PO items for costs
+        const poItemIds = grn.items.map((i) => i.purchaseOrderItemId).filter(Boolean)
+        const poItems = await tx
+          .select({ id: purchaseOrderItemsTable.id, unitPrice: purchaseOrderItemsTable.unitPrice })
+          .from(purchaseOrderItemsTable)
+          .where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
+
+        const poItemMap = new Map(poItems.map((i) => [i.id, Number(i.unitPrice)]))
+
+        // 3. Trigger Stock In - pass the transaction 'tx'
+        await this.inventorySvc.handlePurchase(
+          {
+            locationId: grn.locationId,
+            date: grn.receiveDate,
+            referenceNo: `GRN-${grn.id}`,
+            notes: grn.notes ?? undefined,
+            items: grn.items.map((item) => {
+              const unitCost = item.purchaseOrderItemId ? (poItemMap.get(item.purchaseOrderItemId) ?? 0) : 0
+              return { materialId: item.materialId!, qty: Number(item.quantityReceived), unitCost }
+            }),
+          },
+          actorId,
+          tx,
+        )
+
+        // 4. Update GRN status
+        await tx
+          .update(goodsReceiptNotesTable)
+          .set({ status: 'completed', ...core.stampUpdate(actorId) })
+          .where(eq(goodsReceiptNotesTable.id, id))
+
+        return { id }
+      })
+    })
   }
 
   async handleRemove(id: number, actorId: number): Promise<{ id: number }> {

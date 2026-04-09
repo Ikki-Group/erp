@@ -16,59 +16,28 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+import { purchaseOrderApi } from '@/features/purchasing/api/purchasing.api'
+import { PurchaseOrderDto } from '@/features/purchasing/dto/purchase-order.dto'
 
 export const Route = createFileRoute('/_app/procurement/orders')({ component: ProcurementOrderPage })
 
-// Mock Data
-const mockOrders = [
-  {
-    id: 'PO-2603-001',
-    supplier: 'PT. Sumber Pangan',
-    date: new Date('2026-03-08T10:30:00Z'),
-    total: 45000000,
-    status: 'completed',
-  },
-  {
-    id: 'PO-2603-002',
-    supplier: 'CV. Sentosa Makmur',
-    date: new Date('2026-03-09T14:15:00Z'),
-    total: 12500000,
-    status: 'processing',
-  },
-  {
-    id: 'PO-2603-003',
-    supplier: 'Toko Beras Jaya',
-    date: new Date('2026-03-10T08:45:00Z'),
-    total: 8200000,
-    status: 'pending',
-  },
-  {
-    id: 'PO-2603-004',
-    supplier: 'PT. Aneka Plastik',
-    date: new Date('2026-03-10T09:20:00Z'),
-    total: 3500000,
-    status: 'cancelled',
-  },
-]
-
-type OrderType = (typeof mockOrders)[0]
-const ch = createColumnHelper<OrderType>()
+const ch = createColumnHelper<PurchaseOrderDto>()
 
 const columns = [
-  ch.accessor('id', textColumn({ header: 'No. Pembelian', size: 150 })),
-  ch.accessor('supplier', textColumn({ header: 'Pemasok', size: 250 })),
-  ch.accessor('date', dateColumn({ header: 'Tanggal Order', size: 160 })),
-  ch.accessor('total', currencyColumn({ header: 'Total Tagihan', size: 160 })),
+  ch.accessor('id', textColumn({ header: 'No. Pembelian', size: 130 })),
+  ch.accessor('supplierId', textColumn({ header: 'Supplier ID', size: 100 })), // Simplified for now
+  ch.accessor('transactionDate', dateColumn({ header: 'Tanggal Order', size: 160 })),
+  ch.accessor('totalAmount', currencyColumn({ header: 'Total Tagihan', size: 160 })),
   ch.accessor(
     'status',
     statusColumn({
       header: 'Status',
       render: (value) => {
         const status = value as string
-        if (status === 'completed') return <BadgeDot variant="success-outline">Diterima</BadgeDot>
-        if (status === 'processing') return <BadgeDot variant="warning-outline">Dikirim</BadgeDot>
-        if (status === 'pending') return <BadgeDot variant="primary-outline">Menunggu</BadgeDot>
-        return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
+        if (status === 'closed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
+        if (status === 'open') return <BadgeDot variant="primary-outline">Terbuka</BadgeDot>
+        if (status === 'void') return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
+        return <BadgeDot variant="secondary-outline">{status}</BadgeDot>
       },
       size: 130,
     }),
@@ -76,17 +45,25 @@ const columns = [
 ]
 
 function ProcurementOrderPage() {
-  const ds = useDataTableState()
-  const table = useDataTable({ columns, data: mockOrders, pageCount: 1, rowCount: mockOrders.length, ds })
+  const ds = useDataTableState({ limit: 10 })
+  const { data, isLoading } = purchaseOrderApi.list.useQuery({ ...ds.query, ...ds.pagination })
+
+  const table = useDataTable({
+    columns,
+    data: data?.data ?? [],
+    pageCount: data?.meta.pageCount ?? 0,
+    rowCount: data?.meta.totalCount ?? 0,
+    ds,
+  })
 
   return (
     <Page>
       <Page.BlockHeader
         title="Pesanan Pembelian (PO)"
-        description="Manajemen dokumen Purchase Order (PO) dan pantau status pemesanan ke Supplier."
+        description="Pantau status pemesanan ke Supplier dan kelola dokumen Purchase Order."
       />
       <Page.Content className="flex flex-col gap-6">
-        {/* Metric Cards Dashboard */}
+        {/* Metric Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <Card.Header className="flex flex-row items-center justify-between pb-2">
@@ -94,28 +71,28 @@ function ProcurementOrderPage() {
               <ClipboardListIcon className="h-4 w-4 text-emerald-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold font-mono tracking-tight">Rp 69.200.000</div>
-              <p className="text-xs text-muted-foreground mt-1">4 Pesanan Aktif</p>
+              <div className="text-2xl font-bold font-mono tracking-tight">--</div>
+              <p className="text-xs text-muted-foreground mt-1">Status Real-time</p>
             </Card.Content>
           </Card>
           <Card>
             <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">Menunggu Konfirmasi</Card.Title>
+              <Card.Title className="text-sm font-medium text-muted-foreground">PO Terbuka</Card.Title>
               <ClockIcon className="h-4 w-4 text-amber-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold">1 PO</div>
-              <p className="text-xs text-muted-foreground mt-1">Status: Pending</p>
+              <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.filter(d => d.status === 'open').length ?? 0} PO</div>
+              <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
             </Card.Content>
           </Card>
           <Card>
             <Card.Header className="flex flex-row items-center justify-between pb-2">
-              <Card.Title className="text-sm font-medium text-muted-foreground">Dalam Pengiriman</Card.Title>
+              <Card.Title className="text-sm font-medium text-muted-foreground">Selesai/Diterima</Card.Title>
               <TruckIcon className="h-4 w-4 text-blue-500" />
             </Card.Header>
             <Card.Content>
-              <div className="text-2xl font-bold">1 Pengiriman</div>
-              <p className="text-xs text-muted-foreground mt-1">Status: Processing / Transit</p>
+              <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.filter(d => d.status === 'closed').length ?? 0} PO</div>
+              <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
             </Card.Content>
           </Card>
         </div>
@@ -123,8 +100,8 @@ function ProcurementOrderPage() {
         <DataTableCard
           title="Daftar Pesanan Pembelian"
           table={table}
-          isLoading={false}
-          recordCount={mockOrders.length}
+          isLoading={isLoading}
+          recordCount={data?.meta.totalCount ?? 0}
           toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor PO...' }]} />}
           action={
             <Button size="sm" className="h-10 shadow-md font-medium">
@@ -136,3 +113,4 @@ function ProcurementOrderPage() {
     </Page>
   )
 }
+

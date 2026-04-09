@@ -5,6 +5,7 @@ import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
+import type { DbTx } from '@/core/database'
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 import type { LocationServiceModule } from '@/modules/location'
 
@@ -312,9 +313,10 @@ export class MaterialLocationService {
     locationId: number,
     stock: { currentQty: number; currentAvgCost: number; currentValue: number },
     actorId: number,
+    tx: DbTx | typeof db = db,
   ): Promise<void> {
     return record('MaterialLocationService.updateCurrentStock', async () => {
-      await db
+      await tx
         .update(materialLocationsTable)
         .set({
           currentQty: stock.currentQty.toString(),

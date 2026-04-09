@@ -89,6 +89,11 @@ export function getAppMenu(pathname: string): Array<AppMenuGroup> {
               isActive: pathname.startsWith('/procurement/orders'),
             },
             {
+              title: 'Penerimaan Barang',
+              href: '/procurement/receipts',
+              isActive: pathname.startsWith('/procurement/receipts'),
+            },
+            {
               title: 'Daftar Supplier',
               href: '/procurement/suppliers',
               isActive: pathname.startsWith('/procurement/suppliers'),
