@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq } from 'drizzle-orm'
+import { eq, getColumns } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
@@ -19,11 +19,7 @@ export class UserAssignmentService {
       const data = await cache.wrap(cacheKey.byUser(userId), async () => {
         const rows = await db
           .select({
-            id: userAssignmentsTable.id,
-            userId: userAssignmentsTable.userId,
-            roleId: userAssignmentsTable.roleId,
-            locationId: userAssignmentsTable.locationId,
-            isDefault: userAssignmentsTable.isDefault,
+            ...getColumns(userAssignmentsTable),
             roleName: rolesTable.name,
             roleCode: rolesTable.code,
             locationName: locationsTable.name,
@@ -33,7 +29,7 @@ export class UserAssignmentService {
           .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
           .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
           .where(eq(userAssignmentsTable.userId, userId))
-        return rows.map((r) => dto.UserAssignmentDetailDto.parse(r))
+        return rows
       })
       return data
     })
