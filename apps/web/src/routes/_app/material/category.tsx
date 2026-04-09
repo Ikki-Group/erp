@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
@@ -87,27 +87,22 @@ function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<Mate
       enableSorting: false,
       enableHiding: false,
       enablePinning: true,
-    } as any),
+    }),
   ]
 }
 
 function CategoryTable() {
-  const queryClient = useQueryClient()
   const ds = useDataTableState()
   const { data, isLoading } = useQuery(materialCategoryApi.list.query({ ...ds.pagination, q: ds.search }))
 
-  const deleteMutation = useMutation({
-    mutationFn: materialCategoryApi.remove.mutationFn,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [materialCategoryApi.list.queryKey()[0]] })
-    },
-  })
+  const deleteMutation = useMutation({ mutationFn: materialCategoryApi.remove.mutationFn })
 
   const handleDelete = async (id: number) => {
     const promise = deleteMutation.mutateAsync({ params: { id } })
     await toast.promise(promise, toastLabelMessage('delete', 'kategori')).unwrap()
   }
 
+  // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
   const table = useDataTable({

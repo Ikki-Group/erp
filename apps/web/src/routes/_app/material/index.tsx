@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+// oxlint-disable max-lines
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { ChefHatIcon, EyeIcon, MapPinIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
@@ -8,7 +9,7 @@ import { toast } from 'sonner'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import { actionColumn, createColumnHelper, dateColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, dateColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,7 +43,6 @@ function RouteComponent() {
 }
 
 function MaterialTable() {
-  const queryClient = useQueryClient()
   const ds = useDataTableState<MaterialFilterDto>()
   const [rowSelection, setRowSelection] = useState({})
 
@@ -52,18 +52,14 @@ function MaterialTable() {
 
   const { data, isLoading } = useQuery(materialApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
-  const deleteMutation = useMutation({
-    mutationFn: materialApi.remove.mutationFn,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [materialApi.list.queryKey(undefined)[0]] })
-    },
-  })
+  const deleteMutation = useMutation({ mutationFn: materialApi.remove.mutationFn })
 
   const handleDelete = async (id: number) => {
     const promise = deleteMutation.mutateAsync({ body: { id } })
     await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
   }
 
+  // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
   const table = useDataTable({
     columns: columns,
@@ -311,6 +307,6 @@ function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<Mate
         )
       },
       enablePinning: true,
-    } as any),
+    }),
   ]
 }

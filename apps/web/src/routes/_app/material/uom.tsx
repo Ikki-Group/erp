@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
@@ -7,12 +7,7 @@ import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import {
-  actionColumn,
-  createColumnHelper,
-  dateColumn,
-  statusColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { createColumnHelper, dateColumn, statusColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,7 +37,6 @@ function RouteComponent() {
     </Page>
   )
 }
-
 
 function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<UomDto, any>[] {
   return [
@@ -96,27 +90,22 @@ function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<UomD
       enableSorting: false,
       enableHiding: false,
       enablePinning: true,
-    } as any),
+    }),
   ]
 }
 
 function UomTable() {
-  const queryClient = useQueryClient()
   const ds = useDataTableState()
   const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
 
-  const deleteMutation = useMutation({
-    mutationFn: uomApi.remove.mutationFn,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [uomApi.list.queryKey(undefined)[0]] })
-    },
-  })
+  const deleteMutation = useMutation({ mutationFn: uomApi.remove.mutationFn })
 
   const handleDelete = async (id: number) => {
     const promise = deleteMutation.mutateAsync({ params: { id } })
     await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
   }
 
+  // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
   const table = useDataTable({
@@ -147,4 +136,3 @@ function UomTable() {
     />
   )
 }
-
