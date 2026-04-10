@@ -27,29 +27,17 @@ import {
   TrendingUpIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { format, startOfMonth } from 'date-fns'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
-
-function getStartOfMonth(): string {
-  const date = new Date()
-  date.setDate(1)
-  return date.toISOString().split('T')[0]!
-}
-
-function getToday(): string {
-  return new Date().toISOString().split('T')[0]!
-}
-
-function cn(...inputs: any) {
-  return inputs.filter(Boolean).join(' ')
-}
 
 function RouteComponent() {
   const ds = useDataTableState()
   const [locationId, setLocationId] = useState<string | null>(null)
 
-  const [dateFrom, setDateFrom] = useState<string>(() => getStartOfMonth())
-  const [dateTo, setDateTo] = useState<string>(() => getToday())
+  const [dateFrom, setDateFrom] = useState<string>(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
+  const [dateTo, setDateTo] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'))
 
   const numericLocationId = locationId ? Number(locationId) : undefined
 
@@ -194,8 +182,8 @@ function RouteComponent() {
               onClick={() => {
                 ds.setSearch('')
                 setLocationId(null)
-                setDateFrom(getStartOfMonth())
-                setDateTo(getToday())
+                setDateFrom(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
+                setDateTo(format(new Date(), 'yyyy-MM-dd'))
               }}
             >
               Reset
@@ -324,6 +312,7 @@ function SummaryTable({
   dateTo: string
 }) {
   const { data, isLoading } = useQuery(
+    // oxlint-disable-next-line typescript/no-unsafe-argument
     stockSummaryApi.ledger.query({
       ...ds.pagination,
       q: ds.search ?? undefined,
