@@ -28,16 +28,21 @@ export class SectionErrorBoundary extends Component<Props, State> {
   public override render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center p-8 bg-muted/30 rounded-xl border border-dashed border-muted-foreground/20 min-h-[200px] text-center">
-          <div className="bg-destructive/10 p-3 rounded-full text-destructive mb-3">
-            <AlertCircleIcon className="size-6" />
+        <div className="flex flex-col items-center justify-center p-10 bg-background/50 backdrop-blur-sm rounded-2xl border border-dashed border-muted-foreground/15 min-h-[250px] text-center shadow-inner">
+          <div className="bg-destructive/10 p-4 rounded-2xl text-destructive mb-4 shadow-sm border border-destructive/20 ring-4 ring-destructive/5">
+            <AlertCircleIcon className="size-7" />
           </div>
-          <h3 className="font-semibold text-foreground mb-1">{this.props.title ?? 'Gagal memuat komponen'}</h3>
-          <p className="text-xs text-muted-foreground max-w-[240px] mb-4">
+          <h3 className="font-bold text-lg text-foreground mb-1.5">{this.props.title ?? 'Gagal memuat komponen'}</h3>
+          <p className="text-sm text-muted-foreground max-w-[280px] mb-6 leading-relaxed">
             {this.state.error?.message ?? 'Terjadi kesalahan sistem saat merender bagian ini.'}
           </p>
-          <Button variant="outline" size="sm" className="h-8 gap-2" onClick={() => this.setState({ hasError: false })}>
-            <RefreshCwIcon className="size-3" /> Coba Lagi
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-9 gap-2 px-5 font-medium hover:bg-muted transition-all active:scale-95 shadow-sm"
+            onClick={() => this.setState({ hasError: false })}
+          >
+            <RefreshCwIcon className="size-3.5" /> Segarkan Bagian
           </Button>
         </div>
       )

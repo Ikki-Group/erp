@@ -3,6 +3,7 @@ import { ClipboardListIcon, ClockIcon, PlusIcon, TruckIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import {
   createColumnHelper,
   currencyColumn,
@@ -81,56 +82,62 @@ function ProcurementOrderPage() {
               <p className="text-xs text-muted-foreground mt-1">Total pesanan aktif</p>
             </Card.Content>
           </Card>
-          <Card className="border-muted/60 shadow-sm overflow-hidden">
-            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
-              <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">
-                Terbuka (Open)
-              </Card.Title>
-              <ClockIcon className="h-4 w-4 text-amber-500" />
-            </Card.Header>
-            <Card.Content>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold font-mono tracking-tight">
-                  {data?.data.filter((d: any) => d.status === 'open').length ?? 0} PO
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
-            </Card.Content>
-          </Card>
-          <Card className="border-muted/60 shadow-sm overflow-hidden">
-            <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
-              <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">
-                Selesai (Closed)
-              </Card.Title>
-              <TruckIcon className="h-4 w-4 text-blue-500" />
-            </Card.Header>
-            <Card.Content>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold font-mono tracking-tight">
-                  {data?.data.filter((d: any) => d.status === 'closed').length ?? 0} PO
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
-            </Card.Content>
-          </Card>
+          <SectionErrorBoundary title="Statistik Order">
+            <Card className="border-muted/60 shadow-sm overflow-hidden">
+              <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
+                <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                  Terbuka (Open)
+                </Card.Title>
+                <ClockIcon className="h-4 w-4 text-amber-500" />
+              </Card.Header>
+              <Card.Content>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold font-mono tracking-tight">
+                    {data?.data.filter((d) => d.status === 'open').length ?? 0} PO
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
+              </Card.Content>
+            </Card>
+          </SectionErrorBoundary>
+          <SectionErrorBoundary title="Statistik Selesai">
+            <Card className="border-muted/60 shadow-sm overflow-hidden">
+              <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
+                <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">
+                  Selesai (Closed)
+                </Card.Title>
+                <TruckIcon className="h-4 w-4 text-blue-500" />
+              </Card.Header>
+              <Card.Content>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold font-mono tracking-tight">
+                    {data?.data.filter((d) => d.status === 'closed').length ?? 0} PO
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
+              </Card.Content>
+            </Card>
+          </SectionErrorBoundary>
         </div>
 
-        <DataTableCard
-          title="Daftar Pesanan Pembelian"
-          table={table}
-          isLoading={isLoading}
-          recordCount={data?.meta.total ?? 0}
-          toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor PO...' }]} />}
-          action={
-            <Button size="sm" className="h-10 shadow-md font-medium">
-              <PlusIcon className="size-4 mr-2" /> Buat PO Baru
-            </Button>
-          }
-        />
+        <SectionErrorBoundary title="Tabel Pesanan Pembelian">
+          <DataTableCard
+            title="Daftar Pesanan Pembelian"
+            table={table}
+            isLoading={isLoading}
+            recordCount={data?.meta.total ?? 0}
+            toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor PO...' }]} />}
+            action={
+              <Button size="sm" className="h-10 shadow-md font-medium">
+                <PlusIcon className="size-4 mr-2" /> Buat PO Baru
+              </Button>
+            }
+          />
+        </SectionErrorBoundary>
       </Page.Content>
     </Page>
   )

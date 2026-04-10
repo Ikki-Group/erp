@@ -28,27 +28,25 @@ const FormDto = z.object({
   locationId: z.number(),
   categoryId: z.string().nullable(),
   status: z.enum(['active', 'inactive', 'archived']),
-  hasVariants: z.boolean().default(false),
-  hasSalesTypePricing: z.boolean().default(false),
-  prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })).default([]),
-  variants: z
-    .array(
-      z.object({
-        _id: z.string(),
-        id: z.number().optional(),
-        name: z.string().min(1, 'Nama varian wajib diisi'),
-        sku: z.string().optional(),
-        basePrice: z.number().min(0).default(0),
-        isDefault: z.boolean(),
-        prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
-      }),
-    )
-    .default([]),
+  hasVariants: z.boolean(),
+  hasSalesTypePricing: z.boolean(),
+  prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
+  variants: z.array(
+    z.object({
+      _id: z.string(),
+      id: z.number().optional(),
+      name: z.string().min(1, 'Nama varian wajib diisi'),
+      sku: z.string().optional(),
+      basePrice: z.number().min(0),
+      isDefault: z.boolean(),
+      prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
+    }),
+  ),
 })
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
+const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 /**
  * Build a FormDto populated from an optional ProductSelectDto or with sensible defaults.
@@ -473,7 +471,7 @@ function VariantsTable({
                       >
                         <div className="flex flex-col items-center gap-2">
                           <PackageIcon className="size-8 opacity-20" />
-                          <span className="text-xs">Belum ada varian. Klik "Tambah Varian" untuk memulai.</span>
+                          <span className="text-xs">Belum ada varian. Klik &quot;Tambah Varian&quot; untuk memulai.</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -592,7 +590,7 @@ function VariantsTable({
 
 function VariantPriceCell({ variantIndex, salesTypeId }: { variantIndex: number; salesTypeId: number }) {
   const form = useTypedAppContext()
-  const variantPrices = useStore(form.store, (s) => s.values.variants[variantIndex].prices)
+  const variantPrices = useStore(form.store, (s) => s.values.variants[variantIndex]?.prices ?? [])
   const priceIndex = variantPrices.findIndex((p) => p.salesTypeId === salesTypeId)
   const isSet = priceIndex !== -1
 
