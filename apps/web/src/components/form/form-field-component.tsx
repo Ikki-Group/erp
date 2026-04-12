@@ -2,6 +2,7 @@
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import type * as React from 'react'
+import type { DateRange } from 'react-day-picker'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -11,6 +12,7 @@ import { DataCombobox } from '@/components/ui/data-combobox'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
+import { DateRangePicker, type DatePickerRangeProps } from '@/components/ui/date-range-picker'
 import { InputNumber } from '@/components/ui/input-number'
 import { InputPassword } from '@/components/ui/input-password'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -442,6 +444,46 @@ function FieldDatePicker({
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/*  FieldDateRangePicker                                                      */
+/* -------------------------------------------------------------------------- */
+
+interface FieldDateRangePickerProps extends BaseFieldProps, Omit<DatePickerRangeProps, 'value' | 'onValueChange'> {
+  orientation?: FieldBaseProps['orientation']
+}
+
+function FieldDateRangePicker({
+  label,
+  description,
+  required,
+  className,
+  orientation,
+  ...props
+}: FieldDateRangePickerProps) {
+  const field = useFieldContext<DateRange | undefined>()
+
+  return (
+    <FieldBase
+      label={label}
+      description={description}
+      required={required}
+      orientation={orientation}
+      className={className}
+    >
+      <FieldControl>
+        <DateRangePicker
+          mode="range"
+          value={field.state.value}
+          onValueChange={(range) => {
+            field.handleChange(range)
+          }}
+          {...props}
+        />
+      </FieldControl>
+    </FieldBase>
+  )
+}
+
 export {
   FieldInput,
   FieldInputPassword,
@@ -453,4 +495,5 @@ export {
   FieldNumber,
   FieldCurrency,
   FieldDatePicker,
+  FieldDateRangePicker,
 }

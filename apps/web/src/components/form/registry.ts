@@ -75,6 +75,7 @@ export const formRegistry: ComponentRegistry = {
         'FieldNumber',
         'FieldCurrency',
         'FieldTextarea',
+        'FieldDateRangePicker',
       ],
     },
   ],

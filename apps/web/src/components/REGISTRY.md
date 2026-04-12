@@ -23,7 +23,7 @@
 | `useAppForm`                                              | `@/components/form`                      | Core form hook with Zod validation. Includes **Smart Fields** (Input, Select, Date, Checkbox, etc.) via `AppField` render props. |
 | `useFieldContext`                                         | `@/components/form`                      | Access field state in custom renderers.                                                                                          |
 | `Field, FieldLabel, FieldError`                           | `@/components/form/form-tanstack`        | TanStack-integrated field primitives with unified error display logic.                                                           |
-| `field.Input, field.Select, field.Checkbox, field.Switch` | `@/components/form`                      | **Smart Components**: Automatically handle labels, descriptions, and error states. Use inside `AppField`.                        |
+| `field.Input, field.Select, field.Checkbox, field.Switch, field.DateRangePicker` | `@/components/form`                      | **Smart Components**: Automatically handle labels, descriptions, and error states. Use inside `AppField`.                        |
 | `FormComponent`                                           | `@/components/form/form-component`       | Layout wrapper (`form.Form`) and action buttons (`form.SimpleActions`).                                                          |
 | `FieldBase`                                               | `@/components/form/form-field-component` | Base primitive for building custom smart fields.                                                                                 |
 

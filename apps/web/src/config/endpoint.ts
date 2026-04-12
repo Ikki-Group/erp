@@ -92,9 +92,18 @@ const moka = {
   scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
 }
 
-const production = { workOrder: { ...crud('production/work-order'), start: 'production/work-order/start', complete: 'production/work-order/complete' } }
+const production = {
+  workOrder: {
+    ...crud('production/work-order'),
+    start: 'production/work-order/start',
+    complete: 'production/work-order/complete',
+  },
+}
 
-const purchasing = { order: crud('purchasing/purchase-order'), goodsReceipt: { ...crud('purchasing/goods-receipt'), complete: 'purchasing/goods-receipt/complete' } }
+const purchasing = {
+  order: crud('purchasing/purchase-order'),
+  goodsReceipt: { ...crud('purchasing/goods-receipt'), complete: 'purchasing/goods-receipt/complete' },
+}
 
 const sales = {
   order: {

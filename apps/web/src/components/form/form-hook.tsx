@@ -14,6 +14,7 @@ import {
   FieldSelect,
   FieldSwitch,
   FieldTextarea,
+  FieldDateRangePicker,
 } from './form-field-component'
 import { fieldContext, formContext } from './form-hook-context'
 import { Field, FieldControl, FieldDescription, FieldError, FieldLabel, FormItem } from './form-tanstack'
@@ -41,6 +42,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } = 
     Number: FieldNumber,
     Currency: FieldCurrency,
     DatePicker: FieldDatePicker,
+    DateRangePicker: FieldDateRangePicker,
     Checkbox: FieldCheckbox,
     Switch: FieldSwitch,
     Select: FieldSelect,
@@ -54,6 +56,7 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } = 
     FieldCheckbox: FieldCheckbox,
     FieldSwitch: FieldSwitch,
     FieldDatePicker: FieldDatePicker,
+    FieldDateRangePicker: FieldDateRangePicker,
   },
   formComponents: { Form: Form, Item: FormItem, SimpleActions: FormSimpleActions, DialogActions: FormDialogActions },
 })
