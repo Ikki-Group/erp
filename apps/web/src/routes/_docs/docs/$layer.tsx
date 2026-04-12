@@ -3,13 +3,17 @@ import { CheckIcon, CopyIcon, EyeIcon, TagIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { blocksPreviews } from '@/components/blocks/previews'
+import { formPreviews } from '@/components/form/previews'
 import { componentRegistry } from '@/components/registry'
 import type { ComponentRegistryEntry } from '@/components/registry'
 
 export const Route = createFileRoute('/_docs/docs/$layer')({ component: LayerPage })
 
 /** Map layer name → preview map */
-const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = { blocks: blocksPreviews }
+const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = { 
+  blocks: blocksPreviews,
+  form: formPreviews,
+}
 
 function LayerPage() {
   const { layer } = Route.useParams()
