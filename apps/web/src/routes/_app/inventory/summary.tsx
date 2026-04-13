@@ -28,7 +28,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { format, startOfMonth } from 'date-fns'
+import { format, startOfMonth, startOfDay } from 'date-fns'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import type { DateRange } from 'react-day-picker'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 
@@ -36,8 +38,10 @@ function RouteComponent() {
   const ds = useDataTableState()
   const [locationId, setLocationId] = useState<string | null>(null)
 
-  const [dateFrom, setDateFrom] = useState<string>(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-  const [dateTo, setDateTo] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'))
+  const [range, setRange] = useState<DateRange | undefined>(() => ({
+    from: startOfDay(startOfMonth(new Date())),
+    to: startOfDay(new Date()),
+  }))
 
   const numericLocationId = locationId ? Number(locationId) : undefined
 
@@ -146,35 +150,15 @@ function RouteComponent() {
             </div>
 
             {/* Date Range */}
-            <div className="flex items-end gap-2">
-              <div className="flex flex-col gap-1.5 w-40">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
-                  Dari Tanggal
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    type="date"
-                    className="pl-9 h-10 bg-background border-muted/60"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5 w-40">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
-                  Sampai Tanggal
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    type="date"
-                    className="pl-9 h-10 bg-background border-muted/60"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                  />
-                </div>
-              </div>
+            <div className="flex flex-col gap-1.5 min-w-[280px]">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
+                Rentang Tanggal
+              </label>
+              <DateRangePicker
+                value={range}
+                onChange={setRange}
+                className="h-10 bg-background border-muted/60"
+              />
             </div>
             <Button
               variant="outline"
@@ -182,8 +166,10 @@ function RouteComponent() {
               onClick={() => {
                 ds.setSearch('')
                 setLocationId(null)
-                setDateFrom(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-                setDateTo(format(new Date(), 'yyyy-MM-dd'))
+                setRange({
+                  from: startOfDay(startOfMonth(new Date())),
+                  to: startOfDay(new Date()),
+                })
               }}
             >
               Reset
@@ -193,7 +179,7 @@ function RouteComponent() {
 
         {/* Dashboard Table */}
         <SectionErrorBoundary title="Ledger Inventori">
-          <SummaryTable ds={ds} locationId={numericLocationId} dateFrom={dateFrom} dateTo={dateTo} />
+          <SummaryTable ds={ds} locationId={numericLocationId} range={range} />
         </SectionErrorBoundary>
       </Page.Content>
     </Page>
@@ -303,13 +289,11 @@ const columnDefs = [
 function SummaryTable({
   ds,
   locationId,
-  dateFrom,
-  dateTo,
+  range,
 }: {
   ds: any
   locationId?: number
-  dateFrom: string
-  dateTo: string
+  range?: DateRange
 }) {
   const { data, isLoading } = useQuery(
     // oxlint-disable-next-line typescript/no-unsafe-argument
@@ -317,8 +301,8 @@ function SummaryTable({
       ...ds.pagination,
       q: ds.search ?? undefined,
       locationId: locationId ?? undefined,
-      dateFrom: new Date(dateFrom),
-      dateTo: new Date(dateTo),
+      dateFrom: range?.from ?? startOfMonth(new Date()),
+      dateTo: range?.to ?? new Date(),
     }),
   )
 

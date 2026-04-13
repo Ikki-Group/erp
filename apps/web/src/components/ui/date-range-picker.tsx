@@ -1,33 +1,9 @@
+// oxlint-disable max-lines
 'use client'
-
-/**
- * DateRangePicker
- *
- * shadcn/ui (Base UI flavour) components used:
- *   - <Calendar>   → react-day-picker v9, mode="range"
- *   - <Popover>    → Base UI Popover  (desktop ≥ md)
- *   - <Drawer>     → Vaul Drawer      (mobile  < md)
- *   - <Button>     → shadcn Button
- *   - <Separator>  → shadcn Separator
- *
- * Install:
- *   pnpm dlx shadcn@latest add calendar popover drawer button separator
- *   pnpm add date-fns lucide-react
- *
- * Fixes v3 → v4:
- *   - Mobile: calendar now fills the drawer width correctly via `w-full` +
- *     `[--cell-size:--spacing(10)]`. No more overflow / clipped days.
- *   - Desktop: switched from react-day-picker's built-in `numberOfMonths={2}`
- *     (which has cross-month range-highlight bugs in v9) to rendering two
- *     separate <Calendar numberOfMonths={1}> instances with a shared `month`
- *     state. This gives us full control and avoids the rdp internal edge cases.
- *   - Preset active-check now uses startOfDay normalisation so time-of-day
- *     drift can't cause false negatives.
- */
 
 import * as React from 'react'
 import { type DateRange } from 'react-day-picker'
-import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfYear, startOfDay, addMonths } from 'date-fns'
+import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfYear, startOfDay } from 'date-fns'
 import { CalendarIcon, XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -256,58 +232,19 @@ interface DesktopCalendarsProps {
 }
 
 function DesktopCalendars({ draft, setDraft, fromDate, toDate }: DesktopCalendarsProps) {
-  // Left calendar month; right is always leftMonth + 1
-  const [leftMonth, setLeftMonth] = React.useState<Date>(() =>
-    draft?.from
-      ? new Date(draft.from.getFullYear(), draft.from.getMonth(), 1)
-      : new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  )
-
-  const rightMonth = addMonths(leftMonth, 1)
-
-  // Keep left month in sync when a preset is applied (draft.from changes)
-  const prevFromRef = React.useRef<Date | undefined>(draft?.from)
-  React.useEffect(() => {
-    const prev = prevFromRef.current
-    const next = draft?.from
-    if (next && (!prev || prev.toDateString() !== next.toDateString())) {
-      setLeftMonth(new Date(next.getFullYear(), next.getMonth(), 1))
-    }
-    prevFromRef.current = next
-  }, [draft?.from])
-
   return (
     <div className="flex gap-0 divide-x overflow-auto">
-      {/* Left month */}
       <Calendar
         mode="range"
+        captionLayout="dropdown"
         selected={draft}
         onSelect={setDraft}
-        month={leftMonth}
-        onMonthChange={setLeftMonth}
-        numberOfMonths={1}
-        fromDate={fromDate}
-        toDate={toDate}
+        numberOfMonths={2}
+        startMonth={fromDate}
+        endMonth={toDate}
+        defaultMonth={draft?.from ? new Date(draft.from.getFullYear(), draft.from.getMonth(), 1) : undefined}
         showOutsideDays={false}
-        className="p-3"
-        // Hide the "next" nav button — the right calendar's "prev" serves instead
-        classNames={{ button_next: 'invisible' }}
-      />
-
-      {/* Right month — always leftMonth + 1 */}
-      <Calendar
-        mode="range"
-        selected={draft}
-        onSelect={setDraft}
-        month={rightMonth}
-        onMonthChange={(m) => setLeftMonth(addMonths(m, -1))}
-        numberOfMonths={1}
-        fromDate={fromDate}
-        toDate={toDate}
-        showOutsideDays={false}
-        className="p-3"
-        // Hide the "prev" nav button — the left calendar's "next" serves instead
-        classNames={{ button_previous: 'invisible' }}
+        className="w-full [--cell-size:--spacing(10)] p-4"
       />
     </div>
   )
@@ -330,14 +267,14 @@ function MobileCalendar({ draft, setDraft, fromDate, toDate }: MobileCalendarPro
   return (
     <Calendar
       mode="range"
+      captionLayout="dropdown"
       selected={draft}
       onSelect={setDraft}
       numberOfMonths={1}
-      fromDate={fromDate}
-      toDate={toDate}
+      startMonth={fromDate}
+      endMonth={toDate}
       showOutsideDays={false}
       defaultMonth={draft?.from ? new Date(draft.from.getFullYear(), draft.from.getMonth(), 1) : undefined}
-      // Fill the drawer width; 40-px cells are comfortable touch targets
       className="w-full [--cell-size:--spacing(10)] p-4"
     />
   )
@@ -489,109 +426,5 @@ export function DateRangePicker({
         <DrawerFooter className="pt-0" />
       </DrawerContent>
     </Drawer>
-  )
-}
-
-// ─── Demo Page ────────────────────────────────────────────────────────────────
-
-export default function DateRangePickerDemo() {
-  const [range, setRange] = React.useState<DateRange | undefined>()
-  const [range2, setRange2] = React.useState<DateRange | undefined>({
-    from: startOfDay(subDays(new Date(), 29)),
-    to: startOfDay(new Date()),
-  })
-
-  return (
-    <div className="min-h-screen bg-background p-6 md:p-12">
-      <div className="mx-auto max-w-2xl space-y-10">
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Component</p>
-          <h1 className="text-3xl font-bold tracking-tight">Date Range Picker</h1>
-          <p className="mt-2 text-muted-foreground">Popover on desktop · Drawer on mobile · 10 presets · shadcn/ui</p>
-        </div>
-
-        <Separator />
-
-        {/* Example 1 */}
-        <section className="space-y-3">
-          <div>
-            <p className="text-sm font-semibold">Empty state</p>
-            <p className="text-xs text-muted-foreground">No initial selection. Click to open.</p>
-          </div>
-          <DateRangePicker value={range} onChange={setRange} className="max-w-sm" />
-          {range?.from && (
-            <p className="text-sm text-muted-foreground">
-              Selected: <span className="font-medium text-foreground">{formatRange(range)}</span>
-            </p>
-          )}
-        </section>
-
-        <Separator />
-
-        {/* Example 2 */}
-        <section className="space-y-3">
-          <div>
-            <p className="text-sm font-semibold">Pre-selected — last 30 days</p>
-            <p className="text-xs text-muted-foreground">
-              Upper bound constrained to today via <code className="text-xs">toDate</code>.
-            </p>
-          </div>
-          <DateRangePicker value={range2} onChange={setRange2} toDate={new Date()} className="max-w-sm" />
-          {range2?.from && (
-            <p className="text-sm text-muted-foreground">
-              Selected: <span className="font-medium text-foreground">{formatRange(range2)}</span>
-            </p>
-          )}
-        </section>
-
-        <Separator />
-
-        {/* Example 3 */}
-        <section className="space-y-3">
-          <p className="text-sm font-semibold">Disabled</p>
-          <DateRangePicker placeholder="Not available" disabled className="max-w-sm" />
-        </section>
-
-        <Separator />
-
-        {/* Props table */}
-        <section className="space-y-3">
-          <p className="text-sm font-semibold">Props</p>
-          <div className="overflow-auto rounded-lg border text-sm">
-            <table className="w-full text-left">
-              <thead className="bg-muted/50">
-                <tr>
-                  {['Prop', 'Type', 'Default', 'Description'].map((h) => (
-                    <th key={h} className="px-4 py-2 font-medium">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y text-muted-foreground">
-                {(
-                  [
-                    ['value', 'DateRange', '—', 'Controlled selected range'],
-                    ['onChange', '(DateRange) => void', '—', 'Called on Apply'],
-                    ['placeholder', 'string', '"Pick a date range"', 'Trigger label when empty'],
-                    ['disabled', 'boolean', 'false', 'Disables the trigger'],
-                    ['fromDate', 'Date', '—', 'Earliest selectable date'],
-                    ['toDate', 'Date', '—', 'Latest selectable date'],
-                    ['className', 'string', '—', 'Trigger button className'],
-                  ] as const
-                ).map(([prop, type, def, desc]) => (
-                  <tr key={prop}>
-                    <td className="px-4 py-2 font-mono text-xs font-medium text-foreground">{prop}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{type}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{def}</td>
-                    <td className="px-4 py-2 text-xs">{desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-    </div>
   )
 }

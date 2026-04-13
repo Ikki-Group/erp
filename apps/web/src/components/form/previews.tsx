@@ -8,17 +8,16 @@ export const formPreviews: Record<string, ComponentRegistryEntry['preview']> = {
   FormFieldComponent: () => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [range, setRange] = React.useState<DateRange | undefined>()
-    
+
     return (
       <div className="flex flex-col gap-4">
-        <DateRangePicker 
-          mode="range" 
-          value={range} 
-          onValueChange={setRange} 
+        <DateRangePicker
+          value={range}
+          onChange={setRange}
           className="w-[300px]"
           placeholder="Preview: Pilih Rentang Tanggal"
         />
       </div>
     )
-  }
+  },
 }

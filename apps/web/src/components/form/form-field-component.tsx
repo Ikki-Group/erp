@@ -12,7 +12,7 @@ import { DataCombobox } from '@/components/ui/data-combobox'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
-import { DateRangePicker, type DatePickerRangeProps } from '@/components/ui/date-range-picker'
+import { DateRangePicker, type DateRangePickerProps } from '@/components/ui/date-range-picker'
 import { InputNumber } from '@/components/ui/input-number'
 import { InputPassword } from '@/components/ui/input-password'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -448,7 +448,7 @@ function FieldDatePicker({
 /*  FieldDateRangePicker                                                      */
 /* -------------------------------------------------------------------------- */
 
-interface FieldDateRangePickerProps extends BaseFieldProps, Omit<DatePickerRangeProps, 'value' | 'onValueChange'> {
+interface FieldDateRangePickerProps extends BaseFieldProps, Omit<DateRangePickerProps, 'value' | 'onValueChange' | 'onChange'> {
   orientation?: FieldBaseProps['orientation']
 }
 
@@ -472,9 +472,8 @@ function FieldDateRangePicker({
     >
       <FieldControl>
         <DateRangePicker
-          mode="range"
           value={field.state.value}
-          onValueChange={(range) => {
+          onChange={(range) => {
             field.handleChange(range)
           }}
           {...props}
