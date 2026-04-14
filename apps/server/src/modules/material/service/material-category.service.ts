@@ -12,7 +12,7 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
@@ -24,6 +24,7 @@ import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMu
 const err = {
   notFound: (id: number) =>
     new NotFoundError(`Material category with ID ${id} not found`, 'MATERIAL_CATEGORY_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Material category creation failed', 'MATERIAL_CATEGORY_CREATE_FAILED'),
 }
 
 const uniqueFields: ConflictField<'name'>[] = [
@@ -147,7 +148,7 @@ export class MaterialCategoryService {
         .values({ ...data, name, ...stampCreate(actorId) })
         .returning({ id: materialCategoriesTable.id })
 
-      if (!inserted) throw new Error('Failed to create material category')
+      if (!inserted) throw err.createFailed()
 
       await this.clearCache()
       return inserted

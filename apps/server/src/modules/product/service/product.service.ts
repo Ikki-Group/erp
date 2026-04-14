@@ -3,7 +3,7 @@ import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import {
@@ -29,7 +29,13 @@ import type { ProductCategoryService } from './product-category.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: number) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND') }
+const err = {
+  notFound: (id: number) => new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Product creation failed', 'PRODUCT_CREATE_FAILED'),
+  skuConflict: () => new ConflictError('Product SKU already exists in this location', 'PRODUCT_SKU_ALREADY_EXISTS'),
+  nameConflict: () => new ConflictError('Product name already exists in this location', 'PRODUCT_NAME_ALREADY_EXISTS'),
+  multipleDefaultVariants: () => new ConflictError('Only one variant can be set as default', 'MULTIPLE_DEFAULT_VARIANTS'),
+}
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
@@ -168,10 +174,10 @@ export class ProductService {
     if (!conflict) return
 
     if (conflict.sku === input.sku) {
-      throw new ConflictError('Product SKU already exists in this location', 'PRODUCT_SKU_ALREADY_EXISTS')
+      throw err.skuConflict()
     }
     if (conflict.name === input.name) {
-      throw new ConflictError('Product name already exists in this location', 'PRODUCT_NAME_ALREADY_EXISTS')
+      throw err.nameConflict()
     }
   }
 
@@ -181,7 +187,7 @@ export class ProductService {
   private validateDefaultVariant(variants: { isDefault?: boolean; name: string }[]) {
     const defaults = variants.filter((v) => v.isDefault)
     if (defaults.length > 1) {
-      throw new ConflictError('Only one variant can be set as default', 'MULTIPLE_DEFAULT_VARIANTS')
+      throw err.multipleDefaultVariants()
     }
   }
 
@@ -331,7 +337,7 @@ export class ProductService {
           })
           .returning({ id: productsTable.id })
 
-        if (!product) throw new Error('Failed to create product')
+        if (!product) throw err.createFailed()
 
         // Insert product-level prices (when !hasVariants && hasSalesTypePricing)
         if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {

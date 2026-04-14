@@ -12,7 +12,7 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { productCategoriesTable } from '@/db/schema'
@@ -23,6 +23,7 @@ import type { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutat
 
 const err = {
   notFound: (id: number) => new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Product category creation failed', 'PRODUCT_CATEGORY_CREATE_FAILED'),
 }
 
 const uniqueFields: ConflictField<'name'>[] = [
@@ -148,7 +149,7 @@ export class ProductCategoryService {
         .values({ ...data, name, ...stampCreate(actorId) })
         .returning({ id: productCategoriesTable.id })
 
-      if (!inserted) throw new Error('Failed to create product category')
+      if (!inserted) throw err.createFailed()
 
       await this.clearCache()
       return inserted

@@ -3,7 +3,7 @@ import { and, count, eq, exists, inArray, isNull, notExists, or, ilike } from 'd
 
 import { cache } from '@/core/cache'
 import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, type ConflictField } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { materialConversionsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
@@ -22,7 +22,10 @@ import type { UomService } from './uom.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND') }
+const err = {
+  notFound: (id: number) => new NotFoundError(`Material with ID ${id} not found`, 'MATERIAL_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Material creation failed', 'MATERIAL_CREATE_FAILED'),
+}
 
 const uniqueFields: ConflictField<'sku' | 'name'>[] = [
   {
@@ -298,7 +301,7 @@ export class MaterialService {
         return material
       })
 
-      if (!inserted) throw new Error('Failed to create material')
+      if (!inserted) throw err.createFailed()
 
       await this.clearCache()
       return inserted

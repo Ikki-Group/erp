@@ -6,6 +6,7 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
 
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/location.dto'
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
@@ -24,6 +25,11 @@ const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 const cacheKey = { count: 'location.count', list: 'location.list', byId: (id: number) => `location.byId.${id}` }
+ 
+ const err = {
+   notFound: (id: number) => new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
+   createFailed: () => new InternalServerError('Location creation failed', 'LOCATION_CREATE_FAILED'),
+ }
 
 // Location Service (Layer 0)
 // Handles physical and virtual location management.
@@ -149,7 +155,7 @@ export class LocationService {
         .insert(locationsTable)
         .values({ ...data, ...core.stampCreate(actorId) })
         .returning({ id: locationsTable.id })
-      if (!inserted) throw new Error('Create failed')
+      if (!inserted) throw err.createFailed()
       await this.clearCache()
       return inserted
     })
@@ -185,7 +191,7 @@ export class LocationService {
         .set({ deletedAt: new Date(), deletedBy: actorId })
         .where(eq(locationsTable.id, id))
         .returning({ id: locationsTable.id })
-      if (!result) throw new Error('Location not found')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })
@@ -198,7 +204,7 @@ export class LocationService {
         .delete(locationsTable)
         .where(eq(locationsTable.id, id))
         .returning({ id: locationsTable.id })
-      if (!result) throw new Error('Location not found')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })

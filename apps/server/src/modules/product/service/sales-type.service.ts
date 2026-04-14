@@ -12,7 +12,7 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/core/database'
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
@@ -24,6 +24,7 @@ import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../
 const err = {
   notFound: (id: number) => new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND'),
   systemSalesType: () => new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM'),
+  createFailed: () => new InternalServerError('Sales type creation failed', 'SALES_TYPE_CREATE_FAILED'),
 }
 
 const uniqueFields: ConflictField<'code'>[] = [
@@ -147,7 +148,7 @@ export class SalesTypeService {
         .values({ ...data, code, name, isSystem: false, ...stampCreate(actorId) })
         .returning({ id: salesTypesTable.id })
 
-      if (!inserted) throw new Error('Failed to create sales type')
+      if (!inserted) throw err.createFailed()
 
       await this.clearCache()
       return inserted

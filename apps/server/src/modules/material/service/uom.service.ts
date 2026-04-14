@@ -12,7 +12,7 @@ import {
   takeFirstOrThrow,
   type ConflictField,
 } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { uomsTable } from '@/db/schema'
@@ -21,7 +21,10 @@ import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const err = { notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`) }
+const err = {
+  notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`, 'UOM_NOT_FOUND'),
+  createFailed: () => new InternalServerError('UOM creation failed', 'UOM_CREATE_FAILED'),
+}
 
 const uniqueFields: ConflictField<'code'>[] = [
   { field: 'code', column: uomsTable.code, message: 'UOM code already exists', code: 'UOM_CODE_ALREADY_EXISTS' },
@@ -116,7 +119,7 @@ export class UomService {
         .values({ code, ...stampCreate(actorId) })
         .returning({ id: uomsTable.id })
 
-      if (!inserted) throw new Error('Failed to create UOM')
+      if (!inserted) throw err.createFailed()
 
       await this.clearCache()
       return inserted
