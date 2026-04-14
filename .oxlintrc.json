@@ -38,7 +38,8 @@
 		"max-lines-per-function": "off",
 		"no-warning-comments": "off",
 		"import/max-dependencies": "off",
-		"no-inline-comments": "off"
+		"no-inline-comments": "off",
+		"max-lines": "off"
 	},
 	"overrides": [
 		{

@@ -10,6 +10,7 @@ import {
 	zQueryIds,
 	zMetadataDto,
 	zRecordIdDto,
+	zWithAuditResolved,
 } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 import { RecipeDto } from '@/modules/recipe'
@@ -64,13 +65,15 @@ export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const MaterialSelectDto = z.object({
-	...MaterialDto.shape,
-	category: MaterialCategoryDto.nullable(),
-	uom: UomDto.nullable(),
-	locations: LocationDto.array().optional(),
-	recipe: RecipeDto.nullable().optional(),
-})
+export const MaterialSelectDto = zWithAuditResolved(
+	z.object({
+		...MaterialDto.shape,
+		category: MaterialCategoryDto.nullable(),
+		uom: UomDto.nullable(),
+		locations: LocationDto.array().optional(),
+		recipe: RecipeDto.nullable().optional(),
+	}).shape,
+)
 
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
 

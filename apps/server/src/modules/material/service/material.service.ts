@@ -10,6 +10,7 @@ import {
 	stampUpdate,
 	type ConflictField,
 } from '@/core/database'
+import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
@@ -300,7 +301,9 @@ export class MaterialService {
 				uom: uomsMap.get(m.baseUomId) ?? null,
 			}))
 
-			return { data, meta: result.meta }
+			const resolvedData = await resolveAuditList(data)
+
+			return { data: resolvedData, meta: result.meta }
 		})
 	}
 
@@ -315,7 +318,7 @@ export class MaterialService {
 					: [],
 			])
 
-			return { ...material, category, uom, locations }
+			return resolveAudit({ ...material, category, uom, locations })
 		})
 	}
 

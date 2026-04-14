@@ -13,6 +13,27 @@ export const zMetadataDto = z.object({
 	syncAt: zDate.optional().nullable(),
 })
 
+/** Reusable Audit User Snippet schema. */
+export const zUserSnippetDto = z.object({
+	id: z.number().int(),
+	username: z.string(),
+	fullname: z.string(),
+})
+
+export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
+
+/**
+ * Extends a Zod schema with resolved audit attributes (creator and updater).
+ * This makes the schema typesafe for endpoints resolving audit fields.
+ */
+export function zWithAuditResolved<T extends z.ZodRawShape>(shape: T) {
+	return z.object({
+		...shape,
+		creator: zUserSnippetDto.optional().nullable(),
+		updater: zUserSnippetDto.optional().nullable(),
+	})
+}
+
 /** Single Record ID schema. */
 export const zRecordIdDto = z.object({ id: zId })
 
