@@ -1,3 +1,5 @@
+import { db } from '@/db'
+import type { DbTx } from '@/core/database'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
 import type {
@@ -57,37 +59,65 @@ export class StockTransactionService {
 
   /* ─────────────────────── WRITE OPERATIONS: EXTERNAL ─────────────────────── */
 
-  async handlePurchase(data: PurchaseTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.external.handlePurchase(data, actorId)
+  async handlePurchase(
+    data: PurchaseTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.external.handlePurchase(data, actorId, tx)
   }
 
-  async handleProductionIn(data: ProductionInTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.external.handleProductionIn(data, actorId)
+  async handleProductionIn(
+    data: ProductionInTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.external.handleProductionIn(data, actorId, tx)
   }
 
-  async handleUsage(data: UsageTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.external.handleUsage(data, actorId)
+  async handleUsage(
+    data: UsageTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.external.handleUsage(data, actorId, tx)
   }
 
-  async handleSell(data: SellTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.external.handleSell(data, actorId)
+  async handleSell(
+    data: SellTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.external.handleSell(data, actorId, tx)
   }
 
-  async handleProductionOut(data: ProductionOutTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.external.handleProductionOut(data, actorId)
+  async handleProductionOut(
+    data: ProductionOutTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.external.handleProductionOut(data, actorId, tx)
   }
 
   /* ─────────────────────── WRITE OPERATIONS: INTERNAL ─────────────────────── */
 
-  async handleTransfer(data: TransferTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.internal.handleTransfer(data, actorId)
+  async handleTransfer(
+    data: TransferTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.internal.handleTransfer(data, actorId, tx)
   }
 
-  async handleAdjustment(data: AdjustmentTransactionDto, actorId: number): Promise<TransactionResultDto> {
-    return this.internal.handleAdjustment(data, actorId)
+  async handleAdjustment(
+    data: AdjustmentTransactionDto,
+    actorId: number,
+    tx: DbTx | typeof db = db,
+  ): Promise<TransactionResultDto> {
+    return this.internal.handleAdjustment(data, actorId, tx)
   }
 
-  async handleOpname(data: StockOpnameDto, actorId: number): Promise<TransactionResultDto> {
-    return this.internal.handleOpname(data, actorId)
+  async handleOpname(data: StockOpnameDto, actorId: number, tx: DbTx | typeof db = db): Promise<TransactionResultDto> {
+    return this.internal.handleOpname(data, actorId, tx)
   }
 }

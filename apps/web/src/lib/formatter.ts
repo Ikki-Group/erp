@@ -46,6 +46,6 @@ export function toCodeCase(str: string): string {
     str
       .match(/[a-z0-9]+/gi)
       ?.map((word) => word.toUpperCase())
-      .join('_') || ''
+      .join('_') ?? ''
   )
 }

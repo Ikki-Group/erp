@@ -2,7 +2,13 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  createPaginatedResponseSchema,
+  createSuccessResponseSchema,
+  zId,
+  zPaginationDto,
+  zRecordIdDto,
+} from '@/lib/zod'
 
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
 
@@ -11,7 +17,7 @@ export const roleApi = {
     method: 'get',
     url: endpoint.iam.role.list,
     params: z.object({ ...zPaginationDto.shape, ...RoleFilterDto.shape }),
-    result: createPaginatedResponseSchema(RoleDto.array()),
+    result: createPaginatedResponseSchema(RoleDto),
   }),
   detail: apiFactory({
     method: 'get',
@@ -28,7 +34,7 @@ export const roleApi = {
   update: apiFactory({
     method: 'put',
     url: endpoint.iam.role.update,
-    body: z.object({ id: zId, ...RoleUpdateDto.shape }),
+    body: RoleUpdateDto,
     result: createSuccessResponseSchema(zRecordIdDto),
   }),
   remove: apiFactory({

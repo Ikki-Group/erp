@@ -41,7 +41,7 @@ export interface InputNumberProps extends Omit<React.ComponentProps<typeof Input
 function formatNumber(value: number | string | null | undefined, allowDecimal: boolean, decimalScale: number): string {
   if (value === null || value === undefined || value === '') return ''
 
-  const num = typeof value === 'string' ? Number(value.replace(/[^0-9.-]/g, '')) : value
+  const num = typeof value === 'string' ? Number(value.replaceAll(/[^0-9.-]/g, '')) : value
   if (isNaN(num)) return ''
 
   return new Intl.NumberFormat('id-ID', {
@@ -59,8 +59,8 @@ function formatNumber(value: number | string | null | undefined, allowDecimal: b
  */
 function parseNumber(value: string): string {
   return value
-    .replace(/\./g, '') // Remove thousands separator
-    .replace(/,/g, '.') // Replace decimal separator
+    .replaceAll('.', '') // Remove thousands separator
+    .replaceAll(',', '.') // Replace decimal separator
 }
 
 /**

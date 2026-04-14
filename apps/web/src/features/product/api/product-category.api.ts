@@ -2,7 +2,13 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  zId,
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/lib/zod'
 
 import { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutationDto } from '../dto'
 
@@ -11,7 +17,7 @@ export const productCategoryApi = {
     method: 'get',
     url: endpoint.product.category.list,
     params: z.object({ ...zPaginationDto.shape, ...ProductCategoryFilterDto.shape }),
-    result: createPaginatedResponseSchema(ProductCategoryDto.array()),
+    result: createPaginatedResponseSchema(ProductCategoryDto),
   }),
 
   detail: apiFactory({

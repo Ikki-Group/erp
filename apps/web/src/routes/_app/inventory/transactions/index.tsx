@@ -1,99 +1,98 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
-import { format } from 'date-fns'
 import { PlusIcon } from 'lucide-react'
-
-import { DataTableCard } from '@/components/card/data-table-card'
+import {
+  createColumnHelper,
+  currencyColumn,
+  dateColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/reui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import type { StockTransactionOutputDto } from '@/features/inventory'
+import type { StockTransactionSelectDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/inventory/transactions/')({ component: RouteComponent })
 
-const ch = createColumnHelper<StockTransactionOutputDto>()
+const ch = createColumnHelper<StockTransactionSelectDto>()
 
 function RouteComponent() {
   const ds = useDataTableState()
 
   const { data, isLoading } = useQuery(
-    stockTransactionApi.list.query({ ...ds.pagination, search: ds.search || undefined, locationId: undefined }),
+    stockTransactionApi.list.query({ ...ds.pagination, q: ds.search || undefined, locationId: undefined }),
   )
 
   const columns = [
-    ch.accessor('date', {
-      header: 'Tanggal',
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">{format(new Date(row.original.date), 'dd MMM yyyy')}</span>
-      ),
-      enableSorting: false,
-      size: 130,
-    }),
-    ch.accessor('referenceNo', {
-      header: 'No Referensi',
-      cell: ({ row }) => <span className="font-medium">{row.original.referenceNo}</span>,
-      enableSorting: false,
-      size: 150,
-    }),
-    ch.accessor('type', {
-      header: 'Tipe',
-      cell: ({ row }) => {
-        const typeStr = row.original.type
-        const color =
-          typeStr.includes('in') || typeStr === 'purchase'
-            ? 'success'
-            : typeStr.includes('out') || typeStr === 'sell'
-              ? 'destructive'
-              : 'secondary'
+    ch.accessor('date', dateColumn({ header: 'Tanggal', size: 130 })),
+    ch.accessor('referenceNo', textColumn({ header: 'No Referensi', size: 150 })),
+    ch.accessor(
+      'type',
+      statusColumn({
+        header: 'Tipe',
+        render: (value) => {
+          const typeStr = value as string
+          const color =
+            typeStr.includes('in') || typeStr === 'purchase'
+              ? 'success'
+              : typeStr.includes('out') || typeStr === 'sell'
+                ? 'destructive'
+                : 'secondary'
 
-        const label = typeStr.replace('_', ' ').toUpperCase()
-        return <Badge variant={color as any}>{label}</Badge>
-      },
-      enableSorting: false,
-      size: 110,
-    }),
-    ch.accessor('materialName', {
-      header: 'Bahan Baku',
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.original.materialName}</span>
-          <span className="text-xs text-muted-foreground">SKU: {row.original.materialSku}</span>
-        </div>
-      ),
-      enableSorting: false,
-    }),
-    ch.accessor('qty', {
-      header: 'Qty',
-      cell: ({ row }) => {
-        const qty = row.original.qty
-        const isOut = row.original.type === 'transfer_out' || row.original.type === 'sell'
-        const color = isOut
-          ? 'text-rose-600 dark:text-rose-400'
-          : qty < 0
-            ? 'text-rose-600 dark:text-rose-400'
-            : 'text-emerald-600 dark:text-emerald-400'
+          const label = typeStr.replace('_', ' ').toUpperCase()
+          return <Badge variant={color}>{label}</Badge>
+        },
+        size: 110,
+      }),
+    ),
+    ch.accessor(
+      'materialName',
+      statusColumn({
+        header: 'Bahan Baku',
+        render: (value, row) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-foreground/90">{value}</span>
+            <span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
+              SKU: {row.materialSku}
+            </span>
+          </div>
+        ),
+        size: 200,
+      }),
+    ),
+    ch.accessor(
+      'qty',
+      statusColumn({
+        header: 'Qty',
+        render: (value, row) => {
+          const qty = Number(value)
+          const isOut = row.type === 'transfer_out' || row.type === 'sell'
+          const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
 
-        return (
-          <span className={['font-medium whitespace-nowrap', color].join(' ')}>
-            {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
-          </span>
-        )
-      },
-      enableSorting: false,
-      size: 100,
-    }),
-    ch.accessor('totalCost', {
-      header: 'Total Nilai (Rp)',
-      cell: ({ row }) => {
-        return <span className="tabular-nums">{row.original.totalCost.toLocaleString('id-ID')}</span>
-      },
-      enableSorting: false,
-      size: 140,
-    }),
+          return (
+            <Badge variant={color} className="font-semibold tabular-nums px-2 shadow-none border-transparent">
+              {isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
+            </Badge>
+          )
+        },
+        size: 100,
+      }),
+    ),
+    ch.accessor('totalCost', currencyColumn({ header: 'Total Nilai', size: 150 })),
   ]
 
   const table = useDataTable({
@@ -107,27 +106,62 @@ function RouteComponent() {
   return (
     <Page>
       <Page.BlockHeader
-        title="Riwayat Mutasi Transaksi"
-        description="Seluruh riwayat transaksi masuk, keluar, transfer, dan penyesuaian stok"
+        title="Riwayat Mutasi & Transaksi"
+        description="Pantau seluruh pergerakan barang (masuk, keluar, transfer, dan opname/penyesuaian)."
       />
-      <Page.Content>
+      <Page.Content className="flex flex-col gap-6">
         <DataTableCard
-          title="Semua Transaksi"
+          title="Daftar Mutasi Terkini"
           table={table}
           isLoading={isLoading}
-          recordCount={data?.meta.total || 0}
+          recordCount={data?.meta.total ?? 0}
+          toolbar={
+            <DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor pelacakan atau bahan...' }]} />
+          }
           action={
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline">
-                <Link to="/inventory/transactions/adjustment">
-                  <PlusIcon className="size-4 mr-2" /> Adjustment
-                </Link>
-              </Button>
-              <Button size="sm">
-                <Link to="/inventory/transactions/transfer">
-                  <PlusIcon className="size-4 mr-2" /> Transfer
-                </Link>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button size="sm" className="h-10 shadow-md font-medium" />}>
+                  <PlusIcon className="size-4 mr-2" /> Catat Transaksi
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Penerimaan Barang</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/purchase" className="flex items-center w-full" />}
+                  >
+                    Pembelian
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Pengeluaran Barang</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/usage" className="flex items-center w-full" />}
+                  >
+                    Pemakaian / Konsumsi
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Mutasi & Stok Fisik</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/transfer" className="flex items-center w-full" />}
+                  >
+                    Mutasi Internal (Transfer)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/opname" className="flex items-center w-full" />}
+                  >
+                    Stock Opname
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    nativeButton={false}
+                    render={<Link to="/inventory/transactions/adjustment" className="flex items-center w-full" />}
+                  >
+                    Koreksi / Adjustment
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           }
         />

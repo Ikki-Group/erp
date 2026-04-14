@@ -1,3 +1,5 @@
+// oxlint-disable no-negated-condition
+// oxlint-disable max-lines
 import { formOptions, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -7,7 +9,7 @@ import { useMemo } from 'react'
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
@@ -19,14 +21,14 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { toOptions } from '@/lib/utils'
 
 import { materialApi, materialCategoryApi, uomApi } from '../api'
-import { MaterialType } from '../dto'
-import type { MaterialOutputDto } from '../dto'
+import { MaterialTypeDto } from '../dto'
+import type { MaterialSelectDto } from '../dto'
 
 const FormDto = z.object({
   name: z.string().min(1, 'Nama bahan baku harus diisi'),
   description: z.string().optional(),
   sku: z.string().min(1, 'SKU harus diisi'),
-  type: MaterialType,
+  type: MaterialTypeDto,
   categoryId: z.coerce.number<number>().nullable(),
   baseUomId: z.coerce.number<number>().min(1, 'Satuan dasar harus dipilih'),
   conversions: z.array(
@@ -41,15 +43,7 @@ type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
-/**
- * Builds initial form values from an optional existing material selection.
- *
- * Copies available fields from `v` into a FormDto-shaped object; missing fields are replaced with sensible defaults (empty strings, `'raw'` type, or `null` for nullable IDs).
- *
- * @param v - Optional existing material data to derive default values from
- * @returns A FormDto populated from `v` when present, otherwise containing empty/default values. Conversions are copied from `v.conversions` when available.
- */
-function getDefaultValues(v?: MaterialOutputDto): FormDto {
+function getDefaultValues(v?: MaterialSelectDto): FormDto {
   const conversions: FormDto['conversions'] = []
 
   if (v?.conversions.length) {
@@ -73,13 +67,6 @@ interface MaterialFormPageProps {
   backTo?: LinkOptions
 }
 
-/**
- * Render the material creation/editing page with form fields for general information, base unit selection, unit conversions, and submission handling.
- *
- * The component initializes form default values (optionally from an existing material), handles create/update mutations, constructs the payload including a mandatory base-UOM conversion (1:1), displays sections for general information, base UOM, and conversions, and navigates back when submission completes if `backTo` is provided.
- *
- * @returns The page element containing the material form, including GeneralInformationCard, UomInformationSection, UomConversionsSection, and standard form actions.
- */
 export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   const navigate = useNavigate()
   const selectedMaterial = useQuery({ ...materialApi.detail.query({ id: id! }), enabled: !!id })
@@ -99,7 +86,7 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
 
       const payload = {
         name: value.name,
-        description: value.description || null,
+        description: value.description ?? null,
         sku: value.sku,
         type: value.type,
         baseUomId: Number(value.baseUomId),
@@ -138,13 +125,6 @@ export function MaterialFormPage({ mode, id, backTo }: MaterialFormPageProps) {
   )
 }
 
-/**
- * Render the "Informasi Bahan Baku" form section with inputs for name, SKU, description, category, and material type.
- *
- * The SKU field includes a button that generates a SKU from the current name. Category options are loaded from the material categories query.
- *
- * @returns A JSX element containing the form fields for material general information, including a SKU generator button and category/type selects.
- */
 function GeneralInformationCard() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: categories } = useSuspenseQuery({
@@ -222,11 +202,6 @@ function GeneralInformationCard() {
   )
 }
 
-/**
- * Render the "Satuan Dasar" form section for selecting the material's base unit of measure.
- *
- * @returns The JSX element for the card containing a `baseUomId` select field and its description.
- */
 function UomInformationSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const { data: uoms } = useSuspenseQuery({
@@ -258,17 +233,6 @@ function UomInformationSection() {
   )
 }
 
-/**
- * Render the "Konversi Satuan" section for the material form.
- *
- * Displays a hint when the base unit is not selected; otherwise shows a table
- * containing the immutable base-unit row (1 = 1) and an editable list of other
- * conversions where each row maps 1 `uom` to a numeric `toBaseFactor`. Rows
- * can be added or removed and values are bound to the form's `conversions`
- * array and `baseUomId` field.
- *
- * @returns A JSX element containing the UOM conversions UI for the material form.
- */
 function UomConversionsSection() {
   const form = useTypedAppFormContext({ ...fopts })
   const baseUomIdValue = useStore(form.store, (s) => s.values.baseUomId)
@@ -316,7 +280,7 @@ function UomConversionsSection() {
                         </div>
                         <div className="flex-1 max-w-[200px]">
                           <div className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
-                            {baseUom?.label || 'Satuan Dasar'}
+                            {baseUom?.label ?? 'Satuan Dasar'}
                           </div>
                         </div>
                         <div className="text-muted-foreground text-sm font-bold px-1">=</div>
@@ -326,7 +290,7 @@ function UomConversionsSection() {
                           </div>
                         </div>
                         <div className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8">
-                          {baseUom?.label || '-'}
+                          {baseUom?.label ?? '-'}
                         </div>
                       </div>
                     </Table.Cell>
@@ -360,7 +324,7 @@ function UomConversionsSection() {
                                   </form.AppField>
                                 </div>
                                 <div className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-semibold px-2 w-auto min-w-8">
-                                  {baseUom?.label || '-'}
+                                  {baseUom?.label ?? '-'}
                                 </div>
                               </div>
                             </Table.Cell>
@@ -402,13 +366,6 @@ function UomConversionsSection() {
   )
 }
 
-/**
- * Displays a centered warning card indicating the base unit of measure has not been selected.
- *
- * Renders a muted, bordered alert with an icon, title "Satuan Dasar Belum Dipilih", and explanatory text instructing the user to select the base unit before adding conversions.
- *
- * @returns The alert JSX element shown when no base UOM is set.
- */
 function ConversionAlertBaseUomNotSet() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground bg-muted/30 rounded-lg border border-dashed py-12">

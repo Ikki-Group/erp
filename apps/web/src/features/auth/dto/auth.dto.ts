@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { UserOutputDto } from '@/features/iam'
+import { UserSelectDto } from '@/features/iam'
 import { zStr } from '@/lib/zod'
 
 /* ---------------------------------- INPUT --------------------------------- */
@@ -11,6 +11,6 @@ export type LoginDto = z.infer<typeof LoginDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-export const AuthOutputDto = z.object({ user: UserOutputDto, token: zStr })
+export const AuthSelectDto = z.object({ user: UserSelectDto, token: zStr })
 
-export type AuthOutputDto = z.infer<typeof AuthOutputDto>
+export type AuthSelectDto = z.infer<typeof AuthSelectDto>

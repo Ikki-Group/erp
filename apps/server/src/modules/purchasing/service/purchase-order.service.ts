@@ -86,17 +86,19 @@ export class PurchaseOrderService {
 
         const itemValues = items.map((item) => {
           const stamp = core.stampCreate(actorId)
-          return {
-            materialId: item.materialId,
-            itemName: item.itemName,
-            quantity: item.quantity?.toString(),
-            unitPrice: item.unitPrice?.toString(),
-            discountAmount: item.discountAmount?.toString(),
-            taxAmount: item.taxAmount?.toString(),
-            subtotal: item.subtotal?.toString(),
-            orderId: insertedOrder.id,
-            ...stamp,
-          }
+          return Object.assign(
+            {
+              materialId: item.materialId,
+              itemName: item.itemName,
+              quantity: item.quantity?.toString(),
+              unitPrice: item.unitPrice?.toString(),
+              discountAmount: item.discountAmount?.toString(),
+              taxAmount: item.taxAmount?.toString(),
+              subtotal: item.subtotal?.toString(),
+              orderId: insertedOrder.id,
+            },
+            stamp,
+          )
         })
 
         await tx.insert(purchaseOrderItemsTable).values(itemValues)
@@ -135,17 +137,19 @@ export class PurchaseOrderService {
 
           const itemValues = items.map((item) => {
             const stamp = core.stampCreate(actorId)
-            return {
-              materialId: item.materialId,
-              itemName: item.itemName,
-              quantity: item.quantity?.toString(),
-              unitPrice: item.unitPrice?.toString(),
-              discountAmount: item.discountAmount?.toString(),
-              taxAmount: item.taxAmount?.toString(),
-              subtotal: item.subtotal?.toString(),
-              orderId: id,
-              ...stamp,
-            }
+            return Object.assign(
+              {
+                materialId: item.materialId,
+                itemName: item.itemName,
+                quantity: item.quantity?.toString(),
+                unitPrice: item.unitPrice?.toString(),
+                discountAmount: item.discountAmount?.toString(),
+                taxAmount: item.taxAmount?.toString(),
+                subtotal: item.subtotal?.toString(),
+                orderId: id,
+              },
+              stamp,
+            )
           })
 
           if (itemValues.length > 0) {

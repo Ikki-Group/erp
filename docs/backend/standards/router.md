@@ -9,20 +9,14 @@ All routes should be defined using an inline functional approach within the Elys
 
 ```typescript
 export function initMyDomainRoute(service: MyService) {
-  return new Elysia({ prefix: '/my-domain' })
-    .use(authPluginMacro)
-    .get(
-      '/list',
-      async function list({ query }) {
-        const result = await service.handleList(query)
-        return res.paginated(result)
-      },
-      {
-        query: MyFilterDto,
-        response: createPaginatedResponseSchema(MyDto),
-        auth: true,
-      },
-    )
+  return new Elysia({ prefix: '/my-domain' }).use(authPluginMacro).get(
+    '/list',
+    async function list({ query }) {
+      const result = await service.handleList(query)
+      return res.paginated(result)
+    },
+    { query: MyFilterDto, response: createPaginatedResponseSchema(MyDto), auth: true },
+  )
 }
 ```
 

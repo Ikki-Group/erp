@@ -1,97 +1,143 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
+import { ClipboardListIcon, ClockIcon, PlusIcon, TruckIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
-import { BadgeDot } from '@/components/common/badge-dot'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
+import {
+  createColumnHelper,
+  currencyColumn,
+  dateColumn,
+  statusColumn,
+  textColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
+import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useDataTable } from '@/hooks/use-data-table'
-import { toDateTimeStamp } from '@/lib/formatter'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+import { purchaseOrderApi } from '@/features/purchasing/api/purchasing.api'
+import { PurchaseOrderDto } from '@/features/purchasing/dto/purchase-order.dto'
+import { useQuery } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/_app/procurement/orders')({ component: ProcurementOrderPage })
 
-// Mock Data
-const mockOrders = [
-  {
-    id: 'PO-2603-001',
-    supplier: 'PT. Sumber Pangan',
-    date: new Date('2026-03-08T10:30:00Z'),
-    total: 45000000,
-    status: 'completed',
-  },
-  {
-    id: 'PO-2603-002',
-    supplier: 'CV. Sentosa Makmur',
-    date: new Date('2026-03-09T14:15:00Z'),
-    total: 12500000,
-    status: 'processing',
-  },
-  {
-    id: 'PO-2603-003',
-    supplier: 'Toko Beras Jaya',
-    date: new Date('2026-03-10T08:45:00Z'),
-    total: 8200000,
-    status: 'pending',
-  },
-  {
-    id: 'PO-2603-004',
-    supplier: 'PT. Aneka Plastik',
-    date: new Date('2026-03-10T09:20:00Z'),
-    total: 3500000,
-    status: 'cancelled',
-  },
-]
-
-type OrderType = (typeof mockOrders)[0]
-const ch = createColumnHelper<OrderType>()
+const ch = createColumnHelper<PurchaseOrderDto>()
 
 const columns = [
-  ch.accessor('id', { header: 'No. PO', cell: ({ row }) => <span className="font-medium">{row.original.id}</span> }),
-  ch.accessor('supplier', { header: 'Supplier' }),
-  ch.accessor('date', { header: 'Tanggal Order', cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()) }),
-  ch.accessor('total', {
-    header: 'Total Pembelian',
-    cell: ({ row }) => (
-      <span className="font-medium text-right block">Rp {row.original.total.toLocaleString('id-ID')}</span>
-    ),
-  }),
-  ch.accessor('status', {
-    header: 'Status',
-    cell: ({ row }) => {
-      const status = row.original.status
-      if (status === 'completed') return <BadgeDot variant="success-outline">Diterima</BadgeDot>
-      if (status === 'processing') return <BadgeDot variant="warning-outline">Dikirim</BadgeDot>
-      if (status === 'pending') return <BadgeDot variant="primary-outline">Menunggu</BadgeDot>
-      return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
-    },
-  }),
+  ch.accessor('id', textColumn({ header: 'No. Pembelian', size: 130 })),
+  ch.accessor('supplierId', textColumn({ header: 'Supplier ID', size: 100 })), // Simplified for now
+  ch.accessor('transactionDate', dateColumn({ header: 'Tanggal Order', size: 160 })),
+  ch.accessor('totalAmount', currencyColumn({ header: 'Total Tagihan', size: 160 })),
+  ch.accessor(
+    'status',
+    statusColumn({
+      header: 'Status',
+      render: (value) => {
+        const status = value as string
+        if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
+        if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
+        if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
+        return <BadgeDot variant="secondary">{status}</BadgeDot>
+      },
+      size: 130,
+    }),
+  ),
 ]
 
 function ProcurementOrderPage() {
+  const ds = useDataTableState()
+  const { data, isLoading } = useQuery(purchaseOrderApi.list.query({ ...ds.filters, q: ds.search, ...ds.pagination }))
+
   const table = useDataTable({
     columns,
-    data: mockOrders,
-    pageCount: 1,
-    rowCount: mockOrders.length,
-    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+    data: data?.data ?? [],
+    pageCount: data?.meta.totalPages ?? 0,
+    rowCount: data?.meta.total ?? 0,
+    ds,
   })
 
   return (
     <Page>
-      <Page.BlockHeader title="Pesanan Pembelian (PO)" description="Approval dan pembuatan dokumen Purchase Order." />
-      <Page.Content>
-        <DataTableCard
-          title="Daftar Pesanan Pembelian"
-          table={table as any}
-          isLoading={false}
-          recordCount={mockOrders.length}
-          action={
-            <Button size="sm">
-              <PlusIcon className="mr-2 h-4 w-4" /> Buat PO
-            </Button>
-          }
-        />
+      <Page.BlockHeader
+        title="Pesanan Pembelian (PO)"
+        description="Pantau status pemesanan ke Supplier dan kelola dokumen Purchase Order."
+      />
+      <Page.Content className="flex flex-col gap-6">
+        {/* Metric Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <Card.Header className="flex flex-row items-center justify-between pb-2">
+              <Card.Title className="text-sm font-medium text-muted-foreground">Total Tagihan (Bulan Ini)</Card.Title>
+              <ClipboardListIcon className="h-4 w-4 text-emerald-500" />
+            </Card.Header>
+            <Card.Content>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} PO</div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Total pesanan aktif</p>
+            </Card.Content>
+          </Card>
+          <SectionErrorBoundary title="Statistik Order">
+            <Card className="border-muted/60 shadow-sm overflow-hidden">
+              <Card.Header className="flex flex-row items-center justify-between pb-2 bg-amber-50/50 dark:bg-amber-950/20">
+                <Card.Title className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                  Terbuka (Open)
+                </Card.Title>
+                <ClockIcon className="h-4 w-4 text-amber-500" />
+              </Card.Header>
+              <Card.Content>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold font-mono tracking-tight">
+                    {data?.data.filter((d) => d.status === 'open').length ?? 0} PO
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Menunggu pengiriman</p>
+              </Card.Content>
+            </Card>
+          </SectionErrorBoundary>
+          <SectionErrorBoundary title="Statistik Selesai">
+            <Card className="border-muted/60 shadow-sm overflow-hidden">
+              <Card.Header className="flex flex-row items-center justify-between pb-2 bg-blue-50/50 dark:bg-blue-950/20">
+                <Card.Title className="text-sm font-semibold text-blue-800 dark:text-blue-400">
+                  Selesai (Closed)
+                </Card.Title>
+                <TruckIcon className="h-4 w-4 text-blue-500" />
+              </Card.Header>
+              <Card.Content>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold font-mono tracking-tight">
+                    {data?.data.filter((d) => d.status === 'closed').length ?? 0} PO
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Stok telah masuk</p>
+              </Card.Content>
+            </Card>
+          </SectionErrorBoundary>
+        </div>
+
+        <SectionErrorBoundary title="Tabel Pesanan Pembelian">
+          <DataTableCard
+            title="Daftar Pesanan Pembelian"
+            table={table}
+            isLoading={isLoading}
+            recordCount={data?.meta.total ?? 0}
+            toolbar={<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari nomor PO...' }]} />}
+            action={
+              <Button size="sm" className="h-10 shadow-md font-medium">
+                <PlusIcon className="size-4 mr-2" /> Buat PO Baru
+              </Button>
+            }
+          />
+        </SectionErrorBoundary>
       </Page.Content>
     </Page>
   )

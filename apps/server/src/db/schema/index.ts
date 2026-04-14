@@ -1,5 +1,3 @@
-/* eslint-disable eslint-plugin-import/max-dependencies */
-
 // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
 export { locationTypeEnum, materialTypeEnum, productStatusEnum, transactionTypeEnum } from './_helpers'

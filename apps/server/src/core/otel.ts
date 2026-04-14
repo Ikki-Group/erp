@@ -1,7 +1,10 @@
+// oxlint-disable typescript/ban-ts-comment
 import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
+import { logs } from '@opentelemetry/sdk-node'
+import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino'
 
 const axiomExporter = new OTLPTraceExporter({
   url: 'https://us-east-1.aws.edge.axiom.co/v1/traces',
@@ -9,9 +12,11 @@ const axiomExporter = new OTLPTraceExporter({
 })
 
 export const otel = opentelemetry({
-  serviceName: Bun.env.APP_NAME || 'ikki-erp',
+  serviceName: Bun.env.APP_NAME ?? 'ikki-erp',
   autoDetectResources: true,
   spanProcessors: [new BatchSpanProcessor(axiomExporter)],
-  // instrumentations: [],
+  // @ts-expect-error
+  logRecordProcessor: new logs.BatchLogRecordProcessor(new logs.ConsoleLogRecordExporter()),
+  instrumentations: [new PinoInstrumentation()],
   sampler: new AlwaysOnSampler(),
 })

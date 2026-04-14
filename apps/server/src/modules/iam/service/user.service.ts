@@ -1,12 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
 import { db } from '@/db'
-import { usersTable } from '@/db/schema'
+import { userAssignmentsTable, usersTable } from '@/db/schema'
 
+import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import type { LocationService } from '@/modules/location/service'
 import * as dto from '../dto/user.dto'
+import * as assignmentDto from '../dto/user-assignment.dto'
+import type { RoleService } from './role.service'
 import type { UserAssignmentService } from './user-assignment.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
@@ -21,13 +25,21 @@ const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 
 const cacheKey = { count: 'iam.user.count', list: 'iam.user.list', byId: (id: number) => `iam.user.byId.${id}` }
 
+const err = { notFound: (id: number) => new NotFoundError() }
+
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
 export class UserService {
-  constructor(private assignmentService: UserAssignmentService) {}
+  constructor(
+    private assignmentService: UserAssignmentService,
+    private locationService: LocationService,
+    private roleService: RoleService,
+  ) {}
 
   // Seed initial users.
-  async seed(data: (dto.UserCreateDto & { passwordHash: string; createdBy: number })[]): Promise<void> {
+  async seed(
+    data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
+  ): Promise<void> {
     await record('UserService.seed', async () => {
       for (const { assignments, ...d } of data) {
         const metadata = core.stampCreate(d.createdBy)
@@ -37,10 +49,12 @@ export class UserService {
             .values({ ...d, ...metadata })
             .onConflictDoUpdate({
               target: usersTable.username,
+              targetWhere: isNull(usersTable.deletedAt),
               set: {
                 email: d.email,
                 fullname: d.fullname,
                 isActive: d.isActive,
+                isRoot: d.isRoot,
                 updatedAt: metadata.updatedAt,
                 updatedBy: metadata.updatedBy,
                 deletedAt: null,
@@ -79,13 +93,44 @@ export class UserService {
           .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
         const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
 
-        // Fetch assignments for detail view.
-        const assignments = await this.assignmentService.findByUserId(id)
-        return dto.UserDto.parse({ ...first, assignments })
+        // Root users: resolve ALL locations at runtime (zero sync needed)
+        const assignments = first.isRoot
+          ? await this.resolveRootAssignments(first.id)
+          : await this.assignmentService.findByUserId(id)
+
+        return { ...first, assignments }
       })
       return data
     })
     return result
+  }
+
+  /**
+   * Resolves all locations as synthetic assignments for root users.
+   * This is the core of Opsi 3: no assignment rows needed in DB,
+   * locations are resolved at runtime from LocationService.
+   */
+  private async resolveRootAssignments(userId: number): Promise<assignmentDto.UserAssignmentDetailDto[]> {
+    const [allLocations, allRoles] = await Promise.all([this.locationService.find(), this.roleService.find()])
+
+    // Find the SUPERADMIN role (isSystem + permissions: ['*'])
+    const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
+    if (!superAdminRole) return []
+
+    return allLocations.map(
+      (loc, idx) =>
+        ({
+          ...superAdminRole,
+          userId,
+          roleId: superAdminRole.id,
+          locationId: loc.id,
+          isDefault: idx === 0, // First location is default
+          roleName: superAdminRole.name,
+          roleCode: superAdminRole.code,
+          locationName: loc.name,
+          locationCode: loc.code,
+        }) satisfies assignmentDto.UserAssignmentDetailDto,
+    )
   }
 
   // Returns total count.
@@ -114,6 +159,20 @@ export class UserService {
               core.searchFilter(usersTable.email, q),
             ),
         isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
+        filter.locationId === undefined
+          ? undefined
+          : exists(
+              db
+                .select()
+                .from(userAssignmentsTable)
+                .where(
+                  and(
+                    eq(userAssignmentsTable.userId, usersTable.id),
+                    eq(userAssignmentsTable.locationId, filter.locationId),
+                    isNull(userAssignmentsTable.deletedAt),
+                  ),
+                ),
+            ),
       )
 
       const p = await core.paginate<dto.UserDto>({
@@ -237,6 +296,26 @@ export class UserService {
     })
   }
 
+  // Password change for current user.
+  async handleChangePassword(id: number, data: dto.UserChangePasswordDto, actorId: number): Promise<{ id: number }> {
+    return record('UserService.handleChangePassword', async () => {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1)
+      if (!user) throw new NotFoundError('User not found', 'USER_NOT_FOUND')
+
+      const isMatch = await Bun.password.verify(data.oldPassword, user.passwordHash)
+      if (!isMatch) throw new BadRequestError('Old password does not match', 'USER_OLD_PASSWORD_MISMATCH')
+
+      const passwordHash = await Bun.password.hash(data.newPassword)
+      await db
+        .update(usersTable)
+        .set({ passwordHash, ...core.stampUpdate(actorId) })
+        .where(eq(usersTable.id, id))
+
+      await this.clearCache(id)
+      return { id }
+    })
+  }
+
   // Removal.
   async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleRemove', async () => {
@@ -255,7 +334,7 @@ export class UserService {
   async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleHardRemove', async () => {
       const [result] = await db.delete(usersTable).where(eq(usersTable.id, id)).returning({ id: usersTable.id })
-      if (!result) throw new Error('User not found')
+      if (!result) throw new Error('sad')
       await this.clearCache(id)
       return result
     })

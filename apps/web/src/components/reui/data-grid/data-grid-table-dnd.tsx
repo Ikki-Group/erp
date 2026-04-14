@@ -150,7 +150,7 @@ function DataGridTableDnd<TData>({ handleDragEnd }: { handleDragEnd: (event: Dra
             })}
           </DataGridTableHead>
 
-          {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
+          {(props.tableLayout?.stripped ?? !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
 
           <DataGridTableBody>
             {props.loadingMode === 'skeleton' && isLoading && pagination?.pageSize ? (
@@ -165,7 +165,7 @@ function DataGridTableDnd<TData>({ handleDragEnd }: { handleDragEnd: (event: Dra
                   })}
                 </DataGridTableBodyRowSkeleton>
               ))
-            ) : table.getRowModel().rows.length ? (
+            ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row: Row<TData>) => {
                 return (
                   <Fragment key={row.id}>

@@ -1,3 +1,4 @@
+// oxlint-disable max-lines
 'use client'
 
 import type { Column } from '@tanstack/react-table'
@@ -95,9 +96,9 @@ function DataGridColumnHeaderInner<TData, TValue>({
     ))
 
   const hasControls =
-    props.tableLayout?.columnsMovable ||
-    (props.tableLayout?.columnsVisibility && visibility) ||
-    (props.tableLayout?.columnsPinnable && canPin) ||
+    props.tableLayout?.columnsMovable ??
+    (props.tableLayout?.columnsVisibility && visibility) ??
+    (props.tableLayout?.columnsPinnable && canPin) ??
     filter
 
   const menuItems = useMemo(() => {
@@ -160,12 +161,22 @@ function DataGridColumnHeaderInner<TData, TValue>({
         items.push(<DropdownMenuSeparator key="sep-pin" />)
       }
       items.push(
-        <DropdownMenuItem key="pin-left" onClick={() => column.pin(isPinned === 'left' ? false : 'left')}>
+        <DropdownMenuItem
+          key="pin-left"
+          onClick={() => {
+            column.pin(isPinned === 'left' ? false : 'left')
+          }}
+        >
           <ArrowLeftToLineIcon className="size-3.5!" aria-hidden="true" />
           <span className="grow">Pin to left</span>
           {isPinned === 'left' && <CheckIcon className="text-primary size-4 opacity-100!" />}
         </DropdownMenuItem>,
-        <DropdownMenuItem key="pin-right" onClick={() => column.pin(isPinned === 'right' ? false : 'right')}>
+        <DropdownMenuItem
+          key="pin-right"
+          onClick={() => {
+            column.pin(isPinned === 'right' ? false : 'right')
+          }}
+        >
           <ArrowRightToLineIcon className="size-3.5!" aria-hidden="true" />
           <span className="grow">Pin to right</span>
           {isPinned === 'right' && <CheckIcon className="text-primary size-4 opacity-100!" />}
@@ -186,7 +197,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
             if (columnIndex > 0) {
               const newOrder = [...columnOrder]
               const [movedColumn] = newOrder.splice(columnIndex, 1)
-              newOrder.splice(columnIndex - 1, 0, movedColumn)
+              newOrder.splice(columnIndex - 1, 0, movedColumn!)
               table.setColumnOrder(newOrder)
             }
           }}
@@ -201,7 +212,7 @@ function DataGridColumnHeaderInner<TData, TValue>({
             if (columnIndex < columnOrder.length - 1) {
               const newOrder = [...columnOrder]
               const [movedColumn] = newOrder.splice(columnIndex, 1)
-              newOrder.splice(columnIndex + 1, 0, movedColumn)
+              newOrder.splice(columnIndex + 1, 0, movedColumn!)
               table.setColumnOrder(newOrder)
             }
           }}
@@ -228,16 +239,20 @@ function DataGridColumnHeaderInner<TData, TValue>({
           <DropdownMenuSubContent side="right">
             {table
               .getAllColumns()
-              .filter((col) => typeof col.accessorFn !== 'undefined' && col.getCanHide())
+              .filter((col) => col.accessorFn !== undefined && col.getCanHide())
               .map((col) => (
                 <DropdownMenuCheckboxItem
                   key={col.id}
                   checked={col.getIsVisible()}
-                  onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                  onSelect={(event) => {
+                    event.preventDefault()
+                  }}
+                  onCheckedChange={(value) => {
+                    col.toggleVisibility(!!value)
+                  }}
                   className="capitalize"
                 >
-                  {col.columnDef.meta?.headerTitle || col.id}
+                  {col.columnDef.meta?.headerTitle ?? col.id}
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuSubContent>
@@ -288,7 +303,9 @@ function DataGridColumnHeaderInner<TData, TValue>({
             size="icon-sm"
             variant="ghost"
             className="-me-1 size-7 rounded-md"
-            onClick={() => column.pin(false)}
+            onClick={() => {
+              column.pin(false)
+            }}
             aria-label={`Unpin ${title} column`}
             title={`Unpin ${title} column`}
           >

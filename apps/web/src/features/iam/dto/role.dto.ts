@@ -1,36 +1,39 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStrNullable, zStr, zBool, zId, zQuerySearch, zMetadataDto } from '@/lib/zod'
+import { zBool, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
 
-/* ---------------------------------- BASE ---------------------------------- */
-
-export const RoleBase = z.object({
+/**
+ * Common Role attributes.
+ */
+export const RoleBaseDto = z.object({
   code: zStr,
   name: zStr,
   description: zStrNullable,
+  permissions: z.string().array(),
   isSystem: zBool,
 })
+export type RoleBaseDto = z.infer<typeof RoleBaseDto>
 
-/* --------------------------------- ENTITY --------------------------------- */
-
-export const RoleDto = z.object({ id: zId, ...RoleBase.shape, ...zMetadataDto.shape })
-
+/**
+ * Role database record.
+ */
+export const RoleDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape, ...zMetadataDto.shape })
 export type RoleDto = z.infer<typeof RoleDto>
 
-/* --------------------------------- FILTER --------------------------------- */
-
-export const RoleFilterDto = z.object({ search: zQuerySearch })
-
-export type RoleFilterDto = z.infer<typeof RoleFilterDto>
-
-/* --------------------------------- CREATE --------------------------------- */
-
-export const RoleCreateDto = z.object({ ...RoleBase.shape })
-
+/**
+ * Input for creating a new Role.
+ */
+export const RoleCreateDto = RoleBaseDto
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
-/* --------------------------------- UPDATE --------------------------------- */
-
-export const RoleUpdateDto = z.object({ ...RoleBase.shape })
-
+/**
+ * Input for updating an existing Role (Full Update).
+ */
+export const RoleUpdateDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+
+/**
+ * Filter criteria for listing Roles.
+ */
+export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional() })
+export type RoleFilterDto = z.infer<typeof RoleFilterDto>

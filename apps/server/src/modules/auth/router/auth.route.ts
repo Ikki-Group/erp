@@ -21,8 +21,9 @@ export function initAuthRoute(svc: AuthService) {
     )
     .get(
       '/me',
-      function me({ auth }) {
-        return res.ok(auth.user!, 'AUTH_ME_SUCCESS')
+      async function me({ auth }) {
+        const userWithDetails = await svc.getById(auth.user!.id)
+        return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
       },
       { response: createSuccessResponseSchema(UserDto), auth: true },
     )

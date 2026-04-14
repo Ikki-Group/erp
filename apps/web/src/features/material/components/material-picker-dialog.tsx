@@ -15,10 +15,10 @@ import {
 import { Input } from '@/components/ui/input'
 
 import { materialApi } from '..'
-import type { MaterialOutputDto } from '..'
+import type { MaterialSelectDto } from '..'
 
 interface MaterialPickerDialogProps {
-  onConfirm: (materials: Array<MaterialOutputDto>) => void
+  onConfirm: (materials: Array<MaterialSelectDto>) => void
   selectedIds?: Array<number>
   trigger?: React.ReactNode
   title?: string
@@ -34,7 +34,7 @@ export function MaterialPickerDialog({
 }: MaterialPickerDialogProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [tempSelected, setTempSelected] = useState<Map<number, MaterialOutputDto>>(new Map())
+  const [tempSelected, setTempSelected] = useState<Map<number, MaterialSelectDto>>(new Map())
 
   // Reset temp selected when dialog opens
   useEffect(() => {
@@ -49,7 +49,7 @@ export function MaterialPickerDialog({
     enabled: open,
   })
 
-  const toggleSelect = (item: MaterialOutputDto) => {
+  const toggleSelect = (item: MaterialSelectDto) => {
     setTempSelected((prev) => {
       const next = new Map(prev)
       if (next.has(item.id)) {

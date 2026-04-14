@@ -6,17 +6,25 @@ import {
   zMetadataDto,
   zPaginationDto,
   zPassword,
+  zQueryBoolean,
+  zQuerySearch,
   zRecordIdDto,
   zStr,
   zUsername,
 } from '@/core/validation'
 
-import { UserAssignmentUpsertDto } from './user-assignment.dto'
+import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
 /**
  * Common User attributes.
  */
-export const UserBaseDto = z.object({ username: zUsername, email: zEmail, fullname: zStr, isActive: zBool })
+export const UserBaseDto = z.object({
+  username: zUsername,
+  email: zEmail,
+  fullname: zStr,
+  isActive: zBool,
+  isRoot: zBool,
+})
 export type UserBaseDto = z.infer<typeof UserBaseDto>
 
 /**
@@ -26,8 +34,7 @@ export const UserDto = z.object({
   ...zRecordIdDto.shape,
   ...UserBaseDto.shape,
   ...zMetadataDto.shape,
-  /** Detailed later in detail view */
-  assignments: z.array(z.any()).optional(),
+  assignments: z.array(UserAssignmentDetailDto).optional(),
 })
 export type UserDto = z.infer<typeof UserDto>
 
@@ -55,7 +62,12 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 /**
  * Filter criteria for listing Users.
  */
-export const UserFilterDto = z.object({ ...zPaginationDto.shape, q: z.string().optional(), isActive: zBool.optional() })
+export const UserFilterDto = z.object({
+  ...zPaginationDto.shape,
+  q: zQuerySearch,
+  isActive: zQueryBoolean,
+  locationId: z.coerce.number().optional(),
+})
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
 /**

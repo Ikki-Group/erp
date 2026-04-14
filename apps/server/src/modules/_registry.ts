@@ -1,6 +1,6 @@
+// oxlint-disable import/max-dependencies
 import { logger } from '@/core/logger'
 
-/* eslint-disable eslint-plugin-import/max-dependencies */
 import { AuthServiceModule } from './auth'
 import { DashboardServiceModule } from './dashboard'
 import { IamServiceModule } from './iam'
@@ -27,7 +27,7 @@ export function createModules() {
   const product = new ProductServiceModule()
 
   // Layer 1 — Masters
-  const iam = new IamServiceModule()
+  const iam = new IamServiceModule(location)
   const material = new MaterialServiceModule(location)
   const supplier = new SupplierServiceModule()
   const employee = new EmployeeServiceModule()

@@ -81,7 +81,7 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
       description: '',
       dueDate: new Date().toISOString().split('T')[0],
     },
-    // @ts-ignore
+    // @ts-expect-error
     validatorAdapter: zodValidator(),
     validators: { onChange: taskSchema },
     onSubmit: async ({ value }) => {

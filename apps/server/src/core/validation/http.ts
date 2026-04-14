@@ -1,3 +1,4 @@
+// oxlint-disable unicorn/prefer-top-level-await
 import z from 'zod'
 
 import { zId, zNumCoerce, zStr } from './primitive'
@@ -26,6 +27,6 @@ export const zQuerySearch = zStr.optional().transform((val) => (val === '' ? und
 export const zQueryNum = zNumCoerce
 
 export const zPaginationDto = z.object({
-  page: zNumCoerce.int().positive().default(1),
-  limit: zNumCoerce.int().positive().max(100).default(10),
+  page: zNumCoerce.int().positive().default(1).catch(1),
+  limit: zNumCoerce.int().positive().max(100).default(10).catch(10),
 })

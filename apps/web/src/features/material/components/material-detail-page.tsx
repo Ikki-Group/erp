@@ -1,9 +1,12 @@
+// oxlint-disable max-lines
+// oxlint-disable no-negated-condition
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
 
-import { CardSection } from '@/components/card/card-section'
-import { DataList } from '@/components/common/data-list'
+import { CardSection } from '@/components/blocks/card/card-section'
+import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import { DataList } from '@/components/blocks/data-display/data-list'
 import { Page } from '@/components/layout/page'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -13,6 +16,7 @@ import { toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
 
 import { materialApi, materialLocationApi } from '../api'
+import { MaterialBadgeProps } from '../utils'
 import { MaterialAssignToLocationDialog } from './material-assign-to-location-dialog'
 
 interface MaterialDetailPageProps {
@@ -76,13 +80,15 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
             <DataList cols={3}>
               <DataList.Item label="Nama Bahan Baku" value={material.name} />
               <DataList.Item label="SKU" value={<span className="font-mono">{material.sku}</span>} />
-              <DataListItemWithBadge label="Jenis" materialType={material.type} />
-              <DataList.Item label="Kategori" value={material.category?.name || '-'} />
+              <DataList.Item label="Jenis">
+                <BadgeDot {...MaterialBadgeProps[material.type]} />
+              </DataList.Item>
+              <DataList.Item label="Kategori" value={material.category?.name ?? '-'} />
               <DataList.Item label="Satuan Dasar" value={material.uom?.code} />
 
               <DataList.Item label="Deskripsi" span={3}>
                 <div className="mt-2 pt-2 border-t">
-                  <p className="text-sm text-muted-foreground leading-relaxed">{material.description || '-'}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{material.description ?? '-'}</p>
                 </div>
               </DataList.Item>
             </DataList>
@@ -105,7 +111,7 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
                         1{' '}
                         {conv.uomId === material.baseUomId
                           ? material.uom?.code
-                          : (conv as any).uom?.code || `UOM #${conv.uomId}`}
+                          : (conv.uom?.code ?? `UOM #${conv.uomId}`)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {toNumber(conv.toBaseFactor)} {material.uom?.code}
@@ -197,15 +203,15 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
                             <TableCell className="text-sm">
                               <div className="flex flex-col">
                                 <span className="font-medium">
-                                  {(item as any).material?.name || `Material #${item.materialId}`}
+                                  {item.material?.name ?? `Material #${item.materialId}`}
                                 </span>
                                 <span className="text-[10px] font-mono text-muted-foreground">
-                                  {(item as any).material?.sku}
+                                  {item.material?.sku}
                                 </span>
                               </div>
                             </TableCell>
                             <TableCell className="text-right text-xs font-mono">
-                              {toNumber(item.qty)} {(item as any).uom?.code || `(UOM #${item.uomId})`}
+                              {toNumber(item.qty)} {item.uom?.code ?? `(UOM #${item.uomId})`}
                             </TableCell>
                             <TableCell className="text-right text-xs">{toNumber(item.scrapPercentage)} %</TableCell>
                           </TableRow>
@@ -301,22 +307,5 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
         </div>
       </Page.Content>
     </Page>
-  )
-}
-
-function DataListItemWithBadge({ label, materialType }: { label: string; materialType: string }) {
-  return (
-    <DataList.Item label={label}>
-      <span
-        className={cn(
-          'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter',
-          materialType === 'raw'
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-        )}
-      >
-        {materialType === 'raw' ? 'Bahan Mentah' : 'Bahan Setengah Jadi'}
-      </span>
-    </DataList.Item>
   )
 }

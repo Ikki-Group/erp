@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-import { zCodeUpper, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import {
+  zCodeUpper,
+  zMetadataDto,
+  zPaginationDto,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/core/validation'
 
 /**
  * Types of operational locations.
@@ -14,26 +22,16 @@ export const LocationTypeDto = z.enum([
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
 /**
- * Theoretical vs Physical classification.
- */
-export const LocationClassificationDto = z.enum([
-  /** Real-world physical address. */
-  'physical',
-  /** Logical grouping or shipping transit. */
-  'virtual',
-])
-export type LocationClassificationDto = z.infer<typeof LocationClassificationDto>
-
-/**
  * Common Location attributes.
  */
 export const LocationBaseDto = z.object({
   code: zCodeUpper.min(2).max(20),
   name: zStr.min(2).max(100),
   type: LocationTypeDto,
-  classification: LocationClassificationDto.default('physical'),
+  description: zStrNullable,
   address: zStrNullable,
   phone: zStrNullable,
+  isActive: z.boolean().default(true),
 })
 export type LocationBaseDto = z.infer<typeof LocationBaseDto>
 
@@ -60,7 +58,7 @@ export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
  */
 export const LocationFilterDto = z.object({
   ...zPaginationDto.shape,
-  q: z.string().optional(),
+  q: zQuerySearch,
   type: LocationTypeDto.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

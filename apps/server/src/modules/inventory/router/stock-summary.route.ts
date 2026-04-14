@@ -83,20 +83,5 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
           detail: { tags: ['Inventory Summary'] },
         },
       )
-
-      /* ─────── Hard delete summary ─────── */
-      .post(
-        '/hard-remove',
-        async function hardRemove({ query }) {
-          await s.summary.handleHardRemove(query.id)
-          return res.ok({ id: query.id })
-        },
-        {
-          query: zRecordIdDto,
-          response: createSuccessResponseSchema(zRecordIdDto),
-          auth: true,
-          detail: { tags: ['Inventory Summary'] },
-        },
-      )
   )
 }

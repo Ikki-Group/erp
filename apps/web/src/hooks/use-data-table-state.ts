@@ -5,7 +5,7 @@ import type { DataTableFilters, DataTablePagination } from '@/types/data-table-t
 
 const DEFAULT_PAGINATION: DataTablePagination = { page: 1, limit: 10 }
 
-export interface DataTableState<TFilter extends DataTableFilters = {}> {
+export interface DataTableState<TFilter extends DataTableFilters = DataTableFilters> {
   pagination: DataTablePagination
   setPagination: OnChangeFn<DataTablePagination>
 

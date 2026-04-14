@@ -47,6 +47,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ steps.cf.outputs.project }}
-          # Cloudflare Pages context for workspace package output
-          directory: apps/web/dist
+          workingDirectory: apps/web

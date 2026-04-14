@@ -1,20 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { KeyRoundIcon, PencilIcon } from 'lucide-react'
+import { useMemo } from 'react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
-import { BadgeDot } from '@/components/common/badge-dot'
-import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import { createColumnHelper, dateColumn, linkColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
-import type { UserOutputDto } from '@/features/iam'
+import type { UserSelectDto } from '@/features/iam'
 import { userApi } from '@/features/iam'
 import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { getUserStatusBadge } from '@/features/iam/utils'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { toDateTimeStamp } from '@/lib/formatter'
 
 export const Route = createFileRoute('/_app/settings/_tab/user')({ component: RouteComponent })
 
@@ -27,75 +26,74 @@ function RouteComponent() {
   )
 }
 
-const ch = createColumnHelper<UserOutputDto>()
-const columns = [
-  ch.accessor('fullname', {
-    header: ({ column }) => <DataGridColumnHeader title="Nama" visibility={true} column={column} />,
-    cell: ({ row }) => (
-      <Link to="/settings/user/$id" params={{ id: String(row.original.id) }}>
-        <div>
-          <p className="underline">{row.original.fullname}</p>
-          <p className="text-muted-foreground italic">{row.original.email}</p>
-        </div>
-      </Link>
-    ),
-    enableSorting: false,
-    size: 200,
-  }),
+const ch = createColumnHelper<UserSelectDto>()
+const columnDefs = [
+  ch.accessor(
+    'fullname',
+    linkColumn({
+      header: 'Nama',
+      render: (value, row) => (
+        <Link to="/settings/user/$id" params={{ id: String(row.id) }}>
+          <div className="flex flex-col gap-1 py-0.5">
+            <span className="font-semibold text-sm tracking-tight hover:text-primary hover:underline">{value}</span>
+            <span className="text-muted-foreground italic text-xs">{row.email}</span>
+          </div>
+        </Link>
+      ),
+      size: 200,
+      enableSorting: false,
+    }),
+  ),
   ch.accessor('isActive', {
     header: 'Aktif',
-    cell: ({ row }) => {
-      const { isActive } = row.original
-      return <BadgeDot {...getUserStatusBadge(isActive)} />
-    },
-    enableSorting: false,
+    cell: ({ row }) => <BadgeDot {...getUserStatusBadge(row.original.isActive)} />,
   }),
   ch.accessor('username', {
     header: 'Username',
-    cell: ({ row }) => <p>@{row.original.username}</p>,
+    cell: ({ row }) => <span className="text-muted-foreground/80">@{row.original.username}</span>,
     enableSorting: false,
   }),
-  ch.accessor('createdAt', {
-    header: 'Dibuat Pada',
-    cell: ({ row }) => <p className="text-nowrap">{toDateTimeStamp(row.original.createdAt)}</p>,
-    enableSorting: false,
-  }),
+  ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
   ch.display({
     id: 'action',
     cell: ({ row }) => {
       const { id, username } = row.original
       return (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-end gap-1 px-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
-            onClick={() => UserPasswordDialog.call({ id, username })}
+            onClick={() => {
+              void UserPasswordDialog.call({ id, username })
+            }}
             title="Ubah Password"
+            className="size-8 text-muted-foreground hover:text-foreground"
           >
-            <KeyRoundIcon />
+            <KeyRoundIcon className="size-4" />
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             nativeButton={false}
             render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
+            className="size-8 text-muted-foreground hover:text-foreground"
           >
-            <PencilIcon />
+            <PencilIcon className="size-4" />
           </Button>
         </div>
       )
     },
     size: 100,
-    enablePinning: true,
   }),
 ]
 
 function UserTable() {
   const ds = useDataTableState<{ isActive?: boolean }>()
-  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, search: ds.search, ...ds.filters }))
+  const { data, isLoading } = useQuery(userApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }))
 
+  const columns = useMemo(() => columnDefs, [])
   const table = useDataTable({
-    columns: columns,
+    columns,
     data: data?.data ?? [],
     pageCount: data?.meta.totalPages ?? 0,
     rowCount: data?.meta.total ?? 0,
@@ -107,7 +105,7 @@ function UserTable() {
       title="Daftar Pengguna"
       table={table}
       isLoading={isLoading}
-      recordCount={data?.meta.total || 0}
+      recordCount={data?.meta.total ?? 0}
       toolbar={
         <DataGridFilter
           ds={ds}

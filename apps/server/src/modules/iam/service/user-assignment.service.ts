@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq } from 'drizzle-orm'
+import { eq, getColumns, and } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
@@ -19,11 +19,7 @@ export class UserAssignmentService {
       const data = await cache.wrap(cacheKey.byUser(userId), async () => {
         const rows = await db
           .select({
-            id: userAssignmentsTable.id,
-            userId: userAssignmentsTable.userId,
-            roleId: userAssignmentsTable.roleId,
-            locationId: userAssignmentsTable.locationId,
-            isDefault: userAssignmentsTable.isDefault,
+            ...getColumns(userAssignmentsTable),
             roleName: rolesTable.name,
             roleCode: rolesTable.code,
             locationName: locationsTable.name,
@@ -33,7 +29,7 @@ export class UserAssignmentService {
           .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
           .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
           .where(eq(userAssignmentsTable.userId, userId))
-        return rows.map((r) => dto.UserAssignmentDetailDto.parse(r))
+        return rows
       })
       return data
     })
@@ -54,6 +50,44 @@ export class UserAssignmentService {
             .values(assignments.map((a) => ({ ...a, userId, ...core.stampCreate(actorId) })))
         }
       })
+      await this.clearCache(userId)
+    })
+  }
+
+  // Assigns a user to a specific location with a role.
+  async handleAssign(data: { userId: number; locationId: number; roleId: number }, actorId: number): Promise<void> {
+    await record('UserAssignmentService.handleAssign', async () => {
+      const { userId, locationId, roleId } = data
+
+      // Check if assignment already exists
+      const existing = await db
+        .select()
+        .from(userAssignmentsTable)
+        .where(
+          and(
+            eq(userAssignmentsTable.userId, userId),
+            eq(userAssignmentsTable.locationId, locationId),
+            eq(userAssignmentsTable.roleId, roleId),
+          ),
+        )
+
+      if (existing.length > 0) return
+
+      await db
+        .insert(userAssignmentsTable)
+        .values({ userId, locationId, roleId, isDefault: false, ...core.stampCreate(actorId) })
+
+      await this.clearCache(userId)
+    })
+  }
+
+  // Removes a user assignment from a specific location.
+  async handleRemove(userId: number, locationId: number): Promise<void> {
+    await record('UserAssignmentService.handleRemove', async () => {
+      await db
+        .delete(userAssignmentsTable)
+        .where(and(eq(userAssignmentsTable.userId, userId), eq(userAssignmentsTable.locationId, locationId)))
+
       await this.clearCache(userId)
     })
   }

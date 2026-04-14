@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-import { zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import {
+  zMetadataDto,
+  zPaginationDto,
+  zQueryId,
+  zQuerySearch,
+  zRecordIdDto,
+  zStr,
+  zStrNullable,
+} from '@/core/validation'
 
 export const goodsReceiptStatusEnum = z.enum(['open', 'completed', 'void'])
 
@@ -51,10 +59,10 @@ export type GoodsReceiptNoteCreateDto = z.infer<typeof GoodsReceiptNoteCreateDto
 
 export const GoodsReceiptNoteFilterDto = z.object({
   ...zPaginationDto.shape,
-  q: z.string().optional(),
+  q: zQuerySearch,
   status: goodsReceiptStatusEnum.optional(),
-  orderId: z.coerce.number().optional(),
-  locationId: z.coerce.number().optional(),
-  supplierId: z.coerce.number().optional(),
+  orderId: zQueryId.optional(),
+  locationId: zQueryId.optional(),
+  supplierId: zQueryId.optional(),
 })
 export type GoodsReceiptNoteFilterDto = z.infer<typeof GoodsReceiptNoteFilterDto>

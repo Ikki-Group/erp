@@ -1,5 +1,6 @@
+// oxlint-disable import/max-dependencies
+
 import type { Modules } from './_registry'
-/* eslint-disable eslint-plugin-import/max-dependencies */
 import { initAuthRoute } from './auth'
 import { initDashboardRouteModule } from './dashboard'
 import { initIamRouteModule } from './iam'
@@ -12,7 +13,6 @@ import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
 import { initToolRouteModule } from './tool'
 import { initPurchasingRouteModule } from './purchasing'
-
 import { initEmployeeRouteModule } from './employee'
 import { initSupplierRouteModule } from './supplier'
 import { initFinanceRouteModule } from './finance'

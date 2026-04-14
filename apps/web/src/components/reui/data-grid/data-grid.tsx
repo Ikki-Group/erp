@@ -95,7 +95,7 @@ function DataGridProvider<TData extends object>({
   ...props
 }: DataGridProps<TData> & { table: Table<TData> }) {
   return (
-    <DataGridContext value={{ props, table, recordCount: props.recordCount, isLoading: props.isLoading || false }}>
+    <DataGridContext value={{ props, table, recordCount: props.recordCount, isLoading: props.isLoading ?? false }}>
       {children}
     </DataGridContext>
   )

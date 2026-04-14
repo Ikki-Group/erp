@@ -25,13 +25,13 @@ Logic validation that depends on the database or application state must be handl
 
 Always use the custom error classes from `@/core/http/errors` to ensure consistent HTTP status codes and error responses across the API.
 
-| Error Class | HTTP Status | Use Case |
-| :--- | :---: | :--- |
-| `ConflictError` | 409 | Duplicate identifiers (e.g. email, code). |
-| `NotFoundError` | 404 | Resource not found. |
-| `UnauthorizedError` | 401 | Missing or invalid auth credentials. |
-| `ForbiddenError` | 403 | Authenticated but lack specific permissions. |
-| `ValidationError` | 422 | Fine-grained business logic failure. |
+| Error Class         | HTTP Status | Use Case                                     |
+| :------------------ | :---------: | :------------------------------------------- |
+| `ConflictError`     |     409     | Duplicate identifiers (e.g. email, code).    |
+| `NotFoundError`     |     404     | Resource not found.                          |
+| `UnauthorizedError` |     401     | Missing or invalid auth credentials.         |
+| `ForbiddenError`    |     403     | Authenticated but lack specific permissions. |
+| `ValidationError`   |     422     | Fine-grained business logic failure.         |
 
 ## 4. Error Code Standard
 

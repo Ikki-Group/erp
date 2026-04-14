@@ -133,6 +133,7 @@ export class WorkOrderService {
               })),
             },
             actorId,
+            tx,
           )
         }
 
@@ -147,6 +148,7 @@ export class WorkOrderService {
               items: [{ materialId: recipe.materialId, qty: actualQty, unitCost: actualTotalCost / actualQty }],
             },
             actorId,
+            tx,
           )
         }
 

@@ -38,7 +38,7 @@ export function initRoleRoute(service: RoleService) {
       },
       { body: dto.RoleCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
     )
-    .patch(
+    .put(
       '/update',
       async function update({ body, auth }) {
         const { id, ...data } = body

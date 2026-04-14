@@ -12,9 +12,9 @@ export default defineConfig((c) => {
     plugins: [
       sentryVitePlugin({
         telemetry: !isDev,
-        org: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
-        authToken: process.env.SENTRY_AUTH_TOKEN,
+        org: Bun.env.SENTRY_ORG,
+        project: Bun.env.SENTRY_PROJECT,
+        authToken: Bun.env.SENTRY_AUTH_TOKEN,
       }),
       devtools(),
       tanstackRouter({

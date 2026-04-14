@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zId, zDate, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zId, zDate, zMetadataDto, zRecordIdDto, zQueryId } from '@/core/validation'
 
 export const MokaScrapType = z.enum(['sales', 'product', 'category'])
 export type MokaScrapType = z.infer<typeof MokaScrapType>
@@ -23,7 +23,7 @@ export const MokaScrapHistoryDto = z.object({
 export type MokaScrapHistoryDto = z.infer<typeof MokaScrapHistoryDto>
 
 export const MokaScrapHistoryFilterDto = z.object({
-  mokaConfigurationId: zId.optional(),
+  mokaConfigurationId: zQueryId.optional(),
   type: MokaScrapType.optional(),
   status: MokaScrapStatus.optional(),
 })

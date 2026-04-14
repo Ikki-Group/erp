@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/card/data-table-card'
-import { Page } from '@/components/layout/page'
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { createColumnHelper, statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/sales/customers')({ component: SalesCustomersPage })
 
@@ -22,40 +23,42 @@ type CustomerType = (typeof mockCustomers)[0]
 const ch = createColumnHelper<CustomerType>()
 
 const columns = [
-  ch.accessor('name', {
-    header: 'Pelanggan',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8 rounded-lg">
-          <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-            {row.original.name.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <span className="font-medium">{row.original.name}</span>
-          <p className="text-muted-foreground text-xs font-mono">{row.original.id}</p>
+  ch.accessor(
+    'name',
+    statusColumn({
+      header: 'Pelanggan',
+      render: (value, row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8 rounded-lg">
+            <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+              {(value as string).slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <span className="font-medium">{value}</span>
+            <p className="text-muted-foreground text-xs font-mono">{row.id}</p>
+          </div>
         </div>
-      </div>
-    ),
-  }),
-  ch.accessor('email', { header: 'Email' }),
-  ch.accessor('phone', { header: 'No. HP' }),
-  ch.accessor('segment', {
-    header: 'Segmen',
-    cell: ({ row }) => (
-      <span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{row.original.segment}</span>
-    ),
-  }),
+      ),
+      size: 250,
+    }),
+  ),
+  ch.accessor('email', textColumn({ header: 'Email', size: 200 })),
+  ch.accessor('phone', textColumn({ header: 'No. HP', size: 150 })),
+  ch.accessor(
+    'segment',
+    statusColumn({
+      header: 'Segmen',
+      render: (value) => <span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{value}</span>,
+      size: 100,
+    }),
+  ),
 ]
 
 function SalesCustomersPage() {
-  const table = useDataTable({
-    columns,
-    data: mockCustomers,
-    pageCount: 1,
-    rowCount: mockCustomers.length,
-    ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
-  })
+  const ds = useDataTableState()
+
+  const table = useDataTable({ columns, data: mockCustomers, pageCount: 1, rowCount: mockCustomers.length, ds })
 
   return (
     <Page>
@@ -63,7 +66,7 @@ function SalesCustomersPage() {
       <Page.Content>
         <DataTableCard
           title="Daftar Pelanggan"
-          table={table as any}
+          table={table}
           isLoading={false}
           recordCount={mockCustomers.length}
           action={

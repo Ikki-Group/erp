@@ -24,9 +24,5 @@
   //     ]
   //   ]
   // },
-  "ignorePatterns": [
-    "**/*.lock",
-    ".agents/**",
-    "./docs/**"
-  ],
+  "ignorePatterns": ["**/*.lock", ".agents/**", "./docs/**"]
 }

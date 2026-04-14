@@ -41,7 +41,7 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
   const assignMutation = useMutation({
     mutationFn: materialLocationApi.assign.mutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
+      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
     },
   })
 

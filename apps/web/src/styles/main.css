@@ -144,18 +144,18 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.89 0.04 160);
+  --primary-foreground: oklch(0.2 0.02 160);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(0.95 0.03 160);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.89 0.04 160 / 50%);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -175,8 +175,8 @@
   --code-foreground: var(--foreground);
   --code-highlight: oklch(0 0 0 / 4%);
   --destructive-foreground: var(--color-red-800);
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-900);
+  --success: oklch(0.65 0.15 160);
+  --success-foreground: oklch(0.98 0.02 160);
   --info: var(--color-violet-500);
   --info-foreground: var(--color-violet-900);
   --warning: var(--color-yellow-500);
@@ -193,18 +193,18 @@
   --card-foreground: oklch(0.98 0.01 93.48);
   --popover: oklch(0.31 0 0);
   --popover-foreground: oklch(0.92 0 0);
-  --primary: oklch(0.67 0.13 38.92);
-  --primary-foreground: oklch(1 0 0);
+  --primary: oklch(0.7 0.12 160);
+  --primary-foreground: oklch(0.15 0.02 160);
   --secondary: oklch(0.98 0.01 93.48);
   --secondary-foreground: oklch(0.31 0 0);
   --muted: oklch(0.22 0 0);
   --muted-foreground: oklch(0.77 0.02 100.64);
-  --accent: oklch(0.21 0.01 88.79);
+  --accent: oklch(0.25 0.05 160);
   --accent-foreground: oklch(0.97 0.01 93.49);
   --destructive: oklch(0.64 0.21 25.39);
   --border: oklch(0.36 0.01 106.85);
   --input: oklch(0.43 0.01 99.03);
-  --ring: oklch(0.59 0.17 252.92);
+  --ring: oklch(0.7 0.12 160 / 50%);
   --chart-1: oklch(0.56 0.13 42.95);
   --chart-2: oklch(0.69 0.16 290.29);
   --chart-3: oklch(0.21 0.01 88.79);
@@ -223,8 +223,8 @@
   --code-foreground: var(--foreground);
   --code-highlight: oklch(1 0 0 / 8%);
   --destructive-foreground: var(--color-red-600);
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-600);
+  --success: oklch(0.6 0.15 160);
+  --success-foreground: oklch(0.1 0.02 160);
   --info: var(--color-violet-500);
   --info-foreground: var(--color-violet-600);
   --warning: var(--color-yellow-500);
@@ -283,4 +283,33 @@
 /** Smooth scroll **/
 html {
   scroll-behavior: smooth;
+}
+
+/** Smooth visual entry animations **/
+@utility animate-enter {
+  animation: enter 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

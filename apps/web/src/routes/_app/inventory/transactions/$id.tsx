@@ -1,21 +1,41 @@
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
+import { Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/reui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { stockTransactionApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { materialApi } from '@/features/material'
+import { toastLabelMessage } from '@/lib/toast-message'
 
 export const Route = createFileRoute('/_app/inventory/transactions/$id')({ component: RouteComponent })
 
 function RouteComponent() {
   const { id } = Route.useParams()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery(stockTransactionApi.detail.query({ id: Number(id) }))
+
+  const removeMutation = useMutation({
+    mutationFn: stockTransactionApi.remove.mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: stockTransactionApi.list.queryKey(undefined) })
+      navigate({ to: '/inventory/transactions' })
+    },
+  })
+
+  async function handleVoid() {
+    const promise = removeMutation.mutateAsync({ params: { id: Number(id) } })
+    await toast.promise(promise, toastLabelMessage('delete', 'transaction')).unwrap()
+  }
 
   const transaction = data?.data
 
@@ -39,7 +59,10 @@ function RouteComponent() {
     return (
       <Page>
         <Page.BlockHeader title="Detail Transaksi" back={{ to: '/inventory/transactions' }} />
-        <Page.Content>Loading...</Page.Content>
+        <Page.Content className="max-w-3xl space-y-6">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </Page.Content>
       </Page>
     )
   }
@@ -69,6 +92,12 @@ function RouteComponent() {
         title={`Transaksi: ${transaction.referenceNo}`}
         description={`Mencatat mutasi bahan baku terpilih.`}
         back={{ to: '/inventory/transactions' }}
+        action={
+          <Button variant="destructive" size="sm" onClick={handleVoid} disabled={removeMutation.isPending}>
+            <Trash2Icon className="mr-2 size-4" />
+            Batalkan Transaksi
+          </Button>
+        }
       />
 
       <Page.Content className="max-w-3xl space-y-6">
@@ -76,7 +105,7 @@ function RouteComponent() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Informasi Mutasi</span>
-              <Badge variant={color as any} className="text-sm py-1">
+              <Badge variant={color} className="text-sm py-1">
                 {label}
               </Badge>
             </CardTitle>

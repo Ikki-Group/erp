@@ -2,7 +2,13 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  zId,
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/lib/zod'
 
 import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
 
@@ -11,7 +17,7 @@ export const salesTypeApi = {
     method: 'get',
     url: endpoint.product.salesType.list,
     params: z.object({ ...zPaginationDto.shape, ...SalesTypeFilterDto.shape }),
-    result: createPaginatedResponseSchema(SalesTypeDto.array()),
+    result: createPaginatedResponseSchema(SalesTypeDto),
   }),
 
   detail: apiFactory({

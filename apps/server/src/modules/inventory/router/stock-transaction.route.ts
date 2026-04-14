@@ -12,11 +12,16 @@ import {
 import {
   adjustmentTransactionSchema,
   purchaseTransactionSchema,
+  stockOpnameSchema,
   stockTransactionFilterSchema,
   stockTransactionSchema,
   stockTransactionSelectSchema,
   transactionResultSchema,
   transferTransactionSchema,
+  usageTransactionSchema,
+  sellTransactionSchema,
+  productionInTransactionSchema,
+  productionOutTransactionSchema,
 } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
@@ -70,6 +75,81 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         },
       )
 
+      /* ─────── Record stock opname (single material) ─────── */
+      .post(
+        '/opname',
+        async function opname({ body, auth }) {
+          const result = await s.transaction.handleOpname(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: stockOpnameSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Record material usage (multiple materials) ─────── */
+      .post(
+        '/usage',
+        async function usage({ body, auth }) {
+          const result = await s.transaction.handleUsage(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: usageTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Record direct sell (multiple materials) ─────── */
+      .post(
+        '/sell',
+        async function sell({ body, auth }) {
+          const result = await s.transaction.handleSell(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: sellTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Record production input (multiple materials) ─────── */
+      .post(
+        '/production-in',
+        async function productionIn({ body, auth }) {
+          const result = await s.transaction.handleProductionIn(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: productionInTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
+      /* ─────── Record production output/consume (multiple materials) ─────── */
+      .post(
+        '/production-out',
+        async function productionOut({ body, auth }) {
+          const result = await s.transaction.handleProductionOut(body, auth.userId)
+          return res.ok(result)
+        },
+        {
+          body: productionOutTransactionSchema,
+          response: createSuccessResponseSchema(transactionResultSchema),
+          auth: true,
+          detail: { tags: ['Inventory Transaction'] },
+        },
+      )
+
       /* ─────── List transactions (paginated) ─────── */
       .get(
         '/list',
@@ -105,21 +185,6 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
         '/remove',
         async function remove({ query, auth }) {
           await s.transaction.handleRemove(query.id, auth.userId)
-          return res.ok({ id: query.id })
-        },
-        {
-          query: zRecordIdDto,
-          response: createSuccessResponseSchema(zRecordIdDto),
-          auth: true,
-          detail: { tags: ['Inventory Transaction'] },
-        },
-      )
-
-      /* ─────── Hard delete transaction ─────── */
-      .post(
-        '/hard-remove',
-        async function hardRemove({ query }) {
-          await s.transaction.handleHardRemove(query.id)
           return res.ok({ id: query.id })
         },
         {

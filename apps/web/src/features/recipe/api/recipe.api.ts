@@ -2,23 +2,29 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  zId,
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/lib/zod'
 
-import { RecipeFilterDto, RecipeMutationDto, RecipeOutputDto } from '../dto'
+import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 
 export const recipeApi = {
   list: apiFactory({
     method: 'get',
     url: endpoint.recipe.list,
     params: z.object({ ...zPaginationDto.shape, ...RecipeFilterDto.shape }),
-    result: createPaginatedResponseSchema(RecipeOutputDto.array()),
+    result: createPaginatedResponseSchema(RecipeSelectDto),
   }),
 
   detail: apiFactory({
     method: 'get',
     url: endpoint.recipe.detail,
     params: zRecordIdDto,
-    result: createSuccessResponseSchema(RecipeOutputDto),
+    result: createSuccessResponseSchema(RecipeSelectDto),
   }),
 
   create: apiFactory({

@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      
+
       # Deploy from the root of the monorepo to ensure bun's workspace-wide lockfile is available for builds.
       # Context is ROOT, config/Dockerfile pointed specifically to apps/server.
       - run: flyctl deploy --remote-only --config apps/server/fly.toml --dockerfile apps/server/Dockerfile

@@ -3,7 +3,7 @@ import { TrendingUpIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Pie, PieChart, XAxis, YAxis } from 'recharts'
 
-import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/common/data-display/chart-card'
+import { ChartCard, ChartFooterContent, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 import type { ChartConfig } from '@/components/ui/chart'
 import {

@@ -50,6 +50,7 @@ export class SeedService {
             fullname: 'Administrator',
             password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
             passwordHash: superAdminPasswordHash,
+            isRoot: true,
             isActive: true,
             createdBy: SYSTEM_ACTOR_ID,
             assignments: [],
@@ -62,9 +63,10 @@ export class SeedService {
             code: l.code,
             name: l.name,
             type: l.type,
-            classification: 'physical',
             address: null,
             phone: null,
+            isActive: true,
+            description: null,
             createdBy: SYSTEM_ACTOR_ID,
           })),
         )
@@ -82,6 +84,83 @@ export class SeedService {
         // 5. Seed UOMs
         await this.materialSvc.uom.seed(SEED_CONFIG.UOMS.map((u) => ({ code: u.code, createdBy: SYSTEM_ACTOR_ID })))
       })
+    })
+  }
+
+  async seedDev(): Promise<void> {
+    return record('SeedService.seedDev', async () => {
+      const SYSTEM_ACTOR_ID = 1
+
+      const uoms = await db.query.uomsTable.findMany()
+      const getUom = (code: string) => uoms.find((u) => u.code === code)?.id ?? 1
+
+      // 1. Create categories
+      const { id: categoryCoffee } = await this.materialSvc.category.handleCreate(
+        { name: 'Coffee Beans', description: 'Premium selected coffee beans', parentId: null },
+        SYSTEM_ACTOR_ID,
+      )
+      const { id: categoryDairy } = await this.materialSvc.category.handleCreate(
+        { name: 'Dairy & Milk', description: 'Milk-based products', parentId: null },
+        SYSTEM_ACTOR_ID,
+      )
+      const { id: categoryPackaging } = await this.materialSvc.category.handleCreate(
+        { name: 'Packaging', description: 'Product packaging materials', parentId: null },
+        SYSTEM_ACTOR_ID,
+      )
+
+      // 2. Create materials
+      const materialsData = [
+        {
+          name: 'Arabica Beans - Flores',
+          sku: 'RAW-COF-001',
+          type: 'raw' as const,
+          categoryId: categoryCoffee,
+          baseUomId: getUom('GR'),
+        },
+        {
+          name: 'Robusta Beans - Dampit',
+          sku: 'RAW-COF-002',
+          type: 'raw' as const,
+          categoryId: categoryCoffee,
+          baseUomId: getUom('GR'),
+        },
+        {
+          name: 'Fresh Milk',
+          sku: 'RAW-MILK-001',
+          type: 'raw' as const,
+          categoryId: categoryDairy,
+          baseUomId: getUom('ML'),
+        },
+        {
+          name: 'Espresso Shot (House Blend)',
+          sku: 'SEMI-COF-001',
+          type: 'semi' as const,
+          categoryId: categoryCoffee,
+          baseUomId: getUom('ML'),
+        },
+        {
+          name: 'Paper Cup Hot 8oz',
+          sku: 'PCK-CUP-001',
+          type: 'packaging' as const,
+          categoryId: categoryPackaging,
+          baseUomId: getUom('PCS'),
+        },
+        {
+          name: 'Plastic Cup Cold 16oz',
+          sku: 'PCK-CUP-002',
+          type: 'packaging' as const,
+          categoryId: categoryPackaging,
+          baseUomId: getUom('PCS'),
+        },
+      ]
+
+      for (const m of materialsData) {
+        try {
+          await this.materialSvc.material.handleCreate({ ...m, conversions: [], description: null }, SYSTEM_ACTOR_ID)
+        } catch (error) {
+          console.log(`[SeedDev] Skipped ${m.name}: already exists or error`, error)
+        }
+      }
     })
   }
 }

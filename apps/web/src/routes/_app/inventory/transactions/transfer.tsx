@@ -5,13 +5,15 @@ import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { stockTransactionApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
+import type { LocationDto } from '@/features/location/dto'
 import { materialLocationApi } from '@/features/material/api/material-location.api'
+import type { MaterialLocationStockDto } from '@/features/material/dto'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 export const Route = createFileRoute('/_app/inventory/transactions/transfer')({ component: RouteComponent })
@@ -107,8 +109,8 @@ function TransferInfoCard() {
                 })
                 return res.data
               }}
-              getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => loc.id}
+              getLabel={(loc: LocationDto) => `${loc.name} (${loc.code})`}
+              getValue={(loc: LocationDto) => loc.id.toString()}
             />
           )}
         </form.AppField>
@@ -126,8 +128,8 @@ function TransferInfoCard() {
                 })
                 return res.data
               }}
-              getLabel={(loc: any) => `${loc.name} (${loc.code})`}
-              getValue={(loc: any) => loc.id}
+              getLabel={(loc: LocationDto) => `${loc.name} (${loc.code})`}
+              getValue={(loc: LocationDto) => loc.id.toString()}
             />
           )}
         </form.AppField>
@@ -178,9 +180,9 @@ function TransferItemsCard() {
                             })
                             return res.data
                           }}
-                          getLabel={(mat: any) => `${mat.materialName} (${mat.materialSku})`}
-                          getValue={(mat: any) => mat.materialId}
-                          onItemSelect={(mat: any) => {
+                          getLabel={(mat: MaterialLocationStockDto) => `${mat.materialName} (${mat.materialSku})`}
+                          getValue={(mat: MaterialLocationStockDto) => mat.materialId.toString()}
+                          onItemSelect={(mat: MaterialLocationStockDto) => {
                             const curr = [...items]
                             ;(curr[i] as any).maxQty = mat?.currentQty
                             form.setFieldValue('items', curr as any)

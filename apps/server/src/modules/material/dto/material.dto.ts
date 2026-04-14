@@ -52,8 +52,8 @@ export const MaterialFilterDto = z.object({
   search: zQuerySearch,
   type: MaterialType.optional(),
   categoryId: zQueryId.optional(),
-  locationIds: zQueryIds,
-  excludeLocationIds: zQueryIds,
+  locationIds: zQueryIds.optional(),
+  excludeLocationIds: zQueryIds.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>

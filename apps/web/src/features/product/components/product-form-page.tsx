@@ -6,7 +6,7 @@ import { PackageIcon, PlusIcon, StarIcon, Trash2Icon, Wand2Icon } from 'lucide-r
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { cn, toOptions } from '@/lib/utils'
 
 import { productApi, productCategoryApi, salesTypeApi } from '../api'
-import type { ProductOutputDto } from '../dto'
+import type { ProductSelectDto } from '../dto'
 
 const FormDto = z.object({
   name: z.string().min(1, 'Nama produk wajib diisi'),
@@ -28,30 +28,28 @@ const FormDto = z.object({
   locationId: z.number(),
   categoryId: z.string().nullable(),
   status: z.enum(['active', 'inactive', 'archived']),
-  hasVariants: z.boolean().default(false),
-  hasSalesTypePricing: z.boolean().default(false),
-  prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })).default([]),
-  variants: z
-    .array(
-      z.object({
-        _id: z.string(),
-        id: z.number().optional(),
-        name: z.string().min(1, 'Nama varian wajib diisi'),
-        sku: z.string().optional(),
-        basePrice: z.number().min(0).default(0),
-        isDefault: z.boolean(),
-        prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
-      }),
-    )
-    .default([]),
+  hasVariants: z.boolean(),
+  hasSalesTypePricing: z.boolean(),
+  prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
+  variants: z.array(
+    z.object({
+      _id: z.string(),
+      id: z.number().optional(),
+      name: z.string().min(1, 'Nama varian wajib diisi'),
+      sku: z.string().optional(),
+      basePrice: z.number().min(0),
+      isDefault: z.boolean(),
+      prices: z.array(z.object({ salesTypeId: z.number(), price: z.number().min(0) })),
+    }),
+  ),
 })
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultValues: {} as FormDto })
+const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 /**
- * Build a FormDto populated from an optional ProductOutputDto or with sensible defaults.
+ * Build a FormDto populated from an optional ProductSelectDto or with sensible defaults.
  *
  * @param v - Optional source product whose fields are used to seed the form
  * @returns A FormDto where:
@@ -63,7 +61,7 @@ const fopts = formOptions({ validators: { onSubmit: FormDto as any }, defaultVal
  * - `prices` is an array of `{ salesTypeId, price }` with `price` as numbers.
  * - `variants` is an array of variant objects with `_id` as a string, numeric `basePrice`, `isDefault`, optional `sku`, and `prices` converted to numeric values.
  */
-function getDefaultValues(v?: ProductOutputDto): FormDto {
+function getDefaultValues(v?: ProductSelectDto): FormDto {
   return {
     name: v?.name ?? '',
     description: v?.description ?? '',
@@ -473,7 +471,7 @@ function VariantsTable({
                       >
                         <div className="flex flex-col items-center gap-2">
                           <PackageIcon className="size-8 opacity-20" />
-                          <span className="text-xs">Belum ada varian. Klik "Tambah Varian" untuk memulai.</span>
+                          <span className="text-xs">Belum ada varian. Klik &quot;Tambah Varian&quot; untuk memulai.</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -592,7 +590,7 @@ function VariantsTable({
 
 function VariantPriceCell({ variantIndex, salesTypeId }: { variantIndex: number; salesTypeId: number }) {
   const form = useTypedAppContext()
-  const variantPrices = useStore(form.store, (s) => s.values.variants[variantIndex].prices)
+  const variantPrices = useStore(form.store, (s) => s.values.variants[variantIndex]?.prices ?? [])
   const priceIndex = variantPrices.findIndex((p) => p.salesTypeId === salesTypeId)
   const isSet = priceIndex !== -1
 

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface MokaSalesDetailRaw {
   id?: string
   uuid: string

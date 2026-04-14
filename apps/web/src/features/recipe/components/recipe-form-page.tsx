@@ -7,7 +7,7 @@ import { useMemo } from 'react'
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { CardSection } from '@/components/card/card-section'
+import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
@@ -17,24 +17,24 @@ import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { recipeApi } from '..'
-import type { RecipeOutputDto } from '..'
+import type { RecipeSelectDto } from '..'
 
 const FormDto = z
   .object({
-    materialId: z.number().optional().nullable(),
-    productId: z.number().optional().nullable(),
-    productVariantId: z.number().optional().nullable(),
-    targetQty: z.string().default('1'),
-    isActive: z.boolean().default(true),
-    instructions: z.string().optional().nullable(),
+    materialId: z.number().nullable(),
+    productId: z.number().nullable(),
+    productVariantId: z.number().nullable(),
+    targetQty: z.string(),
+    isActive: z.boolean(),
+    instructions: z.string().nullable(),
     items: z.array(
       z.object({
         materialId: z.number(),
         qty: z.string(),
-        scrapPercentage: z.string().default('0'),
+        scrapPercentage: z.string(),
         uomId: z.number(),
         notes: z.string().optional(),
-        sortOrder: z.number().default(0),
+        sortOrder: z.number(),
       }),
     ),
   })
@@ -52,7 +52,7 @@ const FormDto = z
 type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-  validators: { onSubmit: FormDto as any },
+  validators: { onSubmit: FormDto },
   defaultValues: {
     materialId: null,
     productId: null,
@@ -65,7 +65,7 @@ const fopts = formOptions({
 })
 
 function getDefaultValues(
-  v?: RecipeOutputDto,
+  v?: RecipeSelectDto,
   target?: { materialId?: number | null; productId?: number | null; productVariantId?: number | null },
 ): FormDto {
   if (!v) {
@@ -87,7 +87,7 @@ function getDefaultValues(
     targetQty: v.targetQty,
     isActive: v.isActive,
     instructions: v.instructions ?? '',
-    items: (v.items || []).map((item: any) => ({
+    items: (v.items || []).map((item) => ({
       materialId: item.materialId,
       qty: item.qty,
       scrapPercentage: item.scrapPercentage,
@@ -132,13 +132,13 @@ export function RecipeFormPage({ targetId, targetType, backTo }: RecipeFormPageP
     ),
     onSubmit: async ({ value }) => {
       const promise = existingRecipe
-        ? update.mutateAsync({ body: { id: existingRecipe.id, ...(value as any) } })
-        : create.mutateAsync({ body: value as any })
+        ? update.mutateAsync({ body: { id: existingRecipe.id, ...value } })
+        : create.mutateAsync({ body: value })
 
       await toast.promise(promise, toastLabelMessage(mode, 'resep')).unwrap()
 
       if (backTo) {
-        navigate({ ...(backTo as any), replace: true })
+        navigate({ ...backTo, replace: true })
       }
     },
   })
@@ -240,7 +240,7 @@ function RecipeItemsSection() {
           <Card.Description>Daftar bahan yang dibutuhkan untuk resep ini</Card.Description>
         </div>
         <MaterialPickerDialog
-          selectedIds={items.map((i: any) => i.materialId).filter(Boolean) as Array<number>}
+          selectedIds={items.map((i) => i.materialId).filter(Boolean)}
           onConfirm={(materials) => {
             const currentItems = form.getFieldValue('items')
             const newItems = materials.map((m, idx) => ({
@@ -321,7 +321,7 @@ function RecipeItemsSection() {
 function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => void }) {
   const form = useAppFormContext()
 
-  const materialId = useStore(form.store, (s: any) => s.values.items[index]?.materialId)
+  const materialId = useStore(form.store, (s) => s.values.items[index]?.materialId)
 
   const { data: materialDetail } = useQuery({
     ...materialApi.detail.query({ id: Number(materialId) }),
@@ -333,9 +333,9 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
   const filteredUomOptions = useMemo(() => {
     if (!materialDetail?.data || !allUoms?.data) return []
     const mat = materialDetail.data
-    const allowedUomIds = new Set([mat.baseUomId, ...(mat.conversions?.map((c: any) => c.uomId) || [])])
+    const allowedUomIds = new Set([mat.baseUomId, ...(mat.conversions?.map((c) => c.uomId) || [])])
 
-    return allUoms.data.filter((u: any) => allowedUomIds.has(u.id)).map((u: any) => ({ label: u.code, value: u.id }))
+    return allUoms.data.filter((u) => allowedUomIds.has(u.id)).map((u) => ({ label: u.code, value: u.id }))
   }, [materialDetail, allUoms])
 
   return (
@@ -349,14 +349,14 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
               <span className="text-muted-foreground animate-pulse">Memuat...</span>
             )}
           </span>
-          <form.AppField name={`items[${index}].notes` as any}>
+          <form.AppField name={`items[${index}].notes`}>
             {(field) => (
               <textarea
                 className="w-full bg-transparent border-none resize-none text-[11px] text-muted-foreground focus:ring-0 p-0 placeholder:italic"
                 placeholder="Tambahkan catatan (pilihan)..."
                 value={field.state.value || ''}
                 onChange={(e) => {
-                  ;(field as any).handleChange(e.target.value)
+                  field.handleChange(e.target.value)
                   e.target.style.height = 'inherit'
                   e.target.style.height = `${e.target.scrollHeight}px`
                 }}
@@ -368,18 +368,18 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
       </Table.Cell>
       <Table.Cell className="align-top pt-4">
         <div className="flex items-center gap-1">
-          <form.AppField name={`items[${index}].qty` as any}>
+          <form.AppField name={`items[${index}].qty`}>
             {(field) => <field.Number placeholder="Qty" decimalScale={4} className="w-full" />}
           </form.AppField>
           <div className="w-24">
-            <form.AppField name={`items[${index}].uomId` as any}>
+            <form.AppField name={`items[${index}].uomId`}>
               {(field) => <field.Select placeholder="UOM" options={filteredUomOptions} disabled={!materialId} />}
             </form.AppField>
           </div>
         </div>
       </Table.Cell>
       <Table.Cell className="align-top pt-4 text-center">
-        <form.AppField name={`items[${index}].scrapPercentage` as any}>
+        <form.AppField name={`items[${index}].scrapPercentage`}>
           {(field) => (
             <div className="inline-flex items-center gap-1 max-w-[80px]">
               <field.Number decimalScale={2} placeholder="0" />

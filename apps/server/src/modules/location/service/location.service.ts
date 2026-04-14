@@ -38,10 +38,10 @@ export class LocationService {
           .values({ ...d, ...metadata })
           .onConflictDoUpdate({
             target: locationsTable.code,
+            targetWhere: isNull(locationsTable.deletedAt),
             set: {
               name: d.name,
               type: d.type,
-              classification: d.classification,
               updatedAt: metadata.updatedAt,
               updatedBy: metadata.updatedBy,
               deletedAt: null,

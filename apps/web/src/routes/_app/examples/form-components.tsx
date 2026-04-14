@@ -11,7 +11,7 @@ import {
   FormSubmit,
   FormTextarea,
   useForm,
-} from '@/components/common/form'
+} from '@/components/form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 

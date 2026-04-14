@@ -1,4 +1,4 @@
-import { useDebounce } from '@uidotdev/usehooks'
+// oxlint-disable typescript/ban-ts-comment
 import { SearchIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { DataTableState } from '@/hooks/use-data-table-state'
 import { cn } from '@/lib/utils'
 import type { Option, StringOrNumber } from '@/types/common'
+import { useDebounce } from '@uidotdev/usehooks'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -72,7 +73,6 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
           case 'search':
             return (
               <DataGridFilterSearch
-                // eslint-disable-next-line @eslint-react/no-array-index-key
                 key={`search-${index}`}
                 value={ds.search}
                 onChange={ds.setSearch}
@@ -82,10 +82,10 @@ export function DataGridFilter<TFilter extends Record<string, any>>({
           case 'select':
             return (
               <DataGridFilterSelect
-                // eslint-disable-next-line @eslint-react/no-array-index-key
                 key={`select-${String(option.key)}-${index}`}
                 value={ds.filters[option.key]}
                 onChange={(val) => {
+                  // oxlint-disable-next-line typescript/no-unsafe-assignment
                   ds.setFilters((prev) => ({ ...prev, [option.key]: val }))
                 }}
                 options={option.options}
@@ -118,33 +118,36 @@ interface DataGridFilterSearchProps {
   placeholder?: string
 }
 
-function DataGridFilterSearch({ value, onChange, placeholder = 'Cari...' }: DataGridFilterSearchProps) {
+function DataGridFilterSearch({ value, onChange, placeholder = 'Cari data...' }: DataGridFilterSearchProps) {
   const [internalValue, setInternalValue] = React.useState(value)
-  const prevValueRef = React.useRef(value)
 
   // Sync internal state when external value changes (e.g. reset)
-  if (value !== prevValueRef.current) {
-    setInternalValue(value)
-    prevValueRef.current = value
-  }
-
-  const debouncedValue = useDebounce(internalValue, 400)
-
-  // Call onChange only when debounced value changes
   React.useEffect(() => {
-    if (debouncedValue !== value) {
-      onChange(debouncedValue)
-    }
-  }, [debouncedValue, onChange, value])
+    setInternalValue(value)
+  }, [value])
+
+  // Custom debounced onChange to handle reset safely
+  React.useEffect(() => {
+    // If internal and external value are already the same, no need to trigger onChange
+    if (internalValue === value) return
+
+    const timer = setTimeout(() => {
+      onChange(internalValue ?? '')
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [internalValue, onChange, value])
 
   return (
     <div className="relative">
       <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
-        value={internalValue}
-        onChange={(e) => setInternalValue(e.target.value)}
+        value={internalValue ?? ''}
+        onChange={(e) => {
+          setInternalValue(e.target.value)
+        }}
         placeholder={placeholder}
-        className="h-8 w-[180px] pl-8 lg:w-[250px]"
+        className="h-8 w-[180px] pl-8 lg:w-[250px] transition-colors focus-visible:ring-primary/30"
       />
     </div>
   )
@@ -162,10 +165,12 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
   return (
     <Select
       items={options}
+      // oxlint-disable-next-line eqeqeq
       value={value != null && value !== '' ? String(value) : ''}
       onValueChange={(val) => {
         if (val === '') {
-          onChange(undefined)
+          // @ts-expect-error
+          onChange()
           return
         }
 
@@ -186,6 +191,7 @@ function DataGridFilterSelect({ value, onChange, options, placeholder = 'Filter.
     >
       <SelectTrigger className="h-8 w-fit min-w-[130px] gap-2">
         <SelectValue placeholder={placeholder}>
+          {/* oxlint-disable-next-line eqeqeq */}
           {value != null && value !== ''
             ? options.find((opt) => String(opt.value) === String(value))?.label
             : undefined}

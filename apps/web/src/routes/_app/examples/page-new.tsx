@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MapPinIcon, MoreHorizontalIcon, PlusIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
-import type { CardStatProps } from '@/components/card/card-stat'
-import { CardStat } from '@/components/card/card-stat'
+import type { CardStatProps } from '@/components/blocks/card/card-stat'
+import { CardStat } from '@/components/blocks/card/card-stat'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

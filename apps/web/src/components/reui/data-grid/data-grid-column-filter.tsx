@@ -63,7 +63,9 @@ function DataGridColumnFilter<TData, TValue>({ column, title, options }: DataGri
           <Input
             placeholder={title}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+            }}
             className="h-8"
           />
         </div>
@@ -84,7 +86,7 @@ function DataGridColumnFilter<TData, TValue>({ column, title, options }: DataGri
                         selectedValues.add(option.value)
                       }
                       const filterValues = Array.from(selectedValues)
-                      column?.setFilterValue(filterValues.length ? filterValues : undefined)
+                      column?.setFilterValue(filterValues.length > 0 ? filterValues : undefined)
                     }}
                     className={cn(
                       'relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none',

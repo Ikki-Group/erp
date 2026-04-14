@@ -2,7 +2,13 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
-import { zId, zPaginationDto, zRecordIdDto, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/zod'
+import {
+  zId,
+  zPaginationDto,
+  zRecordIdDto,
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+} from '@/lib/zod'
 
 import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 
@@ -11,7 +17,7 @@ export const uomApi = {
     method: 'get',
     url: endpoint.material.uom.list,
     params: z.object({ ...zPaginationDto.shape, ...UomFilterDto.shape }),
-    result: createPaginatedResponseSchema(UomDto.array()),
+    result: createPaginatedResponseSchema(UomDto),
   }),
 
   detail: apiFactory({
