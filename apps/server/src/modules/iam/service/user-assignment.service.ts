@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq, getColumns, and } from 'drizzle-orm'
+import { eq, getColumns, and, count, isNull } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
@@ -15,8 +15,8 @@ const cacheKey = { byUser: (userId: number) => `iam.user-assignment.user.${userI
 export class UserAssignmentService {
   // Returns detailed assignments for a user.
   async findByUserId(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
-    const result = await record('UserAssignmentService.findByUserId', async () => {
-      const data = await cache.wrap(cacheKey.byUser(userId), async () => {
+    return record('UserAssignmentService.findByUserId', async () => {
+      return cache.wrap(cacheKey.byUser(userId), async () => {
         const rows = await db
           .select({
             ...getColumns(userAssignmentsTable),
@@ -31,9 +31,52 @@ export class UserAssignmentService {
           .where(eq(userAssignmentsTable.userId, userId))
         return rows
       })
-      return data
     })
-    return result
+  }
+
+  // Paginated list with filtering (Layer 1).
+  async handleList(
+    filter: dto.UserAssignmentFilterDto,
+  ): Promise<core.WithPaginationResult<dto.UserAssignmentDetailDto>> {
+    return record('UserAssignmentService.handleList', async () => {
+      const { userId, roleId, locationId, page, limit } = filter
+      const where = and(
+        isNull(userAssignmentsTable.deletedAt),
+        userId ? eq(userAssignmentsTable.userId, userId) : undefined,
+        roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
+        locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
+        isNull(rolesTable.deletedAt),
+        isNull(locationsTable.deletedAt),
+      )
+
+      return core.paginate<dto.UserAssignmentDetailDto>({
+        data: async ({ limit: l, offset }) => {
+          const rows = await db
+            .select({
+              ...getColumns(userAssignmentsTable),
+              roleName: rolesTable.name,
+              roleCode: rolesTable.code,
+              locationName: locationsTable.name,
+              locationCode: locationsTable.code,
+            })
+            .from(userAssignmentsTable)
+            .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+            .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+            .where(where)
+            .orderBy(core.sortBy(userAssignmentsTable.updatedAt, 'desc'))
+            .limit(l)
+            .offset(offset)
+          return rows
+        },
+        pq: { page, limit },
+        countQuery: db
+          .select({ count: count() })
+          .from(userAssignmentsTable)
+          .innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+          .innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+          .where(where),
+      })
+    })
   }
 
   // Atomically replaces all assignments for a user.

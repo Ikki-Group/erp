@@ -19,8 +19,10 @@ const cacheKey = { count: 'iam.role.count', list: 'iam.role.list', byId: (id: nu
 const err = {
   notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
   createFailed: () => new InternalServerError('Role creation failed', 'ROLE_CREATE_FAILED'),
-  updateSystemRoleForbidden: () => new BadRequestError('Cannot update system role', 'ROLE_UPDATE_SYSTEM_ROLE_FORBIDDEN'),
-  removeSystemRoleForbidden: () => new BadRequestError('Cannot remove system role', 'ROLE_REMOVE_SYSTEM_ROLE_FORBIDDEN'),
+  updateSystemRoleForbidden: () =>
+    new BadRequestError('Cannot update system role', 'ROLE_UPDATE_SYSTEM_ROLE_FORBIDDEN'),
+  removeSystemRoleForbidden: () =>
+    new BadRequestError('Cannot remove system role', 'ROLE_REMOVE_SYSTEM_ROLE_FORBIDDEN'),
 }
 
 // Role Service (Layer 0)

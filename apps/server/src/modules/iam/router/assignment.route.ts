@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
 
 import * as dto from '../dto/user-assignment.dto'
 import type { UserAssignmentService } from '../service/user-assignment.service'
@@ -17,12 +17,12 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
     .get(
       '/list',
       async function list({ query }) {
-        const result = await service.findByUserId(query.userId!)
-        return res.ok(result)
+        const result = await service.handleList(query)
+        return res.paginated(result)
       },
       {
         query: dto.UserAssignmentFilterDto,
-        response: createSuccessResponseSchema(dto.UserAssignmentDetailDto.array()),
+        response: createPaginatedResponseSchema(dto.UserAssignmentDetailDto),
         auth: true,
       },
     )
