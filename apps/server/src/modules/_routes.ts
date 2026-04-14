@@ -20,23 +20,23 @@ import { initProductionRouteModule } from './production'
 import { initHRRouteModule } from './hr'
 
 export function createRoutes(m: Modules) {
-  return [
-    initAuthRoute(m.auth.auth),
-    initDashboardRouteModule(m.dashboard),
-    initIamRouteModule(m.iam),
-    initInventoryRouteModule(m.inventory),
-    initLocationRouteModule(m.location),
-    initMaterialRouteModule(m.material),
-    initProductRouteModule(m.product),
-    initRecipeRouteModule(m.recipe),
-    initToolRouteModule(m.tool),
-    initMokaRouteModule(m.moka),
-    initSalesRouteModule(m.sales),
-    initEmployeeRouteModule(m.employee),
-    initSupplierRouteModule(m.supplier),
-    initFinanceRouteModule(m.finance),
-    initPurchasingRouteModule(m.purchasing),
-    initProductionRouteModule(m.production),
-    initHRRouteModule(m.hr),
-  ]
+	return [
+		initAuthRoute(m.auth.auth),
+		initDashboardRouteModule(m.dashboard),
+		initIamRouteModule(m.iam),
+		initInventoryRouteModule(m.inventory),
+		initLocationRouteModule(m.location),
+		initMaterialRouteModule(m.material),
+		initProductRouteModule(m.product),
+		initRecipeRouteModule(m.recipe),
+		initToolRouteModule(m.tool),
+		initMokaRouteModule(m.moka),
+		initSalesRouteModule(m.sales),
+		initEmployeeRouteModule(m.employee),
+		initSupplierRouteModule(m.supplier),
+		initFinanceRouteModule(m.finance),
+		initPurchasingRouteModule(m.purchasing),
+		initProductionRouteModule(m.production),
+		initHRRouteModule(m.hr),
+	]
 }

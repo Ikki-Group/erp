@@ -4,79 +4,92 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-  zPaginationDto,
-  zRecordIdDto,
-  createSuccessResponseSchema,
-  createPaginatedResponseSchema,
+	zPaginationDto,
+	zRecordIdDto,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
 } from '@/core/validation'
 
 import {
-  SalesOrderAddBatchDto,
-  SalesOrderCreateDto,
-  SalesOrderFilterDto,
-  SalesOrderOutputDto,
-  SalesOrderVoidDto,
+	SalesOrderAddBatchDto,
+	SalesOrderCreateDto,
+	SalesOrderFilterDto,
+	SalesOrderOutputDto,
+	SalesOrderVoidDto,
 } from '../dto'
 import type { SalesServiceModule } from '../service'
 
 export function initSalesOrderRoute(s: SalesServiceModule) {
-  return new Elysia({ prefix: '/order' })
-    .use(authPluginMacro)
-    .get(
-      '/list',
-      async function list({ query }) {
-        const result = await s.order.handleList(query, query)
-        return res.paginated(result)
-      },
-      {
-        query: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
-        response: createPaginatedResponseSchema(SalesOrderOutputDto),
-        auth: true,
-      },
-    )
-    .get(
-      '/detail',
-      async function detail({ query }) {
-        const order = await s.order.handleDetail(query.id)
-        return res.ok(order)
-      },
-      { query: zRecordIdDto, response: createSuccessResponseSchema(SalesOrderOutputDto), auth: true },
-    )
-    .post(
-      '/create',
-      async function create({ body, auth }) {
-        const { id } = await s.order.handleCreate(body, auth.userId)
-        return res.created({ id })
-      },
-      { body: SalesOrderCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
-    .post(
-      '/add-batch',
-      async function addBatch({ query, body, auth }) {
-        const result = await s.order.handleAddBatch(query.id, body, auth.userId)
-        return res.ok(result)
-      },
-      {
-        query: zRecordIdDto,
-        body: SalesOrderAddBatchDto,
-        response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
-        auth: true,
-      },
-    )
-    .post(
-      '/close',
-      async function close({ query, auth }) {
-        const result = await s.order.handleClose(query.id, auth.userId)
-        return res.ok(result)
-      },
-      { query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
-    .post(
-      '/void',
-      async function voidOrder({ query, body, auth }) {
-        const result = await s.order.handleVoid(query.id, body, auth.userId)
-        return res.ok(result)
-      },
-      { query: zRecordIdDto, body: SalesOrderVoidDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-    )
+	return new Elysia({ prefix: '/order' })
+		.use(authPluginMacro)
+		.get(
+			'/list',
+			async function list({ query }) {
+				const result = await s.order.handleList(query, query)
+				return res.paginated(result)
+			},
+			{
+				query: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
+				response: createPaginatedResponseSchema(SalesOrderOutputDto),
+				auth: true,
+			},
+		)
+		.get(
+			'/detail',
+			async function detail({ query }) {
+				const order = await s.order.handleDetail(query.id)
+				return res.ok(order)
+			},
+			{
+				query: zRecordIdDto,
+				response: createSuccessResponseSchema(SalesOrderOutputDto),
+				auth: true,
+			},
+		)
+		.post(
+			'/create',
+			async function create({ body, auth }) {
+				const { id } = await s.order.handleCreate(body, auth.userId)
+				return res.created({ id })
+			},
+			{
+				body: SalesOrderCreateDto,
+				response: createSuccessResponseSchema(zRecordIdDto),
+				auth: true,
+			},
+		)
+		.post(
+			'/add-batch',
+			async function addBatch({ query, body, auth }) {
+				const result = await s.order.handleAddBatch(query.id, body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				query: zRecordIdDto,
+				body: SalesOrderAddBatchDto,
+				response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
+				auth: true,
+			},
+		)
+		.post(
+			'/close',
+			async function close({ query, auth }) {
+				const result = await s.order.handleClose(query.id, auth.userId)
+				return res.ok(result)
+			},
+			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+		)
+		.post(
+			'/void',
+			async function voidOrder({ query, body, auth }) {
+				const result = await s.order.handleVoid(query.id, body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				query: zRecordIdDto,
+				body: SalesOrderVoidDto,
+				response: createSuccessResponseSchema(zRecordIdDto),
+				auth: true,
+			},
+		)
 }

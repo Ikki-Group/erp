@@ -12,7 +12,7 @@ import { NotFoundError } from '@/core/http/errors'
  * const user = takeFirst(await db.select().from(users).where(eq(users.id, id)))
  */
 export function takeFirst<T>(results: T[]): T | null {
-  return results[0] ?? null
+	return results[0] ?? null
 }
 
 /**
@@ -26,7 +26,7 @@ export function takeFirst<T>(results: T[]): T | null {
  * )
  */
 export function takeFirstOrThrow<T>(results: T[], message: string, code?: string): T {
-  const first = results[0]
-  if (!first) throw new NotFoundError(message, code)
-  return first
+	const first = results[0]
+	if (!first) throw new NotFoundError(message, code)
+	return first
 }

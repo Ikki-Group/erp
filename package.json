@@ -1,39 +1,39 @@
 {
-  "name": "ikki-erp",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "apps/*",
-      "packages/*"
-    ],
-    "catalog": {
-      "dpdm": "^4.0.1",
-      "knip": "^5.41.0",
-      "oxfmt": "^0.42.0",
-      "oxlint": "^1.57.0",
-      "oxlint-tsgolint": "^0.17.3",
-      "typescript": "^6.0.2",
-      "zod": "^4.3.6"
-    }
-  },
-  "scripts": {
-    "dev:server": "bun --filter @ikki/server dev",
-    "dev:web": "bun --filter @ikki/web dev",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "knip": "bunx knip",
-    "check-deps": "bun --filter @ikki/server check-deps",
-    "check": "bun run lint && bun run format:check && bun run knip"
-  },
-  "devDependencies": {
-    "dpdm": "catalog:",
-    "knip": "catalog:",
-    "oxfmt": "catalog:",
-    "oxlint": "catalog:",
-    "oxlint-tsgolint": "catalog:",
-    "typescript": "catalog:"
-  }
+	"name": "ikki-erp",
+	"version": "1.0.0",
+	"private": true,
+	"workspaces": {
+		"packages": [
+			"apps/*",
+			"packages/*"
+		],
+		"catalog": {
+			"dpdm": "^4.0.1",
+			"knip": "^5.41.0",
+			"oxfmt": "^0.42.0",
+			"oxlint": "^1.57.0",
+			"oxlint-tsgolint": "^0.17.3",
+			"typescript": "^6.0.2",
+			"zod": "^4.3.6"
+		}
+	},
+	"scripts": {
+		"dev:server": "bun --filter @ikki/server dev",
+		"dev:web": "bun --filter @ikki/web dev",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
+		"format": "oxfmt .",
+		"format:check": "oxfmt --check .",
+		"knip": "bunx knip",
+		"check-deps": "bun --filter @ikki/server check-deps",
+		"check": "bun run lint && bun run format:check && bun run knip"
+	},
+	"devDependencies": {
+		"dpdm": "catalog:",
+		"knip": "catalog:",
+		"oxfmt": "catalog:",
+		"oxlint": "catalog:",
+		"oxlint-tsgolint": "catalog:",
+		"typescript": "catalog:"
+	}
 }

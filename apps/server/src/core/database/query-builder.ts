@@ -9,25 +9,25 @@ import type { PaginationQuery, WithPaginationResult } from '@/core/utils/paginat
 /* -------------------------------------------------------------------------- */
 
 interface PaginateOptions<TResult> {
-  /**
-   * A function that receives `{ limit, offset }` and returns the data query promise.
-   * This allows the caller to apply limit/offset directly on any Drizzle query type
-   * (select, relational, etc.) without type compatibility issues.
-   *
-   * @example
-   * data: ({ limit, offset }) =>
-   *   db.select().from(users).where(where).orderBy(...).limit(limit).offset(offset)
-   */
-  data: (params: { limit: number; offset: number }) => Promise<TResult[]>
+	/**
+	 * A function that receives `{ limit, offset }` and returns the data query promise.
+	 * This allows the caller to apply limit/offset directly on any Drizzle query type
+	 * (select, relational, etc.) without type compatibility issues.
+	 *
+	 * @example
+	 * data: ({ limit, offset }) =>
+	 *   db.select().from(users).where(where).orderBy(...).limit(limit).offset(offset)
+	 */
+	data: (params: { limit: number; offset: number }) => Promise<TResult[]>
 
-  /** Pagination parameters (page, limit). */
-  pq: PaginationQuery
+	/** Pagination parameters (page, limit). */
+	pq: PaginationQuery
 
-  /**
-   * A separate count query that returns the total matching rows.
-   * Pass a `db.select({ count: count() }).from(table).where(...)` query.
-   */
-  countQuery: Promise<{ count: number }[]>
+	/**
+	 * A separate count query that returns the total matching rows.
+	 * Pass a `db.select({ count: count() }).from(table).where(...)` query.
+	 */
+	countQuery: Promise<{ count: number }[]>
 }
 
 /**
@@ -44,22 +44,22 @@ interface PaginateOptions<TResult> {
  * // result.meta = { total, page, limit, totalPages }
  */
 export async function paginate<TResult>({
-  data: dataFn,
-  pq,
-  countQuery,
+	data: dataFn,
+	pq,
+	countQuery,
 }: PaginateOptions<TResult>): Promise<WithPaginationResult<TResult>> {
-  return record('db.paginate', async () => {
-    const page = Math.max(1, pq.page)
-    const limit = Math.max(1, pq.limit)
-    const offset = (page - 1) * limit
+	return record('db.paginate', async () => {
+		const page = Math.max(1, pq.page)
+		const limit = Math.max(1, pq.limit)
+		const offset = (page - 1) * limit
 
-    // Run data + count in parallel
-    const [data, countResult] = await Promise.all([dataFn({ limit, offset }), countQuery])
+		// Run data + count in parallel
+		const [data, countResult] = await Promise.all([dataFn({ limit, offset }), countQuery])
 
-    const total = countResult[0]?.count ?? 0
+		const total = countResult[0]?.count ?? 0
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } }
-  })
+		return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } }
+	})
 }
 
 /* -------------------------------------------------------------------------- */
@@ -76,7 +76,7 @@ type SortDirection = 'asc' | 'desc'
  * db.select().from(users).orderBy(orderBy)
  */
 export function sortBy(column: PgColumn, direction: SortDirection = 'desc') {
-  return direction === 'asc' ? asc(column) : desc(column)
+	return direction === 'asc' ? asc(column) : desc(column)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,6 +92,6 @@ export function sortBy(column: PgColumn, direction: SortDirection = 'desc') {
  * db.select().from(users).where(where)
  */
 export function searchFilter(column: PgColumn, search?: string): SQL | undefined {
-  if (!search?.trim()) return undefined
-  return ilike(column, `%${search.trim()}%`)
+	if (!search?.trim()) return undefined
+	return ilike(column, `%${search.trim()}%`)
 }

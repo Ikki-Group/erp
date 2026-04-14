@@ -14,37 +14,42 @@ const m = createModules()
 const routes = createRoutes(m)
 
 export const app = new Elysia({ precompile: true })
-  .use(otel)
-  .use(requestIdPlugin())
-  .use(cors())
-  .use(createAuthPlugin(m.auth))
-  .error({
-    HTTP_ERROR: HttpError,
-    INTERNAL_SERVER_ERROR: InternalServerError,
-    BAD_REQUEST: BadRequestError,
-    NOT_FOUND: NotFoundError,
-  })
-  .onError(({ code, error, set }) => {
-    if (code === 'VALIDATION') {
-      set.status = 422
-      return { status: 'error', code: 'VALIDATION_ERROR', message: 'Validation failed', errors: error.all }
-    }
+	.use(otel)
+	.use(requestIdPlugin())
+	.use(cors())
+	.use(createAuthPlugin(m.auth))
+	.error({
+		HTTP_ERROR: HttpError,
+		INTERNAL_SERVER_ERROR: InternalServerError,
+		BAD_REQUEST: BadRequestError,
+		NOT_FOUND: NotFoundError,
+	})
+	.onError(({ code, error, set }) => {
+		if (code === 'VALIDATION') {
+			set.status = 422
+			return {
+				status: 'error',
+				code: 'VALIDATION_ERROR',
+				message: 'Validation failed',
+				errors: error.all,
+			}
+		}
 
-    if (code === 'NOT_FOUND') {
-      set.status = 404
-      return { status: 'error', code: 'NOT_FOUND', message: 'Not found' }
-    }
+		if (code === 'NOT_FOUND') {
+			set.status = 404
+			return { status: 'error', code: 'NOT_FOUND', message: 'Not found' }
+		}
 
-    if (error instanceof HttpError) {
-      set.status = error.statusCode
-      return { status: 'error', code: error.code, message: error.message }
-    }
+		if (error instanceof HttpError) {
+			set.status = error.statusCode
+			return { status: 'error', code: error.code, message: error.message }
+		}
 
-    logger.error(error)
-    set.status = 500
-    return { status: 'error', code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' }
-  })
-  .get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
+		logger.error(error)
+		set.status = 500
+		return { status: 'error', code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' }
+	})
+	.get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
 
 // Register module routes
 routes.forEach((route) => app.use(route))

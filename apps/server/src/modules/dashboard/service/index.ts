@@ -7,18 +7,18 @@ import { SettingsService } from './settings.service'
 import { AnalyticsService } from './analytics.service'
 
 export class DashboardServiceModule {
-  public settings: SettingsService
-  public analytics: AnalyticsService
+	public settings: SettingsService
+	public analytics: AnalyticsService
 
-  constructor(
-    iam: IamServiceModule,
-    location: LocationServiceModule,
-    _finance: FinanceServiceModule,
-    _sales: SalesServiceModule,
-  ) {
-    this.settings = new SettingsService(iam, location)
-    this.analytics = new AnalyticsService()
-  }
+	constructor(
+		iam: IamServiceModule,
+		location: LocationServiceModule,
+		_finance: FinanceServiceModule,
+		_sales: SalesServiceModule,
+	) {
+		this.settings = new SettingsService(iam, location)
+		this.analytics = new AnalyticsService()
+	}
 }
 
 export * from './settings.service'

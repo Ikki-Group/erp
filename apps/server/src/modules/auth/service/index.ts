@@ -4,13 +4,13 @@ import { AuthService } from './auth.service'
 import { SessionService } from './session.service'
 
 export class AuthServiceModule {
-  public readonly auth: AuthService
-  public readonly session: SessionService
+	public readonly auth: AuthService
+	public readonly session: SessionService
 
-  constructor(iam: IamServiceModule) {
-    this.session = new SessionService()
-    this.auth = new AuthService(iam.user, this.session)
-  }
+	constructor(iam: IamServiceModule) {
+		this.session = new SessionService()
+		this.auth = new AuthService(iam.user, this.session)
+	}
 }
 
 export * from './auth.service'

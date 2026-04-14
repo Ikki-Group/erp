@@ -7,9 +7,9 @@ import { initStockAlertRoute } from './stock-alert.route'
 import { initStockDashboardRoute } from './stock-dashboard.route'
 
 export function initInventoryRouteModule(s: InventoryServiceModule) {
-  return new Elysia({ prefix: '/inventory' })
-    .use(initStockTransactionRoute(s))
-    .use(initStockSummaryRoute(s))
-    .use(initStockAlertRoute(s))
-    .use(initStockDashboardRoute(s))
+	return new Elysia({ prefix: '/inventory' })
+		.use(initStockTransactionRoute(s))
+		.use(initStockSummaryRoute(s))
+		.use(initStockAlertRoute(s))
+		.use(initStockDashboardRoute(s))
 }

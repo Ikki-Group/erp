@@ -5,11 +5,11 @@ import { zStr, zBool, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/va
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const salesTypeSchema = z.object({
-  ...zRecordIdDto.shape,
-  code: zStr,
-  name: zStr,
-  isSystem: zBool,
-  ...zMetadataDto.shape,
+	...zRecordIdDto.shape,
+	code: zStr,
+	name: zStr,
+	isSystem: zBool,
+	...zMetadataDto.shape,
 })
 
 export type SalesTypeDto = z.infer<typeof salesTypeSchema>
@@ -22,6 +22,10 @@ export type SalesTypeFilterDto = z.infer<typeof salesTypeFilterSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const salesTypeMutationSchema = salesTypeSchema.pick({ code: true, name: true, isSystem: true })
+export const salesTypeMutationSchema = salesTypeSchema.pick({
+	code: true,
+	name: true,
+	isSystem: true,
+})
 
 export type SalesTypeMutationDto = z.infer<typeof salesTypeMutationSchema>

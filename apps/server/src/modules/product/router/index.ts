@@ -6,9 +6,12 @@ import { initProductRoute } from './product.route'
 import { initSalesTypeRoute } from './sales-type.route'
 
 export function initProductRouteModule(service: ProductServiceModule) {
-  const categoryRouter = initProductCategoryRoute(service)
-  const salesTypeRouter = initSalesTypeRoute(service)
-  const productRouter = initProductRoute(service)
+	const categoryRouter = initProductCategoryRoute(service)
+	const salesTypeRouter = initSalesTypeRoute(service)
+	const productRouter = initProductRoute(service)
 
-  return new Elysia({ prefix: '/product' }).use(categoryRouter).use(salesTypeRouter).use(productRouter)
+	return new Elysia({ prefix: '/product' })
+		.use(categoryRouter)
+		.use(salesTypeRouter)
+		.use(productRouter)
 }

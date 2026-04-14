@@ -1,23 +1,35 @@
 import { z } from 'zod'
 
-import { zBool, zMetadataDto, zPaginationDto, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/core/validation'
+import {
+	zBool,
+	zMetadataDto,
+	zPaginationDto,
+	zQuerySearch,
+	zRecordIdDto,
+	zStr,
+	zStrNullable,
+} from '@/core/validation'
 
 /**
  * Common Role attributes.
  */
 export const RoleBaseDto = z.object({
-  code: zStr,
-  name: zStr,
-  description: zStrNullable,
-  permissions: z.string().array(),
-  isSystem: zBool,
+	code: zStr,
+	name: zStr,
+	description: zStrNullable,
+	permissions: z.string().array(),
+	isSystem: zBool,
 })
 export type RoleBaseDto = z.infer<typeof RoleBaseDto>
 
 /**
  * Role database record.
  */
-export const RoleDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape, ...zMetadataDto.shape })
+export const RoleDto = z.object({
+	...zRecordIdDto.shape,
+	...RoleBaseDto.shape,
+	...zMetadataDto.shape,
+})
 export type RoleDto = z.infer<typeof RoleDto>
 
 /**

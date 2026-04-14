@@ -7,11 +7,11 @@ import { SettingsSummaryDto } from '../dto'
 import type { DashboardServiceModule } from '../service'
 
 export function initSettingsRoute(service: DashboardServiceModule) {
-  return new Elysia({ prefix: '/settings' }).get(
-    '/summary',
-    async function summary() {
-      return res.ok(await service.settings.getSettingsSummary())
-    },
-    { response: createSuccessResponseSchema(SettingsSummaryDto) },
-  )
+	return new Elysia({ prefix: '/settings' }).get(
+		'/summary',
+		async function summary() {
+			return res.ok(await service.settings.getSettingsSummary())
+		},
+		{ response: createSuccessResponseSchema(SettingsSummaryDto) },
+	)
 }

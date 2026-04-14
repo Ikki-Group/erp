@@ -7,15 +7,15 @@ import { MokaScrapService } from './moka-scrap.service'
 import { MokaTransformationService } from './moka-transformation.service'
 
 export class MokaServiceModule {
-  public readonly configuration: MokaConfigurationService
-  public readonly history: MokaScrapHistoryService
-  public readonly transformation: MokaTransformationService
-  public readonly scrap: MokaScrapService
+	public readonly configuration: MokaConfigurationService
+	public readonly history: MokaScrapHistoryService
+	public readonly transformation: MokaTransformationService
+	public readonly scrap: MokaScrapService
 
-  constructor(logger: Logger, finance: FinanceServiceModule) {
-    this.configuration = new MokaConfigurationService()
-    this.history = new MokaScrapHistoryService()
-    this.transformation = new MokaTransformationService(finance.account, finance.journal)
-    this.scrap = new MokaScrapService(this.configuration, this.history, this.transformation, logger)
-  }
+	constructor(logger: Logger, finance: FinanceServiceModule) {
+		this.configuration = new MokaConfigurationService()
+		this.history = new MokaScrapHistoryService()
+		this.transformation = new MokaTransformationService(finance.account, finance.journal)
+		this.scrap = new MokaScrapService(this.configuration, this.history, this.transformation, logger)
+	}
 }

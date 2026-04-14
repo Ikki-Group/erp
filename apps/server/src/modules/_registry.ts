@@ -22,53 +22,53 @@ import { ProductionServiceModule } from './production'
 import { HRServiceModule } from './hr'
 
 export function createModules() {
-  // Layer 0 — Core
-  const location = new LocationServiceModule()
-  const product = new ProductServiceModule()
+	// Layer 0 — Core
+	const location = new LocationServiceModule()
+	const product = new ProductServiceModule()
 
-  // Layer 1 — Masters
-  const iam = new IamServiceModule(location)
-  const material = new MaterialServiceModule(location)
-  const supplier = new SupplierServiceModule()
-  const employee = new EmployeeServiceModule()
-  const finance = new FinanceServiceModule()
+	// Layer 1 — Masters
+	const iam = new IamServiceModule(location)
+	const material = new MaterialServiceModule(location)
+	const supplier = new SupplierServiceModule()
+	const employee = new EmployeeServiceModule()
+	const finance = new FinanceServiceModule()
 
-  // Layer 1.5 — Auth (Depends on Iam)
-  const auth = new AuthServiceModule(iam)
+	// Layer 1.5 — Auth (Depends on Iam)
+	const auth = new AuthServiceModule(iam)
 
-  // Layer 2 — Operations
-  const inventory = new InventoryServiceModule(material)
-  const recipe = new RecipeServiceModule()
-  const sales = new SalesServiceModule()
-  const purchasing = new PurchasingServiceModule(inventory)
+	// Layer 2 — Operations
+	const inventory = new InventoryServiceModule(material)
+	const recipe = new RecipeServiceModule()
+	const sales = new SalesServiceModule()
+	const purchasing = new PurchasingServiceModule(inventory)
 
-  const moka = new MokaServiceModule(logger, finance)
+	const moka = new MokaServiceModule(logger, finance)
 
-  // Layer 3 — Aggregators
-  const production = new ProductionServiceModule(recipe.recipe, inventory)
-  const hr = new HRServiceModule(finance)
-  const dashboard = new DashboardServiceModule(iam, location, finance, sales)
-  const tool = new ToolServiceModule(iam, location, product, material)
+	// Layer 3 — Aggregators
+	const production = new ProductionServiceModule(recipe.recipe, inventory)
+	const hr = new HRServiceModule(finance)
+	const dashboard = new DashboardServiceModule(iam, location, finance, sales)
+	const tool = new ToolServiceModule(iam, location, product, material)
 
-  return {
-    location,
-    product,
-    iam,
-    material,
-    auth,
-    inventory,
-    recipe,
-    dashboard,
-    tool,
-    moka,
-    sales,
-    supplier,
-    employee,
-    finance,
-    purchasing,
-    production,
-    hr,
-  }
+	return {
+		location,
+		product,
+		iam,
+		material,
+		auth,
+		inventory,
+		recipe,
+		dashboard,
+		tool,
+		moka,
+		sales,
+		supplier,
+		employee,
+		finance,
+		purchasing,
+		production,
+		hr,
+	}
 }
 
 export type Modules = ReturnType<typeof createModules>
