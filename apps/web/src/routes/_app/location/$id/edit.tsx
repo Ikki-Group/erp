@@ -5,6 +5,12 @@ import { LocationFormPage } from '@/features/location/components/location-form-p
 export const Route = createFileRoute('/_app/location/$id/edit')({ component: RouteComponent })
 
 function RouteComponent() {
-  const { id } = Route.useParams()
-  return <LocationFormPage mode="update" id={Number(id)} backTo={{ from: Route.fullPath, to: '/location' }} />
+	const { id } = Route.useParams()
+	return (
+		<LocationFormPage
+			mode="update"
+			id={Number(id)}
+			backTo={{ from: Route.fullPath, to: '/location' }}
+		/>
+	)
 }

@@ -6,102 +6,107 @@ import * as React from 'react'
 import { Combobox } from '@/components/ui/combobox'
 
 export interface DataComboboxProps<TItem> {
-  value?: string | null
-  onValueChange?: (value: string | null) => void
-  onItemSelect?: (item: TItem | null) => void
-  placeholder?: string
-  emptyText?: string
-  loadingText?: string
-  queryKey: Array<string>
-  queryFn: (search: string) => Promise<Array<TItem>>
-  getLabel: (item: TItem) => string
-  getValue: (item: TItem) => string
-  debounceMs?: number
-  disabled?: boolean
-  className?: string
+	value?: string | null
+	onValueChange?: (value: string | null) => void
+	onItemSelect?: (item: TItem | null) => void
+	placeholder?: string
+	emptyText?: string
+	loadingText?: string
+	queryKey: Array<string>
+	queryFn: (search: string) => Promise<Array<TItem>>
+	getLabel: (item: TItem) => string
+	getValue: (item: TItem) => string
+	debounceMs?: number
+	disabled?: boolean
+	className?: string
 }
 
 export function DataCombobox<TItem>({
-  value,
-  onValueChange,
-  onItemSelect,
-  placeholder = 'Pilih data...',
-  emptyText = 'Data tidak ditemukan.',
-  loadingText = 'Mencari data...',
-  queryKey,
-  queryFn,
-  getLabel,
-  getValue,
-  debounceMs = 500,
-  disabled = false,
-  className,
+	value,
+	onValueChange,
+	onItemSelect,
+	placeholder = 'Pilih data...',
+	emptyText = 'Data tidak ditemukan.',
+	loadingText = 'Mencari data...',
+	queryKey,
+	queryFn,
+	getLabel,
+	getValue,
+	debounceMs = 500,
+	disabled = false,
+	className,
 }: DataComboboxProps<TItem>) {
-  const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState('')
-  const debouncedSearch = useDebounce(inputValue, debounceMs)
+	const [open, setOpen] = React.useState(false)
+	const [inputValue, setInputValue] = React.useState('')
+	const debouncedSearch = useDebounce(inputValue, debounceMs)
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: [...queryKey, debouncedSearch],
-    queryFn: () => queryFn(debouncedSearch),
-    enabled: open,
-  })
+	const { data, isLoading, isFetching } = useQuery({
+		queryKey: [...queryKey, debouncedSearch],
+		queryFn: () => queryFn(debouncedSearch),
+		enabled: open,
+	})
 
-  return (
-    <Combobox
-      value={value ?? null}
-      onValueChange={(val) => {
-        onValueChange?.(val)
-        if (onItemSelect) {
-          if (!val) {
-            onItemSelect(null)
-          } else {
-            const selectedItem = data?.find((item) => getValue(item) === val)
-            if (selectedItem) onItemSelect(selectedItem)
-          }
-        }
-      }}
-      open={open}
-      onOpenChange={setOpen}
-      inputValue={inputValue}
-      onInputValueChange={setInputValue}
-      disabled={disabled}
-      items={data}
-    >
-      <div className="relative group/combobox-wrapper">
-        <Combobox.Input placeholder={placeholder} className={className} showClear={!!value} disabled={disabled} />
-        {/* If we have a selected value but the input is empty or disconnected,
+	return (
+		<Combobox
+			value={value ?? null}
+			onValueChange={(val) => {
+				onValueChange?.(val)
+				if (onItemSelect) {
+					if (!val) {
+						onItemSelect(null)
+					} else {
+						const selectedItem = data?.find((item) => getValue(item) === val)
+						if (selectedItem) onItemSelect(selectedItem)
+					}
+				}
+			}}
+			open={open}
+			onOpenChange={setOpen}
+			inputValue={inputValue}
+			onInputValueChange={setInputValue}
+			disabled={disabled}
+			items={data}
+		>
+			<div className="relative group/combobox-wrapper">
+				<Combobox.Input
+					placeholder={placeholder}
+					className={className}
+					showClear={!!value}
+					disabled={disabled}
+				/>
+				{/* If we have a selected value but the input is empty or disconnected,
             Base UI Combobox handles displaying the selected value's label mostly.
             But we must ensure the items provide labels. */}
-      </div>
+			</div>
 
-      <Combobox.Content align="start" className="w-[--anchor-width] p-0 shadow-lg">
-        <div className="flex flex-col">
-          {isLoading || isFetching ? (
-            <div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3">
-              <Loader2Icon className="size-5 animate-spin text-primary/60" />
-              <span className="text-sm font-medium">{loadingText}</span>
-            </div>
-          ) : (
-            <Combobox.List className="p-1">
-              {data?.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3 text-center">
-                  <DatabaseIcon className="size-8 opacity-20" />
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-foreground">{emptyText}</span>
-                    <span className="text-xs">Ubah kata kunci pencarian Anda</span>
-                  </div>
-                </div>
-              ) : (
-                data?.map((item) => (
-                  <Combobox.Item key={getValue(item)} value={getValue(item)}>
-                    {getLabel(item)}
-                  </Combobox.Item>
-                ))
-              )}
-            </Combobox.List>
-          )}
-        </div>
-      </Combobox.Content>
-    </Combobox>
-  )
+			<Combobox.Content align="start" className="w-[--anchor-width] p-0 shadow-lg">
+				<div className="flex flex-col">
+					{isLoading || isFetching ? (
+						<div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3">
+							<Loader2Icon className="size-5 animate-spin text-primary/60" />
+							<span className="text-sm font-medium">{loadingText}</span>
+						</div>
+					) : (
+						<Combobox.List className="p-1">
+							{data?.length === 0 ? (
+								<div className="flex flex-col items-center justify-center p-6 text-muted-foreground gap-3 text-center">
+									<DatabaseIcon className="size-8 opacity-20" />
+									<div className="flex flex-col gap-1">
+										<span className="text-sm font-medium text-foreground">{emptyText}</span>
+										<span className="text-xs">Ubah kata kunci pencarian Anda</span>
+									</div>
+								</div>
+							) : (
+								data?.map((item) => (
+									<Combobox.Item key={getValue(item)} value={getValue(item)}>
+										{getLabel(item)}
+									</Combobox.Item>
+								))
+							)}
+						</Combobox.List>
+					)}
+				</div>
+			</Combobox.Content>
+		</Combobox>
+	)
 }

@@ -12,12 +12,12 @@ const router = createRouter()
 initSentry(router)
 
 export function App() {
-  return (
-    <Suspense>
-      <ThemeListener />
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} context={{ qc: queryClient }} />
-      </QueryClientProvider>
-    </Suspense>
-  )
+	return (
+		<Suspense>
+			<ThemeListener />
+			<QueryClientProvider client={queryClient}>
+				<RouterProvider router={router} context={{ qc: queryClient }} />
+			</QueryClientProvider>
+		</Suspense>
+	)
 }

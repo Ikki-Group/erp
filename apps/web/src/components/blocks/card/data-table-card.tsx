@@ -8,50 +8,50 @@ import { Card, CardAction, CardFooter, CardHeader, CardTitle } from '@/component
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 interface DataTableCardProps<TData extends object> {
-  title: string
-  table: Table<TData>
-  isLoading?: boolean
-  recordCount?: number
-  action?: ReactNode
-  toolbar?: ReactNode
-  onRowClick?: (row: TData) => void
+	title: string
+	table: Table<TData>
+	isLoading?: boolean
+	recordCount?: number
+	action?: ReactNode
+	toolbar?: ReactNode
+	onRowClick?: (row: TData) => void
 }
 
 export function DataTableCard<TData extends object>({
-  title,
-  table,
-  isLoading,
-  action,
-  toolbar,
-  recordCount = 0,
-  onRowClick,
+	title,
+	table,
+	isLoading,
+	action,
+	toolbar,
+	recordCount = 0,
+	onRowClick,
 }: DataTableCardProps<TData>) {
-  return (
-    <DataGrid
-      table={table}
-      recordCount={recordCount}
-      tableClassNames={{ edgeCell: 'px-5' }}
-      isLoading={isLoading}
-      loadingMode="spinner"
-      tableLayout={{ cellBorder: false, columnsPinnable: true }}
-      onRowClick={onRowClick}
-    >
-      <Card className="w-full gap-0! py-3.5" size="sm">
-        <CardHeader className="flex items-center justify-between px-3.5 border-b">
-          <CardTitle>{title}</CardTitle>
-          {action && <CardAction>{action}</CardAction>}
-        </CardHeader>
-        {toolbar && <div className="px-3.5 py-4 border-b bg-muted/20">{toolbar}</div>}
-        <div className="w-full">
-          <ScrollArea>
-            <DataGridTable />
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </div>
-        <CardFooter className="px-3.5 border-t">
-          <DataGridPagination className="py-0" />
-        </CardFooter>
-      </Card>
-    </DataGrid>
-  )
+	return (
+		<DataGrid
+			table={table}
+			recordCount={recordCount}
+			tableClassNames={{ edgeCell: 'px-5' }}
+			isLoading={isLoading}
+			loadingMode="spinner"
+			tableLayout={{ cellBorder: false, columnsPinnable: true }}
+			onRowClick={onRowClick}
+		>
+			<Card className="w-full gap-0! py-3.5" size="sm">
+				<CardHeader className="flex items-center justify-between px-3.5 border-b">
+					<CardTitle>{title}</CardTitle>
+					{action && <CardAction>{action}</CardAction>}
+				</CardHeader>
+				{toolbar && <div className="px-3.5 py-4 border-b bg-muted/20">{toolbar}</div>}
+				<div className="w-full">
+					<ScrollArea>
+						<DataGridTable />
+						<ScrollBar orientation="horizontal" />
+					</ScrollArea>
+				</div>
+				<CardFooter className="px-3.5 border-t">
+					<DataGridPagination className="py-0" />
+				</CardFooter>
+			</Card>
+		</DataGrid>
+	)
 }

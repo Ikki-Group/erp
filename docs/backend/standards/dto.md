@@ -22,9 +22,9 @@ export const UserBaseDto = z.object({ email: zEmail, username: zUsername })
 
 /** Full record includes ID and Metadata */
 export const UserDto = z.object({
-  ...zId.shape, // include 'id'
-  ...UserBaseDto.shape, // include email, username
-  ...zMetadataDto.shape, // include createdAt, updatedAt, etc.
+	...zId.shape, // include 'id'
+	...UserBaseDto.shape, // include email, username
+	...zMetadataDto.shape, // include createdAt, updatedAt, etc.
 })
 ```
 
@@ -49,8 +49,8 @@ All primary and foreign keys must use strictly typed **Serial Integers** via sta
 
 ```typescript
 export const MyRecordDto = z.object({
-  id: zId, // Primary Key
-  userId: zId, // Foreign Key
+	id: zId, // Primary Key
+	userId: zId, // Foreign Key
 })
 ```
 

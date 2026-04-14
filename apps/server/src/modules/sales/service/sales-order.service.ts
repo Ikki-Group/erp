@@ -208,15 +208,13 @@ export class SalesOrderService {
 				const metadata = stampCreate(actorId)
 
 				// Record void
-				await tx
-					.insert(salesVoidsTable)
-					.values({
-						orderId,
-						itemId: data.itemId ?? null,
-						reason: data.reason,
-						voidedBy: actorId,
-						...metadata,
-					})
+				await tx.insert(salesVoidsTable).values({
+					orderId,
+					itemId: data.itemId ?? null,
+					reason: data.reason,
+					voidedBy: actorId,
+					...metadata,
+				})
 
 				// oxlint-disable-next-line no-negated-condition
 				if (!data.itemId) {

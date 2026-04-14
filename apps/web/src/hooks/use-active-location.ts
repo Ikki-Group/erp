@@ -13,52 +13,56 @@ import { useUser } from '@/hooks/use-user'
  * ```
  */
 export function useActiveLocation() {
-  const { location, setLocation } = useAppState()
-  const user = useUser()
-  const { assignments } = user
+	const { location, setLocation } = useAppState()
+	const user = useUser()
+	const { assignments } = user
 
-  // Deduplicate locations from assignments (a user can have multiple roles at the same location)
-  const locationsMap = new Map<number, { id: number; name: string; code: string }>()
-  for (const a of assignments ?? []) {
-    if (a.locationId && !locationsMap.has(a.locationId)) {
-      locationsMap.set(a.locationId, { id: a.locationId, name: a.locationName, code: a.locationCode ?? '' })
-    }
-  }
-  const locations = Array.from(locationsMap.values())
+	// Deduplicate locations from assignments (a user can have multiple roles at the same location)
+	const locationsMap = new Map<number, { id: number; name: string; code: string }>()
+	for (const a of assignments ?? []) {
+		if (a.locationId && !locationsMap.has(a.locationId)) {
+			locationsMap.set(a.locationId, {
+				id: a.locationId,
+				name: a.locationName,
+				code: a.locationCode ?? '',
+			})
+		}
+	}
+	const locations = Array.from(locationsMap.values())
 
-  const hasMultiple = locations.length > 1
-  const isConsolidated = hasMultiple && (location?.length ?? 0) > 1
-  const activeLocationId = !isConsolidated && location?.length === 1 ? location[0] : undefined
-  const activeLocation = activeLocationId ? locationsMap.get(activeLocationId) : undefined
+	const hasMultiple = locations.length > 1
+	const isConsolidated = hasMultiple && (location?.length ?? 0) > 1
+	const activeLocationId = !isConsolidated && location?.length === 1 ? location[0] : undefined
+	const activeLocation = activeLocationId ? locationsMap.get(activeLocationId) : undefined
 
-  const label = isConsolidated
-    ? `Semua Lokasi (${locations.length})`
-    : (activeLocation?.name ?? locations[0]?.name ?? 'Tidak ada lokasi')
+	const label = isConsolidated
+		? `Semua Lokasi (${locations.length})`
+		: (activeLocation?.name ?? locations[0]?.name ?? 'Tidak ada lokasi')
 
-  return {
-    /** The single active location ID, or undefined if consolidated */
-    locationId: activeLocationId,
-    /** Whether user is viewing all locations at once */
-    isConsolidated,
-    /** Whether user is a root/superadmin (has all locations via runtime resolve) */
-    isRoot: user.isRoot,
-    /** Human readable label for current context */
-    label,
-    /** All locations available to this user */
-    locations,
-    /** Whether user has more than one location */
-    hasMultiple,
-    /** The full active location object */
-    activeLocation,
-    /** Switch to a single location */
-    switchTo: (id: number) => {
-      setLocation([id])
-    },
-    /** Switch to consolidated (all locations) */
-    switchToAll: () => {
-      setLocation(locations.map((l) => l.id))
-    },
-    /** Raw location IDs array from state */
-    rawLocationIds: location,
-  }
+	return {
+		/** The single active location ID, or undefined if consolidated */
+		locationId: activeLocationId,
+		/** Whether user is viewing all locations at once */
+		isConsolidated,
+		/** Whether user is a root/superadmin (has all locations via runtime resolve) */
+		isRoot: user.isRoot,
+		/** Human readable label for current context */
+		label,
+		/** All locations available to this user */
+		locations,
+		/** Whether user has more than one location */
+		hasMultiple,
+		/** The full active location object */
+		activeLocation,
+		/** Switch to a single location */
+		switchTo: (id: number) => {
+			setLocation([id])
+		},
+		/** Switch to consolidated (all locations) */
+		switchToAll: () => {
+			setLocation(locations.map((l) => l.id))
+		},
+		/** Raw location IDs array from state */
+		rawLocationIds: location,
+	}
 }

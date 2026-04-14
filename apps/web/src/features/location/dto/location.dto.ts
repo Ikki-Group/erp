@@ -1,15 +1,22 @@
 import { z } from 'zod'
 
-import { zCodeUpper, zMetadataDto, zPaginationDto, zRecordIdDto, zStr, zStrNullable } from '@/lib/zod'
+import {
+	zCodeUpper,
+	zMetadataDto,
+	zPaginationDto,
+	zRecordIdDto,
+	zStr,
+	zStrNullable,
+} from '@/lib/zod'
 
 /**
  * Types of operational locations.
  */
 export const LocationTypeDto = z.enum([
-  /** Retail storefront for customers. */
-  'store',
-  /** Storage facility for inventory. */
-  'warehouse',
+	/** Retail storefront for customers. */
+	'store',
+	/** Storage facility for inventory. */
+	'warehouse',
 ])
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
@@ -17,20 +24,24 @@ export type LocationTypeDto = z.infer<typeof LocationTypeDto>
  * Common Location attributes.
  */
 export const LocationBaseDto = z.object({
-  code: zCodeUpper.min(2).max(20),
-  name: zStr.min(2).max(100),
-  type: LocationTypeDto,
-  description: zStrNullable,
-  address: zStrNullable,
-  phone: zStrNullable,
-  isActive: z.boolean().default(true),
+	code: zCodeUpper.min(2).max(20),
+	name: zStr.min(2).max(100),
+	type: LocationTypeDto,
+	description: zStrNullable,
+	address: zStrNullable,
+	phone: zStrNullable,
+	isActive: z.boolean().default(true),
 })
 export type LocationBaseDto = z.infer<typeof LocationBaseDto>
 
 /**
  * Location database record.
  */
-export const LocationDto = z.object({ ...zRecordIdDto.shape, ...LocationBaseDto.shape, ...zMetadataDto.shape })
+export const LocationDto = z.object({
+	...zRecordIdDto.shape,
+	...LocationBaseDto.shape,
+	...zMetadataDto.shape,
+})
 export type LocationDto = z.infer<typeof LocationDto>
 
 /**
@@ -49,8 +60,8 @@ export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
  * Filter criteria for listing Locations.
  */
 export const LocationFilterDto = z.object({
-  ...zPaginationDto.shape,
-  q: z.string().optional(),
-  type: LocationTypeDto.optional(),
+	...zPaginationDto.shape,
+	q: z.string().optional(),
+	type: LocationTypeDto.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

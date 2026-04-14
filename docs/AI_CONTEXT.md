@@ -32,14 +32,14 @@ Every module's `init[Module]Route` should follow this functional structure:
 
 ```typescript
 export function initLocationRoute(service: LocationService) {
-  return new Elysia({ prefix: '/location' }).use(authPluginMacro).get(
-    '/list',
-    async function list({ query }) {
-      const result = await service.handleList(query)
-      return res.paginated(result)
-    },
-    { query: LocationFilterDto, response: createPaginatedResponseSchema(LocationDto), auth: true },
-  )
+	return new Elysia({ prefix: '/location' }).use(authPluginMacro).get(
+		'/list',
+		async function list({ query }) {
+			const result = await service.handleList(query)
+			return res.paginated(result)
+		},
+		{ query: LocationFilterDto, response: createPaginatedResponseSchema(LocationDto), auth: true },
+	)
 }
 ```
 

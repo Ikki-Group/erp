@@ -4,28 +4,31 @@ import { cn } from '@/lib/utils'
 
 import { Input } from './input'
 
-export interface InputNumberProps extends Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange'> {
-  value?: number | null
-  onChange?: (value: number | null) => void
-  /**
-   * Whether to allow decimal values.
-   * @default true
-   */
-  allowDecimal?: boolean
-  /**
-   * Number of decimal places allowed.
-   * @default 2
-   */
-  decimalScale?: number
-  /**
-   * Maximum value allowed.
-   */
-  max?: number
-  /**
-   * Minimum value allowed.
-   */
-  min?: number
-  ref?: React.Ref<HTMLInputElement>
+export interface InputNumberProps extends Omit<
+	React.ComponentProps<typeof Input>,
+	'value' | 'onChange'
+> {
+	value?: number | null
+	onChange?: (value: number | null) => void
+	/**
+	 * Whether to allow decimal values.
+	 * @default true
+	 */
+	allowDecimal?: boolean
+	/**
+	 * Number of decimal places allowed.
+	 * @default 2
+	 */
+	decimalScale?: number
+	/**
+	 * Maximum value allowed.
+	 */
+	max?: number
+	/**
+	 * Minimum value allowed.
+	 */
+	min?: number
+	ref?: React.Ref<HTMLInputElement>
 }
 
 /**
@@ -38,17 +41,21 @@ export interface InputNumberProps extends Omit<React.ComponentProps<typeof Input
  * @param decimalScale - Maximum number of fraction digits to include when decimals are allowed.
  * @returns The formatted number string in `id-ID` locale, or an empty string for absent or invalid input.
  */
-function formatNumber(value: number | string | null | undefined, allowDecimal: boolean, decimalScale: number): string {
-  if (value === null || value === undefined || value === '') return ''
+function formatNumber(
+	value: number | string | null | undefined,
+	allowDecimal: boolean,
+	decimalScale: number,
+): string {
+	if (value === null || value === undefined || value === '') return ''
 
-  const num = typeof value === 'string' ? Number(value.replaceAll(/[^0-9.-]/g, '')) : value
-  if (isNaN(num)) return ''
+	const num = typeof value === 'string' ? Number(value.replaceAll(/[^0-9.-]/g, '')) : value
+	if (isNaN(num)) return ''
 
-  return new Intl.NumberFormat('id-ID', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: allowDecimal ? decimalScale : 0,
-    useGrouping: true,
-  }).format(num)
+	return new Intl.NumberFormat('id-ID', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: allowDecimal ? decimalScale : 0,
+		useGrouping: true,
+	}).format(num)
 }
 
 /**
@@ -58,9 +65,9 @@ function formatNumber(value: number | string | null | undefined, allowDecimal: b
  * @returns The normalized numeric string with thousands separators removed and the decimal comma replaced by a dot
  */
 function parseNumber(value: string): string {
-  return value
-    .replaceAll('.', '') // Remove thousands separator
-    .replaceAll(',', '.') // Replace decimal separator
+	return value
+		.replaceAll('.', '') // Remove thousands separator
+		.replaceAll(',', '.') // Replace decimal separator
 }
 
 /**
@@ -78,85 +85,85 @@ function parseNumber(value: string): string {
  * @returns The rendered Input element configured for numeric entry with localized formatting and typing-aware behavior.
  */
 export function InputNumber({
-  className,
-  value,
-  onChange,
-  allowDecimal = true,
-  decimalScale = 2,
-  // oxlint-disable-next-line no-unused-vars
-  max,
-  min,
-  ref,
-  ...props
+	className,
+	value,
+	onChange,
+	allowDecimal = true,
+	decimalScale = 2,
+	// oxlint-disable-next-line no-unused-vars
+	max,
+	min,
+	ref,
+	...props
 }: InputNumberProps) {
-  // Local state to track the value being typed
-  const [isTyping, setIsTyping] = React.useState(false)
-  const [typingValue, setTypingValue] = React.useState('')
+	// Local state to track the value being typed
+	const [isTyping, setIsTyping] = React.useState(false)
+	const [typingValue, setTypingValue] = React.useState('')
 
-  // Determine which value to display
-  const displayValue = React.useMemo(() => {
-    if (isTyping) return typingValue
-    return formatNumber(value, allowDecimal, decimalScale)
-  }, [isTyping, typingValue, value, allowDecimal, decimalScale])
+	// Determine which value to display
+	const displayValue = React.useMemo(() => {
+		if (isTyping) return typingValue
+		return formatNumber(value, allowDecimal, decimalScale)
+	}, [isTyping, typingValue, value, allowDecimal, decimalScale])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const raw = e.target.value
 
-    // Allow typing leading minus
-    if (raw === '-' && (min === undefined || min < 0)) {
-      setTypingValue('-')
-      setIsTyping(true)
-      return
-    }
+		// Allow typing leading minus
+		if (raw === '-' && (min === undefined || min < 0)) {
+			setTypingValue('-')
+			setIsTyping(true)
+			return
+		}
 
-    // Basic cleaning: allow digits, dots (will be removed), and one comma (will be changed to dot)
-    const cleanRaw = parseNumber(raw)
+		// Basic cleaning: allow digits, dots (will be removed), and one comma (will be changed to dot)
+		const cleanRaw = parseNumber(raw)
 
-    // Only proceed if it looks like a valid partial number
-    const regex = allowDecimal ? /^-?\d*\.?\d*$/ : /^-?\d*$/
-    if (cleanRaw === '' || regex.test(cleanRaw)) {
-      // Check decimal scale
-      if (allowDecimal && cleanRaw.includes('.')) {
-        const parts = cleanRaw.split('.')
-        if (parts[1] && parts[1].length > decimalScale) return
-      }
+		// Only proceed if it looks like a valid partial number
+		const regex = allowDecimal ? /^-?\d*\.?\d*$/ : /^-?\d*$/
+		if (cleanRaw === '' || regex.test(cleanRaw)) {
+			// Check decimal scale
+			if (allowDecimal && cleanRaw.includes('.')) {
+				const parts = cleanRaw.split('.')
+				if (parts[1] && parts[1].length > decimalScale) return
+			}
 
-      const numericValue = cleanRaw === '' || cleanRaw === '-' ? null : Number(cleanRaw)
+			const numericValue = cleanRaw === '' || cleanRaw === '-' ? null : Number(cleanRaw)
 
-      setTypingValue(raw)
-      setIsTyping(true)
+			setTypingValue(raw)
+			setIsTyping(true)
 
-      if (onChange) {
-        onChange(numericValue)
-      }
-    }
-  }
+			if (onChange) {
+				onChange(numericValue)
+			}
+		}
+	}
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setIsTyping(false)
-    setTypingValue('')
-    props.onBlur?.(e)
-  }
+	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		setIsTyping(false)
+		setTypingValue('')
+		props.onBlur?.(e)
+	}
 
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setIsTyping(true)
-    setTypingValue(formatNumber(value, allowDecimal, decimalScale))
-    props.onFocus?.(e)
-  }
+	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		setIsTyping(true)
+		setTypingValue(formatNumber(value, allowDecimal, decimalScale))
+		props.onFocus?.(e)
+	}
 
-  return (
-    <Input
-      {...props}
-      ref={ref}
-      type="text"
-      inputMode={allowDecimal ? 'decimal' : 'numeric'}
-      className={cn('tabular-nums', className)}
-      value={displayValue}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      onFocus={handleFocus}
-    />
-  )
+	return (
+		<Input
+			{...props}
+			ref={ref}
+			type="text"
+			inputMode={allowDecimal ? 'decimal' : 'numeric'}
+			className={cn('tabular-nums', className)}
+			value={displayValue}
+			onChange={handleChange}
+			onBlur={handleBlur}
+			onFocus={handleFocus}
+		/>
+	)
 }
 
 InputNumber.displayName = 'InputNumber'

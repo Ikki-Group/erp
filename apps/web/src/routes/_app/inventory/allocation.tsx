@@ -11,11 +11,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataCombobox } from '@/components/ui/data-combobox'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { locationApi } from '@/features/location'
 import type { MaterialLocationStockDto } from '@/features/material'
@@ -29,56 +29,61 @@ import { toastLabelMessage } from '@/lib/toast-message'
 export const Route = createFileRoute('/_app/inventory/allocation')({ component: RouteComponent })
 
 function RouteComponent() {
-  const [locationId, setLocationId] = useState<string | null>(null)
-  const [locationName, setLocationName] = useState<string>('')
+	const [locationId, setLocationId] = useState<string | null>(null)
+	const [locationName, setLocationName] = useState<string>('')
 
-  const numericLocationId = locationId ? Number(locationId) : null
+	const numericLocationId = locationId ? Number(locationId) : null
 
-  return (
-    <Page>
-      <Page.BlockHeader title="Alokasi Gudang" description="Kelola penugasan bahan baku per lokasi gudang" />
-      <Page.Content className="flex flex-col gap-4">
-        {/* Location Selector */}
-        <div className="flex items-end gap-3">
-          <div className="flex flex-col gap-1.5 w-full max-w-sm">
-            <label className="text-sm font-medium">Pilih Lokasi</label>
-            <DataCombobox
-              value={locationId}
-              onValueChange={setLocationId}
-              onItemSelect={(item) => setLocationName(item?.name || '')}
-              placeholder="Cari lokasi gudang..."
-              emptyText="Lokasi tidak ditemukan."
-              queryKey={['location-list']}
-              queryFn={async (search: string) => {
-                const res = await locationApi.list.fetch({
-                  params: { page: 1, limit: 20, q: search || undefined },
-                })
-                return res.data
-              }}
-              getLabel={(item) => `${item.name} (${item.code})`}
-              getValue={(item) => String(item.id)}
-            />
-          </div>
-        </div>
+	return (
+		<Page>
+			<Page.BlockHeader
+				title="Alokasi Gudang"
+				description="Kelola penugasan bahan baku per lokasi gudang"
+			/>
+			<Page.Content className="flex flex-col gap-4">
+				{/* Location Selector */}
+				<div className="flex items-end gap-3">
+					<div className="flex flex-col gap-1.5 w-full max-w-sm">
+						<label className="text-sm font-medium">Pilih Lokasi</label>
+						<DataCombobox
+							value={locationId}
+							onValueChange={setLocationId}
+							onItemSelect={(item) => setLocationName(item?.name || '')}
+							placeholder="Cari lokasi gudang..."
+							emptyText="Lokasi tidak ditemukan."
+							queryKey={['location-list']}
+							queryFn={async (search: string) => {
+								const res = await locationApi.list.fetch({
+									params: { page: 1, limit: 20, q: search || undefined },
+								})
+								return res.data
+							}}
+							getLabel={(item) => `${item.name} (${item.code})`}
+							getValue={(item) => String(item.id)}
+						/>
+					</div>
+				</div>
 
-        {/* Stock Table */}
-        {numericLocationId ? (
-          <>
-            <MaterialLocationAssignDialog.Root />
-            <StockTable locationId={numericLocationId} locationName={locationName} />
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
-            <MapPinIcon className="size-12 opacity-20" />
-            <div className="text-center space-y-1">
-              <p className="font-medium text-foreground">Pilih lokasi terlebih dahulu</p>
-              <p className="text-sm">Gunakan pencarian di atas untuk memilih lokasi dan melihat stok bahan baku</p>
-            </div>
-          </div>
-        )}
-      </Page.Content>
-    </Page>
-  )
+				{/* Stock Table */}
+				{numericLocationId ? (
+					<>
+						<MaterialLocationAssignDialog.Root />
+						<StockTable locationId={numericLocationId} locationName={locationName} />
+					</>
+				) : (
+					<div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+						<MapPinIcon className="size-12 opacity-20" />
+						<div className="text-center space-y-1">
+							<p className="font-medium text-foreground">Pilih lokasi terlebih dahulu</p>
+							<p className="text-sm">
+								Gunakan pencarian di atas untuk memilih lokasi dan melihat stok bahan baku
+							</p>
+						</div>
+					</div>
+				)}
+			</Page.Content>
+		</Page>
+	)
 }
 
 /* ─────────── Stock Table ─────────── */
@@ -95,145 +100,157 @@ const ch = createColumnHelper<MaterialLocationStockDto>()
  * @returns The stock table UI and related dialogs for managing material-location assignments
  */
 function StockTable({ locationId, locationName }: { locationId: number; locationName: string }) {
-  const queryClient = useQueryClient()
-  const ds = useDataTableState()
+	const queryClient = useQueryClient()
+	const ds = useDataTableState()
 
-  // Edit sheet state (config only, stock updates use inventory transactions)
-  const [editSheet, setEditSheet] = useState<{ open: boolean; data: MaterialLocationStockDto | null }>({
-    open: false,
-    data: null,
-  })
+	// Edit sheet state (config only, stock updates use inventory transactions)
+	const [editSheet, setEditSheet] = useState<{
+		open: boolean
+		data: MaterialLocationStockDto | null
+	}>({
+		open: false,
+		data: null,
+	})
 
-  const { data, isLoading } = useQuery(
-    materialLocationApi.stock.query({ locationId, ...ds.pagination, q: ds.search || undefined }),
-  )
+	const { data, isLoading } = useQuery(
+		materialLocationApi.stock.query({ locationId, ...ds.pagination, q: ds.search || undefined }),
+	)
 
-  const unassignMutation = useMutation({
-    mutationFn: materialLocationApi.unassign.mutationFn,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
-    },
-  })
+	const unassignMutation = useMutation({
+		mutationFn: materialLocationApi.unassign.mutationFn,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
+		},
+	})
 
-  const handleUnassign = useCallback(
-    async (row: MaterialLocationStockDto) => {
-      const promise = unassignMutation.mutateAsync({
-        params: { materialId: row.materialId, locationId: row.locationId },
-      })
+	const handleUnassign = useCallback(
+		async (row: MaterialLocationStockDto) => {
+			const promise = unassignMutation.mutateAsync({
+				params: { materialId: row.materialId, locationId: row.locationId },
+			})
 
-      await toast.promise(promise, toastLabelMessage('delete', 'assign material')).unwrap()
-    },
-    [unassignMutation],
-  )
+			await toast.promise(promise, toastLabelMessage('delete', 'assign material')).unwrap()
+		},
+		[unassignMutation],
+	)
 
-  const columns = [
-    ch.accessor('materialName', {
-      header: 'Bahan Baku',
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.original.materialName}</span>
-          <span className="text-xs text-muted-foreground">SKU: {row.original.materialSku}</span>
-        </div>
-      ),
-      enableSorting: false,
-    }),
-    ch.accessor('uom', {
-      header: 'Satuan',
-      cell: ({ row }) => <Badge variant="secondary">{row.original.uom?.code ?? '-'}</Badge>,
-      enableSorting: false,
-      size: 90,
-    }),
+	const columns = [
+		ch.accessor('materialName', {
+			header: 'Bahan Baku',
+			cell: ({ row }) => (
+				<div className="flex flex-col">
+					<span className="font-medium">{row.original.materialName}</span>
+					<span className="text-xs text-muted-foreground">SKU: {row.original.materialSku}</span>
+				</div>
+			),
+			enableSorting: false,
+		}),
+		ch.accessor('uom', {
+			header: 'Satuan',
+			cell: ({ row }) => <Badge variant="secondary">{row.original.uom?.code ?? '-'}</Badge>,
+			enableSorting: false,
+			size: 90,
+		}),
 
-    ch.accessor('currentQty', {
-      header: 'Stok Saat Ini',
-      cell: ({ row }) => {
-        const val = row.original.currentQty
-        const min = row.original.minStock
-        const isLow = val <= min
-        return (
-          <div className="flex items-center gap-2">
-            <span className={isLow ? 'font-semibold text-destructive' : 'font-semibold'}>{val}</span>
-            {isLow && (
-              <Badge variant="destructive" className="text-[10px] h-4">
-                Low
-              </Badge>
-            )}
-          </div>
-        )
-      },
-      enableSorting: false,
-      size: 130,
-    }),
-    ch.accessor('currentAvgCost', {
-      header: 'Harga Rata-rata',
-      cell: ({ row }) => <span className="tabular-nums">{row.original.currentAvgCost.toLocaleString('id-ID')}</span>,
-      enableSorting: false,
-      size: 140,
-    }),
-    ch.accessor('currentValue', {
-      header: 'Nilai Stok',
-      cell: ({ row }) => (
-        <span className="tabular-nums font-medium">{row.original.currentValue.toLocaleString('id-ID')}</span>
-      ),
-      enableSorting: false,
-      size: 140,
-    }),
-    ch.display({
-      id: 'action',
-      header: '',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-            <MoreHorizontalIcon className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setEditSheet({ open: true, data: row.original })}>
-              <SettingsIcon className="size-4 mr-2" />
-              Konfigurasi Stok
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={() => handleUnassign(row.original)}>
-              <Trash2Icon className="size-4 mr-2" />
-              Unassign
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-      size: 60,
-      enableSorting: false,
-      enableHiding: false,
-      enableResizing: false,
-    }),
-  ]
+		ch.accessor('currentQty', {
+			header: 'Stok Saat Ini',
+			cell: ({ row }) => {
+				const val = row.original.currentQty
+				const min = row.original.minStock
+				const isLow = val <= min
+				return (
+					<div className="flex items-center gap-2">
+						<span className={isLow ? 'font-semibold text-destructive' : 'font-semibold'}>
+							{val}
+						</span>
+						{isLow && (
+							<Badge variant="destructive" className="text-[10px] h-4">
+								Low
+							</Badge>
+						)}
+					</div>
+				)
+			},
+			enableSorting: false,
+			size: 130,
+		}),
+		ch.accessor('currentAvgCost', {
+			header: 'Harga Rata-rata',
+			cell: ({ row }) => (
+				<span className="tabular-nums">{row.original.currentAvgCost.toLocaleString('id-ID')}</span>
+			),
+			enableSorting: false,
+			size: 140,
+		}),
+		ch.accessor('currentValue', {
+			header: 'Nilai Stok',
+			cell: ({ row }) => (
+				<span className="tabular-nums font-medium">
+					{row.original.currentValue.toLocaleString('id-ID')}
+				</span>
+			),
+			enableSorting: false,
+			size: 140,
+		}),
+		ch.display({
+			id: 'action',
+			header: '',
+			cell: ({ row }) => (
+				<DropdownMenu>
+					<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+						<MoreHorizontalIcon className="size-4" />
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem onClick={() => setEditSheet({ open: true, data: row.original })}>
+							<SettingsIcon className="size-4 mr-2" />
+							Konfigurasi Stok
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem variant="destructive" onClick={() => handleUnassign(row.original)}>
+							<Trash2Icon className="size-4 mr-2" />
+							Unassign
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			),
+			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+		}),
+	]
 
-  const table = useDataTable({
-    columns,
-    data: data?.data ?? [],
-    pageCount: data?.meta.totalPages ?? 0,
-    rowCount: data?.meta.total ?? 0,
-    ds,
-  })
+	const table = useDataTable({
+		columns,
+		data: data?.data ?? [],
+		pageCount: data?.meta.totalPages ?? 0,
+		rowCount: data?.meta.total ?? 0,
+		ds,
+	})
 
-  return (
-    <>
-      <DataTableCard
-        title="Stok Bahan Baku"
-        table={table}
-        isLoading={isLoading}
-        recordCount={data?.meta.total || 0}
-        action={
-          <Button size="sm" onClick={() => MaterialLocationAssignDialog.call({ locationId, locationName })}>
-            <PackageIcon className="mr-2 size-4" />
-            Assign Bahan Baku
-          </Button>
-        }
-      />
+	return (
+		<>
+			<DataTableCard
+				title="Stok Bahan Baku"
+				table={table}
+				isLoading={isLoading}
+				recordCount={data?.meta.total || 0}
+				action={
+					<Button
+						size="sm"
+						onClick={() => MaterialLocationAssignDialog.call({ locationId, locationName })}
+					>
+						<PackageIcon className="mr-2 size-4" />
+						Assign Bahan Baku
+					</Button>
+				}
+			/>
 
-      <MaterialLocationEditSheet
-        open={editSheet.open}
-        onOpenChange={(open) => setEditSheet((prev) => ({ ...prev, open }))}
-        data={editSheet.data}
-      />
-    </>
-  )
+			<MaterialLocationEditSheet
+				open={editSheet.open}
+				onOpenChange={(open) => setEditSheet((prev) => ({ ...prev, open }))}
+				data={editSheet.data}
+			/>
+		</>
+	)
 }

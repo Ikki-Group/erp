@@ -5,9 +5,9 @@ import { zDate } from '@/lib/zod'
 export const PnLRequestDto = z.object({ startDate: zDate, endDate: zDate })
 
 export const TopSalesRequestDto = z.object({
-  startDate: zDate,
-  endDate: zDate,
-  limit: z.number().int().positive().optional().default(5),
+	startDate: zDate,
+	endDate: zDate,
+	limit: z.number().int().positive().optional().default(5),
 })
 
 export type PnLRequestDto = z.infer<typeof PnLRequestDto>

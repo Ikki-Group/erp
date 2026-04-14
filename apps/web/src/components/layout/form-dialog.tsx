@@ -2,27 +2,34 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '../ui/dialog'
 
 /* -------------------------------------------------------------------------- */
 /*  FormDialog                                                                */
 /* -------------------------------------------------------------------------- */
 
 interface FormDialogProps {
-  /** Controls dialog visibility */
-  open: boolean
-  /** Called when the dialog is dismissed (overlay click, escape key) */
-  onOpenChange: (open: boolean) => void
-  /** Dialog title, displayed in the header */
-  title: React.ReactNode
-  /** Optional description below the title */
-  description?: string
-  /** Form fields — rendered in the dialog body */
-  children: React.ReactNode
-  /** Footer content — typically `form.DialogActions`. Rendered inside DialogFooter. */
-  footer?: React.ReactNode
-  /** Additional className for DialogContent */
-  className?: string
+	/** Controls dialog visibility */
+	open: boolean
+	/** Called when the dialog is dismissed (overlay click, escape key) */
+	onOpenChange: (open: boolean) => void
+	/** Dialog title, displayed in the header */
+	title: React.ReactNode
+	/** Optional description below the title */
+	description?: string
+	/** Form fields — rendered in the dialog body */
+	children: React.ReactNode
+	/** Footer content — typically `form.DialogActions`. Rendered inside DialogFooter. */
+	footer?: React.ReactNode
+	/** Additional className for DialogContent */
+	className?: string
 }
 
 /**
@@ -48,19 +55,27 @@ interface FormDialogProps {
  * </form.AppForm>
  * ```
  */
-function FormDialog({ open, onOpenChange, title, description, children, footer, className }: FormDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(className)}>
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        {children}
-        {footer && <DialogFooter>{footer}</DialogFooter>}
-      </DialogContent>
-    </Dialog>
-  )
+function FormDialog({
+	open,
+	onOpenChange,
+	title,
+	description,
+	children,
+	footer,
+	className,
+}: FormDialogProps) {
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className={cn(className)}>
+				<DialogHeader className="border-b pb-4">
+					<DialogTitle>{title}</DialogTitle>
+					{description && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
+				{children}
+				{footer && <DialogFooter>{footer}</DialogFooter>}
+			</DialogContent>
+		</Dialog>
+	)
 }
 
 export { FormDialog }

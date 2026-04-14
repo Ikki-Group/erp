@@ -8,10 +8,10 @@ The database columns must use `snake_case`, while the property names in the Driz
 
 ```typescript
 export const usersTable = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: text('email').notNull(),
-  passwordHash: text('password_hash').notNull(), // ✅ TS Property: camelCase, DB Column: snake_case
-  // ...
+	id: serial('id').primaryKey(),
+	email: text('email').notNull(),
+	passwordHash: text('password_hash').notNull(), // ✅ TS Property: camelCase, DB Column: snake_case
+	// ...
 })
 ```
 
@@ -26,9 +26,9 @@ Standardize PK and Audit columns using the helpers in `@/db/schema/_helpers`. Th
 import { pk, metadata } from './_helpers'
 
 export const myTable = pgTable('my_table', {
-  ...pk, // serial primary key 'id'
-  code: text('code').notNull(),
-  ...metadata, // all audit columns
+	...pk, // serial primary key 'id'
+	code: text('code').notNull(),
+	...metadata, // all audit columns
 })
 ```
 

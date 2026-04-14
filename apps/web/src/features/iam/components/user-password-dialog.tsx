@@ -14,54 +14,57 @@ const FormDto = z.object({ password: z.string().min(8) })
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: { password: '' } as FormDto })
+const fopts = formOptions({
+	validators: { onSubmit: FormDto },
+	defaultValues: { password: '' } as FormDto,
+})
 
 interface UserPasswordDialogProps {
-  id: number
-  username: string
+	id: number
+	username: string
 }
 
 export const UserPasswordDialog = createCallable<UserPasswordDialogProps>((props) => {
-  const { call, id, username } = props
+	const { call, id, username } = props
 
-  const updatePassword = useMutation({ mutationFn: userApi.adminPasswordReset.mutationFn })
+	const updatePassword = useMutation({ mutationFn: userApi.adminPasswordReset.mutationFn })
 
-  const form = useAppForm({
-    ...fopts,
-    onSubmit: async ({ value }) => {
-      const promise = updatePassword.mutateAsync({ body: { id, password: value.password } })
+	const form = useAppForm({
+		...fopts,
+		onSubmit: async ({ value }) => {
+			const promise = updatePassword.mutateAsync({ body: { id, password: value.password } })
 
-      await toast.promise(promise, toastLabelMessage('update', 'password pengguna')).unwrap()
+			await toast.promise(promise, toastLabelMessage('update', 'password pengguna')).unwrap()
 
-      call.end()
-    },
-  })
+			call.end()
+		},
+	})
 
-  const disabled = updatePassword.isPending
+	const disabled = updatePassword.isPending
 
-  return (
-    <form.AppForm>
-      <FormDialog
-        open={!call.ended}
-        onOpenChange={() => call.end()}
-        title={`Ubah Password @${username}`}
-        description={`Masukkan password baru untuk pengguna @${username}.`}
-        className="sm:max-w-md"
-        footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
-      >
-        <div className="py-2">
-          <form.AppField name="password">
-            {(field) => (
-              <field.InputPassword
-                label="Password Baru"
-                required
-                placeholder="Masukkan password baru"
-                disabled={disabled}
-              />
-            )}
-          </form.AppField>
-        </div>
-      </FormDialog>
-    </form.AppForm>
-  )
+	return (
+		<form.AppForm>
+			<FormDialog
+				open={!call.ended}
+				onOpenChange={() => call.end()}
+				title={`Ubah Password @${username}`}
+				description={`Masukkan password baru untuk pengguna @${username}.`}
+				className="sm:max-w-md"
+				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
+			>
+				<div className="py-2">
+					<form.AppField name="password">
+						{(field) => (
+							<field.InputPassword
+								label="Password Baru"
+								required
+								placeholder="Masukkan password baru"
+								disabled={disabled}
+							/>
+						)}
+					</form.AppField>
+				</div>
+			</FormDialog>
+		</form.AppForm>
+	)
 }, 200)

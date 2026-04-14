@@ -65,11 +65,11 @@ Before creating or updating records with unique constraints (e.g., `code`, `name
 ```typescript
 // ✅ CORRECT: Prevent database-level constraint violations early
 await core.checkConflict({
-  table: locationsTable,
-  pkColumn: locationsTable.id,
-  fields: uniqueFields,
-  input: data,
-  existing, // pass only during update
+	table: locationsTable,
+	pkColumn: locationsTable.id,
+	fields: uniqueFields,
+	input: data,
+	existing, // pass only during update
 })
 ```
 

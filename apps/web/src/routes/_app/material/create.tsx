@@ -12,5 +12,5 @@ export const Route = createFileRoute('/_app/material/create')({ component: Route
  * @returns A JSX element rendering MaterialFormPage in `'create'` mode with back navigation to `'/material'`.
  */
 function RouteComponent() {
-  return <MaterialFormPage mode="create" backTo={{ from: Route.fullPath, to: '/material' }} />
+	return <MaterialFormPage mode="create" backTo={{ from: Route.fullPath, to: '/material' }} />
 }

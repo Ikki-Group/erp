@@ -21,10 +21,10 @@ import { toDateTimeStamp } from '@/lib/formatter'
 export { createColumnHelper }
 
 type ColumnOptions = {
-  size?: number
-  enableSorting?: boolean
-  enableHiding?: boolean
-  meta?: { className?: string; label?: string }
+	size?: number
+	enableSorting?: boolean
+	enableHiding?: boolean
+	meta?: { className?: string; label?: string }
 }
 
 /**
@@ -38,19 +38,19 @@ type ColumnOptions = {
  * ```
  */
 export function dateColumn<TData>(
-  opts: { header?: string } & ColumnOptions,
+	opts: { header?: string } & ColumnOptions,
 ): Partial<ColumnDef<TData, Date | string | number>> {
-  return {
-    header: opts.header ?? 'Tanggal',
-    cell: ({ getValue }: CellContext<TData, Date | string | number>) => {
-      const value = getValue()
-      if (!value) return '-'
-      return <p className="text-nowrap">{toDateTimeStamp(value)}</p>
-    },
-    enableSorting: opts.enableSorting ?? false,
-    size: opts.size,
-    meta: opts.meta,
-  }
+	return {
+		header: opts.header ?? 'Tanggal',
+		cell: ({ getValue }: CellContext<TData, Date | string | number>) => {
+			const value = getValue()
+			if (!value) return '-'
+			return <p className="text-nowrap">{toDateTimeStamp(value)}</p>
+		},
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: opts.meta,
+	}
 }
 
 /**
@@ -64,19 +64,19 @@ export function dateColumn<TData>(
  * ```
  */
 export function actionColumn<TData>(opts: {
-  cell: ColumnDef<TData>['cell']
-  size?: number
-  id?: string
+	cell: ColumnDef<TData>['cell']
+	size?: number
+	id?: string
 }): ColumnDef<TData> {
-  return {
-    id: opts.id ?? 'action',
-    header: '',
-    cell: opts.cell,
-    size: opts.size ?? 60,
-    enableSorting: false,
-    enableHiding: false,
-    enableResizing: false,
-  }
+	return {
+		id: opts.id ?? 'action',
+		header: '',
+		cell: opts.cell,
+		size: opts.size ?? 60,
+		enableSorting: false,
+		enableHiding: false,
+		enableResizing: false,
+	}
 }
 
 /**
@@ -87,15 +87,17 @@ export function actionColumn<TData>(opts: {
  * ch.accessor('name', textColumn({ header: 'Nama', size: 200 }))
  * ```
  */
-export function textColumn<TData>(opts: { header: string } & ColumnOptions): Partial<ColumnDef<TData, string>> {
-  return {
-    header: opts.header,
+export function textColumn<TData>(
+	opts: { header: string } & ColumnOptions,
+): Partial<ColumnDef<TData, string>> {
+	return {
+		header: opts.header,
 
-    cell: ({ getValue }: CellContext<TData, string>) => getValue() ?? '-',
-    enableSorting: opts.enableSorting ?? false,
-    size: opts.size,
-    meta: opts.meta,
-  }
+		cell: ({ getValue }: CellContext<TData, string>) => getValue() ?? '-',
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: opts.meta,
+	}
 }
 
 /**
@@ -110,15 +112,15 @@ export function textColumn<TData>(opts: { header: string } & ColumnOptions): Par
  * ```
  */
 export function statusColumn<TData, TValue>(
-  opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
+	opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions,
 ): Partial<ColumnDef<TData, TValue>> {
-  return {
-    header: opts.header,
-    cell: ({ getValue, row }: CellContext<TData, TValue>) => opts.render(getValue(), row.original),
-    enableSorting: opts.enableSorting ?? false,
-    size: opts.size,
-    meta: opts.meta,
-  }
+	return {
+		header: opts.header,
+		cell: ({ getValue, row }: CellContext<TData, TValue>) => opts.render(getValue(), row.original),
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: opts.meta,
+	}
 }
 
 /**
@@ -133,19 +135,19 @@ export function statusColumn<TData, TValue>(
  * ```
  */
 export function numericColumn<TData>(
-  opts: { header: string; format?: (value: number) => string } & ColumnOptions,
+	opts: { header: string; format?: (value: number) => string } & ColumnOptions,
 ): Partial<ColumnDef<TData, number>> {
-  return {
-    header: opts.header,
-    cell: ({ getValue }: CellContext<TData, number>) => {
-      const value = getValue()
+	return {
+		header: opts.header,
+		cell: ({ getValue }: CellContext<TData, number>) => {
+			const value = getValue()
 
-      if (value == null) return '-'
-      const formatted = opts.format ? opts.format(value) : String(value)
-      return <p className="text-right tabular-nums">{formatted}</p>
-    },
-    enableSorting: opts.enableSorting ?? false,
-    size: opts.size,
-    meta: { className: 'text-right', ...opts.meta },
-  }
+			if (value == null) return '-'
+			const formatted = opts.format ? opts.format(value) : String(value)
+			return <p className="text-right tabular-nums">{formatted}</p>
+		},
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: { className: 'text-right', ...opts.meta },
+	}
 }

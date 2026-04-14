@@ -1,20 +1,18 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "semi": false,
-  "singleQuote": true,
-  "trailingComma": "all",
-  "printWidth": 100,
-  "tabWidth": 2,
-  "sortPackageJson": true,
-  "objectWrap": "preserve",
-  "useTabs": true,
-  "ignorePatterns": ["**/*.lock", ".agents/**", "./docs/**", "node_modules"],
-  "overrides": [
-    {
-      "files": ["apps/web/**/*"],
-      "options": {
-        "sortImports": []
-      }
-    }
-  ]
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"semi": false,
+	"singleQuote": true,
+	"trailingComma": "all",
+	"printWidth": 100,
+	"tabWidth": 2,
+	"sortPackageJson": true,
+	"objectWrap": "preserve",
+	"useTabs": true,
+	"ignorePatterns": ["**/*.lock", ".agents/**", "./docs/**", "node_modules"],
+	"overrides": [
+		{
+			"files": ["apps/web/**/*"],
+			"options": {}
+		}
+	]
 }
