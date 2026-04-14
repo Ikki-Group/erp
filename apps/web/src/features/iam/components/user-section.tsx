@@ -1,3 +1,7 @@
+import { useCallback } from 'react'
+
+import { useRouter } from '@tanstack/react-router'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
 	DropdownMenu,
@@ -25,6 +29,12 @@ export function UserSection() {
 	const { isMobile } = useSidebar()
 	const user = useUser()
 	const { clearToken } = useAppState()
+	const router = useRouter()
+
+	const logout = useCallback(() => {
+		clearToken()
+		router.invalidate()
+	}, [clearToken, router])
 
 	return (
 		<SidebarMenu>
@@ -78,9 +88,7 @@ export function UserSection() {
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							onSelect={() => {
-								clearToken()
-							}}
+							onSelect={logout}
 							className="gap-2 text-destructive focus:bg-destructive/10"
 						>
 							<LogOutIcon className="size-4" />

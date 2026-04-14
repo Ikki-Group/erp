@@ -68,7 +68,7 @@ function Title({
 		defaultTagName: 'h1',
 		props: mergeProps<'h1'>(
 			{
-				className: cn('text-xl font-bold tracking-tight text-foreground/90 lg:text-2xl', className),
+				className: cn('text-xl font-bold tracking-tight text-foreground/90 lg:text-2xl lg:tracking-[-0.5px]', className),
 			},
 			props,
 		),
@@ -84,7 +84,7 @@ function Description({
 	return useRender({
 		defaultTagName: 'p',
 		props: mergeProps<'p'>(
-			{ className: cn('text-muted-foreground/80 text-sm leading-relaxed max-w-2xl', className) },
+			{ className: cn('text-muted-foreground/70 text-sm leading-relaxed max-w-2xl', className) },
 			props,
 		),
 		render,

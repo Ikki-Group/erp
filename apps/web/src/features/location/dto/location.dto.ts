@@ -1,7 +1,7 @@
 import {
-	zCodeUpper,
 	zMetadataDto,
 	zPaginationDto,
+	zQuerySearch,
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
@@ -24,8 +24,8 @@ export type LocationTypeDto = z.infer<typeof LocationTypeDto>
  * Common Location attributes.
  */
 export const LocationBaseDto = z.object({
-	code: zCodeUpper.min(2).max(20),
-	name: zStr.min(2).max(100),
+	code: zStr,
+	name: zStr,
 	type: LocationTypeDto,
 	description: zStrNullable,
 	address: zStrNullable,
@@ -61,7 +61,7 @@ export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
  */
 export const LocationFilterDto = z.object({
 	...zPaginationDto.shape,
-	q: z.string().optional(),
+	q: zQuerySearch,
 	type: LocationTypeDto.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

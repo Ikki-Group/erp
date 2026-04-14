@@ -88,12 +88,12 @@ function FormSection({
 	const content = (
 		<div className={cn('flex flex-col gap-6 animate-enter', className)} {...props}>
 			{(title ?? description) && (
-				<div className="space-y-1.5 px-1">
+				<div className="space-y-2 px-1">
 					{title && (
-						<h3 className="text-xl font-bold tracking-tight text-foreground/90">{title}</h3>
+						<h3 className="text-xl font-bold tracking-tight lg:tracking-[-0.5px] text-foreground/90">{title}</h3>
 					)}
 					{description && (
-						<p className="text-sm text-muted-foreground/80 leading-relaxed max-w-2xl">
+						<p className="text-sm text-muted-foreground/70 leading-relaxed max-w-2xl">
 							{description}
 						</p>
 					)}
@@ -120,7 +120,7 @@ function FormActions({
 		props: mergeProps<'div'>(
 			{
 				className: cn(
-					'flex items-center justify-end gap-3 pt-6 border-t mt-4 sticky bottom-0 bg-background/80 backdrop-blur-md pb-6 -mx-6 px-12 z-10',
+					'flex items-center justify-end gap-3 pt-6 border-t border-border/60 mt-4 sticky bottom-0 bg-background/80 backdrop-blur-xl pb-6 -mx-6 px-12 z-10',
 					className,
 				),
 			},
@@ -151,14 +151,14 @@ function FormCardSection({
 	return (
 		<Card
 			className={cn(
-				'overflow-hidden transition-all duration-300 border-border/50 hover:border-primary/30 hover:shadow-lg shadow-sm/5',
+				'overflow-hidden transition-all duration-300 border-border/60 hover:border-border shadow-card hover:shadow-deep',
 				className,
 			)}
 			size="sm"
 			{...props}
 		>
 			{(title ?? description) && (
-				<CardHeader className="border-b bg-muted/20 pb-5">
+				<CardHeader className="border-b border-border/60 bg-muted/30 pb-5">
 					{title && <CardTitle className="text-lg font-bold tracking-tight">{title}</CardTitle>}
 					{description && (
 						<CardDescription className="text-sm text-muted-foreground/70">
@@ -170,7 +170,7 @@ function FormCardSection({
 			<CardContent className="pt-8 px-8">
 				<div className="flex flex-col gap-8">{children}</div>
 			</CardContent>
-			{footer && <CardFooter className="border-t bg-muted/5 px-8 py-4">{footer}</CardFooter>}
+			{footer && <CardFooter className="border-t border-border/60 bg-muted/10 px-8 py-4">{footer}</CardFooter>}
 		</Card>
 	)
 }

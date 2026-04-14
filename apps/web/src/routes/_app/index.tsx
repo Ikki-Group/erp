@@ -96,7 +96,7 @@ function Dashboard() {
 				description="Pantau performa bisnis real-time dari seluruh outlet Ikki Group."
 			/>
 
-			<Page.Content className="mt-2 space-y-6">
+			<Page.Content className="mt-2 space-y-8">
 				{/* KPI Cards */}
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<CardStat
@@ -104,7 +104,6 @@ function Dashboard() {
 						value="Rp 8.800.000"
 						description="+15% vs kemarin"
 						icon={DollarSignIcon}
-						className="border-primary/20 bg-primary/5"
 					/>
 					<CardStat
 						title="Total HPP (COGS)"
@@ -117,14 +116,12 @@ function Dashboard() {
 						value="54.6%"
 						description="Trend naik 2.1%"
 						icon={TrendingUpIcon}
-						className="text-success"
 					/>
 					<CardStat
 						title="Stok Menipis"
 						value="12 Item"
 						description="Butuh restock"
 						icon={AlertCircleIcon}
-						className="text-destructive"
 					/>
 				</div>
 
@@ -194,8 +191,8 @@ function Dashboard() {
 				</ChartGrid>
 
 				{/* Action Panels */}
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 pb-10">
-					<div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 pb-12">
+					<div className="rounded-xl border bg-card text-card-foreground shadow-card">
 						<div className="p-6 pb-3 flex items-center justify-between">
 							<h3 className="font-semibold leading-none tracking-tight">Peringatan Stok Rendah</h3>
 							<Button variant="ghost" size="sm" className="text-xs">
@@ -229,10 +226,10 @@ function Dashboard() {
 						</div>
 					</div>
 
-					<div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+					<div className="rounded-xl border bg-card text-card-foreground shadow-card">
 						<div className="p-6 pb-3 flex items-center justify-between">
 							<h3 className="font-semibold leading-none tracking-tight">Menunggu Persetujuan</h3>
-							<Badge variant="secondary" className="bg-primary/10 text-primary border-none">
+							<Badge variant="secondary" className="bg-primary/8 text-primary border-none">
 								{pendingRequests.length} Aktif
 							</Badge>
 						</div>

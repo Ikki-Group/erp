@@ -1,34 +1,19 @@
-// oxlint-disable react/no-children-prop
-import { useState } from 'react'
-
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
+import { zEmail, zPassword } from '@/lib/zod/primitive'
+
+import { useAppForm } from '@/components/form'
+
 import { Button } from '@/components/ui/button'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupButton,
-	InputGroupInput,
-} from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
+import { FieldSeparator } from '@/components/ui/field'
 
 import { authApi } from '@/features/auth'
 
 import { useAppState } from '@/hooks/use-app-state'
 
-import {
-	ArrowRightIcon,
-	CheckCircle2Icon,
-	CommandIcon,
-	EyeIcon,
-	EyeOffIcon,
-	Loader2Icon,
-	LockIcon,
-	MailIcon,
-} from 'lucide-react'
+import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -46,227 +31,180 @@ export const Route = createFileRoute('/_auth/login')({
 
 function LoginPage() {
 	return (
-		<div className="relative flex-1 grid-cols-1 grid lg:grid-cols-2 lg:px-0 bg-background">
+		<div className="relative flex min-h-svh lg:grid lg:grid-cols-2 lg:px-0">
 			<BrandingSection />
-			<LoginForm />
+			<div className="lg:p-8 flex w-full items-center justify-center bg-background">
+				<LoginForm />
+			</div>
 		</div>
 	)
 }
 
 function BrandingSection() {
 	return (
-		<div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-			<div className="absolute inset-0 bg-zinc-900" />
-			<div className="absolute inset-0 bg-linear-to-br from-zinc-900 via-zinc-800 to-black" />
+		<div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex border-r border-border/50">
+			<div className="absolute inset-0 bg-zinc-950" />
+			<div className="absolute inset-0 bg-linear-to-br from-blue-600/20 via-transparent to-blue-500/10" />
 
-			{/* Abstract Shapes */}
-			<div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
-				<div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-primary blur-[100px] animate-pulse" />
-				<div className="absolute bottom-[10%] right-[10%] w-[50%] h-[50%] rounded-full bg-blue-600 blur-[120px]" />
+			{/* Decorative Gradients */}
+			<div className="absolute inset-0 overflow-hidden">
+				<div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-blue-500/20 blur-[120px] mix-blend-screen animate-pulse" />
+				<div className="absolute bottom-[20%] right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] mix-blend-screen" />
+				<div
+					className="absolute inset-0 opacity-15"
+					style={{
+						backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)`,
+						backgroundSize: '24px 24px',
+					}}
+				/>
 			</div>
 
-			<div className="relative z-20 flex items-center text-lg font-medium">
-				<div className="rounded-lg bg-white/10 p-2 mr-2 backdrop-blur-sm border border-white/10">
-					<CommandIcon className="h-6 w-6" />
+			<div className="relative z-20 flex items-center text-xl font-bold tracking-tight">
+				<div className="rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20 p-2.5 mr-3">
+					<CommandIcon className="h-6 w-6 text-white" />
 				</div>
 				IKKI ERP
 			</div>
 
 			<div className="relative z-20 mt-auto">
-				<blockquote className="space-y-2">
-					<p className="text-lg">
-						&ldquo;Platform manajemen enterprise yang mengintegrasikan seluruh operasional bisnis
-						Anda dalam satu dashboard yang intuitif dan efisien.&rdquo;
+				<blockquote className="space-y-4 max-w-lg">
+					<p className="text-2xl font-medium leading-relaxed tracking-tight text-zinc-100">
+						&ldquo;Ecosystem manajemen enterprise modern yang membantu bisnis Anda bertransformasi
+						dengan efisiensi maksimal.&rdquo;
 					</p>
-					{/* <footer className='text-sm text-zinc-400'>
-            Department IT & Operasional
-          </footer> */}
+					<footer className="text-sm text-zinc-400 font-medium">
+						IKKI ERP — Intelligence, Key results, Knowledge, Integration.
+					</footer>
 				</blockquote>
 			</div>
 		</div>
 	)
 }
 
+const loginSchema = z.object({
+	identifier: zEmail,
+	password: zPassword,
+})
+
 function LoginForm() {
 	const { redirectTo } = Route.useSearch()
 	const navigate = Route.useNavigate()
-	const [showPassword, setShowPassword] = useState(false)
 
 	const loginMutation = useMutation({
 		mutationFn: authApi.login.mutationFn,
-		onSuccess: () =>
+		onSuccess: (resp) => {
+			const {
+				data: { token, user },
+			} = resp
+			useAppState.getState().setToken(token, user)
+
 			toast.success('Login Berhasil', {
 				description: 'Selamat datang kembali di IKKI ERP.',
-				icon: <CheckCircle2Icon className="text-green-600" />,
-			}),
+				icon: <CheckCircle2Icon className="text-green-500" />,
+			})
+
+			navigate({ to: redirectTo ?? '/' })
+		},
 		onError: () =>
 			toast.error('Login Gagal', {
 				description: 'Silakan periksa kembali email dan password Anda.',
 			}),
 	})
 
-	const form = useForm({
-		defaultValues: { email: '', password: '' },
+	const form = useAppForm({
+		defaultValues: { identifier: '', password: '' },
+		validators: {
+			onChange: loginSchema,
+		},
 		onSubmit: async ({ value }) => {
-			const resp = await loginMutation.mutateAsync({
-				body: { identifier: value.email, password: value.password },
+			await loginMutation.mutateAsync({
+				body: value,
 			})
-
-			const {
-				data: { token, user },
-			} = resp
-			useAppState.getState().setToken(token, user)
-			navigate({ to: redirectTo ?? '/' })
 		},
 	})
 
 	return (
-		<div className="lg:p-8 p-4 relative flex items-center justify-center">
-			<div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-95">
-				<div className="flex flex-col space-y-2 text-center">
-					<h1 className="text-2xl font-semibold tracking-tight">Selamat Datang</h1>
-					<p className="text-sm text-muted-foreground">
-						Masukkan email dan password Anda untuk masuk
-					</p>
-				</div>
+		<div className="mx-auto flex w-full max-w-[400px] flex-col justify-center space-y-8 p-4 sm:p-0">
+			<div className="flex flex-col space-y-2.5 text-center sm:text-left">
+				<h1 className="text-3xl font-bold tracking-[-0.75px]">Selamat Datang</h1>
+				<p className="text-muted-foreground">Masukkan kredensial Anda untuk mengakses dashboard.</p>
+			</div>
 
-				<form
-					onSubmit={(e) => {
-						e.preventDefault()
-						e.stopPropagation()
-						form.handleSubmit()
-					}}
-					className="space-y-4"
-				>
-					<form.Field
-						name="email"
-						validators={{
-							onChange: ({ value }) => {
-								const res = z.email('Email tidak valid').safeParse(value)
-								return res.success ? undefined : res.error.issues[0].message
-							},
-						}}
-						children={(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>Email</Label>
-								<InputGroup>
-									<InputGroupAddon>
-										<MailIcon />
-									</InputGroupAddon>
-									<InputGroupInput
-										id={field.name}
-										placeholder="nama@perusahaan.com"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</InputGroup>
-								{field.state.meta.errors.length > 0 && (
-									<p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
-										{field.state.meta.errors.join(', ')}
-									</p>
-								)}
-							</div>
+			<form.AppForm>
+				<form.Form className="space-y-5">
+					<form.AppField name="identifier">
+						{(field) => (
+							<field.Input
+								label="Email"
+								required
+								type="email"
+								placeholder="user@example.com"
+								autoFocus
+							/>
 						)}
-					/>
-
-					<form.Field
-						name="password"
-						validators={{
-							onChange: ({ value }) => {
-								const res = z.string().min(1, 'Password diperlukan').safeParse(value)
-								return res.success ? undefined : res.error.issues[0].message
-							},
-						}}
-						children={(field) => (
-							<div className="space-y-2">
-								<div className="flex items-center justify-between">
-									<Label htmlFor={field.name}>Password</Label>
-									<Button
-										variant="link"
-										className="h-auto p-0 text-xs font-normal text-muted-foreground hover:text-primary"
-										type="button"
-										onClick={() =>
-											toast.info('Info', {
-												description: 'Silakan hubungi administrator untuk reset password.',
-											})
-										}
-									>
-										Lupa password?
-									</Button>
-								</div>
-								<InputGroup>
-									<InputGroupAddon>
-										<LockIcon />
-									</InputGroupAddon>
-									<InputGroupInput
-										id={field.name}
-										type={showPassword ? 'text' : 'password'}
-										placeholder="••••••••"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-										autoComplete="current-password"
-									/>
-									<InputGroupAddon align="inline-end">
-										<InputGroupButton onClick={() => setShowPassword(!showPassword)} size="icon-xs">
-											{showPassword ? <EyeOffIcon /> : <EyeIcon />}
-										</InputGroupButton>
-									</InputGroupAddon>
-								</InputGroup>
-								{field.state.meta.errors.length > 0 && (
-									<p className="text-[10px] text-destructive font-medium animate-in slide-in-from-left-1">
-										{field.state.meta.errors.join(', ')}
-									</p>
-								)}
-							</div>
+					</form.AppField>
+					<form.AppField name="password">
+						{(field) => (
+							<field.Input
+								label="Password"
+								required
+								type="password"
+								autoComplete="new-password"
+								placeholder="••••••••"
+							/>
 						)}
-					/>
+					</form.AppField>
 
-					<form.Subscribe
-						selector={(state) => [state.canSubmit, state.isSubmitting]}
-						children={([canSubmit, isSubmitting]) => (
+					<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+						{([canSubmit, isSubmitting]) => (
 							<Button
 								type="submit"
+								size="lg"
 								disabled={!canSubmit || isSubmitting}
-								className="w-full h-10 font-medium"
+								className="group relative w-full overflow-hidden font-semibold transition-all hover:shadow-lg hover:shadow-primary/15 active:scale-[0.98]"
 							>
-								{isSubmitting ? (
-									<Loader2Icon className="h-4 w-4 animate-spin mr-2" />
-								) : (
-									<ArrowRightIcon className="h-4 w-4 mr-2" />
+								<div className="flex items-center justify-center gap-2">
+									{isSubmitting ? (
+										<Loader2Icon className="h-4 w-4 animate-spin" />
+									) : (
+										<>
+											<span>Masuk</span>
+											<ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+										</>
+									)}
+								</div>
+								{isSubmitting && (
+									<div className="absolute inset-0 flex items-center justify-center bg-primary">
+										<Loader2Icon className="h-5 w-5 animate-spin" />
+									</div>
 								)}
-								{isSubmitting ? 'Memproses...' : 'Masuk'}
 							</Button>
 						)}
-					/>
-				</form>
+					</form.Subscribe>
+				</form.Form>
+			</form.AppForm>
 
-				<div className="relative">
-					<div className="absolute inset-0 flex items-center">
-						<span className="w-full border-t" />
-					</div>
-					<div className="relative flex justify-center text-xs uppercase">
-						<span className="bg-background px-2 text-muted-foreground">Atau</span>
-					</div>
-				</div>
+			<FieldSeparator>Atau</FieldSeparator>
 
-				<div className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
-					<p>
-						Belum punya akun?{' '}
-						<Button
-							variant="link"
-							className="underline underline-offset-4 hover:text-primary p-0 h-auto"
-							onClick={() =>
-								toast.info('Info', {
-									description: 'Hubungi administrator sistem untuk pembuatan akun baru.',
-								})
-							}
-						>
-							Hubungi Admin
-						</Button>
-					</p>
-				</div>
+			<div className="flex flex-col space-y-4 text-center mt-4">
+				<p className="text-sm text-muted-foreground">
+					Belum punya akun?{' '}
+					<Button
+						variant="link"
+						className="p-0 h-auto font-semibold text-primary hover:underline hover:underline-offset-4"
+						onClick={() =>
+							toast.info('Pendaftaran', {
+								description: 'Hubungi administrator sistem untuk pembuatan akun baru perusahaan.',
+							})
+						}
+					>
+						Hubungi Admin
+					</Button>
+				</p>
+			</div>
+
+			<div className="text-center text-[11px] text-muted-foreground/60">
+				Dengan masuk, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.
 			</div>
 		</div>
 	)

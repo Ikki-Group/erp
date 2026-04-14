@@ -11,4 +11,4 @@ CREATE SCHEMA public;
 }
 
 // oxlint-disable-next-line unicorn/prefer-top-level-await typescript/no-floating-promises
-main()
+await main()

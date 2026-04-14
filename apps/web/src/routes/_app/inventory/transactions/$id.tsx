@@ -33,7 +33,7 @@ function RouteComponent() {
 	const removeMutation = useMutation({
 		mutationFn: stockTransactionApi.remove.mutationFn,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: stockTransactionApi.list.queryKey(undefined) })
+			queryClient.invalidateQueries({ queryKey: stockTransactionApi.list.queryKey() })
 			navigate({ to: '/inventory/transactions' })
 		},
 	})

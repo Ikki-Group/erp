@@ -9,10 +9,10 @@
 	"objectWrap": "preserve",
 	"useTabs": true,
 	"ignorePatterns": [
-		"**/*.lock",
+		"node_modules",
 		".agents/**",
 		"./docs/**",
-		"node_modules"
+		"**/*.lock",
 	],
 	"overrides": [
 		{

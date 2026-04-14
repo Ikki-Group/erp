@@ -125,7 +125,7 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 	const unassignMutation = useMutation({
 		mutationFn: materialLocationApi.unassign.mutationFn,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey(undefined) })
+			queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
 		},
 	})
 

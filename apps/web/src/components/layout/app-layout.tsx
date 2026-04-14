@@ -60,11 +60,11 @@ export function AppLayout() {
 					<UserSection />
 				</SidebarFooter>
 			</Sidebar>
-			<SidebarInset className="bg-background-secondary/30">
+			<SidebarInset className="bg-background-secondary/40">
 				<Header />
 				<InventoryAlertBanner />
 				<Suspense fallback={<LoadingPage />}>
-					<main className="flex flex-1 flex-col h-full overflow-hidden @container animate-enter">
+					<main className="flex flex-1 flex-col h-full overflow-hidden @container animate-enter" style={{ animationDelay: '80ms' }}>
 						<Outlet />
 					</main>
 				</Suspense>
@@ -84,8 +84,8 @@ function SidebarBrand() {
 				<SidebarMenuButton size="lg" render={<Link to="/" />}>
 					<IkkiLogo />
 					<div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
-						<span className="truncate font-semibold text-foreground/90">Ikki Management</span>
-						<span className="truncate text-[9px] uppercase font-bold tracking-wider text-muted-foreground/60">
+						<span className="truncate font-bold tracking-tight text-foreground/90">Ikki Management</span>
+						<span className="truncate text-micro uppercase font-bold text-muted-foreground/50">
 							Backoffice
 						</span>
 					</div>
@@ -110,7 +110,7 @@ function SidebarMenus() {
 		<div className="py-2 flex flex-col gap-1">
 			{groups.map((group) => (
 				<SidebarGroup key={group.label}>
-					<SidebarGroupLabel className="px-3 text-xs font-bold uppercase tracking-wide text-muted-foreground/80">
+					<SidebarGroupLabel className="px-3 text-badge uppercase text-muted-foreground/60">
 						{group.label}
 					</SidebarGroupLabel>
 					<SidebarMenu className="gap-1.5 px-1">
@@ -177,7 +177,7 @@ function SidebarMenus() {
 
 function Header() {
 	return (
-		<header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 transition-all duration-300 top-0 sticky bg-background/60 backdrop-blur-2xl z-20 animate-fade-in">
+		<header className="flex h-14 shrink-0 items-center gap-4 border-b border-border/60 px-4 transition-all duration-300 top-0 sticky bg-background/80 backdrop-blur-xl z-20 animate-fade-in">
 			<div className="flex items-center gap-3">
 				<SidebarTrigger variant="ghost" size="icon-lg" />
 				<Separator orientation="vertical" />
