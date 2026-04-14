@@ -1,6 +1,3 @@
-// oxlint-disable oxc/no-map-spread
-// oxlint-disable max-lines
-// oxlint-disable import/max-dependencies
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
@@ -27,6 +24,8 @@ const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 ]
 
 const cacheKey = { count: 'iam.user.count', list: 'iam.user.list', byId: (id: number) => `iam.user.byId.${id}` }
+
+const err = { notFound: (id: number) => new NotFoundError() }
 
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
@@ -335,7 +334,7 @@ export class UserService {
   async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleHardRemove', async () => {
       const [result] = await db.delete(usersTable).where(eq(usersTable.id, id)).returning({ id: usersTable.id })
-      if (!result) throw new Error('User not found')
+      if (!result) throw new Error('sad')
       await this.clearCache(id)
       return result
     })

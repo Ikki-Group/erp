@@ -29,7 +29,8 @@
     "no-inline-comments": "off"
   },
   "overrides": [
-    { "files": ["apps/server/**/*"], "rules": { "no-inline-comments": "off" } },
+    { "files": ["apps/server/**/*"], "rules": { "no-inline-comments": "off", "max-classes-per-file": "off" } },
+    { "files": ["apps/server/**/*.test.ts"], "rules": { "typescript/no-unsafe-assignment": "off", "typescript/require-await": "off", "typescript/no-unsafe-argument": "off" , "typescript/no-unsafe-return": "off", "typescript/no-unsafe-member-access": "off"} },
     {
       "files": ["apps/web/**/*"],
       "rules": {
