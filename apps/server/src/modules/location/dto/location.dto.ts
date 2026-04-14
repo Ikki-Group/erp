@@ -8,6 +8,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
+	zWithAuditResolved,
 } from '@/core/validation'
 
 /**
@@ -38,11 +39,13 @@ export type LocationBaseDto = z.infer<typeof LocationBaseDto>
 /**
  * Location database record.
  */
-export const LocationDto = z.object({
-	...zRecordIdDto.shape,
-	...LocationBaseDto.shape,
-	...zMetadataDto.shape,
-})
+export const LocationDto = zWithAuditResolved(
+	z.object({
+		...zRecordIdDto.shape,
+		...LocationBaseDto.shape,
+		...zMetadataDto.shape,
+	}).shape,
+)
 export type LocationDto = z.infer<typeof LocationDto>
 
 /**

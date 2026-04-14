@@ -11,6 +11,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zUsername,
+	zWithAuditResolved,
 } from '@/core/validation'
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
@@ -30,12 +31,14 @@ export type UserBaseDto = z.infer<typeof UserBaseDto>
 /**
  * User database record (includes related assignments).
  */
-export const UserDto = z.object({
-	...zRecordIdDto.shape,
-	...UserBaseDto.shape,
-	...zMetadataDto.shape,
-	assignments: z.array(UserAssignmentDetailDto).optional(),
-})
+export const UserDto = zWithAuditResolved(
+	z.object({
+		...zRecordIdDto.shape,
+		...UserBaseDto.shape,
+		...zMetadataDto.shape,
+		assignments: z.array(UserAssignmentDetailDto).optional(),
+	}).shape,
+)
 export type UserDto = z.infer<typeof UserDto>
 
 /**

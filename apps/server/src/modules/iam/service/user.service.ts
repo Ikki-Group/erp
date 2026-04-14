@@ -5,6 +5,7 @@ import { cache } from '@/core/cache'
 import * as core from '@/core/database'
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
+import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { LocationService } from '@/modules/location/service'
@@ -215,7 +216,8 @@ export class UserService {
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(usersTable).where(where),
 			})
-			return p
+
+			return { ...p, data: await resolveAuditList(p.data) }
 		})
 		return result
 	}
@@ -244,7 +246,8 @@ export class UserService {
 
 	// Resource detail.
 	async handleDetail(id: number): Promise<dto.UserDto> {
-		return this.getById(id)
+		const user = await this.getById(id)
+		return resolveAudit(user)
 	}
 
 	// Alias for detail retrieval, commonly used in Auth.

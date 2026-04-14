@@ -5,6 +5,7 @@ import { cache } from '@/core/cache'
 import * as core from '@/core/database'
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
+import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/location.dto'
@@ -145,7 +146,8 @@ export class LocationService {
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(locationsTable).where(where),
 			})
-			return p
+
+			return { ...p, data: await resolveAuditList(p.data) }
 		})
 		return result
 	}
@@ -154,7 +156,7 @@ export class LocationService {
 	async handleDetail(id: number): Promise<dto.LocationDto> {
 		const result = await record('LocationService.handleDetail', async () => {
 			const detail = await this.getById(id)
-			return detail
+			return resolveAudit(detail)
 		})
 		return result
 	}
