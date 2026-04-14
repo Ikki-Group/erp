@@ -1,5 +1,3 @@
-import z from 'zod'
-
 import {
 	zDate,
 	zId,
@@ -11,6 +9,8 @@ import {
 	zStr,
 	zStrNullable,
 } from '@/lib/zod'
+
+import z from 'zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

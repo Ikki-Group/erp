@@ -1,6 +1,6 @@
-import { z } from 'zod'
-
 import { zDate, zEmail, zId, zMetadataDto, zRecordIdDto } from '@/lib/zod'
+
+import { z } from 'zod'
 
 export const MokaConfigurationDto = z.object({
 	...zRecordIdDto.shape,

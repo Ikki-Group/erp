@@ -1,26 +1,38 @@
+import type { DateRange } from 'react-day-picker'
+
+import { useMemo, useState } from 'react'
+
 // oxlint-disable max-lines
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+
+import { cn } from '@/lib/utils'
+
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
+import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 import {
 	createColumnHelper,
 	currencyColumn,
 	DataGridCell,
 } from '@/components/reui/data-grid/data-grid-columns'
-import { useMemo, useState } from 'react'
 
-import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/reui/badge'
-import { DataCombobox } from '@/components/ui/data-combobox'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { DataCombobox } from '@/components/ui/data-combobox'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+
 import type { StockLedgerSelectDto } from '@/features/inventory'
 import { stockSummaryApi, stockDashboardApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
+
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { Skeleton } from '@/components/ui/skeleton'
-import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
+
+import { format, startOfMonth, startOfDay } from 'date-fns'
 import {
 	AlertCircleIcon,
 	BoxIcon,
@@ -30,11 +42,6 @@ import {
 	SearchIcon,
 	TrendingUpIcon,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { format, startOfMonth, startOfDay } from 'date-fns'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import type { DateRange } from 'react-day-picker'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 

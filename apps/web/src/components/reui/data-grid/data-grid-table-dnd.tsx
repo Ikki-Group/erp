@@ -1,22 +1,12 @@
 'use client'
 
-import {
-	DndContext,
-	KeyboardSensor,
-	MouseSensor,
-	TouchSensor,
-	closestCenter,
-	useSensor,
-	useSensors,
-} from '@dnd-kit/core'
 import type { DragEndEvent, Modifier } from '@dnd-kit/core'
-import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { flexRender } from '@tanstack/react-table'
-import type { Cell, Header, HeaderGroup, Row } from '@tanstack/react-table'
-import { GripVerticalIcon } from 'lucide-react'
+
 import { Fragment, useId, useRef } from 'react'
 import type { CSSProperties } from 'react'
+
+import { flexRender } from '@tanstack/react-table'
+import type { Cell, Header, HeaderGroup, Row } from '@tanstack/react-table'
 
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 import {
@@ -34,7 +24,21 @@ import {
 	DataGridTableHeadRowCellResize,
 	DataGridTableRowSpacer,
 } from '@/components/reui/data-grid/data-grid-table'
+
 import { Button } from '@/components/ui/button'
+
+import {
+	DndContext,
+	KeyboardSensor,
+	MouseSensor,
+	TouchSensor,
+	closestCenter,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core'
+import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVerticalIcon } from 'lucide-react'
 
 function DataGridTableDndHeader<TData>({ header }: { header: Header<TData, unknown> }) {
 	const { props } = useDataGrid()

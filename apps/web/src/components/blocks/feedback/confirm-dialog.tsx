@@ -1,4 +1,4 @@
-import { createCallable } from 'react-call'
+import { cn } from '@/lib/utils'
 
 import {
 	AlertDialog,
@@ -10,7 +10,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { cn } from '@/lib/utils'
+
+import { createCallable } from 'react-call'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

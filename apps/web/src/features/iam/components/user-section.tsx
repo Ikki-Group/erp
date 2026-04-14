@@ -1,5 +1,3 @@
-import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
-
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
 	DropdownMenu,
@@ -16,10 +14,12 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from '@/components/ui/sidebar'
+
+import { UserProfilePasswordDialog } from './user-profile-password-dialog'
 import { useAppState } from '@/hooks/use-app-state'
 import { useUser } from '@/hooks/use-user'
 
-import { UserProfilePasswordDialog } from './user-profile-password-dialog'
+import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
 
 export function UserSection() {
 	const { isMobile } = useSidebar()

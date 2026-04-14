@@ -1,7 +1,8 @@
-import z from 'zod'
+import { zStr } from '@/lib/zod'
 
 import { UserSelectDto } from '@/features/iam'
-import { zStr } from '@/lib/zod'
+
+import z from 'zod'
 
 export const LoginDto = z.object({ identifier: zStr, password: zStr })
 

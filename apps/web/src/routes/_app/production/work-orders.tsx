@@ -1,18 +1,12 @@
 import { useState } from 'react'
+
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import {
-	ActivityIcon,
-	CalendarCheckIcon,
-	CheckCircleIcon,
-	PlayIcon,
-	PlusIcon,
-	TimerIcon,
-} from 'lucide-react'
-import { toast } from 'sonner'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
+import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
 	dateColumn,
@@ -20,14 +14,9 @@ import {
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
-import { Page } from '@/components/layout/page'
+
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-import { workOrderApi } from '@/features/production/api/production.api'
-import { WorkOrderSelectDto } from '@/features/production/dto/work-order.dto'
 import {
 	Dialog,
 	DialogContent,
@@ -38,7 +27,23 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { Skeleton } from '@/components/ui/skeleton'
+
+import { workOrderApi } from '@/features/production/api/production.api'
+import { WorkOrderSelectDto } from '@/features/production/dto/work-order.dto'
+
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import {
+	ActivityIcon,
+	CalendarCheckIcon,
+	CheckCircleIcon,
+	PlayIcon,
+	PlusIcon,
+	TimerIcon,
+} from 'lucide-react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/production/work-orders')({ component: WorkOrdersPage })
 

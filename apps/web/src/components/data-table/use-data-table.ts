@@ -1,3 +1,7 @@
+import type { DataTableState, UseDataTableReturn } from './data-table-types'
+
+import { useCallback, useMemo } from 'react'
+
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -5,9 +9,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import type { OnChangeFn, PaginationState, TableOptions } from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
-
-import type { DataTableState, UseDataTableReturn } from './data-table-types'
 
 type UseDataTableProps<TData> = Omit<TableOptions<TData>, 'getCoreRowModel' | 'onStateChange'> & {
 	isLoading?: boolean

@@ -1,28 +1,33 @@
+import type { MaterialSelectDto } from '../dto'
+
+import { useMemo } from 'react'
+
 // oxlint-disable no-negated-condition
 // oxlint-disable max-lines
 import { formOptions, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
-import { AlertTriangleIcon, PlusIcon, Trash2Icon, Wand2Icon } from 'lucide-react'
-import { useMemo } from 'react'
-import { toast } from 'sonner'
-import z from 'zod'
 
-import { CardSection } from '@/components/blocks/card/card-section'
-import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
-import { Page } from '@/components/layout/page'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Table } from '@/components/ui/table'
 import { generateSku } from '@/lib/sku'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { toOptions } from '@/lib/utils'
 
+import { CardSection } from '@/components/blocks/card/card-section'
+import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/form'
+import { Page } from '@/components/layout/page'
+
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Table } from '@/components/ui/table'
+
 import { materialApi, materialCategoryApi, uomApi } from '../api'
 import { MaterialTypeDto } from '../dto'
-import type { MaterialSelectDto } from '../dto'
+
+import { AlertTriangleIcon, PlusIcon, Trash2Icon, Wand2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+import z from 'zod'
 
 const FormDto = z.object({
 	name: z.string().min(1, 'Nama bahan baku harus diisi'),

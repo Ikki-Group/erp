@@ -1,29 +1,32 @@
-// oxlint-disable max-lines
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
-import type * as React from 'react'
+import type { Option, StringOrNumber } from '@/types/common'
 import type { DateRange } from 'react-day-picker'
+
+import type * as React from 'react'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { DataComboboxProps } from '@/components/ui/data-combobox'
 import { DataCombobox } from '@/components/ui/data-combobox'
+import { DateRangePicker, type DateRangePickerProps } from '@/components/ui/date-range-picker'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
-import { DateRangePicker, type DateRangePickerProps } from '@/components/ui/date-range-picker'
 import { InputNumber } from '@/components/ui/input-number'
 import { InputPassword } from '@/components/ui/input-password'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
-import type { Option, StringOrNumber } from '@/types/common'
 
 import { useFieldContext } from './form-hook-context'
 import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from './form-tanstack'
+
+// oxlint-disable max-lines
+import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
 
 export interface BaseFieldProps {
 	label?: string

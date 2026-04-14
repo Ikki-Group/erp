@@ -1,5 +1,6 @@
-import { useNavigate } from '@tanstack/react-router'
 import type { ComponentProps } from 'react'
+
+import { useNavigate } from '@tanstack/react-router'
 
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'

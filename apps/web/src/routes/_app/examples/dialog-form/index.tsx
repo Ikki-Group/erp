@@ -2,15 +2,14 @@
 // oxlint-disable react/no-children-prop
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
+import { useState } from 'react'
+
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-form-adapter'
-import { PlusIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 import { Page } from '@/components/layout/page'
+
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -31,6 +30,10 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+
+import { PlusIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 export const Route = createFileRoute('/_app/examples/dialog-form/')({ component: DialogFormPage })
 

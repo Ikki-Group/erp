@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
+import type { MaterialSelectDto } from '..'
+
 import { useEffect, useMemo, useState } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,7 +17,8 @@ import {
 import { Input } from '@/components/ui/input'
 
 import { materialApi } from '..'
-import type { MaterialSelectDto } from '..'
+
+import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
 
 interface MaterialPickerDialogProps {
 	onConfirm: (materials: Array<MaterialSelectDto>) => void

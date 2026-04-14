@@ -1,6 +1,6 @@
-import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
+
+import { toast } from 'sonner'
 
 export function Pattern() {
 	return (

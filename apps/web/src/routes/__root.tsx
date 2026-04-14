@@ -1,15 +1,19 @@
-import * as Sentry from '@sentry/react'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { ThemeProvider } from 'next-themes'
+
+import { ApiError } from '@/lib/api'
+import type { RouteContext } from '@/lib/tanstack-router'
 
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+
 import { authApi } from '@/features/auth'
+
 import { useAppState } from '@/hooks/use-app-state'
-import { ApiError } from '@/lib/api'
-import type { RouteContext } from '@/lib/tanstack-router'
+
+import * as Sentry from '@sentry/react'
+import { ThemeProvider } from 'next-themes'
 
 export const Route = createRootRouteWithContext<RouteContext>()({
 	beforeLoad: async ({ context }) => {

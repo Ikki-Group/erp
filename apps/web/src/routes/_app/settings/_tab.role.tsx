@@ -1,6 +1,7 @@
+import { useMemo } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { PencilIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import {
@@ -9,13 +10,17 @@ import {
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+
 import { Button } from '@/components/ui/button'
+
 import { roleApi } from '@/features/iam'
 import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
 import type { RoleDto } from '@/features/iam/dto'
+
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-import { useMemo } from 'react'
+
+import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/role')({ component: RouteComponent })
 

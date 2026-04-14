@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 import {
 	zMetadataDto,
 	zPaginationDto,
@@ -8,6 +6,8 @@ import {
 	zStr,
 	zStrNullable,
 } from '@/lib/zod'
+
+import { z } from 'zod'
 
 export const SupplierDto = z.object({
 	...zRecordIdDto.shape,

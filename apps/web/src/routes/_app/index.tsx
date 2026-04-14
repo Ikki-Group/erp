@@ -1,14 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {
-	AlertCircleIcon,
-	ArrowRightIcon,
-	BoxIcon,
-	CheckCircle2Icon,
-	DollarSignIcon,
-	PackageIcon,
-	TrendingUpIcon,
-} from 'lucide-react'
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
 import {
@@ -17,6 +7,7 @@ import {
 	ChartGrid,
 } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +25,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
+
+import {
+	AlertCircleIcon,
+	ArrowRightIcon,
+	BoxIcon,
+	CheckCircle2Icon,
+	DollarSignIcon,
+	PackageIcon,
+	TrendingUpIcon,
+} from 'lucide-react'
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 export const Route = createFileRoute('/_app/')({ component: Dashboard })
 

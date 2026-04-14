@@ -1,14 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CalendarIcon, CreditCardIcon, MailIcon, MapPinIcon } from 'lucide-react'
 
 import type { DescriptionItem } from '@/components/blocks/data-display/description-list'
 import { DescriptionList } from '@/components/blocks/data-display/description-list'
-import { Grid } from '@/components/layout/primitives'
 import { Page } from '@/components/layout/page'
+import { Grid } from '@/components/layout/primitives'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { CalendarIcon, CreditCardIcon, MailIcon, MapPinIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/details/')({ component: DetailsPage })
 

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 'use client'
 
-import { Combobox as ComboboxPrimitive } from '@base-ui/react'
-import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +12,9 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from '@/components/ui/input-group'
-import { cn } from '@/lib/utils'
+
+import { Combobox as ComboboxPrimitive } from '@base-ui/react'
+import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react'
 
 function Combobox<Value, Multiple extends boolean | undefined = false>(
 	props: ComboboxPrimitive.Root.Props<Value, Multiple>,

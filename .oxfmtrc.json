@@ -8,11 +8,83 @@
 	"sortPackageJson": true,
 	"objectWrap": "preserve",
 	"useTabs": true,
-	"ignorePatterns": ["**/*.lock", ".agents/**", "./docs/**", "node_modules"],
+	"ignorePatterns": [
+		"**/*.lock",
+		".agents/**",
+		"./docs/**",
+		"node_modules"
+	],
 	"overrides": [
 		{
-			"files": ["apps/web/**/*"],
-			"options": {}
+			"files": [
+				"apps/web/**/*.{ts,tsx}"
+			],
+			"options": {
+				"sortImports": {
+					"newlinesBetween": true,
+					"internalPattern": [
+						"@/"
+					],
+					"customGroups": [
+						{
+							"groupName": "react-core",
+							"elementNamePattern": [
+								"react",
+								"react-dom",
+								"react-dom/**"
+							]
+						},
+						{
+							"groupName": "tanstack",
+							"elementNamePattern": [
+								"@tanstack/**"
+							]
+						},
+						{
+							"groupName": "config",
+							"elementNamePattern": [
+								"@/config/**"
+							]
+						},
+						{
+							"groupName": "ui",
+							"elementNamePattern": [
+								"@/components/ui/**"
+							]
+						},
+						{
+							"groupName": "components-general",
+							"elementNamePattern": [
+								"@/components/**"
+							]
+						},
+						{
+							"groupName": "lib",
+							"elementNamePattern": [
+								"@/lib/**"
+							]
+						},
+						{
+							"groupName": "internal-features",
+							"elementNamePattern": [
+								"@/features/**",
+							]
+						},
+					],
+					"groups": [
+						"type-import",
+						"react-core",
+						"tanstack",
+						"config",
+						"lib",
+						"components-general",
+						"ui",
+						"internal-features",
+						"unknown",
+						"value-external",
+					]
+				}
+			}
 		}
 	]
 }

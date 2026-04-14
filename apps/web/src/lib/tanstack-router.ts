@@ -4,11 +4,11 @@ import {
 	parseSearchWith,
 	stringifySearchWith,
 } from '@tanstack/react-router'
-import * as JSURL2 from 'jsurl2'
-
-import { routeTree } from '@/routeTree.gen'
 
 import { queryClient } from './query-client'
+import { routeTree } from '@/routeTree.gen'
+
+import * as JSURL2 from 'jsurl2'
 
 export interface RouteContext {
 	qc: QueryClient

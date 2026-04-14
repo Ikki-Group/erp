@@ -1,7 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { Suspense } from 'react'
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Page } from '@/components/layout/page'
+
 import { locationApi } from '@/features/location'
 import { LocationDetailPage } from '@/features/location/components/location-detail-page'
 

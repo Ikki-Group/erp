@@ -1,9 +1,11 @@
-import type { Table } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
+
+import type { Table } from '@tanstack/react-table'
 
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
+
 import { Card, CardAction, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 

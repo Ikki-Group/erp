@@ -1,19 +1,23 @@
+import type { RoleDto } from '../dto'
+
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
+
+import { toCodeCase } from '@/lib/formatter'
+import { toastLabelMessage } from '@/lib/toast-message'
+
+import { useAppForm } from '@/components/form'
+import { FormDialog } from '@/components/layout/form-dialog'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+
+import { roleApi } from '../api'
+
 import { SparklesIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
 import { toast } from 'sonner'
 import z from 'zod'
-
-import { useAppForm } from '@/components/form'
-import { FormDialog } from '@/components/layout/form-dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { toCodeCase } from '@/lib/formatter'
-import { toastLabelMessage } from '@/lib/toast-message'
-
-import { roleApi } from '../api'
-import type { RoleDto } from '../dto'
 
 const FormDto = z.object({
 	name: z.string().min(1, 'Nama role wajib diisi'),

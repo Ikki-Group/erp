@@ -1,8 +1,9 @@
 'use client'
 
-import type { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table'
 import { createContext, use } from 'react'
 import type { ReactNode } from 'react'
+
+import type { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table'
 
 import { cn } from '@/lib/utils'
 

@@ -1,3 +1,5 @@
+import { useMemo, useState } from 'react'
+
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -6,18 +8,19 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import { UserPlusIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+
+import { UserPlusIcon } from 'lucide-react'
 
 interface IData {
 	id: string

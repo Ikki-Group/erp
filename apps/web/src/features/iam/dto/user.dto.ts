@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 import {
 	zBool,
 	zEmail,
@@ -13,6 +11,8 @@ import {
 } from '@/lib/zod'
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
+
+import { z } from 'zod'
 
 /**
  * Common User attributes.

@@ -1,6 +1,5 @@
-import z from 'zod'
-
 import { endpoint } from '@/config/endpoint'
+
 import { apiFactory } from '@/lib/api'
 import {
 	zId,
@@ -11,6 +10,8 @@ import {
 } from '@/lib/zod'
 
 import { ProductFilterDto, ProductMutationDto, ProductSelectDto } from '../dto'
+
+import z from 'zod'
 
 export const productApi = {
 	list: apiFactory({

@@ -1,7 +1,8 @@
-import { Loader2Icon } from 'lucide-react'
 import * as React from 'react'
 
 import { Button } from './button'
+
+import { Loader2Icon } from 'lucide-react'
 
 interface ButtonLoadingProps extends React.ComponentProps<typeof Button> {
 	loading?: boolean

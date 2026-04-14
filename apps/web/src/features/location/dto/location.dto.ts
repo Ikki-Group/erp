@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 import {
 	zCodeUpper,
 	zMetadataDto,
@@ -8,6 +6,8 @@ import {
 	zStr,
 	zStrNullable,
 } from '@/lib/zod'
+
+import { z } from 'zod'
 
 /**
  * Types of operational locations.

@@ -1,13 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import {
-	Building2Icon,
-	InfoIcon,
-	MapPinIcon,
-	PencilIcon,
-	StoreIcon,
-	WarehouseIcon,
-} from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
@@ -19,13 +11,24 @@ import {
 	dateColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+
 import { Button } from '@/components/ui/button'
+
 import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
+import type { LocationTypeDto } from '@/features/location/dto'
+
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
-import type { LocationTypeDto } from '@/features/location/dto'
+import {
+	Building2Icon,
+	InfoIcon,
+	MapPinIcon,
+	PencilIcon,
+	StoreIcon,
+	WarehouseIcon,
+} from 'lucide-react'
 
 export const Route = createFileRoute('/_app/location/')({ component: RouteComponent })
 

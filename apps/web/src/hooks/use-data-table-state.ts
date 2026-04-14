@@ -1,7 +1,8 @@
-import type { OnChangeFn } from '@tanstack/react-table'
+import type { DataTableFilters, DataTablePagination } from '@/types/data-table-types'
+
 import { useState } from 'react'
 
-import type { DataTableFilters, DataTablePagination } from '@/types/data-table-types'
+import type { OnChangeFn } from '@tanstack/react-table'
 
 const DEFAULT_PAGINATION: DataTablePagination = { page: 1, limit: 10 }
 

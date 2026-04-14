@@ -1,3 +1,8 @@
+import type { DataTableState } from './use-data-table-state'
+import type { DataTableFilters } from '@/types/data-table-types'
+
+import { useCallback, useMemo } from 'react'
+
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -5,11 +10,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import type { OnChangeFn, PaginationState, Table, TableOptions } from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
-
-import type { DataTableFilters } from '@/types/data-table-types'
-
-import type { DataTableState } from './use-data-table-state'
 
 export type UseDataTableProps<TData, TFilter extends DataTableFilters = {}> = Omit<
 	TableOptions<TData>,

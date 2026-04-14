@@ -1,6 +1,6 @@
-import { createContext, use } from 'react'
-
 import type { UseDataTableReturn } from './data-table-types'
+
+import { createContext, use } from 'react'
 
 export const DataTableContext = createContext<UseDataTableReturn<any> | null>(null)
 

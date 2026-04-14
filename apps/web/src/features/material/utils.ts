@@ -1,6 +1,6 @@
-import type { BadgeDotProps } from '@/components/blocks/data-display/badge-dot'
-
 import type { MaterialTypeDto } from './dto'
+
+import type { BadgeDotProps } from '@/components/blocks/data-display/badge-dot'
 
 export const MaterialBadgeProps = {
 	raw: { variant: 'success-outline', children: 'Bahan Mentah' },

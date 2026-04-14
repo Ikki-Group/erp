@@ -1,8 +1,9 @@
 import { Component } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
-import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+
+import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react'
 
 interface Props {
 	children?: ReactNode

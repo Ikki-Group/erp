@@ -1,15 +1,18 @@
-import { mergeProps } from '@base-ui/react/merge-props'
-import { useRender } from '@base-ui/react/use-render'
+import type { VariantProps } from 'class-variance-authority'
+
+import * as React from 'react'
+
 import { Link } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
-import { cva } from 'class-variance-authority'
-import type { VariantProps } from 'class-variance-authority'
-import { ArrowLeftIcon } from 'lucide-react'
-import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
 import { Button } from '../ui/button'
+
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
+import { cva } from 'class-variance-authority'
+import { ArrowLeftIcon } from 'lucide-react'
 
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */

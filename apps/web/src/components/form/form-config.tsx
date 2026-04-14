@@ -1,6 +1,7 @@
-import type { LinkOptions } from '@tanstack/react-router'
 import { createContext, use } from 'react'
 import type { PropsWithChildren } from 'react'
+
+import type { LinkOptions } from '@tanstack/react-router'
 
 export type FormConfigProps = { mode: 'create' | 'update'; id?: number; backTo?: LinkOptions }
 

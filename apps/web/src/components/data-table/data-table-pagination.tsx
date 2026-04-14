@@ -1,5 +1,6 @@
-import { ChevronLeftIcon, ChevronRightIcon, MinusIcon } from 'lucide-react'
 import type { ComponentProps } from 'react'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -9,11 +10,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
 
 import { Skeleton } from '../ui/skeleton'
 import { DEFAULT_PAGE_SIZE_OPTIONS } from './data-table-config'
 import { useDataTableContext } from './data-table-context'
+
+import { ChevronLeftIcon, ChevronRightIcon, MinusIcon } from 'lucide-react'
 
 interface DataTablePaginationProps extends ComponentProps<'div'> {
 	pageSizeOptions?: Array<number>

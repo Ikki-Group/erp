@@ -1,6 +1,7 @@
+import { Suspense } from 'react'
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
-import { Suspense } from 'react'
 
 import { initSentry } from '@/lib/sentry'
 import { queryClient } from '@/lib/tanstack-query'

@@ -1,6 +1,9 @@
-// oxlint-disable typescript/ban-ts-comment
-import { SearchIcon, XIcon } from 'lucide-react'
+import type { DataTableState } from '@/hooks/use-data-table-state'
+import type { Option, StringOrNumber } from '@/types/common'
+
 import * as React from 'react'
+
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,10 +14,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
-import type { DataTableState } from '@/hooks/use-data-table-state'
-import { cn } from '@/lib/utils'
-import type { Option, StringOrNumber } from '@/types/common'
+
 import { useDebounce } from '@uidotdev/usehooks'
+// oxlint-disable typescript/ban-ts-comment
+import { SearchIcon, XIcon } from 'lucide-react'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

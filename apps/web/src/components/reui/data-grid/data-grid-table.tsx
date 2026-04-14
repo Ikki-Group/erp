@@ -1,16 +1,20 @@
-// oxlint-disable max-lines
-// oxlint-disable typescript/no-confusing-void-expression
-import { flexRender } from '@tanstack/react-table'
-import type { Cell, Column, Header, HeaderGroup, Row } from '@tanstack/react-table'
-import { cva } from 'class-variance-authority'
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable no-shadow */
 import { Fragment } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
-import { useDataGrid } from '@/components/reui/data-grid/data-grid'
-import { Checkbox } from '@/components/ui/checkbox'
+// oxlint-disable max-lines
+// oxlint-disable typescript/no-confusing-void-expression
+import { flexRender } from '@tanstack/react-table'
+import type { Cell, Column, Header, HeaderGroup, Row } from '@tanstack/react-table'
+
 import { cn } from '@/lib/utils'
+
+import { useDataGrid } from '@/components/reui/data-grid/data-grid'
+
+import { Checkbox } from '@/components/ui/checkbox'
+
+import { cva } from 'class-variance-authority'
 
 const headerCellSpacingVariants = cva('', {
 	variants: { size: { dense: 'px-2 h-8', default: 'px-3' } },

@@ -1,6 +1,35 @@
+import { useState } from 'react'
+
 // oxlint-disable max-lines
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
+
+import { cn } from '@/lib/utils'
+
+import { CardSection } from '@/components/blocks/card/card-section'
+import { DataList } from '@/components/blocks/data-display/data-list'
+import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
+
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { ButtonLoading } from '@/components/ui/button-loading'
+import { Separator } from '@/components/ui/separator'
+
+import { userApi, userAssignmentApi } from '@/features/iam'
+
+import { locationApi } from '../api'
+import { LocationAssignMemberDialog } from './location-assign-member-dialog'
+
 import {
 	AlertTriangleIcon,
 	Building2Icon,
@@ -19,31 +48,7 @@ import {
 	UserPlusIcon,
 	UsersIcon,
 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
-
-import { CardSection } from '@/components/blocks/card/card-section'
-import { DataList } from '@/components/blocks/data-display/data-list'
-import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/reui/badge'
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { ButtonLoading } from '@/components/ui/button-loading'
-import { Separator } from '@/components/ui/separator'
-import { userApi, userAssignmentApi } from '@/features/iam'
-import { cn } from '@/lib/utils'
-
-import { locationApi } from '../api'
-import { LocationAssignMemberDialog } from './location-assign-member-dialog'
 
 interface LocationDetailPageProps {
 	id: number

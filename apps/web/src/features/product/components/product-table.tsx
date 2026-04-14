@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { PencilIcon, PlusIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import {
@@ -12,13 +11,18 @@ import {
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+
 import { locationApi } from '@/features/location'
-import type { ProductFilterDto, ProductSelectDto } from '@/features/product/dto'
 import { productApi, productCategoryApi } from '@/features/product/api'
+import type { ProductFilterDto, ProductSelectDto } from '@/features/product/dto'
+
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import { PencilIcon, PlusIcon } from 'lucide-react'
 
 const ch = createColumnHelper<ProductSelectDto>()
 

@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ActivityIcon, CreditCardIcon, DollarSignIcon, UsersIcon } from 'lucide-react'
 
 import { Page } from '@/components/layout/page'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { ActivityIcon, CreditCardIcon, DollarSignIcon, UsersIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/dashboard/')({ component: DashboardPage })
 

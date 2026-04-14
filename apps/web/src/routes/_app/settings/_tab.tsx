@@ -1,12 +1,15 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
-import { ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 import type { CardStatProps } from '@/components/blocks/card/card-stat'
 import { CardStat } from '@/components/blocks/card/card-stat'
 import { Page } from '@/components/layout/page'
+
 import { Tabs } from '@/components/ui/tabs'
+
 import { settingsApi } from '@/features/dashboard/api/settings.api'
+
+import { ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 const TABS = [
 	['Pengguna', '/settings/user'],

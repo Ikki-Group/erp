@@ -1,10 +1,14 @@
-import { Link, Outlet, useLocation } from '@tanstack/react-router'
-import { ChevronRightIcon } from 'lucide-react'
 import { Suspense, useMemo } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
+import { Link, Outlet, useLocation } from '@tanstack/react-router'
+
+import { getAppMenu } from '@/config/app-menu'
 
 import { IkkiLogo } from '@/components/blocks/brand/logo'
 import { LoadingPage } from '@/components/blocks/feedback/loading-page'
 import { ThemeSwitcher } from '@/components/providers/theme'
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
 	Sidebar,
@@ -23,17 +27,18 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { getAppMenu } from '@/config/app-menu'
+
 import { UserSection } from '@/features/iam/components/user-section'
-import { useAppState } from '@/hooks/use-app-state'
+import { stockAlertApi } from '@/features/inventory/api/inventory.api'
+import { InventoryAlertBanner } from '@/features/inventory/components/inventory-alert-banner'
+import { LocationSwitcher } from '@/features/location/components/location-switcher'
 
 import { Separator } from '../ui/separator'
-import { LocationSwitcher } from '@/features/location/components/location-switcher'
-import { Breadcrumbs } from './breadcrumbs'
-import { InventoryAlertBanner } from '@/features/inventory/components/inventory-alert-banner'
-import { useQuery } from '@tanstack/react-query'
-import { stockAlertApi } from '@/features/inventory/api/inventory.api'
 import { SidebarMenuBadge } from '../ui/sidebar'
+import { Breadcrumbs } from './breadcrumbs'
+import { useAppState } from '@/hooks/use-app-state'
+
+import { ChevronRightIcon } from 'lucide-react'
 
 /* -------------------------------------------------------------------------- */
 /*  AppLayout                                                                 */

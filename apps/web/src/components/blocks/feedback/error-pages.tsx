@@ -1,4 +1,10 @@
 import { Link } from '@tanstack/react-router'
+
+import { Inline, Stack } from '@/components/layout/primitives'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+
 import {
 	AlertTriangleIcon,
 	ArrowLeftIcon,
@@ -7,10 +13,6 @@ import {
 	RefreshCwIcon,
 	ServerCrashIcon,
 } from 'lucide-react'
-
-import { Inline, Stack } from '@/components/layout/primitives'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
 interface ErrorPageProps {
 	title: string

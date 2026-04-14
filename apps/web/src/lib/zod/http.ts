@@ -1,6 +1,6 @@
-import { z } from 'zod'
-
 import { zId, zNumCoerce, zStr } from './primitive'
+
+import { z } from 'zod'
 
 /** Coerces a query-string value to a positive integer ID */
 export const zQueryId = zId

@@ -1,8 +1,24 @@
 // oxlint-disable react/no-children-prop
+import { useState } from 'react'
+
 import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
+
+import { Button } from '@/components/ui/button'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from '@/components/ui/input-group'
+import { Label } from '@/components/ui/label'
+
+import { authApi } from '@/features/auth'
+
+import { useAppState } from '@/hooks/use-app-state'
+
 import {
 	ArrowRightIcon,
 	CheckCircle2Icon,
@@ -13,20 +29,8 @@ import {
 	LockIcon,
 	MailIcon,
 } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
-
-import { Button } from '@/components/ui/button'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupButton,
-	InputGroupInput,
-} from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
-import { authApi } from '@/features/auth'
-import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_auth/login')({
 	validateSearch: zodValidator(

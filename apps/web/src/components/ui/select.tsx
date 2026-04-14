@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 'use client'
 
-import { Select as SelectPrimitive } from '@base-ui/react/select'
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
+
+import { Select as SelectPrimitive } from '@base-ui/react/select'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
 function Select<Value, Multiple extends boolean | undefined = false>(
 	props: SelectPrimitive.Root.Props<Value, Multiple>,

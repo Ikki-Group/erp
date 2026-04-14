@@ -1,6 +1,5 @@
-import z from 'zod'
-
 import { endpoint } from '@/config/endpoint'
+
 import { apiFactory } from '@/lib/api'
 import {
 	createPaginatedResponseSchema,
@@ -11,6 +10,8 @@ import {
 } from '@/lib/zod'
 
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
+
+import z from 'zod'
 
 export const roleApi = {
 	list: apiFactory({

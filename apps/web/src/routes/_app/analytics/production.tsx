@@ -1,6 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircleIcon, ClockIcon, FactoryIcon, SettingsIcon, TrendingUpIcon } from 'lucide-react'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
 import {
@@ -9,6 +7,7 @@ import {
 	ChartGrid,
 } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
+
 import {
 	ChartContainer,
 	ChartLegend,
@@ -16,6 +15,9 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
+
+import { CheckCircleIcon, ClockIcon, FactoryIcon, SettingsIcon, TrendingUpIcon } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 export const Route = createFileRoute('/_app/analytics/production')({
 	component: AnalyticsProductionPage,

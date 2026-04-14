@@ -1,8 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Page } from '@/components/layout/page'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
+
+import { PlusIcon, Trash2Icon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/complex-form/')({ component: ComplexFormPage })
 

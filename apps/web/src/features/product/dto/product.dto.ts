@@ -1,5 +1,3 @@
-import z from 'zod'
-
 import {
 	zBool,
 	zDecimal,
@@ -14,6 +12,8 @@ import {
 } from '@/lib/zod'
 
 import { ProductCategoryDto } from './product-category.dto'
+
+import z from 'zod'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

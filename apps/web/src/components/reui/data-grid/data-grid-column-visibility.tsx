@@ -1,5 +1,6 @@
-import type { Table } from '@tanstack/react-table'
 import type { ReactElement } from 'react'
+
+import type { Table } from '@tanstack/react-table'
 
 import {
 	DropdownMenu,

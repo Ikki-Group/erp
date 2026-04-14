@@ -1,6 +1,5 @@
-import z from 'zod'
-
 import { endpoint } from '@/config/endpoint'
+
 import { apiFactory } from '@/lib/api'
 import {
 	createPaginatedResponseSchema,
@@ -10,6 +9,8 @@ import {
 } from '@/lib/zod'
 
 import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
+
+import z from 'zod'
 
 export const locationApi = {
 	list: apiFactory({

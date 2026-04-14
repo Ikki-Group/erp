@@ -1,4 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
+
+import type { CardStatProps } from '@/components/blocks/card/card-stat'
+import { CardStat } from '@/components/blocks/card/card-stat'
+import { Page } from '@/components/layout/page'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Table } from '@/components/ui/table'
+import { Tabs } from '@/components/ui/tabs'
+
 import {
 	MapPinIcon,
 	MoreHorizontalIcon,
@@ -6,16 +18,6 @@ import {
 	ShieldEllipsisIcon,
 	UsersIcon,
 } from 'lucide-react'
-
-import type { CardStatProps } from '@/components/blocks/card/card-stat'
-import { CardStat } from '@/components/blocks/card/card-stat'
-import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Table } from '@/components/ui/table'
-import { Tabs } from '@/components/ui/tabs'
 
 export const Route = createFileRoute('/_app/examples/page-new')({ component: RouteComponent })
 

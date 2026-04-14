@@ -1,25 +1,30 @@
+import type { UserSelectDto } from '../dto'
+
 import { useStore } from '@tanstack/react-form'
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
-import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
-import { toast } from 'sonner'
-import z from 'zod'
+
+import { toastLabelMessage } from '@/lib/toast-message'
+import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/zod'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'
 import { Page } from '@/components/layout/page'
+
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { toastLabelMessage } from '@/lib/toast-message'
-import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/zod'
 
 import { roleApi } from '@/features/iam/api/role.api'
 import { locationApi } from '@/features/location/api/location.api'
+
 import { userApi } from '../api'
-import type { UserSelectDto } from '../dto'
+
+import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+import z from 'zod'
 
 /* -------------------------------------------------------------------------- */
 /*  Schema & Defaults                                                         */

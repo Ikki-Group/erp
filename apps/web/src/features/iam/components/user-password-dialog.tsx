@@ -1,14 +1,16 @@
 import { formOptions } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { createCallable } from 'react-call'
-import { toast } from 'sonner'
-import z from 'zod'
+
+import { toastLabelMessage } from '@/lib/toast-message'
 
 import { useAppForm } from '@/components/form'
 import { FormDialog } from '@/components/layout/form-dialog'
-import { toastLabelMessage } from '@/lib/toast-message'
 
 import { userApi } from '../api'
+
+import { createCallable } from 'react-call'
+import { toast } from 'sonner'
+import z from 'zod'
 
 const FormDto = z.object({ password: z.string().min(8) })
 

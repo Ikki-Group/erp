@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 
+import { cn } from '@/lib/utils'
+
 import type { DescriptionItem } from '@/components/blocks/data-display/description-list'
 import { DescriptionList } from '@/components/blocks/data-display/description-list'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

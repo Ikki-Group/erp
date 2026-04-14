@@ -1,13 +1,16 @@
-import { flexRender } from '@tanstack/react-table'
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from 'lucide-react'
 import type { ComponentProps } from 'react'
+
+import { flexRender } from '@tanstack/react-table'
+
+import { cn } from '@/lib/utils'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
 
 import { useDataTableContext } from './data-table-context'
 import { getCommonPinningStyles } from './data-table-utils'
+
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from 'lucide-react'
 
 interface DataTableTableProps extends ComponentProps<'table'> {}
 

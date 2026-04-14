@@ -1,10 +1,11 @@
+import type { InputNumberProps } from './input-number'
+
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
 import { InputGroup, InputGroupAddon } from './input-group'
 import { InputNumber } from './input-number'
-import type { InputNumberProps } from './input-number'
 
 export interface InputCurrencyProps extends InputNumberProps {
 	/**

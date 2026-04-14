@@ -1,3 +1,7 @@
+import type { VariantProps } from 'class-variance-authority'
+
+import { useMemo, useState } from 'react'
+
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -6,18 +10,18 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import type { ColumnDef, ExpandedState, PaginationState, SortingState } from '@tanstack/react-table'
-import type { VariantProps } from 'class-variance-authority'
-import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/reui/badge'
 import { DataGrid, DataGridContainer } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
 import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+
+import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react'
 
 interface OrderItemData {
 	id: string

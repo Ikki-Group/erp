@@ -1,6 +1,9 @@
-import { Link, useLocation } from '@tanstack/react-router'
 import * as React from 'react'
 import { useMemo } from 'react'
+
+import { Link, useLocation } from '@tanstack/react-router'
+
+import { getAppMenu } from '@/config/app-menu'
 
 import {
 	Breadcrumb,
@@ -10,7 +13,6 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { getAppMenu } from '@/config/app-menu'
 
 export function Breadcrumbs() {
 	const { pathname } = useLocation()

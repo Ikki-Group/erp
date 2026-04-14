@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { PencilIcon } from 'lucide-react'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
@@ -12,12 +11,17 @@ import {
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
+
 import { Button } from '@/components/ui/button'
+
 import type { SalesTypeDto } from '@/features/product'
 import { salesTypeApi } from '@/features/product'
 import { SalesTypeFormDialog } from '@/features/product/components/sales-type-form-dialog'
+
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/product/sales-type')({ component: RouteComponent })
 

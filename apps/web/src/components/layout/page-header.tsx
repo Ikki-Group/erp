@@ -1,8 +1,10 @@
-import { useRender } from '@base-ui/react/use-render'
-import { Link } from '@tanstack/react-router'
 import * as React from 'react'
 import { Fragment } from 'react'
 import type { ReactNode } from 'react'
+
+import { Link } from '@tanstack/react-router'
+
+import { cn } from '@/lib/utils'
 
 import {
 	Breadcrumb,
@@ -12,7 +14,8 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { cn } from '@/lib/utils'
+
+import { useRender } from '@base-ui/react/use-render'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
