@@ -6,7 +6,7 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { LocationService } from '@/modules/location/service'
 import * as dto from '../dto/user.dto'
 import * as assignmentDto from '../dto/user-assignment.dto'
@@ -25,7 +25,11 @@ const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 
 const cacheKey = { count: 'iam.user.count', list: 'iam.user.list', byId: (id: number) => `iam.user.byId.${id}` }
 
-const err = { notFound: (id: number) => new NotFoundError() }
+const err = {
+  notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
+  createFailed: () => new InternalServerError('User creation failed', 'USER_CREATE_FAILED'),
+  oldPasswordMismatch: () => new BadRequestError('Old password does not match', 'USER_OLD_PASSWORD_MISMATCH'),
+}
 
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
@@ -241,7 +245,7 @@ export class UserService {
         return [u]
       })
 
-      if (!inserted) throw new Error('Create failed')
+      if (!inserted) throw err.createFailed()
       await this.clearCache()
       return inserted
     })
@@ -300,10 +304,10 @@ export class UserService {
   async handleChangePassword(id: number, data: dto.UserChangePasswordDto, actorId: number): Promise<{ id: number }> {
     return record('UserService.handleChangePassword', async () => {
       const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1)
-      if (!user) throw new NotFoundError('User not found', 'USER_NOT_FOUND')
+      if (!user) throw err.notFound(id)
 
       const isMatch = await Bun.password.verify(data.oldPassword, user.passwordHash)
-      if (!isMatch) throw new BadRequestError('Old password does not match', 'USER_OLD_PASSWORD_MISMATCH')
+      if (!isMatch) throw err.oldPasswordMismatch()
 
       const passwordHash = await Bun.password.hash(data.newPassword)
       await db
@@ -324,7 +328,7 @@ export class UserService {
         .set({ deletedAt: new Date(), deletedBy: actorId })
         .where(eq(usersTable.id, id))
         .returning({ id: usersTable.id })
-      if (!result) throw new Error('User not found')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })
@@ -334,7 +338,7 @@ export class UserService {
   async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('UserService.handleHardRemove', async () => {
       const [result] = await db.delete(usersTable).where(eq(usersTable.id, id)).returning({ id: usersTable.id })
-      if (!result) throw new Error('sad')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })

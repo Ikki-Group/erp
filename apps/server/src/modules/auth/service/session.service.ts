@@ -1,3 +1,4 @@
+import { InternalServerError } from '@/core/http/errors'
 import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
@@ -12,11 +13,11 @@ import type { UserDto } from '@/modules/iam/dto'
 
 import { SessionPayloadDto, type SessionDto } from '../dto'
 
-/* -------------------------------- CONSTANTS -------------------------------- */
-
 const cacheKey = { byId: (id: number) => `session.byId.${id}` }
-
-/* ----------------------------- IMPLEMENTATION ----------------------------- */
+ 
+ const err = {
+   createFailed: () => new InternalServerError('Failed to create session', 'AUTH_SESSION_CREATE_FAILED'),
+ }
 
 export class SessionService {
   /**
@@ -41,7 +42,7 @@ export class SessionService {
 
       const [session] = await db.insert(sessionsTable).values({ userId: user.id, createdAt, expiredAt }).returning()
 
-      if (!session) throw new Error('Failed to create session')
+      if (!session) throw err.createFailed()
 
       const data: SessionPayloadDto = { id: session.id, userId: user.id, email: user.email, username: user.username }
 

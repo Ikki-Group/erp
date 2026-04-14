@@ -1,5 +1,3 @@
-// oxlint-disable typescript/no-unsafe-type-assertion
-
 import ms from 'ms'
 import z from 'zod'
 
@@ -17,6 +15,7 @@ const Env = z.object({
   JWT_EXPIRES_IN: z
     .string()
     .default('7d')
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     .transform((value) => ms(value as ms.StringValue)),
 
   // Observability

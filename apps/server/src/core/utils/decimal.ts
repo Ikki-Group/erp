@@ -17,6 +17,7 @@ export function transformDecimals<T>(data: T): T {
   }
 
   if (Array.isArray(data)) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion unicorn/no-array-callback-reference
     return data.map(transformDecimals) as unknown as T
   }
 
@@ -29,10 +30,12 @@ export function transformDecimals<T>(data: T): T {
     }
 
     if (typeof value === 'object' && value !== null) {
+      // oxlint-disable-next-line typescript/no-unsafe-assignment
       result[key] = transformDecimals(value)
     }
   }
 
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   return result as T
 }
 

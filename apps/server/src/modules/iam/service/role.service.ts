@@ -6,6 +6,7 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/role.dto'
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
@@ -14,6 +15,13 @@ const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 const cacheKey = { count: 'iam.role.count', list: 'iam.role.list', byId: (id: number) => `iam.role.byId.${id}` }
+
+const err = {
+  notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Role creation failed', 'ROLE_CREATE_FAILED'),
+  updateSystemRoleForbidden: () => new BadRequestError('Cannot update system role', 'ROLE_UPDATE_SYSTEM_ROLE_FORBIDDEN'),
+  removeSystemRoleForbidden: () => new BadRequestError('Cannot remove system role', 'ROLE_REMOVE_SYSTEM_ROLE_FORBIDDEN'),
+}
 
 // Role Service (Layer 0)
 // Handles authorization role definitions and permission sets.
@@ -124,7 +132,7 @@ export class RoleService {
         .insert(rolesTable)
         .values({ ...data, ...core.stampCreate(actorId) })
         .returning({ id: rolesTable.id })
-      if (!inserted) throw new Error('Create failed')
+      if (!inserted) throw err.createFailed()
       await this.clearCache()
       return inserted
     })
@@ -135,7 +143,7 @@ export class RoleService {
   async handleUpdate(id: number, data: dto.RoleBaseDto, actorId: number): Promise<{ id: number }> {
     const result = await record('RoleService.handleUpdate', async () => {
       const existing = await this.getById(id)
-      if (existing.isSystem) throw new Error('Cannot update system role')
+      if (existing.isSystem) throw err.updateSystemRoleForbidden()
       await core.checkConflict({
         table: rolesTable,
         pkColumn: rolesTable.id,
@@ -157,13 +165,13 @@ export class RoleService {
   async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
     return record('RoleService.handleRemove', async () => {
       const existing = await this.getById(id)
-      if (existing.isSystem) throw new Error('Cannot remove system role')
+      if (existing.isSystem) throw err.removeSystemRoleForbidden()
       const [result] = await db
         .update(rolesTable)
         .set({ deletedAt: new Date(), deletedBy: actorId })
         .where(eq(rolesTable.id, id))
         .returning({ id: rolesTable.id })
-      if (!result) throw new Error('Role not found')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })
@@ -173,9 +181,9 @@ export class RoleService {
   async handleHardRemove(id: number): Promise<{ id: number }> {
     return record('RoleService.handleHardRemove', async () => {
       const existing = await this.getById(id)
-      if (existing.isSystem) throw new Error('Cannot remove system role')
+      if (existing.isSystem) throw err.removeSystemRoleForbidden()
       const [result] = await db.delete(rolesTable).where(eq(rolesTable.id, id)).returning({ id: rolesTable.id })
-      if (!result) throw new Error('Role not found')
+      if (!result) throw err.notFound(id)
       await this.clearCache(id)
       return result
     })

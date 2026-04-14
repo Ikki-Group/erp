@@ -6,6 +6,11 @@ import type { UserService } from '@/modules/iam/service/user.service'
 
 import type { SessionService } from './session.service'
 
+const err = {
+  userNotFound: () => new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND'),
+  invalidCredentials: () => new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS'),
+}
+
 export class AuthService {
   constructor(
     private readonly userSvc: UserService,
@@ -17,12 +22,12 @@ export class AuthService {
     const targetUser = await this.userSvc.findByIdentifier(identifier)
 
     if (!targetUser || !targetUser.isActive) {
-      throw new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND')
+      throw err.userNotFound()
     }
 
     const isPasswordValid = await verifyPassword(password, targetUser.passwordHash)
     if (!isPasswordValid) {
-      throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
+      throw err.invalidCredentials()
     }
 
     const session = await this.sessionSvc.createSession(targetUser)
@@ -34,7 +39,7 @@ export class AuthService {
   async verifyToken(token: string): Promise<UserDto> {
     const session = await this.sessionSvc.verifySession(token)
     if (!session) {
-      throw new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
+      throw err.invalidCredentials()
     }
 
     const userWithAccess = await this.userSvc.getById(session.userId)

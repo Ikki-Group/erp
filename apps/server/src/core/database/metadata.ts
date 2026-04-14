@@ -20,9 +20,6 @@ interface StampOptions {
 
 /**
  * Returns metadata fields for a **CREATE** operation.
- *
- * @param actorId {number} - The integer ID of the user performing the action (from `auth.userId`).
- * @param options {StampOptions} - Optional flags (e.g. `withSync`).
  */
 export function stampCreate(actorId: number, options?: StampOptions) {
   const now = options?.now ?? new Date()
@@ -37,9 +34,6 @@ export function stampCreate(actorId: number, options?: StampOptions) {
 
 /**
  * Returns metadata fields for an **UPDATE** operation.
- *
- * @param actorId {number} - The integer ID of the user performing the action (from `auth.userId`).
- * @param options {StampOptions} - Optional flags (e.g. `withSync`).
  */
 export function stampUpdate(actorId: number, options?: StampOptions) {
   const now = options?.now ?? new Date()
