@@ -51,7 +51,7 @@ export function Breadcrumbs() {
 					<BreadcrumbLink render={<Link to="/" />}>Home</BreadcrumbLink>
 				</BreadcrumbItem>
 				{breadcrumbs.map((crumb, index) => (
-					<React.Fragment key={crumb.href}>
+					<React.Fragment key={index}>
 						<BreadcrumbSeparator />
 						<BreadcrumbItem className="max-w-[120px] md:max-w-[240px] min-w-0">
 							{index === breadcrumbs.length - 1 ? (
