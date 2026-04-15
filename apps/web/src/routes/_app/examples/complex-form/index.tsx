@@ -2,6 +2,8 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { PlusIcon, Trash2Icon } from 'lucide-react'
+
 import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
@@ -23,8 +25,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-
-import { PlusIcon, Trash2Icon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/complex-form/')({ component: ComplexFormPage })
 

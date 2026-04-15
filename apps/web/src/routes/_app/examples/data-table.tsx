@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { MoreHorizontalIcon } from 'lucide-react'
+
 import { useDataTableAuto, useDataTableState } from '@/components/data-table'
 import { DataTable } from '@/components/data-table/data-table'
 import { Page } from '@/components/layout/page'
@@ -16,8 +18,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-import { MoreHorizontalIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/data-table')({ component: RouteComponent })
 

@@ -2,13 +2,13 @@ import type { VariantProps } from 'class-variance-authority'
 
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
-
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
-
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva } from 'class-variance-authority'
+
+import { cn } from '@/lib/utils'
+
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 
 /* -------------------------------------------------------------------------- */
 /*  FormLayout                                                                */
@@ -90,7 +90,9 @@ function FormSection({
 			{(title ?? description) && (
 				<div className="space-y-2 px-1">
 					{title && (
-						<h3 className="text-xl font-bold tracking-tight lg:tracking-[-0.5px] text-foreground/90">{title}</h3>
+						<h3 className="text-xl font-bold tracking-tight lg:tracking-[-0.5px] text-foreground/90">
+							{title}
+						</h3>
 					)}
 					{description && (
 						<p className="text-sm text-muted-foreground/70 leading-relaxed max-w-2xl">
@@ -170,7 +172,11 @@ function FormCardSection({
 			<CardContent className="pt-8 px-8">
 				<div className="flex flex-col gap-8">{children}</div>
 			</CardContent>
-			{footer && <CardFooter className="border-t border-border/60 bg-muted/10 px-8 py-4">{footer}</CardFooter>}
+			{footer && (
+				<CardFooter className="border-t border-border/60 bg-muted/10 px-8 py-4">
+					{footer}
+				</CardFooter>
+			)}
 		</Card>
 	)
 }

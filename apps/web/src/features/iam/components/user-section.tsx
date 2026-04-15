@@ -2,7 +2,10 @@ import { useCallback } from 'react'
 
 import { useRouter } from '@tanstack/react-router'
 
+import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -23,17 +26,16 @@ import { UserProfilePasswordDialog } from './user-profile-password-dialog'
 import { useAppState } from '@/hooks/use-app-state'
 import { useUser } from '@/hooks/use-user'
 
-import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
-
 export function UserSection() {
-	const { isMobile } = useSidebar()
-	const user = useUser()
-	const { clearToken } = useAppState()
 	const router = useRouter()
+	const user = useUser()
+	const { isMobile } = useSidebar()
+	const { clearToken } = useAppState()
 
 	const logout = useCallback(() => {
 		clearToken()
 		router.invalidate()
+		router.navigate({ to: '/login', replace: true })
 	}, [clearToken, router])
 
 	return (
@@ -59,12 +61,7 @@ export function UserSection() {
 						</div>
 						<ChevronsUpDownIcon className="ml-auto size-4" />
 					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-						side={isMobile ? 'bottom' : 'right'}
-						align="end"
-						sideOffset={4}
-					>
+					<DropdownMenuContent side={isMobile ? 'bottom' : 'right'} align="end" sideOffset={4}>
 						<DropdownMenuGroup>
 							<DropdownMenuLabel className="p-0 font-normal">
 								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
@@ -82,16 +79,22 @@ export function UserSection() {
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						{/* oxlint-disable-next-line typescript/no-misused-promises */}
-						<DropdownMenuItem onSelect={() => UserProfilePasswordDialog.call()} className="gap-2">
+						<DropdownMenuItem onSelect={() => UserProfilePasswordDialog.call()}>
 							<KeyRoundIcon className="size-4" />
 							Ubah Password
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							onSelect={logout}
-							className="gap-2 text-destructive focus:bg-destructive/10"
+							render={
+								<Button
+									className="w-full items-start hover:bg-destructive/30! text-left justify-start"
+									variant="ghost"
+									size="sm"
+									onClick={logout}
+								/>
+							}
 						>
-							<LogOutIcon className="size-4" />
+							<LogOutIcon />
 							Log out
 						</DropdownMenuItem>
 					</DropdownMenuContent>

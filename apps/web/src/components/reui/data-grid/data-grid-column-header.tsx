@@ -6,6 +6,19 @@ import type { HTMLAttributes, ReactNode } from 'react'
 
 import type { Column } from '@tanstack/react-table'
 
+import {
+	ArrowDownIcon,
+	ArrowLeftIcon,
+	ArrowLeftToLineIcon,
+	ArrowRightIcon,
+	ArrowRightToLineIcon,
+	ArrowUpIcon,
+	CheckIcon,
+	ChevronsUpDownIcon,
+	PinOffIcon,
+	Settings2Icon,
+} from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
@@ -24,19 +37,6 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-import {
-	ArrowDownIcon,
-	ArrowLeftIcon,
-	ArrowLeftToLineIcon,
-	ArrowRightIcon,
-	ArrowRightToLineIcon,
-	ArrowUpIcon,
-	CheckIcon,
-	ChevronsUpDownIcon,
-	PinOffIcon,
-	Settings2Icon,
-} from 'lucide-react'
 
 interface DataGridColumnHeaderProps<TData, TValue> extends HTMLAttributes<HTMLDivElement> {
 	column: Column<TData, TValue>

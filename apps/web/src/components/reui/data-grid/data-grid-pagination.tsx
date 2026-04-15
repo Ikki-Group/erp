@@ -4,6 +4,8 @@
 import React from 'react'
 import type { ReactNode } from 'react'
 
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
@@ -17,8 +19,6 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 interface DataGridPaginationProps {
 	sizes?: Array<number>

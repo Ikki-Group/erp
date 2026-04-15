@@ -3,6 +3,16 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import {
+	ActivityIcon,
+	CalendarCheckIcon,
+	CheckCircleIcon,
+	PlayIcon,
+	PlusIcon,
+	TimerIcon,
+} from 'lucide-react'
+import { toast } from 'sonner'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
@@ -34,16 +44,6 @@ import { WorkOrderSelectDto } from '@/features/production/dto/work-order.dto'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import {
-	ActivityIcon,
-	CalendarCheckIcon,
-	CheckCircleIcon,
-	PlayIcon,
-	PlusIcon,
-	TimerIcon,
-} from 'lucide-react'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/production/work-orders')({ component: WorkOrdersPage })
 

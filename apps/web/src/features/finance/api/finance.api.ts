@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
@@ -9,8 +11,6 @@ import {
 	AccountFilterDto,
 	AccountUpdateDto,
 } from '../dto/account.dto'
-
-import { z } from 'zod'
 
 export const accountApi = {
 	list: apiFactory({

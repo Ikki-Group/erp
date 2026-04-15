@@ -3,11 +3,11 @@ import type { ZodType, z } from 'zod'
 
 import { queryOptions } from '@tanstack/react-query'
 
-import { apiClient } from './api-client'
-import { ApiError } from './api-error'
-
 import { HTTPError } from 'ky'
 import { treeifyError } from 'zod'
+
+import { apiClient } from './api-client'
+import { ApiError } from './api-error'
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 

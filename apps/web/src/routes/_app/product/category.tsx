@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { PencilIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import {
@@ -19,8 +21,6 @@ import { ProductCategoryFormDialog } from '@/features/product/components/product
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import { PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/product/category')({ component: RouteComponent })
 

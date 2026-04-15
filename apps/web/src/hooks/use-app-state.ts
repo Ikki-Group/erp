@@ -1,7 +1,7 @@
-import type { UserSelectDto } from '@/features/iam'
-
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+
+import type { UserSelectDto } from '@/features/iam'
 
 type Location = Array<number> | null
 

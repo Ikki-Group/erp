@@ -1,9 +1,5 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 
-import { cn } from '@/lib/utils'
-
-import { componentRegistry } from '@/components/registry'
-
 import {
 	ArrowLeftIcon,
 	BookOpenIcon,
@@ -13,6 +9,10 @@ import {
 	TableIcon,
 	PaletteIcon,
 } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+import { componentRegistry } from '@/components/registry'
 
 export const Route = createFileRoute('/_docs')({ component: DocsLayout })
 

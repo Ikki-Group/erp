@@ -6,6 +6,10 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
+import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+import z from 'zod'
+
 import { toastLabelMessage } from '@/lib/toast-message'
 import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/zod'
 
@@ -21,10 +25,6 @@ import { roleApi } from '@/features/iam/api/role.api'
 import { locationApi } from '@/features/location/api/location.api'
 
 import { userApi } from '../api'
-
-import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
-import { toast } from 'sonner'
-import z from 'zod'
 
 /* -------------------------------------------------------------------------- */
 /*  Schema & Defaults                                                         */

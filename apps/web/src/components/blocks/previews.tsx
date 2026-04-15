@@ -1,12 +1,12 @@
 import type { ComponentRegistryEntry } from '../registry'
 
+import { BoxIcon, InboxIcon } from 'lucide-react'
+
 import { IkkiLogo } from './brand/logo'
 import { BadgeDot } from './data-display/badge-dot'
 import { ActiveStatusBadge, StatusBadge, activeStatusMap } from './data-display/status-badge'
 import { EmptyState } from './feedback/empty-state'
 import { LoadingPage } from './feedback/loading-page'
-
-import { BoxIcon, InboxIcon } from 'lucide-react'
 
 /**
  * Preview renderers for blocks components.

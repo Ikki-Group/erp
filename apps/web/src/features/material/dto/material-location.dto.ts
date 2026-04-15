@@ -1,10 +1,10 @@
+import z from 'zod'
+
 import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/lib/zod'
 
 import { LocationDto } from '@/features/location'
 
 import { UomDto } from './uom.dto'
-
-import z from 'zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 

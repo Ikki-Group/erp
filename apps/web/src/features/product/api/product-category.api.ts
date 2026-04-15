@@ -1,3 +1,5 @@
+import z from 'zod'
+
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
@@ -10,8 +12,6 @@ import {
 } from '@/lib/zod'
 
 import { ProductCategoryDto, ProductCategoryFilterDto, ProductCategoryMutationDto } from '../dto'
-
-import z from 'zod'
 
 export const productCategoryApi = {
 	list: apiFactory({

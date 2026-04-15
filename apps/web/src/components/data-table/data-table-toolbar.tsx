@@ -2,6 +2,8 @@ import type { ComponentProps } from 'react'
 
 import type { Table } from '@tanstack/react-table'
 
+import { Settings2Icon, XIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -17,8 +19,6 @@ import {
 import { Input } from '@/components/ui/input'
 
 import { useDataTableContext } from './data-table-context'
-
-import { Settings2Icon, XIcon } from 'lucide-react'
 
 interface DataTableToolbarProps extends ComponentProps<'div'> {
 	searchPlaceholder?: string

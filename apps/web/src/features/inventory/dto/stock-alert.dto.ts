@@ -1,6 +1,6 @@
-import { zId, zStr, zStrNullable } from '@/lib/zod'
-
 import { z } from 'zod'
+
+import { zId, zStr, zStrNullable } from '@/lib/zod'
 
 export const stockAlertFilterSchema = z.object({
 	locationId: zId.optional(),

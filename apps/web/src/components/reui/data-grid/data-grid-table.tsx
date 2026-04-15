@@ -8,13 +8,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { flexRender } from '@tanstack/react-table'
 import type { Cell, Column, Header, HeaderGroup, Row } from '@tanstack/react-table'
 
+import { cva } from 'class-variance-authority'
+
 import { cn } from '@/lib/utils'
 
 import { useDataGrid } from '@/components/reui/data-grid/data-grid'
 
 import { Checkbox } from '@/components/ui/checkbox'
-
-import { cva } from 'class-variance-authority'
 
 const headerCellSpacingVariants = cva('', {
 	variants: { size: { dense: 'px-2 h-8', default: 'px-3' } },

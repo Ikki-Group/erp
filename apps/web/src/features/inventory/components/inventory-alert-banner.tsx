@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
+import { AlertTriangleIcon, ArrowRightIcon } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 
 import { stockAlertApi } from '../api/inventory.api'
-
-import { AlertTriangleIcon, ArrowRightIcon } from 'lucide-react'
 
 export function InventoryAlertBanner() {
 	const { data } = useQuery(stockAlertApi.count.query({}))

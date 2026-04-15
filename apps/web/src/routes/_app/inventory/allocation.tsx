@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { MapPinIcon, MoreHorizontalIcon, PackageIcon, SettingsIcon, Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -28,9 +31,6 @@ import { MaterialLocationEditSheet } from '@/features/material/components/materi
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import { MapPinIcon, MoreHorizontalIcon, PackageIcon, SettingsIcon, Trash2Icon } from 'lucide-react'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/inventory/allocation')({ component: RouteComponent })
 

@@ -2,6 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
+import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
 import { zEmail, zPassword } from '@/lib/zod/primitive'
 
 import { useAppForm } from '@/components/form'
@@ -12,10 +16,6 @@ import { FieldSeparator } from '@/components/ui/field'
 import { authApi } from '@/features/auth'
 
 import { useAppState } from '@/hooks/use-app-state'
-
-import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'lucide-react'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 export const Route = createFileRoute('/_auth/login')({
 	validateSearch: zodValidator(
@@ -92,15 +92,13 @@ function LoginForm() {
 
 	const loginMutation = useMutation({
 		mutationFn: authApi.login.mutationFn,
-		onSuccess: (resp) => {
-			const {
-				data: { token, user },
-			} = resp
+		onSuccess: ({ data }) => {
+			const { token, user } = data
 			useAppState.getState().setToken(token, user)
 
 			toast.success('Login Berhasil', {
 				description: 'Selamat datang kembali di IKKI ERP.',
-				icon: <CheckCircle2Icon className="text-green-500" />,
+				icon: <CheckCircle2Icon className="text-success" />,
 			})
 
 			navigate({ to: redirectTo ?? '/' })
@@ -145,11 +143,10 @@ function LoginForm() {
 					</form.AppField>
 					<form.AppField name="password">
 						{(field) => (
-							<field.Input
+							<field.InputPassword
 								label="Password"
 								required
-								type="password"
-								autoComplete="new-password"
+								autoComplete="current-password"
 								placeholder="••••••••"
 							/>
 						)}

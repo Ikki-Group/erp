@@ -3,6 +3,11 @@ import type { SalesTypeDto } from '../dto'
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
+import { Wand2Icon } from 'lucide-react'
+import { createCallable } from 'react-call'
+import { toast } from 'sonner'
+import z from 'zod'
+
 import { toCodeCase } from '@/lib/formatter'
 import { toastLabelMessage } from '@/lib/toast-message'
 
@@ -18,11 +23,6 @@ import {
 } from '@/components/ui/dialog'
 
 import { salesTypeApi } from '../api'
-
-import { Wand2Icon } from 'lucide-react'
-import { createCallable } from 'react-call'
-import { toast } from 'sonner'
-import z from 'zod'
 
 const FormDto = z.object({ code: z.string().min(1), name: z.string().min(1) })
 

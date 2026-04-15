@@ -1,3 +1,5 @@
+import z from 'zod'
+
 import {
 	zDate,
 	zId,
@@ -8,8 +10,6 @@ import {
 	zRecordIdDto,
 	zStr,
 } from '@/lib/zod'
-
-import z from 'zod'
 
 /* --------------------------------- ENTITY --------------------------------- */
 

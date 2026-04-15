@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { toast } from 'sonner'
+import { z } from 'zod'
+
 import {
 	Form,
 	FormCheckbox,
@@ -13,9 +16,6 @@ import {
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 export const Route = createFileRoute('/_app/examples/form-components')({
 	component: FormComponentsExample,

@@ -16,8 +16,6 @@ export const Route = createFileRoute('/_app')({
 
 			throw redirect({ to: '/login', search: { redirectTo } })
 		}
-
-		return
 	},
 	component: RouteComponent,
 	pendingComponent: () => <LoadingPage />,

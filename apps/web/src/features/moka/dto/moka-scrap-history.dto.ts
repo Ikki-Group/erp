@@ -1,6 +1,6 @@
-import { zDate, zId, zMetadataDto, zQueryId, zRecordIdDto } from '@/lib/zod'
-
 import { z } from 'zod'
+
+import { zDate, zId, zMetadataDto, zQueryId, zRecordIdDto } from '@/lib/zod'
 
 export const MokaScrapType = z.enum(['sales', 'product', 'category'])
 export type MokaScrapType = z.infer<typeof MokaScrapType>

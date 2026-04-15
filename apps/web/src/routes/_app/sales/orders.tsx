@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { PlusIcon } from 'lucide-react'
+
 import { toDateTimeStamp } from '@/lib/formatter'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -10,8 +12,6 @@ import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 
 import { useDataTable } from '@/hooks/use-data-table'
-
-import { PlusIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/sales/orders')({ component: SalesOrderPage })
 

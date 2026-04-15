@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
+
 import { Page } from '@/components/layout/page'
 
 import { Badge } from '@/components/ui/badge'
@@ -17,8 +19,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
-import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
 
 // --- Types ---
 type Ingredient = { id: string; name: string; category: string; stock: number; unit: string }

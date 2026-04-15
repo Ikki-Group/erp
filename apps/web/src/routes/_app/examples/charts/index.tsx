@@ -2,6 +2,20 @@ import { useMemo, useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { TrendingUpIcon } from 'lucide-react'
+import {
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Label,
+	Pie,
+	PieChart,
+	XAxis,
+	YAxis,
+} from 'recharts'
+
 import {
 	ChartCard,
 	ChartFooterContent,
@@ -24,20 +38,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
-
-import { TrendingUpIcon } from 'lucide-react'
-import {
-	Area,
-	AreaChart,
-	Bar,
-	BarChart,
-	CartesianGrid,
-	Label,
-	Pie,
-	PieChart,
-	XAxis,
-	YAxis,
-} from 'recharts'
 
 export const Route = createFileRoute('/_app/examples/charts/')({ component: ChartsPage })
 

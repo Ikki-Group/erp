@@ -3,6 +3,8 @@ import { Suspense, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useLocation } from '@tanstack/react-router'
 
+import { ChevronRightIcon } from 'lucide-react'
+
 import { getAppMenu } from '@/config/app-menu'
 
 import { IkkiLogo } from '@/components/blocks/brand/logo'
@@ -38,12 +40,6 @@ import { SidebarMenuBadge } from '../ui/sidebar'
 import { Breadcrumbs } from './breadcrumbs'
 import { useAppState } from '@/hooks/use-app-state'
 
-import { ChevronRightIcon } from 'lucide-react'
-
-/* -------------------------------------------------------------------------- */
-/*  AppLayout                                                                 */
-/* -------------------------------------------------------------------------- */
-
 export function AppLayout() {
 	const { setSidebarOpen, sidebarOpen } = useAppState()
 
@@ -63,19 +59,18 @@ export function AppLayout() {
 			<SidebarInset className="bg-background-secondary/40">
 				<Header />
 				<InventoryAlertBanner />
-				<Suspense fallback={<LoadingPage />}>
-					<main className="flex flex-1 flex-col h-full overflow-hidden @container animate-enter" style={{ animationDelay: '80ms' }}>
+				<main
+					className="flex flex-1 flex-col @container animate-enter"
+					style={{ animationDelay: '80ms' }}
+				>
+					<Suspense fallback={<LoadingPage />}>
 						<Outlet />
-					</main>
-				</Suspense>
+					</Suspense>
+				</main>
 			</SidebarInset>
 		</SidebarProvider>
 	)
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Sidebar Sub-components                                                    */
-/* -------------------------------------------------------------------------- */
 
 function SidebarBrand() {
 	return (
@@ -84,7 +79,9 @@ function SidebarBrand() {
 				<SidebarMenuButton size="lg" render={<Link to="/" />}>
 					<IkkiLogo />
 					<div className="grid flex-1 text-left text-sm leading-tight gap-0.5">
-						<span className="truncate font-bold tracking-tight text-foreground/90">Ikki Management</span>
+						<span className="truncate font-bold tracking-tight text-foreground/90">
+							Ikki Management
+						</span>
 						<span className="truncate text-micro uppercase font-bold text-muted-foreground/50">
 							Backoffice
 						</span>
@@ -170,10 +167,6 @@ function SidebarMenus() {
 		</div>
 	)
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Header                                                                     */
-/* -------------------------------------------------------------------------- */
 
 function Header() {
 	return (

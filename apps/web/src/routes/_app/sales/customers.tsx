@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { PlusIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import {
@@ -13,8 +15,6 @@ import { Button } from '@/components/ui/button'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import { PlusIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/sales/customers')({ component: SalesCustomersPage })
 

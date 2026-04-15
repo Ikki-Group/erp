@@ -43,18 +43,14 @@
 	},
 	"overrides": [
 		{
-			"files": [
-				"apps/server/**/*"
-			],
+			"files": ["apps/server/**/*"],
 			"rules": {
 				"no-inline-comments": "off",
 				"max-classes-per-file": "off"
 			}
 		},
 		{
-			"files": [
-				"apps/server/**/*.test.ts"
-			],
+			"files": ["apps/server/**/*.test.ts"],
 			"rules": {
 				"typescript/no-unsafe-assignment": "off",
 				"typescript/require-await": "off",
@@ -64,9 +60,7 @@
 			}
 		},
 		{
-			"files": [
-				"apps/web/**/*"
-			],
+			"files": ["apps/web/**/*"],
 			"rules": {
 				"typescript/no-floating-promises": "off",
 				"typescript/no-unsafe-type-assertion": "off",
@@ -83,19 +77,11 @@
 			}
 		},
 		{
-			"files": [
-				"*.test.ts"
-			],
+			"files": ["*.test.ts"],
 			"rules": {
 				"typescript/no-unsafe-type-assertion": "off"
 			}
 		}
 	],
-	"ignorePatterns": [
-		"dist/**",
-		"node_modules/**",
-		"drizzle/**",
-		"**/*.lock",
-		".agents/**"
-	]
+	"ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
 }

@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import {
 	zDecimal,
 	zId,
@@ -7,8 +9,6 @@ import {
 	zStr,
 	zStrNullable,
 } from '@/lib/zod'
-
-import { z } from 'zod'
 
 export const PurchaseOrderStatusDto = z.enum(['open', 'closed', 'void'])
 export type PurchaseOrderStatusDto = z.infer<typeof PurchaseOrderStatusDto>

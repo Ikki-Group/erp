@@ -2,13 +2,13 @@ import * as React from 'react'
 
 import { useStore } from '@tanstack/react-form'
 
+import { useRender } from '@base-ui/react/use-render'
+
 import { cn } from '@/lib/utils'
 
 import * as scn from '@/components/ui/field'
 
 import { useFieldContext } from './form-hook-context'
-
-import { useRender } from '@base-ui/react/use-render'
 
 function useFormField() {
 	const itemContext = React.use(FormItemContext)

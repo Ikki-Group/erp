@@ -1,18 +1,19 @@
 import { formOptions } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 
+import { createCallable } from 'react-call'
+import { toast } from 'sonner'
+import z from 'zod'
+
 import { toastLabelMessage } from '@/lib/toast-message'
+import { zPassword } from '@/lib/zod'
 
 import { useAppForm } from '@/components/form'
 import { FormDialog } from '@/components/layout/form-dialog'
 
 import { userApi } from '../api'
 
-import { createCallable } from 'react-call'
-import { toast } from 'sonner'
-import z from 'zod'
-
-const FormDto = z.object({ oldPassword: z.string().min(8), newPassword: z.string().min(8) })
+const FormDto = z.object({ oldPassword: z.string().min(1), newPassword: zPassword })
 
 type FormDto = z.infer<typeof FormDto>
 

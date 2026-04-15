@@ -4,6 +4,8 @@ import type { ReactNode } from 'react'
 
 import { Link } from '@tanstack/react-router'
 
+import { useRender } from '@base-ui/react/use-render'
+
 import { cn } from '@/lib/utils'
 
 import {
@@ -14,8 +16,6 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-
-import { useRender } from '@base-ui/react/use-render'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

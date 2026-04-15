@@ -5,6 +5,10 @@ import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
+import { PackageIcon, PlusIcon, StarIcon, Trash2Icon, Wand2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+import z from 'zod'
+
 import { generateSku } from '@/lib/sku'
 import { toastLabelMessage } from '@/lib/toast-message'
 import { cn, toOptions } from '@/lib/utils'
@@ -26,10 +30,6 @@ import {
 } from '@/components/ui/table'
 
 import { productApi, productCategoryApi, salesTypeApi } from '../api'
-
-import { PackageIcon, PlusIcon, StarIcon, Trash2Icon, Wand2Icon } from 'lucide-react'
-import { toast } from 'sonner'
-import z from 'zod'
 
 const FormDto = z.object({
 	name: z.string().min(1, 'Nama produk wajib diisi'),

@@ -2,12 +2,12 @@ import { useState } from 'react'
 
 import { createFileRoute } from '@tanstack/react-router'
 
+import { CheckIcon, CopyIcon, EyeIcon, TagIcon } from 'lucide-react'
+
 import { blocksPreviews } from '@/components/blocks/previews'
 import { formPreviews } from '@/components/form/previews'
 import { componentRegistry } from '@/components/registry'
 import type { ComponentRegistryEntry } from '@/components/registry'
-
-import { CheckIcon, CopyIcon, EyeIcon, TagIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_docs/docs/$layer')({ component: LayerPage })
 

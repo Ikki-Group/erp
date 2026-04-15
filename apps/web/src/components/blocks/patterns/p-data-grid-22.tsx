@@ -12,6 +12,9 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef, PaginationState, Row, SortingState } from '@tanstack/react-table'
 
+import { FunnelIcon, MoreHorizontalIcon, SearchIcon, UserPlusIcon, XIcon } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
@@ -44,9 +47,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
-
-import { FunnelIcon, MoreHorizontalIcon, SearchIcon, UserPlusIcon, XIcon } from 'lucide-react'
-import { toast } from 'sonner'
 
 interface IData {
 	id: string

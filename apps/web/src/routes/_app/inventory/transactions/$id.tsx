@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import { format } from 'date-fns'
+import { Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { Page } from '@/components/layout/page'
@@ -14,10 +18,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { stockTransactionApi } from '@/features/inventory'
 import { locationApi } from '@/features/location'
 import { materialApi } from '@/features/material'
-
-import { format } from 'date-fns'
-import { Trash2Icon } from 'lucide-react'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/inventory/transactions/$id')({
 	component: RouteComponent,

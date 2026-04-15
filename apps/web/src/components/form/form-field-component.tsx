@@ -3,6 +3,10 @@ import type { DateRange } from 'react-day-picker'
 
 import type * as React from 'react'
 
+// oxlint-disable max-lines
+import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -23,10 +27,6 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { useFieldContext } from './form-hook-context'
 import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from './form-tanstack'
-
-// oxlint-disable max-lines
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
 
 export interface BaseFieldProps {
 	label?: string

@@ -43,7 +43,9 @@ export function DataTableCard<TData extends object>({
 					<CardTitle>{title}</CardTitle>
 					{action && <CardAction>{action}</CardAction>}
 				</CardHeader>
-				{toolbar && <div className="px-3.5 py-4 border-b border-border/60 bg-muted/30">{toolbar}</div>}
+				{toolbar && (
+					<div className="px-3.5 py-4 border-b border-border/60 bg-muted/30">{toolbar}</div>
+				)}
 				<div className="w-full">
 					<ScrollArea>
 						<DataGridTable />

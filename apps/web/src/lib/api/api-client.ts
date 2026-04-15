@@ -1,8 +1,8 @@
+import ky from 'ky'
+
 import { API_URL } from '@/config/constant'
 
 import { useAppState } from '@/hooks/use-app-state'
-
-import ky from 'ky'
 
 const apiClient = ky.create({
 	prefixUrl: API_URL,

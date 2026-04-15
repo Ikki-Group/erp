@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
-import { Button } from '@/components/ui/button'
-
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
+
+import { Button } from '@/components/ui/button'
 
 export function ThemeListener() {
 	useEffect(() => {

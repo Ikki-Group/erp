@@ -3,6 +3,8 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
+import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
+
 import { toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
 
@@ -27,8 +29,6 @@ import { recipeApi } from '@/features/recipe'
 import { materialApi, materialLocationApi } from '../api'
 import { MaterialBadgeProps } from '../utils'
 import { MaterialAssignToLocationDialog } from './material-assign-to-location-dialog'
-
-import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
 
 interface MaterialDetailPageProps {
 	id: number

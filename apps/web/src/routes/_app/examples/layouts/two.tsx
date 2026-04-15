@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { Trash2Icon } from 'lucide-react'
+
 import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-
-import { Trash2Icon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/examples/layouts/two')({ component: RouteComponent })
 

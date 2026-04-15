@@ -2,10 +2,10 @@ import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 
-import { Combobox } from '@/components/ui/combobox'
-
 import { useDebounce } from '@uidotdev/usehooks'
 import { DatabaseIcon, Loader2Icon } from 'lucide-react'
+
+import { Combobox } from '@/components/ui/combobox'
 
 export interface DataComboboxProps<TItem> {
 	value?: string | null

@@ -49,7 +49,12 @@ export function EmptyState({
 				</div>
 			)}
 			<div className="space-y-1.5">
-				<p className={cn('font-semibold tracking-tight text-foreground/90', compact ? 'text-sm' : 'text-base')}>
+				<p
+					className={cn(
+						'font-semibold tracking-tight text-foreground/90',
+						compact ? 'text-sm' : 'text-base',
+					)}
+				>
 					{title}
 				</p>
 				{description && (

@@ -4,6 +4,26 @@ import { useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 
+import {
+	AlertTriangleIcon,
+	Building2Icon,
+	CalendarIcon,
+	ChevronRightIcon,
+	EditIcon,
+	HistoryIcon,
+	InfoIcon,
+	MailIcon,
+	MapPinIcon,
+	PhoneIcon,
+	PowerIcon,
+	StoreIcon,
+	TrashIcon,
+	UserMinusIcon,
+	UserPlusIcon,
+	UsersIcon,
+} from 'lucide-react'
+import { toast } from 'sonner'
+
 import { cn } from '@/lib/utils'
 
 import { CardSection } from '@/components/blocks/card/card-section'
@@ -29,26 +49,6 @@ import { userApi, userAssignmentApi } from '@/features/iam'
 
 import { locationApi } from '../api'
 import { LocationAssignMemberDialog } from './location-assign-member-dialog'
-
-import {
-	AlertTriangleIcon,
-	Building2Icon,
-	CalendarIcon,
-	ChevronRightIcon,
-	EditIcon,
-	HistoryIcon,
-	InfoIcon,
-	MailIcon,
-	MapPinIcon,
-	PhoneIcon,
-	PowerIcon,
-	StoreIcon,
-	TrashIcon,
-	UserMinusIcon,
-	UserPlusIcon,
-	UsersIcon,
-} from 'lucide-react'
-import { toast } from 'sonner'
 
 interface LocationDetailPageProps {
 	id: number

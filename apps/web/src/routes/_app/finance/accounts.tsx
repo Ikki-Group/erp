@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { PlusIcon, WalletIcon, BuildingIcon, LandmarkIcon, SearchIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
@@ -15,8 +17,6 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 import { useDataTable } from '@/hooks/use-data-table'
-
-import { PlusIcon, WalletIcon, BuildingIcon, LandmarkIcon, SearchIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/finance/accounts')({ component: FinanceAccountsPage })
 

@@ -32,9 +32,7 @@ export function CardStat({
 				<Icon className="size-[18px] text-primary" />
 			</div>
 			<div className="grid gap-1">
-				<p className="text-badge uppercase text-muted-foreground">
-					{title}
-				</p>
+				<p className="text-badge uppercase text-muted-foreground">{title}</p>
 				<div className="flex items-baseline gap-2.5">
 					<p className="text-base font-bold tracking-tight">
 						{isLoading ? <Skeleton className="w-24 h-5" /> : value}

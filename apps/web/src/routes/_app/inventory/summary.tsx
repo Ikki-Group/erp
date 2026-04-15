@@ -6,6 +6,17 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { format, startOfMonth, startOfDay } from 'date-fns'
+import {
+	AlertCircleIcon,
+	BoxIcon,
+	CalendarIcon,
+	MoveDownIcon,
+	MoveUpIcon,
+	SearchIcon,
+	TrendingUpIcon,
+} from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -31,17 +42,6 @@ import { locationApi } from '@/features/location'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import { format, startOfMonth, startOfDay } from 'date-fns'
-import {
-	AlertCircleIcon,
-	BoxIcon,
-	CalendarIcon,
-	MoveDownIcon,
-	MoveUpIcon,
-	SearchIcon,
-	TrendingUpIcon,
-} from 'lucide-react'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 

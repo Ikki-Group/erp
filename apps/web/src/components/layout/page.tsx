@@ -5,14 +5,14 @@ import * as React from 'react'
 import { Link } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
-import { cn } from '@/lib/utils'
-
-import { Button } from '../ui/button'
-
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva } from 'class-variance-authority'
 import { ArrowLeftIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+import { Button } from '../ui/button'
 
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
@@ -68,7 +68,10 @@ function Title({
 		defaultTagName: 'h1',
 		props: mergeProps<'h1'>(
 			{
-				className: cn('text-xl font-bold tracking-tight text-foreground/90 lg:text-2xl lg:tracking-[-0.5px]', className),
+				className: cn(
+					'text-xl font-bold tracking-tight text-foreground/90 lg:text-2xl lg:tracking-[-0.5px]',
+					className,
+				),
 			},
 			props,
 		),

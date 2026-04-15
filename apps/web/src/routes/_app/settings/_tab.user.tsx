@@ -3,6 +3,8 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
+import { KeyRoundIcon, PencilIcon } from 'lucide-react'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import {
@@ -21,8 +23,6 @@ import { getUserStatusBadge } from '@/features/iam/utils'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-
-import { KeyRoundIcon, PencilIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/settings/_tab/user')({ component: RouteComponent })
 

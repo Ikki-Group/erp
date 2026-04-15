@@ -3,6 +3,10 @@ import type { Option, StringOrNumber } from '@/types/common'
 
 import * as React from 'react'
 
+import { useDebounce } from '@uidotdev/usehooks'
+// oxlint-disable typescript/ban-ts-comment
+import { SearchIcon, XIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -14,10 +18,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
-
-import { useDebounce } from '@uidotdev/usehooks'
-// oxlint-disable typescript/ban-ts-comment
-import { SearchIcon, XIcon } from 'lucide-react'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
