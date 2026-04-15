@@ -41,9 +41,10 @@
 							]
 						},
 						{
-							"groupName": "config",
+							"groupName": "internal-aliases",
 							"elementNamePattern": [
-								"@/config/**"
+								"@/config/**",
+								"@/hooks/**"
 							]
 						},
 						{
@@ -76,7 +77,7 @@
 						"react-core",
 						"tanstack",
 						"value-external",
-						"config",
+						"internal-aliases",
 						"lib",
 						"components-general",
 						"ui",

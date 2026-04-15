@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation } from '@tanstack/react-router'
 import { ChevronRightIcon } from 'lucide-react'
 
 import { getAppMenu } from '@/config/app-menu'
+import { useAppState } from '@/hooks/use-app-state'
 
 import { IkkiLogo } from '@/components/blocks/brand/logo'
 import { LoadingPage } from '@/components/blocks/feedback/loading-page'
@@ -38,7 +39,6 @@ import { LocationSwitcher } from '@/features/location/components/location-switch
 import { Separator } from '../ui/separator'
 import { SidebarMenuBadge } from '../ui/sidebar'
 import { Breadcrumbs } from './breadcrumbs'
-import { useAppState } from '@/hooks/use-app-state'
 
 export function AppLayout() {
 	const { setSidebarOpen, sidebarOpen } = useAppState()
