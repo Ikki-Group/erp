@@ -54,6 +54,7 @@ function RolesTable() {
 			description: `Apakah Anda yakin ingin menghapus role "${role.name}"? Data yang terkait dengan role ini mungkin akan terdampak.`,
 			variant: 'destructive',
 			confirmLabel: 'Hapus Role',
+			confirmValidationText: role.name,
 			onConfirm: async () => {
 				await toast
 					.promise(remove.mutateAsync({ body: { id: role.id } }), {

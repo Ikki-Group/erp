@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 
+import { useMutation } from '@tanstack/react-query'
+
 import { AlertCircleIcon, AlertTriangleIcon, InfoIcon, Loader2Icon } from 'lucide-react'
 import { createCallable } from 'react-call'
 
@@ -17,10 +19,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
-
-/* -------------------------------------------------------------------------- */
-/*  Types                                                                     */
-/* -------------------------------------------------------------------------- */
+import { Separator } from '@/components/ui/separator'
 
 type ConfirmVariant = 'destructive' | 'warning' | 'default'
 
@@ -33,10 +32,6 @@ interface ConfirmDialogProps {
 	onConfirm: () => Promise<void> | void
 	confirmValidationText?: string
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Variant Config                                                            */
-/* -------------------------------------------------------------------------- */
 
 interface VariantConfig {
 	actionClass?: string
@@ -63,10 +58,6 @@ const variantConfig: Record<ConfirmVariant, VariantConfig> = {
 	},
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Component                                                                 */
-/* -------------------------------------------------------------------------- */
-
 /**
  * A reusable confirmation dialog that can be called imperatively.
  * Powered by `react-call` and `shadcn/ui` AlertDialog.
@@ -82,33 +73,28 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 		onConfirm,
 		confirmValidationText,
 	}) => {
-		const [isLoading, setIsLoading] = useState(false)
 		const [validationInput, setValidationInput] = useState('')
-
 		const config = variantConfig[variant]
 
+		const confirmMutation = useMutation({
+			mutationFn: async () => onConfirm(),
+			onSuccess: () => call.end(true),
+			onError: (error) => {
+				console.error('[ConfirmDialog] Action failed:', error)
+			},
+		})
+
 		const isConfirmDisabled =
-			isLoading ||
+			confirmMutation.isPending ||
 			(confirmValidationText !== undefined && validationInput !== confirmValidationText)
 
-		const handleConfirm = async (e: React.MouseEvent | React.KeyboardEvent) => {
-			// We prevent default to keep the dialog open while the async action completes
+		const handleConfirm = (e: React.MouseEvent | React.KeyboardEvent) => {
 			e.preventDefault()
-
-			try {
-				setIsLoading(true)
-				await onConfirm()
-				call.end(true)
-			} catch (error) {
-				console.error('[ConfirmDialog] Action failed:', error)
-				// Keep dialog open on error so user can retry or see state
-			} finally {
-				setIsLoading(false)
-			}
+			confirmMutation.mutate()
 		}
 
 		const handleCancel = () => {
-			if (!isLoading) {
+			if (!confirmMutation.isPending) {
 				call.end(false)
 			}
 		}
@@ -117,7 +103,7 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 			<AlertDialog
 				open={!call.ended}
 				onOpenChange={(open) => {
-					if (!open && !isLoading) {
+					if (!open && !confirmMutation.isPending) {
 						call.end(false)
 					}
 				}}
@@ -140,30 +126,33 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 					</AlertDialogHeader>
 
 					{confirmValidationText && (
-						<div className="mt-4 flex flex-col gap-2 rounded-lg bg-muted/30 p-3 ring-1 ring-border/50">
-							<p className="text-muted-foreground text-[0.8rem] leading-snug">
-								Silakan ketik{' '}
-								<span className="font-bold text-foreground">{confirmValidationText}</span> untuk
-								mengonfirmasi:
-							</p>
-							<Input
-								autoFocus
-								value={validationInput}
-								onChange={(e) => setValidationInput(e.target.value)}
-								placeholder={confirmValidationText}
-								className="h-8 bg-background focus-visible:ring-destructive/30"
-								onKeyDown={(e) => {
-									if (e.key === 'Enter' && !isConfirmDisabled) {
-										void handleConfirm(e)
-									}
-								}}
-							/>
-						</div>
+						<>
+							<Separator />
+							<div className="flex flex-col gap-2">
+								<p className="text-muted-foreground text-[0.8rem] leading-snug">
+									Silakan ketik{' '}
+									<span className="font-bold text-foreground">{confirmValidationText}</span> untuk
+									mengonfirmasi:
+								</p>
+								<Input
+									autoFocus
+									value={validationInput}
+									onChange={(e) => setValidationInput(e.target.value)}
+									placeholder={confirmValidationText}
+									className="h-8 bg-background focus-visible:ring-destructive/30"
+									onKeyDown={(e) => {
+										if (e.key === 'Enter' && !isConfirmDisabled) {
+											handleConfirm(e)
+										}
+									}}
+								/>
+							</div>
+						</>
 					)}
 
 					<AlertDialogFooter className="mt-2">
 						<AlertDialogCancel
-							disabled={isLoading}
+							disabled={confirmMutation.isPending}
 							onClick={handleCancel}
 							variant="ghost"
 							className="font-medium"
@@ -175,7 +164,9 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 							onClick={handleConfirm}
 							disabled={isConfirmDisabled}
 						>
-							{isLoading ? <Loader2Icon className="mr-2 size-4 animate-spin" /> : null}
+							{confirmMutation.isPending ? (
+								<Loader2Icon className="mr-2 size-4 animate-spin" />
+							) : null}
 							{confirmLabel}
 						</AlertDialogAction>
 					</AlertDialogFooter>
