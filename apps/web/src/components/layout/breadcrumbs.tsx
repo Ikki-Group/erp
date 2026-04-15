@@ -45,19 +45,27 @@ export function Breadcrumbs() {
 	}, [menu, pathname])
 
 	return (
-		<Breadcrumb>
-			<BreadcrumbList className="flex-wrap gap-y-1">
+		<Breadcrumb className="min-w-0">
+			<BreadcrumbList className="flex-nowrap gap-x-1.5 min-w-0">
 				<BreadcrumbItem>
 					<BreadcrumbLink render={<Link to="/" />}>Home</BreadcrumbLink>
 				</BreadcrumbItem>
 				{breadcrumbs.map((crumb, index) => (
 					<React.Fragment key={crumb.href}>
 						<BreadcrumbSeparator />
-						<BreadcrumbItem>
+						<BreadcrumbItem className="max-w-[120px] md:max-w-[240px] min-w-0">
 							{index === breadcrumbs.length - 1 ? (
-								<BreadcrumbPage>{crumb.title}</BreadcrumbPage>
+								<BreadcrumbPage className="truncate inline-block" title={crumb.title}>
+									{crumb.title}
+								</BreadcrumbPage>
 							) : (
-								<BreadcrumbLink render={<Link to={crumb.href} />}>{crumb.title}</BreadcrumbLink>
+								<BreadcrumbLink
+									render={<Link to={crumb.href} />}
+									className="truncate inline-block"
+									title={crumb.title}
+								>
+									{crumb.title}
+								</BreadcrumbLink>
 							)}
 						</BreadcrumbItem>
 					</React.Fragment>

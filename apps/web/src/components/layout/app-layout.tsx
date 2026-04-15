@@ -171,9 +171,9 @@ function SidebarMenus() {
 function Header() {
 	return (
 		<header className="flex h-16 shrink-0 items-center gap-4 border-b border-border/60 px-4 transition-all duration-300 top-0 sticky bg-background/80 backdrop-blur-xl z-20 animate-fade-in">
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 flex-1 min-w-0">
 				<SidebarTrigger variant="ghost" size="icon-lg" />
-				<Separator orientation="vertical" />
+				<Separator orientation="vertical" className="hidden sm:block" />
 				<Breadcrumbs />
 			</div>
 			<div className="ml-auto flex items-center gap-4">
