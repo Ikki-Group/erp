@@ -7,9 +7,13 @@ import type { CellContext, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
@@ -31,9 +35,6 @@ import type { UomDto } from '@/features/material'
 import { uomApi } from '@/features/material'
 import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
 
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-
 const ch = createColumnHelper<UomDto>()
 
 export const Route = createFileRoute('/_app/material/uom')({ component: RouteComponent })
@@ -53,7 +54,7 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<UomDto, any>[] {
+function getColumns(handleDelete: (uom: UomDto) => Promise<void>): ColumnDef<UomDto, any>[] {
 	return [
 		ch.accessor(
 			'code',
@@ -94,7 +95,7 @@ function getColumns(handleDelete: (id: number) => Promise<void>): ColumnDef<UomD
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									variant="destructive"
-									onClick={() => void handleDelete(row.original.id)}
+									onClick={() => void handleDelete(row.original)}
 								>
 									<Trash2Icon className="mr-2 size-4" />
 									Hapus
@@ -116,11 +117,22 @@ function UomTable() {
 	const ds = useDataTableState()
 	const { data, isLoading } = useQuery(uomApi.list.query({ ...ds.pagination, q: ds.search }))
 
-	const deleteMutation = useMutation({ mutationFn: uomApi.remove.mutationFn })
+	const deleteMutation = useMutation({
+		mutationFn: uomApi.remove.mutationFn,
+	})
 
-	const handleDelete = async (id: number) => {
-		const promise = deleteMutation.mutateAsync({ params: { id } })
-		await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
+	const handleDelete = async (uom: UomDto) => {
+		await ConfirmDialog.call({
+			title: 'Hapus Satuan',
+			description: `Apakah Anda yakin ingin menghapus satuan "${uom.code}"? Satuan yang telah digunakan dalam transaksi atau resep mungkin tidak dapat dihapus.`,
+			variant: 'destructive',
+			confirmLabel: 'Hapus Satuan',
+			confirmValidationText: uom.code,
+			onConfirm: async () => {
+				const promise = deleteMutation.mutateAsync({ params: { id: uom.id } })
+				await toast.promise(promise, toastLabelMessage('delete', 'satuan')).unwrap()
+			},
+		})
 	}
 
 	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps

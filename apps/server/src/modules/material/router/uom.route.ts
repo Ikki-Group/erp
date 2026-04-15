@@ -44,7 +44,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 			},
 			{ body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const { id } = await s.uom.handleUpdate(body.id, body, auth.userId)
