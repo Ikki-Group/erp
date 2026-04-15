@@ -81,7 +81,8 @@
 				"eslint-plugin-react-hooks/exhaustive-deps": "warn",
 				"typescript/only-throw-error": "off",
 				"eqeqeq": "off",
-				"typescript/no-misused-promises": "off"
+				"typescript/no-misused-promises": "off",
+				"no-negated-condition": "off"
 			}
 		},
 		{

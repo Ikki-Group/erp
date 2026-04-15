@@ -1,14 +1,10 @@
+import type { MaterialConversionDto, MaterialSelectDto } from '../dto'
+import type { MaterialLocationWithLocationDto } from '../dto'
+
 import { useSuspenseQueries } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
-import {
-	ChefHatIcon,
-	EditIcon,
-	InfoIcon,
-	MapPinIcon,
-	PlusIcon,
-	ScaleIcon,
-} from 'lucide-react'
+import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
 
 import { toDateTimeStamp, toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
@@ -21,7 +17,6 @@ import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
 
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -32,26 +27,15 @@ import {
 } from '@/components/ui/table'
 
 import { recipeApi } from '@/features/recipe'
-
-import type { MaterialConversionDto, MaterialSelectDto } from '../dto'
 import type { RecipeSelectDto } from '@/features/recipe'
 
 import { materialApi, materialLocationApi } from '../api'
-import type { MaterialLocationWithLocationDto } from '../dto'
 import { MaterialBadgeProps } from '../utils'
 import { MaterialAssignToLocationDialog } from './material-assign-to-location-dialog'
-
-/* -------------------------------------------------------------------------- */
-/*  Types                                                                     */
-/* -------------------------------------------------------------------------- */
 
 interface MaterialDetailPageProps {
 	readonly id: number
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Helpers                                                                   */
-/* -------------------------------------------------------------------------- */
 
 function openAssignDialog(materialId: number, materialName: string) {
 	MaterialAssignToLocationDialog.call({
@@ -59,10 +43,6 @@ function openAssignDialog(materialId: number, materialName: string) {
 		materialName,
 	})
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Page (Orchestrator)                                                       */
-/* -------------------------------------------------------------------------- */
 
 export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
 	const [{ data: materialResult }, { data: locationsResult }, { data: recipesResult }] =
@@ -80,6 +60,7 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
 
 	return (
 		<Page size="lg">
+			<MaterialAssignToLocationDialog.Root />
 			<Page.BlockHeader
 				title={material.name}
 				description={`Detail informasi untuk bahan baku ${material.sku}`}
@@ -127,10 +108,7 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
 						materialId={id}
 						materialName={material.name}
 					/>
-					<MaterialMetadataCard
-						updatedAt={material.updatedAt}
-						recordId={material.id}
-					/>
+					<MaterialMetadataCard updatedAt={material.updatedAt} recordId={material.id} />
 				</div>
 			</Page.Content>
 		</Page>
@@ -150,10 +128,7 @@ function MaterialBasicInfoSection({ material }: MaterialBasicInfoSectionProps) {
 		<CardSection title="Informasi Dasar" icon={<InfoIcon className="size-4 text-primary" />}>
 			<DataList cols={3}>
 				<DataList.Item label="Nama Bahan Baku" value={material.name} />
-				<DataList.Item
-					label="SKU"
-					value={<span className="font-mono">{material.sku}</span>}
-				/>
+				<DataList.Item label="SKU" value={<span className="font-mono">{material.sku}</span>} />
 				<DataList.Item label="Jenis">
 					<BadgeDot {...MaterialBadgeProps[material.type]} />
 				</DataList.Item>
@@ -228,11 +203,7 @@ interface MaterialRecipeSectionProps {
 	readonly baseUomCode: string | undefined
 }
 
-function MaterialRecipeSection({
-	recipe,
-	materialId,
-	baseUomCode,
-}: MaterialRecipeSectionProps) {
+function MaterialRecipeSection({ recipe, materialId, baseUomCode }: MaterialRecipeSectionProps) {
 	const recipeLink = { to: '/material/$id/recipe' as const, params: { id: String(materialId) } }
 
 	return (
@@ -293,9 +264,7 @@ function RecipeContent({ recipe, baseUomCode }: RecipeContentProps) {
 					</span>
 				</div>
 				<div className="flex flex-col items-end gap-0.5">
-					<span className="text-[10px] font-bold text-muted-foreground uppercase">
-						Status
-					</span>
+					<span className="text-[10px] font-bold text-muted-foreground uppercase">Status</span>
 					<BadgeDot {...getActiveStatusBadge(recipe.isActive)} size="xs" />
 				</div>
 			</div>
@@ -306,9 +275,7 @@ function RecipeContent({ recipe, baseUomCode }: RecipeContentProps) {
 					<span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
 						Instruksi
 					</span>
-					<p className="text-xs whitespace-pre-line leading-relaxed">
-						{recipe.instructions}
-					</p>
+					<p className="text-xs whitespace-pre-line leading-relaxed">{recipe.instructions}</p>
 				</div>
 			)}
 
@@ -366,54 +333,40 @@ function MaterialLocationsCard({
 	materialName,
 }: MaterialLocationsCardProps) {
 	return (
-		<Card size="sm" className="overflow-hidden">
-			<div className="p-4 border-b bg-muted/30 flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<MapPinIcon className="size-4 text-primary" />
-					<h3 className="text-sm font-bold">Lokasi Tersimpan</h3>
-				</div>
-				<Badge variant="primary-light" size="xs">
-					{locations.length}
-				</Badge>
-			</div>
-			<div className="p-2">
+		<CardSection
+			title="Lokasi Tersimpan"
+			icon={<MapPinIcon className="size-4 text-primary" />}
+			description={`${locations.length} lokasi untuk bahan baku ini`}
+			action={
+				<Button
+					variant="outline"
+					size="sm"
+					className="h-8"
+					onClick={() => openAssignDialog(materialId, materialName)}
+				>
+					<PlusIcon className="mr-2 size-3.5" />
+					Kelola Lokasi
+				</Button>
+			}
+		>
+			<div className="border rounded-lg overflow-hidden divide-y">
 				{locations.length === 0 ? (
-					<EmptyState
-						icon={MapPinIcon}
-						title="Belum Ada Lokasi"
-						description="Belum di-assign ke lokasi mana pun."
-						compact
-						action={
-							<Button
-								variant="outline"
-								size="sm"
-								className="w-full"
-								onClick={() => openAssignDialog(materialId, materialName)}
-							>
-								Assign Sekarang
-							</Button>
-						}
-					/>
-				) : (
-					<div className="flex flex-col gap-1">
-						{locations.map((loc) => (
-							<LocationItem key={loc.id} location={loc} />
-						))}
-						<div className="mt-2 p-2">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="w-full h-8 text-xs text-primary"
-								onClick={() => openAssignDialog(materialId, materialName)}
-							>
-								<PlusIcon className="mr-1 size-3" />
-								Kelola Lokasi
-							</Button>
-						</div>
+					<div className="p-8 text-center bg-muted/20">
+						<p className="text-sm text-muted-foreground">Belum ada lokasi yang ditugaskan.</p>
+						<Button
+							variant="link"
+							size="sm"
+							className="mt-1"
+							onClick={() => openAssignDialog(materialId, materialName)}
+						>
+							Tugaskan Sekarang
+						</Button>
 					</div>
+				) : (
+					locations.map((loc) => <LocationItem key={loc.id} location={loc} />)
 				)}
 			</div>
-		</Card>
+		</CardSection>
 	)
 }
 
@@ -427,12 +380,17 @@ interface LocationItemProps {
 
 function LocationItem({ location: loc }: LocationItemProps) {
 	return (
-		<div className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors border-b last:border-0 group">
-			<div className="flex flex-col">
-				<span className="text-sm font-medium">{loc.location.name}</span>
-				<span className="text-[10px] font-mono text-muted-foreground uppercase">
-					{loc.location.code}
-				</span>
+		<div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+			<div className="flex items-center gap-3">
+				<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+					{loc.location.name.charAt(0)}
+				</div>
+				<div className="flex flex-col">
+					<span className="text-sm font-semibold">{loc.location.name}</span>
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+						<span className="font-mono">{loc.location.code}</span>
+					</div>
+				</div>
 			</div>
 			<Badge variant="outline" size="xs">
 				{loc.location.type}
@@ -446,23 +404,36 @@ function LocationItem({ location: loc }: LocationItemProps) {
 /* -------------------------------------------------------------------------- */
 
 interface MaterialMetadataCardProps {
-	readonly updatedAt: string
+	readonly updatedAt: Date | string
 	readonly recordId: number
 }
 
 function MaterialMetadataCard({ updatedAt, recordId }: MaterialMetadataCardProps) {
 	return (
-		<Card size="sm" className="bg-muted/10 border-dashed">
-			<div className="p-4">
-				<DataList cols={1}>
-					<DataList.Item label="Terakhir Diperbarui">
-						{toDateTimeStamp(updatedAt)}
-					</DataList.Item>
-					<DataList.Item label="ID Sistem (Internal)">
-						<span className="font-mono text-muted-foreground">#{recordId}</span>
-					</DataList.Item>
-				</DataList>
+		<CardSection title="Audit" icon={<InfoIcon className="size-4 text-primary" />}>
+			<div className="space-y-4 pt-2">
+				<div className="flex items-start gap-3">
+					<InfoIcon className="mt-1 size-4 text-muted-foreground shrink-0" />
+					<div className="flex flex-col gap-1">
+						<span className="text-xs font-semibold text-muted-foreground uppercase">
+							Terakhir Diperbarui
+						</span>
+						<span className="text-sm">{toDateTimeStamp(updatedAt)}</span>
+					</div>
+				</div>
+
+				<div className="border-t border-dashed" />
+
+				<div className="flex flex-col gap-1.5 p-3 rounded-md bg-muted/30 border border-dashed">
+					<span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+						System Identifiers
+					</span>
+					<div className="flex justify-between items-center text-xs">
+						<span className="text-muted-foreground">Record ID</span>
+						<span className="font-mono">#{recordId}</span>
+					</div>
+				</div>
 			</div>
-		</Card>
+		</CardSection>
 	)
 }
