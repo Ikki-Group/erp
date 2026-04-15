@@ -5,6 +5,9 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { KeyRoundIcon, PencilIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import {
@@ -20,9 +23,6 @@ import type { UserSelectDto } from '@/features/iam'
 import { userApi } from '@/features/iam'
 import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { getUserStatusBadge } from '@/features/iam/utils'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/settings/_tab/user')({ component: RouteComponent })
 
@@ -61,7 +61,7 @@ const columnDefs = [
 	}),
 	ch.accessor('username', {
 		header: 'Username',
-		cell: ({ row }) => <span className="text-muted-foreground/80">@{row.original.username}</span>,
+		cell: ({ row }) => <span className="text-muted-foreground">@{row.original.username}</span>,
 		enableSorting: false,
 	}),
 	ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
@@ -75,7 +75,7 @@ const columnDefs = [
 						variant="ghost"
 						size="icon-sm"
 						onClick={() => {
-							void UserPasswordDialog.call({ id, username })
+							UserPasswordDialog.call({ id, username })
 						}}
 						title="Ubah Password"
 						className="size-8 text-muted-foreground hover:text-foreground"

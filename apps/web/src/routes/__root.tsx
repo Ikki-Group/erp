@@ -5,15 +5,17 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as Sentry from '@sentry/react'
 import { ThemeProvider } from 'next-themes'
 
+import { useAppState } from '@/hooks/use-app-state'
+
 import { ApiError } from '@/lib/api'
 import type { RouteContext } from '@/lib/tanstack-router'
+
+import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import { authApi } from '@/features/auth'
-
-import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createRootRouteWithContext<RouteContext>()({
 	beforeLoad: async ({ context }) => {
@@ -44,6 +46,7 @@ function RootComponent() {
 				<Sentry.ErrorBoundary>
 					<Outlet />
 				</Sentry.ErrorBoundary>
+				<ConfirmDialog.Root />
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 				<TanStackRouterDevtools position="bottom-right" />
 				<Toaster position="top-right" />

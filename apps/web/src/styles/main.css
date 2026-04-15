@@ -79,6 +79,16 @@
 	--color-code-foreground: var(--code-foreground);
 	--color-code-highlight: var(--code-highlight);
 
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-invert: var(--invert);
+	--color-invert-foreground: var(--invert-foreground);
+
 	--animate-skeleton: skeleton 2s -1s infinite linear;
 
 	--color-invert-foreground: var(--invert-foreground);
@@ -170,12 +180,22 @@
 	--code-highlight: oklch(0 0 0 / 4%);
 
 	/* --- Semantic colors --- */
-	--success: oklch(0.62 0.17 160);
+	/* --success: oklch(0.62 0.17 160);
 	--success-foreground: oklch(0.98 0.02 160);
 	--info: oklch(0.55 0.17 248);
 	--info-foreground: oklch(0.35 0.12 248);
 	--warning: oklch(0.75 0.16 65);
-	--warning-foreground: oklch(0.35 0.1 55);
+	--warning-foreground: oklch(0.35 0.1 55); */
+
+	--destructive-foreground: var(--color-red-800);
+	--info: var(--color-violet-500);
+	--info-foreground: var(--color-violet-900);
+	--success: var(--color-emerald-500);
+	--success-foreground: var(--color-emerald-900);
+	--warning: var(--color-yellow-500);
+	--warning-foreground: var(--color-yellow-900);
+	--invert: var(--color-zinc-900);
+	--invert-foreground: var(--color-zinc-50);
 
 	/* --- Invert --- */
 	--invert: oklch(0.22 0.008 65);
@@ -258,12 +278,22 @@
 	--code-highlight: oklch(1 0 0 / 6%);
 
 	/* --- Semantic --- */
-	--success: oklch(0.58 0.15 160);
+	/* --success: oklch(0.58 0.15 160);
 	--success-foreground: oklch(0.12 0.02 160);
 	--info: oklch(0.6 0.15 248);
 	--info-foreground: oklch(0.7 0.12 248);
 	--warning: oklch(0.7 0.14 65);
-	--warning-foreground: oklch(0.75 0.12 65);
+	--warning-foreground: oklch(0.75 0.12 65); */
+
+	--destructive-foreground: var(--color-red-600);
+	--info: var(--color-violet-500);
+	--info-foreground: var(--color-violet-600);
+	--success: var(--color-emerald-500);
+	--success-foreground: var(--color-emerald-600);
+	--warning: var(--color-yellow-500);
+	--warning-foreground: var(--color-yellow-600);
+	--invert: var(--color-zinc-700);
+	--invert-foreground: var(--color-zinc-50);
 
 	/* --- Invert --- */
 	--invert: oklch(0.6 0.005 65);
@@ -289,12 +319,12 @@
 		@apply border-border outline-ring/50;
 	}
 
-	body {
+	/* body {
 		@apply font-sans bg-background text-foreground;
 		font-feature-settings: 'lnum', 'locl';
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
-	}
+	} */
 
 	html {
 		@apply font-sans;

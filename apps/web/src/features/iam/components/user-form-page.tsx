@@ -26,10 +26,6 @@ import { locationApi } from '@/features/location/api/location.api'
 
 import { userApi } from '../api'
 
-/* -------------------------------------------------------------------------- */
-/*  Schema & Defaults                                                         */
-/* -------------------------------------------------------------------------- */
-
 const FormDto = z.object({
 	fullname: zStr.min(1, 'Nama lengkap wajib diisi'),
 	username: zUsername,
@@ -59,10 +55,6 @@ function getDefaultValues(v?: UserSelectDto): FormDto {
 			})) ?? [],
 	}
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
 
 interface UserFormPageProps {
 	mode: 'create' | 'update'
@@ -117,10 +109,6 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
 		</form.AppForm>
 	)
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Sections                                                                  */
-/* -------------------------------------------------------------------------- */
 
 function AccountInfoCard() {
 	const form = useTypedAppFormContext({ ...fopts })

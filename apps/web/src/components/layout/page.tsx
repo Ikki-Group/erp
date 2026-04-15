@@ -14,10 +14,6 @@ import { cn } from '@/lib/utils'
 
 import { Button } from '../ui/button'
 
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
-
 const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-4 animate-enter', {
 	variants: {
 		size: {
@@ -42,10 +38,6 @@ function Page({ size, render, className, ...props }: PageProps) {
 		render,
 	})
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Sub-components                                                            */
-/* -------------------------------------------------------------------------- */
 
 function Header({
 	className,
@@ -99,10 +91,7 @@ function BackButton({ className, ...props }: React.ComponentProps<typeof Button>
 		<Button
 			variant="ghost"
 			size="icon"
-			className={cn(
-				'shrink-0 hover:bg-accent/50 hover:text-accent-foreground transition-all duration-200 active:scale-95',
-				className,
-			)}
+			className={cn('shrink-0', className)}
 			nativeButton={false}
 			{...props}
 		>
@@ -138,10 +127,6 @@ function Content({
 	})
 }
 
-/* -------------------------------------------------------------------------- */
-/*  BlockHeader (Compound Template)                                           */
-/* -------------------------------------------------------------------------- */
-
 interface BlockHeaderProps {
 	title: string
 	description?: string
@@ -161,7 +146,7 @@ function BlockHeader({ title, description, action, back, border }: BlockHeaderPr
 			)}
 		>
 			{back && (
-				<div className="lg:mr-4 pt-1">
+				<div className="lg:mr-2 pt-1">
 					{typeof back === 'function' ? (
 						<BackButton type="button" onClick={back} />
 					) : (
@@ -183,10 +168,6 @@ function BlockHeader({ title, description, action, back, border }: BlockHeaderPr
 		</Header>
 	)
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Exports                                                                   */
-/* -------------------------------------------------------------------------- */
 
 Page.Content = Content
 Page.Header = Header

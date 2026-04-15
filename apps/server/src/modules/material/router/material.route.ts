@@ -48,7 +48,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const { id } = await s.material.handleUpdate(body.id, body, auth.userId)
