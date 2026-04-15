@@ -39,7 +39,8 @@
 		"no-warning-comments": "off",
 		"import/max-dependencies": "off",
 		"no-inline-comments": "off",
-		"max-lines": "off"
+		"max-lines": "off",
+		"oxc/no-map-spread": "off"
 	},
 	"overrides": [
 		{

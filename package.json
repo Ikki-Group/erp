@@ -29,11 +29,11 @@
 		"check": "bun run lint && bun run format:check && bun run knip"
 	},
 	"devDependencies": {
-		"dpdm": "catalog:",
-		"knip": "catalog:",
-		"oxfmt": "catalog:",
-		"oxlint": "catalog:",
-		"oxlint-tsgolint": "catalog:",
-		"typescript": "catalog:"
+		"dpdm": "^4.0.1",
+		"knip": "^5.88.1",
+		"oxfmt": "^0.42.0",
+		"oxlint": "^1.60.0",
+		"oxlint-tsgolint": "^0.17.4",
+		"typescript": "^6.0.2"
 	}
 }

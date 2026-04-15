@@ -2,7 +2,7 @@ import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { createAuthPlugin } from '@/core/http/auth-plugin'
-import { BadRequestError, HttpError, InternalServerError, NotFoundError } from '@/core/http/errors'
+import { HttpError } from '@/core/http/errors'
 import { requestIdPlugin } from '@/core/http/request-id'
 import { logger } from '@/core/logger'
 import { otel } from '@/core/otel'
@@ -20,11 +20,13 @@ export const app = new Elysia({ precompile: true })
 	.use(createAuthPlugin(m.auth))
 	.error({
 		HTTP_ERROR: HttpError,
-		INTERNAL_SERVER_ERROR: InternalServerError,
-		BAD_REQUEST: BadRequestError,
-		NOT_FOUND: NotFoundError,
 	})
 	.onError(({ code, error, set }) => {
+		let stack = ''
+		if (error instanceof Error) {
+			stack = error.stack ?? 'Unknown'
+		}
+
 		if (code === 'VALIDATION') {
 			set.status = 422
 			return {
@@ -32,22 +34,23 @@ export const app = new Elysia({ precompile: true })
 				code: 'VALIDATION_ERROR',
 				message: 'Validation failed',
 				errors: error.all,
+				stack,
 			}
-		}
-
-		if (code === 'NOT_FOUND') {
-			set.status = 404
-			return { status: 'error', code: 'NOT_FOUND', message: 'Not found' }
 		}
 
 		if (error instanceof HttpError) {
 			set.status = error.statusCode
-			return { status: 'error', code: error.code, message: error.message }
+			return { status: 'error', code: error.code, message: error.message, stack }
 		}
 
 		logger.error(error)
 		set.status = 500
-		return { status: 'error', code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' }
+		return {
+			status: 'error',
+			code: 'INTERNAL_SERVER_ERROR',
+			message: 'Internal server error',
+			stack,
+		}
 	})
 	.get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
 

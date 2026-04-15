@@ -343,8 +343,11 @@ export class MaterialService {
 					.returning({ id: materialsTable.id })
 
 				if (material && data.conversions?.length > 0) {
+					const uniqueConversions = Array.from(
+						new Map(data.conversions.map((c) => [c.uomId, c])).values(),
+					)
 					await tx.insert(materialConversionsTable).values(
-						data.conversions.map((c) => ({
+						uniqueConversions.map((c) => ({
 							materialId: material.id,
 							uomId: c.uomId,
 							toBaseFactor: c.toBaseFactor,
@@ -398,8 +401,11 @@ export class MaterialService {
 						.delete(materialConversionsTable)
 						.where(eq(materialConversionsTable.materialId, id))
 					if (data.conversions.length > 0) {
+						const uniqueConversions = Array.from(
+							new Map(data.conversions.map((c) => [c.uomId, c])).values(),
+						)
 						await tx.insert(materialConversionsTable).values(
-							data.conversions.map((c) => ({
+							uniqueConversions.map((c) => ({
 								materialId: id,
 								uomId: c.uomId,
 								toBaseFactor: c.toBaseFactor,

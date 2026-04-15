@@ -49,12 +49,6 @@ type FormDto = z.infer<typeof FormDto>
 const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: MaterialSelectDto): FormDto {
-	const conversions: FormDto['conversions'] = []
-
-	if (v?.conversions.length) {
-		const [_, ...others] = v.conversions
-		conversions.push(...others.map((i) => ({ uomId: i.uomId, toBaseFactor: i.toBaseFactor })))
-	}
 	return {
 		name: v?.name ?? '',
 		description: v?.description ?? '',
@@ -63,7 +57,9 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
 		categoryId: v?.categoryId ?? null,
 		baseUomId: v?.baseUomId ?? null!,
 		conversions:
-			v?.conversions.map((c) => ({ uomId: c.uomId, toBaseFactor: c.toBaseFactor })) ?? [],
+			v?.conversions
+				.filter((c) => c.uomId !== v.baseUomId)
+				.map((c) => ({ uomId: c.uomId, toBaseFactor: c.toBaseFactor })) ?? [],
 	}
 }
 
