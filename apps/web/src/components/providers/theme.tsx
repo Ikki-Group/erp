@@ -27,8 +27,8 @@ export function ThemeSwitcher() {
 
 	return (
 		<Button variant="outline" onClick={onClick} className="size-8 rounded-full">
-			<SunIcon className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" />
-			<MoonIcon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" />
+			<SunIcon className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground opacity-100 dark:opacity-0 duration-200" />
+			<MoonIcon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground dark:opacity-100 opacity-0 duration-200" />
 			<span className="sr-only">Toggle theme</span>
 		</Button>
 	)
