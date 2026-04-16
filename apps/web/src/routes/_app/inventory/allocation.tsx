@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -10,15 +10,15 @@ import { toast } from 'sonner'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
+import { arrayToOptions } from '@/lib/options'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { BaseCombobox, ComboboxExample } from '@/components/blocks/combobox-data'
+import { ComboboxStatic } from '@/components/blocks/combobox-pattern'
 import { Page } from '@/components/layout/page'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DataCombobox } from '@/components/ui/data-combobox'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -36,11 +36,18 @@ import { MaterialLocationEditSheet } from '@/features/material/components/materi
 export const Route = createFileRoute('/_app/inventory/allocation')({ component: RouteComponent })
 
 function RouteComponent() {
-	const [locationId, setLocationId] = useState<string | null>(null)
+	const [locationId, setLocationId] = useState<number | undefined>()
 	const [locationName, setLocationName] = useState<string>('')
-	const [] = useState()
 
-	const locationQry = useQuery(locationApi.list.query({}))
+	const locationQry = useQuery({
+		...locationApi.list.query({}),
+		select: (res) =>
+			arrayToOptions({
+				items: res.data,
+				getValue: (i) => i.id,
+				getLabel: (i) => i.name,
+			}),
+	})
 
 	const numericLocationId = locationId ? Number(locationId) : null
 
@@ -51,44 +58,14 @@ function RouteComponent() {
 				description="Kelola penugasan bahan baku per lokasi gudang"
 			/>
 			<Page.Content className="flex flex-col gap-4">
-				<ComboboxExample />
-				<BaseCombobox
-					items={locationQry.data?.data ?? []}
-					getKey={(item) => String(item.id)}
-					getLabel={(item) => String(item.name)}
-				/>
 				{/* Location Selector */}
 				<div className="flex items-end gap-3">
 					<div className="flex flex-col gap-1.5 w-full max-w-sm">
 						<label className="text-sm font-medium">Pilih Lokasi</label>
-						{/* <DataCombobox
+						<ComboboxStatic
+							items={locationQry.data ?? []}
 							value={locationId}
-							displayValue={locationName}
-							onValueChange={setLocationId}
-							onItemSelect={(item) => setLocationName(item?.name ?? '')}
-							placeholder="Cari lokasi gudang..."
-							emptyText="Lokasi tidak ditemukan."
-							queryKey={['location-list']}
-							queryFn={async (search: string) => {
-								const res = await locationApi.list.fetch({
-									params: { page: 1, limit: 20, q: search || undefined },
-								})
-								return res.data
-							}}
-							getLabel={(item) => `${item.name} (${item.code})`}
-							getValue={(item) => String(item.id)}
-						/> */}
-						<DataCombobox
-							value={locationId}
-							onValueChange={setLocationId}
-							queryOptionsFactory={(q: string) =>
-								queryOptions({
-									...locationApi.list.query({ page: 1, limit: 1, q }),
-									select: (res) => res.data,
-								})
-							}
-							getValue={(u) => String(u.id)}
-							getLabel={(u) => u.name}
+							onChange={setLocationId}
 						/>
 					</div>
 				</div>

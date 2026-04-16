@@ -519,7 +519,7 @@
 }
 
 /* --- Reduced Motion --- */
-@media (prefers-reduced-motion: reduce) {
+/* @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
 	*::after {
@@ -527,7 +527,7 @@
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
-}
+} */
 
 /* ========================================================================== */
 /*  Third-Party Overrides (Sonner Toast)                                       */
