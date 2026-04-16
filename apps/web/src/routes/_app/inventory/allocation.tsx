@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -13,6 +13,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { BaseCombobox, ComboboxExample } from '@/components/blocks/combobox-data'
 import { Page } from '@/components/layout/page'
 
 import { Badge } from '@/components/ui/badge'
@@ -37,6 +38,9 @@ export const Route = createFileRoute('/_app/inventory/allocation')({ component: 
 function RouteComponent() {
 	const [locationId, setLocationId] = useState<string | null>(null)
 	const [locationName, setLocationName] = useState<string>('')
+	const [] = useState()
+
+	const locationQry = useQuery(locationApi.list.query({}))
 
 	const numericLocationId = locationId ? Number(locationId) : null
 
@@ -47,6 +51,12 @@ function RouteComponent() {
 				description="Kelola penugasan bahan baku per lokasi gudang"
 			/>
 			<Page.Content className="flex flex-col gap-4">
+				<ComboboxExample />
+				<BaseCombobox
+					items={locationQry.data?.data ?? []}
+					getKey={(item) => String(item.id)}
+					getLabel={(item) => String(item.name)}
+				/>
 				{/* Location Selector */}
 				<div className="flex items-end gap-3">
 					<div className="flex flex-col gap-1.5 w-full max-w-sm">
@@ -113,13 +123,8 @@ const ch = createColumnHelper<MaterialLocationStockDto>()
  * Renders a paginated stock table and actions for a specific location.
  *
  * Displays material inventory rows for the given location and provides UI to assign materials, open stock configuration, and unassign materials.
- *
- * @param locationId - Numeric identifier of the selected location whose stock will be displayed
- * @param locationName - Human-readable name of the selected location (used in dialogs/actions)
- * @returns The stock table UI and related dialogs for managing material-location assignments
  */
 function StockTable({ locationId, locationName }: { locationId: number; locationName: string }) {
-	const queryClient = useQueryClient()
 	const ds = useDataTableState()
 
 	// Edit sheet state (config only, stock updates use inventory transactions)
@@ -137,9 +142,6 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 
 	const unassignMutation = useMutation({
 		mutationFn: materialLocationApi.unassign.mutationFn,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
-		},
 	})
 
 	const handleUnassign = useCallback(

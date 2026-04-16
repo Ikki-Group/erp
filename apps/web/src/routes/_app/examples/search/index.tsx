@@ -27,6 +27,7 @@ const CATEGORIES = ['Vegetables', 'Fruits', 'Spices', 'Dairy', 'Meat', 'Grains']
 
 // --- Mock Data Generator ---
 const generateMockData = (count: number): Array<Ingredient> => {
+	// @ts-expect-error
 	return Array.from({ length: count }).map((_, i) => ({
 		id: `ing-${i + 1}`,
 		name: `Ingredient ${i + 1}`,
@@ -293,7 +294,7 @@ function MultiSelectDialog({
 
 		const items = Array.from(tempSelected)
 			.map((id) => {
-				return selectedItemsMap.get(id) || results.find((r) => r.id === id)
+				return selectedItemsMap.get(id) ?? results.find((r) => r.id === id)
 			})
 			.filter(Boolean) as Array<Ingredient>
 

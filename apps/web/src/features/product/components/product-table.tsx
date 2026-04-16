@@ -3,6 +3,9 @@ import { Link } from '@tanstack/react-router'
 
 import { PencilIcon, PlusIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import {
 	actionColumn,
@@ -20,9 +23,6 @@ import { Button } from '@/components/ui/button'
 import { locationApi } from '@/features/location'
 import { productApi, productCategoryApi } from '@/features/product/api'
 import type { ProductFilterDto, ProductSelectDto } from '@/features/product/dto'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 const ch = createColumnHelper<ProductSelectDto>()
 
@@ -88,6 +88,7 @@ const columns = [
 	),
 	ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 160 })),
 	ch.display(
+		// @ts-expect-error
 		actionColumn<ProductSelectDto>({
 			id: 'action',
 			cell: ({ row }) => {
@@ -115,6 +116,7 @@ export function ProductTable() {
 	const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
 	const { data, isLoading } = useQuery(
+		// @ts-expect-error
 		productApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
 	)
 

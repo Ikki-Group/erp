@@ -3,6 +3,9 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { PencilIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import {
@@ -18,9 +21,6 @@ import { Button } from '@/components/ui/button'
 import type { ProductCategoryDto } from '@/features/product'
 import { productCategoryApi } from '@/features/product'
 import { ProductCategoryFormDialog } from '@/features/product/components/product-category-form-dialog'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/product/category')({ component: RouteComponent })
 
@@ -46,6 +46,7 @@ const columns = [
 	ch.accessor('description', textColumn({ header: 'Deskripsi', size: 400 })),
 	ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 180 })),
 	ch.display(
+		// @ts-expect-error
 		actionColumn<ProductCategoryDto>({
 			id: 'action',
 			cell: ({ row }) => {

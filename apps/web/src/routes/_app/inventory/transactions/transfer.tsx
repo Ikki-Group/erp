@@ -15,10 +15,10 @@ import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 
 import { stockTransactionApi } from '@/features/inventory'
-import { locationApi } from '@/features/location'
-import type { LocationDto } from '@/features/location/dto'
-import { materialLocationApi } from '@/features/material/api/material-location.api'
-import type { MaterialLocationStockDto } from '@/features/material/dto'
+// import { locationApi } from '@/features/location'
+// import type { LocationDto } from '@/features/location/dto'
+// import { materialLocationApi } from '@/features/material/api/material-location.api'
+// import type { MaterialLocationStockDto } from '@/features/material/dto'
 
 export const Route = createFileRoute('/_app/inventory/transactions/transfer')({
 	component: RouteComponent,
@@ -104,7 +104,7 @@ function TransferInfoCard() {
 	return (
 		<CardSection title="Informasi Transfer">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<form.AppField name="sourceLocationId">
+				{/* <form.AppField name="sourceLocationId">
 					{(field) => (
 						<field.Combobox
 							label="Lokasi Asal"
@@ -114,7 +114,7 @@ function TransferInfoCard() {
 							queryKey={['location-list']}
 							queryFn={async (search) => {
 								const res = await locationApi.list.fetch({
-									params: { page: 1, limit: 20, search: search || undefined },
+									params: { page: 1, limit: 20, search: search ?? undefined },
 								})
 								return res.data
 							}}
@@ -122,8 +122,8 @@ function TransferInfoCard() {
 							getValue={(loc: LocationDto) => loc.id.toString()}
 						/>
 					)}
-				</form.AppField>
-				<form.AppField name="destinationLocationId">
+				</form.AppField> */}
+				{/* <form.AppField name="destinationLocationId">
 					{(field) => (
 						<field.Combobox
 							label="Lokasi Tujuan"
@@ -133,7 +133,7 @@ function TransferInfoCard() {
 							queryKey={['location-list']}
 							queryFn={async (search) => {
 								const res = await locationApi.list.fetch({
-									params: { page: 1, limit: 20, search: search || undefined },
+									params: { page: 1, limit: 20, search: search ?? undefined },
 								})
 								return res.data
 							}}
@@ -141,7 +141,7 @@ function TransferInfoCard() {
 							getValue={(loc: LocationDto) => loc.id.toString()}
 						/>
 					)}
-				</form.AppField>
+				</form.AppField> */}
 				<form.AppField name="date">
 					{(field) => <field.DatePicker label="Tanggal Transfer" required />}
 				</form.AppField>
@@ -176,12 +176,13 @@ function TransferItemsCard() {
 				<form.Subscribe
 					selector={(s) => ({ items: s.values.items, sourceLocationId: s.values.sourceLocationId })}
 				>
+					{/* oxlint-disable-next-line no-unused-vars */}
 					{({ items, sourceLocationId }) => (
 						<>
 							{items.map((item, i) => (
 								<div key={item.materialId || i} className="flex items-end gap-3">
 									<div className="flex-1">
-										<form.AppField name={`items[${i}].materialId`}>
+										{/* <form.AppField name={`items[${i}].materialId`}>
 											{(field) => (
 												<field.Combobox
 													label={i === 0 ? 'Pilih Bahan Baku' : undefined}
@@ -196,7 +197,7 @@ function TransferItemsCard() {
 																locationId: sourceLocationId,
 																page: 1,
 																limit: 20,
-																search: search || undefined,
+																q: search ?? undefined,
 															},
 														})
 														return res.data
@@ -212,7 +213,7 @@ function TransferItemsCard() {
 													}}
 												/>
 											)}
-										</form.AppField>
+										</form.AppField> */}
 									</div>
 
 									<div className="w-48">

@@ -7,7 +7,6 @@ import { DateRangePicker } from '@/components/ui/date-range-picker'
 
 export const formPreviews: Record<string, ComponentRegistryEntry['preview']> = {
 	FormFieldComponent: () => {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const [range, setRange] = React.useState<DateRange | undefined>()
 
 		return (

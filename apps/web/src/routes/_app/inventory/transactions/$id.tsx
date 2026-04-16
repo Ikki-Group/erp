@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { format } from 'date-fns'
@@ -26,14 +26,12 @@ export const Route = createFileRoute('/_app/inventory/transactions/$id')({
 function RouteComponent() {
 	const { id } = Route.useParams()
 	const navigate = useNavigate()
-	const queryClient = useQueryClient()
 
 	const { data, isLoading } = useQuery(stockTransactionApi.detail.query({ id: Number(id) }))
 
 	const removeMutation = useMutation({
 		mutationFn: stockTransactionApi.remove.mutationFn,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: stockTransactionApi.list.queryKey() })
 			navigate({ to: '/inventory/transactions' })
 		},
 	})
@@ -134,7 +132,7 @@ function RouteComponent() {
 						</div>
 						<div className="flex flex-col gap-1">
 							<span className="text-xs text-muted-foreground">Lokasi Gudang</span>
-							<span className="font-medium">{locationData?.data?.name || 'Memuat...'}</span>
+							<span className="font-medium">{locationData?.data?.name ?? 'Memuat...'}</span>
 						</div>
 						{counterpartLocationData?.data && (
 							<div className="flex flex-col gap-1">
@@ -165,10 +163,10 @@ function RouteComponent() {
 							<div className="flex flex-col gap-1 px-2">
 								<span className="text-xs text-muted-foreground">Bahan Baku</span>
 								<span className="font-medium text-lg">
-									{materialData?.data?.name || 'Memuat...'}
+									{materialData?.data?.name ?? 'Memuat...'}
 								</span>
 								<span className="text-sm text-muted-foreground">
-									SKU: {materialData?.data?.sku || '-'}
+									SKU: {materialData?.data?.sku ?? '-'}
 								</span>
 							</div>
 

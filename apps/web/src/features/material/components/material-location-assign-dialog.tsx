@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@uidotdev/usehooks'
 import { Loader2Icon, PackageIcon, SearchIcon } from 'lucide-react'
@@ -32,21 +32,17 @@ interface MaterialLocationAssignDialogProps {
 export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssignDialogProps>(
 	(props) => {
 		const { call, locationId, locationName } = props
-		const queryClient = useQueryClient()
 
 		const [search, setSearch] = useState('')
 		const [selected, setSelected] = useState<Array<number>>([])
 		const debouncedSearch = useDebounce(search, 300)
 
 		const { data, isLoading } = useQuery(
-			materialApi.list.query({ page: 1, limit: 50, search: debouncedSearch || undefined }),
+			materialApi.list.query({ page: 1, limit: 50, q: debouncedSearch || undefined }),
 		)
 
 		const assignMutation = useMutation({
 			mutationFn: materialLocationApi.assign.mutationFn,
-			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
-			},
 		})
 
 		function toggleSelected(id: number) {

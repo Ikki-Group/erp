@@ -51,7 +51,7 @@ export interface ComponentRegistry {
 //  Central Registry Aggregator
 // ---------------------------------------------------------------------------
 
-import { blocksRegistry } from './blocks/registry'
+import { blocksRegistry } from './blocks/_registry'
 import { dataTableRegistry } from './data-table/registry'
 import { formRegistry } from './form/registry'
 import { layoutRegistry } from './layout/registry'

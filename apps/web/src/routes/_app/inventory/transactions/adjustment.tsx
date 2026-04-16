@@ -15,10 +15,10 @@ import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 
 import { stockTransactionApi } from '@/features/inventory'
-import { locationApi } from '@/features/location'
-import type { LocationDto } from '@/features/location/dto'
-import { materialLocationApi } from '@/features/material/api/material-location.api'
-import type { MaterialLocationStockDto } from '@/features/material/dto'
+// import { locationApi } from '@/features/location'
+// import type { LocationDto } from '@/features/location/dto'
+// import { materialLocationApi } from '@/features/material/api/material-location.api'
+// import type { MaterialLocationStockDto } from '@/features/material/dto'
 
 export const Route = createFileRoute('/_app/inventory/transactions/adjustment')({
 	component: RouteComponent,
@@ -101,7 +101,7 @@ function AdjustmentInfoCard() {
 	return (
 		<CardSection title="Informasi Penyesuaian">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<form.AppField name="locationId">
+				{/* <form.AppField name="locationId">
 					{(field) => (
 						<field.Combobox
 							label="Lokasi Gudang"
@@ -119,7 +119,7 @@ function AdjustmentInfoCard() {
 							getValue={(loc: LocationDto) => loc.id.toString()}
 						/>
 					)}
-				</form.AppField>
+				</form.AppField> */}
 				<form.AppField name="date">
 					{(field) => <field.DatePicker label="Tanggal Penyesuaian" required />}
 				</form.AppField>
@@ -154,12 +154,13 @@ function AdjustmentItemsCard() {
 				<form.Subscribe
 					selector={(s) => ({ items: s.values.items, locationId: s.values.locationId })}
 				>
+					{/* oxlint-disable-next-line no-unused-vars */}
 					{({ items, locationId }) => (
 						<>
 							{items.map((item, i) => (
 								<div key={item.materialId || i} className="flex gap-3">
 									<div className="flex-1">
-										<form.AppField name={`items[${i}].materialId`}>
+										{/* <form.AppField name={`items[${i}].materialId`}>
 											{(field) => (
 												<field.Combobox
 													label={i === 0 ? 'Pilih Bahan Baku' : undefined}
@@ -185,11 +186,11 @@ function AdjustmentItemsCard() {
 													getValue={(mat: MaterialLocationStockDto) => mat.materialId.toString()}
 												/>
 											)}
-										</form.AppField>
+										</form.AppField> */}
 									</div>
 
 									<div className="w-48">
-										<form.AppField name={`items[${i}].qty`}>
+										{/* <form.AppField name={`items[${i}].qty`}>
 											{(field) => (
 												<field.Number
 													label={i === 0 ? 'Kuantitas Penyesuaian' : undefined}
@@ -203,7 +204,7 @@ function AdjustmentItemsCard() {
 													}
 												/>
 											)}
-										</form.AppField>
+										</form.AppField> */}
 									</div>
 
 									<div className="w-48">

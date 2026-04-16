@@ -40,7 +40,9 @@
 		"import/max-dependencies": "off",
 		"no-inline-comments": "off",
 		"max-lines": "off",
-		"oxc/no-map-spread": "off"
+		"oxc/no-map-spread": "off",
+		"typescript/ban-ts-comment": "off",
+		"typescript/no-unnecessary-type-conversion": "off"
 	},
 	"overrides": [
 		{

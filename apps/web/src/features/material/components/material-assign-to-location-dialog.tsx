@@ -43,8 +43,7 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 			locationApi.list.query({
 				page: 1,
 				limit: 100,
-				search: debouncedSearch || undefined,
-				isActive: 'true' as any,
+				q: debouncedSearch || undefined,
 			}),
 		)
 

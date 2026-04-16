@@ -127,7 +127,7 @@
 import * as React from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { UndefinedInitialDataOptions, UnusedSkipTokenOptions } from '@tanstack/react-query'
+import type { UnusedSkipTokenOptions } from '@tanstack/react-query'
 
 import { useDebounce } from '@uidotdev/usehooks'
 import { DatabaseIcon, Loader2Icon } from 'lucide-react'

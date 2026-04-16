@@ -2,22 +2,22 @@ import type { DateRange } from 'react-day-picker'
 
 import { useMemo, useState } from 'react'
 
-// oxlint-disable max-lines
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { format, startOfMonth, startOfDay } from 'date-fns'
+import { startOfMonth, startOfDay } from 'date-fns'
 import {
 	AlertCircleIcon,
 	BoxIcon,
-	CalendarIcon,
 	MoveDownIcon,
 	MoveUpIcon,
 	SearchIcon,
 	TrendingUpIcon,
 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+// import { cn } from '@/lib/utils'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
@@ -31,17 +31,14 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { DataCombobox } from '@/components/ui/data-combobox'
+// import { DataCombobox } from '@/components/ui/data-combobox'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+// import { locationApi } from '@/features/location'
 
 import type { StockLedgerSelectDto } from '@/features/inventory'
 import { stockSummaryApi, stockDashboardApi } from '@/features/inventory'
-import { locationApi } from '@/features/location'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 
@@ -148,7 +145,7 @@ function RouteComponent() {
 							<label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
 								Lokasi Gudang
 							</label>
-							<DataCombobox
+							{/* <DataCombobox
 								className="h-10 bg-background border-muted/60"
 								value={locationId}
 								onValueChange={setLocationId}
@@ -163,7 +160,7 @@ function RouteComponent() {
 								}}
 								getLabel={(item) => `${item.name} (${item.code})`}
 								getValue={(item) => String(item.id)}
-							/>
+							/> */}
 						</div>
 
 						{/* Date Range */}
@@ -277,37 +274,37 @@ const columnDefs = [
 		},
 		size: 90,
 	}),
-	ch.accessor('adjustmentQty', {
-		header: 'Adj',
-		cell: ({ getValue }) => {
-			const val = Number(getValue())
-			if (val === 0) return <span className="text-muted-foreground/40">-</span>
-			return (
-				<div
-					className={cn('font-medium tabular-nums', val > 0 ? 'text-blue-600' : 'text-amber-600')}
-				>
-					{val > 0 ? `+${val}` : val}
-				</div>
-			)
-		},
-		size: 80,
-	}),
-	ch.accessor('closingQty', {
-		header: 'Stok Akhir',
-		cell: ({ row }) => {
-			const qty = Number(row.original.closingQty)
-			const isLow = qty <= 10 // Mock threshold, could be from row.original.minStock if added to DTO
-			return (
-				<Badge
-					variant={isLow ? 'destructive' : 'success-light'}
-					className="shadow-none font-bold tabular-nums rounded-md px-2"
-				>
-					{qty}
-				</Badge>
-			)
-		},
-		size: 110,
-	}),
+	// ch.accessor('adjustmentQty', {
+	// 	header: 'Adj',
+	// 	cell: ({ getValue }) => {
+	// 		const val = Number(getValue())
+	// 		if (val === 0) return <span className="text-muted-foreground/40">-</span>
+	// 		return (
+	// 			<div
+	// 				className={cn('font-medium tabular-nums', val > 0 ? 'text-blue-600' : 'text-amber-600')}
+	// 			>
+	// 				{val > 0 ? `+${val}` : val}
+	// 			</div>
+	// 		)
+	// 	},
+	// 	size: 80,
+	// }),
+	// ch.accessor('closingQty', {
+	// 	header: 'Stok Akhir',
+	// 	cell: ({ row }) => {
+	// 		const qty = Number(row.original.closingQty)
+	// 		const isLow = qty <= 10 // Mock threshold, could be from row.original.minStock if added to DTO
+	// 		return (
+	// 			<Badge
+	// 				variant={isLow ? 'destructive' : 'success-light'}
+	// 				className="shadow-none font-bold tabular-nums rounded-md px-2"
+	// 			>
+	// 				{qty}
+	// 			</Badge>
+	// 		)
+	// 	},
+	// 	size: 110,
+	// }),
 	ch.accessor('closingAvgCost', currencyColumn({ header: 'HPP (Avg)', size: 130 })),
 	ch.accessor('closingValue', currencyColumn({ header: 'Nilai Aset', size: 150 })),
 ]

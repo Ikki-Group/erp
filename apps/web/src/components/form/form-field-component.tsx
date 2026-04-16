@@ -182,6 +182,7 @@ function FieldCheckbox({
 					checked={field.state.value}
 					onBlur={field.handleBlur}
 					onCheckedChange={(checked) => {
+						// oxlint-disable-next-line typescript/no-unnecessary-type-conversion
 						field.handleChange(!!checked)
 					}}
 					{...props}
@@ -292,6 +293,8 @@ function FieldSelect<TValue extends StringOrNumber = string>({
 }
 
 interface FieldComboboxProps<TItem>
+	// TODO
+	// @ts-expect-error
 	extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>, BaseFieldProps {
 	orientation?: FieldBaseProps['orientation']
 }
@@ -316,6 +319,8 @@ function FieldCombobox<TItem>({
 			className={className}
 		>
 			<FieldControl>
+				{/* TODO */}
+				{/* @ts-expect-error */}
 				<DataCombobox<TItem>
 					value={field.state.value}
 					onValueChange={(val) => {

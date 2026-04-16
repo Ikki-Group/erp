@@ -48,7 +48,7 @@ export function MaterialPickerDialog({
 	}, [open])
 
 	const { data: results, isLoading } = useQuery({
-		...materialApi.list.query({ search: query, limit: 50 }),
+		...materialApi.list.query({ q: query, limit: 50 }),
 		enabled: open,
 	})
 
@@ -74,7 +74,7 @@ export function MaterialPickerDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger>
-				{trigger || (
+				{trigger ?? (
 					<Button variant="outline" size="sm">
 						<PlusIcon className="mr-2 h-4 w-4" />
 						Pilih Bahan
@@ -135,7 +135,7 @@ export function MaterialPickerDialog({
 												)}
 											</div>
 											<span className="text-xs text-muted-foreground">
-												{item.sku} • {item.category?.name || 'No Category'}
+												{item.sku} • {item.category?.name ?? 'No Category'}
 											</span>
 										</div>
 										{!isAlreadyInRecipe && (

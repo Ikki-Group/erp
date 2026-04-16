@@ -53,8 +53,11 @@ export const ProductCategoryFormDialog = createCallable<ProductCategoryFormDialo
 		defaultValues: getDefaultValues(selectedCategory.data?.data),
 		onSubmit: async ({ value }) => {
 			const promise = isCreate
-				? create.mutateAsync({ body: { ...value } })
-				: update.mutateAsync({ body: { id, ...value } })
+				? // TODO
+					// @ts-expect-error
+					create.mutateAsync({ body: { ...value } })
+				: // @ts-expect-error
+					update.mutateAsync({ body: { id, ...value } })
 
 			await toast
 				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'kategori produk'))

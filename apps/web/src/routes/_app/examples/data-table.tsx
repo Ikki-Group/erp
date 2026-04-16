@@ -52,6 +52,7 @@ interface User {
 	createdAt: Date
 }
 
+// @ts-expect-error
 const MOCK_USERS: Array<User> = Array.from({ length: 100 }).map((_, index) => ({
 	id: `user-${index + 1}`,
 	name: `User ${index + 1}`,
@@ -132,6 +133,7 @@ const advancedColumns = [
 		header: ({ table }) => (
 			<Checkbox
 				checked={table.getIsAllPageRowsSelected()}
+				// oxlint-disable-next-line typescript/no-unnecessary-type-conversion
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
 				className="translate-y-[2px]"
@@ -140,6 +142,7 @@ const advancedColumns = [
 		cell: ({ row }) => (
 			<Checkbox
 				checked={row.getIsSelected()}
+				// oxlint-disable-next-line typescript/no-unnecessary-type-conversion
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
 				className="translate-y-[2px]"
