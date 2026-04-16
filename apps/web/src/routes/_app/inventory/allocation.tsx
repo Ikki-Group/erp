@@ -1,11 +1,14 @@
 import { useCallback, useState } from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { MapPinIcon, MoreHorizontalIcon, PackageIcon, SettingsIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { toastLabelMessage } from '@/lib/toast-message'
 
@@ -29,9 +32,6 @@ import { materialLocationApi } from '@/features/material'
 import { MaterialLocationAssignDialog } from '@/features/material/components/material-location-assign-dialog'
 import { MaterialLocationEditSheet } from '@/features/material/components/material-location-edit-sheet'
 
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-
 export const Route = createFileRoute('/_app/inventory/allocation')({ component: RouteComponent })
 
 function RouteComponent() {
@@ -51,10 +51,11 @@ function RouteComponent() {
 				<div className="flex items-end gap-3">
 					<div className="flex flex-col gap-1.5 w-full max-w-sm">
 						<label className="text-sm font-medium">Pilih Lokasi</label>
-						<DataCombobox
+						{/* <DataCombobox
 							value={locationId}
+							displayValue={locationName}
 							onValueChange={setLocationId}
-							onItemSelect={(item) => setLocationName(item?.name || '')}
+							onItemSelect={(item) => setLocationName(item?.name ?? '')}
 							placeholder="Cari lokasi gudang..."
 							emptyText="Lokasi tidak ditemukan."
 							queryKey={['location-list']}
@@ -66,6 +67,18 @@ function RouteComponent() {
 							}}
 							getLabel={(item) => `${item.name} (${item.code})`}
 							getValue={(item) => String(item.id)}
+						/> */}
+						<DataCombobox
+							value={locationId}
+							onValueChange={setLocationId}
+							queryOptionsFactory={(q: string) =>
+								queryOptions({
+									...locationApi.list.query({ page: 1, limit: 1, q }),
+									select: (res) => res.data,
+								})
+							}
+							getValue={(u) => String(u.id)}
+							getLabel={(u) => u.name}
 						/>
 					</div>
 				</div>
@@ -240,7 +253,7 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 				title="Stok Bahan Baku"
 				table={table}
 				isLoading={isLoading}
-				recordCount={data?.meta.total || 0}
+				recordCount={data?.meta.total ?? 0}
 				action={
 					<Button
 						size="sm"

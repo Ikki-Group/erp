@@ -354,6 +354,9 @@ function PickerContent({
 
 // ─── DateRangePicker (public API) ─────────────────────────────────────────────
 
+/**
+ * @deprecated
+ */
 export function DateRangePicker({
 	value,
 	onChange,
