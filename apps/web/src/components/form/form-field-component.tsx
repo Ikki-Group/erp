@@ -14,7 +14,10 @@ import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { DataComboboxProps } from '@/components/ui/data-combobox'
 import { DataCombobox } from '@/components/ui/data-combobox'
-import { DateRangePicker, type DateRangePickerProps } from '@/components/ui/date-range-picker'
+import {
+	DateRangePickerV2,
+	type DateRangePickerV2Props,
+} from '@/components/ui/date-range-picker-v2'
 import { FieldContent } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
@@ -475,7 +478,7 @@ function FieldDatePicker({
 /* -------------------------------------------------------------------------- */
 
 interface FieldDateRangePickerProps
-	extends BaseFieldProps, Omit<DateRangePickerProps, 'value' | 'onValueChange' | 'onChange'> {
+	extends BaseFieldProps, Omit<DateRangePickerV2Props, 'value' | 'onValueChange' | 'onChange'> {
 	orientation?: FieldBaseProps['orientation']
 }
 
@@ -498,7 +501,7 @@ function FieldDateRangePicker({
 			className={className}
 		>
 			<FieldControl>
-				<DateRangePicker
+				<DateRangePickerV2
 					value={field.state.value}
 					onChange={(range) => {
 						field.handleChange(range)

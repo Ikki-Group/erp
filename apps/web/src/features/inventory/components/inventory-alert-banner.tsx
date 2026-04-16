@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
@@ -42,6 +43,7 @@ export function InventoryAlertBanner() {
 					variant="ghost"
 					size="xs"
 					className="text-warning-foreground hover:bg-warning/20 hover:text-warning-foreground font-bold shrink-0"
+					nativeButton={false}
 					render={<Link to="/inventory/summary" />}
 				>
 					Lihat Detail <ArrowRightIcon className="ml-1.5 size-3" />

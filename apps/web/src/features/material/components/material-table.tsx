@@ -334,7 +334,7 @@ export function MaterialTable() {
 							Assign {selectedIds.length} Lokasi
 						</Button>
 					)}
-					<Button size="sm" render={<Link to="/material/create" />}>
+					<Button size="sm" nativeButton={false} render={<Link to="/material/create" />}>
 						Tambah Bahan Baku
 					</Button>
 				</div>

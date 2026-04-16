@@ -1,7 +1,7 @@
 import type { MaterialLocationStockDto } from '../dto'
 
 import { formOptions } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 
 import { toast } from 'sonner'
 import z from 'zod'
@@ -67,19 +67,11 @@ export function MaterialLocationEditSheet({
  * Presents current stock summary (quantity, average cost, value) and inputs for
  * `minStock`, `maxStock`, and `reorderPoint`. Submitting the form updates the
  * material location's configuration and closes the form.
- *
- * @param data - The material location stock data to display and edit.
- * @param onClose - Callback invoked to close the form/sheet after successful submit or when canceled.
- * @returns The JSX element containing the configuration form and controls.
  */
 
 function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose: () => void }) {
-	const queryClient = useQueryClient()
 	const updateConfig = useMutation({
 		mutationFn: materialLocationApi.updateConfig.mutationFn,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: materialLocationApi.stock.queryKey() })
-		},
 	})
 
 	const form = useAppForm({
@@ -91,7 +83,6 @@ function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose
 		},
 		onSubmit: async ({ value }) => {
 			const promise = updateConfig.mutateAsync({ body: { id: data.id, ...value } })
-
 			await toast.promise(promise, toastLabelMessage('update', 'konfigurasi stok')).unwrap()
 
 			onClose()

@@ -1,3 +1,7 @@
+import type { DateRange } from 'react-day-picker'
+
+import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
@@ -9,6 +13,9 @@ import {
 	StoreIcon,
 	WarehouseIcon,
 } from 'lucide-react'
+
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
@@ -22,17 +29,17 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
+import { DateRangePickerV2 } from '@/components/ui/date-range-picker-v2'
 
 import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
 import type { LocationTypeDto } from '@/features/location/dto'
 
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
-
 export const Route = createFileRoute('/_app/location/')({ component: RouteComponent })
 
 function RouteComponent() {
+	const [range, setRange] = useState<DateRange | undefined>()
+
 	return (
 		<Page>
 			<Page.BlockHeader
@@ -40,6 +47,11 @@ function RouteComponent() {
 				description="Kelola data lokasi dan gudang untuk penyimpanan inventory."
 			/>
 			<Page.Content>
+				<div className="flex justify-end mb-4">
+					<div className="w-72">
+						<DateRangePickerV2 value={range} onChange={setRange} align="end" />
+					</div>
+				</div>
 				<LocationsTable />
 			</Page.Content>
 		</Page>
@@ -119,6 +131,7 @@ const columns = [
 						variant="outline"
 						size="icon-sm"
 						className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-xs"
+						nativeButton={false}
 						render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
 					>
 						<InfoIcon className="size-3.5" />
@@ -127,6 +140,7 @@ const columns = [
 						variant="outline"
 						size="icon-sm"
 						className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-xs"
+						nativeButton={false}
 						render={<Link to="/location/$id/edit" params={{ id: String(row.original.id) }} />}
 					>
 						<PencilIcon className="size-3.5" />
