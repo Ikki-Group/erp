@@ -177,7 +177,7 @@ function AssignmentsCard() {
 	return (
 		<CardSection
 			title="Role & Lokasi"
-			description="Konfigurasi role dan lokasi pengguna."
+			description="Konfigurasi penugasan role dan lokasi pengguna."
 			action={
 				!isRoot && (
 					<Button
@@ -193,7 +193,7 @@ function AssignmentsCard() {
 						}}
 					>
 						<PlusIcon className="size-4 mr-2" />
-						Tambah
+						Tambah Penugasan
 					</Button>
 				)
 			}
@@ -203,7 +203,7 @@ function AssignmentsCard() {
 					<ShieldAlertIcon className="size-4" />
 					<Alert.Title>Akses Tanpa Batas</Alert.Title>
 					<Alert.Description>
-						Super Admin memiliki akses ke semua role dan lokasi di seluruh sistem.
+						Super Admin memiliki bypass akses ke seluruh role dan seluruh cabang secara penuh.
 					</Alert.Description>
 				</Alert>
 			) : (
@@ -211,57 +211,81 @@ function AssignmentsCard() {
 					{(field) => {
 						if (field.state.value.length === 0) {
 							return (
-								<div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-									<ShieldAlertIcon className="size-8 opacity-20 mb-3" />
-									<p className="text-sm">Belum ada role yang ditambahkan.</p>
+								<div className="flex flex-col items-center justify-center py-10 px-4 border border-dashed rounded-lg bg-muted/5 text-center transition-colors">
+									<div className="h-10 w-10 flex items-center justify-center rounded-full bg-muted mb-3">
+										<ShieldAlertIcon className="size-5 text-muted-foreground" />
+									</div>
+									<p className="text-sm font-medium text-foreground">
+										Belum ada role yang ditambahkan
+									</p>
+									<p className="text-xs text-muted-foreground mt-1 max-w-sm">
+										Pengguna ini berpotensi gagal login karena tidak memiliki hak akses role dan
+										lokasi pada aplikasi.
+									</p>
 								</div>
 							)
 						}
 
 						return (
-							<div className="space-y-3">
-								{field.state.value.map((_, i) => (
-									<div
-										key={i}
-										className="flex flex-col sm:flex-row gap-3 p-4 border rounded-lg bg-muted/5"
-									>
-										<div className="grow grid grid-cols-1 sm:grid-cols-2 gap-3">
-											<form.AppField name={`assignments[${i}].roleId`}>
-												{(subField) => (
-													<subField.Select
-														label="Role"
-														placeholder="Pilih Role"
-														options={roleOptions}
-														disabled={roles.isLoading}
-													/>
-												)}
-											</form.AppField>
-											<form.AppField name={`assignments[${i}].locationId`}>
-												{(subField) => (
-													<subField.Select
-														label="Lokasi"
-														placeholder="Pilih Lokasi"
-														options={locationOptions}
-														disabled={locations.isLoading}
-													/>
-												)}
-											</form.AppField>
-										</div>
-										<div className="flex items-end sm:items-center sm:pt-5">
-											<Button
-												variant="ghost"
-												size="icon-sm"
-												type="button"
-												className="text-muted-foreground hover:text-destructive"
-												onClick={() => {
-													field.removeValue(i)
-												}}
-											>
-												<Trash2Icon className="size-4" />
-											</Button>
-										</div>
-									</div>
-								))}
+							<div className="border rounded-md overflow-hidden bg-background">
+								<table className="w-full text-sm text-left">
+									<thead className="bg-muted/40 border-b">
+										<tr>
+											<th className="h-10 px-4 font-medium text-muted-foreground w-1/2">
+												Role Sistem
+											</th>
+											<th className="h-10 px-4 font-medium text-muted-foreground w-[40%]">
+												Lokasi Gudang/Cabang
+											</th>
+											<th className="h-10 px-4 font-medium text-muted-foreground w-[10%] text-right">
+												Aksi
+											</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y">
+										{field.state.value.map((_, i) => (
+											<tr key={i} className="hover:bg-muted/5 transition-colors">
+												<td className="p-3 align-top">
+													<form.AppField name={`assignments[${i}].roleId`}>
+														{(subField) => (
+															<div className="w-full">
+																<subField.Select
+																	placeholder="Pilih Role"
+																	options={roleOptions}
+																	disabled={roles.isLoading}
+																/>
+															</div>
+														)}
+													</form.AppField>
+												</td>
+												<td className="p-3 align-top">
+													<form.AppField name={`assignments[${i}].locationId`}>
+														{(subField) => (
+															<div className="w-full">
+																<subField.Select
+																	placeholder="Pilih Lokasi"
+																	options={locationOptions}
+																	disabled={locations.isLoading}
+																/>
+															</div>
+														)}
+													</form.AppField>
+												</td>
+												<td className="p-3 align-top text-right">
+													<Button
+														variant="ghost"
+														size="icon-sm"
+														type="button"
+														className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-9 w-9"
+														onClick={() => field.removeValue(i)}
+													>
+														<Trash2Icon className="size-4" />
+													</Button>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
 							</div>
 						)
 					}}
