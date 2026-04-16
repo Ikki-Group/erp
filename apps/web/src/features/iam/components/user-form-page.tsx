@@ -273,10 +273,10 @@ function AssignmentsCard() {
 												</td>
 												<td className="p-3 align-top text-right">
 													<Button
-														variant="ghost"
+														variant="destructive"
 														size="icon-sm"
 														type="button"
-														className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-9 w-9"
+														// className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-9 w-9"
 														onClick={() => field.removeValue(i)}
 													>
 														<Trash2Icon className="size-4" />
