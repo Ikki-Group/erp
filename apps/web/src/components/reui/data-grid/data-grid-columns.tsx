@@ -1,11 +1,9 @@
 import * as React from 'react'
 import type { ReactNode } from 'react'
 
-import { Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { CellContext, ColumnDef } from '@tanstack/react-table'
 
-import { toCurrency, toDateTimeStamp, toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
 
 /* -------------------------------------------------------------------------- */
@@ -31,94 +29,7 @@ export type ColumnOptions<_TData> = {
 	meta?: { className?: string; label?: string; headerTitle?: string }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Composable Cell Components                                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Standard text cell with hyphen fallback.
- */
-function DataGridCellText({
-	value,
-	className,
-}: {
-	value: React.ReactNode | string | number | null | undefined
-	className?: string
-}) {
-	return <span className={className}>{value ?? '-'}</span>
-}
-
-/**
- * Date cell using standard ERP formatting.
- */
-function DataGridCellDate({
-	value,
-	className,
-}: {
-	value: Date | string | number | null | undefined
-	className?: string
-}) {
-	return (
-		<span className={cn('text-nowrap', className)}>{value ? toDateTimeStamp(value) : '-'}</span>
-	)
-}
-
-/**
- * Numeric cell with IDR locale formatting and right-alignment.
- */
-function DataGridCellNumber({
-	value,
-	className,
-}: {
-	value: number | string | null | undefined
-	className?: string
-}) {
-	return (
-		<div className={cn('text-right tabular-nums w-full', className)}>
-			{value === null || value === undefined ? '-' : toNumber(value)}
-		</div>
-	)
-}
-
-/**
- * Currency cell with IDR locale formatting and right-alignment.
- */
-function DataGridCellCurrency({
-	value,
-	className,
-}: {
-	value: number | string | null | undefined
-	className?: string
-}) {
-	return (
-		<div className={cn('text-right tabular-nums w-full font-medium', className)}>
-			{value === null || value === undefined ? '-' : toCurrency(value)}
-		</div>
-	)
-}
-
-/**
- * Composable Link cell using TanStack Router.
- */
-function DataGridCellLink(props: React.ComponentProps<typeof Link>) {
-	return (
-		<Link
-			{...props}
-			className={cn(
-				'font-medium text-primary hover:underline transition-all cursor-pointer inline-block',
-				props.className,
-			)}
-		/>
-	)
-}
-
-export const DataGridCell = {
-	Text: DataGridCellText,
-	Date: DataGridCellDate,
-	Number: DataGridCellNumber,
-	Currency: DataGridCellCurrency,
-	Link: DataGridCellLink,
-}
+import { DataGridCell } from './data-grid-cell'
 
 /* -------------------------------------------------------------------------- */
 /*  Helper Functions                                                          */

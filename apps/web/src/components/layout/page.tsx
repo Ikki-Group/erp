@@ -122,7 +122,7 @@ function Content({
 }: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
 	return useRender({
 		defaultTagName: 'div',
-		props: mergeProps<'div'>({ className: cn('px-6', className) }, props),
+		props: mergeProps<'div'>({ className: cn('px-6 flex flex-col gap-6', className) }, props),
 		render,
 	})
 }

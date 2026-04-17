@@ -97,7 +97,7 @@ export function UserFormPage({ mode, id, backTo }: UserFormPageProps) {
 						back={backTo}
 					/>
 					<form.Form>
-						<Page.Content className="flex flex-col gap-6">
+						<Page.Content>
 							<AccountInfoCard />
 							<AccessControlCard />
 							<AssignmentsCard />
@@ -192,7 +192,7 @@ function AssignmentsCard() {
 							})
 						}}
 					>
-						<PlusIcon className="size-4 mr-2" />
+						<PlusIcon />
 						Tambah Penugasan
 					</Button>
 				)
@@ -276,7 +276,6 @@ function AssignmentsCard() {
 														variant="destructive"
 														size="icon-sm"
 														type="button"
-														// className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-9 w-9"
 														onClick={() => field.removeValue(i)}
 													>
 														<Trash2Icon className="size-4" />

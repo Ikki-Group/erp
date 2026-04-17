@@ -1,10 +1,7 @@
-/* eslint-disable @eslint-react/no-array-index-key */
-/* eslint-disable no-shadow */
+// oxlint-disable typescript/no-unnecessary-type-parameters
 import { Fragment } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
-// oxlint-disable max-lines
-// oxlint-disable typescript/no-confusing-void-expression
 import { flexRender } from '@tanstack/react-table'
 import type { Cell, Column, Header, HeaderGroup, Row } from '@tanstack/react-table'
 
