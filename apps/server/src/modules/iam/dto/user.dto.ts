@@ -7,39 +7,39 @@ import {
 	zPaginationDto,
 	zPassword,
 	zQueryBoolean,
+	zQueryId,
 	zQuerySearch,
 	zRecordIdDto,
 	zStr,
+	zStrNullable,
 	zUsername,
-	zWithAuditResolved,
+	zAuditResolvedDto,
 } from '@/core/validation'
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
-/**
- * Common User attributes.
- */
 export const UserBaseDto = z.object({
-	username: zUsername,
 	email: zEmail,
+	username: zUsername,
 	fullname: zStr,
-	isActive: zBool,
+	pinCode: zStrNullable,
 	isRoot: zBool,
+	isActive: zBool,
 })
 export type UserBaseDto = z.infer<typeof UserBaseDto>
 
-/**
- * User database record (includes related assignments).
- */
-export const UserDto = zWithAuditResolved(
-	z.object({
-		...zRecordIdDto.shape,
-		...UserBaseDto.shape,
-		...zMetadataDto.shape,
-		assignments: z.array(UserAssignmentDetailDto).optional(),
-	}).shape,
-)
+export const UserDto = z.object({
+	...zRecordIdDto.shape,
+	...UserBaseDto.shape,
+	...zMetadataDto.shape,
+})
 export type UserDto = z.infer<typeof UserDto>
+
+export const UserDetailDto = z.object({
+	...UserDto.shape,
+	assignments: z.array(UserAssignmentDetailDto),
+	...zAuditResolvedDto.shape,
+})
 
 /**
  * Input for creating a new User.
@@ -70,7 +70,7 @@ export const UserFilterDto = z.object({
 	q: zQuerySearch,
 	isActive: zQueryBoolean,
 	isRoot: zQueryBoolean,
-	locationId: z.coerce.number().optional(),
+	locationId: zQueryId.optional(),
 })
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 

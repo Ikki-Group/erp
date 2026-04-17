@@ -39,7 +39,7 @@ import {
 } from './sales'
 import { suppliersTable } from './supplier'
 import { employeesTable } from './employee'
-import { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
+import { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
 import {
 	goodsReceiptNoteItemsTable,
 	goodsReceiptNotesTable,
@@ -105,7 +105,9 @@ export const relations = defineRelations(
 		shiftsTable,
 		payrollBatchesTable,
 		payrollItemsTable,
+		payrollItemsTable,
 		payrollAdjustmentsTable,
+		expendituresTable,
 	},
 	(r) => ({
 		// ─── IAM ──────────────────────────────────────────────────────────
@@ -465,6 +467,31 @@ export const relations = defineRelations(
 				to: r.journalEntriesTable.id,
 			}),
 			account: r.one.accountsTable({ from: r.journalItemsTable.accountId, to: r.accountsTable.id }),
+		},
+		expendituresTable: {
+			sourceAccount: r.one.accountsTable({
+				from: r.expendituresTable.sourceAccountId,
+				to: r.accountsTable.id,
+				alias: 'sourceAccount',
+			}),
+			targetAccount: r.one.accountsTable({
+				from: r.expendituresTable.targetAccountId,
+				to: r.accountsTable.id,
+				alias: 'targetAccount',
+			}),
+			liabilityAccount: r.one.accountsTable({
+				from: r.expendituresTable.liabilityAccountId,
+				to: r.accountsTable.id,
+				alias: 'liabilityAccount',
+			}),
+			supplier: r.one.suppliersTable({
+				from: r.expendituresTable.supplierId,
+				to: r.suppliersTable.id,
+			}),
+			location: r.one.locationsTable({
+				from: r.expendituresTable.locationId,
+				to: r.locationsTable.id,
+			}),
 		},
 
 		// ─── HR ───────────────────────────────────────────────────────────

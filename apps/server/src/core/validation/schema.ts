@@ -1,4 +1,4 @@
-import z from 'zod'
+import { z } from 'zod'
 
 import { zDate, zId } from './primitive'
 
@@ -22,6 +22,11 @@ export const zUserSnippetDto = z.object({
 
 export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
 
+export const zAuditResolvedDto = z.object({
+	creator: zUserSnippetDto.nullable(),
+	updater: zUserSnippetDto.nullable(),
+})
+
 /**
  * Extends a Zod schema with resolved audit attributes (creator and updater).
  * This makes the schema typesafe for endpoints resolving audit fields.
@@ -29,8 +34,7 @@ export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
 export function zWithAuditResolved<T extends z.ZodRawShape>(shape: T) {
 	return z.object({
 		...shape,
-		creator: zUserSnippetDto.optional().nullable(),
-		updater: zUserSnippetDto.optional().nullable(),
+		...zAuditResolvedDto.shape,
 	})
 }
 

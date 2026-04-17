@@ -1,10 +1,4 @@
-import z from 'zod'
-
-/* -------------------------------------------------------------------------- */
-/*                          Primitive Zod Schemas                             */
-/* -------------------------------------------------------------------------- */
-
-// ─── Base Types ───────────────────────────────────────────────────────────────
+import { z } from 'zod'
 
 export const zStr = z.string().trim()
 export const zStrNullable = z
@@ -19,10 +13,7 @@ export const zBool = z.boolean()
 export const zEmail = z.email().transform((v) => v.toLowerCase())
 export const zUuid = z.uuidv7()
 
-/** Standard Primary Key validation (Coerced Integer). */
 export const zId = z.coerce.number().int().positive()
-
-// ─── Domain-specific ──────────────────────────────────────────────────────────
 
 export const zCodeUpper = z.string().trim().toUpperCase()
 export const zPassword = z
@@ -41,4 +32,21 @@ export const zUsername = z
 export const zDecimal = z.string().trim()
 
 /** Sort order / display order integer */
+/** @deprecated */
 export const zSortOrder = z.number().int().nonnegative()
+
+export const zp = {
+	str: zStr,
+	strNullable: zStrNullable,
+	num: zNum,
+	numCoerce: zNumCoerce,
+	date: zDate,
+	bool: zBool,
+	email: zEmail,
+	uuid: zUuid,
+	id: zId,
+	codeUpper: zCodeUpper,
+	password: zPassword,
+	username: zUsername,
+	decimal: zDecimal,
+}
