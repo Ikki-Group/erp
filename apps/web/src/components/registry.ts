@@ -56,12 +56,14 @@ import { dataTableRegistry } from './data-table/registry'
 import { formRegistry } from './form/registry'
 import { layoutRegistry } from './layout/registry'
 import { providersRegistry } from './providers/registry'
+import { reuiRegistry } from './reui/registry'
 
 /**
  * The complete component registry for `apps/web`.
- * Readonly registries (`ui`, `reui`) are excluded — they are managed externally.
+ * Readonly registries (`ui`) are excluded — they are managed externally.
  */
 export const componentRegistry: ComponentRegistry[] = [
+	reuiRegistry,
 	layoutRegistry,
 	formRegistry,
 	dataTableRegistry,

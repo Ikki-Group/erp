@@ -55,7 +55,11 @@ function LayerPage() {
 			{/* Component Cards */}
 			<div className="space-y-4">
 				{registry.components.map((entry) => (
-					<ComponentCard key={entry.name} entry={entry} preview={previews[entry.name]} />
+					<ComponentCard
+						key={entry.name}
+						entry={entry}
+						preview={previews[entry.name] ?? entry.preview}
+					/>
 				))}
 			</div>
 		</div>
@@ -91,7 +95,6 @@ function ComponentCard({
 					</div>
 				</div>
 			</div>
-
 			{/* Preview */}
 			{preview && (
 				<div className="px-5 py-4 border-b">
@@ -102,7 +105,6 @@ function ComponentCard({
 					<div className="rounded-lg border border-dashed bg-background p-4">{preview()}</div>
 				</div>
 			)}
-
 			{/* Card Body */}
 			<div className="px-5 py-4 space-y-4">
 				{/* Usage */}

@@ -10,8 +10,6 @@ import {
 	PaletteIcon,
 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
-
 import { componentRegistry } from '@/components/registry'
 
 export const Route = createFileRoute('/_docs')({ component: DocsLayout })
