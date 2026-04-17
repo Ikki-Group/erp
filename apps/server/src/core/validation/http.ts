@@ -1,4 +1,3 @@
-// oxlint-disable unicorn/prefer-top-level-await
 import z from 'zod'
 
 import { zId, zNumCoerce, zStr } from './primitive'
@@ -13,12 +12,10 @@ export const zQueryIds = z.preprocess(
 )
 
 /** Converts string 'true'/'false' to boolean */
-// oxlint-disable-next-line unicorn/prefer-top-level-await
 export const zQueryBoolean = z
 	.enum(['true', 'false'])
 	.transform((val) => val === 'true')
 	.optional()
-	// oxlint-disable-next-line unicorn/no-useless-undefined
 	.catch(undefined)
 
 /** Optional search string, returns undefined for empty strings */
