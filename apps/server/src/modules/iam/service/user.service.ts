@@ -175,7 +175,7 @@ export class UserService {
 	// Paginated list.
 	async handleList(filter: dto.UserFilterDto): Promise<core.WithPaginationResult<dto.UserDto>> {
 		const result = await record('UserService.handleList', async () => {
-			const { q, page, limit, isActive } = filter
+			const { q, page, limit, isActive, isRoot } = filter
 			const where = and(
 				isNull(usersTable.deletedAt),
 				q === undefined
@@ -186,6 +186,7 @@ export class UserService {
 							core.searchFilter(usersTable.email, q),
 						),
 				isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
+				isRoot === undefined ? undefined : eq(usersTable.isRoot, isRoot),
 				filter.locationId === undefined
 					? undefined
 					: exists(

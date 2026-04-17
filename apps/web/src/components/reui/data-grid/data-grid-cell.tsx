@@ -39,12 +39,6 @@ interface DataGridCellCurrencyProps {
 	className?: string
 }
 
-interface DataGridCellStatusProps {
-	label: React.ReactNode
-	variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
-	className?: string
-}
-
 interface DataGridCellAvatarProps {
 	src?: string
 	fallback?: string
@@ -159,37 +153,6 @@ function DataGridCellLink(props: React.ComponentProps<typeof Link>) {
 				props.className,
 			)}
 		/>
-	)
-}
-
-/**
- * Renders a status badge with consistent ERP variants.
- */
-function DataGridCellStatus({ label, variant = 'default', className }: DataGridCellStatusProps) {
-	const variantMap: Record<string, any> = {
-		success: 'outline', // Default fallback or custom logic
-		warning: 'outline',
-		info: 'secondary',
-	}
-
-	// Adjust variant based on custom ERP logic if needed
-	// oxlint-disable-next-line typescript/no-unsafe-assignment
-	const badgeVariant = variantMap[variant] ?? variant
-
-	return (
-		<Badge
-			// oxlint-disable-next-line typescript/no-unsafe-assignment
-			variant={badgeVariant}
-			className={cn(
-				'capitalize',
-				variant === 'success' && 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-				variant === 'warning' && 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-				variant === 'info' && 'bg-sky-500/10 text-sky-600 border-sky-500/20',
-				className,
-			)}
-		>
-			{label}
-		</Badge>
 	)
 }
 
@@ -360,7 +323,6 @@ export const DataGridCell = {
 	Number: DataGridCellNumber,
 	Currency: DataGridCellCurrency,
 	Link: DataGridCellLink,
-	Status: DataGridCellStatus,
 	Avatar: DataGridCellAvatar,
 	Boolean: DataGridCellBoolean,
 	Action: DataGridCellAction,

@@ -69,6 +69,7 @@ export const UserFilterDto = z.object({
 	...zPaginationDto.shape,
 	q: zQuerySearch,
 	isActive: zQueryBoolean,
+	isRoot: zQueryBoolean,
 	locationId: z.coerce.number().optional(),
 })
 export type UserFilterDto = z.infer<typeof UserFilterDto>

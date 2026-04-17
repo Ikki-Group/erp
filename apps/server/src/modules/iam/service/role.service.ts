@@ -134,7 +134,7 @@ export class RoleService {
 						.orderBy(core.sortBy(rolesTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.RoleDto.parse(r))
+					return rows
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(rolesTable).where(where),

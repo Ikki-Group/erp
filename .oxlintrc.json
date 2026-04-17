@@ -42,7 +42,8 @@
 		"max-lines": "off",
 		"oxc/no-map-spread": "off",
 		"typescript/ban-ts-comment": "off",
-		"typescript/no-unnecessary-type-conversion": "off"
+		"typescript/no-unnecessary-type-conversion": "off",
+		"typescript/prefer-readonly-parameter-types": "off"
 	},
 	"overrides": [
 		{

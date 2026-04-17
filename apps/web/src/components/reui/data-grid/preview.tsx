@@ -38,20 +38,6 @@ export function DataGridCellPreview() {
 			</section>
 
 			<section className="space-y-4">
-				<h3 className="text-lg font-bold border-b pb-2">Status & Badges</h3>
-				<div className="flex flex-wrap gap-4">
-					<DataGridCell.Status label="Active" variant="success" />
-					<DataGridCell.Status label="Pending" variant="warning" />
-					<DataGridCell.Status label="Error" variant="destructive" />
-					<DataGridCell.Status label="Archived" variant="secondary" />
-					<DataGridCell.BadgeGroup
-						values={['Premium', 'Trial', 'New', 'Featured', 'Limited']}
-						max={3}
-					/>
-				</div>
-			</section>
-
-			<section className="space-y-4">
 				<h3 className="text-lg font-bold border-b pb-2">Avatars & Booleans</h3>
 				<div className="flex items-center gap-8 bg-background p-4 rounded-lg border">
 					<DataGridCell.Avatar

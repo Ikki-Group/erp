@@ -20,6 +20,7 @@ export class UserAssignmentService {
 				const rows = await db
 					.select({
 						...getColumns(userAssignmentsTable),
+						role: rolesTable,
 						roleName: rolesTable.name,
 						roleCode: rolesTable.code,
 						locationName: locationsTable.name,
@@ -29,6 +30,8 @@ export class UserAssignmentService {
 					.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
 					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
 					.where(eq(userAssignmentsTable.userId, userId))
+
+				console.log({ rows })
 				return rows
 			})
 		})
