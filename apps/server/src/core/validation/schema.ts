@@ -1,15 +1,34 @@
 import { z } from 'zod'
 
-import { zDate, zId } from './primitive'
+import { zDate, zId, zp } from './primitive'
+
+const zTimestamps = z.object({
+	createdAt: zp.date,
+	updatedAt: zp.date,
+})
+
+const zActors = z.object({
+	createdBy: zp.id,
+	updatedBy: zp.id,
+})
+
+const zSoftDelete = z.object({
+	deletedBy: zId.nullable(),
+	deletedAt: zp.date.nullable(),
+})
+
+const zSyncMeta = z.object({
+	syncAt: zDate.optional().nullable(),
+})
 
 /** Base audit metadata for API visibility. */
 export const zMetadataDto = z.object({
-	createdBy: zId,
-	updatedBy: zId,
-	createdAt: zDate,
-	updatedAt: zDate,
-	deletedAt: zDate.optional().nullable(),
-	deletedBy: zId.optional().nullable(),
+	createdBy: zp.id,
+	createdAt: zp.date,
+	updatedBy: zp.id,
+	updatedAt: zp.date,
+	deletedBy: zId.nullable(),
+	deletedAt: zp.date.nullable(),
 	syncAt: zDate.optional().nullable(),
 })
 
