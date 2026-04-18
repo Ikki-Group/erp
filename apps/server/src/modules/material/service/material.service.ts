@@ -109,7 +109,15 @@ export class MaterialService {
 				),
 		])
 
-		return { ...result, conversions, locationIds: locations.map((l) => l.locationId) }
+		return {
+			...result,
+			conversions: conversions.map((c) => ({
+				toBaseFactor: Number(c.toBaseFactor),
+				uomId: c.uomId,
+				uom: c.uom,
+			})),
+			locationIds: locations.map((l) => l.locationId),
+		}
 	}
 
 	/**
@@ -163,7 +171,11 @@ export class MaterialService {
 		for (const c of conversions) {
 			map
 				.get(c.materialId)!
-				.conversions.push({ toBaseFactor: c.toBaseFactor, uomId: c.uomId, uom: c.uom })
+				.conversions.push({
+					toBaseFactor: Number(c.toBaseFactor),
+					uomId: c.uomId,
+					uom: c.uom,
+				})
 		}
 
 		for (const l of locations) {
@@ -295,13 +307,16 @@ export class MaterialService {
 				uomsMap.set(uom.id, uom)
 			}
 
-			const data: MaterialSelectDto[] = result.data.map((m) => ({
-				...m,
-				conversions: relationsMap.get(m.id)!.conversions,
-				locationIds: relationsMap.get(m.id)!.locationIds,
-				category: m.categoryId ? (categoriesMap.get(m.categoryId) ?? null) : null,
-				uom: uomsMap.get(m.baseUomId) ?? null,
-			}))
+			const data: MaterialSelectDto[] = result.data.map((m) => {
+				const relations = relationsMap.get(m.id)!
+				return {
+					...m,
+					conversions: relations.conversions,
+					locationIds: relations.locationIds,
+					category: m.categoryId ? (categoriesMap.get(m.categoryId) ?? null) : null,
+					uom: uomsMap.get(m.baseUomId) ?? null,
+				}
+			})
 
 			const resolvedData = await resolveAuditList(data)
 
@@ -352,7 +367,7 @@ export class MaterialService {
 						uniqueConversions.map((c) => ({
 							materialId: material.id,
 							uomId: c.uomId,
-							toBaseFactor: c.toBaseFactor,
+							toBaseFactor: c.toBaseFactor.toString(),
 							...metadata,
 						})),
 					)
@@ -410,7 +425,7 @@ export class MaterialService {
 							uniqueConversions.map((c) => ({
 								materialId: id,
 								uomId: c.uomId,
-								toBaseFactor: c.toBaseFactor,
+								toBaseFactor: c.toBaseFactor.toString(),
 								...createMetadata,
 							})),
 						)

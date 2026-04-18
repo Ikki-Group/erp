@@ -11,12 +11,10 @@ import type { AccountCreateDto, AccountUpdateDto, AccountFilterDto } from '../dt
 export class AccountService {
 	async handleList(query: AccountFilterDto) {
 		return record('AccountService.handleList', async () => {
-			const { search, type, parentId, limit = 50, page = 1 } = query
+			const { q, type, parentId, limit = 50, page = 1 } = query
 
 			const where = and(
-				search
-					? or(ilike(accountsTable.name, `%${search}%`), ilike(accountsTable.code, `%${search}%`))
-					: undefined,
+				q ? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`)) : undefined,
 				isNull(accountsTable.deletedAt),
 				type ? eq(accountsTable.type, type) : undefined,
 				parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,

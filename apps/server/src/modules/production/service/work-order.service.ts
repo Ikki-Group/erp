@@ -92,7 +92,7 @@ export class WorkOrderService {
 				.values({
 					recipeId: data.recipeId,
 					locationId: data.locationId,
-					expectedQty: data.expectedQty,
+					expectedQty: data.expectedQty.toString(),
 					note: data.note ?? null,
 					status: 'draft',
 					actualQty: '0',

@@ -1,5 +1,5 @@
 import { isNull } from 'drizzle-orm'
-import { integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 

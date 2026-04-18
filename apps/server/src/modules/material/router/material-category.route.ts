@@ -4,9 +4,7 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
 	zc,
-	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -24,7 +22,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...MaterialCategoryFilterDto.shape, ...zq.pagination.shape }),
+				query: MaterialCategoryFilterDto,
 				response: createPaginatedResponseSchema(MaterialCategoryDto),
 				auth: true,
 			},

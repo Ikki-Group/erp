@@ -28,10 +28,10 @@ export class SupplierService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<SupplierDto>> {
 		return record('SupplierService.handleList', async () => {
-			const { search } = filter
+			const { q } = filter
 
-			const searchCondition = search
-				? or(ilike(suppliersTable.name, `%${search}%`), ilike(suppliersTable.code, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(suppliersTable.name, `%${q}%`), ilike(suppliersTable.code, `%${q}%`))
 				: undefined
 
 			const where = and(isNull(suppliersTable.deletedAt), searchCondition)

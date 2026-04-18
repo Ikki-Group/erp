@@ -36,6 +36,8 @@ export const GoodsReceiptNoteDto = z.object({
 	...zc.AuditBasic.shape,
 })
 export type GoodsReceiptNoteDto = z.infer<typeof GoodsReceiptNoteDto>
+export const GoodsReceiptNoteSelectDto = GoodsReceiptNoteDto.omit({ items: true })
+export type GoodsReceiptNoteSelectDto = z.infer<typeof GoodsReceiptNoteSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 

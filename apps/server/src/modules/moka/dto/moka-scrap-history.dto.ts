@@ -4,8 +4,8 @@ import { zc, zp, zq } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const MokaScrapTypeEnum = z.enum(['sales', 'product', 'category'])
-export type MokaScrapType = z.infer<typeof MokaScrapTypeEnum>
+export const MokaScrapType = z.enum(['sales', 'product', 'category'])
+export type MokaScrapType = z.infer<typeof MokaScrapType>
 
 export const MokaScrapStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed'])
 export type MokaScrapStatus = z.infer<typeof MokaScrapStatusEnum>
@@ -15,7 +15,7 @@ export type MokaScrapStatus = z.infer<typeof MokaScrapStatusEnum>
 export const MokaScrapHistoryDto = z.object({
 	...zc.RecordId.shape,
 	mokaConfigurationId: zp.id,
-	type: MokaScrapTypeEnum,
+	type: MokaScrapType,
 	status: MokaScrapStatusEnum,
 	dateFrom: zp.date,
 	dateTo: zp.date,
@@ -31,7 +31,7 @@ export type MokaScrapHistoryDto = z.infer<typeof MokaScrapHistoryDto>
 export const MokaScrapHistoryFilterDto = z.object({
 	...zq.pagination.shape,
 	mokaConfigurationId: zq.id.optional(),
-	type: MokaScrapTypeEnum.optional(),
+	type: MokaScrapType.optional(),
 	status: MokaScrapStatusEnum.optional(),
 })
 export type MokaScrapHistoryFilterDto = z.infer<typeof MokaScrapHistoryFilterDto>

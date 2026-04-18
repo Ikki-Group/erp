@@ -40,6 +40,8 @@ export const PurchaseOrderDto = z.object({
 	...zc.AuditBasic.shape,
 })
 export type PurchaseOrderDto = z.infer<typeof PurchaseOrderDto>
+export const PurchaseOrderSelectDto = PurchaseOrderDto.omit({ items: true })
+export type PurchaseOrderSelectDto = z.infer<typeof PurchaseOrderSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 

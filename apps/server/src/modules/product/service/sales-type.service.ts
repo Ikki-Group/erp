@@ -18,7 +18,12 @@ import type { PaginationQuery, WithPaginationResult } from '@/core/utils/paginat
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 
-import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
+import type {
+	SalesTypeCreateDto,
+	SalesTypeDto,
+	SalesTypeFilterDto,
+	SalesTypeUpdateDto,
+} from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -96,8 +101,8 @@ export class SalesTypeService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () => {
-			const { search } = filter
-			const where = searchFilter(salesTypesTable.name, search)
+			const { q } = filter
+			const where = searchFilter(salesTypesTable.name, q)
 
 			return paginate<SalesTypeDto>({
 				data: ({ limit, offset }) =>
@@ -126,7 +131,7 @@ export class SalesTypeService {
 	/**
 	 * Seeds sales types
 	 */
-	async seed(data: (SalesTypeMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
+	async seed(data: (SalesTypeCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
 		return record('SalesTypeService.seed', async () => {
 			for (const d of data) {
 				const metadata = stampCreate(d.createdBy)
@@ -151,7 +156,7 @@ export class SalesTypeService {
 	/**
 	 * Creates a new sales type. Invalidates cache.
 	 */
-	async handleCreate(data: SalesTypeMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: SalesTypeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('SalesTypeService.handleCreate', async () => {
 			const code = data.code.trim().toLowerCase()
 			const name = data.name.trim()
@@ -180,7 +185,7 @@ export class SalesTypeService {
 	 */
 	async handleUpdate(
 		id: number,
-		data: Partial<SalesTypeMutationDto>,
+		data: Partial<SalesTypeUpdateDto>,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('SalesTypeService.handleUpdate', async () => {

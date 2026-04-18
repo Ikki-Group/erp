@@ -64,7 +64,11 @@ export class ProductService {
 	 * Fetches product-level prices (for non-variant products with sales type pricing).
 	 */
 	private async getProductPrices(productId: number): Promise<ProductPriceDto[]> {
-		return db.select().from(productPricesTable).where(eq(productPricesTable.productId, productId))
+		const rows = await db
+			.select()
+			.from(productPricesTable)
+			.where(eq(productPricesTable.productId, productId))
+		return rows.map((r) => ({ ...r, price: Number(r.price) }))
 	}
 
 	/**
@@ -80,7 +84,9 @@ export class ProductService {
 
 		const map = new Map<number, ProductPriceDto[]>()
 		for (const id of productIds) map.set(id, [])
-		for (const p of prices) map.get(p.productId)!.push(p)
+		for (const p of prices) {
+			map.get(p.productId)!.push({ ...p, price: Number(p.price) })
+		}
 
 		return map
 	}
@@ -109,7 +115,12 @@ export class ProductService {
 			pricesByVariant.set(p.variantId, list)
 		}
 
-		return variants.map((v) => Object.assign({}, v, { prices: pricesByVariant.get(v.id) ?? [] }))
+		return variants.map((v) =>
+			Object.assign({}, v, {
+				basePrice: Number(v.basePrice),
+				prices: (pricesByVariant.get(v.id) ?? []).map((p) => ({ ...p, price: Number(p.price) })),
+			}),
+		)
 	}
 
 	/**
@@ -144,7 +155,12 @@ export class ProductService {
 			map.set(id, [])
 		}
 		for (const v of variants) {
-			map.get(v.productId)!.push(Object.assign({}, v, { prices: pricesByVariant.get(v.id) ?? [] }))
+			map.get(v.productId)!.push(
+				Object.assign({}, v, {
+					basePrice: Number(v.basePrice),
+					prices: (pricesByVariant.get(v.id) ?? []).map((p) => ({ ...p, price: Number(p.price) })),
+				}),
+			)
 		}
 
 		return map
@@ -231,15 +247,29 @@ export class ProductService {
 					.limit(1)
 				if (!result) throw err.notFound(id)
 
-				const variants = result.hasVariants ? await this.getVariantsWithPrices(id) : []
-				const prices =
-					!result.hasVariants && result.hasSalesTypePricing ? await this.getProductPrices(id) : []
+				const variants: ProductVariantDto[] = result.hasVariants
+					? (await this.getVariantsWithPrices(id)).map((v) => ({
+							...v,
+							basePrice: Number(v.basePrice),
+							prices: v.prices.map((p) => ({ ...p, price: Number(p.price) })),
+						}))
+					: []
+				const prices: ProductPriceDto[] =
+					!result.hasVariants && result.hasSalesTypePricing
+						? (await this.getProductPrices(id)).map((p) => ({ ...p, price: Number(p.price) }))
+						: []
 				const mappings = await db
 					.select()
 					.from(productExternalMappingsTable)
-					.where(eq(productExternalMappingsTable.id, id))
+					.where(eq(productExternalMappingsTable.productId, id))
 
-				return { ...result, variants, prices, externalMappings: mappings }
+				return {
+					...result,
+					basePrice: Number(result.basePrice),
+					variants,
+					prices,
+					externalMappings: mappings,
+				}
 			})
 		})
 	}
@@ -322,8 +352,13 @@ export class ProductService {
 
 			const data: ProductSelectDto[] = result.data.map((p) =>
 				Object.assign({}, p, {
-					variants: variantsMap.get(p.id) ?? [],
-					prices: pricesMap.get(p.id) ?? [],
+					basePrice: Number(p.basePrice),
+					variants: (variantsMap.get(p.id) ?? []).map((v) => ({
+						...v,
+						basePrice: Number(v.basePrice),
+						prices: v.prices.map((pr) => ({ ...pr, price: Number(pr.price) })),
+					})),
+					prices: (pricesMap.get(p.id) ?? []).map((pr) => ({ ...pr, price: Number(pr.price) })),
 					externalMappings: mappingsMap.get(p.id) ?? [],
 					category: p.categoryId ? (categoriesMap.get(p.categoryId) ?? null) : null,
 				}),
@@ -352,9 +387,17 @@ export class ProductService {
 
 			// Prepare variants (only when hasVariants = true)
 			const inputVariants = data.hasVariants
-				? data.variants?.length
+				? data.variants && data.variants.length > 0
 					? data.variants
-					: [{ name: DEFAULT_VARIANT_NAME, isDefault: true, prices: [], basePrice: '0' }]
+					: [
+							{
+								name: DEFAULT_VARIANT_NAME,
+								isDefault: true,
+								prices: [],
+								basePrice: 0,
+								sku: data.sku,
+							},
+						]
 				: []
 
 			if (inputVariants.length > 0) {
@@ -373,7 +416,7 @@ export class ProductService {
 						locationId: data.locationId,
 						categoryId: data.categoryId,
 						status: data.status,
-						basePrice: data.basePrice,
+						basePrice: (data.basePrice ?? 0).toString(),
 						hasVariants: data.hasVariants,
 						hasSalesTypePricing: data.hasSalesTypePricing,
 						...meta,
@@ -389,7 +432,11 @@ export class ProductService {
 						.values(
 							data.prices.map((p) =>
 								Object.assign(
-									{ productId: product.id, salesTypeId: p.salesTypeId, price: p.price },
+									{
+										productId: product.id,
+										salesTypeId: p.salesTypeId,
+										price: p.price.toString(),
+									},
 									meta,
 								),
 							),
@@ -405,7 +452,7 @@ export class ProductService {
 							name: variant.name.trim(),
 							sku: variant.sku?.trim() || null,
 							isDefault: variant.isDefault ?? false,
-							basePrice: variant.basePrice ?? '0',
+							basePrice: (variant.basePrice ?? 0).toString(),
 							...meta,
 						})
 						.returning({ id: productVariantsTable.id })
@@ -416,7 +463,11 @@ export class ProductService {
 							.values(
 								variant.prices.map((p) =>
 									Object.assign(
-										{ variantId: insertedVariant.id, salesTypeId: p.salesTypeId, price: p.price },
+										{
+											variantId: insertedVariant.id,
+											salesTypeId: p.salesTypeId,
+											price: p.price.toString(),
+										},
 										meta,
 									),
 								),
@@ -466,7 +517,7 @@ export class ProductService {
 						locationId: data.locationId,
 						categoryId: data.categoryId,
 						status: data.status,
-						basePrice: data.basePrice,
+						basePrice: (data.basePrice ?? existing.basePrice).toString(),
 						hasVariants: data.hasVariants,
 						hasSalesTypePricing: data.hasSalesTypePricing,
 						...updateMeta,
@@ -482,7 +533,11 @@ export class ProductService {
 						.values(
 							data.prices.map((p) =>
 								Object.assign(
-									{ productId: id, salesTypeId: p.salesTypeId, price: p.price },
+									{
+										productId: id,
+										salesTypeId: p.salesTypeId,
+										price: p.price.toString(),
+									},
 									createMeta,
 								),
 							),
@@ -502,7 +557,7 @@ export class ProductService {
 								name: variant.name.trim(),
 								sku: variant.sku?.trim() || null,
 								isDefault: variant.isDefault ?? false,
-								basePrice: variant.basePrice ?? '0',
+								basePrice: (variant.basePrice ?? 0).toString(),
 								...createMeta,
 							})
 							.returning({ id: productVariantsTable.id })
@@ -513,7 +568,11 @@ export class ProductService {
 								.values(
 									variant.prices.map((p) =>
 										Object.assign(
-											{ variantId: insertedVariant.id, salesTypeId: p.salesTypeId, price: p.price },
+											{
+												variantId: insertedVariant.id,
+												salesTypeId: p.salesTypeId,
+												price: p.price.toString(),
+											},
 											createMeta,
 										),
 									),

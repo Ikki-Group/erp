@@ -1,13 +1,7 @@
-import Elysia from 'elysia'
-import z from 'zod'
-
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
-	zq,
 } from '@/core/validation'
 
 import {

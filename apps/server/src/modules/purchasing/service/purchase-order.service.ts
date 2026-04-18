@@ -40,7 +40,7 @@ export class PurchaseOrderService {
 
 	async handleList(
 		filter: dto.PurchaseOrderFilterDto,
-	): Promise<core.WithPaginationResult<dto.PurchaseOrderBaseDto>> {
+	): Promise<core.WithPaginationResult<dto.PurchaseOrderSelectDto>> {
 		const result = await record('PurchaseOrderService.handleList', async () => {
 			const { q, page, limit, status, locationId, supplierId } = filter
 			const where = and(
@@ -51,7 +51,7 @@ export class PurchaseOrderService {
 				supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId),
 			)
 
-			const p = await core.paginate<dto.PurchaseOrderBaseDto>({
+			const p = await core.paginate<dto.PurchaseOrderSelectDto>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await db
 						.select()
@@ -60,7 +60,7 @@ export class PurchaseOrderService {
 						.orderBy(core.sortBy(purchaseOrdersTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.PurchaseOrderBaseDto.parse(r))
+					return rows.map((r) => dto.PurchaseOrderSelectDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(purchaseOrdersTable).where(where),

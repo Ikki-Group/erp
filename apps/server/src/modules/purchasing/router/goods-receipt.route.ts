@@ -22,7 +22,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 			},
 			{
 				query: dto.GoodsReceiptNoteFilterDto,
-				response: createPaginatedResponseSchema(dto.GoodsReceiptNoteBaseDto),
+				response: createPaginatedResponseSchema(dto.GoodsReceiptNoteSelectDto),
 				auth: true,
 			},
 		)

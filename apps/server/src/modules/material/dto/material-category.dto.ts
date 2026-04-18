@@ -26,7 +26,7 @@ export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const MaterialCategoryMutationDto = z.object({
+export const MaterialCategoryMutationDto = z.object({
 	name: zc.strTrim.min(1).max(100),
 	description: zc.strTrimNullable,
 	parentId: zp.id.optional().nullable(),

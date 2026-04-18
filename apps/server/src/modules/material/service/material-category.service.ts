@@ -19,9 +19,10 @@ import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
 
 import type {
+	MaterialCategoryCreateDto,
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
-	MaterialCategoryMutationDto,
+	MaterialCategoryUpdateDto,
 } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -108,10 +109,10 @@ export class MaterialCategoryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		return record('MaterialCategoryService.handleList', async () => {
-			const { search, parentId } = filter
+			const { q, parentId } = filter
 			const where = and(
 				isNull(materialCategoriesTable.deletedAt),
-				searchFilter(materialCategoriesTable.name, search),
+				searchFilter(materialCategoriesTable.name, q),
 				parentId === undefined ? undefined : eq(materialCategoriesTable.parentId, parentId),
 			)
 
@@ -142,7 +143,7 @@ export class MaterialCategoryService {
 	/**
 	 * Creates a new material category. Invalidates cache.
 	 */
-	async handleCreate(data: MaterialCategoryMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: MaterialCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
@@ -170,7 +171,7 @@ export class MaterialCategoryService {
 	 */
 	async handleUpdate(
 		id: number,
-		data: Partial<MaterialCategoryMutationDto>,
+		data: Partial<MaterialCategoryUpdateDto>,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleUpdate', async () => {

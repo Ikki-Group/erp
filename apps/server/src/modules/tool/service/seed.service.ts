@@ -53,6 +53,7 @@ export class SeedService {
 						password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
 						passwordHash: superAdminPasswordHash,
 						isRoot: true,
+						pinCode: null,
 						isActive: true,
 						createdBy: SYSTEM_ACTOR_ID,
 						assignments: [],
@@ -161,7 +162,7 @@ export class SeedService {
 			for (const m of materialsData) {
 				try {
 					await this.materialSvc.material.handleCreate(
-						{ ...m, conversions: [], description: null },
+						{ ...m, conversions: [], description: null, locationIds: [] },
 						SYSTEM_ACTOR_ID,
 					)
 				} catch (error) {

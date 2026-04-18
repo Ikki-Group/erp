@@ -7,7 +7,7 @@ import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
 
 import type { ExpenditureCreateDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
-import { GeneralLedgerService } from './general-ledger.service'
+import { GeneralLedgerService, type JournalItemInput } from './general-ledger.service'
 
 export class ExpenditureService {
 	constructor(private readonly journal: GeneralLedgerService) {}
@@ -22,6 +22,7 @@ export class ExpenditureService {
 					.insert(expendituresTable)
 					.values({
 						...input,
+						amount: input.amount.toString(),
 						...metadata,
 					})
 					.returning()
@@ -30,36 +31,28 @@ export class ExpenditureService {
 
 				// 2. Prepare Journal Items
 				// Standard: Debit the Target (Expense/Asset)
-				const items = [
+				const items: JournalItemInput[] = [
 					{
 						accountId: input.targetAccountId,
-						debit: input.amount,
+						debit: input.amount.toString(),
 						credit: '0',
 					},
 				]
 
 				if (input.isInstallment && input.liabilityAccountId) {
-					// Installment Logic: Target (DR) vs Source (CR - Paid) + Liability (CR - Debt)
-					// For simplicity in MVP, we assume it's either fully paid or fully debt if not specified.
-					// But let's allow a split if we add a 'paidAmount' later.
-					// For now: FULL amount is credited to Liability if isInstallment is true and status is not PAID?
-					// Let's go with:
-					// Status PAID + isInstallment = Source Account (CR)
-					// Status PENDING + isInstallment = Liability Account (CR)
-
 					const creditAccountId =
 						input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
 					items.push({
 						accountId: creditAccountId,
 						debit: '0',
-						credit: input.amount,
+						credit: input.amount.toString(),
 					})
 				} else {
 					// Normal Logic: Target (DR) vs Source (CR)
 					items.push({
 						accountId: input.sourceAccountId,
 						debit: '0',
-						credit: input.amount,
+						credit: input.amount.toString(),
 					})
 				}
 
@@ -83,17 +76,16 @@ export class ExpenditureService {
 
 	async listExpenditures(filter: ExpenditureFilterDto) {
 		return record('ExpenditureService.listExpenditures', async () => {
-			const { page = 1, limit = 20, search, type, status, locationId } = filter
+			const { page = 1, limit = 20, q, type, status, locationId } = filter
 			const offset = (page - 1) * limit
 
 			const where = and(
 				isNull(expendituresTable.deletedAt),
+				q ? or(searchFilter(expendituresTable.title, q), searchFilter(expendituresTable.description, q)) : undefined,
 				type ? eq(expendituresTable.type, type) : undefined,
 				status ? eq(expendituresTable.status, status) : undefined,
 				locationId ? eq(expendituresTable.locationId, locationId) : undefined,
 			)
-
-			// search logic could be added here if needed
 
 			const data = await db
 				.select()

@@ -45,7 +45,7 @@ export class GoodsReceiptService {
 
 	async handleList(
 		filter: dto.GoodsReceiptNoteFilterDto,
-	): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteBaseDto>> {
+	): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteSelectDto>> {
 		const result = await record('GoodsReceiptService.handleList', async () => {
 			const { q, page, limit, status, orderId, locationId, supplierId } = filter
 			const where = and(
@@ -62,7 +62,7 @@ export class GoodsReceiptService {
 				supplierId === undefined ? undefined : eq(goodsReceiptNotesTable.supplierId, supplierId),
 			)
 
-			const p = await core.paginate<dto.GoodsReceiptNoteBaseDto>({
+			const p = await core.paginate<dto.GoodsReceiptNoteSelectDto>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await db
 						.select()
@@ -71,7 +71,7 @@ export class GoodsReceiptService {
 						.orderBy(core.sortBy(goodsReceiptNotesTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.GoodsReceiptNoteBaseDto.parse(r))
+					return rows.map((r) => dto.GoodsReceiptNoteSelectDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
@@ -153,7 +153,7 @@ export class GoodsReceiptService {
 						locationId: grn.locationId,
 						date: grn.receiveDate,
 						referenceNo: `GRN-${grn.id}`,
-						notes: grn.notes ?? undefined,
+						notes: grn.notes || null,
 						items: grn.items.map((item) => {
 							const unitCost = item.purchaseOrderItemId
 								? (poItemMap.get(item.purchaseOrderItemId) ?? 0)

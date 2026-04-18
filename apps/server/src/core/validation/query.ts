@@ -12,7 +12,7 @@ const search = z
 	.optional()
 	.transform((val) => (val?.length === 0 ? undefined : val))
 
-const boolean = z.stringbool().optional()
+const boolean = z.coerce.boolean().optional()
 
 const recordId = z.object({ id: id })
 

@@ -22,7 +22,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				query: dto.PurchaseOrderFilterDto,
-				response: createPaginatedResponseSchema(dto.PurchaseOrderBaseDto),
+				response: createPaginatedResponseSchema(dto.PurchaseOrderSelectDto),
 				auth: true,
 			},
 		)
