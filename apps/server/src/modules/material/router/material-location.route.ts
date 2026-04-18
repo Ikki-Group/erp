@@ -4,8 +4,8 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -44,7 +44,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 			},
 			{
 				query: MaterialLocationUnassignDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 				detail: { tags: ['Material Location'] },
 			},
@@ -56,7 +56,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 				return res.ok(data)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				response: createSuccessResponseSchema(MaterialLocationWithLocationDto.array()),
 				auth: true,
 				detail: { tags: ['Material Location'] },
@@ -69,7 +69,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...MaterialLocationFilterDto.shape, ...zPaginationDto.shape }),
+				query: z.object({ ...MaterialLocationFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(MaterialLocationStockDto),
 				auth: true,
 				detail: { tags: ['Material Location'] },
@@ -83,7 +83,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 			},
 			{
 				body: MaterialLocationConfigDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 				detail: { tags: ['Material Location'] },
 			},

@@ -14,6 +14,17 @@ const email = z
 	.max(255)
 	.transform((v) => v.toLowerCase())
 
+const username = z
+	.string()
+	.trim()
+	.min(3)
+	.max(30)
+	.regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+
+const password = z.string().min(8).max(100)
+
+const fullname = z.string().trim().min(3).max(100)
+
 const RecordId = z.object({ id: zp.id })
 
 const Timestamps = z.object({
@@ -71,10 +82,20 @@ const PaginationMeta = z.object({
 	totalPages: zp.num,
 })
 
+function withAuditResolved<T extends z.ZodRawShape>(shape: T) {
+	return z.object({
+		...shape,
+		...AuditResolved.shape,
+	})
+}
+
 export const zc = {
 	strTrim,
 	strTrimNullable,
 	email,
+	username,
+	password,
+	fullname,
 	RecordId,
 	Timestamps,
 	Actors,
@@ -86,6 +107,7 @@ export const zc = {
 	AuditResolved,
 	UserSnippet,
 	PaginationMeta,
+	withAuditResolved,
 } as const
 
 export type RecordId = z.infer<typeof RecordId>

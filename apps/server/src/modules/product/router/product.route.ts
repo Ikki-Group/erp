@@ -3,13 +3,18 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
-	zRecordIdDto,
+	zq,
+	zc,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
 
-import { productFilterSchema, productMutationSchema, productSelectSchema } from '../dto'
+import {
+	ProductFilterDto,
+	ProductCreateDto,
+	ProductUpdateDto,
+	ProductSelectDto,
+} from '../dto'
 import type { ProductServiceModule } from '../service'
 
 export function initProductRoute(s: ProductServiceModule) {
@@ -22,8 +27,8 @@ export function initProductRoute(s: ProductServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: productFilterSchema.extend(zPaginationDto.shape),
-				response: createPaginatedResponseSchema(productSelectSchema),
+				query: ProductFilterDto,
+				response: createPaginatedResponseSchema(ProductSelectDto),
 				auth: true,
 			},
 		)
@@ -34,8 +39,8 @@ export function initProductRoute(s: ProductServiceModule) {
 				return res.ok(product)
 			},
 			{
-				query: zRecordIdDto,
-				response: createSuccessResponseSchema(productSelectSchema),
+				query: zc.RecordId,
+				response: createSuccessResponseSchema(ProductSelectDto),
 				auth: true,
 			},
 		)
@@ -46,8 +51,8 @@ export function initProductRoute(s: ProductServiceModule) {
 				return res.created({ id })
 			},
 			{
-				body: productMutationSchema,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				body: ProductCreateDto,
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -58,8 +63,8 @@ export function initProductRoute(s: ProductServiceModule) {
 				return res.ok({ id })
 			},
 			{
-				body: productMutationSchema.extend(zRecordIdDto.shape),
-				response: createSuccessResponseSchema(zRecordIdDto),
+				body: ProductUpdateDto,
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -69,7 +74,7 @@ export function initProductRoute(s: ProductServiceModule) {
 				await s.product.handleRemove(query.id, auth.userId)
 				return res.ok({ id: query.id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -77,6 +82,6 @@ export function initProductRoute(s: ProductServiceModule) {
 				await s.product.handleHardRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

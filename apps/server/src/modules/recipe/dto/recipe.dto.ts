@@ -1,38 +1,23 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import {
-	zStrNullable,
-	zStr,
-	zBool,
-	zId,
-	zDecimal,
-	zSortOrder,
-	zNum,
-	zQuerySearch,
-	zQueryBoolean,
-	zQueryId,
-	zMetadataDto,
-	zRecordIdDto,
-} from '@/core/validation'
-
-// ... (rest should be the same, I'll use multi_replace for accuracy or just carefully replace the whole file if it's small, but actually 97 lines is fine for replace_file_content if I'm precise)
+import { zc, zp, zq } from '@/core/validation'
 
 /* --------------------------------- NESTED --------------------------------- */
 
 export const RecipeItemDto = z.object({
-	...zRecordIdDto.shape,
-	recipeId: zId,
-	materialId: zId,
-	qty: zDecimal,
-	scrapPercentage: zDecimal,
-	uomId: zId,
-	notes: zStrNullable,
-	sortOrder: zSortOrder,
+	...zc.RecordId.shape,
+	recipeId: zp.id,
+	materialId: zp.id,
+	qty: zp.decimal,
+	scrapPercentage: zp.decimal,
+	uomId: zp.id,
+	notes: zp.strNullable,
+	sortOrder: zp.num,
 
 	// optional joins
-	material: z.object({ name: z.string(), sku: z.string() }).optional(),
-	uom: z.object({ code: z.string() }).optional(),
-	...zMetadataDto.shape,
+	material: z.object({ name: zp.str, sku: zp.str }).optional(),
+	uom: z.object({ code: zp.str }).optional(),
+	...zc.AuditBasic.shape,
 })
 
 export type RecipeItemDto = z.infer<typeof RecipeItemDto>
@@ -40,17 +25,17 @@ export type RecipeItemDto = z.infer<typeof RecipeItemDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const RecipeDto = z.object({
-	...zRecordIdDto.shape,
-	materialId: zId.nullable(),
-	productId: zId.nullable(),
-	productVariantId: zId.nullable(),
-	targetQty: zDecimal,
-	isActive: zBool,
-	instructions: zStrNullable,
+	...zc.RecordId.shape,
+	materialId: zp.id.nullable(),
+	productId: zp.id.nullable(),
+	productVariantId: zp.id.nullable(),
+	targetQty: zp.decimal,
+	isActive: zp.bool,
+	instructions: zp.strNullable,
 
 	// items can be populated
-	items: RecipeItemDto.array().optional(),
-	...zMetadataDto.shape,
+	items: z.array(RecipeItemDto).optional(),
+	...zc.AuditBasic.shape,
 })
 
 export type RecipeDto = z.infer<typeof RecipeDto>
@@ -58,11 +43,12 @@ export type RecipeDto = z.infer<typeof RecipeDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const RecipeFilterDto = z.object({
-	search: zQuerySearch,
-	materialId: zQueryId.optional(),
-	productId: zQueryId.optional(),
-	productVariantId: zQueryId.optional(),
-	isActive: zQueryBoolean,
+	...zq.pagination.shape,
+	q: zq.search,
+	materialId: zq.id.optional(),
+	productId: zq.id.optional(),
+	productVariantId: zq.id.optional(),
+	isActive: zq.boolean,
 })
 
 export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
@@ -70,35 +56,31 @@ export type RecipeFilterDto = z.infer<typeof RecipeFilterDto>
 /* --------------------------------- RESULT --------------------------------- */
 
 export const RecipeSelectDto = RecipeDto
-
 export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const RecipeItemMutationDto = z.object({
-	materialId: zId,
-	qty: zDecimal,
-	scrapPercentage: zDecimal.optional().default('0'),
-	uomId: zId,
-	notes: zStr.optional(),
-	sortOrder: zSortOrder.optional().default(0),
+const RecipeItemMutationDto = z.object({
+	materialId: zp.id,
+	qty: zp.decimal,
+	scrapPercentage: zp.decimal.optional().default(0),
+	uomId: zp.id,
+	notes: zc.strTrimNullable,
+	sortOrder: zp.num.optional().default(0),
 })
 
-export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>
-
-export const RecipeMutationDto = z
+export const RecipeCreateDto = z
 	.object({
-		materialId: zId.optional().nullable(),
-		productId: zId.optional().nullable(),
-		productVariantId: zId.optional().nullable(),
-		targetQty: zDecimal.optional().default('1'),
-		isActive: zBool.optional().default(true),
-		instructions: zStr.optional().nullable(),
-		items: RecipeItemMutationDto.array(),
+		materialId: zp.id.optional().nullable(),
+		productId: zp.id.optional().nullable(),
+		productVariantId: zp.id.optional().nullable(),
+		targetQty: zp.decimal.optional().default(1),
+		isActive: zp.bool.default(true),
+		instructions: zc.strTrimNullable,
+		items: z.array(RecipeItemMutationDto).min(1, 'At least one item is required'),
 	})
 	.refine(
 		(data) => {
-			// Ensure exactly one target is provided
 			const targets = [data.materialId, data.productId, data.productVariantId].filter(
 				(t) => t != null,
 			)
@@ -110,20 +92,28 @@ export const RecipeMutationDto = z
 		},
 	)
 
-export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>
+export type RecipeCreateDto = z.infer<typeof RecipeCreateDto>
+
+export const RecipeUpdateDto = RecipeCreateDto.extend({
+	...zc.RecordId.shape,
+})
+export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>
 
 /* ---------------------------------- COST ---------------------------------- */
 
-export const RecipeItemCostDto = RecipeItemDto.extend({ unitCost: zNum, extendedCost: zNum })
+export const RecipeItemCostDto = RecipeItemDto.extend({
+	unitCost: zp.decimal,
+	extendedCost: zp.decimal,
+})
 
 export type RecipeItemCostDto = z.infer<typeof RecipeItemCostDto>
 
 export const RecipeCostDto = z.object({
-	recipeId: zId,
-	targetQty: zNum,
-	totalCost: zNum,
-	unitCost: zNum,
-	items: RecipeItemCostDto.array(),
+	recipeId: zp.id,
+	targetQty: zp.decimal,
+	totalCost: zp.decimal,
+	unitCost: zp.decimal,
+	items: z.array(RecipeItemCostDto),
 })
 
 export type RecipeCostDto = z.infer<typeof RecipeCostDto>

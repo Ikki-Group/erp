@@ -5,7 +5,7 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
 } from '@/core/validation'
 
 import * as dto from '../dto'
@@ -38,7 +38,7 @@ export function initExpenditureRoute(module: FinanceServiceModule) {
 			},
 			{
 				body: dto.ExpenditureCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)

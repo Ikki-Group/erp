@@ -4,8 +4,8 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -23,7 +23,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...RecipeFilterDto.shape, ...zPaginationDto.shape }),
+				query: z.object({ ...RecipeFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(RecipeSelectDto),
 				auth: true,
 			},
@@ -34,7 +34,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				const recipe = await s.recipe.handleDetail(query.id)
 				return res.ok(recipe)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(RecipeSelectDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeSelectDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -42,7 +42,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				const { id } = await s.recipe.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
-			{ body: RecipeMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: RecipeMutationDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
@@ -51,8 +51,8 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				return res.ok({ id })
 			},
 			{
-				body: z.object({ ...zRecordIdDto.shape, ...RecipeMutationDto.shape }),
-				response: createSuccessResponseSchema(zRecordIdDto),
+				body: z.object({ ...zc.RecordId.shape, ...RecipeMutationDto.shape }),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -62,7 +62,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				await s.recipe.handleRemove(query.id, auth.userId)
 				return res.ok({ id: query.id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.post(
 			'/hard-remove',
@@ -70,7 +70,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				await s.recipe.handleHardRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.get(
 			'/cost',
@@ -78,6 +78,6 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				const result = await s.recipe.handleCalculateCost(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(z.any()), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(z.any()), auth: true },
 		)
 }

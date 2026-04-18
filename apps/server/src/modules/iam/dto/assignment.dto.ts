@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
 
+/* ---------------------------------- ENTITY ---------------------------------- */
+
 export const UserAssignmentDto = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
@@ -12,10 +14,10 @@ export const UserAssignmentDto = z.object({
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
-export const UserAssignmentDetailDto = z.object({
-	...UserAssignmentDto.shape,
-})
+export const UserAssignmentDetailDto = UserAssignmentDto
 export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const UserAssignmentUpsertDto = z.object({
 	userId: zp.id,
@@ -25,9 +27,8 @@ export const UserAssignmentUpsertDto = z.object({
 })
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
 
-/**
- * Filter criteria for listing User Assignments.
- */
+/* ---------------------------------- FILTER ---------------------------------- */
+
 export const UserAssignmentFilterDto = z.object({
 	...zq.pagination.shape,
 	userId: zq.id.optional(),

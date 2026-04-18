@@ -1,23 +1,15 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import {
-	zStrNullable,
-	zStr,
-	zId,
-	zQuerySearch,
-	zMetadataDto,
-	zRecordIdDto,
-	zQueryId,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const MaterialCategoryDto = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
-	description: zStrNullable,
-	parentId: zId.nullable(),
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	name: zp.str,
+	description: zp.strNullable,
+	parentId: zp.id.nullable(),
+	...zc.AuditBasic.shape,
 })
 
 export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
@@ -25,16 +17,25 @@ export type MaterialCategoryDto = z.infer<typeof MaterialCategoryDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialCategoryFilterDto = z.object({
-	search: zQuerySearch,
-	parentId: zQueryId.optional(),
+	...zq.pagination.shape,
+	q: zq.search,
+	parentId: zq.id.optional(),
 })
 
 export type MaterialCategoryFilterDto = z.infer<typeof MaterialCategoryFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const MaterialCategoryMutationDto = z.object({
-	...MaterialCategoryDto.pick({ name: true, description: true, parentId: true }).shape,
+const MaterialCategoryMutationDto = z.object({
+	name: zc.strTrim.min(1).max(100),
+	description: zc.strTrimNullable,
+	parentId: zp.id.optional().nullable(),
 })
 
-export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutationDto>
+export const MaterialCategoryCreateDto = MaterialCategoryMutationDto
+export type MaterialCategoryCreateDto = z.infer<typeof MaterialCategoryCreateDto>
+
+export const MaterialCategoryUpdateDto = MaterialCategoryMutationDto.extend({
+	...zc.RecordId.shape,
+})
+export type MaterialCategoryUpdateDto = z.infer<typeof MaterialCategoryUpdateDto>

@@ -1,31 +1,40 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStr, zBool, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY ---------------------------------- */
 
-export const salesTypeSchema = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	isSystem: zBool,
-	...zMetadataDto.shape,
+export const SalesTypeDto = z.object({
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	isSystem: zp.bool,
+	...zc.AuditBasic.shape,
 })
 
-export type SalesTypeDto = z.infer<typeof salesTypeSchema>
+export type SalesTypeDto = z.infer<typeof SalesTypeDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const salesTypeFilterSchema = z.object({ search: zQuerySearch })
+export const SalesTypeFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+})
 
-export type SalesTypeFilterDto = z.infer<typeof salesTypeFilterSchema>
+export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const salesTypeMutationSchema = salesTypeSchema.pick({
-	code: true,
-	name: true,
-	isSystem: true,
+const SalesTypeMutationDto = z.object({
+	code: zc.strTrim.uppercase().min(1).max(20),
+	name: zc.strTrim.min(1).max(100),
+	isSystem: zp.bool.default(false),
 })
 
-export type SalesTypeMutationDto = z.infer<typeof salesTypeMutationSchema>
+export const SalesTypeCreateDto = SalesTypeMutationDto
+export type SalesTypeCreateDto = z.infer<typeof SalesTypeCreateDto>
+
+export const SalesTypeUpdateDto = SalesTypeMutationDto.extend({
+	...zc.RecordId.shape,
+})
+export type SalesTypeUpdateDto = z.infer<typeof SalesTypeUpdateDto>

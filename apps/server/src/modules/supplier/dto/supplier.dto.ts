@@ -1,46 +1,44 @@
 import { z } from 'zod'
 
-import {
-	zStr,
-	zStrNullable,
-	zMetadataDto,
-	zRecordIdDto,
-	zQuerySearch,
-	zPaginationDto,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
+
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const SupplierDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStrNullable,
-	phone: zStrNullable,
-	address: zStrNullable,
-	taxId: zStrNullable,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	email: zp.strNullable,
+	phone: zp.strNullable,
+	address: zp.strNullable,
+	taxId: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 export type SupplierDto = z.infer<typeof SupplierDto>
 
-export const SupplierCreateDto = z.object({
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	address: zStr.optional().nullable(),
-	taxId: zStr.optional().nullable(),
+/* -------------------------------- MUTATION -------------------------------- */
+
+const SupplierMutationDto = z.object({
+	code: zc.strTrim.uppercase().min(1).max(20),
+	name: zc.strTrim.min(1).max(100),
+	email: zc.email.optional().nullable(),
+	phone: zc.strTrim.min(5).max(20).optional().nullable(),
+	address: zc.strTrimNullable,
+	taxId: zc.strTrimNullable,
 })
+
+export const SupplierCreateDto = SupplierMutationDto
 export type SupplierCreateDto = z.infer<typeof SupplierCreateDto>
 
-export const SupplierUpdateDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	address: zStr.optional().nullable(),
-	taxId: zStr.optional().nullable(),
+export const SupplierUpdateDto = SupplierMutationDto.extend({
+	...zc.RecordId.shape,
 })
 export type SupplierUpdateDto = z.infer<typeof SupplierUpdateDto>
 
-export const SupplierFilterDto = z.object({ ...zPaginationDto.shape, search: zQuerySearch })
+/* ---------------------------------- FILTER ---------------------------------- */
+
+export const SupplierFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+})
 export type SupplierFilterDto = z.infer<typeof SupplierFilterDto>

@@ -1,11 +1,19 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStr, zId, zDate, zEmail } from '@/core/validation'
+import { zp } from '@/core/validation'
 
-export const SessionDto = z.object({ id: zId, userId: zId, createdAt: zDate, expiredAt: zDate })
-
+export const SessionDto = z.object({
+	id: zp.id,
+	userId: zp.id,
+	createdAt: zp.date,
+	expiredAt: zp.date,
+})
 export type SessionDto = z.infer<typeof SessionDto>
 
-export const SessionPayloadDto = z.object({ id: zId, userId: zId, email: zEmail, username: zStr })
-
+export const SessionPayloadDto = z.object({
+	id: zp.id,
+	userId: zp.id,
+	email: zp.str,
+	username: zp.str,
+})
 export type SessionPayloadDto = z.infer<typeof SessionPayloadDto>

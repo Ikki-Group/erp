@@ -435,7 +435,7 @@ export class SalesOrderService {
 	private mapOrder(row: any): SalesOrderDto {
 		return {
 			...row,
-			totalAmount: row.totalAmount, // DTO expects decimal string from zDecimal
+			totalAmount: row.totalAmount, // DTO expects decimal string
 			discountAmount: row.discountAmount,
 			taxAmount: row.taxAmount,
 		}

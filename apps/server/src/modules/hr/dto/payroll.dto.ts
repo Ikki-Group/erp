@@ -1,72 +1,69 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zId, zStr, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zc, zp } from '@/core/validation'
 import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema/hr'
 
-export const payrollStatusSchema = z.enum(payrollStatusEnum.enumValues)
-export type PayrollStatus = z.infer<typeof payrollStatusSchema>
+/* ---------------------------------- ENUM ---------------------------------- */
 
-export const payrollAdjustmentTypeSchema = z.enum(payrollAdjustmentTypeEnum.enumValues)
-export type PayrollAdjustmentType = z.infer<typeof payrollAdjustmentTypeSchema>
+export const PayrollStatusEnum = z.enum(payrollStatusEnum.enumValues)
+export type PayrollStatus = z.infer<typeof PayrollStatusEnum>
+
+export const PayrollAdjustmentTypeEnum = z.enum(payrollAdjustmentTypeEnum.enumValues)
+export type PayrollAdjustmentType = z.infer<typeof PayrollAdjustmentTypeEnum>
 
 /* --------------------------------- BATCH --------------------------------- */
 
-export const payrollBatchSchema = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
-	periodMonth: z.number().int().min(1).max(12),
-	periodYear: z.number().int().min(2000),
-	status: payrollStatusSchema,
-	totalAmount: z.string(),
-	note: z.string().nullable(),
-	...zMetadataDto.shape,
+export const PayrollBatchDto = z.object({
+	...zc.RecordId.shape,
+	name: zp.str,
+	periodMonth: zp.num.int().min(1).max(12),
+	periodYear: zp.num.int().min(2000),
+	status: PayrollStatusEnum,
+	totalAmount: zp.decimal,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
+export type PayrollBatchDto = z.infer<typeof PayrollBatchDto>
 
-export type PayrollBatchDto = z.infer<typeof payrollBatchSchema>
-
-export const payrollBatchCreateSchema = z.object({
-	name: zStr,
-	periodMonth: z.number().int().min(1).max(12),
-	periodYear: z.number().int().min(2000),
-	note: zStr.optional(),
+export const PayrollBatchCreateDto = z.object({
+	name: zc.strTrim.min(1).max(100),
+	periodMonth: zp.num.int().min(1).max(12),
+	periodYear: zp.num.int().min(2000),
+	note: zc.strTrimNullable,
 })
-
-export type PayrollBatchCreateDto = z.infer<typeof payrollBatchCreateSchema>
+export type PayrollBatchCreateDto = z.infer<typeof PayrollBatchCreateDto>
 
 /* --------------------------------- ITEM ---------------------------------- */
 
-export const payrollItemSchema = z.object({
-	...zRecordIdDto.shape,
-	batchId: zId,
-	employeeId: zId,
-	baseSalary: z.string(),
-	adjustmentsAmount: z.string(),
-	serviceChargeAmount: z.string(),
-	totalAmount: z.string(),
-	note: z.string().nullable(),
-	...zMetadataDto.shape,
+export const PayrollItemDto = z.object({
+	...zc.RecordId.shape,
+	batchId: zp.id,
+	employeeId: zp.id,
+	baseSalary: zp.decimal,
+	adjustmentsAmount: zp.decimal,
+	serviceChargeAmount: zp.decimal,
+	totalAmount: zp.decimal,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
-
-export type PayrollItemDto = z.infer<typeof payrollItemSchema>
+export type PayrollItemDto = z.infer<typeof PayrollItemDto>
 
 /* ------------------------------ ADJUSTMENT ------------------------------- */
 
-export const payrollAdjustmentSchema = z.object({
-	...zRecordIdDto.shape,
-	payrollItemId: zId,
-	type: payrollAdjustmentTypeSchema,
-	amount: z.string(),
-	reason: zStr,
-	...zMetadataDto.shape,
+export const PayrollAdjustmentDto = z.object({
+	...zc.RecordId.shape,
+	payrollItemId: zp.id,
+	type: PayrollAdjustmentTypeEnum,
+	amount: zp.decimal,
+	reason: zp.str,
+	...zc.AuditBasic.shape,
 })
+export type PayrollAdjustmentDto = z.infer<typeof PayrollAdjustmentDto>
 
-export type PayrollAdjustmentDto = z.infer<typeof payrollAdjustmentSchema>
-
-export const payrollAdjustmentCreateSchema = z.object({
-	payrollItemId: zId,
-	type: payrollAdjustmentTypeSchema,
-	amount: zStr, // numeric string
-	reason: zStr,
+export const PayrollAdjustmentCreateDto = z.object({
+	payrollItemId: zp.id,
+	type: PayrollAdjustmentTypeEnum,
+	amount: zp.decimal,
+	reason: zc.strTrim.min(1).max(255),
 })
-
-export type PayrollAdjustmentCreateDto = z.infer<typeof payrollAdjustmentCreateSchema>
+export type PayrollAdjustmentCreateDto = z.infer<typeof PayrollAdjustmentCreateDto>

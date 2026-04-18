@@ -1,90 +1,91 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zId, zStr, zMetadataDto, zRecordIdDto, zQuerySearch } from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 import { attendanceStatusEnum } from '@/db/schema/hr'
 
-export const attendanceStatusSchema = z.enum(attendanceStatusEnum.enumValues)
-export type AttendanceStatus = z.infer<typeof attendanceStatusSchema>
+/* ---------------------------------- ENUM ---------------------------------- */
+
+export const AttendanceStatusEnum = z.enum(attendanceStatusEnum.enumValues)
+export type AttendanceStatus = z.infer<typeof AttendanceStatusEnum>
 
 /* --------------------------------- SHIFT --------------------------------- */
 
-export const shiftSchema = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
-	startTime: z.string(), // 'HH:mm:ss'
-	endTime: z.string(), // 'HH:mm:ss'
-	note: z.string().nullable(),
-	...zMetadataDto.shape,
+export const ShiftDto = z.object({
+	...zc.RecordId.shape,
+	name: zp.str,
+	startTime: zp.str, // 'HH:mm:ss'
+	endTime: zp.str, // 'HH:mm:ss'
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
+export type ShiftDto = z.infer<typeof ShiftDto>
 
-export type ShiftDto = z.infer<typeof shiftSchema>
-
-export const shiftCreateSchema = z.object({
-	name: zStr,
+export const ShiftCreateDto = z.object({
+	name: zc.strTrim.min(1).max(100),
 	startTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
 	endTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
-	note: zStr.optional(),
+	note: zc.strTrimNullable,
 })
+export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
 
-export type ShiftCreateDto = z.infer<typeof shiftCreateSchema>
+export const ShiftUpdateDto = ShiftCreateDto.extend({
+	...zc.RecordId.shape,
+})
+export type ShiftUpdateDto = z.infer<typeof ShiftUpdateDto>
 
 /* ------------------------------- ATTENDANCE ------------------------------- */
 
-export const attendanceSchema = z.object({
-	...zRecordIdDto.shape,
-	employeeId: zId,
-	locationId: zId,
-	shiftId: zId.nullable(),
-
-	date: z.coerce.date(),
-	clockIn: z.coerce.date().nullable(),
-	clockOut: z.coerce.date().nullable(),
-
-	status: attendanceStatusSchema,
-	note: z.string().nullable(),
-	...zMetadataDto.shape,
+export const AttendanceDto = z.object({
+	...zc.RecordId.shape,
+	employeeId: zp.id,
+	locationId: zp.id,
+	shiftId: zp.id.nullable(),
+	date: zp.date,
+	clockIn: zp.date.nullable(),
+	clockOut: zp.date.nullable(),
+	status: AttendanceStatusEnum,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
+export type AttendanceDto = z.infer<typeof AttendanceDto>
 
-export type AttendanceDto = z.infer<typeof attendanceSchema>
-
-export const attendanceSelectSchema = attendanceSchema.extend({
-	employeeName: z.string().optional(),
-	employeeCode: z.string().optional(),
-	locationName: z.string().optional(),
-	shiftName: z.string().optional(),
+export const AttendanceSelectDto = AttendanceDto.extend({
+	employeeName: zp.str.optional(),
+	employeeCode: zp.str.optional(),
+	locationName: zp.str.optional(),
+	shiftName: zp.str.optional(),
 })
+export type AttendanceSelectDto = z.infer<typeof AttendanceSelectDto>
 
-export type AttendanceSelectDto = z.infer<typeof attendanceSelectSchema>
+/* --------------------------------- FILTER --------------------------------- */
 
-export const attendanceFilterSchema = z.object({
-	search: zQuerySearch,
-	employeeId: zId.optional(),
-	locationId: zId.optional(),
-	status: attendanceStatusSchema.optional(),
+export const AttendanceFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	employeeId: zq.id.optional(),
+	locationId: zq.id.optional(),
+	status: AttendanceStatusEnum.optional(),
 	dateFrom: z.coerce.date().optional(),
 	dateTo: z.coerce.date().optional(),
 })
-
-export type AttendanceFilterDto = z.infer<typeof attendanceFilterSchema>
+export type AttendanceFilterDto = z.infer<typeof AttendanceFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const clockInSchema = z.object({
-	employeeId: zId,
-	locationId: zId,
-	shiftId: zId.optional(),
-	note: zStr.optional(),
+export const ClockInDto = z.object({
+	employeeId: zp.id,
+	locationId: zp.id,
+	shiftId: zp.id.optional(),
+	note: zc.strTrimNullable,
 })
+export type ClockInDto = z.infer<typeof ClockInDto>
 
-export type ClockInDto = z.infer<typeof clockInSchema>
-
-export const clockOutSchema = z.object({
-	id: zId, // attendance record id
-	note: zStr.optional(),
+export const ClockOutDto = z.object({
+	id: zp.id, // attendance record id
+	note: zc.strTrimNullable,
 })
-
-export type ClockOutDto = z.infer<typeof clockOutSchema>
+export type ClockOutDto = z.infer<typeof ClockOutDto>

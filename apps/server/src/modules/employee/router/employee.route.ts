@@ -5,7 +5,7 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
 } from '@/core/validation'
 
 import * as dto from '../dto/employee.dto'
@@ -33,7 +33,7 @@ export function initEmployeeRoute(module: EmployeeServiceModule) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(dto.EmployeeDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(dto.EmployeeDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -43,7 +43,7 @@ export function initEmployeeRoute(module: EmployeeServiceModule) {
 			},
 			{
 				body: dto.EmployeeCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -56,7 +56,7 @@ export function initEmployeeRoute(module: EmployeeServiceModule) {
 			},
 			{
 				body: dto.EmployeeUpdateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -66,6 +66,6 @@ export function initEmployeeRoute(module: EmployeeServiceModule) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

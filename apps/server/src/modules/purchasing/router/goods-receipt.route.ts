@@ -5,7 +5,7 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
 } from '@/core/validation'
 
 import * as dto from '../dto/goods-receipt.dto'
@@ -37,7 +37,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				return res.ok(result)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				response: createSuccessResponseSchema(dto.GoodsReceiptNoteDto),
 				auth: true,
 			},
@@ -50,7 +50,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 			},
 			{
 				body: dto.GoodsReceiptNoteCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -60,7 +60,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				const result = await service.handleComplete(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/remove',
@@ -68,7 +68,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -76,6 +76,6 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				const result = await service.handleHardRemove(body.id)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

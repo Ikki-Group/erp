@@ -5,7 +5,8 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
 	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -23,7 +24,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...MaterialCategoryFilterDto.shape, ...zPaginationDto.shape }),
+				query: z.object({ ...MaterialCategoryFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(MaterialCategoryDto),
 				auth: true,
 			},
@@ -35,7 +36,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				return res.ok(materialCategory)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				response: createSuccessResponseSchema(MaterialCategoryDto),
 				auth: true,
 			},
@@ -48,7 +49,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 			},
 			{
 				body: MaterialCategoryMutationDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -59,8 +60,8 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				return res.ok({ id })
 			},
 			{
-				body: z.object({ ...zRecordIdDto.shape, ...MaterialCategoryMutationDto.shape }),
-				response: createSuccessResponseSchema(zRecordIdDto),
+				body: z.object({ ...zc.RecordId.shape, ...MaterialCategoryMutationDto.shape }),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -70,7 +71,7 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				const { id } = await s.category.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -78,6 +79,6 @@ export function initMaterialCategoryRoute(s: MaterialServiceModule) {
 				const { id } = await s.category.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }
