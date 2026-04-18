@@ -1,97 +1,72 @@
 import { z } from 'zod'
 
-import { zDate, zId } from './primitive'
+import { zp } from './primitive'
 
-export const zRecordId = z.object({ id: zId })
-export const zRecordIdDto = zRecordId
+const RecordId = z.object({ id: zp.id })
 
-export const zTimestamps = z.object({
-	createdAt: zDate,
-	updatedAt: zDate,
+const Timestamps = z.object({
+	createdAt: zp.date,
+	updatedAt: zp.date,
 })
 
-export const zActors = z.object({
-	createdBy: zId,
-	updatedBy: zId,
+const Actors = z.object({
+	createdBy: zp.id,
+	updatedBy: zp.id,
 })
 
-export const zAuditMeta = z.object({
-	...zTimestamps.shape,
-	...zActors.shape,
+const AuditMeta = z.object({
+	...Timestamps.shape,
+	...Actors.shape,
 })
 
-export type AuditMeta = z.infer<typeof zAuditMeta>
-
-export const zSoftDelete = z.object({
-	deletedBy: zId.nullable(),
-	deletedAt: zDate.nullable(),
+const SoftDelete = z.object({
+	deletedBy: zp.id.nullable(),
+	deletedAt: zp.date.nullable(),
 })
 
-export const zSyncMeta = z.object({
-	syncAt: zDate.nullable(),
+const SyncMeta = z.object({
+	syncAt: zp.date.nullable(),
 })
 
-export const zUserSnippetDto = z.object({
-	id: z.number().int(),
-	username: z.string(),
-	fullname: z.string(),
+const UserSnippet = z.object({
+	id: zp.id,
+	username: zp.str,
+	fullname: zp.str,
 })
 
-export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
-
-export const zAuditResolvedDto = z.object({
-	creator: zUserSnippetDto.nullable(),
-	updater: zUserSnippetDto.nullable(),
+const AuditResolved = z.object({
+	creator: UserSnippet.nullable(),
+	updater: UserSnippet.nullable(),
 })
 
-/** Standard metadata for entity DTO responses. Includes timestamps and audit actors. */
-export const zMetadataDto = z.object({
-	...zAuditMeta.shape,
+const MetadataBase = z.object({
+	...AuditMeta.shape,
+	...SoftDelete.shape,
 })
 
-export const zPaginationMeta = z.object({
+const PaginationMeta = z.object({
 	page: z.number().int().positive(),
 	limit: z.number().int().positive(),
 	total: z.number().int().nonnegative(),
 	totalPages: z.number().int().nonnegative(),
 })
 
-export type PaginationMeta = z.infer<typeof zPaginationMeta>
-
-/** Pagination DTO for query responses. */
-export const zPaginationDto = z.object({
-	page: z.coerce.number().int().positive().default(1),
-	limit: z.coerce.number().int().positive().max(100).default(10),
-})
-
-export type PaginationDto = z.infer<typeof zPaginationDto>
-
-/** Grouped common schemas namespace - for convenient bulk access. */
-export const zs = {
-	// Record identifiers
-	RecordId: zRecordId,
-
-	// Timestamps
-	Timestamps: zTimestamps,
-
-	// Audit
-	Actors: zActors,
-	AuditMeta: zAuditMeta,
-	AuditResolved: zAuditResolvedDto,
-
-	// Soft Delete
-	SoftDelete: zSoftDelete,
-
-	// Sync
-	SyncMeta: zSyncMeta,
-
-	// User Snippet
-	UserSnippet: zUserSnippetDto,
-
-	// Pagination
-	PaginationMeta: zPaginationMeta,
-	Pagination: zPaginationDto,
-
-	// Metadata (composite)
-	Metadata: zMetadataDto,
+export const zc = {
+	RecordId,
+	Timestamps,
+	Actors,
+	AuditMeta,
+	AuditResolved,
+	SoftDelete,
+	SyncMeta,
+	UserSnippet,
+	MetadataBase,
+	PaginationMeta,
 }
+
+export type RecordId = z.infer<typeof RecordId>
+export type AuditMeta = z.infer<typeof AuditMeta>
+export type UserSnippet = z.infer<typeof UserSnippet>
+export type AuditResolved = z.infer<typeof AuditResolved>
+export type MetadataBase = z.infer<typeof MetadataBase>
+export type PaginationMeta = z.infer<typeof PaginationMeta>
