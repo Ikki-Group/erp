@@ -33,7 +33,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentBaseDto.omit({ isDefault: true }),
+				body: dto.UserAssignmentUpsertDto.omit({ isDefault: true }),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},
@@ -45,7 +45,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentBaseDto.omit({ isDefault: true, roleId: true }),
+				body: dto.UserAssignmentUpsertDto.omit({ isDefault: true, roleId: true }),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},

@@ -146,15 +146,21 @@ export class UserService {
 		return allLocations.map(
 			(loc, idx) =>
 				({
-					...superAdminRole,
+					id: 0, // Synthetic ID
 					userId,
 					roleId: superAdminRole.id,
 					locationId: loc.id,
-					isDefault: idx === 0, // First location is default
+					isDefault: idx === 0,
 					roleName: superAdminRole.name,
 					roleCode: superAdminRole.code,
 					locationName: loc.name,
 					locationCode: loc.code,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					createdBy: 0,
+					updatedBy: 0,
+					deletedAt: null,
+					deletedBy: null,
 				}) satisfies assignmentDto.UserAssignmentDetailDto,
 		)
 	}

@@ -28,10 +28,10 @@ export class EmployeeService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<EmployeeDto>> {
 		return record('EmployeeService.handleList', async () => {
-			const { search } = filter
+			const { q } = filter
 
-			const searchCondition = search
-				? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(employeesTable.name, `%${q}%`), ilike(employeesTable.code, `%${q}%`))
 				: undefined
 
 			const where = and(isNull(employeesTable.deletedAt), searchCondition)

@@ -111,7 +111,7 @@ export class ProductService {
 		const pricesByVariant = new Map<number, VariantPriceDto[]>()
 		for (const p of prices) {
 			const list = pricesByVariant.get(p.variantId) ?? []
-			list.push(p)
+			list.push({ ...p, price: Number(p.price) })
 			pricesByVariant.set(p.variantId, list)
 		}
 
@@ -146,7 +146,7 @@ export class ProductService {
 		const pricesByVariant = new Map<number, VariantPriceDto[]>()
 		for (const p of prices) {
 			const list = pricesByVariant.get(p.variantId) ?? []
-			list.push(p)
+			list.push({ ...p, price: Number(p.price) })
 			pricesByVariant.set(p.variantId, list)
 		}
 
