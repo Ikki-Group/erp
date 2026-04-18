@@ -1,43 +1,31 @@
 import { z } from 'zod'
 
-import { zMetadataDto, zPaginationDto, zQuerySearch, zRecordIdDto, zp } from '@/core/validation'
+import { zp, zc, zq } from '@/core/validation'
 
-/**
- * Common Role attributes.
- */
-export const RoleBaseDto = z.object({
-	code: zp.codeUpper,
+export const RoleDto = z.object({
+	...zc.RecordId.shape,
+	code: zp.str,
 	name: zp.str,
 	description: zp.strNullable,
-	permissions: zp.str.array(),
+	permissions: z.array(zp.str),
 	isSystem: zp.bool,
-})
-export type RoleBaseDto = z.infer<typeof RoleBaseDto>
-
-/**
- * Role database record.
- */
-export const RoleDto = z.object({
-	...zRecordIdDto.shape,
-	...RoleBaseDto.shape,
-	...zMetadataDto.shape,
+	...zc.MetadataBase.shape,
 })
 export type RoleDto = z.infer<typeof RoleDto>
 
-/**
- * Input for creating a new Role.
- */
-export const RoleCreateDto = RoleBaseDto
+const RoleMutationDto = z.object({
+	code: zc.strTrim.min(2).max(32).toUpperCase(),
+	name: zc.strTrim.min(2),
+	description: zc.strTrimNullable,
+	permissions: z.array(zp.str).default([]),
+	isSystem: zp.bool.default(false),
+})
+
+export const RoleCreateDto = RoleMutationDto
 export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
-/**
- * Input for updating an existing Role (Full Update).
- */
-export const RoleUpdateDto = z.object({ ...zRecordIdDto.shape, ...RoleBaseDto.shape })
+export const RoleUpdateDto = z.object({ ...zc.RecordId.shape, ...RoleMutationDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
 
-/**
- * Filter criteria for listing Roles.
- */
-export const RoleFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch })
+export const RoleFilterDto = z.object({ ...zq.pagination.shape, q: zq.search })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>

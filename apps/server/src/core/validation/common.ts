@@ -2,6 +2,11 @@ import { z } from 'zod'
 
 import { zp } from './primitive'
 
+const strTrim = z.string().trim()
+const strTrimNullable = strTrim.nullable().transform((val) => (val?.length === 0 ? null : val))
+
+const email = z.email().transform((v) => v.toLowerCase())
+
 const RecordId = z.object({ id: zp.id })
 
 const Timestamps = z.object({
@@ -45,13 +50,17 @@ const MetadataBase = z.object({
 })
 
 const PaginationMeta = z.object({
-	page: z.number().int().positive(),
-	limit: z.number().int().positive(),
-	total: z.number().int().nonnegative(),
-	totalPages: z.number().int().nonnegative(),
+	page: zp.num,
+	limit: zp.num,
+	total: zp.num,
+	totalPages: zp.num,
 })
 
 export const zc = {
+	strTrim,
+	strTrimNullable,
+	email,
+	//
 	RecordId,
 	Timestamps,
 	Actors,
