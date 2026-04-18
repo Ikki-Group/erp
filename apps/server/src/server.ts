@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-unassigned-import
 import '@total-typescript/ts-reset'
-import { env } from '@/config/env'
 import { logger } from '@/core/logger'
+
+import { env } from '@/config/env'
 
 const app = await import('@/app').then((mod) => mod.app)
 

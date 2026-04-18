@@ -3,11 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	zc,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/core/validation'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
 	GenerateSummaryDto,

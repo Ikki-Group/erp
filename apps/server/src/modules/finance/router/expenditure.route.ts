@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from '../dto'
 import type { FinanceServiceModule } from '../service'
@@ -26,7 +22,7 @@ export function initExpenditureRoute(module: FinanceServiceModule) {
 			},
 			{
 				query: dto.ExpenditureFilterDto,
-				// response: createPaginatedResponseSchema(dto.ExpenditureDto), 
+				// response: createPaginatedResponseSchema(dto.ExpenditureDto),
 				auth: true,
 			},
 		)

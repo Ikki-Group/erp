@@ -2,9 +2,8 @@
 // oxlint-disable max-lines
 import { defineRelations } from 'drizzle-orm'
 
-import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-import { stockSummariesTable, stockTransactionsTable } from './inventory'
-import { locationsTable } from './location'
+import { employeesTable } from './employee'
+import { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
 import {
 	attendancesTable,
 	payrollAdjustmentsTable,
@@ -12,6 +11,9 @@ import {
 	payrollItemsTable,
 	shiftsTable,
 } from './hr'
+import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
+import { stockSummariesTable, stockTransactionsTable } from './inventory'
+import { locationsTable } from './location'
 import {
 	materialCategoriesTable,
 	materialConversionsTable,
@@ -29,6 +31,15 @@ import {
 	salesTypesTable,
 	variantPricesTable,
 } from './product'
+import { workOrdersTable } from './production'
+import {
+	goodsReceiptNoteItemsTable,
+	goodsReceiptNotesTable,
+	purchaseOrderItemsTable,
+	purchaseOrdersTable,
+	purchaseRequestItemsTable,
+	purchaseRequestsTable,
+} from './purchasing'
 import { recipeItemsTable, recipesTable } from './recipe'
 import {
 	salesExternalRefsTable,
@@ -38,17 +49,6 @@ import {
 	salesVoidsTable,
 } from './sales'
 import { suppliersTable } from './supplier'
-import { employeesTable } from './employee'
-import { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
-import {
-	goodsReceiptNoteItemsTable,
-	goodsReceiptNotesTable,
-	purchaseOrderItemsTable,
-	purchaseOrdersTable,
-	purchaseRequestItemsTable,
-	purchaseRequestsTable,
-} from './purchasing'
-import { workOrdersTable } from './production'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RELATIONS (Drizzle v1 — defineRelations API)
@@ -104,7 +104,6 @@ export const relations = defineRelations(
 		attendancesTable,
 		shiftsTable,
 		payrollBatchesTable,
-		payrollItemsTable,
 		payrollItemsTable,
 		payrollAdjustmentsTable,
 		expendituresTable,

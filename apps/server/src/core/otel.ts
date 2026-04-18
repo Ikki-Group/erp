@@ -1,9 +1,9 @@
 import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino'
+import { logs } from '@opentelemetry/sdk-node'
 import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
-import { logs } from '@opentelemetry/sdk-node'
-import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino'
 
 const axiomExporter = new OTLPTraceExporter({
 	url: 'https://us-east-1.aws.edge.axiom.co/v1/traces',

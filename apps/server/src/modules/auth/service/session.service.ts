@@ -1,17 +1,19 @@
-import { InternalServerError } from '@/core/http/errors'
 import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
-import { env } from '@/config/env'
 import { cache } from '@/core/cache'
 import { takeFirst } from '@/core/database'
+import { InternalServerError } from '@/core/http/errors'
 import { logger } from '@/core/logger'
+
 import { db } from '@/db'
 import { sessionsTable } from '@/db/schema'
+
 import type { UserDto } from '@/modules/iam/dto'
 
 import { SessionPayloadDto, type SessionDto } from '../dto'
+import { env } from '@/config/env'
 
 const cacheKey = { byId: (id: number) => `session.byId.${id}` }
 

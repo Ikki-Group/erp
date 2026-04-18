@@ -1,6 +1,5 @@
-import type { Logger } from 'pino'
-
 import type { MokaAuthEngine } from './moka-auth.service'
+import type { Logger } from 'pino'
 
 /**
  * Base interface for all Moka scrap engines

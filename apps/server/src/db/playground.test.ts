@@ -1,7 +1,5 @@
 // oxlint-disable no-unused-vars
 
-import { test } from 'bun:test'
-
 import { eq, getColumns } from 'drizzle-orm'
 
 import { db } from '@/db'
@@ -13,6 +11,8 @@ import {
 	userAssignmentsTable,
 	usersTable,
 } from '@/db/schema'
+
+import { test } from 'bun:test'
 
 test('query playground', async () => {
 	// const res = await db

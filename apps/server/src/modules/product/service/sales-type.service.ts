@@ -14,6 +14,7 @@ import {
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 

@@ -1,6 +1,7 @@
 import type { InventoryServiceModule } from '@/modules/inventory'
-import { PurchaseOrderService } from './purchase-order.service'
+
 import { GoodsReceiptService } from './goods-receipt.service'
+import { PurchaseOrderService } from './purchase-order.service'
 
 export class PurchasingServiceModule {
 	public purchaseOrder: PurchaseOrderService

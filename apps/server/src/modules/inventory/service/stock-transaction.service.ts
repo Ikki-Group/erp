@@ -1,7 +1,8 @@
-import { db } from '@/db'
 import type { DbTx } from '@/core/database'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
+
+import { db } from '@/db'
+
 import type {
 	AdjustmentTransactionDto,
 	PurchaseTransactionDto,
@@ -16,8 +17,10 @@ import type {
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
 } from '@/modules/inventory/dto'
-import { StockHistoryService } from './stock/stock-history.service'
+import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
+
 import { StockExternalMovementService } from './stock/stock-external-movement.service'
+import { StockHistoryService } from './stock/stock-history.service'
 import { StockInternalMovementService } from './stock/stock-internal-movement.service'
 
 /**

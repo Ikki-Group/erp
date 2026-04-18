@@ -1,9 +1,8 @@
-import { describe, expect, it, mock } from 'bun:test'
-
 import axios from 'axios'
-import type { Logger } from 'pino'
 
 import { MokaAuthEngine } from './moka-auth.service'
+import { describe, expect, it, mock } from 'bun:test'
+import type { Logger } from 'pino'
 
 // Mock Logger
 const mockLogger = { info: mock(() => {}), error: mock(() => {}) } as unknown as Logger

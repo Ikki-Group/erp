@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'bun:test'
 import { z } from 'zod'
+
+import { zc } from './common'
 import { zp } from './primitive'
 import { zq } from './query'
-import { zc } from './common'
 import { createSuccessResponseSchema, createPaginatedResponseSchema } from './response'
+import { describe, it, expect } from 'bun:test'
 
 describe('Primitive Validators (zp)', () => {
 	describe('zId', () => {

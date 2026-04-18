@@ -1,11 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
+
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
 import type { ProductServiceModule } from '@/modules/product'
+
+import { SEED_CONFIG } from '@/config/seed-config'
 
 export class SeedService {
 	constructor(

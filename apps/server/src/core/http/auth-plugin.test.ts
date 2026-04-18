@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'bun:test'
-
 import { Elysia } from 'elysia'
 
 import { HttpError } from '@/core/http/errors'
 
 import { authPluginMacro, createAuthPlugin } from './auth-plugin'
+import { describe, expect, it } from 'bun:test'
 
 describe('auth-plugin', () => {
 	const mockUser = { id: 1, email: 'test@example.com' } as any

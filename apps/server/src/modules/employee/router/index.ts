@@ -1,4 +1,5 @@
 import Elysia from 'elysia'
+
 import type { EmployeeServiceModule } from '../service'
 import { initEmployeeRoute } from './employee.route'
 

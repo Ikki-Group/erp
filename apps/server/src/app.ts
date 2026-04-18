@@ -6,6 +6,7 @@ import { HttpError } from '@/core/http/errors'
 import { requestIdPlugin } from '@/core/http/request-id'
 import { logger } from '@/core/logger'
 import { otel } from '@/core/otel'
+
 import { createModules } from '@/modules/_registry'
 import { createRoutes } from '@/modules/_routes'
 

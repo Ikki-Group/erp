@@ -1,6 +1,7 @@
 import { integer, numeric, pgTable, text, timestamp, pgEnum, time } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
+
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
 

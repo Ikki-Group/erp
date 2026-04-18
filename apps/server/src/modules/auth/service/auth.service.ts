@@ -1,5 +1,6 @@
 import { UnauthorizedError } from '@/core/http/errors'
 import { verifyPassword } from '@/core/password'
+
 import type { AuthOutputDto, LoginDto } from '@/modules/auth/dto'
 import type { UserDto } from '@/modules/iam/dto'
 import type { UserService } from '@/modules/iam/service/user.service'

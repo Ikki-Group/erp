@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createSuccessResponseSchema } from '@/core/validation'
+
 import { UserDto } from '@/modules/iam/dto'
 
 import { AuthOutputDto, LoginDto } from '../dto'

@@ -1,5 +1,6 @@
-import { db } from '@/db'
 import { sql } from 'drizzle-orm'
+
+import { db } from '@/db'
 
 async function main() {
 	const resetSql = sql`

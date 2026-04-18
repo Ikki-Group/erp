@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
+
 import { LocationDto } from '@/modules/location'
 import { RecipeDto } from '@/modules/recipe'
 
@@ -47,12 +48,14 @@ export const MaterialMutationDto = z.object({
 	categoryId: zp.id.nullable(),
 	baseUomId: zp.id,
 	locationIds: z.array(zp.id).default([]),
-	conversions: z.array(
-		z.object({
-			toBaseFactor: zp.decimal, // Decimals are already coerced and typed
-			uomId: zp.id,
-		}),
-	).default([]),
+	conversions: z
+		.array(
+			z.object({
+				toBaseFactor: zp.decimal, // Decimals are already coerced and typed
+				uomId: zp.id,
+			}),
+		)
+		.default([]),
 })
 export type MaterialMutationDto = z.infer<typeof MaterialMutationDto>
 

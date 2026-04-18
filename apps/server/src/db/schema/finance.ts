@@ -13,8 +13,9 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
-import { suppliersTable } from './supplier'
+
 import { locationsTable } from './location'
+import { suppliersTable } from './supplier'
 
 export const accountTypeEnum = pgEnum('account_type', [
 	'ASSET',

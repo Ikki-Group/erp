@@ -1,11 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, isNull } from 'drizzle-orm'
 
+import { stampCreate } from '@/core/database'
+
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
-import { stampCreate } from '@/core/database'
-import { GeneralLedgerService } from './general-ledger.service'
+
 import type { ExpenditureCreateDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
+import { GeneralLedgerService } from './general-ledger.service'
 
 export class ExpenditureService {
 	constructor(private readonly journal: GeneralLedgerService) {}
@@ -39,13 +41,14 @@ export class ExpenditureService {
 				if (input.isInstallment && input.liabilityAccountId) {
 					// Installment Logic: Target (DR) vs Source (CR - Paid) + Liability (CR - Debt)
 					// For simplicity in MVP, we assume it's either fully paid or fully debt if not specified.
-					// But let's allow a split if we add a 'paidAmount' later. 
+					// But let's allow a split if we add a 'paidAmount' later.
 					// For now: FULL amount is credited to Liability if isInstallment is true and status is not PAID?
-					// Let's go with: 
+					// Let's go with:
 					// Status PAID + isInstallment = Source Account (CR)
 					// Status PENDING + isInstallment = Liability Account (CR)
-					
-					const creditAccountId = input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
+
+					const creditAccountId =
+						input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
 					items.push({
 						accountId: creditAccountId,
 						debit: '0',

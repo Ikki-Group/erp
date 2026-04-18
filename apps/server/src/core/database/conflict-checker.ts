@@ -1,9 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, or, type SQL } from 'drizzle-orm'
-import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 import { ConflictError } from '@/core/http/errors'
+
 import { db } from '@/db'
+
+import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */

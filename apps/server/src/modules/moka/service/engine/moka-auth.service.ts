@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance, type RawAxiosRequestHeaders } from 'axios'
-import type { Logger } from 'pino'
 
 import type { MokaLoginResponse } from '../../dto/moka-raw.types'
+import type { Logger } from 'pino'
 
 const BASE_URL = 'https://backoffice.mokapos.com'
 const AUTH_URL = 'https://service-goauth.mokapos.com'

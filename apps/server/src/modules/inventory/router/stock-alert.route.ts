@@ -1,4 +1,5 @@
 import Elysia from 'elysia'
+import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -10,7 +11,6 @@ import {
 
 import { stockAlertFilterSchema, stockAlertSelectSchema } from '../dto'
 import type { InventoryServiceModule } from '../service'
-import z from 'zod'
 
 export function initStockAlertRoute(s: InventoryServiceModule) {
 	return new Elysia({ prefix: '/alert' })

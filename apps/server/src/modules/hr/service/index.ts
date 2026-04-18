@@ -1,6 +1,6 @@
+import type { FinanceServiceModule } from '../../finance/service'
 import { HRService } from './hr.service'
 import { PayrollService } from './payroll.service'
-import type { FinanceServiceModule } from '../../finance/service'
 
 export class HRServiceModule {
 	public readonly hr: HRService

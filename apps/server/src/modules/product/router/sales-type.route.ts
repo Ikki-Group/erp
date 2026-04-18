@@ -9,12 +9,7 @@ import {
 	createPaginatedResponseSchema,
 } from '@/core/validation'
 
-import {
-	SalesTypeDto,
-	SalesTypeFilterDto,
-	SalesTypeCreateDto,
-	SalesTypeUpdateDto,
-} from '../dto'
+import { SalesTypeDto, SalesTypeFilterDto, SalesTypeCreateDto, SalesTypeUpdateDto } from '../dto'
 import type { ProductServiceModule } from '../service'
 
 export function initSalesTypeRoute(s: ProductServiceModule) {

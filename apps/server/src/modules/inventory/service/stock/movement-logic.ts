@@ -1,10 +1,13 @@
-import { db } from '@/db'
-import { stampCreate, type DbTx } from '@/core/database'
-import { stockTransactionsTable } from '@/db/schema'
-import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
-import { BadRequestError } from '@/core/http/errors'
 import { record } from '@elysiajs/opentelemetry'
+
+import { stampCreate, type DbTx } from '@/core/database'
+import { BadRequestError } from '@/core/http/errors'
+
+import { db } from '@/db'
+import { stockTransactionsTable } from '@/db/schema'
+
 import type { TransactionResultDto } from '@/modules/inventory/dto'
+import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
 
 export class MovementLogic {
 	constructor(protected readonly mLocationSvc: MaterialLocationService) {}
