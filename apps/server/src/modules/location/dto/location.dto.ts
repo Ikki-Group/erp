@@ -1,15 +1,6 @@
 import { z } from 'zod'
 
-import {
-	zCodeUpper,
-	zMetadataDto,
-	zPaginationDto,
-	zQuerySearch,
-	zRecordIdDto,
-	zStr,
-	zStrNullable,
-	zWithAuditResolved,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
 /**
  * Types of operational locations.
@@ -22,50 +13,36 @@ export const LocationTypeDto = z.enum([
 ])
 export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
-/**
- * Common Location attributes.
- */
-export const LocationBaseDto = z.object({
-	code: zCodeUpper.min(2).max(20),
-	name: zStr.min(2).max(100),
+export const LocationDto = z.object({
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
 	type: LocationTypeDto,
-	description: zStrNullable,
-	address: zStrNullable,
-	phone: zStrNullable,
-	isActive: z.boolean().default(true),
+	description: zp.strNullable,
+	address: zp.strNullable,
+	phone: zp.strNullable,
+	isActive: zp.bool,
+	...zc.AuditFull.shape,
 })
-export type LocationBaseDto = z.infer<typeof LocationBaseDto>
-
-/**
- * Location database record.
- */
-export const LocationDto = zWithAuditResolved(
-	z.object({
-		...zRecordIdDto.shape,
-		...LocationBaseDto.shape,
-		...zMetadataDto.shape,
-	}).shape,
-)
 export type LocationDto = z.infer<typeof LocationDto>
 
-/**
- * Input for creating a new Location.
- */
-export const LocationCreateDto = LocationBaseDto
+export const LocationCreateDto = z.object({
+	code: zc.strTrim.uppercase().min(3).max(10),
+	name: zc.strTrim.min(3).max(100),
+	type: LocationTypeDto,
+	description: zc.strTrimNullable,
+	address: zc.strTrimNullable,
+	phone: zc.strTrimNullable,
+	isActive: zp.bool.default(true),
+})
 export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
-/**
- * Input for updating an existing Location.
- */
-export const LocationUpdateDto = z.object({ ...zRecordIdDto.shape, ...LocationBaseDto.shape })
+export const LocationUpdateDto = z.object({ ...zc.RecordId.shape, ...LocationCreateDto.shape })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
 
-/**
- * Filter criteria for listing Locations.
- */
 export const LocationFilterDto = z.object({
-	...zPaginationDto.shape,
-	q: zQuerySearch,
+	...zq.pagination.shape,
+	q: zq.search,
 	type: LocationTypeDto.optional(),
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>

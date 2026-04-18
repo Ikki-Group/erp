@@ -5,7 +5,8 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
+	zq,
 } from '@/core/validation'
 
 import * as dto from '../dto/location.dto'
@@ -36,7 +37,7 @@ export function initLocationRoute(service: LocationService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(dto.LocationDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(dto.LocationDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -46,20 +47,19 @@ export function initLocationRoute(service: LocationService) {
 			},
 			{
 				body: dto.LocationCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id, ...data } = body
-				const result = await service.handleUpdate(id, data, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
 				body: dto.LocationUpdateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -69,7 +69,7 @@ export function initLocationRoute(service: LocationService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -77,6 +77,6 @@ export function initLocationRoute(service: LocationService) {
 				const result = await service.handleHardRemove(body.id)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

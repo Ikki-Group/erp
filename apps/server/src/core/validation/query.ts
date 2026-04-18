@@ -14,6 +14,8 @@ const search = z
 
 const boolean = z.stringbool().optional()
 
+const recordId = z.object({ id: id })
+
 const pagination = z.object({
 	page: z.coerce.number().int().positive().default(1).catch(1),
 	limit: z.coerce.number().int().positive().max(100).default(10).catch(10),
@@ -24,5 +26,6 @@ export const zq = {
 	ids,
 	search,
 	boolean,
+	recordId,
 	pagination,
 }

@@ -1,8 +1,10 @@
 import { eq } from 'drizzle-orm'
+
 import { cache } from '@/core/cache'
+import type { AuditResolved, UserSnippet } from '@/core/validation'
+
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
-import type { UserSnippet } from '@/core/validation'
 
 /**
  * Audit Resolver Utility
@@ -44,9 +46,7 @@ async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippe
  * Resolves audit fields for a single object.
  * Simply pass the DTO/Data object, and it will return a new object with `creator` and `updater`.
  */
-export async function resolveAudit<T extends WithAudit>(
-	data: T,
-): Promise<T & { creator?: UserSnippet; updater?: UserSnippet }> {
+export async function resolveAudit<T extends WithAudit>(data: T): Promise<T & AuditResolved> {
 	// Concurrent fetch to avoid waterfall
 	const [creator, updater] = await Promise.all([
 		fetchAuditUser(data.createdBy),
@@ -69,6 +69,6 @@ export async function resolveAudit<T extends WithAudit>(
  */
 export async function resolveAuditList<T extends WithAudit>(
 	dataList: T[],
-): Promise<(T & { creator?: UserSnippet; updater?: UserSnippet })[]> {
+): Promise<(T & AuditResolved)[]> {
 	return Promise.all(dataList.map((data) => resolveAudit(data)))
 }

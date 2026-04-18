@@ -3,11 +3,13 @@ import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { resolveAudit } from '@/core/utils/audit-resolver'
+import type { AuditResolved } from '@/core/validation'
+
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
-import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/location.dto'
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
@@ -134,26 +136,20 @@ export class LocationService {
 
 			const p = await core.paginate<dto.LocationDto>({
 				data: async ({ limit: l, offset }) => {
-					const rows = await db
-						.select()
-						.from(locationsTable)
-						.where(where)
-						.orderBy(core.sortBy(locationsTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
+					const rows = await db.select().from(locationsTable).where(where).limit(l).offset(offset)
 					return rows.map((r) => dto.LocationDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(locationsTable).where(where),
 			})
 
-			return { ...p, data: await resolveAuditList(p.data) }
+			return p
 		})
 		return result
 	}
 
 	// Resource detail.
-	async handleDetail(id: number): Promise<dto.LocationDto> {
+	async handleDetail(id: number): Promise<dto.LocationDto & AuditResolved> {
 		const result = await record('LocationService.handleDetail', async () => {
 			const detail = await this.getById(id)
 			return resolveAudit(detail)
@@ -183,8 +179,7 @@ export class LocationService {
 
 	// Update.
 	async handleUpdate(
-		id: number,
-		data: dto.LocationBaseDto,
+		{ id, ...data }: dto.LocationUpdateDto,
 		actorId: number,
 	): Promise<{ id: number }> {
 		const result = await record('LocationService.handleUpdate', async () => {
