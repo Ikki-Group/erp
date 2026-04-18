@@ -17,10 +17,11 @@ import {
 
 import type {
 	RecipeCostDto,
+	RecipeCreateDto,
 	RecipeDto,
 	RecipeFilterDto,
-	RecipeMutationDto,
 	RecipeSelectDto,
+	RecipeUpdateDto,
 } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -84,7 +85,11 @@ export class RecipeService {
 
 				const items = await this.getRecipeItems(id)
 
-				return { ...recipe, items }
+				return {
+					...recipe,
+					targetQty: Number(recipe.targetQty),
+					items,
+				}
 			})
 		})
 	}
@@ -174,6 +179,7 @@ export class RecipeService {
 
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
+				targetQty: Number(r.targetQty),
 				items: itemsByRecipe.get(r.id) || [],
 			}))
 
@@ -225,7 +231,7 @@ export class RecipeService {
 		}
 	}
 
-	async handleCreate(data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: RecipeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleCreate', async () => {
 			await this.checkTargetConflict({
 				materialId: data.materialId,
@@ -242,7 +248,7 @@ export class RecipeService {
 						materialId: data.materialId ?? null,
 						productId: data.productId ?? null,
 						productVariantId: data.productVariantId ?? null,
-						targetQty: data.targetQty,
+						targetQty: (data.targetQty ?? 1).toString(),
 						isActive: data.isActive,
 						instructions: data.instructions,
 						...meta,
@@ -256,11 +262,11 @@ export class RecipeService {
 						data.items.map((item) => ({
 							recipeId: recipe.id,
 							materialId: item.materialId,
-							qty: item.qty,
-							scrapPercentage: item.scrapPercentage,
+							qty: item.qty.toString(),
+							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes,
-							sortOrder: item.sortOrder.toString(),
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...meta,
 						})),
 					)
@@ -275,11 +281,11 @@ export class RecipeService {
 	}
 
 	async handleUpdate(
-		id: number,
-		data: RecipeMutationDto,
+		data: RecipeUpdateDto,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('RecipeService.handleUpdate', async () => {
+			const { id } = data
 			const existing = await this.getById(id)
 
 			const target = {
@@ -304,9 +310,10 @@ export class RecipeService {
 							data.productVariantId === undefined
 								? existing.productVariantId
 								: data.productVariantId,
-						targetQty: data.targetQty,
-						isActive: data.isActive,
-						instructions: data.instructions,
+						targetQty: (data.targetQty ?? existing.targetQty).toString(),
+						isActive: data.isActive ?? existing.isActive,
+						instructions:
+							data.instructions === undefined ? existing.instructions : data.instructions,
 						...updateMeta,
 					})
 					.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
@@ -319,11 +326,11 @@ export class RecipeService {
 						data.items.map((item) => ({
 							recipeId: id,
 							materialId: item.materialId,
-							qty: item.qty,
-							scrapPercentage: item.scrapPercentage,
+							qty: item.qty.toString(),
+							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes ?? null,
-							sortOrder: item.sortOrder.toString(),
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...createMeta,
 						})),
 					)
