@@ -2,12 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	zq,
-	zc,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/core/validation'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import { SalesTypeDto, SalesTypeFilterDto, SalesTypeCreateDto, SalesTypeUpdateDto } from '../dto'
 import type { ProductServiceModule } from '../service'

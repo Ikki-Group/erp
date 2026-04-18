@@ -82,7 +82,7 @@ export const RecipeCreateDto = z
 	.refine(
 		(data) => {
 			const targets = [data.materialId, data.productId, data.productVariantId].filter(
-				(t) => t != null,
+				(t) => t !== null,
 			)
 			return targets.length === 1
 		},
