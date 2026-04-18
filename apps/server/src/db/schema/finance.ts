@@ -10,7 +10,6 @@ import {
 	uniqueIndex,
 	index,
 	type AnyPgColumn,
-	integer,
 } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'

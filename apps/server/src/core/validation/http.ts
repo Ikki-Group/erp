@@ -12,11 +12,7 @@ export const zQueryIds = z.preprocess(
 )
 
 /** Converts string 'true'/'false' to boolean */
-export const zQueryBoolean = z
-	.enum(['true', 'false'])
-	.transform((val) => val === 'true')
-	.optional()
-	.catch(undefined)
+export const zQueryBoolean = z.stringbool().optional()
 
 /** Optional search string, returns undefined for empty strings */
 export const zQuerySearch = zStr.optional().transform((val) => (val === '' ? undefined : val))
@@ -24,6 +20,6 @@ export const zQuerySearch = zStr.optional().transform((val) => (val === '' ? und
 export const zQueryNum = zNumCoerce
 
 export const zPaginationDto = z.object({
-	page: zNumCoerce.int().positive().default(1).catch(1),
-	limit: zNumCoerce.int().positive().max(100).default(10).catch(10),
+	page: zNumCoerce.positive().default(1).catch(1),
+	limit: zNumCoerce.positive().max(100).default(10),
 })
