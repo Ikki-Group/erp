@@ -2,6 +2,7 @@ import { integer, numeric, pgTable, text, timestamp, pgEnum, time } from 'drizzl
 
 import { auditColumns, pk } from '@/core/database/schema'
 
+import { leaveStatusEnum, leaveTypeEnum } from './_helpers'
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
 
@@ -90,5 +91,19 @@ export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
 	type: payrollAdjustmentTypeEnum().notNull(),
 	amount: numeric('amount').notNull().default('0'),
 	reason: text().notNull(),
+	...auditColumns,
+})
+
+export const leaveRequestsTable = pgTable('leave_requests', {
+	...pk,
+	employeeId: integer('employee_id')
+		.notNull()
+		.references(() => employeesTable.id, { onDelete: 'cascade' }),
+	type: leaveTypeEnum().notNull(),
+	status: leaveStatusEnum().notNull().default('pending'),
+	dateStart: timestamp('date_start', { mode: 'date' }).notNull(),
+	dateEnd: timestamp('date_end', { mode: 'date' }).notNull(),
+	reason: text().notNull(),
+	note: text(),
 	...auditColumns,
 })

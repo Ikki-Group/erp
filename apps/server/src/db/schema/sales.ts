@@ -12,6 +12,8 @@ import {
 
 import { auditColumns, pk } from '@/core/database/schema'
 
+import { invoiceStatusEnum } from './_helpers'
+import { customersTable } from './customer'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
 
@@ -28,8 +30,8 @@ export const salesOrdersTable = pgTable(
 		locationId: integer()
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		// CRM Integration future-proofing
-		customerId: integer(),
+		// CRM Integration
+		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
 		salesTypeId: integer()
 			.notNull()
 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
@@ -48,6 +50,7 @@ export const salesOrdersTable = pgTable(
 		index('sales_orders_location_idx').on(t.locationId),
 		index('sales_orders_status_idx').on(t.status),
 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
+		index('sales_orders_customer_idx').on(t.customerId),
 	],
 )
 
@@ -102,6 +105,68 @@ export const salesOrderItemsTable = pgTable(
 		index('sales_order_items_product_idx').on(t.productId),
 		index('sales_order_items_variant_idx').on(t.variantId),
 		index('sales_order_items_batch_idx').on(t.batchId),
+	],
+)
+
+// ─── Sales Invoices ───────────────────────────────────────────────────────────
+
+export const salesInvoicesTable = pgTable(
+	'sales_invoices',
+	{
+		...pk,
+		orderId: integer()
+			.notNull()
+			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
+		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
+		locationId: integer()
+			.notNull()
+			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+
+		status: invoiceStatusEnum().notNull().default('draft'),
+		invoiceDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		dueDate: timestamp({ mode: 'date', withTimezone: true }),
+
+		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+
+		notes: text(),
+		...auditColumns,
+	},
+	(t) => [
+		index('sales_invoices_order_idx').on(t.orderId),
+		index('sales_invoices_customer_idx').on(t.customerId),
+		index('sales_invoices_status_idx').on(t.status),
+	],
+)
+
+// ─── Sales Invoice Items ──────────────────────────────────────────────────────
+
+export const salesInvoiceItemsTable = pgTable(
+	'sales_invoice_items',
+	{
+		...pk,
+		invoiceId: integer()
+			.notNull()
+			.references(() => salesInvoicesTable.id, { onDelete: 'cascade' }),
+		salesOrderItemId: integer().references(() => salesOrderItemsTable.id, {
+			onDelete: 'set null',
+		}),
+		productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
+		variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
+
+		itemName: text().notNull(),
+		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+
+		...auditColumns,
+	},
+	(t) => [
+		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
+		index('sales_invoice_items_so_item_idx').on(t.salesOrderItemId),
 	],
 )
 

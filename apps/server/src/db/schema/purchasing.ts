@@ -2,6 +2,7 @@ import { index, integer, numeric, pgEnum, pgTable, text, timestamp } from 'drizz
 
 import { auditColumns, pk } from '@/core/database/schema'
 
+import { invoiceStatusEnum } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 import { suppliersTable } from './supplier'
@@ -194,5 +195,71 @@ export const goodsReceiptNoteItemsTable = pgTable(
 		index('goods_receipt_note_items_grn_idx').on(t.grnId),
 		index('goods_receipt_note_items_po_item_idx').on(t.purchaseOrderItemId),
 		index('goods_receipt_note_items_material_idx').on(t.materialId),
+	],
+)
+
+// ─── Purchase Invoices ────────────────────────────────────────────────────────
+
+export const purchaseInvoicesTable = pgTable(
+	'purchase_invoices',
+	{
+		...pk,
+		orderId: integer()
+			.notNull()
+			.references(() => purchaseOrdersTable.id, { onDelete: 'restrict' }),
+		supplierId: integer()
+			.notNull()
+			.references(() => suppliersTable.id, { onDelete: 'restrict' }),
+		locationId: integer()
+			.notNull()
+			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+
+		status: invoiceStatusEnum().notNull().default('draft'),
+		invoiceDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		dueDate: timestamp({ mode: 'date', withTimezone: true }),
+
+		// Supplier's Invoice Number
+		externalInvoiceNumber: text('external_invoice_number'),
+
+		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+
+		notes: text(),
+		...auditColumns,
+	},
+	(t) => [
+		index('purchase_invoices_order_idx').on(t.orderId),
+		index('purchase_invoices_supplier_idx').on(t.supplierId),
+		index('purchase_invoices_status_idx').on(t.status),
+	],
+)
+
+// ─── Purchase Invoice Items ───────────────────────────────────────────────────
+
+export const purchaseInvoiceItemsTable = pgTable(
+	'purchase_invoice_items',
+	{
+		...pk,
+		invoiceId: integer()
+			.notNull()
+			.references(() => purchaseInvoicesTable.id, { onDelete: 'cascade' }),
+		purchaseOrderItemId: integer().references(() => purchaseOrderItemsTable.id, {
+			onDelete: 'set null',
+		}),
+		materialId: integer().references(() => materialsTable.id, { onDelete: 'set null' }),
+
+		itemName: text().notNull(),
+		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+
+		...auditColumns,
+	},
+	(t) => [
+		index('purchase_invoice_items_invoice_idx').on(t.invoiceId),
+		index('purchase_invoice_items_po_item_idx').on(t.purchaseOrderItemId),
 	],
 )

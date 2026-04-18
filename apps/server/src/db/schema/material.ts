@@ -38,6 +38,10 @@ export const materialCategoriesTable = pgTable(
 	(t) => [uniqueIndex('material_categories_name_idx').on(t.name).where(isNull(t.deletedAt))],
 )
 
+import { taxesTable } from './tax'
+
+// ... (existing imports)
+
 // ─── Materials ────────────────────────────────────────────────────────────────
 
 export const materialsTable = pgTable(
@@ -52,6 +56,14 @@ export const materialsTable = pgTable(
 		baseUomId: integer()
 			.notNull()
 			.references(() => uomsTable.id, { onDelete: 'restrict' }),
+
+		// Financial & Taxation
+		taxId: integer('tax_id').references(() => taxesTable.id, { onDelete: 'set null' }),
+		/** Default Expense Account for purchases */
+		purchaseAccountId: integer('purchase_account_id'),
+		/** Default Revenue Account for sales (if semi-finished goods are sold) */
+		salesAccountId: integer('sales_account_id'),
+
 		...auditColumns,
 	},
 	(t) => [
@@ -59,6 +71,7 @@ export const materialsTable = pgTable(
 		uniqueIndex('materials_sku_idx').on(t.sku).where(isNull(t.deletedAt)),
 		index('materials_category_idx').on(t.categoryId),
 		index('materials_base_uom_idx').on(t.baseUomId),
+		index('materials_tax_idx').on(t.taxId),
 	],
 )
 
