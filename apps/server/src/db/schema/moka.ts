@@ -1,16 +1,8 @@
-import { integer, jsonb, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-export const mokaScrapTypeEnum = pgEnum('moka_scrap_type', ['sales', 'product', 'category'])
-export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', [
-	'pending',
-	'processing',
-	'completed',
-	'failed',
-])
+import { mokaScrapStatusEnum, mokaScrapTypeEnum } from './_helpers'
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
 

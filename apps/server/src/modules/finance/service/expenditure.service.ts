@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, desc, eq, isNull, or } from 'drizzle-orm'
 
-import { stampCreate } from '@/core/database'
+import { searchFilter, stampCreate } from '@/core/database'
 
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
@@ -76,12 +76,17 @@ export class ExpenditureService {
 
 	async listExpenditures(filter: ExpenditureFilterDto) {
 		return record('ExpenditureService.listExpenditures', async () => {
-			const { page = 1, limit = 20, q, type, status, locationId } = filter
+			const { page, limit, q, type, status, locationId } = filter
 			const offset = (page - 1) * limit
 
 			const where = and(
 				isNull(expendituresTable.deletedAt),
-				q ? or(searchFilter(expendituresTable.title, q), searchFilter(expendituresTable.description, q)) : undefined,
+				q
+					? or(
+							searchFilter(expendituresTable.title, q),
+							searchFilter(expendituresTable.description, q),
+						)
+					: undefined,
 				type ? eq(expendituresTable.type, type) : undefined,
 				status ? eq(expendituresTable.status, status) : undefined,
 				locationId ? eq(expendituresTable.locationId, locationId) : undefined,

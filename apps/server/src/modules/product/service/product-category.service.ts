@@ -21,7 +21,8 @@ import { productCategoriesTable } from '@/db/schema'
 import type {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
-	ProductCategoryMutationDto,
+	ProductCreateDto,
+	ProductUpdateDto,
 } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -109,11 +110,11 @@ export class ProductCategoryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return record('ProductCategoryService.handleList', async () => {
-			const { search, parentId } = filter
+			const { q, parentId } = filter
 
 			const where = and(
 				isNull(productCategoriesTable.deletedAt),
-				searchFilter(productCategoriesTable.name, search),
+				searchFilter(productCategoriesTable.name, q),
 				parentId ? eq(productCategoriesTable.parentId, parentId) : undefined,
 			)
 
@@ -144,7 +145,7 @@ export class ProductCategoryService {
 	/**
 	 * Creates a new product category. Invalidates cache.
 	 */
-	async handleCreate(data: ProductCategoryMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: ProductCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
@@ -170,11 +171,7 @@ export class ProductCategoryService {
 	/**
 	 * Updates existing product category. Invalidates cache.
 	 */
-	async handleUpdate(
-		id: number,
-		data: Partial<ProductCategoryMutationDto>,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: ProductUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleUpdate', async () => {
 			const existing = await this.getById(id)
 

@@ -3,7 +3,6 @@ import {
 	integer,
 	jsonb,
 	numeric,
-	pgEnum,
 	pgTable,
 	text,
 	timestamp,
@@ -12,14 +11,10 @@ import {
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { invoiceStatusEnum } from './_helpers'
+import { invoiceStatusEnum, salesOrderStatusEnum } from './_helpers'
 import { customersTable } from './customer'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
-
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
 
 // ─── Sales Orders ─────────────────────────────────────────────────────────────
 

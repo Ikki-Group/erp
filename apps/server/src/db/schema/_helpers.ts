@@ -74,7 +74,12 @@ export const attendanceStatusEnum = pgEnum('attendance_status', [
 	'on_leave',
 ])
 
-export const payrollStatusEnum = pgEnum('payroll_status', ['draft', 'approved', 'paid', 'cancelled'])
+export const payrollStatusEnum = pgEnum('payroll_status', [
+	'draft',
+	'approved',
+	'paid',
+	'cancelled',
+])
 
 export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
 	'addition',

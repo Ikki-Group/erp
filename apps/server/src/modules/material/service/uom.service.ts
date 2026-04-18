@@ -94,8 +94,8 @@ export class UomService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<UomDto>> {
 		return record('UomService.handleList', async () => {
-			const { search } = filter
-			const where = and(isNull(uomsTable.deletedAt), searchFilter(uomsTable.code, search))
+			const { q } = filter
+			const where = and(isNull(uomsTable.deletedAt), searchFilter(uomsTable.code, q))
 
 			return paginate<UomDto>({
 				data: ({ limit, offset }) =>

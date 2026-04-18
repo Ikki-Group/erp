@@ -235,13 +235,13 @@ export class MaterialLocationService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<MaterialLocationStockDto>> {
 		return record('MaterialLocationService.handleStockByLocation', async () => {
-			const { locationId, search } = filter
+			const { locationId, q } = filter
 
 			// Validate location exists
 			await this.locationSvc.location.getById(locationId)
 
-			const searchCondition = search
-				? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
 				: undefined
 
 			const where = and(eq(materialLocationsTable.locationId, locationId), searchCondition)

@@ -169,13 +169,11 @@ export class MaterialService {
 		}
 
 		for (const c of conversions) {
-			map
-				.get(c.materialId)!
-				.conversions.push({
-					toBaseFactor: Number(c.toBaseFactor),
-					uomId: c.uomId,
-					uom: c.uom,
-				})
+			map.get(c.materialId)!.conversions.push({
+				toBaseFactor: Number(c.toBaseFactor),
+				uomId: c.uomId,
+				uom: c.uom,
+			})
 		}
 
 		for (const l of locations) {
@@ -307,6 +305,7 @@ export class MaterialService {
 				uomsMap.set(uom.id, uom)
 			}
 
+			// @ts-expect-error
 			const data: MaterialSelectDto[] = result.data.map((m) => {
 				const relations = relationsMap.get(m.id)!
 				return {

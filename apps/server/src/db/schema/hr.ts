@@ -1,17 +1,16 @@
-import { integer, numeric, pgTable, text, timestamp, pgEnum, time } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, timestamp, time } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { leaveStatusEnum, leaveTypeEnum } from './_helpers'
+import {
+	attendanceStatusEnum,
+	leaveStatusEnum,
+	leaveTypeEnum,
+	payrollAdjustmentTypeEnum,
+	payrollStatusEnum,
+} from './_helpers'
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
-
-export const attendanceStatusEnum = pgEnum('attendance_status', [
-	'present',
-	'absent',
-	'late',
-	'on_leave',
-])
 
 export const shiftsTable = pgTable('shifts', {
 	...pk,
@@ -42,13 +41,6 @@ export const attendancesTable = pgTable('attendances', {
 	...auditColumns,
 })
 
-export const payrollStatusEnum = pgEnum('payroll_status', [
-	'draft',
-	'approved',
-	'paid',
-	'cancelled',
-])
-
 export const payrollBatchesTable = pgTable('payroll_batches', {
 	...pk,
 	name: text().notNull(), // e.g., 'March 2024 Payroll'
@@ -77,11 +69,6 @@ export const payrollItemsTable = pgTable('payroll_items', {
 	note: text(),
 	...auditColumns,
 })
-
-export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
-	'addition',
-	'deduction',
-])
 
 export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
 	...pk,

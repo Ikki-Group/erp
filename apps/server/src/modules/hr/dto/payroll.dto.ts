@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp } from '@/core/validation'
 
-import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema/hr'
+import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
