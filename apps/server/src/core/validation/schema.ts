@@ -18,8 +18,33 @@ const zSoftDelete = z.object({
 })
 
 const zSyncMeta = z.object({
-	syncAt: zDate.optional().nullable(),
+	syncAt: zDate.nullable(),
 })
+
+const zAuditMeta = z.object({
+	...zTimestamps.shape,
+	...zActors.shape,
+})
+
+export type AuditMeta = z.infer<typeof zAuditMeta>
+
+/** Reusable Audit User Snippet schema. */
+export const zUserSnippetDto = z.object({
+	id: z.number().int(),
+	username: z.string(),
+	fullname: z.string(),
+})
+
+export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
+
+export const zs = {
+	timestamps: zTimestamps,
+	actors: zActors,
+	softDelete: zSoftDelete,
+	syncMeta: zSyncMeta,
+	auditMeta: zAuditMeta,
+	userSnippet: zUserSnippetDto,
+}
 
 /** Base audit metadata for API visibility. */
 export const zMetadataDto = z.object({
@@ -31,15 +56,6 @@ export const zMetadataDto = z.object({
 	deletedAt: zp.date.nullable(),
 	syncAt: zDate.optional().nullable(),
 })
-
-/** Reusable Audit User Snippet schema. */
-export const zUserSnippetDto = z.object({
-	id: z.number().int(),
-	username: z.string(),
-	fullname: z.string(),
-})
-
-export type UserSnippetDto = z.infer<typeof zUserSnippetDto>
 
 export const zAuditResolvedDto = z.object({
 	creator: zUserSnippetDto.nullable(),
