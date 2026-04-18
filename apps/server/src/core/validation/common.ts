@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { zp } from './primitive'
 
 const strTrim = z.string().trim()
@@ -8,7 +9,10 @@ const strTrimNullable = z
 	.transform((val) => (val.length === 0 ? null : val))
 	.nullable()
 
-const email = z.email().transform((v) => v.toLowerCase())
+const email = z
+	.email()
+	.max(255)
+	.transform((v) => v.toLowerCase())
 
 const RecordId = z.object({ id: zp.id })
 

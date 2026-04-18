@@ -57,10 +57,21 @@ describe('Primitive Validators (zp)', () => {
 			expect(zp.boolCoerce.parse('true')).toBe(true)
 		})
 	})
+
+	describe('decimal', () => {
+		it('coerces values to number', () => {
+			expect(zp.decimal.parse('123.45')).toBe(123.45)
+			expect(zp.decimal.parse(123.45)).toBe(123.45)
+		})
+
+		it('handles integers as decimals', () => {
+			expect(zp.decimal.parse(100)).toBe(100)
+		})
+	})
 })
 
 describe('Query Validators (zq)', () => {
-	describe('idDto', () => {
+	describe('id', () => {
 		it('coerces string IDs to numbers', () => {
 			expect(zq.id.parse('123')).toBe(123)
 		})
@@ -71,7 +82,7 @@ describe('Query Validators (zq)', () => {
 		})
 	})
 
-	describe('idsDto', () => {
+	describe('ids', () => {
 		it('accepts single ID and converts to array', () => {
 			const result = zq.ids.parse(1)
 			expect(Array.isArray(result)).toBe(true)
@@ -84,7 +95,7 @@ describe('Query Validators (zq)', () => {
 		})
 	})
 
-	describe('searchDto', () => {
+	describe('search', () => {
 		it('trims and filters empty searches', () => {
 			expect(zq.search.parse('  hello  ')).toBe('hello')
 			expect(zq.search.parse('   ')).toBeUndefined()
@@ -92,7 +103,7 @@ describe('Query Validators (zq)', () => {
 		})
 	})
 
-	describe('booleanDto', () => {
+	describe('boolean', () => {
 		it('parses string boolean values', () => {
 			expect(zq.boolean.parse('true')).toBe(true)
 			expect(zq.boolean.parse('false')).toBe(false)
@@ -105,7 +116,7 @@ describe('Query Validators (zq)', () => {
 		})
 	})
 
-	describe('paginationDto', () => {
+	describe('pagination', () => {
 		it('uses sensible defaults', () => {
 			const result = zq.pagination.parse({})
 			expect(result.page).toBe(1)
@@ -132,13 +143,13 @@ describe('Query Validators (zq)', () => {
 })
 
 describe('Common Validators (zc)', () => {
-	describe('strTrimDto', () => {
+	describe('strTrim', () => {
 		it('trims whitespace', () => {
 			expect(zc.strTrim.parse('  hello  ')).toBe('hello')
 		})
 	})
 
-	describe('strTrimNullableDto', () => {
+	describe('strTrimNullable', () => {
 		it('converts empty strings to null', () => {
 			expect(zc.strTrimNullable.parse('   ')).toBeNull()
 		})
@@ -148,7 +159,7 @@ describe('Common Validators (zc)', () => {
 		})
 	})
 
-	describe('emailDto', () => {
+	describe('email', () => {
 		it('validates email format', () => {
 			expect(zc.email.parse('user@example.com')).toBe('user@example.com')
 		})
@@ -168,19 +179,33 @@ describe('Common Validators (zc)', () => {
 		})
 	})
 
-	describe('AuditMetaDto', () => {
-		it('requires all audit fields', () => {
+	describe('AuditBasic', () => {
+		it('requires all basic audit fields', () => {
 			const validMeta = {
 				createdAt: new Date(),
 				updatedAt: new Date(),
 				createdBy: 1,
 				updatedBy: 1,
 			}
-			expect(() => zc.AuditMeta.parse(validMeta)).not.toThrow()
+			expect(() => zc.AuditBasic.parse(validMeta)).not.toThrow()
 		})
 	})
 
-	describe('PaginationMetaDto', () => {
+	describe('AuditFull', () => {
+		it('includes soft delete fields', () => {
+			const validMeta = {
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				createdBy: 1,
+				updatedBy: 1,
+				deletedBy: null,
+				deletedAt: null,
+			}
+			expect(() => zc.AuditFull.parse(validMeta)).not.toThrow()
+		})
+	})
+
+	describe('PaginationMeta', () => {
 		it('validates pagination metadata', () => {
 			const meta = zc.PaginationMeta.parse({
 				page: 1,

@@ -14,6 +14,8 @@ const date = z.coerce.date()
 const id = z.number().int().positive()
 const uuid = z.uuidv7()
 
+const decimal = z.coerce.number()
+
 export const zp = {
 	str,
 	strNullable,
@@ -24,4 +26,5 @@ export const zp = {
 	date,
 	id,
 	uuid,
+	decimal,
 }
