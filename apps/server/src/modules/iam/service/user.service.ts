@@ -3,16 +3,18 @@ import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
-import { db } from '@/db'
-import { userAssignmentsTable, usersTable } from '@/db/schema'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
+import { db } from '@/db'
+import { userAssignmentsTable, usersTable } from '@/db/schema'
+
 import type { LocationService } from '@/modules/location/service'
-import * as dto from '../dto/user.dto'
+
 import * as assignmentDto from '../dto/assignment.dto'
+import * as dto from '../dto/user.dto'
+import type { UserAssignmentService } from './assignment.service'
 import type { RoleService } from './role.service'
-import type { UserAssignmentService } from './user-assignment.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 	{

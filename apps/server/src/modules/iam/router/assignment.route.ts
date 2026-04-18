@@ -6,7 +6,7 @@ import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
 
 import * as dto from '../dto/assignment.dto'
-import type { UserAssignmentService } from '../service/user-assignment.service'
+import type { UserAssignmentService } from '../service/assignment.service'
 
 /**
  * User Assignment Module Route (Layer 1)

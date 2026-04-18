@@ -1,7 +1,7 @@
 import type { LocationServiceModule } from '@/modules/location/service'
 
+import { UserAssignmentService } from './assignment.service'
 import { RoleService } from './role.service'
-import { UserAssignmentService } from './user-assignment.service'
 import { UserService } from './user.service'
 
 export class IamServiceModule {
@@ -17,5 +17,5 @@ export class IamServiceModule {
 }
 
 export * from './role.service'
-export * from './user-assignment.service'
+export * from './assignment.service'
 export * from './user.service'
