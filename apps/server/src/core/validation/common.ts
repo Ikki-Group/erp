@@ -1,9 +1,12 @@
 import { z } from 'zod'
-
 import { zp } from './primitive'
 
 const strTrim = z.string().trim()
-const strTrimNullable = strTrim.nullable().transform((val) => (val?.length === 0 ? null : val))
+const strTrimNullable = z
+	.string()
+	.trim()
+	.transform((val) => (val.length === 0 ? null : val))
+	.nullable()
 
 const email = z.email().transform((v) => v.toLowerCase())
 
@@ -19,11 +22,6 @@ const Actors = z.object({
 	updatedBy: zp.id,
 })
 
-const AuditMeta = z.object({
-	...Timestamps.shape,
-	...Actors.shape,
-})
-
 const SoftDelete = z.object({
 	deletedBy: zp.id.nullable(),
 	deletedAt: zp.date.nullable(),
@@ -31,6 +29,24 @@ const SoftDelete = z.object({
 
 const SyncMeta = z.object({
 	syncAt: zp.date.nullable(),
+})
+
+/** Timestamp + actor — untuk entity ringan tanpa soft delete */
+const AuditBasic = z.object({
+	...Timestamps.shape,
+	...Actors.shape,
+})
+
+/** AuditBasic + soft delete — paling umum dipakai */
+const AuditFull = z.object({
+	...AuditBasic.shape,
+	...SoftDelete.shape,
+})
+
+/** AuditFull + syncAt — untuk entity yang disync dari external system */
+const AuditSync = z.object({
+	...AuditFull.shape,
+	...SyncMeta.shape,
 })
 
 const UserSnippet = z.object({
@@ -44,11 +60,6 @@ const AuditResolved = z.object({
 	updater: UserSnippet.nullable(),
 })
 
-const MetadataBase = z.object({
-	...AuditMeta.shape,
-	...SoftDelete.shape,
-})
-
 const PaginationMeta = z.object({
 	page: zp.num,
 	limit: zp.num,
@@ -60,22 +71,23 @@ export const zc = {
 	strTrim,
 	strTrimNullable,
 	email,
-	//
 	RecordId,
 	Timestamps,
 	Actors,
-	AuditMeta,
-	AuditResolved,
 	SoftDelete,
 	SyncMeta,
+	AuditBasic,
+	AuditFull,
+	AuditSync,
+	AuditResolved,
 	UserSnippet,
-	MetadataBase,
 	PaginationMeta,
-}
+} as const
 
 export type RecordId = z.infer<typeof RecordId>
-export type AuditMeta = z.infer<typeof AuditMeta>
+export type AuditBasic = z.infer<typeof AuditBasic>
+export type AuditFull = z.infer<typeof AuditFull>
+export type AuditSync = z.infer<typeof AuditSync>
 export type UserSnippet = z.infer<typeof UserSnippet>
 export type AuditResolved = z.infer<typeof AuditResolved>
-export type MetadataBase = z.infer<typeof MetadataBase>
 export type PaginationMeta = z.infer<typeof PaginationMeta>

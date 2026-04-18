@@ -3,10 +3,11 @@ import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { cache } from '@/core/cache'
 import * as core from '@/core/database'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
+
 import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import * as dto from '../dto/role.dto'
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
@@ -127,13 +128,7 @@ export class RoleService {
 
 			const p = await core.paginate<dto.RoleDto>({
 				data: async ({ limit: l, offset }) => {
-					const rows = await db
-						.select()
-						.from(rolesTable)
-						.where(where)
-						.orderBy(core.sortBy(rolesTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
+					const rows = await db.select().from(rolesTable).where(where).limit(l).offset(offset)
 					return rows
 				},
 				pq: { page, limit },
@@ -170,17 +165,20 @@ export class RoleService {
 	}
 
 	// Update.
-	async handleUpdate(id: number, data: dto.RoleBaseDto, actorId: number): Promise<{ id: number }> {
+	async handleUpdate(data: dto.RoleUpdateDto, actorId: number): Promise<{ id: number }> {
 		const result = await record('RoleService.handleUpdate', async () => {
+			const { id, ...rest } = data
 			const existing = await this.getById(id)
 			if (existing.isSystem) throw err.updateSystemRoleForbidden()
+
 			await core.checkConflict({
 				table: rolesTable,
 				pkColumn: rolesTable.id,
 				fields: uniqueFields,
-				input: { ...data },
+				input: { ...rest },
 				existing,
 			})
+
 			await db
 				.update(rolesTable)
 				.set({ ...data, ...core.stampUpdate(actorId) })

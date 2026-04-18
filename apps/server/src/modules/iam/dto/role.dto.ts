@@ -9,7 +9,7 @@ export const RoleDto = z.object({
 	description: zp.strNullable,
 	permissions: z.array(zp.str),
 	isSystem: zp.bool,
-	...zc.MetadataBase.shape,
+	...zc.AuditBasic.shape,
 })
 export type RoleDto = z.infer<typeof RoleDto>
 

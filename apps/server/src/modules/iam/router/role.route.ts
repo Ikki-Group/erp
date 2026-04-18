@@ -1,11 +1,13 @@
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
+	zq,
 } from '@/core/validation'
 
 import * as dto from '../dto/role.dto'
@@ -36,7 +38,11 @@ export function initRoleRoute(service: RoleService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(dto.RoleDto), auth: true },
+			{
+				query: z.object({ id: zq.id }),
+				response: createSuccessResponseSchema(dto.RoleDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
@@ -44,16 +50,15 @@ export function initRoleRoute(service: RoleService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: dto.RoleCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: dto.RoleCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id, ...data } = body
-				const result = await service.handleUpdate(id, data, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: dto.RoleUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: dto.RoleUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/remove',
@@ -61,7 +66,7 @@ export function initRoleRoute(service: RoleService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -69,6 +74,6 @@ export function initRoleRoute(service: RoleService) {
 				const result = await service.handleHardRemove(body.id)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

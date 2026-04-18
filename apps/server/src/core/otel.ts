@@ -1,4 +1,3 @@
-// oxlint-disable typescript/ban-ts-comment
 import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base'

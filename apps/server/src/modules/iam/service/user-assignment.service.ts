@@ -6,7 +6,7 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
 
-import * as dto from '../dto/user-assignment.dto'
+import * as dto from '../dto/assignment.dto'
 
 const cacheKey = { byUser: (userId: number) => `iam.user-assignment.user.${userId}` }
 

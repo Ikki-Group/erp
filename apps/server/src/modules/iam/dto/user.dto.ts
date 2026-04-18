@@ -16,7 +16,7 @@ import {
 	zAuditResolvedDto,
 } from '@/core/validation'
 
-import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
+import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './assignment.dto'
 
 export const UserBaseDto = z.object({
 	email: zEmail,

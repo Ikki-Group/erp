@@ -5,7 +5,7 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
 
-import * as dto from '../dto/user-assignment.dto'
+import * as dto from '../dto/assignment.dto'
 import type { UserAssignmentService } from '../service/user-assignment.service'
 
 /**

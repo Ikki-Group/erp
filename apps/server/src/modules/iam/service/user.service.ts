@@ -10,7 +10,7 @@ import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { LocationService } from '@/modules/location/service'
 import * as dto from '../dto/user.dto'
-import * as assignmentDto from '../dto/user-assignment.dto'
+import * as assignmentDto from '../dto/assignment.dto'
 import type { RoleService } from './role.service'
 import type { UserAssignmentService } from './user-assignment.service'
 

@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { cache } from '@/core/cache'
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
-import type { UserSnippetDto } from '@/core/validation'
+import type { UserSnippet } from '@/core/validation'
 
 /**
  * Audit Resolver Utility
@@ -21,7 +21,7 @@ export interface WithAudit {
 /**
  * Internal private helper to fetch a User Snippet via cache + db
  */
-async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippetDto | undefined> {
+async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippet | undefined> {
 	if (!id) return undefined
 	const cacheKey = `system.audit.user.${id}`
 
@@ -46,19 +46,19 @@ async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippe
  */
 export async function resolveAudit<T extends WithAudit>(
 	data: T,
-): Promise<T & { creator?: UserSnippetDto; updater?: UserSnippetDto }> {
+): Promise<T & { creator?: UserSnippet; updater?: UserSnippet }> {
 	// Concurrent fetch to avoid waterfall
 	const [creator, updater] = await Promise.all([
-		fetchAuditUser(data.createdBy).catch(() => {}),
-		data.updatedBy === data.createdBy
-			? undefined // Fallback handled below
-			: fetchAuditUser(data.updatedBy).catch(() => {}),
+		fetchAuditUser(data.createdBy),
+		data.updatedBy === data.createdBy ? undefined : fetchAuditUser(data.updatedBy),
 	])
+
+	if (!creator) throw new Error('Audit Resolver: creator not found')
 
 	return {
 		...data,
 		creator,
-		updater: data.updatedBy === data.createdBy ? creator : updater,
+		updater: data.updatedBy === data.createdBy ? creator : updater!,
 	}
 }
 
@@ -69,6 +69,6 @@ export async function resolveAudit<T extends WithAudit>(
  */
 export async function resolveAuditList<T extends WithAudit>(
 	dataList: T[],
-): Promise<(T & { creator?: UserSnippetDto; updater?: UserSnippetDto })[]> {
+): Promise<(T & { creator?: UserSnippet; updater?: UserSnippet })[]> {
 	return Promise.all(dataList.map((data) => resolveAudit(data)))
 }
