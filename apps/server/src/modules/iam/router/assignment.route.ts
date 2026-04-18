@@ -29,7 +29,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 		.post(
 			'/assign',
 			async function assign({ body, auth }) {
-				await service.handleAssign(body, auth.userId)
+				await service.execAssign(body, auth.userId)
 				return res.ok({ success: true })
 			},
 			{
@@ -41,7 +41,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				await service.handleRemove(body.userId, body.locationId)
+				await service.execRemove(body.userId, body.locationId)
 				return res.ok({ success: true })
 			},
 			{

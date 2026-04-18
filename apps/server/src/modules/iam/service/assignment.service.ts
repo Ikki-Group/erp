@@ -7,13 +7,22 @@ import * as core from '@/core/database'
 import { db } from '@/db'
 import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
 
+import type { LocationService } from '@/modules/location/service'
+
 import * as dto from '../dto/assignment.dto'
+import type { RoleService } from './role.service'
 
 const cacheKey = { byUser: (userId: number) => `iam.user-assignment.user.${userId}` }
 
 // User Assignment Service (Layer 0)
 // Handles the mapping between Users, Roles, and Locations.
+// Sole owner of `userAssignmentsTable` — no other service may write to this table.
 export class UserAssignmentService {
+	constructor(
+		private locationService: LocationService,
+		private roleService: RoleService,
+	) {}
+
 	// Returns detailed assignments for a user.
 	async findByUserId(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
 		return record('UserAssignmentService.findByUserId', async () => {
@@ -21,7 +30,6 @@ export class UserAssignmentService {
 				const rows = await db
 					.select({
 						...getColumns(userAssignmentsTable),
-						role: rolesTable,
 						roleName: rolesTable.name,
 						roleCode: rolesTable.code,
 						locationName: locationsTable.name,
@@ -32,10 +40,46 @@ export class UserAssignmentService {
 					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
 					.where(eq(userAssignmentsTable.userId, userId))
 
-				console.log({ rows })
 				return rows
 			})
 		})
+	}
+
+	/**
+	 * Resolves all locations as synthetic assignments for root users.
+	 * Root users do not have assignment rows in DB —
+	 * locations are resolved at runtime from LocationService + RoleService.
+	 */
+	async resolveRootAssignments(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
+		const [allLocations, allRoles] = await Promise.all([
+			this.locationService.find(),
+			this.roleService.find(),
+		])
+
+		// Find the SUPERADMIN role (isSystem + permissions: ['*'])
+		const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
+		if (!superAdminRole) return []
+
+		return allLocations.map(
+			(loc, idx) =>
+				({
+					id: 0, // Synthetic ID
+					userId,
+					roleId: superAdminRole.id,
+					locationId: loc.id,
+					isDefault: idx === 0,
+					roleName: superAdminRole.name,
+					roleCode: superAdminRole.code,
+					locationName: loc.name,
+					locationCode: loc.code,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					createdBy: 0,
+					updatedBy: 0,
+					deletedAt: null,
+					deletedBy: null,
+				}) satisfies dto.UserAssignmentDetailDto,
+		)
 	}
 
 	// Paginated list with filtering (Layer 1).
@@ -83,34 +127,34 @@ export class UserAssignmentService {
 		})
 	}
 
-	// Atomically replaces all assignments for a user.
-	async handleUpsertBulk(
+	// Internal: Atomically replaces all assignments for a user.
+	// Used by other services (e.g. UserService) to delegate assignment writes.
+	async execUpsertBulk(
 		userId: number,
 		assignments: dto.UserAssignmentUpsertDto[],
 		actorId: number,
 	): Promise<void> {
-		await record('UserAssignmentService.handleUpsertBulk', async () => {
-			await db.transaction(async (tx) => {
-				// Delete all existing assignments for this user.
-				await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
+		await record('UserAssignmentService.execUpsertBulk', async () => {
+			// Delete all existing assignments for this user.
+			await db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
 
-				if (assignments.length > 0) {
-					// Insert new assignments.
-					await tx
-						.insert(userAssignmentsTable)
-						.values(assignments.map((a) => ({ ...a, userId, ...core.stampCreate(actorId) })))
-				}
-			})
+			if (assignments.length > 0) {
+				// Insert new assignments.
+				await db
+					.insert(userAssignmentsTable)
+					.values(assignments.map((a) => ({ ...a, userId, ...core.stampCreate(actorId) })))
+			}
+
 			await this.clearCache(userId)
 		})
 	}
 
-	// Assigns a user to a specific location with a role.
-	async handleAssign(
+	// Internal: Assigns a user to a specific location with a role.
+	async execAssign(
 		data: { userId: number; locationId: number; roleId: number },
 		actorId: number,
 	): Promise<void> {
-		await record('UserAssignmentService.handleAssign', async () => {
+		await record('UserAssignmentService.execAssign', async () => {
 			const { userId, locationId, roleId } = data
 
 			// Check if assignment already exists
@@ -135,9 +179,9 @@ export class UserAssignmentService {
 		})
 	}
 
-	// Removes a user assignment from a specific location.
-	async handleRemove(userId: number, locationId: number): Promise<void> {
-		await record('UserAssignmentService.handleRemove', async () => {
+	// Internal: Removes a user assignment from a specific location.
+	async execRemove(userId: number, locationId: number): Promise<void> {
+		await record('UserAssignmentService.execRemove', async () => {
 			await db
 				.delete(userAssignmentsTable)
 				.where(

@@ -9,12 +9,8 @@ import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import type { LocationService } from '@/modules/location/service'
-
-import * as assignmentDto from '../dto/assignment.dto'
 import * as dto from '../dto/user.dto'
 import type { UserAssignmentService } from './assignment.service'
-import type { RoleService } from './role.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 	{
@@ -46,12 +42,9 @@ const err = {
 
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
+// Sole owner of `usersTable` — no other service may write to this table.
 export class UserService {
-	constructor(
-		private assignmentService: UserAssignmentService,
-		private locationService: LocationService,
-		private roleService: RoleService,
-	) {}
+	constructor(private assignmentService: UserAssignmentService) {}
 
 	// Seed initial users.
 	async seed(
@@ -60,29 +53,27 @@ export class UserService {
 		await record('UserService.seed', async () => {
 			for (const { assignments, ...d } of data) {
 				const metadata = core.stampCreate(d.createdBy)
-				await db.transaction(async (tx) => {
-					const [inserted] = await tx
-						.insert(usersTable)
-						.values({ ...d, ...metadata })
-						.onConflictDoUpdate({
-							target: usersTable.username,
-							targetWhere: isNull(usersTable.deletedAt),
-							set: {
-								email: d.email,
-								fullname: d.fullname,
-								isActive: d.isActive,
-								isRoot: d.isRoot,
-								updatedAt: metadata.updatedAt,
-								updatedBy: metadata.updatedBy,
-								deletedAt: null,
-							},
-						})
-						.returning({ id: usersTable.id })
+				const [inserted] = await db
+					.insert(usersTable)
+					.values({ ...d, ...metadata })
+					.onConflictDoUpdate({
+						target: usersTable.username,
+						targetWhere: isNull(usersTable.deletedAt),
+						set: {
+							email: d.email,
+							fullname: d.fullname,
+							isActive: d.isActive,
+							isRoot: d.isRoot,
+							updatedAt: metadata.updatedAt,
+							updatedBy: metadata.updatedBy,
+							deletedAt: null,
+						},
+					})
+					.returning({ id: usersTable.id })
 
-					if (inserted && assignments && assignments.length > 0) {
-						await this.assignmentService.handleUpsertBulk(inserted.id, assignments, d.createdBy)
-					}
-				})
+				if (inserted && assignments && assignments.length > 0) {
+					await this.assignmentService.execUpsertBulk(inserted.id, assignments, d.createdBy)
+				}
 			}
 			await this.clearCache()
 		})
@@ -115,8 +106,9 @@ export class UserService {
 				const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
 
 				// Root users: resolve ALL locations at runtime (zero sync needed)
+				// Delegation to AssignmentService — owner of assignment domain logic.
 				const assignments = first.isRoot
-					? await this.resolveRootAssignments(first.id)
+					? await this.assignmentService.resolveRootAssignments(first.id)
 					: await this.assignmentService.findByUserId(id)
 
 				return { ...first, assignments }
@@ -124,45 +116,6 @@ export class UserService {
 			return data
 		})
 		return result
-	}
-
-	/**
-	 * Resolves all locations as synthetic assignments for root users.
-	 * This is the core of Opsi 3: no assignment rows needed in DB,
-	 * locations are resolved at runtime from LocationService.
-	 */
-	private async resolveRootAssignments(
-		userId: number,
-	): Promise<assignmentDto.UserAssignmentDetailDto[]> {
-		const [allLocations, allRoles] = await Promise.all([
-			this.locationService.find(),
-			this.roleService.find(),
-		])
-
-		// Find the SUPERADMIN role (isSystem + permissions: ['*'])
-		const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
-		if (!superAdminRole) return []
-
-		return allLocations.map(
-			(loc, idx) =>
-				({
-					id: 0, // Synthetic ID
-					userId,
-					roleId: superAdminRole.id,
-					locationId: loc.id,
-					isDefault: idx === 0,
-					roleName: superAdminRole.name,
-					roleCode: superAdminRole.code,
-					locationName: loc.name,
-					locationCode: loc.code,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-					createdBy: 0,
-					updatedBy: 0,
-					deletedAt: null,
-					deletedBy: null,
-				}) satisfies assignmentDto.UserAssignmentDetailDto,
-		)
 	}
 
 	// Returns total count.
@@ -277,19 +230,18 @@ export class UserService {
 			const { assignments, password, ...rest } = data
 			const passwordHash = await Bun.password.hash(password)
 
-			const [inserted] = await db.transaction(async (tx) => {
-				const [u] = await tx
-					.insert(usersTable)
-					.values({ ...rest, passwordHash, ...core.stampCreate(actorId) })
-					.returning({ id: usersTable.id })
-
-				if (u && assignments && assignments.length > 0) {
-					await this.assignmentService.handleUpsertBulk(u.id, assignments, actorId)
-				}
-				return [u]
-			})
+			const [inserted] = await db
+				.insert(usersTable)
+				.values({ ...rest, passwordHash, ...core.stampCreate(actorId) })
+				.returning({ id: usersTable.id })
 
 			if (!inserted) throw err.createFailed()
+
+			// Delegate assignment writes to the owner service.
+			if (assignments && assignments.length > 0) {
+				await this.assignmentService.execUpsertBulk(inserted.id, assignments, actorId)
+			}
+
 			await this.clearCache()
 			return inserted
 		})
@@ -315,16 +267,15 @@ export class UserService {
 			const { assignments, password, ...rest } = data
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
 
-			await db.transaction(async (tx) => {
-				await tx
-					.update(usersTable)
-					.set({ ...rest, ...(passwordHash && { passwordHash }), ...core.stampUpdate(actorId) })
-					.where(eq(usersTable.id, id))
+			await db
+				.update(usersTable)
+				.set({ ...rest, ...(passwordHash && { passwordHash }), ...core.stampUpdate(actorId) })
+				.where(eq(usersTable.id, id))
 
-				if (assignments) {
-					await this.assignmentService.handleUpsertBulk(id, assignments, actorId)
-				}
-			})
+			// Delegate assignment writes to the owner service.
+			if (assignments) {
+				await this.assignmentService.execUpsertBulk(id, assignments, actorId)
+			}
 
 			await this.clearCache(id)
 			return { id }
