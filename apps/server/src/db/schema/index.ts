@@ -11,6 +11,9 @@ export {
 	stockAdjustmentTypeEnum,
 	leaveStatusEnum,
 	leaveTypeEnum,
+	accountTypeEnum,
+	expenditureTypeEnum,
+	expenditureStatusEnum,
 } from './_helpers'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 export {
@@ -59,7 +62,7 @@ export { customersTable } from './customer'
 export { employeesTable } from './employee'
 export { taxesTable } from './tax'
 export { paymentsTable, paymentInvoicesTable } from './finance_payment'
-export { accountTypeEnum, accountsTable, journalEntriesTable, journalItemsTable } from './finance'
+export { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
 export {
 	attendanceStatusEnum,
 	attendancesTable,
