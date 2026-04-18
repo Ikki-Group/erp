@@ -10,7 +10,12 @@ import {
 	createPaginatedResponseSchema,
 } from '@/core/validation'
 
-import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
+import {
+	RecipeCreateDto,
+	RecipeFilterDto,
+	RecipeSelectDto,
+	RecipeUpdateDto,
+} from '../dto'
 import type { RecipeServiceModule } from '../service'
 
 export function initRecipeRoute(s: RecipeServiceModule) {
@@ -42,16 +47,16 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 				const { id } = await s.recipe.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
-			{ body: RecipeMutationDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ body: RecipeCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id } = await s.recipe.handleUpdate(body.id, body, auth.userId)
+				const { id } = await s.recipe.handleUpdate(body, auth.userId)
 				return res.ok({ id })
 			},
 			{
-				body: z.object({ ...zc.RecordId.shape, ...RecipeMutationDto.shape }),
+				body: RecipeUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

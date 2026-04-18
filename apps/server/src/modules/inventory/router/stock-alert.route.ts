@@ -6,10 +6,10 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zPaginationDto,
+	zq,
 } from '@/core/validation'
 
-import { stockAlertFilterSchema, stockAlertSelectSchema } from '../dto'
+import { StockAlertFilterDto, StockAlertSelectDto } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
 export function initStockAlertRoute(s: InventoryServiceModule) {
@@ -22,8 +22,8 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: stockAlertFilterSchema.extend(zPaginationDto.shape),
-				response: createPaginatedResponseSchema(stockAlertSelectSchema),
+				query: StockAlertFilterDto.extend(zq.pagination.shape),
+				response: createPaginatedResponseSchema(StockAlertSelectDto),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },
 			},
@@ -35,7 +35,7 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 				return res.ok(result)
 			},
 			{
-				query: stockAlertFilterSchema,
+				query: StockAlertFilterDto,
 				response: createSuccessResponseSchema(z.object({ count: z.number() })),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },

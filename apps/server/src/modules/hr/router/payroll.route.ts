@@ -5,10 +5,10 @@ import { res } from '@/core/http/response'
 import { createSuccessResponseSchema } from '@/core/validation'
 
 import {
-	payrollAdjustmentCreateSchema,
-	payrollAdjustmentSchema,
-	payrollBatchCreateSchema,
-	payrollBatchSchema,
+	PayrollAdjustmentCreateDto,
+	PayrollAdjustmentDto,
+	PayrollBatchCreateDto,
+	PayrollBatchDto,
 } from '../dto/payroll.dto'
 import type { PayrollService } from '../service/payroll.service'
 
@@ -22,8 +22,8 @@ export function initPayrollRoute(s: PayrollService) {
 				return res.created(result)
 			},
 			{
-				body: payrollBatchCreateSchema,
-				response: createSuccessResponseSchema(payrollBatchSchema),
+				body: PayrollBatchCreateDto,
+				response: createSuccessResponseSchema(PayrollBatchDto),
 				auth: true,
 			},
 		)
@@ -34,8 +34,8 @@ export function initPayrollRoute(s: PayrollService) {
 				return res.created(result)
 			},
 			{
-				body: payrollAdjustmentCreateSchema,
-				response: createSuccessResponseSchema(payrollAdjustmentSchema),
+				body: PayrollAdjustmentCreateDto,
+				response: createSuccessResponseSchema(PayrollAdjustmentDto),
 				auth: true,
 			},
 		)

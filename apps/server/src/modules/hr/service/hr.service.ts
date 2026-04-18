@@ -78,10 +78,10 @@ export class HRService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<AttendanceSelectDto>> {
 		return record('HRService.handleAttendanceList', async () => {
-			const { search, employeeId, locationId, status, dateFrom, dateTo } = filter
+			const { q, employeeId, locationId, status, dateFrom, dateTo } = filter
 
-			const searchCondition = search
-				? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(employeesTable.name, `%${q}%`), ilike(employeesTable.code, `%${q}%`))
 				: undefined
 
 			const dateCondition =

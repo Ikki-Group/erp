@@ -153,7 +153,7 @@ export class StockSummaryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<StockLedgerSelectDto>> {
 		return record('StockSummaryService.handleLedger', async () => {
-			const { locationId, materialId, dateFrom, dateTo, search } = filter
+			const { locationId, materialId, dateFrom, dateTo, q } = filter
 
 			const startKey = toWibDateKey(dateFrom)
 			const endKey = toWibDateKey(dateTo)
@@ -162,9 +162,7 @@ export class StockSummaryService {
 			const matWhere = and(
 				isNull(materialsTable.deletedAt),
 				materialId === undefined ? undefined : eq(materialsTable.id, materialId),
-				search
-					? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
-					: undefined,
+				q ? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`)) : undefined,
 			)
 
 			const matResult = await paginate({

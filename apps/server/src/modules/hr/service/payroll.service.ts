@@ -109,7 +109,7 @@ export class PayrollService {
 					.values({
 						payrollItemId: data.payrollItemId,
 						type: data.type,
-						amount: data.amount,
+						amount: data.amount.toString(),
 						reason: data.reason,
 						...metadata,
 					})
