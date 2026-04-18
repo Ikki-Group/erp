@@ -4,18 +4,18 @@ export const zStr = z.string().trim()
 export const zStrNullable = z
 	.string()
 	.trim()
-	.transform((val) => (val === '' ? null : val))
 	.nullable()
+	.transform((val) => (val?.length === 0 ? null : val))
+
 export const zNum = z.number()
 export const zNumCoerce = z.coerce.number()
-export const zDate = z.coerce.date()
-export const zBool = z.boolean()
-export const zEmail = z.email().transform((v) => v.toLowerCase())
-export const zUuid = z.uuidv7()
-
 export const zId = z.coerce.number().int().positive()
 
-export const zCodeUpper = z.string().trim().toUpperCase()
+export const zDate = z.coerce.date()
+
+export const zBool = z.boolean()
+
+export const zEmail = z.email().transform((v) => v.toLowerCase())
 export const zPassword = z
 	.string()
 	.trim()
@@ -28,25 +28,36 @@ export const zUsername = z
 	.max(50, 'Username must not exceed 50 characters')
 	.transform((v) => v.toLowerCase())
 
-/** Decimal string — for monetary amounts, prices, quantities stored as string (e.g. Decimal DB columns). */
+export const zUuid = z.uuidv7()
+export const zCodeUpper = z.string().trim().toUpperCase()
 export const zDecimal = z.string().trim()
 
-/** Sort order / display order integer */
-/** @deprecated */
 export const zSortOrder = z.number().int().nonnegative()
 
 export const zp = {
+	// String
 	str: zStr,
 	strNullable: zStrNullable,
+
+	// Numeric
 	num: zNum,
 	numCoerce: zNumCoerce,
-	date: zDate,
-	bool: zBool,
-	email: zEmail,
-	uuid: zUuid,
 	id: zId,
-	codeUpper: zCodeUpper,
+
+	// Temporal
+	date: zDate,
+
+	// Boolean
+	bool: zBool,
+
+	// Authentication
+	email: zEmail,
 	password: zPassword,
 	username: zUsername,
+
+	// Special
+	uuid: zUuid,
+	codeUpper: zCodeUpper,
 	decimal: zDecimal,
+	sortOrder: zSortOrder,
 }

@@ -8,7 +8,9 @@
 	"editor.formatOnSave": true,
 	// "oxc.fmt.configPath": ".oxfmtrc.json",
 	"editor.defaultFormatter": "oxc.oxc-vscode",
-	"editor.codeActionsOnSave": { "source.fixAll.oxc": "always" },
+	"editor.codeActionsOnSave": {
+		"source.fixAll.oxc": "always"
+	},
 	// "[markdown]": {
 	//   "editor.defaultFormatter": "vscode.markdown-language-features",
 	//   "editor.formatOnSave": true
@@ -36,5 +38,6 @@
 	},
 	"[jsonc]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
-	}
+	},
+	"js/ts.experimental.useTsgo": true,
 }
