@@ -5,6 +5,7 @@ import { createCache } from 'cache-manager'
 
 export const bento = new BentoCache({
 	default: 'cache',
+	ttl: '1d',
 	// logger,
 	onFactoryError(error) {
 		// console.log({ error })

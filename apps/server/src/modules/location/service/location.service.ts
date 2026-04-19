@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { bento, cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit } from '@/core/utils/audit-resolver'
@@ -12,9 +12,7 @@ import { locationsTable } from '@/db/schema'
 
 import * as dto from '../dto/location.dto'
 
-const cacheConfig = {
-	namespace: 'location',
-}
+const locationCache = bento.namespace('location')
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 	{
@@ -31,17 +29,15 @@ const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'location.count',
-	list: 'location.list',
-	byId: (id: number) => `location.byId.${id}`,
-}
-
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
 	createFailed: () => new InternalServerError('Location creation failed', 'LOCATION_CREATE_FAILED'),
 }
+
+const a = bento.namespace('a')
+
+await a.deleteMany({ keys: [''] })
 
 // Location Service (Layer 0)
 // Handles physical and virtual location management.
@@ -72,56 +68,55 @@ export class LocationService {
 
 	// Returns active locations.
 	async find(): Promise<dto.LocationDto[]> {
-		const result = await record('LocationService.find', async () => {
-			return bento.getOrSet({
-				key: '',
-			})
-			// const data = await cache.wrap(cacheKey.list, async () => {
-			// 	const rows = await db
-			// 		.select()
-			// 		.from(locationsTable)
-			// 		.where(isNull(locationsTable.deletedAt))
-			// 		.orderBy(locationsTable.name)
-			// 	return rows.map((r) => dto.LocationDto.parse(r))
-			// })
-			// return data
-		})
+		const result = await record('LocationService.find', async () =>
+			locationCache.getOrSet({
+				key: 'list',
+				factory: async () =>
+					db
+						.select()
+						.from(locationsTable)
+						.where(isNull(locationsTable.deletedAt))
+						.orderBy(locationsTable.name),
+			}),
+		)
 		return result
 	}
 
 	// Finds a location by ID.
 	async getById(id: number): Promise<dto.LocationDto> {
-		const result = await record('LocationService.getById', async () => {
-			const data = await cache.wrap(cacheKey.byId(id), async () => {
-				const rows = await db
-					.select()
-					.from(locationsTable)
-					.where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
-				const first = core.takeFirstOrThrow(
-					rows,
-					`Location with ID ${id} not found`,
-					'LOCATION_NOT_FOUND',
-				)
-				return dto.LocationDto.parse(first)
+		return record('LocationService.getById', async () => {
+			return locationCache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(locationsTable)
+						.where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+
+					return core.takeFirstOrThrow(
+						rows,
+						`Location with ID ${id} not found`,
+						'LOCATION_NOT_FOUND',
+					)
+				},
 			})
-			return data
 		})
-		return result
 	}
 
 	// Returns total count.
 	async count(): Promise<number> {
-		const result = await record('LocationService.count', async () => {
-			const data = await cache.wrap(cacheKey.count, async () => {
-				const rows = await db
-					.select({ val: count() })
-					.from(locationsTable)
-					.where(isNull(locationsTable.deletedAt))
-				return rows[0]?.val ?? 0
+		return record('LocationService.count', async () => {
+			return locationCache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const rows = await db
+						.select({ val: count() })
+						.from(locationsTable)
+						.where(isNull(locationsTable.deletedAt))
+					return rows[0]?.val ?? 0
+				},
 			})
-			return data
 		})
-		return result
 	}
 
 	// Paginated list.
@@ -237,10 +232,8 @@ export class LocationService {
 
 	// Clear relevant caches.
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await locationCache.deleteMany({ keys })
 	}
 }
