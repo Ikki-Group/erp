@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
-
-const cache = bento.namespace('system.audit')
 import type { AuditResolved, UserSnippet } from '@/core/validation'
 
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
+
+const cache = bento.namespace('system.audit')
 
 /**
  * Audit Resolver Utility
@@ -27,7 +27,6 @@ export interface WithAudit {
  */
 async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippet | undefined> {
 	if (!id) return undefined
-	const cacheKey = `system.audit.user.${id}`
 
 	return cache.getOrSet({
 		key: `user.${id}`,

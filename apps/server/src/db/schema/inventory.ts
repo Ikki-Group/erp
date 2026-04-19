@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm'
-import { date, index, integer, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+	date,
+	index,
+	integer,
+	numeric,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 

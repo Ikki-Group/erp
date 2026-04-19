@@ -282,10 +282,7 @@ export class RecipeService {
 		})
 	}
 
-	async handleUpdate(
-		data: RecipeUpdateDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(data: RecipeUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleUpdate', async () => {
 			const { id } = data
 			const existing = await this.getById(id)

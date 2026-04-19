@@ -1,4 +1,5 @@
-import { and, eq, isNull, list, lte, or, sql } from 'drizzle-orm'
+import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
+
 import { bento } from '@/core/cache'
 
 import { db } from '@/db'
@@ -28,7 +29,9 @@ export class StockAlertService {
 				if (filter.type === 'below_min') {
 					conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
 				} else if (filter.type === 'below_reorder') {
-					conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+					conditions.push(
+						lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+					)
 				} else {
 					conditions.push(
 						or(
@@ -89,7 +92,9 @@ export class StockAlertService {
 				if (filter.type === 'below_min') {
 					conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
 				} else if (filter.type === 'below_reorder') {
-					conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+					conditions.push(
+						lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+					)
 				} else {
 					conditions.push(
 						or(

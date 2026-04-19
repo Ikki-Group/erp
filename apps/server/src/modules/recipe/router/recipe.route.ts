@@ -10,12 +10,7 @@ import {
 	createPaginatedResponseSchema,
 } from '@/core/validation'
 
-import {
-	RecipeCreateDto,
-	RecipeFilterDto,
-	RecipeSelectDto,
-	RecipeUpdateDto,
-} from '../dto'
+import { RecipeCreateDto, RecipeFilterDto, RecipeSelectDto, RecipeUpdateDto } from '../dto'
 import type { RecipeServiceModule } from '../service'
 
 export function initRecipeRoute(s: RecipeServiceModule) {

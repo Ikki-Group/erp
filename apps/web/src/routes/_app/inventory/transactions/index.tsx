@@ -3,6 +3,9 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { PlusIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
@@ -27,9 +30,6 @@ import {
 
 import type { StockTransactionSelectDto } from '@/features/inventory'
 import { stockTransactionApi } from '@/features/inventory'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/inventory/transactions/')({ component: RouteComponent })
 

@@ -15,6 +15,8 @@ import type { ColumnDef, PaginationState, Row, SortingState } from '@tanstack/re
 import { FunnelIcon, MoreHorizontalIcon, SearchIcon, UserPlusIcon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
+
 import { Badge } from '@/components/reui/badge'
 import { DataGrid } from '@/components/reui/data-grid/data-grid'
 import { DataGridColumnHeader } from '@/components/reui/data-grid/data-grid-column-header'
@@ -45,8 +47,6 @@ import {
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 
 interface IData {
 	id: string

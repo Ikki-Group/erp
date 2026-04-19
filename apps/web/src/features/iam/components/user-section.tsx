@@ -4,6 +4,9 @@ import { useRouter } from '@tanstack/react-router'
 
 import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
 
+import { useAppState } from '@/hooks/use-app-state'
+import { useUser } from '@/hooks/use-user'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,8 +26,6 @@ import {
 } from '@/components/ui/sidebar'
 
 import { UserProfilePasswordDialog } from './user-profile-password-dialog'
-import { useAppState } from '@/hooks/use-app-state'
-import { useUser } from '@/hooks/use-user'
 
 export function UserSection() {
 	const router = useRouter()

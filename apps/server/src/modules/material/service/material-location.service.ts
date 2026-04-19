@@ -293,10 +293,7 @@ export class MaterialLocationService {
 									uom: uomsTable,
 								})
 								.from(materialLocationsTable)
-								.innerJoin(
-									materialsTable,
-									eq(materialLocationsTable.materialId, materialsTable.id),
-								)
+								.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
 								.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
 
 								.where(where)
@@ -307,10 +304,7 @@ export class MaterialLocationService {
 						countQuery: db
 							.select({ count: count() })
 							.from(materialLocationsTable)
-							.innerJoin(
-								materialsTable,
-								eq(materialLocationsTable.materialId, materialsTable.id),
-							)
+							.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
 							.where(where),
 					})
 

@@ -1,7 +1,6 @@
 // oxlint-disable max-lines
 // oxlint-disable sort-vars
 import { record } from '@elysiajs/opentelemetry'
-import { bento } from '@/core/cache'
 import {
 	and,
 	asc,
@@ -19,6 +18,7 @@ import {
 	sum,
 } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { paginate, stampCreate } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
@@ -176,7 +176,9 @@ export class StockSummaryService {
 					const matWhere = and(
 						isNull(materialsTable.deletedAt),
 						materialId === undefined ? undefined : eq(materialsTable.id, materialId),
-						q ? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`)) : undefined,
+						q
+							? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
+							: undefined,
 					)
 
 					const matResult = await paginate({
@@ -245,7 +247,9 @@ export class StockSummaryService {
 							and(
 								isNull(stockSummariesTable.deletedAt),
 								inArray(stockSummariesTable.materialId, materialIds),
-								locationId === undefined ? undefined : eq(stockSummariesTable.locationId, locationId),
+								locationId === undefined
+									? undefined
+									: eq(stockSummariesTable.locationId, locationId),
 								gte(stockSummariesTable.date, startKey),
 								lte(stockSummariesTable.date, endKey),
 							),

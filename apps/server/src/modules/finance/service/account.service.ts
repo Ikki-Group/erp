@@ -17,7 +17,9 @@ export class AccountService {
 			const { q, type, parentId, limit = 50, page = 1 } = query
 
 			const where = and(
-				q ? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`)) : undefined,
+				q
+					? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`))
+					: undefined,
 				isNull(accountsTable.deletedAt),
 				type ? eq(accountsTable.type, type) : undefined,
 				parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,

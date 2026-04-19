@@ -18,6 +18,7 @@ This document defines the patterns for caching in Ikki ERP using [BentoCache](ht
 ## 3. Implementation Pattern
 
 ### Namespace Definition
+
 Define the namespace at the top of the service file or class.
 
 ```typescript
@@ -27,12 +28,14 @@ const cache = bento.namespace('catalog.product')
 ```
 
 ### Standard Keys
+
 - `list`: Full collection listing.
 - `count`: Total count listing.
 - `${id}`: Specific record ID.
 - `seed`: Migration identifiers.
 
 ### Read Operation (Lazy Loading)
+
 ```typescript
 async find(): Promise<ProductDto[]> {
   return cache.getOrSet({
@@ -45,6 +48,7 @@ async find(): Promise<ProductDto[]> {
 ```
 
 ### Write Operation (Invalidation)
+
 Always implement a private `clearCache` helper and call it in `handleCreate`, `handleUpdate`, and `handleRemove`.
 
 ```typescript

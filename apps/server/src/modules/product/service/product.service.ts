@@ -429,20 +429,18 @@ export class ProductService {
 
 				// Insert product-level prices (when !hasVariants && hasSalesTypePricing)
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx
-						.insert(productPricesTable)
-						.values(
-							data.prices.map((p) =>
-								Object.assign(
-									{
-										productId: product.id,
-										salesTypeId: p.salesTypeId,
-										price: p.price.toString(),
-									},
-									meta,
-								),
+					await tx.insert(productPricesTable).values(
+						data.prices.map((p) =>
+							Object.assign(
+								{
+									productId: product.id,
+									salesTypeId: p.salesTypeId,
+									price: p.price.toString(),
+								},
+								meta,
 							),
-						)
+						),
+					)
 				}
 
 				// Insert variants + variant prices (when hasVariants)
@@ -460,20 +458,18 @@ export class ProductService {
 						.returning({ id: productVariantsTable.id })
 
 					if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-						await tx
-							.insert(variantPricesTable)
-							.values(
-								variant.prices.map((p) =>
-									Object.assign(
-										{
-											variantId: insertedVariant.id,
-											salesTypeId: p.salesTypeId,
-											price: p.price.toString(),
-										},
-										meta,
-									),
+						await tx.insert(variantPricesTable).values(
+							variant.prices.map((p) =>
+								Object.assign(
+									{
+										variantId: insertedVariant.id,
+										salesTypeId: p.salesTypeId,
+										price: p.price.toString(),
+									},
+									meta,
 								),
-							)
+							),
+						)
 					}
 				}
 
@@ -530,20 +526,18 @@ export class ProductService {
 				await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
 
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx
-						.insert(productPricesTable)
-						.values(
-							data.prices.map((p) =>
-								Object.assign(
-									{
-										productId: id,
-										salesTypeId: p.salesTypeId,
-										price: p.price.toString(),
-									},
-									createMeta,
-								),
+					await tx.insert(productPricesTable).values(
+						data.prices.map((p) =>
+							Object.assign(
+								{
+									productId: id,
+									salesTypeId: p.salesTypeId,
+									price: p.price.toString(),
+								},
+								createMeta,
 							),
-						)
+						),
+					)
 				}
 
 				// Replace variants if provided (delete-and-recreate strategy)
@@ -565,20 +559,18 @@ export class ProductService {
 							.returning({ id: productVariantsTable.id })
 
 						if (insertedVariant && data.hasSalesTypePricing && variant.prices.length > 0) {
-							await tx
-								.insert(variantPricesTable)
-								.values(
-									variant.prices.map((p) =>
-										Object.assign(
-											{
-												variantId: insertedVariant.id,
-												salesTypeId: p.salesTypeId,
-												price: p.price.toString(),
-											},
-											createMeta,
-										),
+							await tx.insert(variantPricesTable).values(
+								variant.prices.map((p) =>
+									Object.assign(
+										{
+											variantId: insertedVariant.id,
+											salesTypeId: p.salesTypeId,
+											price: p.price.toString(),
+										},
+										createMeta,
 									),
-								)
+								),
+							)
 						}
 					}
 				} else if (!data.hasVariants) {

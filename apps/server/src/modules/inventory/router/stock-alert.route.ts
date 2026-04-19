@@ -3,11 +3,7 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zq,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/core/validation'
 
 import { StockAlertFilterDto, StockAlertSelectDto } from '../dto'
 import type { InventoryServiceModule } from '../service'

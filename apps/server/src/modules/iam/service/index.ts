@@ -11,8 +11,8 @@ export class IamServiceModule {
 
 	constructor(locationModule: LocationServiceModule) {
 		this.role = new RoleService()
-		this.userAssignment = new UserAssignmentService(locationModule.location, this.role)
-		this.user = new UserService(this.userAssignment)
+		this.userAssignment = new UserAssignmentService()
+		this.user = new UserService(this.userAssignment, this.role, locationModule.location)
 	}
 }
 

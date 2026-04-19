@@ -1,8 +1,9 @@
 // oxlint-disable typescript/unbound-method
 // TODO
 import { record } from '@elysiajs/opentelemetry'
-import { bento } from '@/core/cache'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+
+import { bento } from '@/core/cache'
 
 const cache = bento.namespace('sales.order')
 

@@ -32,11 +32,7 @@ export class GoodsReceiptService {
 						.select()
 						.from(goodsReceiptNotesTable)
 						.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
-					const first = core.takeFirstOrThrow(
-						rows,
-						`GRN with ID ${id} not found`,
-						'GRN_NOT_FOUND',
-					)
+					const first = core.takeFirstOrThrow(rows, `GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
 
 					const items = await db
 						.select()

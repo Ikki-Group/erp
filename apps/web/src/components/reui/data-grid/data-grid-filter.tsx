@@ -1,4 +1,3 @@
-import type { DataTableState } from '@/hooks/use-data-table-state'
 import type { Option, StringOrNumber } from '@/types/common'
 
 import * as React from 'react'
@@ -6,6 +5,8 @@ import * as React from 'react'
 import { useDebounce } from '@uidotdev/usehooks'
 // oxlint-disable typescript/ban-ts-comment
 import { SearchIcon, XIcon } from 'lucide-react'
+
+import type { DataTableState } from '@/hooks/use-data-table-state'
 
 import { cn } from '@/lib/utils'
 

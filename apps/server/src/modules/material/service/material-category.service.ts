@@ -77,7 +77,9 @@ export class MaterialCategoryService {
 					const result = await db
 						.select()
 						.from(materialCategoriesTable)
-						.where(and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)))
+						.where(
+							and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)),
+						)
 					return takeFirstOrThrow(
 						result,
 						`Material category with ID ${id} not found`,

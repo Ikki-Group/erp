@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
+import { useAppState } from '@/hooks/use-app-state'
+
 import { LoadingPage } from '@/components/blocks/feedback/loading-page'
 import { AppLayout } from '@/components/layout/app-layout'
-
-import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_app')({
 	beforeLoad: () => {

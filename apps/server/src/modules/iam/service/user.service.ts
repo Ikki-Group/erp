@@ -110,7 +110,6 @@ export class UserService {
 		locationMapper?: RelationMap<number, LocationDto>,
 	): Promise<dto.UserAssignmentDetailDto[]> {
 		return record('UserService.getAssignmentDetailByUserId', async () => {
-			const assignments: dto.UserAssignmentDetailDto[] = []
 			const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
 			const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
 
@@ -118,28 +117,23 @@ export class UserService {
 			if (isRoot) {
 				const superAdminRole = await this.roleService.getSuperadmin()
 				const allLocations = await this.locationService.find()
-				for (const loc of allLocations) {
-					assignments.push({
+
+				return allLocations.map((loc, index) => {
+					const baseAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
+					return {
+						...baseAssignment,
 						id: 0,
 						userId,
-						roleId: superAdminRole.id,
 						locationId: loc.id,
-						isDefault: false,
-						roleName: superAdminRole.name,
-						roleCode: superAdminRole.code,
-						locationName: loc.name,
-						locationCode: loc.code,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-						createdBy: 0,
-						updatedBy: 0,
-						deletedAt: null,
-						deletedBy: null,
-					})
-				}
-			} else {
-				const rawAssignments = await this.assignmentService.findByUserId(userId)
+						isDefault: index === 0,
+						role: superAdminRole,
+						location: loc,
+					}
+				})
 			}
+
+			// Non-root users: resolve from userAssignmentsTable
+			const rawAssignments = await this.assignmentService.findByUserId(userId)
 
 			return rawAssignments.map((a) => ({
 				...a,
@@ -165,16 +159,15 @@ export class UserService {
 						'USER_NOT_FOUND',
 					)
 
-					// Root users: resolve ALL locations at runtime (zero sync needed)
-					// Delegation to AssignmentService — owner of assignment domain logic.
-					const assignments = first.isRoot
-						? await this.assignmentService.resolveRootAssignments(first.id)
-						: await this.assignmentService.findByUserId(id)
+					const assignments = await this.getAssignmentDetailByUserId(first.id, first.isRoot)
 
-					return { ...first, assignments }
+					return {
+						...first,
+						assignments,
+					}
 				},
 			})
-			return data
+			return dto.UserDto.parse(data)
 		})
 		return result
 	}
