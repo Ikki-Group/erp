@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
@@ -9,6 +9,8 @@ import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
 import * as dto from '../dto/role.dto'
+
+const cache = bento.namespace('role')
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 	{
@@ -24,12 +26,6 @@ const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 		code: 'ROLE_NAME_ALREADY_EXISTS',
 	},
 ]
-
-const cacheKey = {
-	count: 'iam.role.count',
-	list: 'iam.role.list',
-	byId: (id: number) => `iam.role.byId.${id}`,
-}
 
 const err = {
 	notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
@@ -70,49 +66,57 @@ export class RoleService {
 
 	// Returns active roles.
 	async find(): Promise<dto.RoleDto[]> {
-		const result = await record('RoleService.find', async () => {
-			const data = await cache.wrap(cacheKey.list, async () => {
-				const rows = await db
-					.select()
-					.from(rolesTable)
-					.where(isNull(rolesTable.deletedAt))
-					.orderBy(rolesTable.name)
-				return rows.map((r) => dto.RoleDto.parse(r))
+		return record('RoleService.find', async () => {
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(rolesTable)
+						.where(isNull(rolesTable.deletedAt))
+						.orderBy(rolesTable.name)
+					return rows
+				},
 			})
-			return data
 		})
-		return result
 	}
 
 	// Finds a role by ID.
 	async getById(id: number): Promise<dto.RoleDto> {
-		const result = await record('RoleService.getById', async () => {
-			const data = await cache.wrap(cacheKey.byId(id), async () => {
-				const rows = await db
-					.select()
-					.from(rolesTable)
-					.where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
-				const first = core.takeFirstOrThrow(rows, `Role with ID ${id} not found`, 'ROLE_NOT_FOUND')
-				return dto.RoleDto.parse(first)
+		return record('RoleService.getById', async () => {
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(rolesTable)
+						.where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
+
+					const first = core.takeFirstOrThrow(
+						rows,
+						`Role with ID ${id} not found`,
+						'ROLE_NOT_FOUND',
+					)
+					return dto.RoleDto.parse(first)
+				},
 			})
-			return data
 		})
-		return result
 	}
 
 	// Returns total count.
 	async count(): Promise<number> {
-		const result = await record('RoleService.count', async () => {
-			const data = await cache.wrap(cacheKey.count, async () => {
-				const rows = await db
-					.select({ val: count() })
-					.from(rolesTable)
-					.where(isNull(rolesTable.deletedAt))
-				return rows[0]?.val ?? 0
+		return record('RoleService.count', async () => {
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const rows = await db
+						.select({ val: count() })
+						.from(rolesTable)
+						.where(isNull(rolesTable.deletedAt))
+					return rows[0]?.val ?? 0
+				},
 			})
-			return data
 		})
-		return result
 	}
 
 	// Paginated list.
@@ -222,10 +226,10 @@ export class RoleService {
 
 	// Clear relevant caches.
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({
+			keys,
+		})
 	}
 }

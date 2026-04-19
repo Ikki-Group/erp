@@ -16,4 +16,5 @@ export const bento = new BentoCache({
 })
 
 // Handle serialization/deserialization of cache values
+/** @deprecated */
 export const cache = createCache({})
