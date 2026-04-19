@@ -22,7 +22,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				query: dto.UserAssignmentFilterDto,
-				response: createPaginatedResponseSchema(dto.UserAssignmentDetailDto),
+				response: createPaginatedResponseSchema(dto.UserAssignmentDto),
 				auth: true,
 			},
 		)

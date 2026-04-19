@@ -21,8 +21,8 @@ import { productCategoriesTable } from '@/db/schema'
 import type {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
-	ProductCreateDto,
-	ProductUpdateDto,
+	ProductCategoryCreateDto,
+	ProductCategoryUpdateDto,
 } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -150,7 +150,7 @@ export class ProductCategoryService {
 	/**
 	 * Creates a new product category. Invalidates cache.
 	 */
-	async handleCreate(data: ProductCreateDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: ProductCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
@@ -176,7 +176,7 @@ export class ProductCategoryService {
 	/**
 	 * Updates existing product category. Invalidates cache.
 	 */
-	async handleUpdate(id: number, data: ProductUpdateDto, actorId: number): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: ProductCategoryUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleUpdate', async () => {
 			const existing = await this.getById(id)
 

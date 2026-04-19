@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq, and } from 'drizzle-orm'
+import { and, count, eq, isNull } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
@@ -86,49 +86,34 @@ export class UserAssignmentService {
 	// }
 
 	// Paginated list with filtering (Layer 1).
-	// async handleList(
-	// 	filter: dto.UserAssignmentFilterDto,
-	// ): Promise<core.WithPaginationResult<dto.UserAssignmentDetailDto>> {
-	// 	return record('UserAssignmentService.handleList', async () => {
-	// 		const { userId, roleId, locationId, page, limit } = filter
-	// 		const where = and(
-	// 			isNull(userAssignmentsTable.deletedAt),
-	// 			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
-	// 			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
-	// 			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
-	// 			isNull(rolesTable.deletedAt),
-	// 			isNull(locationsTable.deletedAt),
-	// 		)
+	async handleList(
+		filter: dto.UserAssignmentFilterDto,
+	): Promise<core.WithPaginationResult<dto.UserAssignmentDto>> {
+		return record('UserAssignmentService.handleList', async () => {
+			const { userId, roleId, locationId, page, limit } = filter
+			const where = and(
+				isNull(userAssignmentsTable.deletedAt),
+				userId ? eq(userAssignmentsTable.userId, userId) : undefined,
+				roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
+				locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
+			)
 
-	// 		return core.paginate<dto.UserAssignmentDetailDto>({
-	// 			data: async ({ limit: l, offset }) => {
-	// 				const rows = await db
-	// 					.select({
-	// 						...getColumns(userAssignmentsTable),
-	// 						roleName: rolesTable.name,
-	// 						roleCode: rolesTable.code,
-	// 						locationName: locationsTable.name,
-	// 						locationCode: locationsTable.code,
-	// 					})
-	// 					.from(userAssignmentsTable)
-	// 					.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-	// 					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-	// 					.where(where)
-	// 					.orderBy(core.sortBy(userAssignmentsTable.updatedAt, 'desc'))
-	// 					.limit(l)
-	// 					.offset(offset)
-	// 				return rows
-	// 			},
-	// 			pq: { page, limit },
-	// 			countQuery: db
-	// 				.select({ count: count() })
-	// 				.from(userAssignmentsTable)
-	// 				.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-	// 				.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-	// 				.where(where),
-	// 		})
-	// 	})
-	// }
+			return core.paginate<dto.UserAssignmentDto>({
+				data: async ({ limit: l, offset }) => {
+					const rows = await db
+						.select()
+						.from(userAssignmentsTable)
+						.where(where)
+						.orderBy(core.sortBy(userAssignmentsTable.updatedAt, 'desc'))
+						.limit(l)
+						.offset(offset)
+					return rows
+				},
+				pq: { page, limit },
+				countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
+			})
+		})
+	}
 
 	// Internal: Atomically replaces all assignments for a user.
 	// Used by other services (e.g. UserService) to delegate assignment writes.
