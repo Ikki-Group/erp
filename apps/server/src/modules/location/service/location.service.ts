@@ -35,10 +35,6 @@ const err = {
 	createFailed: () => new InternalServerError('Location creation failed', 'LOCATION_CREATE_FAILED'),
 }
 
-const a = bento.namespace('a')
-
-await a.deleteMany({ keys: [''] })
-
 // Location Service (Layer 0)
 // Handles physical and virtual location management.
 export class LocationService {
