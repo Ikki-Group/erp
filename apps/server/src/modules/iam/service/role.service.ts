@@ -83,7 +83,7 @@ export class RoleService {
 	}
 
 	// Finds a role by ID.
-	async getById(id: number): Promise<dto.RoleDto> {
+	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleService.getById', async () => {
 			return cache.getOrSet({
 				key: `${id}`,
@@ -105,7 +105,11 @@ export class RoleService {
 	}
 
 	async getSuperadmin(): Promise<dto.RoleDto> {
-		return this.getById(1)
+		return record('RoleService.getSuperadmin', async () => {
+			const role = await this.getById(1)
+			if (!role) throw err.notFound(1)
+			return dto.RoleDto.parse(role)
+		})
 	}
 
 	async getRelationMap(): Promise<RelationMap<number, dto.RoleDto>> {
@@ -157,7 +161,11 @@ export class RoleService {
 
 	// Resource detail.
 	async handleDetail(id: number): Promise<dto.RoleDto> {
-		return this.getById(id)
+		return record('RoleService.handleDetail', async () => {
+			const role = await this.getById(id)
+			if (!role) throw err.notFound(id)
+			return dto.RoleDto.parse(role)
+		})
 	}
 
 	// Creation.
@@ -185,6 +193,7 @@ export class RoleService {
 		const result = await record('RoleService.handleUpdate', async () => {
 			const { id, ...rest } = data
 			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 			if (existing.isSystem) throw err.updateSystemRoleForbidden()
 
 			await core.checkConflict({
@@ -209,6 +218,7 @@ export class RoleService {
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('RoleService.handleRemove', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 			if (existing.isSystem) throw err.removeSystemRoleForbidden()
 			const [result] = await db
 				.update(rolesTable)
@@ -225,6 +235,7 @@ export class RoleService {
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('RoleService.handleHardRemove', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 			if (existing.isSystem) throw err.removeSystemRoleForbidden()
 			const [result] = await db
 				.delete(rolesTable)

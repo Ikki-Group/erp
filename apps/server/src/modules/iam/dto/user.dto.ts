@@ -28,7 +28,7 @@ export const UserAssignmentDetailDto = z.object({
 })
 export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
 
-export const UserDetailDto = zc.withAuditResolved({
+export const UserDetailDto = z.object({
 	...UserDto.shape,
 	assignments: z.array(UserAssignmentDetailDto),
 })

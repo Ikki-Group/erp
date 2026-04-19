@@ -1,8 +1,14 @@
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+	zq,
+} from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
 import type { UserService } from '../service/user.service'
@@ -22,7 +28,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				query: dto.UserFilterDto,
-				response: createPaginatedResponseSchema(dto.UserDto),
+				response: createPaginatedResponseSchema(dto.UserDetailDto),
 				auth: true,
 			},
 		)
@@ -32,7 +38,16 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(dto.UserDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(
+					z.object({
+						...dto.UserDetailDto.shape,
+						...zc.AuditResolved.shape,
+					}),
+				),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',

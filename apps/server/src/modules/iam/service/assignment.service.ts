@@ -11,6 +11,9 @@ import * as dto from '../dto/assignment.dto'
 
 const cache = bento.namespace('user-assignment')
 
+const SUPERADMIN_ROLE_ID = 1
+const PLACEHOLDER_ID = 999999 // synthetic, not persisted
+
 // User Assignment Service (Layer 0)
 // Handles the mapping between Users, Roles, and Locations.
 // Sole owner of `userAssignmentsTable` — no other service may write to this table.
@@ -33,16 +36,17 @@ export class UserAssignmentService {
 	}
 
 	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
+		const now = new Date()
 		return {
-			id: 0,
-			userId: 0,
-			roleId: 1,
-			locationId: 0,
+			id: PLACEHOLDER_ID,
+			userId: PLACEHOLDER_ID,
+			roleId: SUPERADMIN_ROLE_ID,
+			locationId: PLACEHOLDER_ID,
 			isDefault: true,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-			createdBy: 0,
-			updatedBy: 0,
+			createdAt: now,
+			updatedAt: now,
+			createdBy: PLACEHOLDER_ID,
+			updatedBy: PLACEHOLDER_ID,
 			deletedAt: null,
 			deletedBy: null,
 		}

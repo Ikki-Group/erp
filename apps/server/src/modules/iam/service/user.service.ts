@@ -4,8 +4,9 @@ import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
-import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
+import { resolveAudit } from '@/core/utils/audit-resolver'
 import type { RelationMap } from '@/core/utils/relation-map'
+import type { AuditResolved } from '@/core/validation'
 
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
@@ -103,13 +104,13 @@ export class UserService {
 		return result
 	}
 
-	async getAssignmentDetailByUserId(
+	async getUserAssignments(
 		userId: number,
 		isRoot: boolean,
 		roleMapper?: RelationMap<number, RoleDto>,
 		locationMapper?: RelationMap<number, LocationDto>,
 	): Promise<dto.UserAssignmentDetailDto[]> {
-		return record('UserService.getAssignmentDetailByUserId', async () => {
+		return record('UserService.getUserAssignments', async () => {
 			const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
 			const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
 
@@ -122,7 +123,6 @@ export class UserService {
 					const baseAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
 					return {
 						...baseAssignment,
-						id: 0,
 						userId,
 						locationId: loc.id,
 						isDefault: index === 0,
@@ -144,32 +144,34 @@ export class UserService {
 	}
 
 	// Finds a user by ID.
-	async getById(id: number): Promise<dto.UserDto> {
-		const result = await record('UserService.getById', async () => {
-			const data = await cache.getOrSet({
+	async getById(id: number): Promise<dto.UserDto | undefined> {
+		return record('UserService.getById', async () => {
+			return cache.getOrSet({
 				key: `${id}`,
-				factory: async () => {
-					const rows = await db
+				factory: async ({ skip }) => {
+					const [row] = await db
 						.select()
 						.from(usersTable)
 						.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
-					const first = core.takeFirstOrThrow(
-						rows,
-						`User with ID ${id} not found`,
-						'USER_NOT_FOUND',
-					)
 
-					const assignments = await this.getAssignmentDetailByUserId(first.id, first.isRoot)
-
-					return {
-						...first,
-						assignments,
-					}
+					if (!row) return skip()
+					return row
 				},
 			})
-			return dto.UserDto.parse(data)
 		})
-		return result
+	}
+
+	async getUserDetails(id: number): Promise<dto.UserDetailDto> {
+		return record('UserService.getUserDetails', async () => {
+			const user = await this.getById(id)
+			if (!user) throw err.notFound(id)
+			const assignments = await this.getUserAssignments(id, user.isRoot)
+
+			return {
+				...user,
+				assignments,
+			}
+		})
 	}
 
 	// Returns total count.
@@ -191,8 +193,10 @@ export class UserService {
 	}
 
 	// Paginated list.
-	async handleList(filter: dto.UserFilterDto): Promise<core.WithPaginationResult<dto.UserDto>> {
-		const result = await record('UserService.handleList', async () => {
+	async handleList(
+		filter: dto.UserFilterDto,
+	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
+		return record('UserService.handleList', async () => {
 			const { q, page, limit, isActive, isRoot } = filter
 			const where = and(
 				isNull(usersTable.deletedAt),
@@ -230,15 +234,27 @@ export class UserService {
 						.orderBy(core.sortBy(usersTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.UserDto.parse(r))
+					return rows
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(usersTable).where(where),
 			})
 
-			return { ...p, data: await resolveAuditList(p.data) }
+			const roleMap = await this.roleService.getRelationMap()
+			const locationMap = await this.locationService.getRelationMap()
+
+			const data = await Promise.all(
+				p.data.map(async (d) => {
+					const assignments = await this.getUserAssignments(d.id, d.isRoot, roleMap, locationMap)
+					return {
+						...d,
+						assignments,
+					}
+				}),
+			)
+
+			return { ...p, data }
 		})
-		return result
 	}
 
 	// Finds a user by username or email.
@@ -264,14 +280,19 @@ export class UserService {
 	}
 
 	// Resource detail.
-	async handleDetail(id: number): Promise<dto.UserDto> {
-		const user = await this.getById(id)
+	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
+		const user = await this.getUserDetails(id)
 		return resolveAudit(user)
 	}
 
 	// Alias for detail retrieval, commonly used in Auth.
 	async getDetailById(id: number): Promise<dto.UserDto> {
-		return this.getById(id)
+		return record('UserService.getDetailById', async () => {
+			const user = await this.getById(id)
+			if (!user) throw err.notFound(id)
+
+			return user
+		})
 	}
 
 	// Creation.
@@ -313,6 +334,8 @@ export class UserService {
 	): Promise<{ id: number }> {
 		const result = await record('UserService.handleUpdate', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
+
 			await core.checkConflict({
 				table: usersTable,
 				pkColumn: usersTable.id,
