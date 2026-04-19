@@ -14,7 +14,6 @@ import type { LocationService } from '../service/location.service'
 
 /**
  * Location Module Route (Layer 1)
- * Standard functional route pattern (Golden Path 2.1).
  */
 export function initLocationRoute(service: LocationService) {
 	return new Elysia()

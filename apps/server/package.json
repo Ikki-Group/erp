@@ -45,6 +45,7 @@
 		"@upstash/redis": "^1.36.3",
 		"axios": "^1.13.6",
 		"bcrypt": "^6.0.0",
+		"bentocache": "^1.6.1",
 		"cache-manager": "^7.2.8",
 		"date-fns": "^4.1.0",
 		"drizzle-orm": "^1.0.0-beta.15-859cf75",
