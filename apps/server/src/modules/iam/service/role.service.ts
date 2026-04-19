@@ -103,6 +103,10 @@ export class RoleService {
 		})
 	}
 
+	async getSuperadmin(): Promise<dto.RoleDto> {
+		return this.getById(1)
+	}
+
 	// Returns total count.
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {

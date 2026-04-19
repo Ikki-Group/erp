@@ -104,7 +104,11 @@ export class UserService {
 						.select()
 						.from(usersTable)
 						.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
-					const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
+					const first = core.takeFirstOrThrow(
+						rows,
+						`User with ID ${id} not found`,
+						'USER_NOT_FOUND',
+					)
 
 					// Root users: resolve ALL locations at runtime (zero sync needed)
 					// Delegation to AssignmentService — owner of assignment domain logic.

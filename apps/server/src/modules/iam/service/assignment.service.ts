@@ -1,16 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq, getColumns, and, count, isNull } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 
 import { db } from '@/db'
-import { locationsTable, rolesTable, userAssignmentsTable } from '@/db/schema'
-
-import type { LocationService } from '@/modules/location/service'
+import { userAssignmentsTable } from '@/db/schema'
 
 import * as dto from '../dto/assignment.dto'
-import type { RoleService } from './role.service'
 
 const cache = bento.namespace('user-assignment')
 
@@ -18,28 +15,15 @@ const cache = bento.namespace('user-assignment')
 // Handles the mapping between Users, Roles, and Locations.
 // Sole owner of `userAssignmentsTable` — no other service may write to this table.
 export class UserAssignmentService {
-	constructor(
-		private locationService: LocationService,
-		private roleService: RoleService,
-	) {}
-
 	// Returns detailed assignments for a user.
-	async findByUserId(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
+	async findByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentService.findByUserId', async () => {
 			return cache.getOrSet({
 				key: `user.${userId}`,
 				factory: async () => {
 					const rows = await db
-						.select({
-							...getColumns(userAssignmentsTable),
-							roleName: rolesTable.name,
-							roleCode: rolesTable.code,
-							locationName: locationsTable.name,
-							locationCode: locationsTable.code,
-						})
+						.select()
 						.from(userAssignmentsTable)
-						.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-						.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
 						.where(eq(userAssignmentsTable.userId, userId))
 
 					return rows
@@ -53,82 +37,82 @@ export class UserAssignmentService {
 	 * Root users do not have assignment rows in DB —
 	 * locations are resolved at runtime from LocationService + RoleService.
 	 */
-	async resolveRootAssignments(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
-		const [allLocations, allRoles] = await Promise.all([
-			this.locationService.find(),
-			this.roleService.find(),
-		])
+	// async resolveRootAssignments(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
+	// 	const [allLocations, allRoles] = await Promise.all([
+	// 		this.locationService.find(),
+	// 		this.roleService.find(),
+	// 	])
 
-		// Find the SUPERADMIN role (isSystem + permissions: ['*'])
-		const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
-		if (!superAdminRole) return []
+	// 	// Find the SUPERADMIN role (isSystem + permissions: ['*'])
+	// 	const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
+	// 	if (!superAdminRole) return []
 
-		return allLocations.map(
-			(loc, idx) =>
-				({
-					id: 0, // Synthetic ID
-					userId,
-					roleId: superAdminRole.id,
-					locationId: loc.id,
-					isDefault: idx === 0,
-					roleName: superAdminRole.name,
-					roleCode: superAdminRole.code,
-					locationName: loc.name,
-					locationCode: loc.code,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-					createdBy: 0,
-					updatedBy: 0,
-					deletedAt: null,
-					deletedBy: null,
-				}) satisfies dto.UserAssignmentDetailDto,
-		)
-	}
+	// 	return allLocations.map(
+	// 		(loc, idx) =>
+	// 			({
+	// 				id: 0, // Synthetic ID
+	// 				userId,
+	// 				roleId: superAdminRole.id,
+	// 				locationId: loc.id,
+	// 				isDefault: idx === 0,
+	// 				roleName: superAdminRole.name,
+	// 				roleCode: superAdminRole.code,
+	// 				locationName: loc.name,
+	// 				locationCode: loc.code,
+	// 				createdAt: new Date(),
+	// 				updatedAt: new Date(),
+	// 				createdBy: 0,
+	// 				updatedBy: 0,
+	// 				deletedAt: null,
+	// 				deletedBy: null,
+	// 			}) satisfies dto.UserAssignmentDetailDto,
+	// 	)
+	// }
 
 	// Paginated list with filtering (Layer 1).
-	async handleList(
-		filter: dto.UserAssignmentFilterDto,
-	): Promise<core.WithPaginationResult<dto.UserAssignmentDetailDto>> {
-		return record('UserAssignmentService.handleList', async () => {
-			const { userId, roleId, locationId, page, limit } = filter
-			const where = and(
-				isNull(userAssignmentsTable.deletedAt),
-				userId ? eq(userAssignmentsTable.userId, userId) : undefined,
-				roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
-				locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
-				isNull(rolesTable.deletedAt),
-				isNull(locationsTable.deletedAt),
-			)
+	// async handleList(
+	// 	filter: dto.UserAssignmentFilterDto,
+	// ): Promise<core.WithPaginationResult<dto.UserAssignmentDetailDto>> {
+	// 	return record('UserAssignmentService.handleList', async () => {
+	// 		const { userId, roleId, locationId, page, limit } = filter
+	// 		const where = and(
+	// 			isNull(userAssignmentsTable.deletedAt),
+	// 			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
+	// 			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
+	// 			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
+	// 			isNull(rolesTable.deletedAt),
+	// 			isNull(locationsTable.deletedAt),
+	// 		)
 
-			return core.paginate<dto.UserAssignmentDetailDto>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await db
-						.select({
-							...getColumns(userAssignmentsTable),
-							roleName: rolesTable.name,
-							roleCode: rolesTable.code,
-							locationName: locationsTable.name,
-							locationCode: locationsTable.code,
-						})
-						.from(userAssignmentsTable)
-						.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-						.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-						.where(where)
-						.orderBy(core.sortBy(userAssignmentsTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows
-				},
-				pq: { page, limit },
-				countQuery: db
-					.select({ count: count() })
-					.from(userAssignmentsTable)
-					.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-					.where(where),
-			})
-		})
-	}
+	// 		return core.paginate<dto.UserAssignmentDetailDto>({
+	// 			data: async ({ limit: l, offset }) => {
+	// 				const rows = await db
+	// 					.select({
+	// 						...getColumns(userAssignmentsTable),
+	// 						roleName: rolesTable.name,
+	// 						roleCode: rolesTable.code,
+	// 						locationName: locationsTable.name,
+	// 						locationCode: locationsTable.code,
+	// 					})
+	// 					.from(userAssignmentsTable)
+	// 					.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+	// 					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+	// 					.where(where)
+	// 					.orderBy(core.sortBy(userAssignmentsTable.updatedAt, 'desc'))
+	// 					.limit(l)
+	// 					.offset(offset)
+	// 				return rows
+	// 			},
+	// 			pq: { page, limit },
+	// 			countQuery: db
+	// 				.select({ count: count() })
+	// 				.from(userAssignmentsTable)
+	// 				.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+	// 				.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+	// 				.where(where),
+	// 		})
+	// 	})
+	// }
 
 	// Internal: Atomically replaces all assignments for a user.
 	// Used by other services (e.g. UserService) to delegate assignment writes.

@@ -14,9 +14,6 @@ import {
 
 import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
 
-/**
- * Common User attributes.
- */
 export const UserBaseDto = z.object({
 	username: zUsername,
 	email: zEmail,

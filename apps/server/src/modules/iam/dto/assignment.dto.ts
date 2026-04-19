@@ -14,14 +14,6 @@ export const UserAssignmentDto = z.object({
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
-export const UserAssignmentDetailDto = UserAssignmentDto.extend({
-	roleName: zp.str,
-	roleCode: zp.str,
-	locationName: zp.str,
-	locationCode: zp.str,
-})
-export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
-
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const UserAssignmentUpsertDto = z.object({

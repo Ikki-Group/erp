@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import type { DbTx } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
@@ -40,6 +41,8 @@ const err = {
 		),
 }
 
+const cache = bento.namespace('material-location')
+
 export class MaterialLocationService {
 	constructor(
 		private readonly materialSvc: MaterialService,
@@ -51,66 +54,81 @@ export class MaterialLocationService {
 	/** Get a specific material-location assignment */
 	async findOne(materialId: number, locationId: number): Promise<MaterialLocationDto> {
 		return record('MaterialLocationService.findOne', async () => {
-			const [result] = await db
-				.select()
-				.from(materialLocationsTable)
-				.where(
-					and(
-						eq(materialLocationsTable.materialId, materialId),
-						eq(materialLocationsTable.locationId, locationId),
-					),
-				)
+			return cache.getOrSet({
+				key: `one.${materialId}.${locationId}`,
+				factory: async () => {
+					const [result] = await db
+						.select()
+						.from(materialLocationsTable)
+						.where(
+							and(
+								eq(materialLocationsTable.materialId, materialId),
+								eq(materialLocationsTable.locationId, locationId),
+							),
+						)
 
-			if (!result) throw err.notAssigned(materialId, locationId)
-			return {
-				...result,
-				minStock: Number(result.minStock),
-				maxStock: result.maxStock ? Number(result.maxStock) : null,
-				reorderPoint: Number(result.reorderPoint),
-				currentQty: Number(result.currentQty),
-				currentAvgCost: Number(result.currentAvgCost),
-				currentValue: Number(result.currentValue),
-			}
+					if (!result) throw err.notAssigned(materialId, locationId)
+					return {
+						...result,
+						minStock: Number(result.minStock),
+						maxStock: result.maxStock ? Number(result.maxStock) : null,
+						reorderPoint: Number(result.reorderPoint),
+						currentQty: Number(result.currentQty),
+						currentAvgCost: Number(result.currentAvgCost),
+						currentValue: Number(result.currentValue),
+					}
+				},
+			})
 		})
 	}
 
 	/** Get all assignments for a specific material */
 	async findByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
 		return record('MaterialLocationService.findByMaterialId', async () => {
-			const results = await db
-				.select()
-				.from(materialLocationsTable)
-				.where(eq(materialLocationsTable.materialId, materialId))
-			return results.map((r) =>
-				Object.assign({}, r, {
-					minStock: Number(r.minStock),
-					maxStock: r.maxStock ? Number(r.maxStock) : null,
-					reorderPoint: Number(r.reorderPoint),
-					currentQty: Number(r.currentQty),
-					currentAvgCost: Number(r.currentAvgCost),
-					currentValue: Number(r.currentValue),
-				}),
-			)
+			return cache.getOrSet({
+				key: `by-material.${materialId}`,
+				factory: async () => {
+					const results = await db
+						.select()
+						.from(materialLocationsTable)
+						.where(eq(materialLocationsTable.materialId, materialId))
+					return results.map((r) =>
+						Object.assign({}, r, {
+							minStock: Number(r.minStock),
+							maxStock: r.maxStock ? Number(r.maxStock) : null,
+							reorderPoint: Number(r.reorderPoint),
+							currentQty: Number(r.currentQty),
+							currentAvgCost: Number(r.currentAvgCost),
+							currentValue: Number(r.currentValue),
+						}),
+					)
+				},
+			})
 		})
 	}
 
 	/** Get all assignments for a specific location */
 	async findByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
 		return record('MaterialLocationService.findByLocationId', async () => {
-			const results = await db
-				.select()
-				.from(materialLocationsTable)
-				.where(eq(materialLocationsTable.locationId, locationId))
-			return results.map((r) =>
-				Object.assign({}, r, {
-					minStock: Number(r.minStock),
-					maxStock: r.maxStock ? Number(r.maxStock) : null,
-					reorderPoint: Number(r.reorderPoint),
-					currentQty: Number(r.currentQty),
-					currentAvgCost: Number(r.currentAvgCost),
-					currentValue: Number(r.currentValue),
-				}),
-			)
+			return cache.getOrSet({
+				key: `by-location.${locationId}`,
+				factory: async () => {
+					const results = await db
+						.select()
+						.from(materialLocationsTable)
+						.where(eq(materialLocationsTable.locationId, locationId))
+					return results.map((r) =>
+						Object.assign({}, r, {
+							minStock: Number(r.minStock),
+							maxStock: r.maxStock ? Number(r.maxStock) : null,
+							reorderPoint: Number(r.reorderPoint),
+							currentQty: Number(r.currentQty),
+							currentAvgCost: Number(r.currentAvgCost),
+							currentValue: Number(r.currentValue),
+						}),
+					)
+				},
+			})
 		})
 	}
 
@@ -167,6 +185,7 @@ export class MaterialLocationService {
 
 			await db.insert(materialLocationsTable).values(docs)
 
+			await this.clearCache()
 			return { assignedCount: docs.length }
 		})
 	}
@@ -190,6 +209,7 @@ export class MaterialLocationService {
 
 			if (!result) throw err.notAssigned(materialId, locationId)
 
+			await this.clearCache(materialId, locationId)
 			return { id: result.id }
 		})
 	}
@@ -201,26 +221,31 @@ export class MaterialLocationService {
 	 */
 	async handleLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
 		return record('MaterialLocationService.handleLocationsByMaterial', async () => {
-			// Validate material exists
-			await this.materialSvc.getById(materialId)
+			return cache.getOrSet({
+				key: `locations-by-material.${materialId}`,
+				factory: async () => {
+					// Validate material exists
+					await this.materialSvc.getById(materialId)
 
-			const assignments = await db
-				.select({ assignment: materialLocationsTable, location: locationsTable })
-				.from(materialLocationsTable)
-				.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
-				.where(eq(materialLocationsTable.materialId, materialId))
+					const assignments = await db
+						.select({ assignment: materialLocationsTable, location: locationsTable })
+						.from(materialLocationsTable)
+						.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
+						.where(eq(materialLocationsTable.materialId, materialId))
 
-			return assignments.map((row) =>
-				Object.assign({}, row.assignment, {
-					minStock: Number(row.assignment.minStock),
-					maxStock: row.assignment.maxStock ? Number(row.assignment.maxStock) : null,
-					reorderPoint: Number(row.assignment.reorderPoint),
-					currentQty: Number(row.assignment.currentQty),
-					currentAvgCost: Number(row.assignment.currentAvgCost),
-					currentValue: Number(row.assignment.currentValue),
-					location: row.location,
-				}),
-			)
+					return assignments.map((row) =>
+						Object.assign({}, row.assignment, {
+							minStock: Number(row.assignment.minStock),
+							maxStock: row.assignment.maxStock ? Number(row.assignment.maxStock) : null,
+							reorderPoint: Number(row.assignment.reorderPoint),
+							currentQty: Number(row.assignment.currentQty),
+							currentAvgCost: Number(row.assignment.currentAvgCost),
+							currentValue: Number(row.assignment.currentValue),
+							location: row.location,
+						}),
+					)
+				},
+			})
 		})
 	}
 
@@ -237,60 +262,71 @@ export class MaterialLocationService {
 		return record('MaterialLocationService.handleStockByLocation', async () => {
 			const { locationId, q } = filter
 
-			// Validate location exists
-			await this.locationSvc.location.getById(locationId)
+			return cache.getOrSet({
+				key: `stock-by-location.${JSON.stringify({ ...filter, pq })}`,
+				factory: async () => {
+					// Validate location exists
+					await this.locationSvc.location.getById(locationId)
 
-			const searchCondition = q
-				? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
-				: undefined
+					const searchCondition = q
+						? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
+						: undefined
 
-			const where = and(eq(materialLocationsTable.locationId, locationId), searchCondition)
+					const where = and(eq(materialLocationsTable.locationId, locationId), searchCondition)
 
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select({
-							id: materialLocationsTable.id,
-							materialId: materialLocationsTable.materialId,
-							locationId: materialLocationsTable.locationId,
-							materialName: materialsTable.name,
-							materialSku: materialsTable.sku,
-							baseUomId: materialsTable.baseUomId,
-							minStock: materialLocationsTable.minStock,
-							maxStock: materialLocationsTable.maxStock,
-							reorderPoint: materialLocationsTable.reorderPoint,
-							currentQty: materialLocationsTable.currentQty,
-							currentAvgCost: materialLocationsTable.currentAvgCost,
-							currentValue: materialLocationsTable.currentValue,
-							uom: uomsTable,
-						})
-						.from(materialLocationsTable)
-						.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-						.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+					const result = await paginate({
+						data: ({ limit, offset }) =>
+							db
+								.select({
+									id: materialLocationsTable.id,
+									materialId: materialLocationsTable.materialId,
+									locationId: materialLocationsTable.locationId,
+									materialName: materialsTable.name,
+									materialSku: materialsTable.sku,
+									baseUomId: materialsTable.baseUomId,
+									minStock: materialLocationsTable.minStock,
+									maxStock: materialLocationsTable.maxStock,
+									reorderPoint: materialLocationsTable.reorderPoint,
+									currentQty: materialLocationsTable.currentQty,
+									currentAvgCost: materialLocationsTable.currentAvgCost,
+									currentValue: materialLocationsTable.currentValue,
+									uom: uomsTable,
+								})
+								.from(materialLocationsTable)
+								.innerJoin(
+									materialsTable,
+									eq(materialLocationsTable.materialId, materialsTable.id),
+								)
+								.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
 
-						.where(where)
-						.orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db
-					.select({ count: count() })
-					.from(materialLocationsTable)
-					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-					.where(where),
+								.where(where)
+								.orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
+								.limit(limit)
+								.offset(offset),
+						pq,
+						countQuery: db
+							.select({ count: count() })
+							.from(materialLocationsTable)
+							.innerJoin(
+								materialsTable,
+								eq(materialLocationsTable.materialId, materialsTable.id),
+							)
+							.where(where),
+					})
+
+					const data = result.data.map((stock) => ({
+						...stock,
+						minStock: Number(stock.minStock),
+						maxStock: stock.maxStock ? Number(stock.maxStock) : null,
+						reorderPoint: Number(stock.reorderPoint),
+						currentQty: Number(stock.currentQty),
+						currentAvgCost: Number(stock.currentAvgCost),
+						currentValue: Number(stock.currentValue),
+					}))
+
+					return { data, meta: result.meta }
+				},
 			})
-
-			const data = result.data.map((stock) => ({
-				...stock,
-				minStock: Number(stock.minStock),
-				maxStock: stock.maxStock ? Number(stock.maxStock) : null,
-				reorderPoint: Number(stock.reorderPoint),
-				currentQty: Number(stock.currentQty),
-				currentAvgCost: Number(stock.currentAvgCost),
-				currentValue: Number(stock.currentValue),
-			}))
-
-			return { data, meta: result.meta }
 		})
 	}
 
@@ -319,6 +355,7 @@ export class MaterialLocationService {
 				.returning({ id: materialLocationsTable.id })
 
 			if (!result) throw err.notFound(id)
+			await this.clearCache()
 			return { id: result.id }
 		})
 	}
@@ -350,6 +387,19 @@ export class MaterialLocationService {
 						eq(materialLocationsTable.locationId, locationId),
 					),
 				)
+			await this.clearCache(materialId, locationId)
 		})
+	}
+
+	private async clearCache(materialId?: number, locationId?: number) {
+		const keys = ['stock-by-location']
+		if (materialId) keys.push(`by-material.${materialId}`, `locations-by-material.${materialId}`)
+		if (locationId) keys.push(`by-location.${locationId}`)
+		if (materialId && locationId) keys.push(`one.${materialId}.${locationId}`)
+
+		await cache.deleteMany({ keys })
+		// Also invalidate dashboard/alert caches as they depend on materialLocationsTable
+		await bento.namespace('inventory.dashboard').clear()
+		await bento.namespace('inventory.alert').clear()
 	}
 }
