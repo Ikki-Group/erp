@@ -11,14 +11,6 @@ export class HttpError extends Error {
 		// Preserves stack trace in V8
 		Error.captureStackTrace(this, this.constructor)
 	}
-
-	// toJSON() {
-	// 	return {
-	// 		code: this.code ?? this.name,
-	// 		message: this.message ?? this.name,
-	// 		error: { details: this.details, stack: this.stack },
-	// 	}
-	// }
 }
 
 export class BadRequestError extends HttpError {
