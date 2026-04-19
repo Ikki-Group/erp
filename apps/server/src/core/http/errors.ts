@@ -28,21 +28,21 @@ export class UnauthorizedError extends HttpError {
 }
 
 export class ForbiddenError extends HttpError {
-	constructor(message: string, code: 'FORBIDDEN', details?: Record<string, unknown>) {
+	constructor(message: string, code = 'FORBIDDEN', details?: Record<string, unknown>) {
 		super(403, message, code, details)
 		this.name = 'ForbiddenError'
 	}
 }
 
 export class NotFoundError extends HttpError {
-	constructor(message: string, code: 'NOT_FOUND', details?: Record<string, unknown>) {
+	constructor(message: string, code = 'NOT_FOUND', details?: Record<string, unknown>) {
 		super(404, message, code, details)
 		this.name = 'NotFoundError'
 	}
 }
 
 export class ConflictError extends HttpError {
-	constructor(message: string, code: 'CONFLICT', details?: Record<string, unknown>) {
+	constructor(message: string, code = 'CONFLICT', details?: Record<string, unknown>) {
 		super(409, message, code, details)
 		this.name = 'ConflictError'
 	}
