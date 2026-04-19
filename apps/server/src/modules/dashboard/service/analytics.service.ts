@@ -1,7 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
+
+const cache = bento.namespace('analytics')
 
 import { db } from '@/db'
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
@@ -28,18 +30,12 @@ export class AnalyticsService {
 	 * Utilizes the General Ledger (FIN-02) as the source of truth.
 	 */
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
-		const cacheKey = `analytics.pnl.${startDate.toISOString()}.${endDate.toISOString()}`
-
-		return cache.wrap(
-			cacheKey,
-			async () => {
+		return cache.getOrSet({
+			key: `pnl.${startDate.toISOString()}.${endDate.toISOString()}`,
+			ttl: '1h',
+			factory: async () => {
 				return record('AnalyticsService.getPnL', async () => {
 					// 1. Fetch all GL items within the period
-					// Mapping:
-					// 4xxx: Revenue
-					// 51xx: COGS
-					// 5xxx (others): Operating Expenses
-
 					const glItems = await db
 						.select({
 							accountCode: accountsTable.code,
@@ -67,13 +63,10 @@ export class AnalyticsService {
 						const code = item.accountCode
 
 						if (code.startsWith('4')) {
-							// Revenue: Credit - Debit
 							revenue += credit - debit
 						} else if (code.startsWith('51')) {
-							// COGS: Debit - Credit
 							cogs += debit - credit
 						} else if (code.startsWith('5')) {
-							// Operating Expenses: Debit - Credit
 							operatingExpenses += debit - credit
 						}
 					}
@@ -87,19 +80,17 @@ export class AnalyticsService {
 					}
 				})
 			},
-			3600 * 1000,
-		) // Cache for 1 hour
+		})
 	}
 
 	/**
 	 * Identifies top selling products based on sales order items.
 	 */
 	async getTopSales(startDate: Date, endDate: Date, limit: number = 5): Promise<TopSalesItem[]> {
-		const cacheKey = `analytics.top_sales.${startDate.toISOString()}.${endDate.toISOString()}.${limit}`
-
-		return cache.wrap(
-			cacheKey,
-			async () => {
+		return cache.getOrSet({
+			key: `top_sales.${startDate.toISOString()}.${endDate.toISOString()}.${limit}`,
+			ttl: '30m',
+			factory: async () => {
 				return record('AnalyticsService.getTopSales', async () => {
 					const result = await db
 						.select({
@@ -133,7 +124,6 @@ export class AnalyticsService {
 					}))
 				})
 			},
-			1800 * 1000,
-		) // Cache for 30 mins
+		})
 	}
 }

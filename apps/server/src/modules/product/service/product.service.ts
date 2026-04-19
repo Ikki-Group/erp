@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
 import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -47,11 +47,7 @@ const err = {
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
-const cacheKey = {
-	count: 'product.count',
-	list: 'product.list',
-	byId: (id: number) => `product.byId.${id}`,
-}
+const cache = bento.namespace('product')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -239,49 +235,55 @@ export class ProductService {
 
 	async getById(id: number): Promise<ProductDto> {
 		return record('ProductService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const [result] = await db
-					.select()
-					.from(productsTable)
-					.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
-					.limit(1)
-				if (!result) throw err.notFound(id)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const [result] = await db
+						.select()
+						.from(productsTable)
+						.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
+						.limit(1)
+					if (!result) throw err.notFound(id)
 
-				const variants: ProductVariantDto[] = result.hasVariants
-					? (await this.getVariantsWithPrices(id)).map((v) => ({
-							...v,
-							basePrice: Number(v.basePrice),
-							prices: v.prices.map((p) => ({ ...p, price: Number(p.price) })),
-						}))
-					: []
-				const prices: ProductPriceDto[] =
-					!result.hasVariants && result.hasSalesTypePricing
-						? (await this.getProductPrices(id)).map((p) => ({ ...p, price: Number(p.price) }))
+					const variants: ProductVariantDto[] = result.hasVariants
+						? (await this.getVariantsWithPrices(id)).map((v) => ({
+								...v,
+								basePrice: Number(v.basePrice),
+								prices: v.prices.map((p) => ({ ...p, price: Number(p.price) })),
+							}))
 						: []
-				const mappings = await db
-					.select()
-					.from(productExternalMappingsTable)
-					.where(eq(productExternalMappingsTable.productId, id))
+					const prices: ProductPriceDto[] =
+						!result.hasVariants && result.hasSalesTypePricing
+							? (await this.getProductPrices(id)).map((p) => ({ ...p, price: Number(p.price) }))
+							: []
+					const mappings = await db
+						.select()
+						.from(productExternalMappingsTable)
+						.where(eq(productExternalMappingsTable.productId, id))
 
-				return {
-					...result,
-					basePrice: Number(result.basePrice),
-					variants,
-					prices,
-					externalMappings: mappings,
-				}
+					return {
+						...result,
+						basePrice: Number(result.basePrice),
+						variants,
+						prices,
+						externalMappings: mappings,
+					}
+				},
 			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('ProductService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(productsTable)
-					.where(isNull(productsTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(productsTable)
+						.where(isNull(productsTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -629,10 +631,8 @@ export class ProductService {
 	// ─── Cache ────────────────────────────────────────────────────────────────
 
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

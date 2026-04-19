@@ -1,6 +1,8 @@
 import { eq } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
+
+const cache = bento.namespace('system.audit')
 import type { AuditResolved, UserSnippet } from '@/core/validation'
 
 import { db } from '@/db'
@@ -27,18 +29,21 @@ async function fetchAuditUser(id: number | null | undefined): Promise<UserSnippe
 	if (!id) return undefined
 	const cacheKey = `system.audit.user.${id}`
 
-	return cache.wrap(cacheKey, async () => {
-		const [user] = await db
-			.select({
-				id: usersTable.id,
-				username: usersTable.username,
-				fullname: usersTable.fullname,
-			})
-			.from(usersTable)
-			.where(eq(usersTable.id, id))
-			.limit(1)
+	return cache.getOrSet({
+		key: `user.${id}`,
+		factory: async () => {
+			const [user] = await db
+				.select({
+					id: usersTable.id,
+					username: usersTable.username,
+					fullname: usersTable.fullname,
+				})
+				.from(usersTable)
+				.where(eq(usersTable.id, id))
+				.limit(1)
 
-		return user as UserSnippet | undefined
+			return user as UserSnippet | undefined
+		},
 	})
 }
 

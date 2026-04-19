@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -30,11 +30,7 @@ const err = {
 	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
 }
 
-const cacheKey = {
-	count: 'recipe.count',
-	list: 'recipe.list',
-	byId: (id: number) => `recipe.byId.${id}`,
-}
+const cache = bento.namespace('recipe')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -72,36 +68,42 @@ export class RecipeService {
 	 */
 	async getById(id: number): Promise<RecipeDto> {
 		return record('RecipeService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db
-					.select()
-					.from(recipesTable)
-					.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
-				const recipe = takeFirstOrThrow(
-					result,
-					`Recipe with ID ${id} not found`,
-					'RECIPE_NOT_FOUND',
-				)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(recipesTable)
+						.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+					const recipe = takeFirstOrThrow(
+						result,
+						`Recipe with ID ${id} not found`,
+						'RECIPE_NOT_FOUND',
+					)
 
-				const items = await this.getRecipeItems(id)
+					const items = await this.getRecipeItems(id)
 
-				return {
-					...recipe,
-					targetQty: Number(recipe.targetQty),
-					items,
-				}
+					return {
+						...recipe,
+						targetQty: Number(recipe.targetQty),
+						items,
+					}
+				},
 			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('RecipeService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(recipesTable)
-					.where(isNull(recipesTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(recipesTable)
+						.where(isNull(recipesTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -389,11 +391,9 @@ export class RecipeService {
 	}
 
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 
 	/* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */

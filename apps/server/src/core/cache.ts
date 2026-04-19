@@ -1,6 +1,5 @@
 import { BentoCache, bentostore } from 'bentocache'
 import { memoryDriver } from 'bentocache/drivers/memory'
-import { createCache } from 'cache-manager'
 
 export const bento = new BentoCache({
 	default: 'cache',
@@ -14,7 +13,3 @@ export const bento = new BentoCache({
 		cache: bentostore().useL1Layer(memoryDriver({ maxSize: '10mb' })),
 	},
 })
-
-// Handle serialization/deserialization of cache values
-/** @deprecated */
-export const cache = createCache({})
