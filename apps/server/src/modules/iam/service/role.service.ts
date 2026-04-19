@@ -4,6 +4,7 @@ import { and, count, eq, isNull, or } from 'drizzle-orm'
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
+import { RelationMap } from '@/core/utils/relation-map'
 
 import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
@@ -105,6 +106,13 @@ export class RoleService {
 
 	async getSuperadmin(): Promise<dto.RoleDto> {
 		return this.getById(1)
+	}
+
+	async getRelationMap(): Promise<RelationMap<number, dto.RoleDto>> {
+		return record('RoleService.getRelationMap', async () => {
+			const roles = await this.find()
+			return RelationMap.fromArray(roles, (r) => r.id)
+		})
 	}
 
 	// Returns total count.

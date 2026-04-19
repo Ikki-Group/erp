@@ -32,6 +32,22 @@ export class UserAssignmentService {
 		})
 	}
 
+	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
+		return {
+			id: 0,
+			userId: 0,
+			roleId: 1,
+			locationId: 0,
+			isDefault: true,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			createdBy: 0,
+			updatedBy: 0,
+			deletedAt: null,
+			deletedBy: null,
+		}
+	}
+
 	/**
 	 * Resolves all locations as synthetic assignments for root users.
 	 * Root users do not have assignment rows in DB —

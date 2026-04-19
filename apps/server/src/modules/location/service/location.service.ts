@@ -5,6 +5,7 @@ import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit } from '@/core/utils/audit-resolver'
+import { RelationMap } from '@/core/utils/relation-map'
 import type { AuditResolved } from '@/core/validation'
 
 import { db } from '@/db'
@@ -76,6 +77,13 @@ export class LocationService {
 			}),
 		)
 		return result
+	}
+
+	async getRelationMap(): Promise<RelationMap<number, dto.LocationDto>> {
+		return record('LocationService.getRelationMap', async () => {
+			const locations = await this.find()
+			return RelationMap.fromArray(locations, (l) => l.id)
+		})
 	}
 
 	// Finds a location by ID.

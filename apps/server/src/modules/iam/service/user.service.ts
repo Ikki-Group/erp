@@ -5,12 +5,17 @@ import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
+import type { RelationMap } from '@/core/utils/relation-map'
 
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
+import type { LocationDto, LocationService } from '@/modules/location'
+
+import type { RoleDto } from '../dto'
 import * as dto from '../dto/user.dto'
 import type { UserAssignmentService } from './assignment.service'
+import type { RoleService } from './role.service'
 
 const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 	{
@@ -40,7 +45,11 @@ const err = {
 // Handles sensitive identity and profile management.
 // Sole owner of `usersTable` — no other service may write to this table.
 export class UserService {
-	constructor(private assignmentService: UserAssignmentService) {}
+	constructor(
+		private assignmentService: UserAssignmentService,
+		private roleService: RoleService,
+		private locationService: LocationService,
+	) {}
 
 	// Seed initial users.
 	async seed(
@@ -92,6 +101,52 @@ export class UserService {
 			return data
 		})
 		return result
+	}
+
+	async getAssignmentDetailByUserId(
+		userId: number,
+		isRoot: boolean,
+		roleMapper?: RelationMap<number, RoleDto>,
+		locationMapper?: RelationMap<number, LocationDto>,
+	): Promise<dto.UserAssignmentDetailDto[]> {
+		return record('UserService.getAssignmentDetailByUserId', async () => {
+			const assignments: dto.UserAssignmentDetailDto[] = []
+			const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
+			const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
+
+			// Root users: resolve ALL locations at runtime and roles as SUPERADMIN
+			if (isRoot) {
+				const superAdminRole = await this.roleService.getSuperadmin()
+				const allLocations = await this.locationService.find()
+				for (const loc of allLocations) {
+					assignments.push({
+						id: 0,
+						userId,
+						roleId: superAdminRole.id,
+						locationId: loc.id,
+						isDefault: false,
+						roleName: superAdminRole.name,
+						roleCode: superAdminRole.code,
+						locationName: loc.name,
+						locationCode: loc.code,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+						createdBy: 0,
+						updatedBy: 0,
+						deletedAt: null,
+						deletedBy: null,
+					})
+				}
+			} else {
+				const rawAssignments = await this.assignmentService.findByUserId(userId)
+			}
+
+			return rawAssignments.map((a) => ({
+				...a,
+				role: roleMap.getRequired(a.roleId),
+				location: locationMap.getRequired(a.locationId),
+			}))
+		})
 	}
 
 	// Finds a user by ID.

@@ -1,7 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { searchFilter, stampCreate } from '@/core/database'
+
+const cache = bento.namespace('finance.expenditure')
 
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
@@ -69,38 +72,52 @@ export class ExpenditureService {
 					actorId,
 				)
 
-				return expenditure
+				const res = expenditure
+				await this.clearCache()
+				return res
 			})
 		})
 	}
 
 	async listExpenditures(filter: ExpenditureFilterDto) {
 		return record('ExpenditureService.listExpenditures', async () => {
-			const { page, limit, q, type, status, locationId } = filter
-			const offset = (page - 1) * limit
+			const { page, limit } = filter
+			const key = `list.${JSON.stringify(filter)}`
 
-			const where = and(
-				isNull(expendituresTable.deletedAt),
-				q
-					? or(
-							searchFilter(expendituresTable.title, q),
-							searchFilter(expendituresTable.description, q),
-						)
-					: undefined,
-				type ? eq(expendituresTable.type, type) : undefined,
-				status ? eq(expendituresTable.status, status) : undefined,
-				locationId ? eq(expendituresTable.locationId, locationId) : undefined,
-			)
+			return cache.getOrSet({
+				key,
+				factory: async () => {
+					const offset = (page - 1) * limit
+					const { q, type, status, locationId } = filter
 
-			const data = await db
-				.select()
-				.from(expendituresTable)
-				.where(where)
-				.limit(limit)
-				.offset(offset)
-				.orderBy(desc(expendituresTable.date))
+					const where = and(
+						isNull(expendituresTable.deletedAt),
+						q
+							? or(
+									searchFilter(expendituresTable.title, q),
+									searchFilter(expendituresTable.description, q),
+								)
+							: undefined,
+						type ? eq(expendituresTable.type, type) : undefined,
+						status ? eq(expendituresTable.status, status) : undefined,
+						locationId ? eq(expendituresTable.locationId, locationId) : undefined,
+					)
 
-			return data
+					const data = await db
+						.select()
+						.from(expendituresTable)
+						.where(where)
+						.limit(limit)
+						.offset(offset)
+						.orderBy(desc(expendituresTable.date))
+
+					return data
+				},
+			})
 		})
+	}
+
+	private async clearCache() {
+		await cache.deleteMany({ keys: ['list'] })
 	}
 }

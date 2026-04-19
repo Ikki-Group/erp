@@ -2,7 +2,10 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
 
-import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './assignment.dto'
+import { LocationDto } from '@/modules/location'
+
+import { UserAssignmentDto, UserAssignmentUpsertDto } from './assignment.dto'
+import { RoleDto } from './role.dto'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
@@ -18,6 +21,13 @@ export const UserDto = z.object({
 })
 export type UserDto = z.infer<typeof UserDto>
 
+export const UserAssignmentDetailDto = z.object({
+	...UserAssignmentDto.shape,
+	role: RoleDto,
+	location: LocationDto,
+})
+export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+
 export const UserDetailDto = zc.withAuditResolved({
 	...UserDto.shape,
 	assignments: z.array(UserAssignmentDetailDto),
@@ -30,7 +40,7 @@ const UserMutationDto = z.object({
 	email: zc.email,
 	username: zc.username,
 	fullname: zc.fullname,
-	pinCode: zp.strNullable, // pins often don't need strict trim if they are code
+	pinCode: zp.strNullable,
 	isActive: zp.bool.default(true),
 })
 
