@@ -44,7 +44,8 @@
 		"typescript/ban-ts-comment": "off",
 		"typescript/no-unnecessary-type-conversion": "off",
 		"typescript/prefer-readonly-parameter-types": "off",
-		"typescript/no-unnecessary-type-parameters": "off"
+		"typescript/no-unnecessary-type-parameters": "off",
+		"typescript/strict-void-return": "off"
 	},
 	"overrides": [
 		{

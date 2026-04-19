@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento, cache } from '@/core/cache'
 import * as core from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit } from '@/core/utils/audit-resolver'
@@ -11,6 +11,10 @@ import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
 
 import * as dto from '../dto/location.dto'
+
+const cacheConfig = {
+	namespace: 'location',
+}
 
 const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
 	{
@@ -69,15 +73,18 @@ export class LocationService {
 	// Returns active locations.
 	async find(): Promise<dto.LocationDto[]> {
 		const result = await record('LocationService.find', async () => {
-			const data = await cache.wrap(cacheKey.list, async () => {
-				const rows = await db
-					.select()
-					.from(locationsTable)
-					.where(isNull(locationsTable.deletedAt))
-					.orderBy(locationsTable.name)
-				return rows.map((r) => dto.LocationDto.parse(r))
+			return bento.getOrSet({
+				key: '',
 			})
-			return data
+			// const data = await cache.wrap(cacheKey.list, async () => {
+			// 	const rows = await db
+			// 		.select()
+			// 		.from(locationsTable)
+			// 		.where(isNull(locationsTable.deletedAt))
+			// 		.orderBy(locationsTable.name)
+			// 	return rows.map((r) => dto.LocationDto.parse(r))
+			// })
+			// return data
 		})
 		return result
 	}
