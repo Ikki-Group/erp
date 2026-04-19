@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
@@ -27,11 +27,7 @@ const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'iam.user.count',
-	list: 'iam.user.list',
-	byId: (id: number) => `iam.user.byId.${id}`,
-}
+const cache = bento.namespace('user')
 
 const err = {
 	notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
@@ -82,13 +78,16 @@ export class UserService {
 	// Returns active users.
 	async find(): Promise<dto.UserDto[]> {
 		const result = await record('UserService.find', async () => {
-			const data = await cache.wrap(cacheKey.list, async () => {
-				const rows = await db
-					.select()
-					.from(usersTable)
-					.where(isNull(usersTable.deletedAt))
-					.orderBy(usersTable.fullname)
-				return rows.map((r) => dto.UserDto.parse(r))
+			const data = await cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(usersTable)
+						.where(isNull(usersTable.deletedAt))
+						.orderBy(usersTable.fullname)
+					return rows.map((r) => dto.UserDto.parse(r))
+				},
 			})
 			return data
 		})
@@ -98,20 +97,23 @@ export class UserService {
 	// Finds a user by ID.
 	async getById(id: number): Promise<dto.UserDto> {
 		const result = await record('UserService.getById', async () => {
-			const data = await cache.wrap(cacheKey.byId(id), async () => {
-				const rows = await db
-					.select()
-					.from(usersTable)
-					.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
-				const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
+			const data = await cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(usersTable)
+						.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+					const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
 
-				// Root users: resolve ALL locations at runtime (zero sync needed)
-				// Delegation to AssignmentService — owner of assignment domain logic.
-				const assignments = first.isRoot
-					? await this.assignmentService.resolveRootAssignments(first.id)
-					: await this.assignmentService.findByUserId(id)
+					// Root users: resolve ALL locations at runtime (zero sync needed)
+					// Delegation to AssignmentService — owner of assignment domain logic.
+					const assignments = first.isRoot
+						? await this.assignmentService.resolveRootAssignments(first.id)
+						: await this.assignmentService.findByUserId(id)
 
-				return { ...first, assignments }
+					return { ...first, assignments }
+				},
 			})
 			return data
 		})
@@ -121,12 +123,15 @@ export class UserService {
 	// Returns total count.
 	async count(): Promise<number> {
 		const result = await record('UserService.count', async () => {
-			const data = await cache.wrap(cacheKey.count, async () => {
-				const rows = await db
-					.select({ val: count() })
-					.from(usersTable)
-					.where(isNull(usersTable.deletedAt))
-				return rows[0]?.val ?? 0
+			const data = await cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const rows = await db
+						.select({ val: count() })
+						.from(usersTable)
+						.where(isNull(usersTable.deletedAt))
+					return rows[0]?.val ?? 0
+				},
 			})
 			return data
 		})
@@ -355,10 +360,8 @@ export class UserService {
 
 	// Clear relevant caches.
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

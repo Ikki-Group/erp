@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { eq, getColumns, and, count, isNull } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 
 import { db } from '@/db'
@@ -12,7 +12,7 @@ import type { LocationService } from '@/modules/location/service'
 import * as dto from '../dto/assignment.dto'
 import type { RoleService } from './role.service'
 
-const cacheKey = { byUser: (userId: number) => `iam.user-assignment.user.${userId}` }
+const cache = bento.namespace('user-assignment')
 
 // User Assignment Service (Layer 0)
 // Handles the mapping between Users, Roles, and Locations.
@@ -26,21 +26,24 @@ export class UserAssignmentService {
 	// Returns detailed assignments for a user.
 	async findByUserId(userId: number): Promise<dto.UserAssignmentDetailDto[]> {
 		return record('UserAssignmentService.findByUserId', async () => {
-			return cache.wrap(cacheKey.byUser(userId), async () => {
-				const rows = await db
-					.select({
-						...getColumns(userAssignmentsTable),
-						roleName: rolesTable.name,
-						roleCode: rolesTable.code,
-						locationName: locationsTable.name,
-						locationCode: locationsTable.code,
-					})
-					.from(userAssignmentsTable)
-					.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-					.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
-					.where(eq(userAssignmentsTable.userId, userId))
+			return cache.getOrSet({
+				key: `user.${userId}`,
+				factory: async () => {
+					const rows = await db
+						.select({
+							...getColumns(userAssignmentsTable),
+							roleName: rolesTable.name,
+							roleCode: rolesTable.code,
+							locationName: locationsTable.name,
+							locationCode: locationsTable.code,
+						})
+						.from(userAssignmentsTable)
+						.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+						.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+						.where(eq(userAssignmentsTable.userId, userId))
 
-				return rows
+					return rows
+				},
 			})
 		})
 	}
@@ -197,6 +200,6 @@ export class UserAssignmentService {
 
 	// Clear relevant caches.
 	private async clearCache(userId: number) {
-		await cache.del(cacheKey.byUser(userId))
+		await cache.deleteMany({ keys: [`user.${userId}`] })
 	}
 }

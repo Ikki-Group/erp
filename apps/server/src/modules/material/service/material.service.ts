@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, notExists, or, ilike } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -58,11 +58,7 @@ const uniqueFields: ConflictField<'sku' | 'name'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'material.count',
-	list: 'material.list',
-	byId: (id: number) => `material.byId.${id}`,
-}
+const cache = bento.namespace('material')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -185,42 +181,51 @@ export class MaterialService {
 
 	async find(): Promise<MaterialDto[]> {
 		return record('MaterialService.find', async () => {
-			return cache.wrap(cacheKey.list, async () => {
-				const rawMaterials = await db
-					.select()
-					.from(materialsTable)
-					.where(isNull(materialsTable.deletedAt))
-					.orderBy(materialsTable.name)
-				const relationsMap = await this.getMaterialsBatchWithRelations(
-					rawMaterials.map((m) => m.id),
-				)
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					const rawMaterials = await db
+						.select()
+						.from(materialsTable)
+						.where(isNull(materialsTable.deletedAt))
+						.orderBy(materialsTable.name)
+					const relationsMap = await this.getMaterialsBatchWithRelations(
+						rawMaterials.map((m) => m.id),
+					)
 
-				return rawMaterials.map((m) =>
-					Object.assign({}, m, {
-						conversions: relationsMap.get(m.id)!.conversions,
-						locationIds: relationsMap.get(m.id)!.locationIds,
-					}),
-				)
+					return rawMaterials.map((m) =>
+						Object.assign({}, m, {
+							conversions: relationsMap.get(m.id)!.conversions,
+							locationIds: relationsMap.get(m.id)!.locationIds,
+						}),
+					)
+				},
 			})
 		})
 	}
 
 	async getById(id: number): Promise<MaterialDto> {
 		return record('MaterialService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				return this.getMaterialWithRelations(id)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					return this.getMaterialWithRelations(id)
+				},
 			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('MaterialService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(materialsTable)
-					.where(isNull(materialsTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(materialsTable)
+						.where(isNull(materialsTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -496,10 +501,8 @@ export class MaterialService {
 	 * Clears relevant material caches.
 	 */
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

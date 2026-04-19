@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -36,7 +36,7 @@ const uniqueFields: ConflictField<'code'>[] = [
 	},
 ]
 
-const cacheKey = { count: 'uom.count', list: 'uom.list', byId: (id: number) => `uom.byId.${id}` }
+const cache = bento.namespace('uom')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -46,12 +46,15 @@ export class UomService {
 	 */
 	async find(): Promise<UomDto[]> {
 		return record('UomService.find', async () => {
-			return cache.wrap(cacheKey.list, async () => {
-				return db
-					.select()
-					.from(uomsTable)
-					.where(isNull(uomsTable.deletedAt))
-					.orderBy(uomsTable.code)
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					return db
+						.select()
+						.from(uomsTable)
+						.where(isNull(uomsTable.deletedAt))
+						.orderBy(uomsTable.code)
+				},
 			})
 		})
 	}
@@ -61,12 +64,15 @@ export class UomService {
 	 */
 	async getById(id: number): Promise<UomDto> {
 		return record('UomService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db
-					.select()
-					.from(uomsTable)
-					.where(and(eq(uomsTable.id, id), isNull(uomsTable.deletedAt)))
-				return takeFirstOrThrow(result, `UOM with ID ${id} not found`)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(uomsTable)
+						.where(and(eq(uomsTable.id, id), isNull(uomsTable.deletedAt)))
+					return takeFirstOrThrow(result, `UOM with ID ${id} not found`)
+				},
 			})
 		})
 	}
@@ -76,12 +82,15 @@ export class UomService {
 	 */
 	async count(): Promise<number> {
 		return record('UomService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(uomsTable)
-					.where(isNull(uomsTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(uomsTable)
+						.where(isNull(uomsTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -217,11 +226,9 @@ export class UomService {
 	 * Clears relevant UOM caches.
 	 */
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 
 	/**
