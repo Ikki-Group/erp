@@ -1,7 +1,10 @@
 // oxlint-disable typescript/unbound-method
 // TODO
 import { record } from '@elysiajs/opentelemetry'
+import { bento } from '@/core/cache'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+
+const cache = bento.namespace('sales.order')
 
 import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
@@ -153,7 +156,9 @@ export class SalesOrderService {
 				// Recalculate totals
 				await this.recalculateOrderTotals(tx, orderId, actorId)
 
-				return { batchId: batch!.id }
+				const batchId = batch!.id
+				await this.clearCache(orderId)
+				return { batchId }
 			})
 		})
 	}
@@ -374,21 +379,26 @@ export class SalesOrderService {
 
 	async handleDetail(id: number): Promise<SalesOrderOutputDto> {
 		return record('SalesOrderService.handleDetail', async () => {
-			const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
-			const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
+					const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
 
-			const [items, batches, voids] = await Promise.all([
-				db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
-				db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
-				db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
-			])
+					const [items, batches, voids] = await Promise.all([
+						db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
+						db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
+						db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
+					])
 
-			return {
-				...this.mapOrder(row),
-				items: items.map(this.mapItem),
-				batches: batches.map(this.mapBatch),
-				voids: voids.map(this.mapVoid),
-			}
+					return {
+						...this.mapOrder(row),
+						items: items.map(this.mapItem),
+						batches: batches.map(this.mapBatch),
+						voids: voids.map(this.mapVoid),
+					}
+				},
+			})
 		})
 	}
 
@@ -452,5 +462,11 @@ export class SalesOrderService {
 
 	private mapVoid(row: any) {
 		return { ...row }
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

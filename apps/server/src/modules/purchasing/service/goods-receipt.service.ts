@@ -1,8 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { ConflictError } from '@/core/http/errors'
+
+const cache = bento.namespace('purchasing.receipt')
 
 import { db } from '@/db'
 import {
@@ -21,26 +24,34 @@ export class GoodsReceiptService {
 	constructor(private readonly inventorySvc: StockTransactionService) {}
 
 	async getById(id: number): Promise<dto.GoodsReceiptNoteDto> {
-		const result = await record('GoodsReceiptService.getById', async () => {
-			const rows = await db
-				.select()
-				.from(goodsReceiptNotesTable)
-				.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
-			const first = core.takeFirstOrThrow(rows, `GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
+		return record('GoodsReceiptService.getById', async () => {
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(goodsReceiptNotesTable)
+						.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
+					const first = core.takeFirstOrThrow(
+						rows,
+						`GRN with ID ${id} not found`,
+						'GRN_NOT_FOUND',
+					)
 
-			const items = await db
-				.select()
-				.from(goodsReceiptNoteItemsTable)
-				.where(
-					and(
-						eq(goodsReceiptNoteItemsTable.grnId, first.id),
-						isNull(goodsReceiptNoteItemsTable.deletedAt),
-					),
-				)
+					const items = await db
+						.select()
+						.from(goodsReceiptNoteItemsTable)
+						.where(
+							and(
+								eq(goodsReceiptNoteItemsTable.grnId, first.id),
+								isNull(goodsReceiptNoteItemsTable.deletedAt),
+							),
+						)
 
-			return dto.GoodsReceiptNoteDto.parse({ ...first, items })
+					return dto.GoodsReceiptNoteDto.parse({ ...first, items })
+				},
+			})
 		})
-		return result
 	}
 
 	async handleList(
@@ -92,8 +103,8 @@ export class GoodsReceiptService {
 		data: dto.GoodsReceiptNoteCreateDto,
 		actorId: number,
 	): Promise<{ id: number }> {
-		const result = await record('GoodsReceiptService.handleCreate', async () => {
-			return db.transaction(async (tx) => {
+		return record('GoodsReceiptService.handleCreate', async () => {
+			const result = await db.transaction(async (tx) => {
 				const { items, ...headerData } = data
 
 				const [insertedGrn] = await tx
@@ -125,13 +136,14 @@ export class GoodsReceiptService {
 
 				return insertedGrn
 			})
+			await this.clearCache()
+			return result
 		})
-		return result
 	}
 
 	async handleComplete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleComplete', async () => {
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				// 1. Get GRN detail and check status
 				const grn = await this.getById(id)
 				if (grn.status !== 'open') {
@@ -173,6 +185,8 @@ export class GoodsReceiptService {
 
 				return { id }
 			})
+			await this.clearCache(id)
+			return result
 		})
 	}
 
@@ -184,6 +198,7 @@ export class GoodsReceiptService {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
+			await this.clearCache(id)
 			return result
 		})
 	}
@@ -195,7 +210,14 @@ export class GoodsReceiptService {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
+			await this.clearCache(id)
 			return result
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

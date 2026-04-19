@@ -1,7 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, isNull, sql } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+
+const cache = bento.namespace('production.work-order')
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import { transformDecimals } from '@/core/utils/decimal'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -70,17 +73,22 @@ export class WorkOrderService {
 
 	async handleDetail(id: number): Promise<WorkOrderDto> {
 		return record('WorkOrderService.handleDetail', async () => {
-			const result = await db
-				.select()
-				.from(workOrdersTable)
-				.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(workOrdersTable)
+						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
-			const row = takeFirstOrThrow(
-				result,
-				`Work Order with ID ${id} not found`,
-				'WORK_ORDER_NOT_FOUND',
-			)
-			return transformDecimals(row) as unknown as WorkOrderDto
+					const row = takeFirstOrThrow(
+						result,
+						`Work Order with ID ${id} not found`,
+						'WORK_ORDER_NOT_FOUND',
+					)
+					return transformDecimals(row) as unknown as WorkOrderDto
+				},
+			})
 		})
 	}
 
@@ -101,7 +109,9 @@ export class WorkOrderService {
 				})
 				.returning()
 
-			return transformDecimals(result[0]) as unknown as WorkOrderDto
+			const wo = transformDecimals(result[0]) as unknown as WorkOrderDto
+			await this.clearCache()
+			return wo
 		})
 	}
 
@@ -117,7 +127,9 @@ export class WorkOrderService {
 				.where(eq(workOrdersTable.id, id))
 				.returning()
 
-			return transformDecimals(result[0]) as unknown as WorkOrderDto
+			const updatedWo = transformDecimals(result[0]) as unknown as WorkOrderDto
+			await this.clearCache(id)
+			return updatedWo
 		})
 	}
 
@@ -193,8 +205,16 @@ export class WorkOrderService {
 					.where(eq(workOrdersTable.id, id))
 					.returning()
 
-				return transformDecimals(result[0]) as unknown as WorkOrderDto
+				const woResult = transformDecimals(result[0]) as unknown as WorkOrderDto
+				await this.clearCache(id)
+				return woResult
 			})
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

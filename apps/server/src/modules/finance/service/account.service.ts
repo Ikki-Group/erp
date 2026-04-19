@@ -1,7 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, ilike, or, and, eq, isNull } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirstOrThrow, paginate, sortBy } from '@/core/database'
+
+const cache = bento.namespace('finance.account')
 
 import { db } from '@/db'
 import { accountsTable } from '@/db/schema/finance'
@@ -38,12 +41,17 @@ export class AccountService {
 
 	async handleDetail(id: number) {
 		return record('AccountService.handleDetail', async () => {
-			const result = await db
-				.select()
-				.from(accountsTable)
-				.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(accountsTable)
+						.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
 
-			return takeFirstOrThrow(result, `Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
+					return takeFirstOrThrow(result, `Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
+				},
+			})
 		})
 	}
 
@@ -55,7 +63,9 @@ export class AccountService {
 				.values({ ...data, ...stamps })
 				.returning({ id: accountsTable.id })
 
-			return takeFirstOrThrow(rows, 'Failed to create account', 'ACCOUNT_CREATE_FAILED')
+			const result = takeFirstOrThrow(rows, 'Failed to create account', 'ACCOUNT_CREATE_FAILED')
+			await this.clearCache()
+			return result
 		})
 	}
 
@@ -68,7 +78,9 @@ export class AccountService {
 				.where(eq(accountsTable.id, id))
 				.returning({ id: accountsTable.id })
 
-			return takeFirstOrThrow(rows, 'Failed to update account', 'ACCOUNT_UPDATE_FAILED')
+			const result = takeFirstOrThrow(rows, 'Failed to update account', 'ACCOUNT_UPDATE_FAILED')
+			await this.clearCache(id)
+			return result
 		})
 	}
 
@@ -90,17 +102,34 @@ export class AccountService {
 				.where(eq(accountsTable.id, id))
 				.returning({ id: accountsTable.id })
 
-			return takeFirstOrThrow(rows, `Account ${id} not found on remove`, 'ACCOUNT_NOT_FOUND')
+			const result = takeFirstOrThrow(
+				rows,
+				`Account ${id} not found on remove`,
+				'ACCOUNT_NOT_FOUND',
+			)
+			await this.clearCache(id)
+			return result
 		})
 	}
 
 	async findByCode(code: string) {
-		const [result] = await db
-			.select()
-			.from(accountsTable)
-			.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
-			.limit(1)
+		return cache.getOrSet({
+			key: `code.${code}`,
+			factory: async () => {
+				const [result] = await db
+					.select()
+					.from(accountsTable)
+					.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
+					.limit(1)
 
-		return result ?? null
+				return result ?? null
+			},
+		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

@@ -8,7 +8,7 @@ The Service layer is responsible for:
 
 - Orchestrating database operations (Drizzle).
 - Managing business logic and validation beyond simple schema checks.
-- Handling cache invalidation and wrapping (`cache-manager`).
+- Handling cache invalidation and wrapping (`BentoCache`).
 - Tracing and performance recording (`opentelemetry`).
 - Throwing domain-specific errors for the Router layer to catch.
 
@@ -41,20 +41,29 @@ async handleDetail(id: number) {
 }
 ```
 
-### Cache Wrapping
+### Cache Strategy (BentoCache)
 
-Use `cache.wrap` for expensive read operations (e.g., `getById`, `count`, `list`).
+Use `bento.namespace('domain')` for read operations that benefit from caching.
 
 ```typescript
-const cacheKey = {
-  byId: (id: number) => `domain.byId.${id}`,
-}
+import { bento } from '@/core/cache'
+
+const cache = bento.namespace('domain')
 
 async getById(id: number) {
-  return cache.wrap(cacheKey.byId(id), async () => {
-    const rows = await db.select().from(table).where(eq(table.id, id))
-    return takeFirstOrThrow(rows)
+  return cache.getOrSet({
+    key: `${id}`,
+    factory: async () => {
+      const rows = await db.select().from(table).where(eq(table.id, id))
+      return takeFirstOrThrow(rows)
+    }
   })
+}
+
+async clearCache(id?: number) {
+  const keys = ['count', 'list']
+  if (id) keys.push(`${id}`)
+  await cache.deleteMany({ keys })
 }
 ```
 
