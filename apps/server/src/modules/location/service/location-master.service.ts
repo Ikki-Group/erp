@@ -8,8 +8,8 @@ import type { RecordId } from '@/core/validation'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
-import { LocationMasterRepo } from './location-master.repo'
+import * as dto from '../dto'
+import { LocationMasterRepo } from '../repo/location-master.repo'
 
 const cache = bento.namespace('location-master')
 

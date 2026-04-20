@@ -13,7 +13,7 @@ import {
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
+import * as dto from '../dto'
 
 export class LocationMasterRepo {
 	/* -------------------------------------------------------------------------- */
