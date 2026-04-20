@@ -1,6 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
+import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import type { WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	searchFilter,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema'
@@ -8,12 +16,14 @@ import { locationsTable } from '@/db/schema'
 import * as dto from './location-master.dto'
 
 export class LocationMasterRepo {
-	private base() {
-		return db.select().from(locationsTable).$dynamic()
-	}
+	/* -------------------------------------------------------------------------- */
+	/*                                    QUERY                                   */
+	/* -------------------------------------------------------------------------- */
 
 	async getList(): Promise<dto.LocationDto[]> {
-		return record('LocationMasterRepo.getList', async () => this.base().execute())
+		return record('LocationMasterRepo.getList', async () =>
+			db.select().from(locationsTable).where(isNull(locationsTable.deletedAt)).execute(),
+		)
 	}
 
 	async getListPaginated(
@@ -21,31 +31,116 @@ export class LocationMasterRepo {
 	): Promise<WithPaginationResult<dto.LocationDto>> {
 		return record('LocationMasterRepo.getListPaginated', async () => {
 			const { q, page, limit, type } = filter
+			const where = and(
+				isNull(locationsTable.deletedAt),
+				q === undefined
+					? undefined
+					: or(searchFilter(locationsTable.name, q), searchFilter(locationsTable.code, q)),
+				type === undefined ? undefined : eq(locationsTable.type, type),
+			)
 
-			return db.query.locationsTable.findMany({
-				where: {
-					type: type,
-				},
-				with: {
-					materialLocations: {
-						where: {},
-					},
-				},
+			return paginate({
+				data: ({ limit, offset }) =>
+					db
+						.select()
+						.from(locationsTable)
+						.where(where)
+						.orderBy(locationsTable.name)
+						.limit(limit)
+						.offset(offset),
+				pq: { page, limit },
+				countQuery: db.select({ count: count() }).from(locationsTable).where(where),
 			})
 		})
 	}
 
-	async getById() {}
+	async getById(id: number): Promise<dto.LocationDto | null> {
+		return record('LocationMasterRepo.getById', async () => {
+			return db
+				.select()
+				.from(locationsTable)
+				.where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+				.then(takeFirst)
+		})
+	}
 
-	async count() {}
+	async count(): Promise<number> {
+		return record('LocationMasterRepo.count', async () => {
+			return db
+				.select({ count: count() })
+				.from(locationsTable)
+				.where(isNull(locationsTable.deletedAt))
+				.then((rows) => rows[0]?.count ?? 0)
+		})
+	}
 
-	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]) {}
+	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]) {
+		return record('LocationMasterRepo.seed', async () => {
+			for (const d of data) {
+				const metadata = stampCreate(d.createdBy)
+				await db
+					.insert(locationsTable)
+					.values({ ...d, ...metadata })
+					.onConflictDoUpdate({
+						target: locationsTable.code,
+						targetWhere: isNull(locationsTable.deletedAt),
+						set: {
+							name: d.name,
+							type: d.type,
+							updatedAt: metadata.updatedAt,
+							updatedBy: metadata.updatedBy,
+							deletedAt: null,
+						},
+					})
+			}
+		})
+	}
 
-	async create() {}
+	/* -------------------------------------------------------------------------- */
+	/*                                  MUTATION                                  */
+	/* -------------------------------------------------------------------------- */
 
-	async update() {}
+	async create(data: dto.LocationCreateDto, actorId: number): Promise<number | undefined> {
+		return record('LocationMasterRepo.create', async () => {
+			const metadata = stampCreate(actorId)
+			const [res] = await db
+				.insert(locationsTable)
+				.values({ ...data, ...metadata })
+				.returning({ id: locationsTable.id })
+			return res?.id
+		})
+	}
 
-	async remove() {}
+	async update(data: dto.LocationUpdateDto, actorId: number): Promise<number | undefined> {
+		return record('LocationMasterRepo.update', async () => {
+			const metadata = stampUpdate(actorId)
+			const [res] = await db
+				.update(locationsTable)
+				.set({ ...data, ...metadata })
+				.where(eq(locationsTable.id, data.id))
+				.returning({ id: locationsTable.id })
+			return res?.id
+		})
+	}
 
-	async hardRemove() {}
+	async remove(id: number, actorId: number): Promise<number | undefined> {
+		return record('LocationMasterRepo.remove', async () => {
+			const [res] = await db
+				.update(locationsTable)
+				.set({ deletedAt: new Date(), deletedBy: actorId })
+				.where(eq(locationsTable.id, id))
+				.returning({ id: locationsTable.id })
+			return res?.id
+		})
+	}
+
+	async hardRemove(id: number): Promise<number | undefined> {
+		return record('LocationMasterRepo.hardRemove', async () => {
+			const [res] = await db
+				.delete(locationsTable)
+				.where(eq(locationsTable.id, id))
+				.returning({ id: locationsTable.id })
+			return res?.id
+		})
+	}
 }

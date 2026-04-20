@@ -13,3 +13,9 @@ export const bento = new BentoCache({
 		cache: bentostore().useL1Layer(memoryDriver({ maxSize: '10mb' })),
 	},
 })
+
+export const CACHE_KEY_DEFAULT = {
+	list: 'list',
+	count: 'count',
+	byId: (id: number | string) => `byId:${id}`,
+}

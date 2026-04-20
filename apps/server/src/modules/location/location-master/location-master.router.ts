@@ -9,7 +9,7 @@ import {
 	zq,
 } from '@/core/validation'
 
-import * as dto from '../dto/location.dto'
+import * as dto from './location-master.dto'
 import type { LocationMasterService } from './location-master.service'
 
 export function initLocationRoute(service: LocationMasterService) {
