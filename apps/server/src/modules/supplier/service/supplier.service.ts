@@ -38,7 +38,7 @@ export class SupplierService {
 
 			const where = and(isNull(suppliersTable.deletedAt), searchCondition)
 
-			const result = await paginate({
+			const result = await paginate<SupplierDto>({
 				data: ({ limit, offset }) =>
 					db
 						.select()
