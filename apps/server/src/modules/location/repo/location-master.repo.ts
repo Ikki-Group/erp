@@ -22,7 +22,7 @@ export class LocationMasterRepo {
 
 	async getList(): Promise<dto.LocationDto[]> {
 		return record('LocationMasterRepo.getList', async () =>
-			db.select().from(locationsTable).where(isNull(locationsTable.deletedAt)).execute(),
+			db.select().from(locationsTable).where(isNull(locationsTable.deletedAt)),
 		)
 	}
 
@@ -60,6 +60,7 @@ export class LocationMasterRepo {
 				.select()
 				.from(locationsTable)
 				.where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+				.limit(1)
 				.then(takeFirst)
 		})
 	}

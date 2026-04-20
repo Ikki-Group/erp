@@ -1,4 +1,4 @@
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -10,7 +10,7 @@ import {
 	zq,
 } from '@/core/validation'
 
-import * as dto from '../dto/role.dto'
+import * as dto from '../dto'
 import type { RoleService } from '../service/role.service'
 
 /**

@@ -7,3 +7,5 @@ export class LocationServiceModule {
 		this.location = new LocationMasterService()
 	}
 }
+
+export { LocationMasterService }

@@ -1,15 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
 
-import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
 import * as dto from '../dto/role.dto'
+import { RoleRepo } from '../repo/role.repo'
 
 const cache = bento.namespace('role')
 
@@ -40,218 +39,122 @@ const err = {
 // Role Service (Layer 0)
 // Handles authorization role definitions and permission sets.
 export class RoleService {
-	// Seed initial roles.
-	async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
-		await record('RoleService.seed', async () => {
-			for (const d of data) {
-				const metadata = core.stampCreate(d.createdBy)
-				await db
-					.insert(rolesTable)
-					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: rolesTable.code,
-						targetWhere: isNull(rolesTable.deletedAt),
-						set: {
-							name: d.name,
-							description: d.description,
-							permissions: d.permissions,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-							deletedAt: null,
-						},
-					})
-			}
-			await this.clearCache()
-		})
+	private repo = new RoleRepo()
+
+	// internal
+	private async clearCache(id?: number) {
+		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await cache.deleteMany({ keys })
 	}
 
-	// Returns active roles.
-	async find(): Promise<dto.RoleDto[]> {
-		return record('RoleService.find', async () => {
+	// public
+	async getList(): Promise<dto.RoleDto[]> {
+		return record('RoleService.getList', async () => {
 			return cache.getOrSet({
-				key: 'list',
-				factory: async () => {
-					const rows = await db
-						.select()
-						.from(rolesTable)
-						.where(isNull(rolesTable.deletedAt))
-						.orderBy(rolesTable.name)
-					return rows
-				},
+				key: CACHE_KEY_DEFAULT.list,
+				factory: async () => this.repo.getList(),
 			})
-		})
-	}
-
-	// Finds a role by ID.
-	async getById(id: number): Promise<dto.RoleDto | undefined> {
-		return record('RoleService.getById', async () => {
-			return cache.getOrSet({
-				key: `${id}`,
-				factory: async ({ skip }) => {
-					const [row] = await db
-						.select()
-						.from(rolesTable)
-						.where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
-						.limit(1)
-
-					if (!row) return skip()
-					return row
-				},
-			})
-		})
-	}
-
-	async getSuperadmin(): Promise<dto.RoleDto> {
-		return record('RoleService.getSuperadmin', async () => {
-			const role = await this.getById(1)
-			if (!role) throw err.notFound(1)
-			return dto.RoleDto.parse(role)
 		})
 	}
 
 	async getRelationMap(): Promise<RelationMap<number, dto.RoleDto>> {
 		return record('RoleService.getRelationMap', async () => {
-			const roles = await this.find()
+			const roles = await this.getList()
 			return RelationMap.fromArray(roles, (r) => r.id)
 		})
 	}
 
-	// Returns total count.
+	async getById(id: number): Promise<dto.RoleDto | undefined> {
+		return record('RoleService.getById', async () => {
+			return cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.byId(id),
+				factory: async ({ skip }) => {
+					const result = await this.repo.getById(id)
+					return result ?? skip()
+				},
+			})
+		})
+	}
+
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {
 			return cache.getOrSet({
-				key: 'count',
-				factory: async () => {
-					const rows = await db
-						.select({ val: count() })
-						.from(rolesTable)
-						.where(isNull(rolesTable.deletedAt))
-					return rows[0]?.val ?? 0
-				},
+				key: CACHE_KEY_DEFAULT.count,
+				factory: async () => this.repo.count(),
 			})
 		})
 	}
 
-	// Paginated list.
+	// Handler layer
 	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
 		return record('RoleService.handleList', async () => {
-			const { q, page, limit } = filter
-			const where = and(
-				isNull(rolesTable.deletedAt),
-				q === undefined
-					? undefined
-					: or(core.searchFilter(rolesTable.name, q), core.searchFilter(rolesTable.code, q)),
-			)
-
-			return core.paginate<dto.RoleDto>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await db
-						.select()
-						.from(rolesTable)
-						.where(where)
-						.orderBy(core.sortBy(rolesTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows
-				},
-				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(rolesTable).where(where),
-			})
+			const result = await this.repo.getListPaginated(filter)
+			return result
 		})
 	}
 
-	// Resource detail.
 	async handleDetail(id: number): Promise<dto.RoleDto> {
 		return record('RoleService.handleDetail', async () => {
-			const role = await this.getById(id)
-			if (!role) throw err.notFound(id)
-			return dto.RoleDto.parse(role)
+			const result = await this.repo.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
 		})
 	}
 
-	// Creation.
 	async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
-		const result = await record('RoleService.handleCreate', async () => {
+		return record('RoleService.handleCreate', async () => {
 			await core.checkConflict({
 				table: rolesTable,
 				pkColumn: rolesTable.id,
 				fields: uniqueFields,
 				input: data,
 			})
-			const [inserted] = await db
-				.insert(rolesTable)
-				.values({ ...data, ...core.stampCreate(actorId) })
-				.returning({ id: rolesTable.id })
-			if (!inserted) throw err.createFailed()
+			const result = await this.repo.create(data, actorId)
+			if (!result) throw err.createFailed()
+
 			await this.clearCache()
-			return inserted
+			return { id: result }
 		})
-		return result
 	}
 
-	// Update.
 	async handleUpdate(data: dto.RoleUpdateDto, actorId: number): Promise<{ id: number }> {
-		const result = await record('RoleService.handleUpdate', async () => {
-			const { id, ...rest } = data
+		return record('RoleService.handleUpdate', async () => {
+			const { id } = data
+
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
-			if (existing.isSystem) throw err.updateSystemRoleForbidden()
-
 			await core.checkConflict({
 				table: rolesTable,
 				pkColumn: rolesTable.id,
 				fields: uniqueFields,
-				input: { ...rest },
+				input: data,
 				existing,
 			})
 
-			await db
-				.update(rolesTable)
-				.set({ ...rest, ...core.stampUpdate(actorId) })
-				.where(eq(rolesTable.id, id))
+			const result = await this.repo.update(data, actorId)
+			if (!result) throw err.notFound(id)
+
 			await this.clearCache(id)
 			return { id }
 		})
-		return result
 	}
 
-	// Removal.
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('RoleService.handleRemove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-			if (existing.isSystem) throw err.removeSystemRoleForbidden()
-			const [result] = await db
-				.update(rolesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(rolesTable.id, id))
-				.returning({ id: rolesTable.id })
+			const result = await this.repo.remove(id, actorId)
 			if (!result) throw err.notFound(id)
 			await this.clearCache(id)
-			return result
+			return { id }
 		})
 	}
 
-	// Hard Removal.
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('RoleService.handleHardRemove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-			if (existing.isSystem) throw err.removeSystemRoleForbidden()
-			const [result] = await db
-				.delete(rolesTable)
-				.where(eq(rolesTable.id, id))
-				.returning({ id: rolesTable.id })
+			const result = await this.repo.hardRemove(id)
 			if (!result) throw err.notFound(id)
 			await this.clearCache(id)
-			return result
+			return { id }
 		})
-	}
-
-	// Clear relevant caches.
-	private async clearCache(id?: number) {
-		const keys = ['list', 'count']
-		if (id) keys.push(`${id}`)
-		await cache.deleteMany({ keys })
 	}
 }

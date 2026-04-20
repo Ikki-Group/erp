@@ -11,7 +11,7 @@ import type { AuditResolved } from '@/core/validation'
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import type { LocationDto, LocationService } from '@/modules/location'
+import type { LocationDto } from '@/modules/location'
 
 import type { RoleDto } from '../dto'
 import * as dto from '../dto/user.dto'
