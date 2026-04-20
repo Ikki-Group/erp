@@ -5,7 +5,7 @@ export function requestIdPlugin() {
 	return new Elysia({ name: 'request-id' })
 		.derive(({ set }) => {
 			const span = trace.getSpan(context.active())
-			const requestId = span?.spanContext().traceId || ''
+			const requestId = span?.spanContext().traceId ?? ''
 
 			// Set the header in the response context
 			set.headers['X-Request-Id'] = requestId

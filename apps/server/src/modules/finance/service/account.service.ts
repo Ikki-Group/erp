@@ -14,7 +14,7 @@ import type { AccountCreateDto, AccountUpdateDto, AccountFilterDto } from '../dt
 export class AccountService {
 	async handleList(query: AccountFilterDto) {
 		return record('AccountService.handleList', async () => {
-			const { q, type, parentId, limit = 50, page = 1 } = query
+			const { q, type, parentId, limit, page } = query
 
 			const where = and(
 				q

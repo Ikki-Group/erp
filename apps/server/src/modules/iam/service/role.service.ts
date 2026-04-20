@@ -87,18 +87,15 @@ export class RoleService {
 		return record('RoleService.getById', async () => {
 			return cache.getOrSet({
 				key: `${id}`,
-				factory: async () => {
-					const rows = await db
+				factory: async ({ skip }) => {
+					const [row] = await db
 						.select()
 						.from(rolesTable)
 						.where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
+						.limit(1)
 
-					const first = core.takeFirstOrThrow(
-						rows,
-						`Role with ID ${id} not found`,
-						'ROLE_NOT_FOUND',
-					)
-					return dto.RoleDto.parse(first)
+					if (!row) return skip()
+					return row
 				},
 			})
 		})
@@ -137,7 +134,7 @@ export class RoleService {
 
 	// Paginated list.
 	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
-		const result = await record('RoleService.handleList', async () => {
+		return record('RoleService.handleList', async () => {
 			const { q, page, limit } = filter
 			const where = and(
 				isNull(rolesTable.deletedAt),
@@ -146,17 +143,21 @@ export class RoleService {
 					: or(core.searchFilter(rolesTable.name, q), core.searchFilter(rolesTable.code, q)),
 			)
 
-			const p = await core.paginate<dto.RoleDto>({
+			return core.paginate<dto.RoleDto>({
 				data: async ({ limit: l, offset }) => {
-					const rows = await db.select().from(rolesTable).where(where).limit(l).offset(offset)
+					const rows = await db
+						.select()
+						.from(rolesTable)
+						.where(where)
+						.orderBy(core.sortBy(rolesTable.updatedAt, 'desc'))
+						.limit(l)
+						.offset(offset)
 					return rows
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(rolesTable).where(where),
 			})
-			return p
 		})
-		return result
 	}
 
 	// Resource detail.
@@ -206,7 +207,7 @@ export class RoleService {
 
 			await db
 				.update(rolesTable)
-				.set({ ...data, ...core.stampUpdate(actorId) })
+				.set({ ...rest, ...core.stampUpdate(actorId) })
 				.where(eq(rolesTable.id, id))
 			await this.clearCache(id)
 			return { id }
@@ -251,8 +252,6 @@ export class RoleService {
 	private async clearCache(id?: number) {
 		const keys = ['list', 'count']
 		if (id) keys.push(`${id}`)
-		await cache.deleteMany({
-			keys,
-		})
+		await cache.deleteMany({ keys })
 	}
 }

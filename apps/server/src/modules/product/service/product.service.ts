@@ -450,7 +450,7 @@ export class ProductService {
 						.values({
 							productId: product.id,
 							name: variant.name.trim(),
-							sku: variant.sku?.trim() || null,
+							sku: variant.sku?.trim() ?? null,
 							isDefault: variant.isDefault ?? false,
 							basePrice: (variant.basePrice ?? 0).toString(),
 							...meta,
@@ -551,7 +551,7 @@ export class ProductService {
 							.values({
 								productId: id,
 								name: variant.name.trim(),
-								sku: variant.sku?.trim() || null,
+								sku: variant.sku?.trim() ?? null,
 								isDefault: variant.isDefault ?? false,
 								basePrice: (variant.basePrice ?? 0).toString(),
 								...createMeta,

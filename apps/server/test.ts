@@ -15,4 +15,4 @@ try {
 } catch (e) {
 	console.log('bun:sql error:', e.message)
 }
-sql.close()
+void sql.close()

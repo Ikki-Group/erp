@@ -1,5 +1,5 @@
 ---
-name: Ikki ERP Backend Architect
+name: ikki-architect
 description: Strict supervisor that ensures generated code conforms to the Golden Path 2.1 Backend Architecture of Ikki ERP. Must be used when authoring code, modifying routes, or updating Drizzle schemas.
 ---
 

@@ -161,7 +161,7 @@ export class GoodsReceiptService {
 						locationId: grn.locationId,
 						date: grn.receiveDate,
 						referenceNo: `GRN-${grn.id}`,
-						notes: grn.notes || null,
+						notes: grn.notes ?? null,
 						items: grn.items.map((item) => {
 							const unitCost = item.purchaseOrderItemId
 								? (poItemMap.get(item.purchaseOrderItemId) ?? 0)

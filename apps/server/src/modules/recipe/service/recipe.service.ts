@@ -174,7 +174,7 @@ export class RecipeService {
 
 			const itemsByRecipe = new Map<number, typeof allItems>()
 			for (const item of allItems) {
-				const list = itemsByRecipe.get(item.recipeId) || []
+				const list = itemsByRecipe.get(item.recipeId) ?? []
 				list.push(item)
 				itemsByRecipe.set(item.recipeId, list)
 			}
@@ -182,7 +182,7 @@ export class RecipeService {
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
 				targetQty: Number(r.targetQty),
-				items: itemsByRecipe.get(r.id) || [],
+				items: itemsByRecipe.get(r.id) ?? [],
 			}))
 
 			return { data, meta: result.meta }
@@ -402,7 +402,7 @@ export class RecipeService {
 	async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
 		return record('RecipeService.handleCalculateCost', async () => {
 			const recipe = await this.getById(recipeId)
-			const items = recipe.items || []
+			const items = recipe.items ?? []
 
 			let totalCost = 0
 			const detailedItems = []
@@ -420,7 +420,7 @@ export class RecipeService {
 						),
 					)
 
-				const avgCost = Number(valuation?.avgCost || 0)
+				const avgCost = Number(valuation?.avgCost ?? 0)
 				const qty = Number(item.qty)
 				const scrap = Number(item.scrapPercentage)
 
