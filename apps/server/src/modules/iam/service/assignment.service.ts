@@ -36,15 +36,12 @@ export class UserAssignmentService {
 		})
 	}
 
-	async updateByUserId(
+	async setBulkByUserId(
 		userId: number,
-		assignments: Omit<dto.UserAssignmentUpsertDto, 'userId'>[],
+		assignments: dto.UserAssignmentUpsertDto[],
 		actorId: number,
 	): Promise<void> {
-		return record('UserAssignmentService.updateByUserId', async () => {
-			const existingAssignments = await this.repo.getList({ userId })
-			// const newAssignments: dto.UserAssignmentUpsertDto[] =
-		})
+		return record('UserAssignmentService.updateByUserId', async () => {})
 	}
 
 	async execUpsertBulk(

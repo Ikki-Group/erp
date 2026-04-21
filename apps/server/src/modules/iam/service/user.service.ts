@@ -60,23 +60,92 @@ export class UserService {
 		await cache.deleteMany({ keys })
 	}
 
+	private validateUserAssignments(
+		assignments: dto.UserAssignmentDetailDto[],
+	): dto.UserAssignmentDetailDto[] {
+		if (assignments.length > 0) {
+			const defaultLocationIds = assignments.filter((a) => a.isDefault).map((a) => a.locationId)
+
+			// Set the first location as default.
+			if (defaultLocationIds.length === 0) assignments[0]!.isDefault = true
+
+			// Pick one location as default.
+			if (defaultLocationIds.length > 1) {
+				const [selectedLocationId] = defaultLocationIds
+				assignments = assignments.map((a) => ({
+					...a,
+					isDefault: a.locationId === selectedLocationId,
+				}))
+			}
+		}
+
+		return assignments
+	}
+
+	private async getUserAssignments(
+		userId: number,
+		isRoot: boolean,
+		roleMapper?: RelationMap<number, RoleDto>,
+		locationMapper?: RelationMap<number, LocationDto>,
+	): Promise<dto.UserAssignmentDetailDto[]> {
+		return record('UserService.getUserAssignments', async () => {
+			const assignments: dto.UserAssignmentDetailDto[] = []
+
+			// Root users: resolve ALL locations at runtime and roles as SUPERADMIN
+			if (isRoot) {
+				const [superAdminRole, allLocations, userAssignments] = await Promise.all([
+					this.roleService.getSuperadmin(),
+					this.locationService.getList(),
+					this.assignmentService.getList({ userId }),
+				])
+
+				const defaultAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
+
+				for (const location of allLocations) {
+					const userAssignment = userAssignments.find((a) => a.locationId === location.id)
+					assignments.push({
+						...defaultAssignment,
+						userId,
+						locationId: location.id,
+						isDefault: userAssignment?.isDefault ?? false,
+						role: superAdminRole,
+						location,
+					})
+				}
+			} else {
+				const rawAssignments = await this.assignmentService.findByUserId(userId)
+				const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
+				const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
+
+				assignments.push(
+					...rawAssignments.map((a) => ({
+						...a,
+						role: roleMap.getRequired(a.roleId),
+						location: locationMap.getRequired(a.locationId),
+					})),
+				)
+			}
+
+			return this.validateUserAssignments(assignments)
+		})
+	}
+
 	// Seed initial users.
 	async seed(
 		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
 	): Promise<void> {
 		await record('UserService.seed', async () => {
-			for (const d of data) {
-				const insertedId = await this.repo.seed([d]).then((res) => res[0])
+			// for (const d of data) {
+			// 	const insertedId = await this.repo.seed([d]).then((res) => res[0])
 
-				if (insertedId && d.assignments && d.assignments.length > 0) {
-					await this.assignmentService.execUpsertBulk(insertedId, d.assignments, d.createdBy)
-				}
-			}
+			// 	if (insertedId && d.assignments && d.assignments.length > 0) {
+			// 		await this.assignmentService.execUpsertBulk(insertedId, d.assignments, d.createdBy)
+			// 	}
+			// }
 			await this.clearCache()
 		})
 	}
 
-	// public
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserService.getList', async () => {
 			return cache.getOrSet({
@@ -86,46 +155,6 @@ export class UserService {
 		})
 	}
 
-	async getUserAssignments(
-		userId: number,
-		isRoot: boolean,
-		roleMapper?: RelationMap<number, RoleDto>,
-		locationMapper?: RelationMap<number, LocationDto>,
-	): Promise<dto.UserAssignmentDetailDto[]> {
-		return record('UserService.getUserAssignments', async () => {
-			const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
-			const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
-
-			// Root users: resolve ALL locations at runtime and roles as SUPERADMIN
-			if (isRoot) {
-				const superAdminRole = await this.roleService.getSuperadmin()
-				const allLocations = await this.locationService.getList()
-
-				return allLocations.map((loc, index) => {
-					const baseAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
-					return {
-						...baseAssignment,
-						userId,
-						locationId: loc.id,
-						isDefault: index === 0,
-						role: superAdminRole,
-						location: loc,
-					}
-				})
-			}
-
-			// Non-root users: resolve from userAssignmentsTable
-			const rawAssignments = await this.assignmentService.findByUserId(userId)
-
-			return rawAssignments.map((a) => ({
-				...a,
-				role: roleMap.getRequired(a.roleId),
-				location: locationMap.getRequired(a.locationId),
-			}))
-		})
-	}
-
-	// Finds a user by ID.
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserService.getById', async () => {
 			return cache.getOrSet({
@@ -151,7 +180,12 @@ export class UserService {
 		})
 	}
 
-	// Returns total count.
+	async getByIdentifier(
+		identifier: string,
+	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
+		return this.repo.findByIdentifier(identifier)
+	}
+
 	async count(): Promise<number> {
 		return record('UserService.count', async () => {
 			return cache.getOrSet({
@@ -189,21 +223,11 @@ export class UserService {
 		})
 	}
 
-	// Finds a user by username or email.
-	// Internal use for authentication.
-	async findByIdentifier(
-		identifier: string,
-	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
-		return this.repo.findByIdentifier(identifier)
-	}
-
-	// Resource detail.
 	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
-		const user = await this.getUserDetails(id)
+		const user = await this.getUserDetail(id)
 		return resolveAudit(user)
 	}
 
-	// Creation.
 	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserService.handleCreate', async () => {
 			await core.checkConflict({
