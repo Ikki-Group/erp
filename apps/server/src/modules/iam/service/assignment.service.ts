@@ -35,4 +35,66 @@ export class UserAssignmentService {
 			return this.repo.getList(filter)
 		})
 	}
+
+	async execUpsertBulk(
+		userId: number,
+		assignments: dto.UserAssignmentUpsertDto[],
+		actorId: number,
+	): Promise<void> {
+		return record('UserAssignmentService.execUpsertBulk', async () => {
+			await this.repo.upsertBulk(userId, assignments, actorId)
+		})
+	}
+
+	async findByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
+		return record('UserAssignmentService.findByUserId', async () => {
+			return this.repo.getList({ userId })
+		})
+	}
+
+	async handleList(filter: dto.UserAssignmentFilterDto) {
+		return record('UserAssignmentService.handleList', async () => {
+			return this.repo.getListPaginated(filter)
+		})
+	}
+
+	async execAssign(data: Omit<dto.UserAssignmentUpsertDto, 'isDefault'>, actorId: number) {
+		return record('UserAssignmentService.execAssign', async () => {
+			const existingAssignments = await this.repo.getList({ userId: data.userId })
+			const existingIndex = existingAssignments.findIndex((a) => a.locationId === data.locationId)
+
+			const newAssignments: dto.UserAssignmentUpsertDto[] = existingAssignments.map((a) => ({
+				userId: a.userId,
+				roleId: a.roleId,
+				locationId: a.locationId,
+				isDefault: a.isDefault,
+			}))
+
+			if (existingIndex !== -1) {
+				const target = newAssignments[existingIndex]
+				if (target) {
+					newAssignments[existingIndex] = {
+						userId: data.userId,
+						roleId: data.roleId,
+						locationId: data.locationId,
+						isDefault: target.isDefault,
+					}
+				}
+			} else {
+				newAssignments.push({
+					userId: data.userId,
+					roleId: data.roleId,
+					locationId: data.locationId,
+					isDefault: newAssignments.length === 0,
+				})
+			}
+			await this.repo.upsertBulk(data.userId, newAssignments, actorId)
+		})
+	}
+
+	async execRemove(userId: number, locationId: number) {
+		return record('UserAssignmentService.execRemove', async () => {
+			await this.repo.remove(userId, locationId)
+		})
+	}
 }

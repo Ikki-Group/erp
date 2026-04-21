@@ -34,6 +34,16 @@ export const UserDetailDto = z.object({
 })
 export type UserDetailDto = z.infer<typeof UserDetailDto>
 
+/**
+ * User Detail with Audit information.
+ * Used for response schemas to include resolved audit metadata.
+ */
+export const UserDetailResolvedDto = z.object({
+	...UserDetailDto.shape,
+	...zc.AuditResolved.shape,
+})
+export type UserDetailResolvedDto = z.infer<typeof UserDetailResolvedDto>
+
 /* -------------------------------- MUTATION -------------------------------- */
 
 const UserMutationDto = z.object({

@@ -1,5 +1,4 @@
 import Elysia from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -40,12 +39,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(
-					z.object({
-						...dto.UserDetailDto.shape,
-						...zc.AuditResolved.shape,
-					}),
-				),
+				response: createSuccessResponseSchema(dto.UserDetailResolvedDto),
 				auth: true,
 			},
 		)

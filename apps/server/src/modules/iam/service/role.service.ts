@@ -157,4 +157,12 @@ export class RoleService {
 			return { id }
 		})
 	}
+
+	async getSuperadmin(): Promise<dto.RoleDto> {
+		return record('RoleService.getSuperadmin', async () => {
+			const result = await this.getById(1)
+			if (!result) throw err.notFound(1)
+			return result
+		})
+	}
 }

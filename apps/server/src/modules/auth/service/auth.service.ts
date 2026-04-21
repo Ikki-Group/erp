@@ -33,7 +33,7 @@ export class AuthService {
 		}
 
 		const session = await this.sessionSvc.createSession(targetUser)
-		const userDetail = await this.userSvc.getById(targetUser.id)
+		const userDetail = await this.userSvc.getDetailById(targetUser.id)
 
 		return { user: userDetail, token: session.token }
 	}
@@ -44,11 +44,11 @@ export class AuthService {
 			throw err.invalidCredentials()
 		}
 
-		const userWithAccess = await this.userSvc.getById(session.userId)
+		const userWithAccess = await this.userSvc.getDetailById(session.userId)
 		return userWithAccess
 	}
 
 	async getById(userId: number): Promise<UserDto> {
-		return this.userSvc.getById(userId)
+		return this.userSvc.getDetailById(userId)
 	}
 }
