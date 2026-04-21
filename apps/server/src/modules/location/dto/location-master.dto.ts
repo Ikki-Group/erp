@@ -20,7 +20,7 @@ export const LocationDto = z.object({
 	address: zp.strNullable,
 	phone: zp.strNullable,
 	isActive: zp.bool,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type LocationDto = z.infer<typeof LocationDto>
 

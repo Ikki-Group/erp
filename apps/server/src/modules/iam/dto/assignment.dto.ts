@@ -10,7 +10,8 @@ export const UserAssignmentDto = z.object({
 	roleId: zp.id,
 	locationId: zp.id,
 	isDefault: zp.bool,
-	...zc.AuditFull.shape,
+	addedAt: zp.date,
+	addedBy: zp.id,
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 

@@ -16,6 +16,7 @@ export const UserDto = z.object({
 	fullname: zp.str,
 	pinCode: zp.strNullable,
 	isRoot: zp.bool,
+	isSystem: zp.bool,
 	isActive: zp.bool,
 	...zc.AuditBasic.shape,
 })

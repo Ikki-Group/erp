@@ -24,6 +24,7 @@ export const usersTable = pgTable(
 		/** Optional for fast POS terminal logins */
 		pinCode: text('pin_code'),
 		isRoot: boolean('is_root').notNull().default(false),
+		isSystem: boolean('is_system').notNull().default(false),
 		isActive: boolean('is_active').notNull().default(true),
 		...auditBasicColumns,
 	},
@@ -89,7 +90,10 @@ export const userAssignmentsTable = pgTable(
 		index('user_assignments_user_idx').on(t.userId),
 		index('user_assignments_role_idx').on(t.roleId),
 		index('user_assignments_location_idx').on(t.locationId),
+		// Ensure user assignments are unique per user and location.
 		uniqueIndex('user_assignments_user_role_location_idx').on(t.userId, t.roleId, t.locationId),
+		// Ensures only one default assignment per user.
+		uniqueIndex('user_assignments_user_default_idx').on(t.userId, t.isDefault),
 	],
 )
 
