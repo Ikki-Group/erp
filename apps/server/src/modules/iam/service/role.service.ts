@@ -39,7 +39,7 @@ const err = {
 // Role Service (Layer 0)
 // Handles authorization role definitions and permission sets.
 export class RoleService {
-	private repo = new RoleRepo()
+	constructor(public repo = new RoleRepo()) {}
 
 	// internal
 	private async clearCache(id?: number) {

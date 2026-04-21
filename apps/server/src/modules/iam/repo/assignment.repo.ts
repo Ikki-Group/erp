@@ -20,17 +20,12 @@ export class UserAssignmentRepo {
 		return record('UserAssignmentRepo.getList', async () => {
 			const { userId, roleId, locationId } = filter
 			const where = and(
-				isNull(userAssignmentsTable.deletedAt),
 				userId ? eq(userAssignmentsTable.userId, userId) : undefined,
 				roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
 				locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
 			)
 
-			return db
-				.select()
-				.from(userAssignmentsTable)
-				.where(where)
-				.orderBy(userAssignmentsTable.updatedAt)
+			return db.select().from(userAssignmentsTable).where(where)
 		})
 	}
 
@@ -66,6 +61,8 @@ export class UserAssignmentRepo {
 	/* -------------------------------------------------------------------------- */
 	/*                                  MUTATION                                  */
 	/* -------------------------------------------------------------------------- */
+
+	async updateByUserId() {}
 
 	async upsertBulk(
 		userId: number,

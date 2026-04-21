@@ -4,7 +4,7 @@ import { zc, zp, zq } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location'
 
-import { UserAssignmentDto, UserAssignmentUpsertDto } from './assignment.dto'
+import { UserAssignmentDto } from './assignment.dto'
 import { RoleDto } from './role.dto'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
@@ -52,18 +52,24 @@ const UserMutationDto = z.object({
 	fullname: zc.fullname,
 	pinCode: zp.strNullable,
 	isActive: zp.bool.default(true),
+	assignments: z.array(
+		z.object({
+			locationId: zp.id,
+			roleId: zp.id,
+		}),
+	),
 })
 
-export const UserCreateDto = UserMutationDto.extend({
+export const UserCreateDto = z.object({
+	...UserMutationDto.shape,
 	password: zc.password,
-	assignments: z.array(UserAssignmentUpsertDto).default([]),
 })
 export type UserCreateDto = z.infer<typeof UserCreateDto>
 
-export const UserUpdateDto = UserMutationDto.extend({
+export const UserUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...UserMutationDto.shape,
 	password: zc.password.optional(),
-	assignments: z.array(UserAssignmentUpsertDto).optional(),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 

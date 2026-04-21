@@ -24,7 +24,7 @@ export class SeedService {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
-				await this.iamSvc.role.seed([
+				await this.iamSvc.role.repo.seed([
 					{
 						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
 						name: 'Administrator',
@@ -61,7 +61,7 @@ export class SeedService {
 				])
 
 				// 3. Seed Locations
-				await this.locationSvc.location.seed(
+				await this.locationSvc.location.repo.seed(
 					SEED_CONFIG.LOCATIONS.map((l) => ({
 						code: l.code,
 						name: l.name,

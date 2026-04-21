@@ -2,17 +2,15 @@ import { record } from '@elysiajs/opentelemetry'
 
 import * as dto from '../dto/assignment.dto'
 import { UserAssignmentRepo } from '../repo/assignment.repo'
-
-// const cache = bento.namespace('user-assignment')
+import type { OmitPaginationQuery } from '@/types/utils'
 
 const SUPERADMIN_ROLE_ID = 1
 const PLACEHOLDER_ID = 999999
 
 // User Assignment Service (Layer 0)
 export class UserAssignmentService {
-	private repo = new UserAssignmentRepo()
+	constructor(public repo = new UserAssignmentRepo()) {}
 
-	// public
 	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
 		const now = new Date()
 		return {
@@ -30,9 +28,22 @@ export class UserAssignmentService {
 		}
 	}
 
-	async getList(filter: dto.UserAssignmentFilterDto): Promise<dto.UserAssignmentDto[]> {
+	async getList(
+		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
+	): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentService.getList', async () => {
 			return this.repo.getList(filter)
+		})
+	}
+
+	async updateByUserId(
+		userId: number,
+		assignments: Omit<dto.UserAssignmentUpsertDto, 'userId'>[],
+		actorId: number,
+	): Promise<void> {
+		return record('UserAssignmentService.updateByUserId', async () => {
+			const existingAssignments = await this.repo.getList({ userId })
+			// const newAssignments: dto.UserAssignmentUpsertDto[] =
 		})
 	}
 
@@ -70,6 +81,7 @@ export class UserAssignmentService {
 				isDefault: a.isDefault,
 			}))
 
+			// oxlint-disable-next-line no-negated-condition
 			if (existingIndex !== -1) {
 				const target = newAssignments[existingIndex]
 				if (target) {

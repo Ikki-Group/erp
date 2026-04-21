@@ -35,7 +35,7 @@ const err = {
 }
 
 export class LocationMasterService {
-	private repo = new LocationMasterRepo()
+	constructor(public repo = new LocationMasterRepo()) {}
 
 	// Internal
 	private async clearCache(id?: number): Promise<void> {

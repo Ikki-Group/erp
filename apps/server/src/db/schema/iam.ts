@@ -1,7 +1,7 @@
 import { isNull, sql } from 'drizzle-orm'
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from '@/core/database/schema'
 
 import { locationsTable } from './location'
 
@@ -25,7 +25,7 @@ export const usersTable = pgTable(
 		pinCode: text('pin_code'),
 		isRoot: boolean('is_root').notNull().default(false),
 		isActive: boolean('is_active').notNull().default(true),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('users_email_idx').on(t.email).where(isNull(t.deletedAt)),
@@ -52,7 +52,7 @@ export const rolesTable = pgTable(
 			.notNull()
 			.default(sql`'{}'::text[]`),
 		isSystem: boolean('is_system').notNull().default(false),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('roles_code_idx').on(t.code).where(isNull(t.deletedAt)),
@@ -82,7 +82,8 @@ export const userAssignmentsTable = pgTable(
 			.notNull()
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 		isDefault: boolean('is_default').notNull().default(false),
-		...auditColumns,
+		addedAt: timestamp('added_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+		addedBy: integer('added_by').notNull(),
 	},
 	(t) => [
 		index('user_assignments_user_idx').on(t.userId),

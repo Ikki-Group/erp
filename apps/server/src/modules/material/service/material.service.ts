@@ -22,7 +22,7 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
-import type { LocationService } from '@/modules/location/service/location.service'
+import type { LocationMasterService } from '@/modules/location'
 
 import type {
 	MaterialCategoryDto,
@@ -66,7 +66,7 @@ export class MaterialService {
 	constructor(
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
-		private readonly locationSvc: LocationService,
+		private readonly locationSvc: LocationMasterService,
 	) {}
 
 	/**

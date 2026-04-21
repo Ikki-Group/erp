@@ -1,18 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { bento } from '@/core/cache'
+import { CACHE_KEY_DEFAULT } from '@/core/cache'
 import * as core from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit } from '@/core/utils/audit-resolver'
 import type { RelationMap } from '@/core/utils/relation-map'
 import type { AuditResolved } from '@/core/validation'
 
-import { CACHE_KEY_DEFAULT } from '@/core/cache'
-
 import { usersTable } from '@/db/schema'
 
 import type { LocationDto } from '@/modules/location'
-
 import type { LocationMasterService } from '@/modules/location/service'
 
 import type { RoleDto } from '../dto'
@@ -47,7 +45,6 @@ const err = {
 
 // User Service (Layer 0)
 // Handles sensitive identity and profile management.
-// Sole owner of \`usersTable\` — no other service may write to this table.
 export class UserService {
 	constructor(
 		private repo: UserRepo,
@@ -55,6 +52,13 @@ export class UserService {
 		private roleService: RoleService,
 		private locationService: LocationMasterService,
 	) {}
+
+	// internal
+	private async clearCache(id?: number) {
+		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await cache.deleteMany({ keys })
+	}
 
 	// Seed initial users.
 	async seed(
@@ -72,12 +76,12 @@ export class UserService {
 		})
 	}
 
-	// Returns active users.
-	async find(): Promise<dto.UserDto[]> {
-		return record('UserService.find', async () => {
+	// public
+	async getList(): Promise<dto.UserDto[]> {
+		return record('UserService.getList', async () => {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
-				factory: () => this.repo.getList(),
+				factory: async () => this.repo.getList(),
 			})
 		})
 	}
@@ -128,15 +132,14 @@ export class UserService {
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
 					const row = await this.repo.getById(id)
-					if (!row) return skip()
-					return row
+					return row ?? skip()
 				},
 			})
 		})
 	}
 
-	async getUserDetails(id: number): Promise<dto.UserDetailDto> {
-		return record('UserService.getUserDetails', async () => {
+	async getUserDetail(id: number): Promise<dto.UserDetailDto> {
+		return record('UserService.getUserDetail', async () => {
 			const user = await this.getById(id)
 			if (!user) throw err.notFound(id)
 			const assignments = await this.getUserAssignments(id, user.isRoot)
@@ -157,6 +160,10 @@ export class UserService {
 			})
 		})
 	}
+
+	/* -------------------------------------------------------------------------- */
+	/*                                   HANDLER                                  */
+	/* -------------------------------------------------------------------------- */
 
 	// Paginated list.
 	async handleList(
@@ -196,16 +203,6 @@ export class UserService {
 		return resolveAudit(user)
 	}
 
-	// Alias for detail retrieval, commonly used in Auth.
-	async getDetailById(id: number): Promise<dto.UserDto> {
-		return record('UserService.getDetailById', async () => {
-			const user = await this.getById(id)
-			if (!user) throw err.notFound(id)
-
-			return user
-		})
-	}
-
 	// Creation.
 	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserService.handleCreate', async () => {
@@ -223,7 +220,7 @@ export class UserService {
 			if (!insertedId) throw err.createFailed()
 
 			// Delegate assignment writes to the owner service.
-			if (assignments && assignments.length > 0) {
+			if (assignments.length > 0) {
 				await this.assignmentService.execUpsertBulk(insertedId, assignments, actorId)
 			}
 
@@ -320,12 +317,5 @@ export class UserService {
 			await this.clearCache(id)
 			return { id: result }
 		})
-	}
-
-	// Clear relevant caches.
-	private async clearCache(id?: number) {
-		const keys = [CACHE_KEY_DEFAULT.count, CACHE_KEY_DEFAULT.list]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
 	}
 }
