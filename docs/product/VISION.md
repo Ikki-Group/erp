@@ -1,7 +1,5 @@
 # Ikki ERP: Business Vision & Strategy
 
-> **Version**: 1.0  
-> **Last Updated**: 2026-04-24  
 > **Audience**: Stakeholders, Developers, Product Managers
 
 ---
@@ -289,7 +287,3 @@ WEEKLY/MONTHLY CYCLES
 5. **Development Sprint** (Week 4+): Full-speed feature development
 
 ---
-
-**Prepared by**: AI Architecture Assistant  
-**Reviewed by**: [Stakeholder names TBD]  
-**Approval Date**: [TBD]

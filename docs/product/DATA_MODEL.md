@@ -1,7 +1,5 @@
 # Data Model & Entity Relationship Documentation
 
-> **Version**: 1.0  
-> **Last Updated**: 2026-04-24  
 > **Purpose**: Define all database entities, relationships, validations, and business constraints
 
 ---
@@ -1092,6 +1090,4 @@ HAVING ABS(SUM(qty) - ml.current_stock) > 0; -- Should return 0 rows
 
 ---
 
-**Data Model Owner**: Database Architect  
-**Last Reviewed**: 2026-04-24  
-**Version**: 1.0 (MVP)
+**Data Model Owner**: Database Architect

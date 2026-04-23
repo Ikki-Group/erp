@@ -1,14 +1,6 @@
 # Product Requirements Document (PRD): Ikki ERP
 
-> **Version**: 2.0  
-> **Last Updated**: 2026-04-24  
-> **Audience**: Product Managers, Developers, Stakeholders  
-> **Changelog**:
->
-> - `v2.0` (2026-04-24) — Major revision: Enhanced business context, detailed feature specifications, use case documentation, comprehensive scope definition
-> - `v1.2` (2026-04-03) — Architectural Reboot: Switched to Serial Integer IDs globally, enforced Dto suffix naming, and transitioned to Functional Router patterns (Golden Path 2.1)
-> - `v1.1` (2026-03-26) — Added Product module separation, Moka POS integration section, architecture diagram, refined module scoping
-> - `v1.0` (Initial) — Original draft with core module definitions
+> **Audience**: Product Managers, Developers, Stakeholders
 
 ## 1. Executive Summary
 

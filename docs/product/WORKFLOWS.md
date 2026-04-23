@@ -1,7 +1,5 @@
 # Business Workflows & Operational Procedures
 
-> **Version**: 1.0  
-> **Last Updated**: 2026-04-24  
 > **Purpose**: Document daily, weekly, and monthly operational workflows to guide system design
 
 ---
@@ -556,6 +554,4 @@
 
 ---
 
-**Document Owner**: Operations Team  
-**Last Reviewed**: 2026-04-24  
-**Next Review**: 2026-05-24
+**Document Owner**: Operations Team

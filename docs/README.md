@@ -143,18 +143,48 @@ Complete specifications for each module:
 
 ---
 
+## 📊 Documentation Structure
+
+```
+docs/
+├── README.md (this file - navigation hub)
+├── ARCHITECTURE.md (system design reference)
+├── CODE_PATTERNS.md (quick copy-paste templates)
+├── MODULE_CHECKLIST.md (84-point code review)
+│
+├── product/ (business & product specs)
+│   ├── VISION.md (strategy, market, goals)
+│   ├── PRD.md (detailed requirements)
+│   ├── WORKFLOWS.md (operational procedures)
+│   ├── DATA_MODEL.md (database schema & entities)
+│   └── Tech-Specs.md (technical overview)
+│
+├── features/ (per-module documentation)
+│   ├── location.md, product.md, material.md
+│   ├── inventory.md, recipe.md, sales.md
+│   ├── iam.md, auth.md, dashboard.md
+│   └── ... (reference docs)
+│
+├── adr/ (architecture decisions)
+│   └── adr-0001-frontend-tech-stack-lockdown.md
+│
+└── architecture/ (design diagrams & patterns)
+```
+
+---
+
 ## 📊 Documentation Status
 
-| Document | Version | Updated | Status |
-|----------|---------|---------|--------|
-| VISION.md | 1.0 | 2026-04-24 | ✓ Complete |
-| PRD.md | 2.0 | 2026-04-24 | ✓ Enhanced |
-| WORKFLOWS.md | 1.0 | 2026-04-24 | ✓ Complete |
-| DATA_MODEL.md | 1.0 | 2026-04-24 | ✓ Complete |
-| Tech-Specs.md | 1.2 | 2026-04-03 | Reviewed |
-| ARCHITECTURE.md | Gold Standard | 2026-04-23 | Reference |
-| CODE_PATTERNS.md | Gold Standard | 2026-04-23 | Reference |
-| MODULE_CHECKLIST.md | Gold Standard | 2026-04-23 | Reference |
+| Document | Status |
+|----------|--------|
+| VISION.md | ✓ Complete - Business vision & strategy |
+| PRD.md | ✓ Complete - Feature specifications |
+| WORKFLOWS.md | ✓ Complete - Operational procedures |
+| DATA_MODEL.md | ✓ Complete - Database schema |
+| Tech-Specs.md | ✓ Reference - Technical architecture |
+| ARCHITECTURE.md | ✓ Reference - System design |
+| CODE_PATTERNS.md | ✓ Reference - Code templates |
+| MODULE_CHECKLIST.md | ✓ Reference - Code review framework |
 
 ---
 
@@ -186,7 +216,6 @@ Complete specifications for each module:
 
 ---
 
-**Last Updated**: 2026-04-24  
-**Maintainer**: AI Architecture Assistant + Engineering Team  
-**Next Review**: 2026-05-24
+**Documentation Hub for Ikki ERP**  
+All docs simplified for beta/fresh start. No version tracking.
 
