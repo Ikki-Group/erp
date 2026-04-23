@@ -154,3 +154,216 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Logs**: Backend uses Pino logging with OpenTelemetry. Check console output in dev mode
 - **Type Errors**: Run `bun run typecheck` to catch TS errors before runtime
 
+---
+
+## 🤖 Claude Code Integration Guide
+
+This section provides guidance for AI agents (Claude Code) working with this codebase.
+
+### Key Documentation References
+- **ARCHITECTURE.md**: Complete system design (patterns, layer flow, performance optimization)
+- **QUICK_REFERENCE.md**: Developer fast-track (templates, snippets, checklists)
+- **ARCHITECTURE_DIAGRAMS.md**: Visual flows and diagrams
+- **ARCHITECTURE_INDEX.md**: Navigation hub and quick lookup
+- **CORE_UTILITY_REVIEW.md**: Core code review (gold standard patterns)
+- **MODULE_REVIEW_CHECKLIST.md**: Module review framework (84-point checklist)
+
+### Code Generation Principles for AI
+
+#### 1. Always Verify Against Patterns
+Before generating code, verify:
+- Module structure (dto/, repo/, service/, router/)
+- Layer dependencies (no upward imports)
+- Naming conventions (handleX for service, camelCase functions, PascalCase classes)
+- Type safety (no `any`, preserve generics)
+
+#### 2. Reference Templates First
+Use templates from QUICK_REFERENCE.md:
+- DTO template (Zod with spread-shape)
+- Repository template (QUERY / MUTATION / PRIVATE sections)
+- Service template (handleX methods with caching)
+- Router template (inline async functions)
+
+#### 3. Validate Against Checklists
+Before suggesting code, verify against:
+- Type Safety Checklist (Type Safety section in QUICK_REFERENCE.md)
+- Performance Checklist (Performance section in QUICK_REFERENCE.md)
+- Testing Checklist (Testing section in QUICK_REFERENCE.md)
+
+#### 4. Performance Optimization Rules
+Never generate:
+- ❌ Loops with N DB calls (use batch operations with inArray())
+- ❌ Separate queries for relationships (use RelationMap for in-memory joins)
+- ❌ Unoptimized caches (always invalidate on mutations)
+- ❌ Duplicate code (extract to utilities)
+
+Always generate:
+- ✅ Batch operations (inArray(), updateMany(), deleteMany())
+- ✅ Parallel queries (Promise.all for independent data)
+- ✅ Cached reads (cache.getOrSet() with TTL)
+- ✅ Smart cache invalidation (delete specific keys on mutations)
+
+#### 5. Error Handling Rules
+Never return null/undefined:
+- ❌ `return user || null`
+- ❌ `const result = await repo.getById(id); if (!result) return null`
+
+Always throw errors:
+- ✅ `const user = await repo.getById(id); if (!user) throw new NotFoundError('User', id)`
+- ✅ Use specific error types: NotFoundError, ConflictError, BadRequestError, etc.
+
+#### 6. Validation Rules
+Always validate at boundaries:
+- ✅ Route handler receives validated Zod schema
+- ✅ No re-validation in service
+- ✅ Use core validation helpers: zId, zc.email(), zc.password(), etc.
+
+Never:
+- ❌ Skip validation in route
+- ❌ Duplicate validation in service
+
+#### 7. Audit Trail Rules
+Every write operation must include:
+- ✅ `createdBy` or `updatedBy` with actorId
+- ✅ `createdAt` or `updatedAt` timestamps
+- ✅ Pass actorId from auth context through layers
+
+#### 8. Telemetry Rules
+Wrap all repository methods:
+```typescript
+return record('ServiceName.methodName', async () => {
+  // actual logic
+})
+```
+
+#### 9. Module Registration Rules
+When creating new service:
+1. Add to `src/modules/_registry.ts`: `export const entityService = new EntityService()`
+2. Add to `src/modules/_routes.ts`: `app.use(entityRouter)`
+3. Verify layer dependency in comment
+
+#### 10. Testing Rules
+Before suggesting code, have test plan:
+- ✅ Unit test for service (mocked repo)
+- ✅ Integration test for router (real service)
+- ✅ Test happy path + error scenarios
+- ✅ Test edge cases
+
+### When to Ask for Clarification
+
+Ask user if unclear about:
+1. **Module layer placement** - Ask: "Which layer should this belong to? (Core, Master Data, Operations, Aggregators)"
+2. **Dependency needs** - Ask: "Does this need data from other modules? If so, which ones?"
+3. **Performance requirements** - Ask: "Expected volume for this operation? Any specific performance targets?"
+4. **Caching strategy** - Ask: "How frequently does this data change? Should we cache it?"
+5. **Authentication** - Ask: "Is this endpoint public or requires authentication?"
+
+### Workflow: Code Generation with Claude Code
+
+#### Step 1: Understand Requirements
+- Read the feature request
+- Check existing modules for similar patterns
+- Review relevant documentation sections
+
+#### Step 2: Design Phase
+- Determine module layer and dependencies
+- Sketch DTO/Entity structure
+- Plan DB schema changes (if needed)
+- Plan service methods needed
+- Plan API endpoints
+
+#### Step 3: Validate Design
+- Check against MODULE_REVIEW_CHECKLIST.md
+- Verify no circular dependencies
+- Check layer compliance
+- Confirm naming conventions
+
+#### Step 4: Generate Code
+- Start with DTOs (using template)
+- DB schema + migration (if needed)
+- Repository (using template)
+- Service (using template)
+- Router (using template)
+- Tests
+
+#### Step 5: Verify Generated Code
+- Run `bun run typecheck` → Must pass
+- Run `bun run lint` → Must pass
+- Run `bun run test` → Must pass
+- Run `bun run check-deps` → No circular deps
+
+#### Step 6: Review
+- Check against ARCHITECTURE.md patterns
+- Verify checklists are all ✅
+- Check performance is optimal
+- Verify error handling is correct
+
+### Common Patterns to Generate
+
+See QUICK_REFERENCE.md for:
+- [New Feature Checklist](#new-feature-checklist) (6-step template)
+- [Common Code Snippets](#common-code-snippets) (15+ examples)
+- [Batch Operations Pattern](#batch-operations-pattern)
+- [Error Handling Quick Reference](#error-handling-quick-reference)
+
+### Code Quality Standards
+
+All generated code must:
+- ✅ Pass TypeScript strict mode (`bun run typecheck`)
+- ✅ Pass linting (`bun run lint`)
+- ✅ Have no `any` types (except documented exceptions)
+- ✅ Follow naming conventions (camelCase, PascalCase, UPPERCASE)
+- ✅ Include error handling (throw errors, not return)
+- ✅ Have audit trails (createdBy/updatedBy)
+- ✅ Have telemetry wrapping (record() in repos)
+- ✅ Be tested (unit + integration tests)
+- ✅ Have no N+1 queries
+- ✅ Use batch operations for bulk work
+- ✅ Cache expensive reads (with invalidation)
+
+### Red Flags (Don't Generate)
+
+🚩 Loops with DB calls → Use batch operations instead
+🚩 Multiple queries for relationships → Use RelationMap instead
+🚩 Return null for missing records → Throw NotFoundError instead
+🚩 Skip validation → Always validate at route boundary
+🚩 Missing audit columns → Always include createdBy/updatedBy
+🚩 Unwrapped repo methods → Always wrap with record()
+🚩 Hardcoded magic numbers → Use constants instead
+🚩 Duplicate code → Extract to utilities
+🚩 Missing error handling → Use specific error types
+🚩 No caching for expensive ops → Use bento.namespace() + invalidation
+
+### Conversation Starters for AI
+
+When user says "build a feature", confirm:
+1. "Which module layer? (Core/Master Data/Operations/Aggregators)"
+2. "Any dependencies on other modules?"
+3. "Public or authenticated endpoint?"
+4. "Expected data volume/performance targets?"
+5. "Need complex relationships or simple CRUD?"
+
+---
+
+## 🎓 Learning Resources
+
+### For Understanding Architecture
+1. Start: ARCHITECTURE.md (Overview section)
+2. Visual: ARCHITECTURE_DIAGRAMS.md (Request Flow diagram)
+3. Deep: ARCHITECTURE.md (all sections)
+
+### For Building Features
+1. Template: QUICK_REFERENCE.md (New Feature Checklist)
+2. Reference: QUICK_REFERENCE.md (Code templates)
+3. Verify: MODULE_REVIEW_CHECKLIST.md
+
+### For Code Review
+1. Reference: ARCHITECTURE.md (Code Review Checklist)
+2. Pattern: QUICK_REFERENCE.md (Common patterns)
+3. Framework: MODULE_REVIEW_CHECKLIST.md
+
+### For New Developers
+1. Overview: ARCHITECTURE_INDEX.md
+2. Visual: ARCHITECTURE_DIAGRAMS.md
+3. Path: ARCHITECTURE_INDEX.md (Learning Path)
+
