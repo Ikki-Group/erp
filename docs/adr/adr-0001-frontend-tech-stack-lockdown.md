@@ -23,7 +23,7 @@ The Ikki ERP application is undergoing a massive UI, UX, and DX overhaul, priori
 We will lock down the frontend technology stack for the UI/UX overhaul to the following existing ecosystem:
 
 - **Routing & State**: `@tanstack/react-router`, `@tanstack/react-query`, `@tanstack/react-form`.
-- **Data Visualization**: `@tanstack/react-table`.
+- **Data Visualization**: `@tanstack/react-table`.w
 - **UI Components & Styling**: `shadcn` (with strict no-edit policy on `apps/web/src/components/ui/`), `@base-ui/react`, and `@tailwindcss/vite` (Tailwind V4).
 - **Icons**: `lucide-react` and `@hugeicons/react`.
 
