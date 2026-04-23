@@ -1,58 +1,41 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
 
-import { rolesTable } from '@/db/schema'
-
+import {
+	RoleNotFoundError,
+	RoleCreateFailedError,
+	RoleSystemRoleError,
+} from '../errors'
+import { RoleValidator } from '../validators'
+import { IAM_CACHE_KEYS, SYSTEM_ROLES } from '../constants'
 import * as dto from '../dto/role.dto'
 import { RoleRepo } from '../repo/role.repo'
 
 const cache = bento.namespace('role')
 
-const uniqueFields: core.ConflictField<'code' | 'name'>[] = [
-	{
-		field: 'code',
-		column: rolesTable.code,
-		message: 'Role code already exists',
-		code: 'ROLE_CODE_ALREADY_EXISTS',
-	},
-	{
-		field: 'name',
-		column: rolesTable.name,
-		message: 'Role name already exists',
-		code: 'ROLE_NAME_ALREADY_EXISTS',
-	},
-]
-
-const err = {
-	notFound: (id: number) => new NotFoundError(`Role with ID ${id} not found`, 'ROLE_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Role creation failed', 'ROLE_CREATE_FAILED'),
-	updateSystemRoleForbidden: () =>
-		new BadRequestError('Cannot update system role', 'ROLE_UPDATE_SYSTEM_ROLE_FORBIDDEN'),
-	removeSystemRoleForbidden: () =>
-		new BadRequestError('Cannot remove system role', 'ROLE_REMOVE_SYSTEM_ROLE_FORBIDDEN'),
-}
-
-// Role Service (Layer 0)
-// Handles authorization role definitions and permission sets.
+// Role Service (Layer 1)
+// Handles authorization role definitions and permission sets
+// Methods organized by QUERY (read) and COMMAND (write) operations
 export class RoleService {
 	constructor(public repo = new RoleRepo()) {}
 
-	// internal
+	/* ========================================================================== */
+	/*                              QUERY OPERATIONS                             */
+	/* ========================================================================== */
+
 	private async clearCache(id?: number) {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		const keys = [IAM_CACHE_KEYS.ROLE_LIST, IAM_CACHE_KEYS.ROLE_COUNT]
+		if (id) keys.push(IAM_CACHE_KEYS.ROLE_DETAIL(id))
 		await cache.deleteMany({ keys })
 	}
 
-	// public
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleService.getList', async () => {
 			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
+				key: IAM_CACHE_KEYS.ROLE_LIST,
 				factory: async () => this.repo.getList(),
 			})
 		})
@@ -68,7 +51,7 @@ export class RoleService {
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleService.getById', async () => {
 			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
+				key: IAM_CACHE_KEYS.ROLE_DETAIL(id),
 				factory: async ({ skip }) => {
 					const result = await this.repo.getById(id)
 					return result ?? skip()
@@ -79,8 +62,8 @@ export class RoleService {
 
 	async getSuperadmin(): Promise<dto.RoleDto> {
 		return record('RoleService.getSuperadmin', async () => {
-			const result = await this.getById(1)
-			if (!result) throw err.notFound(1)
+			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
+			if (!result) throw new RoleNotFoundError(SYSTEM_ROLES.SUPERADMIN_ID)
 			return result
 		})
 	}
@@ -88,38 +71,29 @@ export class RoleService {
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {
 			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
+				key: IAM_CACHE_KEYS.ROLE_COUNT,
 				factory: async () => this.repo.count(),
 			})
 		})
 	}
 
-	// Handler layer
-	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
-		return record('RoleService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return result
-		})
-	}
+	/* ========================================================================== */
+	/*                              COMMAND OPERATIONS                           */
+	/* ========================================================================== */
 
-	async handleDetail(id: number): Promise<dto.RoleDto> {
-		return record('RoleService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
+	async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
+		return record('RoleService.seed', async () => {
+			await this.repo.seed(data)
+			await this.clearCache()
 		})
 	}
 
 	async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('RoleService.handleCreate', async () => {
-			await core.checkConflict({
-				table: rolesTable,
-				pkColumn: rolesTable.id,
-				fields: uniqueFields,
-				input: data,
-			})
+			await RoleValidator.checkCreateConflicts(data)
+
 			const result = await this.repo.create(data, actorId)
-			if (!result) throw err.createFailed()
+			if (!result) throw new RoleCreateFailedError()
 
 			await this.clearCache()
 			return { id: result }
@@ -131,17 +105,14 @@ export class RoleService {
 			const { id } = data
 
 			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-			await core.checkConflict({
-				table: rolesTable,
-				pkColumn: rolesTable.id,
-				fields: uniqueFields,
-				input: data,
-				existing,
-			})
+			if (!existing) throw new RoleNotFoundError(id)
+
+			if (existing.isSystem) throw new RoleSystemRoleError('update')
+
+			await RoleValidator.checkUpdateConflicts(id, data)
 
 			const result = await this.repo.update(data, actorId)
-			if (!result) throw err.notFound(id)
+			if (!result) throw new RoleNotFoundError(id)
 
 			await this.clearCache(id)
 			return { id }
@@ -150,10 +121,34 @@ export class RoleService {
 
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('RoleService.handleRemove', async () => {
+			const existing = await this.getById(id)
+			if (!existing) throw new RoleNotFoundError(id)
+
+			if (existing.isSystem) throw new RoleSystemRoleError('delete')
+
 			const result = await this.repo.remove(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw new RoleNotFoundError(id)
+
 			await this.clearCache(id)
 			return { id }
+		})
+	}
+
+	/* ========================================================================== */
+	/*                            HANDLER OPERATIONS                             */
+	/* ========================================================================== */
+
+	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
+		return record('RoleService.handleList', async () => {
+			return this.repo.getListPaginated(filter)
+		})
+	}
+
+	async handleDetail(id: number): Promise<dto.RoleDto> {
+		return record('RoleService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw new RoleNotFoundError(id)
+			return result
 		})
 	}
 }

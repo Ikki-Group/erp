@@ -8,16 +8,13 @@ import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/co
 import * as dto from '../dto/assignment.dto'
 import type { UserAssignmentService } from '../service/assignment.service'
 
-/**
- * User Assignment Module Route (Layer 1)
- */
 export function initUserAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await service.handleList(query)
+				const result = await service.handleGetListPaginated(query)
 				return res.paginated(result)
 			},
 			{
@@ -29,11 +26,11 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 		.post(
 			'/assign',
 			async function assign({ body, auth }) {
-				await service.execAssign(body, auth.userId)
+				await service.handleAssignToLocation(body, auth.userId)
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentUpsertDto.omit({ isDefault: true }),
+				body: dto.UserAssignmentUpsertDto,
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},
@@ -41,11 +38,14 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				await service.execRemove(body.userId, body.locationId)
+				await service.handleRemoveFromLocation(body.userId, body.locationId)
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentUpsertDto.omit({ isDefault: true, roleId: true }),
+				body: z.object({
+					userId: z.number().int().positive(),
+					locationId: z.number().int().positive(),
+				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},
