@@ -1,39 +1,47 @@
 # Ikki ERP Documentation
 
-Welcome to the central documentation for **Ikki ERP**. This repository contains the product requirements, technical specifications, and development standards for the entire system.
+Central reference for Ikki ERP architecture, patterns, and development standards.
 
-## 🏛️ Project Structure
+## Architecture & Code Patterns
 
-The documentation is organized into the following sections:
+### [ARCHITECTURE.md](ARCHITECTURE.md)
+Complete system design: request flow through layers (Router → Service → Repo → DB), database patterns, service organization, caching, error handling, type safety, performance optimization.
 
-### 🚀 [Product & Strategy](./product/PRD.md)
+**Use when**: Understanding overall architecture, making design decisions, optimizing performance.
 
-Contains the vision, requirements, and product roadmap.
+### [CODE_PATTERNS.md](CODE_PATTERNS.md)
+Quick reference and templates: DTO pattern, repository pattern, service pattern, error handling, validation, caching, testing examples.
 
-- **[Requirements (PRD)](./product/PRD.md)**: Product Requirements Document.
-- **[Technical Specifications](./product/Tech-Specs.md)**: High-level technical architecture and system design.
-- **[Development Timeline](./product/Timeline.md)**: Project phases and milestones.
+**Use when**: Building a feature, copy-paste templates, quick syntax lookup.
 
-### 🛠️ [Backend Standards](./backend/README.md)
+### [MODULE_CHECKLIST.md](MODULE_CHECKLIST.md)
+84-point code review framework. Verify module quality across 10 phases (structure, type safety, errors, database, validation, HTTP, utilities, testing, docs, quality).
 
-Comprehensive guides for building the Ikki ERP backend.
+**Use when**: Code review (target score: 75+/84 for "excellent").
 
-- **[Backend README](./backend/README.md)**: Overview of backend architecture and principles.
-- **[Standards Portfolio](./backend/standards/)**: Rules for DTOs, Services, Routers, Database, and more.
+## Development Workflow
 
-### ✨ [Features](./features/)
+Use Claude Code tools for efficient development:
 
-Detailed documentation for individual system features.
+- **Building a feature**: Use `/feature-development` skill (explore → plan → implement → verify)
+- **Code review**: Use `/code-review` skill (check 84-point checklist)
+- **Architecture questions**: Use `/architecture-explorer` subagent (dedicated context)
+
+Quick commands in CLAUDE.md at project root.
+
+## Reference Modules
+
+- **Simple CRUD**: `src/modules/location/` - Location management (Layer 0)
+- **Complex logic**: `src/modules/iam/` - Identity & access management (Layer 1)
+
+Study these patterns before building new modules.
+
+## Product & Strategy
+
+- **[Product Requirements](./product/PRD.md)**: Vision, requirements, roadmap
+- **[Technical Specs](./product/Tech-Specs.md)**: System design overview
+- **[Features](./features/)**: Feature documentation
 
 ---
 
-## 🏗️ Development Lifecycle
-
-1.  **Product Discovery**: Define the PRD and Specs in `docs/product/`.
-2.  **Architecture**: Follow the standards defined in `docs/backend/standards/`.
-3.  **Implementation**: Reference implementation modules like `location` and `iam`.
-
----
-
-> [!TIP]
-> This documentation is a living resource. Please ensure all architectural decisions and product changes are documented here as part of the "Definition of Done".
+**Documentation Philosophy**: Keep CLAUDE.md SHORT, use skills/agents for workflows, link to docs instead of embedding. This keeps context window efficient and aligned with Claude Code best practices.
