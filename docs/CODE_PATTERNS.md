@@ -221,21 +221,21 @@ export const entityRouter = new Elysia({ prefix: '/entities' })
   .get('/list', list, {
     query: dto.EntityFilterDto,
   })
-  .get('/:id', detail, {
-    params: t.Object({ id: zId }),
+  .get('/detail', detail, {
+    params: z.object({ id: zId }),
   })
   .post('/create', create, {
     auth: true,
     body: dto.EntityCreateDto,
   })
-  .put('/:id', update, {
+  .put('/update', update, {
     auth: true,
-    params: t.Object({ id: zId }),
+    params: z.object({ id: zId }),
     body: dto.EntityUpdateDto,
   })
-  .delete('/:id', remove, {
+  .delete('/remove', remove, {
     auth: true,
-    params: t.Object({ id: zId }),
+    params: z.object({ id: zId }),
   })
 ```
 
