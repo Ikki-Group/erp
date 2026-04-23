@@ -53,8 +53,8 @@ export const syncMetaColumns = {
 } as const
 
 export const auditBasicColumns = {
-	...auditColumns,
 	...timestampColumns,
+	...actorColumns,
 } as const
 
 export const auditFullColumns = {

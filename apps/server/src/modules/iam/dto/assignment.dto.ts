@@ -9,9 +9,8 @@ export const UserAssignmentDto = z.object({
 	userId: zp.id,
 	roleId: zp.id,
 	locationId: zp.id,
-	isDefault: zp.bool,
 	addedAt: zp.date,
-	addedBy: zp.id,
+	addedBy: zp.id.nullable(),
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
@@ -21,7 +20,6 @@ export const UserAssignmentUpsertDto = z.object({
 	userId: zp.id,
 	roleId: zp.id,
 	locationId: zp.id,
-	isDefault: zp.bool.default(false),
 })
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
 

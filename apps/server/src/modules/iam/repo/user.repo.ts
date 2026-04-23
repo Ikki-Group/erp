@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
+import { and, count, eq, exists, or } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -23,7 +23,7 @@ export class UserRepo {
 
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserRepo.getList', async () =>
-			db.select().from(usersTable).where(isNull(usersTable.deletedAt)).orderBy(usersTable.fullname),
+			db.select().from(usersTable).orderBy(usersTable.fullname),
 		)
 	}
 
@@ -31,7 +31,6 @@ export class UserRepo {
 		return record('UserRepo.getListPaginated', async () => {
 			const { q, page, limit, isActive, isRoot } = filter
 			const where = and(
-				isNull(usersTable.deletedAt),
 				q === undefined
 					? undefined
 					: or(
@@ -51,7 +50,6 @@ export class UserRepo {
 									and(
 										eq(userAssignmentsTable.userId, usersTable.id),
 										eq(userAssignmentsTable.locationId, filter.locationId),
-										isNull(userAssignmentsTable.deletedAt),
 									),
 								),
 						),
@@ -74,12 +72,7 @@ export class UserRepo {
 
 	async getById(id: number): Promise<dto.UserDto | null> {
 		return record('UserRepo.getById', async () => {
-			return db
-				.select()
-				.from(usersTable)
-				.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
-				.limit(1)
-				.then(takeFirst)
+			return db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
 		})
 	}
 
@@ -90,12 +83,7 @@ export class UserRepo {
 			const user = await db
 				.select()
 				.from(usersTable)
-				.where(
-					and(
-						isNull(usersTable.deletedAt),
-						or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)),
-					),
-				)
+				.where(or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)))
 				.limit(1)
 				.then(takeFirst)
 
@@ -121,7 +109,6 @@ export class UserRepo {
 			return db
 				.select({ count: count() })
 				.from(usersTable)
-				.where(isNull(usersTable.deletedAt))
 				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
@@ -143,7 +130,6 @@ export class UserRepo {
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
 						target: usersTable.username,
-						targetWhere: isNull(usersTable.deletedAt),
 						set: {
 							email: d.email,
 							fullname: d.fullname,
@@ -151,7 +137,6 @@ export class UserRepo {
 							isRoot: d.isRoot,
 							updatedAt: metadata.updatedAt,
 							updatedBy: metadata.updatedBy,
-							deletedAt: null,
 						},
 					})
 					.returning({ id: usersTable.id })
@@ -211,19 +196,8 @@ export class UserRepo {
 		})
 	}
 
-	async remove(id: number, actorId: number): Promise<number | undefined> {
+	async remove(id: number): Promise<number | undefined> {
 		return record('UserRepo.remove', async () => {
-			const [res] = await db
-				.update(usersTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(usersTable.id, id))
-				.returning({ id: usersTable.id })
-			return res?.id
-		})
-	}
-
-	async hardRemove(id: number): Promise<number | undefined> {
-		return record('UserRepo.hardRemove', async () => {
 			const [res] = await db
 				.delete(usersTable)
 				.where(eq(usersTable.id, id))

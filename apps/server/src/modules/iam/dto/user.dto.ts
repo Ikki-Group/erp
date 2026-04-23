@@ -18,6 +18,7 @@ export const UserDto = z.object({
 	isRoot: zp.bool,
 	isSystem: zp.bool,
 	isActive: zp.bool,
+	defaultLocationId: zp.id.nullable(),
 	...zc.AuditBasic.shape,
 })
 export type UserDto = z.infer<typeof UserDto>
@@ -53,6 +54,8 @@ const UserMutationDto = z.object({
 	fullname: zc.fullname,
 	pinCode: zp.strNullable,
 	isActive: zp.bool.default(true),
+	isRoot: zp.bool.default(false),
+	defaultLocationId: zp.id.nullable(),
 	assignments: z.array(
 		z.object({
 			locationId: zp.id,
