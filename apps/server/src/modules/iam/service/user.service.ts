@@ -1,28 +1,40 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { bento } from '@/core/cache'
+import * as core from '@/core/database'
 import { resolveAudit } from '@/core/utils/audit-resolver'
 import type { RelationMap } from '@/core/utils/relation-map'
 import type { AuditResolved } from '@/core/validation'
-import * as core from '@/core/database'
+
+import { usersTable } from '@/db/schema'
 
 import type { LocationDto } from '@/modules/location'
 import type { LocationMasterService } from '@/modules/location/service'
 
-import {
-	UserNotFoundError,
-	UserCreateFailedError,
-	UserPasswordMismatchError,
-} from '../errors'
-import { UserValidator } from '../validators'
 import { IAM_CACHE_KEYS } from '../constants'
 import type { RoleDto } from '../dto'
 import * as dto from '../dto/user.dto'
+import { UserErrors } from '../errors'
 import type { UserRepo } from '../repo/user.repo'
 import type { UserAssignmentService } from './assignment.service'
 import type { RoleService } from './role.service'
 
 const cache = bento.namespace('user')
+
+const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
+	{
+		field: 'email',
+		column: usersTable.email,
+		message: 'Email already exists',
+		code: 'USER_EMAIL_ALREADY_EXISTS',
+	},
+	{
+		field: 'username',
+		column: usersTable.username,
+		message: 'Username already exists',
+		code: 'USER_USERNAME_ALREADY_EXISTS',
+	},
+]
 
 // User Service (Layer 1)
 // Handles identity, profile, and user assignment management
@@ -118,7 +130,7 @@ export class UserService {
 	async getUserDetail(id: number): Promise<dto.UserDetailDto> {
 		return record('UserService.getUserDetail', async () => {
 			const user = await this.getById(id)
-			if (!user) throw new UserNotFoundError(id)
+			if (!user) throw UserErrors.notFound(id)
 			const assignments = await this.getUserAssignments(user)
 
 			return {
@@ -158,17 +170,31 @@ export class UserService {
 
 	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserService.handleCreate', async () => {
-			await UserValidator.checkCreateConflicts(data)
+			await core.checkConflict({
+				table: usersTable,
+				pkColumn: usersTable.id,
+				fields: userConflictFields,
+				input: data,
+			})
 
-			const { assignments, password } = data
+			const { password, assignments, isRoot } = data
 			const passwordHash = await Bun.password.hash(password)
 
 			const insertedId = await this.repo.create({ ...data, passwordHash }, actorId)
-			if (!insertedId) throw new UserCreateFailedError()
+			if (!insertedId) throw UserErrors.createFailed()
 
-			if (assignments.length > 0) {
-				// Delegate assignment writes to the owner service
-				// await this.assignmentService.handleReplaceBulkByUserId(insertedId, assignments, actorId)
+			// Assign to locations if provided and not a root user
+			if (assignments && assignments.length > 0 && !isRoot) {
+				const assignmentsWithUserId = assignments.map((a) => ({
+					userId: insertedId,
+					roleId: a.roleId,
+					locationId: a.locationId,
+				}))
+				await this.assignmentService.handleReplaceBulkByUserId(
+					insertedId,
+					assignmentsWithUserId,
+					actorId,
+				)
 			}
 
 			await this.clearCache()
@@ -183,18 +209,33 @@ export class UserService {
 	): Promise<{ id: number }> {
 		return record('UserService.handleUpdate', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw new UserNotFoundError(id)
+			if (!existing) throw UserErrors.notFound(id)
 
-			await UserValidator.checkUpdateConflicts(id, data)
+			await core.checkConflict({
+				table: usersTable,
+				pkColumn: usersTable.id,
+				fields: userConflictFields,
+				input: data,
+				existing,
+			})
 
-			const { assignments, password } = data
+			const { assignments, password, isRoot } = data
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
 
 			await this.repo.update({ ...data, passwordHash: passwordHash! }, actorId)
 
-			if (assignments) {
-				// Delegate assignment writes to the owner service
-				// await this.assignmentService.handleReplaceBulkByUserId(id, assignments, actorId)
+			// Update assignments if provided and not a root user
+			if (assignments && assignments.length >= 0 && !isRoot) {
+				const assignmentsWithUserId = assignments.map((a) => ({
+					userId: id,
+					roleId: a.roleId,
+					locationId: a.locationId,
+				}))
+				await this.assignmentService.handleReplaceBulkByUserId(
+					id,
+					assignmentsWithUserId,
+					actorId,
+				)
 			}
 
 			await this.clearCache(id)
@@ -223,10 +264,10 @@ export class UserService {
 	): Promise<{ id: number }> {
 		return record('UserService.handleChangePassword', async () => {
 			const passwordHash = await this.repo.getPasswordHash(id)
-			if (!passwordHash) throw new UserNotFoundError(id)
+			if (!passwordHash) throw UserErrors.notFound(id)
 
 			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw new UserPasswordMismatchError()
+			if (!isMatch) throw UserErrors.passwordMismatch()
 
 			const newPasswordHash = await Bun.password.hash(data.newPassword)
 			await this.repo.updatePassword(id, newPasswordHash, actorId)
@@ -239,7 +280,7 @@ export class UserService {
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('UserService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
-			if (!result) throw new UserNotFoundError(id)
+			if (!result) throw UserErrors.notFound(id)
 			await this.clearCache(id)
 			return { id: result }
 		})

@@ -27,7 +27,7 @@ export const IAM_CACHE_KEYS = {
 
 	// Assignment cache (lightweight, usually no cache needed)
 	ASSIGNMENT_BY_USER: (userId: number) => `iam:assignment:user:${userId}`,
-} as const
+}
 
 /**
  * IAM configuration

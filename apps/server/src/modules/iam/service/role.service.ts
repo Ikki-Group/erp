@@ -4,17 +4,29 @@ import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { RelationMap } from '@/core/utils/relation-map'
 
-import {
-	RoleNotFoundError,
-	RoleCreateFailedError,
-	RoleSystemRoleError,
-} from '../errors'
-import { RoleValidator } from '../validators'
+import { rolesTable } from '@/db/schema'
+
 import { IAM_CACHE_KEYS, SYSTEM_ROLES } from '../constants'
 import * as dto from '../dto/role.dto'
+import { RoleErrors } from '../errors'
 import { RoleRepo } from '../repo/role.repo'
 
 const cache = bento.namespace('role')
+
+const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
+	{
+		field: 'code',
+		column: rolesTable.code,
+		message: 'Role code already exists',
+		code: 'ROLE_CODE_ALREADY_EXISTS',
+	},
+	{
+		field: 'name',
+		column: rolesTable.name,
+		message: 'Role name already exists',
+		code: 'ROLE_NAME_ALREADY_EXISTS',
+	},
+]
 
 // Role Service (Layer 1)
 // Handles authorization role definitions and permission sets
@@ -63,7 +75,7 @@ export class RoleService {
 	async getSuperadmin(): Promise<dto.RoleDto> {
 		return record('RoleService.getSuperadmin', async () => {
 			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
-			if (!result) throw new RoleNotFoundError(SYSTEM_ROLES.SUPERADMIN_ID)
+			if (!result) throw RoleErrors.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
 			return result
 		})
 	}
@@ -90,10 +102,15 @@ export class RoleService {
 
 	async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('RoleService.handleCreate', async () => {
-			await RoleValidator.checkCreateConflicts(data)
+			await core.checkConflict({
+				table: rolesTable,
+				pkColumn: rolesTable.id,
+				fields: roleConflictFields,
+				input: data,
+			})
 
 			const result = await this.repo.create(data, actorId)
-			if (!result) throw new RoleCreateFailedError()
+			if (!result) throw RoleErrors.createFailed()
 
 			await this.clearCache()
 			return { id: result }
@@ -105,14 +122,20 @@ export class RoleService {
 			const { id } = data
 
 			const existing = await this.getById(id)
-			if (!existing) throw new RoleNotFoundError(id)
+			if (!existing) throw RoleErrors.notFound(id)
 
-			if (existing.isSystem) throw new RoleSystemRoleError('update')
+			if (existing.isSystem) throw RoleErrors.updateSystemRole()
 
-			await RoleValidator.checkUpdateConflicts(id, data)
+			await core.checkConflict({
+				table: rolesTable,
+				pkColumn: rolesTable.id,
+				fields: roleConflictFields,
+				input: data,
+				existing,
+			})
 
 			const result = await this.repo.update(data, actorId)
-			if (!result) throw new RoleNotFoundError(id)
+			if (!result) throw RoleErrors.notFound(id)
 
 			await this.clearCache(id)
 			return { id }
@@ -122,12 +145,12 @@ export class RoleService {
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('RoleService.handleRemove', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw new RoleNotFoundError(id)
+			if (!existing) throw RoleErrors.notFound(id)
 
-			if (existing.isSystem) throw new RoleSystemRoleError('delete')
+			if (existing.isSystem) throw RoleErrors.deleteSystemRole()
 
 			const result = await this.repo.remove(id)
-			if (!result) throw new RoleNotFoundError(id)
+			if (!result) throw RoleErrors.notFound(id)
 
 			await this.clearCache(id)
 			return { id }
@@ -147,7 +170,7 @@ export class RoleService {
 	async handleDetail(id: number): Promise<dto.RoleDto> {
 		return record('RoleService.handleDetail', async () => {
 			const result = await this.getById(id)
-			if (!result) throw new RoleNotFoundError(id)
+			if (!result) throw RoleErrors.notFound(id)
 			return result
 		})
 	}
