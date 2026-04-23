@@ -35,6 +35,48 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				auth: true,
 			},
 		)
+		.post(
+			'/assign-bulk',
+			async function assignBulk({ body, auth }) {
+				await service.handleAssignUsersToLocation(
+					body.userIds,
+					body.locationId,
+					body.roleId,
+					auth.userId,
+				)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(z.number().int().positive()),
+					locationId: z.number().int().positive(),
+					roleId: z.number().int().positive(),
+				}),
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
+		.post(
+			'/update-role-bulk',
+			async function updateRoleBulk({ body, auth }) {
+				await service.handleUpdateRoleForUsersInLocation(
+					body.userIds,
+					body.locationId,
+					body.roleId,
+					auth.userId,
+				)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(z.number().int().positive()),
+					locationId: z.number().int().positive(),
+					roleId: z.number().int().positive(),
+				}),
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
 		.delete(
 			'/remove',
 			async function remove({ body }) {
@@ -44,6 +86,21 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			{
 				body: z.object({
 					userId: z.number().int().positive(),
+					locationId: z.number().int().positive(),
+				}),
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
+		.delete(
+			'/remove-bulk',
+			async function removeBulk({ body }) {
+				await service.handleRemoveUsersFromLocation(body.userIds, body.locationId)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(z.number().int().positive()),
 					locationId: z.number().int().positive(),
 				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),

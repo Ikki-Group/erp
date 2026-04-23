@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 
 import { paginate, sortBy, type WithPaginationResult } from '@/core/database'
 
@@ -77,6 +77,59 @@ export class UserAssignmentRepo {
 				.where(
 					and(
 						eq(userAssignmentsTable.userId, userId),
+						eq(userAssignmentsTable.locationId, locationId),
+					),
+				)
+		})
+	}
+
+	/**
+	 * Remove multiple users from a location in a single query
+	 */
+	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
+		return record('UserAssignmentRepo.removeUsersBulkFromLocation', async () => {
+			await db
+				.delete(userAssignmentsTable)
+				.where(
+					and(
+						inArray(userAssignmentsTable.userId, userIds),
+						eq(userAssignmentsTable.locationId, locationId),
+					),
+				)
+		})
+	}
+
+	/**
+	 * Get assignments for multiple users in a single query
+	 */
+	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
+		return record('UserAssignmentRepo.getListByUserIds', async () => {
+			return db
+				.select()
+				.from(userAssignmentsTable)
+				.where(inArray(userAssignmentsTable.userId, userIds))
+		})
+	}
+
+	/**
+	 * Update role for multiple users in a location in a single query
+	 */
+	async updateRoleBulkByLocation(
+		userIds: number[],
+		locationId: number,
+		roleId: number,
+		actorId: number,
+	): Promise<void> {
+		return record('UserAssignmentRepo.updateRoleBulkByLocation', async () => {
+			await db
+				.update(userAssignmentsTable)
+				.set({
+					roleId,
+					addedBy: actorId,
+				})
+				.where(
+					and(
+						inArray(userAssignmentsTable.userId, userIds),
 						eq(userAssignmentsTable.locationId, locationId),
 					),
 				)

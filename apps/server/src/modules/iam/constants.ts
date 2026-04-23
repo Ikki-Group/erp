@@ -25,8 +25,9 @@ export const IAM_CACHE_KEYS = {
 	ROLE_COUNT: 'iam:role:count',
 	ROLE_DETAIL: (id: number) => `iam:role:${id}`,
 
-	// Assignment cache (lightweight, usually no cache needed)
+	// Assignment cache (per-user, invalidated on mutations)
 	ASSIGNMENT_BY_USER: (userId: number) => `iam:assignment:user:${userId}`,
+	ASSIGNMENT_LIST_BY_LOCATION: (locationId: number) => `iam:assignment:location:${locationId}`,
 }
 
 /**
