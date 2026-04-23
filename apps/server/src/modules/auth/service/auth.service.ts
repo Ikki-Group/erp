@@ -21,7 +21,7 @@ export class AuthService {
 
 	async login(input: LoginDto): Promise<AuthOutputDto> {
 		const { identifier, password } = input
-		const targetUser = await this.userSvc.findByIdentifier(identifier)
+		const targetUser = await this.userSvc.getByIdentifier(identifier)
 
 		if (!targetUser || !targetUser.isActive) {
 			throw err.userNotFound()
@@ -33,7 +33,7 @@ export class AuthService {
 		}
 
 		const session = await this.sessionSvc.createSession(targetUser)
-		const userDetail = await this.userSvc.getDetailById(targetUser.id)
+		const userDetail = await this.userSvc.getUserDetail(targetUser.id)
 
 		return { user: userDetail, token: session.token }
 	}
@@ -44,11 +44,11 @@ export class AuthService {
 			throw err.invalidCredentials()
 		}
 
-		const userWithAccess = await this.userSvc.getDetailById(session.userId)
+		const userWithAccess = await this.userSvc.getUserDetail(session.userId)
 		return userWithAccess
 	}
 
 	async getById(userId: number): Promise<UserDto> {
-		return this.userSvc.getDetailById(userId)
+		return this.userSvc.getUserDetail(userId)
 	}
 }

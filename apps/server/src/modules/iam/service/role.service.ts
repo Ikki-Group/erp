@@ -77,6 +77,14 @@ export class RoleService {
 		})
 	}
 
+	async getSuperadmin(): Promise<dto.RoleDto> {
+		return record('RoleService.getSuperadmin', async () => {
+			const result = await this.getById(1)
+			if (!result) throw err.notFound(1)
+			return result
+		})
+	}
+
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {
 			return cache.getOrSet({
@@ -140,29 +148,12 @@ export class RoleService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('RoleService.handleRemove', async () => {
-			const result = await this.repo.remove(id, actorId)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 			await this.clearCache(id)
 			return { id }
-		})
-	}
-
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('RoleService.handleHardRemove', async () => {
-			const result = await this.repo.hardRemove(id)
-			if (!result) throw err.notFound(id)
-			await this.clearCache(id)
-			return { id }
-		})
-	}
-
-	async getSuperadmin(): Promise<dto.RoleDto> {
-		return record('RoleService.getSuperadmin', async () => {
-			const result = await this.getById(1)
-			if (!result) throw err.notFound(1)
-			return result
 		})
 	}
 }

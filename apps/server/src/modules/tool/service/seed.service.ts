@@ -55,6 +55,7 @@ export class SeedService {
 						isRoot: true,
 						pinCode: null,
 						isActive: true,
+						defaultLocationId: null,
 						createdBy: SYSTEM_ACTOR_ID,
 						assignments: [],
 					},

@@ -24,7 +24,8 @@ export const UserDto = z.object({
 export type UserDto = z.infer<typeof UserDto>
 
 export const UserAssignmentDetailDto = z.object({
-	...UserAssignmentDto.shape,
+	...UserAssignmentDto.omit({ roleId: true, locationId: true, userId: true }).shape,
+	isDefault: zp.bool,
 	role: RoleDto,
 	location: LocationDto,
 })

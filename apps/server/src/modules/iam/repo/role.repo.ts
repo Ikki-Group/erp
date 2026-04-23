@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -22,17 +22,14 @@ export class RoleRepo {
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleRepo.getList', async () => {
-			return db.select().from(rolesTable).where(isNull(rolesTable.deletedAt))
+			return db.select().from(rolesTable)
 		})
 	}
 
 	async getListPaginated(filter: dto.RoleFilterDto): Promise<WithPaginationResult<dto.RoleDto>> {
 		return record('RoleRepo.getListPaginated', async () => {
 			const { q, page, limit } = filter
-			const where = and(
-				isNull(rolesTable.deletedAt),
-				q === undefined ? undefined : searchFilter(rolesTable.name, q),
-			)
+			const where = q === undefined ? undefined : searchFilter(rolesTable.name, q)
 
 			return paginate<dto.RoleDto>({
 				data: ({ limit: l, offset }) => {
@@ -53,12 +50,7 @@ export class RoleRepo {
 
 	async getById(id: number): Promise<dto.RoleDto | null> {
 		return record('RoleRepo.getById', async () => {
-			return db
-				.select()
-				.from(rolesTable)
-				.where(and(eq(rolesTable.id, id), isNull(rolesTable.deletedAt)))
-				.limit(1)
-				.then(takeFirst)
+			return db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
 		})
 	}
 
@@ -67,7 +59,6 @@ export class RoleRepo {
 			return db
 				.select({ val: count() })
 				.from(rolesTable)
-				.where(isNull(rolesTable.deletedAt))
 				.then((rows) => rows[0]?.val ?? 0)
 		})
 	}
@@ -81,7 +72,6 @@ export class RoleRepo {
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
 						target: rolesTable.code,
-						targetWhere: isNull(rolesTable.deletedAt),
 						set: {
 							name: d.name,
 							description: d.description,
@@ -89,7 +79,6 @@ export class RoleRepo {
 							isSystem: d.isSystem,
 							updatedAt: metadata.updatedAt,
 							updatedBy: metadata.updatedBy,
-							deletedAt: null,
 						},
 					})
 			}
@@ -123,19 +112,8 @@ export class RoleRepo {
 		})
 	}
 
-	async remove(id: number, actorId: number): Promise<number | undefined> {
+	async remove(id: number): Promise<number | undefined> {
 		return record('RoleRepo.remove', async () => {
-			const [res] = await db
-				.update(rolesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(rolesTable.id, id))
-				.returning({ id: rolesTable.id })
-			return res?.id
-		})
-	}
-
-	async hardRemove(id: number): Promise<number | undefined> {
-		return record('RoleRepo.hardRemove', async () => {
 			const [res] = await db
 				.delete(rolesTable)
 				.where(eq(rolesTable.id, id))

@@ -62,16 +62,8 @@ export function initRoleRoute(service: RoleService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ body, auth }) {
-				const result = await service.handleRemove(body.id, auth.userId)
-				return res.ok(result)
-			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-		)
-		.delete(
-			'/hard-remove',
-			async function hardRemove({ body }) {
-				const result = await service.handleHardRemove(body.id)
+			async function remove({ body }) {
+				const result = await service.handleRemove(body.id)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },

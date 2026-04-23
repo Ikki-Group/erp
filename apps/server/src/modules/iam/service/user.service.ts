@@ -60,73 +60,55 @@ export class UserService {
 		await cache.deleteMany({ keys })
 	}
 
-	private validateUserAssignments(
-		assignments: dto.UserAssignmentDetailDto[],
-	): dto.UserAssignmentDetailDto[] {
-		if (assignments.length > 0) {
-			const defaultLocationIds = assignments.filter((a) => a.isDefault).map((a) => a.locationId)
-
-			// Set the first location as default.
-			if (defaultLocationIds.length === 0) assignments[0]!.isDefault = true
-
-			// Pick one location as default.
-			if (defaultLocationIds.length > 1) {
-				const [selectedLocationId] = defaultLocationIds
-				assignments = assignments.map((a) => ({
-					...a,
-					isDefault: a.locationId === selectedLocationId,
-				}))
-			}
-		}
-
-		return assignments
-	}
-
 	private async getUserAssignments(
-		userId: number,
-		isRoot: boolean,
+		user: dto.UserDto,
 		roleMapper?: RelationMap<number, RoleDto>,
 		locationMapper?: RelationMap<number, LocationDto>,
 	): Promise<dto.UserAssignmentDetailDto[]> {
 		return record('UserService.getUserAssignments', async () => {
 			const assignments: dto.UserAssignmentDetailDto[] = []
+			const { id: userId, isRoot, defaultLocationId } = user
 
 			// Root users: resolve ALL locations at runtime and roles as SUPERADMIN
 			if (isRoot) {
-				const [superAdminRole, allLocations, userAssignments] = await Promise.all([
+				const [superadmin, locations] = await Promise.all([
 					this.roleService.getSuperadmin(),
 					this.locationService.getList(),
-					this.assignmentService.getList({ userId }),
 				])
 
 				const defaultAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
-
-				for (const location of allLocations) {
-					const userAssignment = userAssignments.find((a) => a.locationId === location.id)
+				for (const location of locations) {
 					assignments.push({
 						...defaultAssignment,
-						userId,
-						locationId: location.id,
-						isDefault: userAssignment?.isDefault ?? false,
-						role: superAdminRole,
+						isDefault: false,
+						role: superadmin,
 						location,
 					})
 				}
 			} else {
-				const rawAssignments = await this.assignmentService.findByUserId(userId)
-				const roleMap = roleMapper ?? (await this.roleService.getRelationMap())
-				const locationMap = locationMapper ?? (await this.locationService.getRelationMap())
+				const [rawAssignments, roleMap, locationMap] = await Promise.all([
+					this.assignmentService.findByUserId(userId),
+					roleMapper ?? this.roleService.getRelationMap(),
+					locationMapper ?? this.locationService.getRelationMap(),
+				])
 
 				assignments.push(
 					...rawAssignments.map((a) => ({
 						...a,
+						isDefault: false,
 						role: roleMap.getRequired(a.roleId),
 						location: locationMap.getRequired(a.locationId),
 					})),
 				)
 			}
 
-			return this.validateUserAssignments(assignments)
+			if (assignments.length > 0) {
+				if (defaultLocationId === null && assignments[0]) {
+					assignments[0].isDefault = true
+				}
+			}
+
+			return assignments
 		})
 	}
 
@@ -135,13 +117,7 @@ export class UserService {
 		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
 	): Promise<void> {
 		await record('UserService.seed', async () => {
-			// for (const d of data) {
-			// 	const insertedId = await this.repo.seed([d]).then((res) => res[0])
-
-			// 	if (insertedId && d.assignments && d.assignments.length > 0) {
-			// 		await this.assignmentService.execUpsertBulk(insertedId, d.assignments, d.createdBy)
-			// 	}
-			// }
+			await this.repo.seed(data)
 			await this.clearCache()
 		})
 	}
@@ -171,7 +147,7 @@ export class UserService {
 		return record('UserService.getUserDetail', async () => {
 			const user = await this.getById(id)
 			if (!user) throw err.notFound(id)
-			const assignments = await this.getUserAssignments(id, user.isRoot)
+			const assignments = await this.getUserAssignments(user)
 
 			return {
 				...user,
@@ -206,12 +182,14 @@ export class UserService {
 		return record('UserService.handleList', async () => {
 			const p = await this.repo.getListPaginated(filter)
 
-			const roleMap = await this.roleService.getRelationMap()
-			const locationMap = await this.locationService.getRelationMap()
+			const [roleMap, locationMap] = await Promise.all([
+				this.roleService.getRelationMap(),
+				this.locationService.getRelationMap(),
+			])
 
 			const data = await Promise.all(
 				p.data.map(async (d) => {
-					const assignments = await this.getUserAssignments(d.id, d.isRoot, roleMap, locationMap)
+					const assignments = await this.getUserAssignments(d, roleMap, locationMap)
 					return {
 						...d,
 						assignments,
@@ -245,7 +223,7 @@ export class UserService {
 
 			// Delegate assignment writes to the owner service.
 			if (assignments.length > 0) {
-				await this.assignmentService.execUpsertBulk(insertedId, assignments, actorId)
+				// await this.assignmentService.execUpsertBulk(insertedId, assignments, actorId)
 			}
 
 			await this.clearCache()
@@ -278,7 +256,7 @@ export class UserService {
 
 			// Delegate assignment writes to the owner service.
 			if (assignments) {
-				await this.assignmentService.execUpsertBulk(id, assignments, actorId)
+				// await this.assignmentService.execUpsertBulk(id, assignments, actorId)
 			}
 
 			await this.clearCache(id)
@@ -324,19 +302,9 @@ export class UserService {
 	}
 
 	// Removal.
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('UserService.handleRemove', async () => {
-			const result = await this.repo.remove(id, actorId)
-			if (!result) throw err.notFound(id)
-			await this.clearCache(id)
-			return { id: result }
-		})
-	}
-
-	// Hard Removal.
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('UserService.handleHardRemove', async () => {
-			const result = await this.repo.hardRemove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 			await this.clearCache(id)
 			return { id: result }
