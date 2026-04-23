@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { bento } from '@/core/cache'
+
 import { IAM_CONFIG, SYSTEM_ROLES, IAM_CACHE_KEYS } from '../constants'
 import * as dto from '../dto/assignment.dto'
 import { UserAssignmentRepo } from '../repo/assignment.repo'
@@ -124,10 +125,7 @@ export class UserAssignmentService {
 	/**
 	 * Remove multiple users from a location with single query
 	 */
-	async handleRemoveUsersFromLocation(
-		userIds: number[],
-		locationId: number,
-	): Promise<void> {
+	async handleRemoveUsersFromLocation(userIds: number[], locationId: number): Promise<void> {
 		return record('UserAssignmentService.handleRemoveUsersFromLocation', async () => {
 			await this.repo.removeUsersBulkFromLocation(userIds, locationId)
 			await this.invalidateUsersCaches(userIds)
@@ -147,7 +145,8 @@ export class UserAssignmentService {
 			// Get all existing assignments for these users in one query
 			const existingAssignments = await this.repo.getListByUserIds(userIds)
 
-			// Update assignments for each user
+			// Build new assignments for all users in memory (no DB calls)
+			const assignmentsByUserId = new Map<number, dto.UserAssignmentUpsertDto[]>()
 			for (const userId of userIds) {
 				const userAssignments = existingAssignments.filter((a) => a.userId === userId)
 				const hasLocationAssignment = userAssignments.some((a) => a.locationId === locationId)
@@ -166,9 +165,11 @@ export class UserAssignmentService {
 					})
 				}
 
-				await this.repo.replaceBulkByUserId(userId, newAssignments, actorId)
+				assignmentsByUserId.set(userId, newAssignments)
 			}
 
+			// Single bulk operation: delete all + insert all in one transaction
+			await this.repo.replaceBulkByUserIds(userIds, assignmentsByUserId, actorId)
 			await this.invalidateUsersCaches(userIds)
 		})
 	}

@@ -136,6 +136,42 @@ export class UserAssignmentRepo {
 		})
 	}
 
+	/**
+	 * Replace assignments for multiple users in a single transaction
+	 * Deletes all existing assignments for these users, then inserts new ones
+	 */
+	async replaceBulkByUserIds(
+		userIds: number[],
+		assignmentsByUserId: Map<number, dto.UserAssignmentUpsertDto[]>,
+		actorId: number,
+	): Promise<void> {
+		return record('UserAssignmentRepo.replaceBulkByUserIds', async () => {
+			await db.transaction(async (tx) => {
+				// Delete all assignments for all users in one query
+				await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
+
+				// Build and insert all new assignments in one query
+				const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
+				for (const userId of userIds) {
+					const assignments = assignmentsByUserId.get(userId) ?? []
+					for (const a of assignments) {
+						valuesToInsert.push({
+							userId,
+							roleId: a.roleId,
+							locationId: a.locationId,
+							addedAt: new Date(),
+							addedBy: actorId,
+						})
+					}
+				}
+
+				if (valuesToInsert.length > 0) {
+					await tx.insert(userAssignmentsTable).values(valuesToInsert)
+				}
+			})
+		})
+	}
+
 	/* -------------------------------------------------------------------------- */
 	/*                                  PRIVATE                                   */
 	/* -------------------------------------------------------------------------- */

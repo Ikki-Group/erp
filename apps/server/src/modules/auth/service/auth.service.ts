@@ -2,7 +2,7 @@ import { UnauthorizedError } from '@/core/http/errors'
 import { verifyPassword } from '@/core/password'
 
 import type { AuthOutputDto, LoginDto } from '@/modules/auth/dto'
-import type { UserDto } from '@/modules/iam/dto'
+import type { UserDetailDto, UserDto } from '@/modules/iam/dto'
 import type { UserService } from '@/modules/iam/service/user.service'
 
 import type { SessionService } from './session.service'
@@ -48,7 +48,7 @@ export class AuthService {
 		return userWithAccess
 	}
 
-	async getById(userId: number): Promise<UserDto> {
+	async getById(userId: number): Promise<UserDetailDto> {
 		return this.userSvc.getUserDetail(userId)
 	}
 }

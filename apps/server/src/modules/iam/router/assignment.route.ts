@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zp } from '@/core/validation'
 
 import * as dto from '../dto/assignment.dto'
 import type { UserAssignmentService } from '../service/assignment.service'
@@ -48,9 +48,9 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				body: z.object({
-					userIds: z.array(z.number().int().positive()),
-					locationId: z.number().int().positive(),
-					roleId: z.number().int().positive(),
+					userIds: z.array(zp.id),
+					locationId: zp.id,
+					roleId: zp.id,
 				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
@@ -69,9 +69,9 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				body: z.object({
-					userIds: z.array(z.number().int().positive()),
-					locationId: z.number().int().positive(),
-					roleId: z.number().int().positive(),
+					userIds: z.array(zp.id),
+					locationId: zp.id,
+					roleId: zp.id,
 				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
@@ -85,8 +85,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				body: z.object({
-					userId: z.number().int().positive(),
-					locationId: z.number().int().positive(),
+					userId: zp.id,
+					locationId: zp.id,
 				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
@@ -100,8 +100,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				body: z.object({
-					userIds: z.array(z.number().int().positive()),
-					locationId: z.number().int().positive(),
+					userIds: z.array(zp.id),
+					locationId: zp.id,
 				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,

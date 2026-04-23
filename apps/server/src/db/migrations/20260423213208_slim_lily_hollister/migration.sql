@@ -194,11 +194,8 @@ CREATE TABLE "locations" (
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
 	"created_by" integer NOT NULL,
-	"updated_by" integer NOT NULL,
-	"deleted_by" integer,
-	"sync_at" timestamp with time zone
+	"updated_by" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "material_categories" (
@@ -633,11 +630,8 @@ CREATE TABLE "roles" (
 	"is_system" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
 	"created_by" integer NOT NULL,
-	"updated_by" integer NOT NULL,
-	"deleted_by" integer,
-	"sync_at" timestamp with time zone
+	"updated_by" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sales_external_refs" (
@@ -963,14 +957,8 @@ CREATE TABLE "user_assignments" (
 	"user_id" integer NOT NULL,
 	"role_id" integer NOT NULL,
 	"location_id" integer NOT NULL,
-	"is_default" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
-	"created_by" integer NOT NULL,
-	"updated_by" integer NOT NULL,
-	"deleted_by" integer,
-	"sync_at" timestamp with time zone
+	"added_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"added_by" integer
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -981,14 +969,13 @@ CREATE TABLE "users" (
 	"password_hash" text NOT NULL,
 	"pin_code" text,
 	"is_root" boolean DEFAULT false NOT NULL,
+	"is_system" boolean DEFAULT false NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"default_location_id" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
 	"created_by" integer NOT NULL,
-	"updated_by" integer NOT NULL,
-	"deleted_by" integer,
-	"sync_at" timestamp with time zone
+	"updated_by" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "variant_prices" (
@@ -1040,8 +1027,8 @@ CREATE INDEX "journal_entries_date_idx" ON "journal_entries" ("date");--> statem
 CREATE INDEX "journal_entries_source_idx" ON "journal_entries" ("source_type","source_id");--> statement-breakpoint
 CREATE INDEX "journal_items_entry_idx" ON "journal_items" ("journal_entry_id");--> statement-breakpoint
 CREATE INDEX "journal_items_account_idx" ON "journal_items" ("account_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "locations_code_idx" ON "locations" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
-CREATE UNIQUE INDEX "locations_name_idx" ON "locations" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
+CREATE UNIQUE INDEX "locations_code_idx" ON "locations" ("code");--> statement-breakpoint
+CREATE UNIQUE INDEX "locations_name_idx" ON "locations" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "material_categories_name_idx" ON "material_categories" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "material_conversions_material_uom_idx" ON "material_conversions" ("materialId","uomId") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE INDEX "material_conversions_uom_idx" ON "material_conversions" ("uomId");--> statement-breakpoint
@@ -1094,8 +1081,8 @@ CREATE INDEX "recipe_items_uom_idx" ON "recipe_items" ("uomId");--> statement-br
 CREATE UNIQUE INDEX "recipes_material_idx" ON "recipes" ("materialId") WHERE "materialId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_product_idx" ON "recipes" ("productId") WHERE "productId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_product_variant_idx" ON "recipes" ("productVariantId") WHERE "productVariantId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
-CREATE UNIQUE INDEX "roles_code_idx" ON "roles" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
-CREATE UNIQUE INDEX "roles_name_idx" ON "roles" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
+CREATE UNIQUE INDEX "roles_code_idx" ON "roles" ("code");--> statement-breakpoint
+CREATE UNIQUE INDEX "roles_name_idx" ON "roles" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "sales_external_refs_source_ext_id_idx" ON "sales_external_refs" ("externalSource","externalOrderId");--> statement-breakpoint
 CREATE INDEX "sales_external_refs_order_idx" ON "sales_external_refs" ("orderId");--> statement-breakpoint
 CREATE INDEX "sales_invoice_items_invoice_idx" ON "sales_invoice_items" ("invoiceId");--> statement-breakpoint
@@ -1140,9 +1127,10 @@ CREATE UNIQUE INDEX "uoms_code_idx" ON "uoms" ("code") WHERE ("deleted_at" is nu
 CREATE INDEX "user_assignments_user_idx" ON "user_assignments" ("user_id");--> statement-breakpoint
 CREATE INDEX "user_assignments_role_idx" ON "user_assignments" ("role_id");--> statement-breakpoint
 CREATE INDEX "user_assignments_location_idx" ON "user_assignments" ("location_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "user_assignments_user_role_location_idx" ON "user_assignments" ("user_id","role_id","location_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "users_email_idx" ON "users" ("email") WHERE ("deleted_at" is null);--> statement-breakpoint
-CREATE UNIQUE INDEX "users_username_idx" ON "users" ("username") WHERE ("deleted_at" is null);--> statement-breakpoint
+CREATE UNIQUE INDEX "user_assignments_user_location_idx" ON "user_assignments" ("user_id","location_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "users_email_idx" ON "users" ("email");--> statement-breakpoint
+CREATE UNIQUE INDEX "users_username_idx" ON "users" ("username");--> statement-breakpoint
+CREATE INDEX "users_default_location_idx" ON "users" ("default_location_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "variant_prices_variant_sales_type_idx" ON "variant_prices" ("variantId","salesTypeId");--> statement-breakpoint
 CREATE INDEX "variant_prices_sales_type_idx" ON "variant_prices" ("salesTypeId");--> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_parent_id_accounts_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "accounts"("id") ON DELETE RESTRICT;--> statement-breakpoint
@@ -1239,6 +1227,8 @@ ALTER TABLE "taxes" ADD CONSTRAINT "taxes_account_id_accounts_id_fkey" FOREIGN K
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_role_id_roles_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_location_id_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_added_by_users_id_fkey" FOREIGN KEY ("added_by") REFERENCES "users"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_default_location_id_locations_id_fkey" FOREIGN KEY ("default_location_id") REFERENCES "locations"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "variant_prices" ADD CONSTRAINT "variant_prices_variantId_product_variants_id_fkey" FOREIGN KEY ("variantId") REFERENCES "product_variants"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "variant_prices" ADD CONSTRAINT "variant_prices_salesTypeId_sales_types_id_fkey" FOREIGN KEY ("salesTypeId") REFERENCES "sales_types"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "work_orders" ADD CONSTRAINT "work_orders_recipeId_recipes_id_fkey" FOREIGN KEY ("recipeId") REFERENCES "recipes"("id");--> statement-breakpoint

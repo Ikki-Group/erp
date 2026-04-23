@@ -1,4 +1,3 @@
-import { isNull } from 'drizzle-orm'
 import { pgTable, text, uniqueIndex, boolean } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from '@/core/database/schema'
@@ -25,7 +24,7 @@ export const locationsTable = pgTable(
 		...auditBasicColumns,
 	},
 	(t) => [
-		uniqueIndex('locations_code_idx').on(t.code).where(isNull(t.deletedAt)),
-		uniqueIndex('locations_name_idx').on(t.name).where(isNull(t.deletedAt)),
+		uniqueIndex('locations_code_idx').on(t.code),
+		uniqueIndex('locations_name_idx').on(t.name),
 	],
 )
