@@ -1,8 +1,6 @@
 {
-	// disable prettier, eslint, biome
 	"prettier.enable": false,
 	"eslint.enable": false,
-	// enable oxlint + oxfmt
 	"oxc.enable": true,
 	"oxc.typeAware": true,
 	"editor.formatOnSave": true,
@@ -39,5 +37,5 @@
 	"[jsonc]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
 	},
-	"js/ts.experimental.useTsgo": false
+	"js/ts.experimental.useTsgo": false,
 }

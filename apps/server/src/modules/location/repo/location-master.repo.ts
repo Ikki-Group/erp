@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, or } from 'drizzle-orm'
+import { and, count, eq, or } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -21,9 +21,7 @@ export class LocationMasterRepo {
 	/* -------------------------------------------------------------------------- */
 
 	async getList(): Promise<dto.LocationDto[]> {
-		return record('LocationMasterRepo.getList', async () =>
-			db.select().from(locationsTable).where(isNull(locationsTable.deletedAt)),
-		)
+		return record('LocationMasterRepo.getList', async () => db.select().from(locationsTable))
 	}
 
 	async getListPaginated(
@@ -32,7 +30,6 @@ export class LocationMasterRepo {
 		return record('LocationMasterRepo.getListPaginated', async () => {
 			const { q, page, limit, type } = filter
 			const where = and(
-				isNull(locationsTable.deletedAt),
 				q === undefined
 					? undefined
 					: or(searchFilter(locationsTable.name, q), searchFilter(locationsTable.code, q)),
@@ -59,7 +56,7 @@ export class LocationMasterRepo {
 			return db
 				.select()
 				.from(locationsTable)
-				.where(and(eq(locationsTable.id, id), isNull(locationsTable.deletedAt)))
+				.where(eq(locationsTable.id, id))
 				.limit(1)
 				.then(takeFirst)
 		})
@@ -70,7 +67,6 @@ export class LocationMasterRepo {
 			return db
 				.select({ count: count() })
 				.from(locationsTable)
-				.where(isNull(locationsTable.deletedAt))
 				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
@@ -84,13 +80,11 @@ export class LocationMasterRepo {
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
 						target: locationsTable.code,
-						targetWhere: isNull(locationsTable.deletedAt),
 						set: {
 							name: d.name,
 							type: d.type,
 							updatedAt: metadata.updatedAt,
 							updatedBy: metadata.updatedBy,
-							deletedAt: null,
 						},
 					})
 			}
@@ -124,19 +118,8 @@ export class LocationMasterRepo {
 		})
 	}
 
-	async remove(id: number, actorId: number): Promise<number | undefined> {
+	async remove(id: number): Promise<number | undefined> {
 		return record('LocationMasterRepo.remove', async () => {
-			const [res] = await db
-				.update(locationsTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(locationsTable.id, id))
-				.returning({ id: locationsTable.id })
-			return res?.id
-		})
-	}
-
-	async hardRemove(id: number): Promise<number | undefined> {
-		return record('LocationMasterRepo.hardRemove', async () => {
 			const [res] = await db
 				.delete(locationsTable)
 				.where(eq(locationsTable.id, id))

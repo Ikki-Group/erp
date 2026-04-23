@@ -136,18 +136,9 @@ export class LocationMasterService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<RecordId> {
+	async handleRemove(id: number): Promise<RecordId> {
 		return record('LocationMasterService.handleRemove', async () => {
-			const result = await this.repo.remove(id, actorId)
-			if (!result) throw err.notFound(id)
-			await this.clearCache(id)
-			return { id }
-		})
-	}
-
-	async handleHardRemove(id: number): Promise<RecordId> {
-		return record('LocationMasterService.handleHardRemove', async () => {
-			const result = await this.repo.hardRemove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 			await this.clearCache(id)
 			return { id }
