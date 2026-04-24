@@ -1,19 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
-import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
 import { bento } from '@/core/cache'
-import { takeFirst } from '@/core/database'
 import { InternalServerError } from '@/core/http/errors'
 import { logger } from '@/core/logger'
 
-import { db } from '@/db'
-import { sessionsTable } from '@/db/schema'
-
-import type { UserDto } from '@/modules/iam/dto'
-
+import { SessionRepo } from '../repo'
 import { SessionPayloadDto, type SessionDto } from '../dto'
 import { env } from '@/config/env'
+
+import type { UserDto } from '@/modules/iam/dto'
 
 const cache = bento.namespace('session')
 
@@ -23,6 +19,8 @@ const err = {
 }
 
 export class SessionService {
+	constructor(private readonly repo = new SessionRepo()) {}
+
 	/**
 	 * Finds a single session by its ID. Cached.
 	 */
@@ -30,10 +28,7 @@ export class SessionService {
 		return record('SessionService.getById', async () => {
 			return cache.getOrSet({
 				key: `${id}`,
-				factory: async () => {
-					const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
-					return takeFirst(result)
-				},
+				factory: async () => this.repo.getById(id),
 			})
 		})
 	}
@@ -46,12 +41,11 @@ export class SessionService {
 			const createdAt = new Date()
 			const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
-			const [session] = await db
-				.insert(sessionsTable)
-				.values({ userId: user.id, createdAt, expiredAt })
-				.returning()
-
-			if (!session) throw err.createFailed()
+			const session = await this.repo.create({
+				userId: user.id,
+				createdAt,
+				expiredAt,
+			})
 
 			const data: SessionPayloadDto = {
 				id: session.id,
@@ -62,7 +56,7 @@ export class SessionService {
 
 			const token = jwt.sign(data, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN })
 
-			return { session: session as SessionDto, token }
+			return { session, token }
 		})
 	}
 
@@ -78,7 +72,7 @@ export class SessionService {
 
 				if (!session) return null
 
-				// If session expired, delete it and return null
+				// If session expired, invalidate it and return null
 				if (session.expiredAt < new Date()) {
 					await this.deleteSession(session.id)
 					return null
@@ -97,7 +91,7 @@ export class SessionService {
 	 */
 	async deleteSession(id: number): Promise<void> {
 		return record('SessionService.deleteSession', async () => {
-			await db.delete(sessionsTable).where(eq(sessionsTable.id, id))
+			await this.repo.invalidate(id)
 			await cache.deleteMany({ keys: [`${id}`] })
 		})
 	}
@@ -107,7 +101,7 @@ export class SessionService {
 	 */
 	async cleanupExpired(): Promise<void> {
 		return record('SessionService.cleanupExpired', async () => {
-			await db.delete(sessionsTable).where(lte(sessionsTable.expiredAt, new Date()))
+			await this.repo.cleanupExpired()
 		})
 	}
 }
