@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, desc, eq, ilike, isNull, lte, or, gte } from 'drizzle-orm'
+import { and, eq, ilike, isNull, lte, or, gte } from 'drizzle-orm'
 
-import { paginate, takeFirstOrThrow } from '@/core/database'
+import { takeFirstOrThrow } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import { transformDecimals } from '@/core/utils/decimal'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -9,6 +9,7 @@ import type { PaginationQuery, WithPaginationResult } from '@/core/utils/paginat
 import { db } from '@/db'
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
+import { StockTransactionRepo } from '@/modules/inventory/repo'
 import type {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
@@ -16,6 +17,8 @@ import type {
 } from '@/modules/inventory/dto'
 
 export class StockHistoryService {
+	private readonly repo = new StockTransactionRepo()
+
 	/**
 	 * List transactions with filters (paginated), enriched with material info.
 	 */
@@ -55,48 +58,10 @@ export class StockHistoryService {
 				searchCondition,
 			)
 
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select({
-							id: stockTransactionsTable.id,
-							materialId: stockTransactionsTable.materialId,
-							locationId: stockTransactionsTable.locationId,
-							type: stockTransactionsTable.type,
-							date: stockTransactionsTable.date,
-							referenceNo: stockTransactionsTable.referenceNo,
-							notes: stockTransactionsTable.notes,
-							qty: stockTransactionsTable.qty,
-							unitCost: stockTransactionsTable.unitCost,
-							totalCost: stockTransactionsTable.totalCost,
-							counterpartLocationId: stockTransactionsTable.counterpartLocationId,
-							transferId: stockTransactionsTable.transferId,
-							runningQty: stockTransactionsTable.runningQty,
-							runningAvgCost: stockTransactionsTable.runningAvgCost,
-							createdAt: stockTransactionsTable.createdAt,
-							updatedAt: stockTransactionsTable.updatedAt,
-							createdBy: stockTransactionsTable.createdBy,
-							updatedBy: stockTransactionsTable.updatedBy,
-							syncAt: stockTransactionsTable.syncAt,
-							materialName: materialsTable.name,
-							materialSku: materialsTable.sku,
-						})
-						.from(stockTransactionsTable)
-						.innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
-						.where(where)
-						.orderBy(desc(stockTransactionsTable.date))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db
-					.select({ count: count() })
-					.from(stockTransactionsTable)
-					.innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
-					.where(where),
-			})
+			const result = await db.select().from(stockTransactionsTable).where(where)
+			const data = transformDecimals(result) as unknown as StockTransactionSelectDto[]
 
-			const data = transformDecimals(result.data) as unknown as StockTransactionSelectDto[]
-			return { data, meta: result.meta }
+			return { data, meta: { total: data.length, page: pq.page || 1, limit: pq.limit || 20 } }
 		})
 	}
 
@@ -105,17 +70,9 @@ export class StockHistoryService {
 	 */
 	async handleDetail(id: number): Promise<StockTransactionDto> {
 		return record('StockHistoryService.handleDetail', async () => {
-			const result = await db
-				.select()
-				.from(stockTransactionsTable)
-				.where(and(eq(stockTransactionsTable.id, id), isNull(stockTransactionsTable.deletedAt)))
-			const row = takeFirstOrThrow(
-				result,
-				`Transaction with ID ${id} not found`,
-				'TRANSACTION_NOT_FOUND',
-			)
-
-			return transformDecimals(row) as unknown as StockTransactionDto
+			const result = await this.repo.getById(id)
+			if (!result) throw new NotFoundError('Stock transaction', id)
+			return transformDecimals(result) as unknown as StockTransactionDto
 		})
 	}
 
@@ -124,15 +81,9 @@ export class StockHistoryService {
 	 */
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('StockHistoryService.handleRemove', async () => {
-			const result = await db
-				.update(stockTransactionsTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(stockTransactionsTable.id, id))
-				.returning({ id: stockTransactionsTable.id })
-
-			if (result.length === 0) throw new NotFoundError(`Transaction with ID ${id} not found`)
-
-			return { id }
+			const existing = await this.repo.getById(id)
+			if (!existing) throw new NotFoundError('Stock transaction', id)
+			return this.repo.softDelete(id, actorId)
 		})
 	}
 
@@ -141,14 +92,7 @@ export class StockHistoryService {
 	 */
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('StockHistoryService.handleHardRemove', async () => {
-			const result = await db
-				.delete(stockTransactionsTable)
-				.where(eq(stockTransactionsTable.id, id))
-				.returning({ id: stockTransactionsTable.id })
-
-			if (result.length === 0) throw new NotFoundError(`Transaction with ID ${id} not found`)
-
-			return { id }
+			return this.repo.hardDelete(id)
 		})
 	}
 }
