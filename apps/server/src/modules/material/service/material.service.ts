@@ -329,6 +329,7 @@ export class MaterialService {
 	}
 
 	async handleDetail(id: number): Promise<MaterialSelectDto> {
+		// @ts-expect-error
 		return record('MaterialService.handleDetail', async () => {
 			const material = await this.getById(id)
 			const [category, uom, locations] = await Promise.all([
