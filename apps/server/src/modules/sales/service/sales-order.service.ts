@@ -20,6 +20,7 @@ import {
 	salesVoidsTable,
 } from '@/db/schema/sales'
 
+import { SalesOrderRepo } from '../repo'
 import type {
 	SalesOrderAddBatchDto,
 	SalesOrderCreateDto,
@@ -39,64 +40,13 @@ const err = {
 }
 
 export class SalesOrderService {
+	private readonly repo = new SalesOrderRepo()
+
 	/* ──────────────────── HANDLER: CREATE / OPEN BILL ──────────────────── */
 
 	async handleCreate(data: SalesOrderCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('SalesOrderService.handleCreate', async () => {
-			const {
-				locationId,
-				customerId,
-				salesTypeId,
-				status,
-				transactionDate,
-				totalAmount,
-				discountAmount,
-				taxAmount,
-				items,
-			} = data
-
-			return db.transaction(async (tx) => {
-				const metadata = stampCreate(actorId)
-
-				const [order] = await tx
-					.insert(salesOrdersTable)
-					.values({
-						locationId,
-						customerId: customerId ?? null,
-						salesTypeId,
-						status,
-						transactionDate,
-						totalAmount: totalAmount.toString(),
-						discountAmount: discountAmount.toString(),
-						taxAmount: taxAmount.toString(),
-						...metadata,
-					})
-					.returning({ id: salesOrdersTable.id })
-
-				if (items && items.length > 0) {
-					await tx.insert(salesOrderItemsTable).values(
-						items.map((item) =>
-							Object.assign(
-								{
-									orderId: order!.id,
-									batchId: item.batchId ?? null,
-									productId: item.productId ?? null,
-									variantId: item.variantId ?? null,
-									itemName: item.itemName,
-									quantity: item.quantity.toString(),
-									unitPrice: item.unitPrice.toString(),
-									discountAmount: item.discountAmount.toString(),
-									taxAmount: item.taxAmount.toString(),
-									subtotal: item.subtotal.toString(),
-								},
-								metadata,
-							),
-						),
-					)
-				}
-
-				return { id: order!.id }
-			})
+			return this.repo.create(data, actorId)
 		})
 	}
 
