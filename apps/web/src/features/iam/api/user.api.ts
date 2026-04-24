@@ -14,7 +14,7 @@ import {
 	UserAdminUpdatePasswordDto,
 	UserChangePasswordDto,
 	UserCreateDto,
-	UserDto,
+	UserDetailDto,
 	UserFilterDto,
 	UserUpdateDto,
 } from '../dto'
@@ -24,13 +24,13 @@ export const userApi = {
 		method: 'get',
 		url: endpoint.iam.user.list,
 		params: z.object({ ...zq.pagination.shape, ...UserFilterDto.shape }),
-		result: createPaginatedResponseSchema(UserDto),
+		result: createPaginatedResponseSchema(UserDetailDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.iam.user.detail,
 		params: zc.RecordId,
-		result: createSuccessResponseSchema(UserDto),
+		result: createSuccessResponseSchema(UserDetailDto),
 	}),
 	create: apiFactory({
 		method: 'post',

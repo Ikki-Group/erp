@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-import type { UserSelectDto } from '@/features/iam'
+import type { UserDetailDto } from '@/features/iam'
 
 type Location = Array<number> | null
 
@@ -10,9 +10,9 @@ interface AppState {
 	location: Location
 	sidebarOpen: boolean
 
-	invalidateSessionData: (user: UserSelectDto) => void
+	invalidateSessionData: (user: UserDetailDto) => void
 	isAuthenticated: () => boolean
-	setToken: (token: string, user: UserSelectDto) => void
+	setToken: (token: string, user: UserDetailDto) => void
 	clearToken: () => void
 	setLocation: (location: Location) => void
 	setSidebarOpen: (sidebarOpen: boolean) => void
@@ -40,11 +40,11 @@ export const useAppState = create<AppState>()(
 	),
 )
 
-function validateLocation(current: Location, user: UserSelectDto): Location {
+function validateLocation(current: Location, user: UserDetailDto): Location {
 	const assignments = user.assignments ?? []
 	if (assignments.length === 0) return null
 
-	const userLocationIds = assignments.map((a) => a.locationId)
+	const userLocationIds = assignments.map((a) => a.location.id)
 
 	// If current selection is valid, keep it
 	if (
@@ -58,7 +58,7 @@ function validateLocation(current: Location, user: UserSelectDto): Location {
 
 	// Default to isDefault assignment (backend guarantees this exists)
 	const defaultAssignment = assignments.find((a) => a.isDefault)
-	if (defaultAssignment) return [defaultAssignment.locationId]
+	if (defaultAssignment) return [user.defaultLocationId ?? defaultAssignment.location.id]
 
 	// Fallback to first location
 	if (userLocationIds.length > 0 && userLocationIds[0] !== undefined) return [userLocationIds[0]]

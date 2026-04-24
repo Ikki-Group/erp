@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -60,7 +62,7 @@ const columns = [
 				return <BadgeDot variant="success-outline">Sudah Dibayar</BadgeDot>
 			if (row.original.status === 'PENDING')
 				return <BadgeDot variant="warning-outline">Draft / Tertunda</BadgeDot>
-			return <BadgeDot variant="error-outline">{row.original.status}</BadgeDot>
+			return <BadgeDot variant="destructive-light">{row.original.status}</BadgeDot>
 		},
 	}),
 	ch.accessor('amount', {
@@ -74,7 +76,7 @@ const columns = [
 ]
 
 function FinanceExpensesPage() {
-	const [search, setSearch] = React.useState('')
+	const [search, setSearch] = useState('')
 
 	const { data: expenditures = [], isLoading } = useQuery({
 		queryKey: ['finance', 'expenditure', 'list', search],

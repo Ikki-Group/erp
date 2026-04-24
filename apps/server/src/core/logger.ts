@@ -16,11 +16,6 @@ if (isDev || env.LOG_PRETTY) {
 			translateTime: 'SYS:standard',
 		},
 	})
-} else {
-	targets.push({
-		target: 'pino/file',
-		options: { destination: 1 }, // 1 is stdout
-	})
 }
 
 // Axiom Transport
