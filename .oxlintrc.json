@@ -14,6 +14,10 @@
 		"promise",
 		"vitest"
 	],
+	"options": {
+		"typeAware": true,
+		"typeCheck": true
+	},
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",
@@ -49,20 +53,25 @@
 	},
 	"overrides": [
 		{
-			"files": ["apps/server/**/*"],
+			"files": [
+				"apps/server/**/*"
+			],
 			"rules": {
 				"no-inline-comments": "off",
 				"max-classes-per-file": "off"
 			}
 		},
 		{
-			"files": ["apps/web/**/*"],
+			"files": [
+				"apps/web/**/*"
+			],
 			"rules": {
 				// "unicorn/no-useless-fallback-in-spread": "off",
 				"typescript/no-floating-promises": "off",
 				"typescript/no-unsafe-type-assertion": "off",
 				"typescript/restrict-template-expressions": "off",
 				"react/jsx-no-constructed-context-values": "off",
+				"react/react-in-jsx-scope": "off",
 				"typescript/no-unnecessary-template-expression": "off",
 				"typescript/no-unnecessary-boolean-literal-compare": "off",
 				"react/no-array-index-key": "off",
@@ -77,7 +86,9 @@
 			}
 		},
 		{
-			"files": ["*.test.ts"],
+			"files": [
+				"*.test.ts"
+			],
 			"rules": {
 				"typescript/no-unsafe-type-assertion": "off",
 				"typescript/no-unsafe-assignment": "off",
@@ -88,5 +99,11 @@
 			}
 		}
 	],
-	"ignorePatterns": ["dist/**", "node_modules/**", "drizzle/**", "**/*.lock", ".agents/**"]
+	"ignorePatterns": [
+		"dist/**",
+		"node_modules/**",
+		"drizzle/**",
+		"**/*.lock",
+		".agents/**"
+	]
 }

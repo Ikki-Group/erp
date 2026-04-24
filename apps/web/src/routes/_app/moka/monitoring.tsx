@@ -124,7 +124,7 @@ const columns = [
 				return (
 					<div className="flex items-center gap-2">
 						<BadgeDot variant="destructive-outline">Gagal</BadgeDot>
-						<span className="text-[10px] text-destructive truncate max-w-[100px]">{row.error}</span>
+						<span className="text-[10px] text-destructive truncate max-w-25">{row.error}</span>
 					</div>
 				)
 			},
@@ -176,7 +176,7 @@ function MokaMonitoringPage() {
 							/>
 						}
 					>
-						<ChartContainer config={activityConfig} className="h-[250px] w-full">
+						<ChartContainer config={activityConfig} className="h-62.5 w-full">
 							<AreaChart data={syncActivityData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
 								<defs>
 									<linearGradient id="fillActivity" x1="0" y1="0" x2="0" y2="1">
