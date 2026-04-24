@@ -25,7 +25,10 @@ const iam = {
 	assignment: {
 		list: 'iam/assignment/list',
 		assign: 'iam/assignment/assign',
+		assignBulk: 'iam/assignment/assign-bulk',
+		updateRoleBulk: 'iam/assignment/update-role-bulk',
 		remove: 'iam/assignment/remove',
+		removeBulk: 'iam/assignment/remove-bulk',
 	},
 }
 

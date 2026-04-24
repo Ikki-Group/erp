@@ -1,13 +1,17 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStr } from '@/lib/zod'
+import { zc, zp } from '@/lib/validation'
 
-import { UserSelectDto } from '@/features/iam'
+import { UserDetailDto } from '@/features/iam'
 
-export const LoginDto = z.object({ identifier: zStr, password: zStr })
-
+export const LoginDto = z.object({
+	identifier: zc.strTrim.min(1),
+	password: zc.password,
+})
 export type LoginDto = z.infer<typeof LoginDto>
 
-export const AuthSelectDto = z.object({ user: UserSelectDto, token: zStr })
-
-export type AuthSelectDto = z.infer<typeof AuthSelectDto>
+export const AuthOutputDto = z.object({
+	user: UserDetailDto,
+	token: zp.str,
+})
+export type AuthOutputDto = z.infer<typeof AuthOutputDto>

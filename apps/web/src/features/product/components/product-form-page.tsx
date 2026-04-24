@@ -531,7 +531,7 @@ function VariantsTable({
 											<form.AppField name={`variants[${i}].sku`}>
 												{(field) => (
 													<input
-														value={field.state.value || ''}
+														value={field.state.value ?? ''}
 														onChange={(e) => field.handleChange(e.target.value)}
 														placeholder="Opsional..."
 														className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-muted-foreground/50 outline-none"

@@ -290,7 +290,7 @@ export function Pattern() {
 	const statusCounts = useMemo(() => {
 		return demoData.reduce(
 			(acc, item) => {
-				acc[item.status] = (acc[item.status] || 0) + 1
+				acc[item.status] = (acc[item.status] ?? 0) + 1
 				return acc
 			},
 			{} as Record<string, number>,

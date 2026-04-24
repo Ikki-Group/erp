@@ -6,10 +6,9 @@ import { apiFactory } from '@/lib/api'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zId,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+	zc,
+	zq,
+} from '@/lib/validation'
 
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
 
@@ -17,31 +16,31 @@ export const roleApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.iam.role.list,
-		params: z.object({ ...zPaginationDto.shape, ...RoleFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...RoleFilterDto.shape }),
 		result: createPaginatedResponseSchema(RoleDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.iam.role.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(RoleDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.iam.role.create,
 		body: RoleCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.iam.role.update,
 		body: RoleUpdateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.iam.role.remove,
-		body: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		body: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 	}),
 }

@@ -72,7 +72,7 @@ function FormDialogActions({ onCancel, disabled }: FormDialogActionsProps) {
 				{([canSubmit, isSubmitting]) => (
 					<Button
 						type={'button'}
-						disabled={!canSubmit || isSubmitting || disabled}
+						disabled={!canSubmit || isSubmitting}
 						onClick={() => form.handleSubmit()}
 					>
 						{isSubmitting ? 'Menyimpan...' : 'Simpan'}

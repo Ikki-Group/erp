@@ -54,9 +54,7 @@ function ErrorPageLayout({
 
 						{/* Actions */}
 						<div className="w-full mt-4">
-							{actions ? (
-								actions
-							) : (
+							{actions ?? (
 								<Inline gap="sm" justify="center" className="flex-wrap">
 									{showBackButton && (
 										<Button variant="outline" size="lg" onClick={() => window.history.back()}>
@@ -121,7 +119,7 @@ export function GenericErrorPage({ error, reset }: { error?: Error; reset?: () =
 		<ErrorPageLayout
 			title="Terjadi Kesalahan"
 			description={
-				error?.message || 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.'
+				error?.message ?? 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.'
 			}
 			icon={<AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />}
 			actions={

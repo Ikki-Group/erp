@@ -28,6 +28,6 @@ export default defineConfig((c) => {
 			tailwindcss({ optimize: true }),
 			viteReact(),
 		],
-		server: { allowedHosts: ['mba.local', 'localhost', '127.0.0.1', '::1', '0.0.0.0'] },
+		// server: { allowedHosts: ['mba.local', 'localhost', '127.0.0.1', '::1', '0.0.0.0'] },
 	}
 })

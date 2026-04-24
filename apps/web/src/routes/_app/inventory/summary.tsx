@@ -26,7 +26,7 @@ import { Badge } from '@/components/reui/badge'
 import {
 	createColumnHelper,
 	currencyColumn,
-	DataGridCell,
+	// DataGridCell,
 } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Button } from '@/components/ui/button'
@@ -208,14 +208,14 @@ const columnDefs = [
 		header: 'Bahan Baku',
 		cell: ({ row }) => (
 			<div className="flex flex-col gap-1">
-				<DataGridCell.Text
+				{/* <DataGridCell.Text
 					value={row.original.materialName}
 					className="font-semibold text-foreground/90"
 				/>
 				<DataGridCell.Text
 					value={row.original.materialSku}
 					className="text-[11px] font-mono text-muted-foreground/80 tracking-tight"
-				/>
+				/> */}
 			</div>
 		),
 		size: 200,

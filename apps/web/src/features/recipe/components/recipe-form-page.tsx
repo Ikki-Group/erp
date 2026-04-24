@@ -99,7 +99,7 @@ function getDefaultValues(
 		targetQty: v.targetQty,
 		isActive: v.isActive,
 		instructions: v.instructions ?? '',
-		items: (v.items || []).map((item) => ({
+		items: (v.items ?? []).map((item) => ({
 			materialId: item.materialId,
 			qty: item.qty,
 			scrapPercentage: item.scrapPercentage,
@@ -179,7 +179,7 @@ export function RecipeFormPage({ targetId, targetType, backTo }: RecipeFormPageP
 									<RecipeInstructionsCard />
 								</div>
 								<div className="space-y-6">
-									<RecipeSummaryCard targetName={targetName || ''} />
+									<RecipeSummaryCard targetName={targetName ?? ''} />
 								</div>
 							</div>
 							<form.SimpleActions />
@@ -389,7 +389,7 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
 							<textarea
 								className="w-full bg-transparent border-none resize-none text-[11px] text-muted-foreground focus:ring-0 p-0 placeholder:italic"
 								placeholder="Tambahkan catatan (pilihan)..."
-								value={field.state.value || ''}
+								value={field.state.value ?? ''}
 								onChange={(e) => {
 									field.handleChange(e.target.value)
 									e.target.style.height = 'inherit'

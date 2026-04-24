@@ -68,9 +68,9 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 				code: value.code,
 				type: value.type,
 				isActive: value.isActive,
-				address: value.address || null,
-				phone: value.phone || null,
-				description: value.description || null,
+				address: value.address ?? null,
+				phone: value.phone ?? null,
+				description: value.description ?? null,
 			}
 			const promise = isCreate
 				? create.mutateAsync({ body: payload })
