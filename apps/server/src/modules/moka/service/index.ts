@@ -1,10 +1,9 @@
-import type { Logger } from 'pino'
-
 import type { FinanceServiceModule } from '../../finance/service'
 import { MokaConfigurationService } from './moka-configuration.service'
 import { MokaScrapHistoryService } from './moka-scrap-history.service'
 import { MokaScrapService } from './moka-scrap.service'
 import { MokaTransformationService } from './moka-transformation.service'
+import type { Logger } from 'pino'
 
 export class MokaServiceModule {
 	public readonly configuration: MokaConfigurationService

@@ -1,20 +1,27 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, isNull, or } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
-import { db } from '@/db'
-import { userAssignmentsTable, usersTable } from '@/db/schema'
-import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
+import { resolveAudit } from '@/core/utils/audit-resolver'
+import type { RelationMap } from '@/core/utils/relation-map'
+import type { AuditResolved } from '@/core/validation'
 
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { LocationService } from '@/modules/location/service'
+import { usersTable } from '@/db/schema'
+
+import type { LocationDto } from '@/modules/location'
+import type { LocationMasterService } from '@/modules/location/service'
+
+import { IAM_CACHE_KEYS } from '../constants'
+import type { RoleDto } from '../dto'
 import * as dto from '../dto/user.dto'
-import * as assignmentDto from '../dto/user-assignment.dto'
+import { UserErrors } from '../errors'
+import type { UserRepo } from '../repo/user.repo'
+import type { UserAssignmentService } from './assignment.service'
 import type { RoleService } from './role.service'
-import type { UserAssignmentService } from './user-assignment.service'
 
-const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
+const cache = bento.namespace('user')
+
+const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	{
 		field: 'email',
 		column: usersTable.email,
@@ -29,302 +36,213 @@ const uniqueFields: core.ConflictField<'email' | 'username'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'iam.user.count',
-	list: 'iam.user.list',
-	byId: (id: number) => `iam.user.byId.${id}`,
-}
-
-const err = {
-	notFound: (id: number) => new NotFoundError(`User with ID ${id} not found`, 'USER_NOT_FOUND'),
-	createFailed: () => new InternalServerError('User creation failed', 'USER_CREATE_FAILED'),
-	oldPasswordMismatch: () =>
-		new BadRequestError('Old password does not match', 'USER_OLD_PASSWORD_MISMATCH'),
-}
-
-// User Service (Layer 0)
-// Handles sensitive identity and profile management.
+// User Service (Layer 1)
+// Handles identity, profile, and user assignment management
+// Methods organized by QUERY (read) and COMMAND (write) operations
 export class UserService {
 	constructor(
+		private repo: UserRepo,
 		private assignmentService: UserAssignmentService,
-		private locationService: LocationService,
 		private roleService: RoleService,
+		private locationService: LocationMasterService,
 	) {}
 
-	// Seed initial users.
+	/* ========================================================================== */
+	/*                              QUERY OPERATIONS                             */
+	/* ========================================================================== */
+
+	private async clearCache(id?: number) {
+		const keys = [IAM_CACHE_KEYS.USER_LIST, IAM_CACHE_KEYS.USER_COUNT]
+		if (id) keys.push(IAM_CACHE_KEYS.USER_DETAIL(id))
+		await cache.deleteMany({ keys })
+	}
+
+	private async getUserAssignments(
+		user: dto.UserDto,
+		roleMapper?: RelationMap<number, RoleDto>,
+		locationMapper?: RelationMap<number, LocationDto>,
+	): Promise<dto.UserAssignmentDetailDto[]> {
+		return record('UserService.getUserAssignments', async () => {
+			const assignments: dto.UserAssignmentDetailDto[] = []
+			const { id: userId, isRoot, defaultLocationId } = user
+
+			if (isRoot) {
+				const [superadmin, locations] = await Promise.all([
+					this.roleService.getSuperadmin(),
+					this.locationService.getList(),
+				])
+
+				const defaultAssignment = this.assignmentService.getDefaultAssignmentForSuperadmin()
+				for (const location of locations) {
+					assignments.push({
+						...defaultAssignment,
+						isDefault: false,
+						role: superadmin,
+						location,
+					})
+				}
+			} else {
+				const [rawAssignments, roleMap, locationMap] = await Promise.all([
+					this.assignmentService.findByUserId(userId),
+					roleMapper ?? this.roleService.getRelationMap(),
+					locationMapper ?? this.locationService.getRelationMap(),
+				])
+
+				assignments.push(
+					...rawAssignments.map((a) => ({
+						...a,
+						isDefault: false,
+						role: roleMap.getRequired(a.roleId),
+						location: locationMap.getRequired(a.locationId),
+					})),
+				)
+			}
+
+			if (assignments.length > 0 && defaultLocationId === null && assignments[0]) {
+				assignments[0].isDefault = true
+			}
+
+			return assignments
+		})
+	}
+
+	async getList(): Promise<dto.UserDto[]> {
+		return record('UserService.getList', async () => {
+			return cache.getOrSet({
+				key: IAM_CACHE_KEYS.USER_LIST,
+				factory: async () => this.repo.getList(),
+			})
+		})
+	}
+
+	async getById(id: number): Promise<dto.UserDto | undefined> {
+		return record('UserService.getById', async () => {
+			return cache.getOrSet({
+				key: IAM_CACHE_KEYS.USER_DETAIL(id),
+				factory: async ({ skip }) => {
+					const row = await this.repo.getById(id)
+					return row ?? skip()
+				},
+			})
+		})
+	}
+
+	async getUserDetail(id: number): Promise<dto.UserDetailDto> {
+		return record('UserService.getUserDetail', async () => {
+			const user = await this.getById(id)
+			if (!user) throw UserErrors.notFound(id)
+			const assignments = await this.getUserAssignments(user)
+
+			return {
+				...user,
+				assignments,
+			}
+		})
+	}
+
+	async getByIdentifier(
+		identifier: string,
+	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
+		return this.repo.findByIdentifier(identifier)
+	}
+
+	async count(): Promise<number> {
+		return record('UserService.count', async () => {
+			return cache.getOrSet({
+				key: IAM_CACHE_KEYS.USER_COUNT,
+				factory: () => this.repo.count(),
+			})
+		})
+	}
+
+	/* ========================================================================== */
+	/*                              COMMAND OPERATIONS                           */
+	/* ========================================================================== */
+
 	async seed(
 		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
 	): Promise<void> {
 		await record('UserService.seed', async () => {
-			for (const { assignments, ...d } of data) {
-				const metadata = core.stampCreate(d.createdBy)
-				await db.transaction(async (tx) => {
-					const [inserted] = await tx
-						.insert(usersTable)
-						.values({ ...d, ...metadata })
-						.onConflictDoUpdate({
-							target: usersTable.username,
-							targetWhere: isNull(usersTable.deletedAt),
-							set: {
-								email: d.email,
-								fullname: d.fullname,
-								isActive: d.isActive,
-								isRoot: d.isRoot,
-								updatedAt: metadata.updatedAt,
-								updatedBy: metadata.updatedBy,
-								deletedAt: null,
-							},
-						})
-						.returning({ id: usersTable.id })
-
-					if (inserted && assignments && assignments.length > 0) {
-						await this.assignmentService.handleUpsertBulk(inserted.id, assignments, d.createdBy)
-					}
-				})
-			}
+			await this.repo.seed(data)
 			await this.clearCache()
 		})
 	}
 
-	// Returns active users.
-	async find(): Promise<dto.UserDto[]> {
-		const result = await record('UserService.find', async () => {
-			const data = await cache.wrap(cacheKey.list, async () => {
-				const rows = await db
-					.select()
-					.from(usersTable)
-					.where(isNull(usersTable.deletedAt))
-					.orderBy(usersTable.fullname)
-				return rows.map((r) => dto.UserDto.parse(r))
-			})
-			return data
-		})
-		return result
-	}
-
-	// Finds a user by ID.
-	async getById(id: number): Promise<dto.UserDto> {
-		const result = await record('UserService.getById', async () => {
-			const data = await cache.wrap(cacheKey.byId(id), async () => {
-				const rows = await db
-					.select()
-					.from(usersTable)
-					.where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
-				const first = core.takeFirstOrThrow(rows, `User with ID ${id} not found`, 'USER_NOT_FOUND')
-
-				// Root users: resolve ALL locations at runtime (zero sync needed)
-				const assignments = first.isRoot
-					? await this.resolveRootAssignments(first.id)
-					: await this.assignmentService.findByUserId(id)
-
-				return { ...first, assignments }
-			})
-			return data
-		})
-		return result
-	}
-
-	/**
-	 * Resolves all locations as synthetic assignments for root users.
-	 * This is the core of Opsi 3: no assignment rows needed in DB,
-	 * locations are resolved at runtime from LocationService.
-	 */
-	private async resolveRootAssignments(
-		userId: number,
-	): Promise<assignmentDto.UserAssignmentDetailDto[]> {
-		const [allLocations, allRoles] = await Promise.all([
-			this.locationService.find(),
-			this.roleService.find(),
-		])
-
-		// Find the SUPERADMIN role (isSystem + permissions: ['*'])
-		const superAdminRole = allRoles.find((r) => r.isSystem && r.permissions.includes('*'))
-		if (!superAdminRole) return []
-
-		return allLocations.map(
-			(loc, idx) =>
-				({
-					...superAdminRole,
-					userId,
-					roleId: superAdminRole.id,
-					locationId: loc.id,
-					isDefault: idx === 0, // First location is default
-					roleName: superAdminRole.name,
-					roleCode: superAdminRole.code,
-					locationName: loc.name,
-					locationCode: loc.code,
-				}) satisfies assignmentDto.UserAssignmentDetailDto,
-		)
-	}
-
-	// Returns total count.
-	async count(): Promise<number> {
-		const result = await record('UserService.count', async () => {
-			const data = await cache.wrap(cacheKey.count, async () => {
-				const rows = await db
-					.select({ val: count() })
-					.from(usersTable)
-					.where(isNull(usersTable.deletedAt))
-				return rows[0]?.val ?? 0
-			})
-			return data
-		})
-		return result
-	}
-
-	// Paginated list.
-	async handleList(filter: dto.UserFilterDto): Promise<core.WithPaginationResult<dto.UserDto>> {
-		const result = await record('UserService.handleList', async () => {
-			const { q, page, limit, isActive, isRoot } = filter
-			const where = and(
-				isNull(usersTable.deletedAt),
-				q === undefined
-					? undefined
-					: or(
-							core.searchFilter(usersTable.fullname, q),
-							core.searchFilter(usersTable.username, q),
-							core.searchFilter(usersTable.email, q),
-						),
-				isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
-				isRoot === undefined ? undefined : eq(usersTable.isRoot, isRoot),
-				filter.locationId === undefined
-					? undefined
-					: exists(
-							db
-								.select()
-								.from(userAssignmentsTable)
-								.where(
-									and(
-										eq(userAssignmentsTable.userId, usersTable.id),
-										eq(userAssignmentsTable.locationId, filter.locationId),
-										isNull(userAssignmentsTable.deletedAt),
-									),
-								),
-						),
-			)
-
-			const p = await core.paginate<dto.UserDto>({
-				data: async ({ limit: l, offset }) => {
-					const rows = await db
-						.select()
-						.from(usersTable)
-						.where(where)
-						.orderBy(core.sortBy(usersTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows.map((r) => dto.UserDto.parse(r))
-				},
-				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(usersTable).where(where),
-			})
-
-			return { ...p, data: await resolveAuditList(p.data) }
-		})
-		return result
-	}
-
-	// Finds a user by username or email.
-	// Internal use for authentication.
-	async findByIdentifier(
-		identifier: string,
-	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
-		return record('UserService.findByIdentifier', async () => {
-			const [user] = await db
-				.select()
-				.from(usersTable)
-				.where(
-					and(
-						isNull(usersTable.deletedAt),
-						or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)),
-					),
-				)
-				.limit(1)
-
-			if (!user) return null
-			return { ...dto.UserDto.parse(user), passwordHash: user.passwordHash }
-		})
-	}
-
-	// Resource detail.
-	async handleDetail(id: number): Promise<dto.UserDto> {
-		const user = await this.getById(id)
-		return resolveAudit(user)
-	}
-
-	// Alias for detail retrieval, commonly used in Auth.
-	async getDetailById(id: number): Promise<dto.UserDto> {
-		return this.getById(id)
-	}
-
-	// Creation.
 	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
-		const result = await record('UserService.handleCreate', async () => {
+		return record('UserService.handleCreate', async () => {
 			await core.checkConflict({
 				table: usersTable,
 				pkColumn: usersTable.id,
-				fields: uniqueFields,
+				fields: userConflictFields,
 				input: data,
 			})
 
-			const { assignments, password, ...rest } = data
+			const { password, assignments, isRoot } = data
 			const passwordHash = await Bun.password.hash(password)
 
-			const [inserted] = await db.transaction(async (tx) => {
-				const [u] = await tx
-					.insert(usersTable)
-					.values({ ...rest, passwordHash, ...core.stampCreate(actorId) })
-					.returning({ id: usersTable.id })
+			const insertedId = await this.repo.create({ ...data, passwordHash }, actorId)
+			if (!insertedId) throw UserErrors.createFailed()
 
-				if (u && assignments && assignments.length > 0) {
-					await this.assignmentService.handleUpsertBulk(u.id, assignments, actorId)
-				}
-				return [u]
-			})
+			// Assign to locations if provided and not a root user
+			if (assignments && assignments.length > 0 && !isRoot) {
+				const assignmentsWithUserId = assignments.map((a) => ({
+					userId: insertedId,
+					roleId: a.roleId,
+					locationId: a.locationId,
+				}))
+				await this.assignmentService.handleReplaceBulkByUserId(
+					insertedId,
+					assignmentsWithUserId,
+					actorId,
+				)
+			}
 
-			if (!inserted) throw err.createFailed()
 			await this.clearCache()
-			return inserted
+			return { id: insertedId }
 		})
-		return result
 	}
 
-	// Update.
 	async handleUpdate(
 		id: number,
 		data: dto.UserUpdateDto,
 		actorId: number,
 	): Promise<{ id: number }> {
-		const result = await record('UserService.handleUpdate', async () => {
+		return record('UserService.handleUpdate', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw UserErrors.notFound(id)
+
 			await core.checkConflict({
 				table: usersTable,
 				pkColumn: usersTable.id,
-				fields: uniqueFields,
-				input: { ...data },
+				fields: userConflictFields,
+				input: data,
 				existing,
 			})
 
-			const { assignments, password, ...rest } = data
+			const { assignments, password, isRoot } = data
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
 
-			await db.transaction(async (tx) => {
-				await tx
-					.update(usersTable)
-					.set({ ...rest, ...(passwordHash && { passwordHash }), ...core.stampUpdate(actorId) })
-					.where(eq(usersTable.id, id))
+			await this.repo.update({ ...data, passwordHash: passwordHash! }, actorId)
 
-				if (assignments) {
-					await this.assignmentService.handleUpsertBulk(id, assignments, actorId)
-				}
-			})
+			// Update assignments if provided and not a root user
+			if (assignments && assignments.length >= 0 && !isRoot) {
+				const assignmentsWithUserId = assignments.map((a) => ({
+					userId: id,
+					roleId: a.roleId,
+					locationId: a.locationId,
+				}))
+				await this.assignmentService.handleReplaceBulkByUserId(
+					id,
+					assignmentsWithUserId,
+					actorId,
+				)
+			}
 
 			await this.clearCache(id)
 			return { id }
 		})
-		return result
 	}
 
-	// Administrative password reset.
 	async handleAdminUpdatePassword(
 		data: dto.UserAdminUpdatePasswordDto,
 		actorId: number,
@@ -333,73 +251,72 @@ export class UserService {
 			const { id, password } = data
 			const passwordHash = await Bun.password.hash(password)
 
-			await db
-				.update(usersTable)
-				.set({ passwordHash, ...core.stampUpdate(actorId) })
-				.where(eq(usersTable.id, id))
-
+			await this.repo.updatePassword(id, passwordHash, actorId)
 			await this.clearCache(id)
 			return { id }
 		})
 	}
 
-	// Password change for current user.
 	async handleChangePassword(
 		id: number,
 		data: dto.UserChangePasswordDto,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('UserService.handleChangePassword', async () => {
-			const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1)
-			if (!user) throw err.notFound(id)
+			const passwordHash = await this.repo.getPasswordHash(id)
+			if (!passwordHash) throw UserErrors.notFound(id)
 
-			const isMatch = await Bun.password.verify(data.oldPassword, user.passwordHash)
-			if (!isMatch) throw err.oldPasswordMismatch()
+			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
+			if (!isMatch) throw UserErrors.passwordMismatch()
 
-			const passwordHash = await Bun.password.hash(data.newPassword)
-			await db
-				.update(usersTable)
-				.set({ passwordHash, ...core.stampUpdate(actorId) })
-				.where(eq(usersTable.id, id))
+			const newPasswordHash = await Bun.password.hash(data.newPassword)
+			await this.repo.updatePassword(id, newPasswordHash, actorId)
 
 			await this.clearCache(id)
 			return { id }
 		})
 	}
 
-	// Removal.
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('UserService.handleRemove', async () => {
-			const [result] = await db
-				.update(usersTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(usersTable.id, id))
-				.returning({ id: usersTable.id })
-			if (!result) throw err.notFound(id)
+			const result = await this.repo.remove(id)
+			if (!result) throw UserErrors.notFound(id)
 			await this.clearCache(id)
-			return result
+			return { id: result }
 		})
 	}
 
-	// Hard Removal.
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('UserService.handleHardRemove', async () => {
-			const [result] = await db
-				.delete(usersTable)
-				.where(eq(usersTable.id, id))
-				.returning({ id: usersTable.id })
-			if (!result) throw err.notFound(id)
-			await this.clearCache(id)
-			return result
+	/* ========================================================================== */
+	/*                            HANDLER OPERATIONS                             */
+	/* ========================================================================== */
+
+	async handleList(
+		filter: dto.UserFilterDto,
+	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
+		return record('UserService.handleList', async () => {
+			const p = await this.repo.getListPaginated(filter)
+
+			const [roleMap, locationMap] = await Promise.all([
+				this.roleService.getRelationMap(),
+				this.locationService.getRelationMap(),
+			])
+
+			const data = await Promise.all(
+				p.data.map(async (d) => {
+					const assignments = await this.getUserAssignments(d, roleMap, locationMap)
+					return {
+						...d,
+						assignments,
+					}
+				}),
+			)
+
+			return { ...p, data }
 		})
 	}
 
-	// Clear relevant caches.
-	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
+		const user = await this.getUserDetail(id)
+		return resolveAudit(user)
 	}
 }

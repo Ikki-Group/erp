@@ -1,75 +1,75 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zId, zDecimal, zStr, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-export const workOrderStatusSchema = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
+/* ---------------------------------- ENUM ---------------------------------- */
 
-export type WorkOrderStatus = z.infer<typeof workOrderStatusSchema>
+export const WorkOrderStatusEnum = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
+export type WorkOrderStatus = z.infer<typeof WorkOrderStatusEnum>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const workOrderSchema = z.object({
-	...zRecordIdDto.shape,
-	recipeId: zId,
-	locationId: zId,
-	status: workOrderStatusSchema,
-
-	expectedQty: zDecimal,
-	actualQty: zDecimal,
-
-	note: z.string().nullable(),
-	totalCost: zDecimal,
-
-	startedAt: z.coerce.date().nullable(),
-	completedAt: z.coerce.date().nullable(),
-
-	...zMetadataDto.shape,
+export const WorkOrderDto = z.object({
+	...zc.RecordId.shape,
+	recipeId: zp.id,
+	locationId: zp.id,
+	status: WorkOrderStatusEnum,
+	expectedQty: zp.decimal,
+	actualQty: zp.decimal,
+	note: zp.strNullable,
+	totalCost: zp.decimal,
+	startedAt: zp.date.nullable(),
+	completedAt: zp.date.nullable(),
+	...zc.AuditBasic.shape,
 })
 
-export type WorkOrderDto = z.infer<typeof workOrderSchema>
+export type WorkOrderDto = z.infer<typeof WorkOrderDto>
 
 /* ---------------------------------- READ ---------------------------------- */
 
-export const workOrderSelectSchema = workOrderSchema.extend({
-	recipeName: z.string().optional(),
-	productName: z.string().optional(),
-	locationName: z.string().optional(),
+export const WorkOrderSelectDto = WorkOrderDto.extend({
+	recipeName: zp.str.optional(),
+	productName: zp.str.optional(),
+	locationName: zp.str.optional(),
 })
 
-export type WorkOrderSelectDto = z.infer<typeof workOrderSelectSchema>
+export type WorkOrderSelectDto = z.infer<typeof WorkOrderSelectDto>
 
-export const workOrderFilterSchema = z.object({
-	search: zQuerySearch,
-	locationId: zId.optional(),
-	status: workOrderStatusSchema.optional(),
+/* --------------------------------- FILTER --------------------------------- */
+
+export const WorkOrderFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	locationId: zq.id.optional(),
+	status: WorkOrderStatusEnum.optional(),
 })
 
-export type WorkOrderFilterDto = z.infer<typeof workOrderFilterSchema>
+export type WorkOrderFilterDto = z.infer<typeof WorkOrderFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const workOrderCreateSchema = z.object({
-	recipeId: zId,
-	locationId: zId,
-	expectedQty: zDecimal,
-	note: zStr.optional(),
+export const WorkOrderCreateDto = z.object({
+	recipeId: zp.id,
+	locationId: zp.id,
+	expectedQty: zp.decimal.gt(0),
+	note: zc.strTrimNullable,
 })
 
-export type WorkOrderCreateDto = z.infer<typeof workOrderCreateSchema>
+export type WorkOrderCreateDto = z.infer<typeof WorkOrderCreateDto>
 
-export const workOrderUpdateSchema = z.object({
-	id: zId,
-	expectedQty: zDecimal.optional(),
-	status: workOrderStatusSchema.optional(),
-	note: zStr.optional(),
+export const WorkOrderUpdateDto = z.object({
+	...zc.RecordId.shape,
+	expectedQty: zp.decimal.gt(0).optional(),
+	status: WorkOrderStatusEnum.optional(),
+	note: zc.strTrimNullable,
 })
 
-export type WorkOrderUpdateDto = z.infer<typeof workOrderUpdateSchema>
+export type WorkOrderUpdateDto = z.infer<typeof WorkOrderUpdateDto>
 
-export const workOrderCompleteSchema = z.object({
-	id: zId,
-	actualQty: zDecimal,
-	note: zStr.optional(),
+export const WorkOrderCompleteDto = z.object({
+	...zc.RecordId.shape,
+	actualQty: zp.decimal.gt(0),
+	note: zc.strTrimNullable,
 })
 
-export type WorkOrderCompleteDto = z.infer<typeof workOrderCompleteSchema>
+export type WorkOrderCompleteDto = z.infer<typeof WorkOrderCompleteDto>

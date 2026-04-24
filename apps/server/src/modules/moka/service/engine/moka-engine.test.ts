@@ -1,11 +1,9 @@
-import { describe, expect, it, mock } from 'bun:test'
-
-import type { Logger } from 'pino'
-
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaCategoryEngine } from './moka-category.service'
 import { MokaProductEngine } from './moka-product.service'
 import { MokaSalesEngine } from './moka-sales.service'
+import { describe, expect, it, mock } from 'bun:test'
+import type { Logger } from 'pino'
 
 // Mock Logger
 const mockLogger = {

@@ -1,14 +1,19 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { ConflictError } from '@/core/http/errors'
+
+const cache = bento.namespace('purchasing.receipt')
+
 import { db } from '@/db'
 import {
 	goodsReceiptNoteItemsTable,
 	goodsReceiptNotesTable,
 	purchaseOrderItemsTable,
 } from '@/db/schema'
+
 import type { StockTransactionService } from '@/modules/inventory/service/stock-transaction.service'
 
 import * as dto from '../dto/goods-receipt.dto'
@@ -19,31 +24,35 @@ export class GoodsReceiptService {
 	constructor(private readonly inventorySvc: StockTransactionService) {}
 
 	async getById(id: number): Promise<dto.GoodsReceiptNoteDto> {
-		const result = await record('GoodsReceiptService.getById', async () => {
-			const rows = await db
-				.select()
-				.from(goodsReceiptNotesTable)
-				.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
-			const first = core.takeFirstOrThrow(rows, `GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
+		return record('GoodsReceiptService.getById', async () => {
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(goodsReceiptNotesTable)
+						.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
+					const first = core.takeFirstOrThrow(rows, `GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
 
-			const items = await db
-				.select()
-				.from(goodsReceiptNoteItemsTable)
-				.where(
-					and(
-						eq(goodsReceiptNoteItemsTable.grnId, first.id),
-						isNull(goodsReceiptNoteItemsTable.deletedAt),
-					),
-				)
+					const items = await db
+						.select()
+						.from(goodsReceiptNoteItemsTable)
+						.where(
+							and(
+								eq(goodsReceiptNoteItemsTable.grnId, first.id),
+								isNull(goodsReceiptNoteItemsTable.deletedAt),
+							),
+						)
 
-			return dto.GoodsReceiptNoteDto.parse({ ...first, items })
+					return dto.GoodsReceiptNoteDto.parse({ ...first, items })
+				},
+			})
 		})
-		return result
 	}
 
 	async handleList(
 		filter: dto.GoodsReceiptNoteFilterDto,
-	): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteBaseDto>> {
+	): Promise<core.WithPaginationResult<dto.GoodsReceiptNoteSelectDto>> {
 		const result = await record('GoodsReceiptService.handleList', async () => {
 			const { q, page, limit, status, orderId, locationId, supplierId } = filter
 			const where = and(
@@ -60,7 +69,7 @@ export class GoodsReceiptService {
 				supplierId === undefined ? undefined : eq(goodsReceiptNotesTable.supplierId, supplierId),
 			)
 
-			const p = await core.paginate<dto.GoodsReceiptNoteBaseDto>({
+			const p = await core.paginate<dto.GoodsReceiptNoteSelectDto>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await db
 						.select()
@@ -69,7 +78,7 @@ export class GoodsReceiptService {
 						.orderBy(core.sortBy(goodsReceiptNotesTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.GoodsReceiptNoteBaseDto.parse(r))
+					return rows.map((r) => dto.GoodsReceiptNoteSelectDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
@@ -90,8 +99,8 @@ export class GoodsReceiptService {
 		data: dto.GoodsReceiptNoteCreateDto,
 		actorId: number,
 	): Promise<{ id: number }> {
-		const result = await record('GoodsReceiptService.handleCreate', async () => {
-			return db.transaction(async (tx) => {
+		return record('GoodsReceiptService.handleCreate', async () => {
+			const result = await db.transaction(async (tx) => {
 				const { items, ...headerData } = data
 
 				const [insertedGrn] = await tx
@@ -123,13 +132,14 @@ export class GoodsReceiptService {
 
 				return insertedGrn
 			})
+			await this.clearCache()
+			return result
 		})
-		return result
 	}
 
 	async handleComplete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleComplete', async () => {
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				// 1. Get GRN detail and check status
 				const grn = await this.getById(id)
 				if (grn.status !== 'open') {
@@ -151,7 +161,7 @@ export class GoodsReceiptService {
 						locationId: grn.locationId,
 						date: grn.receiveDate,
 						referenceNo: `GRN-${grn.id}`,
-						notes: grn.notes ?? undefined,
+						notes: grn.notes ?? null,
 						items: grn.items.map((item) => {
 							const unitCost = item.purchaseOrderItemId
 								? (poItemMap.get(item.purchaseOrderItemId) ?? 0)
@@ -171,6 +181,8 @@ export class GoodsReceiptService {
 
 				return { id }
 			})
+			await this.clearCache(id)
+			return result
 		})
 	}
 
@@ -182,6 +194,7 @@ export class GoodsReceiptService {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
+			await this.clearCache(id)
 			return result
 		})
 	}
@@ -193,7 +206,14 @@ export class GoodsReceiptService {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
+			await this.clearCache(id)
 			return result
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

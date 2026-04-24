@@ -1,7 +1,6 @@
 import ky from 'ky'
 
 import { API_URL } from '@/config/constant'
-
 import { useAppState } from '@/hooks/use-app-state'
 
 const apiClient = ky.create({

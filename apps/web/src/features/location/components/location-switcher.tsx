@@ -1,6 +1,8 @@
 import { CheckIcon, ChevronsUpDownIcon, LockIcon, MapPinIcon, WarehouseIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { useActiveLocation } from '@/hooks/use-active-location'
+
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
@@ -11,8 +13,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-import { useActiveLocation } from '@/hooks/use-active-location'
 
 /**
  * LocationSwitcher — Global location context pill for the app header.

@@ -1,7 +1,10 @@
-import { db } from '@/db'
+import { record } from '@elysiajs/opentelemetry'
+
 import { stampCreate, type DbTx } from '@/core/database'
+
+import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
-import { MovementLogic } from './movement-logic'
+
 import type {
 	PurchaseTransactionDto,
 	UsageTransactionDto,
@@ -10,7 +13,8 @@ import type {
 	ProductionOutTransactionDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
-import { record } from '@elysiajs/opentelemetry'
+
+import { MovementLogic } from './movement-logic'
 
 export class StockExternalMovementService extends MovementLogic {
 	/**

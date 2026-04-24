@@ -1,21 +1,15 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import {
-	workOrderCompleteSchema,
-	workOrderCreateSchema,
-	workOrderFilterSchema,
-	workOrderSchema,
-	workOrderSelectSchema,
+	WorkOrderCompleteDto,
+	WorkOrderCreateDto,
+	WorkOrderFilterDto,
+	WorkOrderDto,
+	WorkOrderSelectDto,
 } from '../dto/work-order.dto'
 import type { WorkOrderService } from '../service/work-order.service'
 
@@ -29,8 +23,8 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...workOrderFilterSchema.shape, ...zPaginationDto.shape }),
-				response: createPaginatedResponseSchema(workOrderSelectSchema),
+				query: WorkOrderFilterDto,
+				response: createPaginatedResponseSchema(WorkOrderSelectDto),
 				auth: true,
 			},
 		)
@@ -40,7 +34,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				const wo = await service.handleDetail(query.id)
 				return res.ok(wo)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(workOrderSchema), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -49,8 +43,8 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				return res.created(result)
 			},
 			{
-				body: workOrderCreateSchema,
-				response: createSuccessResponseSchema(workOrderSchema),
+				body: WorkOrderCreateDto,
+				response: createSuccessResponseSchema(WorkOrderDto),
 				auth: true,
 			},
 		)
@@ -60,7 +54,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				const result = await service.handleStart(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(workOrderSchema), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderDto), auth: true },
 		)
 		.post(
 			'/complete',
@@ -69,8 +63,8 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				return res.ok(result)
 			},
 			{
-				body: workOrderCompleteSchema,
-				response: createSuccessResponseSchema(workOrderSchema),
+				body: WorkOrderCompleteDto,
+				response: createSuccessResponseSchema(WorkOrderDto),
 				auth: true,
 			},
 		)

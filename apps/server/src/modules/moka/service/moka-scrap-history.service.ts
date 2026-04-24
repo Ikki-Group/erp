@@ -1,6 +1,7 @@
 import { desc, eq } from 'drizzle-orm'
 
 import { stampCreate } from '@/core/database'
+
 import { db } from '@/db'
 import { mokaScrapHistoriesTable } from '@/db/schema'
 

@@ -8,68 +8,42 @@
 	"sortPackageJson": true,
 	"objectWrap": "preserve",
 	"useTabs": true,
-	"ignorePatterns": [
-		"node_modules",
-		".agents/**",
-		"./docs/**",
-		"**/*.lock"
-	],
+	"ignorePatterns": ["node_modules", ".agents/**", "./docs/**", "**/*.lock"],
 	"overrides": [
 		{
-			"files": [
-				"apps/web/**/*.{ts,tsx}"
-			],
+			"files": ["apps/web/**/*.{ts,tsx}"],
 			"options": {
 				"sortImports": {
 					"newlinesBetween": true,
-					"internalPattern": [
-						"@/"
-					],
+					"internalPattern": ["@/"],
 					"customGroups": [
 						{
 							"groupName": "react-core",
-							"elementNamePattern": [
-								"react",
-								"react-dom",
-								"react-dom/**"
-							]
+							"elementNamePattern": ["react", "react-dom", "react-dom/**"]
 						},
 						{
 							"groupName": "tanstack",
-							"elementNamePattern": [
-								"@tanstack/**"
-							]
+							"elementNamePattern": ["@tanstack/**"]
 						},
 						{
 							"groupName": "internal-aliases",
-							"elementNamePattern": [
-								"@/config/**",
-								"@/hooks/**"
-							]
+							"elementNamePattern": ["@/config/**", "@/hooks/**"]
 						},
 						{
 							"groupName": "ui",
-							"elementNamePattern": [
-								"@/components/ui/**"
-							]
+							"elementNamePattern": ["@/components/ui/**"]
 						},
 						{
 							"groupName": "components-general",
-							"elementNamePattern": [
-								"@/components/**"
-							]
+							"elementNamePattern": ["@/components/**"]
 						},
 						{
 							"groupName": "lib",
-							"elementNamePattern": [
-								"@/lib/**"
-							]
+							"elementNamePattern": ["@/lib/**"]
 						},
 						{
 							"groupName": "internal-features",
-							"elementNamePattern": [
-								"@/features/**"
-							]
+							"elementNamePattern": ["@/features/**"]
 						}
 					],
 					"groups": [
@@ -84,6 +58,30 @@
 						"internal-features",
 						"unknown"
 					]
+				}
+			}
+		},
+		{
+			"files": ["apps/server/**/*.{ts,tsx}"],
+			"options": {
+				"sortImports": {
+					"newlinesBetween": true,
+					"internalPattern": ["@/"],
+					"customGroups": [
+						{
+							"groupName": "core",
+							"elementNamePattern": ["@/core/**"]
+						},
+						{
+							"groupName": "db",
+							"elementNamePattern": ["@/db", "@/db/**"]
+						},
+						{
+							"groupName": "internal-modules",
+							"elementNamePattern": ["@/modules/**"]
+						}
+					],
+					"groups": ["value-external", "core", "db", "internal-modules", "unknown"]
 				}
 			}
 		}

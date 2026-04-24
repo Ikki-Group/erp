@@ -1,50 +1,46 @@
 import { z } from 'zod'
 
-import {
-	zStr,
-	zStrNullable,
-	zMetadataDto,
-	zRecordIdDto,
-	zQuerySearch,
-	zPaginationDto,
-	zId,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
+
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const EmployeeDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStrNullable,
-	phone: zStrNullable,
-	jobTitle: zStrNullable,
-	department: zStrNullable,
-	userId: zId.nullable(),
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	email: zp.strNullable,
+	phone: zp.strNullable,
+	jobTitle: zp.strNullable,
+	department: zp.strNullable,
+	userId: zp.id.nullable(),
+	...zc.AuditBasic.shape,
 })
 export type EmployeeDto = z.infer<typeof EmployeeDto>
 
-export const EmployeeCreateDto = z.object({
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	jobTitle: zStr.optional().nullable(),
-	department: zStr.optional().nullable(),
-	userId: zId.optional().nullable(),
+/* -------------------------------- MUTATION -------------------------------- */
+
+const EmployeeMutationDto = z.object({
+	code: zc.strTrim.uppercase().min(1).max(20),
+	name: zc.fullname,
+	email: zc.email.optional().nullable(),
+	phone: zc.strTrim.min(5).max(20).optional().nullable(),
+	jobTitle: zc.strTrimNullable,
+	department: zc.strTrimNullable,
+	userId: zp.id.optional().nullable(),
 })
+
+export const EmployeeCreateDto = EmployeeMutationDto
 export type EmployeeCreateDto = z.infer<typeof EmployeeCreateDto>
 
-export const EmployeeUpdateDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	jobTitle: zStr.optional().nullable(),
-	department: zStr.optional().nullable(),
-	userId: zId.optional().nullable(),
+export const EmployeeUpdateDto = EmployeeMutationDto.extend({
+	...zc.RecordId.shape,
 })
 export type EmployeeUpdateDto = z.infer<typeof EmployeeUpdateDto>
 
-export const EmployeeFilterDto = z.object({ ...zPaginationDto.shape, search: zQuerySearch })
+/* ---------------------------------- FILTER ---------------------------------- */
+
+export const EmployeeFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+})
 export type EmployeeFilterDto = z.infer<typeof EmployeeFilterDto>

@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance, type RawAxiosRequestHeaders } from 'axios'
-import type { Logger } from 'pino'
 
 import type { MokaLoginResponse } from '../../dto/moka-raw.types'
+import type { Logger } from 'pino'
 
 const BASE_URL = 'https://backoffice.mokapos.com'
 const AUTH_URL = 'https://service-goauth.mokapos.com'
@@ -65,7 +65,7 @@ export class MokaAuthEngine {
 
 			const result = response.data as MokaLoginResponse
 			this.token = result.access_token
-			this.mokaOutletId = result.outlets[0]?.id?.toString() || null
+			this.mokaOutletId = result.outlets[0]?.id?.toString() ?? null
 
 			this.logger.info({ outletId: this.mokaOutletId }, 'Moka login successful')
 			return result

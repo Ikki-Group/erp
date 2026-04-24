@@ -3,19 +3,14 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	zPaginationDto,
-	zRecordIdDto,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/core/validation'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
-	generateSummarySchema,
-	stockLedgerFilterSchema,
-	stockLedgerSelectSchema,
-	stockSummaryFilterSchema,
-	stockSummarySelectSchema,
+	GenerateSummaryDto,
+	StockLedgerFilterDto,
+	StockLedgerSelectDto,
+	StockSummaryFilterDto,
+	StockSummarySelectDto,
 } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
@@ -32,8 +27,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 					return res.paginated(result)
 				},
 				{
-					query: stockSummaryFilterSchema.extend(zPaginationDto.shape),
-					response: createPaginatedResponseSchema(stockSummarySelectSchema),
+					query: StockSummaryFilterDto,
+					response: createPaginatedResponseSchema(StockSummarySelectDto),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
 				},
@@ -47,8 +42,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 					return res.paginated(result)
 				},
 				{
-					query: stockLedgerFilterSchema.extend(zPaginationDto.shape),
-					response: createPaginatedResponseSchema(stockLedgerSelectSchema),
+					query: StockLedgerFilterDto,
+					response: createPaginatedResponseSchema(StockLedgerSelectDto),
 					auth: true,
 					detail: { tags: ['Inventory Ledger'] },
 				},
@@ -62,7 +57,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 					return res.ok(result)
 				},
 				{
-					body: generateSummarySchema,
+					body: GenerateSummaryDto,
 					response: createSuccessResponseSchema(z.object({ generatedCount: z.number() })),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
@@ -77,8 +72,8 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 					return res.ok({ id: query.id })
 				},
 				{
-					query: zRecordIdDto,
-					response: createSuccessResponseSchema(zRecordIdDto),
+					query: zc.RecordId,
+					response: createSuccessResponseSchema(zc.RecordId),
 					auth: true,
 					detail: { tags: ['Inventory Summary'] },
 				},

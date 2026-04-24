@@ -13,6 +13,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
@@ -41,9 +44,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { workOrderApi } from '@/features/production/api/production.api'
 import { WorkOrderSelectDto } from '@/features/production/dto/work-order.dto'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/production/work-orders')({ component: WorkOrdersPage })
 

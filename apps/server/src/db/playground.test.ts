@@ -1,18 +1,21 @@
 // oxlint-disable no-unused-vars
 
-import { test } from 'bun:test'
-
-import { eq, getColumns } from 'drizzle-orm'
+import {
+	eq,
+	// getColumns
+} from 'drizzle-orm'
 
 import { db } from '@/db'
 import {
 	locationsTable,
-	materialLocationsTable,
-	materialsTable,
+	// materialLocationsTable,
+	// materialsTable,
 	rolesTable,
 	userAssignmentsTable,
 	usersTable,
 } from '@/db/schema'
+
+import { test } from 'bun:test'
 
 test('query playground', async () => {
 	// const res = await db
@@ -20,15 +23,15 @@ test('query playground', async () => {
 	// 	.from(materialsTable)
 	// 	.leftJoin(materialLocationsTable, eq(materialsTable.id, materialLocationsTable.materialId))
 	// 	.leftJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
-	const res = await db
-		.select({
-			...getColumns(userAssignmentsTable),
-			role: rolesTable,
-			location: locationsTable,
-		})
-		.from(userAssignmentsTable)
-		.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
-		.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
+	// const res = await db
+	// 	.select({
+	// 		...getColumns(userAssignmentsTable),
+	// 		role: rolesTable,
+	// 		location: locationsTable,
+	// 	})
+	// 	.from(userAssignmentsTable)
+	// 	.innerJoin(rolesTable, eq(userAssignmentsTable.roleId, rolesTable.id))
+	// 	.innerJoin(locationsTable, eq(userAssignmentsTable.locationId, locationsTable.id))
 
 	// console.log(res)
 

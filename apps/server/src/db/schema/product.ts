@@ -47,6 +47,10 @@ export const productCategoriesTable = pgTable(
 	(t) => [uniqueIndex('product_categories_name_idx').on(t.name).where(isNull(t.deletedAt))],
 )
 
+import { taxesTable } from './tax'
+
+// ... (existing imports)
+
 // ─── Products ─────────────────────────────────────────────────────────────────
 
 export const productsTable = pgTable(
@@ -69,6 +73,13 @@ export const productsTable = pgTable(
 		// ── Pricing ────────────────────────────────────────────────────────
 		basePrice: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
 
+		// ── Financial & Taxation ───────────────────────────────────────────
+		taxId: integer('tax_id').references(() => taxesTable.id, { onDelete: 'set null' }),
+		/** Default Revenue Account for this product */
+		salesAccountId: integer('sales_account_id'),
+		/** Default Discount Account for this product */
+		discountAccountId: integer('discount_account_id'),
+
 		...auditColumns,
 	},
 	(t) => [
@@ -77,6 +88,7 @@ export const productsTable = pgTable(
 		index('products_location_idx').on(t.locationId),
 		index('products_category_idx').on(t.categoryId),
 		index('products_status_idx').on(t.status),
+		index('products_tax_idx').on(t.taxId),
 	],
 )
 

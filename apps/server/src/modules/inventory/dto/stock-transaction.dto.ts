@@ -1,20 +1,10 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import {
-	zStrNullable,
-	zStr,
-	zNum,
-	zId,
-	zDate,
-	zQuerySearch,
-	zQueryId,
-	zMetadataDto,
-	zRecordIdDto,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const transactionTypeSchema = z.enum([
+export const TransactionTypeEnum = z.enum([
 	'purchase',
 	'transfer_in',
 	'transfer_out',
@@ -24,171 +14,151 @@ export const transactionTypeSchema = z.enum([
 	'production_in',
 	'production_out',
 ])
-export type TransactionType = z.infer<typeof transactionTypeSchema>
+export type TransactionType = z.infer<typeof TransactionTypeEnum>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const stockTransactionSchema = z.object({
-	...zRecordIdDto.shape,
-	materialId: zId,
-	locationId: zId,
-
-	type: transactionTypeSchema,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable,
+export const StockTransactionDto = z.object({
+	...zc.RecordId.shape,
+	materialId: zp.id,
+	locationId: zp.id,
+	type: TransactionTypeEnum,
+	date: zp.date,
+	referenceNo: zp.str,
+	notes: zp.strNullable,
 
 	// Quantity & Cost
-	qty: zNum,
-	unitCost: zNum,
-	totalCost: zNum,
+	qty: zp.decimal,
+	unitCost: zp.decimal,
+	totalCost: zp.decimal,
 
 	// Transfer-specific
-	counterpartLocationId: zId.nullable().default(null),
-	transferId: z.number().nullable().default(null),
+	counterpartLocationId: zp.id.nullable().default(null),
+	transferId: zp.num.nullable().default(null),
 
 	// Running snapshot after this transaction
-	runningQty: zNum,
-	runningAvgCost: zNum,
-	...zMetadataDto.shape,
+	runningQty: zp.decimal,
+	runningAvgCost: zp.decimal,
+	...zc.AuditBasic.shape,
 })
 
-export type StockTransactionDto = z.infer<typeof stockTransactionSchema>
+export type StockTransactionDto = z.infer<typeof StockTransactionDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
 /** Transaction enriched with material info for display */
-export const stockTransactionSelectSchema = stockTransactionSchema.extend({
-	materialName: zStr,
-	materialSku: zStr,
+export const StockTransactionSelectDto = StockTransactionDto.extend({
+	materialName: zp.str,
+	materialSku: zp.str,
 })
 
-export type StockTransactionSelectDto = z.infer<typeof stockTransactionSelectSchema>
+export type StockTransactionSelectDto = z.infer<typeof StockTransactionSelectDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const stockTransactionFilterSchema = z.object({
-	locationId: zQueryId.optional(),
-	materialId: zQueryId.optional(),
-	type: transactionTypeSchema.optional(),
-	search: zQuerySearch,
+export const StockTransactionFilterDto = z.object({
+	...zq.pagination.shape,
+	locationId: zq.id.optional(),
+	materialId: zq.id.optional(),
+	type: TransactionTypeEnum.optional(),
+	search: zq.search,
 	dateFrom: z.coerce.date().optional(),
 	dateTo: z.coerce.date().optional(),
 })
 
-export type StockTransactionFilterDto = z.infer<typeof stockTransactionFilterSchema>
+export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto>
 
 /* ─────────────────── MUTATION: NESTED ITEMS ──────────────────── */
 
 /** Single item within a purchase transaction */
-export const purchaseItemSchema = z.object({
-	materialId: zId,
-	qty: zNum.positive('Quantity must be positive'),
-	unitCost: zNum.nonnegative('Unit cost must be non-negative'),
+const PurchaseItemDto = z.object({
+	materialId: zp.id,
+	qty: zp.decimal.gt(0, 'Quantity must be positive'),
+	unitCost: zp.decimal.nonnegative('Unit cost must be non-negative'),
 })
 
 /** Single item within a transfer transaction */
-export const transferItemSchema = z.object({
-	materialId: zId,
-	qty: zNum.positive('Quantity must be positive'),
+const TransferItemDto = z.object({
+	materialId: zp.id,
+	qty: zp.decimal.gt(0, 'Quantity must be positive'),
 })
 
 /** Single item within an adjustment transaction */
-export const adjustmentItemSchema = z.object({
-	materialId: zId,
-	qty: zNum.refine((v) => v !== 0, 'Quantity must not be zero'),
-	unitCost: zNum.nonnegative().optional(),
+const AdjustmentItemDto = z.object({
+	materialId: zp.id,
+	qty: zp.decimal.refine((v) => v !== 0, 'Quantity must not be zero'),
+	unitCost: zp.decimal.nonnegative().optional(),
 })
 
 /** Single item within a stock out (usage/sell) transaction */
-export const usageItemSchema = z.object({
-	materialId: zId,
-	qty: zNum.positive('Quantity must be positive'),
+const UsageItemDto = z.object({
+	materialId: zp.id,
+	qty: zp.decimal.gt(0, 'Quantity must be positive'),
 })
 
 /* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
 
-/** Create purchase transactions (multiple materials at one location) */
-export const purchaseTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: purchaseItemSchema.array().min(1, 'At least one item is required'),
+const BaseBatchMutationDto = z.object({
+	date: zp.date,
+	referenceNo: zc.strTrim.min(3).max(50),
+	notes: zc.strTrimNullable,
 })
 
-export type PurchaseTransactionDto = z.infer<typeof purchaseTransactionSchema>
+/** Create purchase transactions (multiple materials at one location) */
+export const PurchaseTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(PurchaseItemDto).min(1, 'At least one item is required'),
+})
+export type PurchaseTransactionDto = z.infer<typeof PurchaseTransactionDto>
 
 /** Create transfer transactions (multiple materials between two locations) */
-export const transferTransactionSchema = z.object({
-	sourceLocationId: zId,
-	destinationLocationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: transferItemSchema.array().min(1, 'At least one item is required'),
+export const TransferTransactionDto = BaseBatchMutationDto.extend({
+	sourceLocationId: zp.id,
+	destinationLocationId: zp.id,
+	items: z.array(TransferItemDto).min(1, 'At least one item is required'),
 })
-
-export type TransferTransactionDto = z.infer<typeof transferTransactionSchema>
+export type TransferTransactionDto = z.infer<typeof TransferTransactionDto>
 
 /** Create adjustment transactions (multiple materials at one location) */
-export const adjustmentTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: adjustmentItemSchema.array().min(1, 'At least one item is required'),
+export const AdjustmentTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(AdjustmentItemDto).min(1, 'At least one item is required'),
 })
-
-export type AdjustmentTransactionDto = z.infer<typeof adjustmentTransactionSchema>
+export type AdjustmentTransactionDto = z.infer<typeof AdjustmentTransactionDto>
 
 /** Create usage transactions (multiple materials at one location) */
-export const usageTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: usageItemSchema.array().min(1, 'At least one item is required'),
+export const UsageTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })
-
-export type UsageTransactionDto = z.infer<typeof usageTransactionSchema>
+export type UsageTransactionDto = z.infer<typeof UsageTransactionDto>
 
 /** Create sales transactions (multiple materials at one location) */
-export const sellTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: usageItemSchema.array().min(1, 'At least one item is required'),
+export const SellTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })
-
-export type SellTransactionDto = z.infer<typeof sellTransactionSchema>
+export type SellTransactionDto = z.infer<typeof SellTransactionDto>
 
 /** Production In transactions (finished goods) */
-export const productionInTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: purchaseItemSchema.array().min(1, 'At least one item is required'),
+export const ProductionInTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(PurchaseItemDto).min(1, 'At least one item is required'),
 })
-
-export type ProductionInTransactionDto = z.infer<typeof productionInTransactionSchema>
+export type ProductionInTransactionDto = z.infer<typeof ProductionInTransactionDto>
 
 /** Production Out transactions (material consumption) */
-export const productionOutTransactionSchema = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
-	items: usageItemSchema.array().min(1, 'At least one item is required'),
+export const ProductionOutTransactionDto = BaseBatchMutationDto.extend({
+	locationId: zp.id,
+	items: z.array(UsageItemDto).min(1, 'At least one item is required'),
 })
-
-export type ProductionOutTransactionDto = z.infer<typeof productionOutTransactionSchema>
+export type ProductionOutTransactionDto = z.infer<typeof ProductionOutTransactionDto>
 
 /* ────────────────── MUTATION: RESULT SCHEMA ──────────────────── */
 
 /** Response for batch transaction operations */
-export const transactionResultSchema = z.object({ count: z.number(), referenceNo: zStr })
-
-export type TransactionResultDto = z.infer<typeof transactionResultSchema>
+export const TransactionResultDto = z.object({
+	count: zp.num,
+	referenceNo: zp.str,
+})
+export type TransactionResultDto = z.infer<typeof TransactionResultDto>

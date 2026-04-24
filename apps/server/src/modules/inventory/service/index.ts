@@ -5,10 +5,10 @@ export * from './stock-transaction.service'
 export * from './stock-alert.service'
 export * from './stock-dashboard.service'
 
-import { StockSummaryService } from './stock-summary.service'
-import { StockTransactionService } from './stock-transaction.service'
 import { StockAlertService } from './stock-alert.service'
 import { StockDashboardService } from './stock-dashboard.service'
+import { StockSummaryService } from './stock-summary.service'
+import { StockTransactionService } from './stock-transaction.service'
 
 export class InventoryServiceModule {
 	public readonly transaction: StockTransactionService

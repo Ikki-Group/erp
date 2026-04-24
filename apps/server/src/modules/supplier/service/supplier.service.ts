@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ilike, count, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -9,8 +10,8 @@ import {
 	stampUpdate,
 	takeFirstOrThrow,
 } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { suppliersTable } from '@/db/schema/supplier'
 
@@ -21,21 +22,23 @@ import {
 	type SupplierUpdateDto,
 } from '../dto/supplier.dto'
 
+const cache = bento.namespace('supplier')
+
 export class SupplierService {
 	async handleList(
 		filter: SupplierFilterDto,
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<SupplierDto>> {
 		return record('SupplierService.handleList', async () => {
-			const { search } = filter
+			const { q } = filter
 
-			const searchCondition = search
-				? or(ilike(suppliersTable.name, `%${search}%`), ilike(suppliersTable.code, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(suppliersTable.name, `%${q}%`), ilike(suppliersTable.code, `%${q}%`))
 				: undefined
 
 			const where = and(isNull(suppliersTable.deletedAt), searchCondition)
 
-			const result = await paginate({
+			const result = await paginate<SupplierDto>({
 				data: ({ limit, offset }) =>
 					db
 						.select()
@@ -54,15 +57,19 @@ export class SupplierService {
 
 	async handleDetail(id: number): Promise<SupplierDto> {
 		return record('SupplierService.handleDetail', async () => {
-			const rows = await db
-				.select()
-				.from(suppliersTable)
-				.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
-			if (rows.length === 0)
-				throw new NotFoundError(`Supplier ${id} not found`, 'SUPPLIER_NOT_FOUND')
-			return SupplierDto.parse(
-				takeFirstOrThrow(rows, `Supplier ${id} not found`, 'SUPPLIER_NOT_FOUND'),
-			)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(suppliersTable)
+						.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
+
+					return SupplierDto.parse(
+						takeFirstOrThrow(rows, `Supplier ${id} not found`, 'SUPPLIER_NOT_FOUND'),
+					)
+				},
+			})
 		})
 	}
 
@@ -88,11 +95,13 @@ export class SupplierService {
 				.values({ ...data, ...stamps })
 				.returning({ id: suppliersTable.id })
 
-			return takeFirstOrThrow(
+			const result = takeFirstOrThrow(
 				rows,
 				'Failed to return supplier data on create',
 				'SUPPLIER_CREATE_ERROR',
 			)
+			await this.clearCache()
+			return result
 		})
 	}
 
@@ -126,7 +135,13 @@ export class SupplierService {
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			return takeFirstOrThrow(rows, `Supplier ${id} not found on update`, 'SUPPLIER_NOT_FOUND')
+			const result = takeFirstOrThrow(
+				rows,
+				`Supplier ${id} not found on update`,
+				'SUPPLIER_NOT_FOUND',
+			)
+			await this.clearCache(id)
+			return result
 		})
 	}
 
@@ -138,7 +153,19 @@ export class SupplierService {
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			return takeFirstOrThrow(rows, `Supplier ${id} not found on remove`, 'SUPPLIER_NOT_FOUND')
+			const result = takeFirstOrThrow(
+				rows,
+				`Supplier ${id} not found on remove`,
+				'SUPPLIER_NOT_FOUND',
+			)
+			await this.clearCache(id)
+			return result
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

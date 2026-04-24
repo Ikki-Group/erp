@@ -1,7 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import * as core from '@/core/database'
+
+const cache = bento.namespace('purchasing.order')
+
 import { db } from '@/db'
 import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 
@@ -11,35 +15,39 @@ import * as dto from '../dto/purchase-order.dto'
 // Handles simple workflow for Purchase Orders and their items.
 export class PurchaseOrderService {
 	async getById(id: number): Promise<dto.PurchaseOrderDto> {
-		const result = await record('PurchaseOrderService.getById', async () => {
-			const rows = await db
-				.select()
-				.from(purchaseOrdersTable)
-				.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
-			const first = core.takeFirstOrThrow(
-				rows,
-				`Purchase Order with ID ${id} not found`,
-				'PURCHASE_ORDER_NOT_FOUND',
-			)
+		return record('PurchaseOrderService.getById', async () => {
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(purchaseOrdersTable)
+						.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
+					const first = core.takeFirstOrThrow(
+						rows,
+						`Purchase Order with ID ${id} not found`,
+						'PURCHASE_ORDER_NOT_FOUND',
+					)
 
-			const items = await db
-				.select()
-				.from(purchaseOrderItemsTable)
-				.where(
-					and(
-						eq(purchaseOrderItemsTable.orderId, first.id),
-						isNull(purchaseOrderItemsTable.deletedAt),
-					),
-				)
+					const items = await db
+						.select()
+						.from(purchaseOrderItemsTable)
+						.where(
+							and(
+								eq(purchaseOrderItemsTable.orderId, first.id),
+								isNull(purchaseOrderItemsTable.deletedAt),
+							),
+						)
 
-			return dto.PurchaseOrderDto.parse({ ...first, items })
+					return dto.PurchaseOrderDto.parse({ ...first, items })
+				},
+			})
 		})
-		return result
 	}
 
 	async handleList(
 		filter: dto.PurchaseOrderFilterDto,
-	): Promise<core.WithPaginationResult<dto.PurchaseOrderBaseDto>> {
+	): Promise<core.WithPaginationResult<dto.PurchaseOrderSelectDto>> {
 		const result = await record('PurchaseOrderService.handleList', async () => {
 			const { q, page, limit, status, locationId, supplierId } = filter
 			const where = and(
@@ -50,7 +58,7 @@ export class PurchaseOrderService {
 				supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId),
 			)
 
-			const p = await core.paginate<dto.PurchaseOrderBaseDto>({
+			const p = await core.paginate<dto.PurchaseOrderSelectDto>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await db
 						.select()
@@ -59,7 +67,7 @@ export class PurchaseOrderService {
 						.orderBy(core.sortBy(purchaseOrdersTable.updatedAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => dto.PurchaseOrderBaseDto.parse(r))
+					return rows.map((r) => dto.PurchaseOrderSelectDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(purchaseOrdersTable).where(where),
@@ -78,8 +86,8 @@ export class PurchaseOrderService {
 	}
 
 	async handleCreate(data: dto.PurchaseOrderCreateDto, actorId: number): Promise<{ id: number }> {
-		const result = await record('PurchaseOrderService.handleCreate', async () => {
-			return db.transaction(async (tx) => {
+		return record('PurchaseOrderService.handleCreate', async () => {
+			const result = await db.transaction(async (tx) => {
 				const { items, ...orderData } = data
 
 				const [insertedOrder] = await tx
@@ -116,8 +124,9 @@ export class PurchaseOrderService {
 
 				return insertedOrder
 			})
+			await this.clearCache()
+			return result
 		})
-		return result
 	}
 
 	async handleUpdate(
@@ -125,10 +134,10 @@ export class PurchaseOrderService {
 		data: Omit<dto.PurchaseOrderUpdateDto, 'id'>,
 		actorId: number,
 	): Promise<{ id: number }> {
-		const result = await record('PurchaseOrderService.handleUpdate', async () => {
+		return record('PurchaseOrderService.handleUpdate', async () => {
 			await this.getById(id)
 
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				const { totalAmount, discountAmount, taxAmount, items, ...remData } = data
 
 				await tx
@@ -170,8 +179,9 @@ export class PurchaseOrderService {
 
 				return { id }
 			})
+			await this.clearCache(id)
+			return result
 		})
-		return result
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
@@ -182,6 +192,7 @@ export class PurchaseOrderService {
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
+			await this.clearCache(id)
 			return result
 		})
 	}
@@ -193,7 +204,14 @@ export class PurchaseOrderService {
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
+			await this.clearCache(id)
 			return result
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

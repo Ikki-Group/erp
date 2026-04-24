@@ -3,9 +3,14 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
+
+const cache = bento.namespace('sales.order')
+
 import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import {
 	salesExternalRefsTable,
@@ -152,7 +157,9 @@ export class SalesOrderService {
 				// Recalculate totals
 				await this.recalculateOrderTotals(tx, orderId, actorId)
 
-				return { batchId: batch!.id }
+				const batchId = batch!.id
+				await this.clearCache(orderId)
+				return { batchId }
 			})
 		})
 	}
@@ -373,21 +380,26 @@ export class SalesOrderService {
 
 	async handleDetail(id: number): Promise<SalesOrderOutputDto> {
 		return record('SalesOrderService.handleDetail', async () => {
-			const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
-			const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
+					const row = takeFirstOrThrow(result, err.notFound(id).message, 'SALES_ORDER_NOT_FOUND')
 
-			const [items, batches, voids] = await Promise.all([
-				db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
-				db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
-				db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
-			])
+					const [items, batches, voids] = await Promise.all([
+						db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
+						db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
+						db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
+					])
 
-			return {
-				...this.mapOrder(row),
-				items: items.map(this.mapItem),
-				batches: batches.map(this.mapBatch),
-				voids: voids.map(this.mapVoid),
-			}
+					return {
+						...this.mapOrder(row),
+						items: items.map(this.mapItem),
+						batches: batches.map(this.mapBatch),
+						voids: voids.map(this.mapVoid),
+					}
+				},
+			})
 		})
 	}
 
@@ -435,7 +447,7 @@ export class SalesOrderService {
 	private mapOrder(row: any): SalesOrderDto {
 		return {
 			...row,
-			totalAmount: row.totalAmount, // DTO expects decimal string from zDecimal
+			totalAmount: row.totalAmount, // DTO expects decimal string
 			discountAmount: row.discountAmount,
 			taxAmount: row.taxAmount,
 		}
@@ -451,5 +463,11 @@ export class SalesOrderService {
 
 	private mapVoid(row: any) {
 		return { ...row }
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

@@ -1,22 +1,17 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/core/validation'
 
 import {
-	attendanceFilterSchema,
-	attendanceSchema,
-	attendanceSelectSchema,
-	clockInSchema,
-	clockOutSchema,
-	shiftCreateSchema,
-	shiftSchema,
+	AttendanceDto,
+	AttendanceFilterDto,
+	AttendanceSelectDto,
+	ClockInDto,
+	ClockOutDto,
+	ShiftCreateDto,
+	ShiftDto,
 } from '../dto/hr.dto'
 import type { HRService } from '../service/hr.service'
 
@@ -29,7 +24,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleShiftList(query)
 				return res.paginated(result)
 			},
-			{ query: zPaginationDto, response: createPaginatedResponseSchema(shiftSchema), auth: true },
+			{ query: zq.pagination, response: createPaginatedResponseSchema(ShiftDto), auth: true },
 		)
 		.post(
 			'/shifts',
@@ -37,7 +32,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleShiftCreate(body, auth.userId)
 				return res.created(result)
 			},
-			{ body: shiftCreateSchema, response: createSuccessResponseSchema(shiftSchema), auth: true },
+			{ body: ShiftCreateDto, response: createSuccessResponseSchema(ShiftDto), auth: true },
 		)
 		.get(
 			'/attendances',
@@ -46,8 +41,8 @@ export function initHRRoute(s: HRService) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...attendanceFilterSchema.shape, ...zPaginationDto.shape }),
-				response: createPaginatedResponseSchema(attendanceSelectSchema),
+				query: AttendanceFilterDto,
+				response: createPaginatedResponseSchema(AttendanceSelectDto),
 				auth: true,
 			},
 		)
@@ -57,7 +52,7 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleClockIn(body as any, auth.userId)
 				return res.created(result)
 			},
-			{ body: clockInSchema, response: createSuccessResponseSchema(attendanceSchema), auth: true },
+			{ body: ClockInDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },
 		)
 		.post(
 			'/clock-out',
@@ -65,6 +60,6 @@ export function initHRRoute(s: HRService) {
 				const result = await s.handleClockOut(body as any, auth.userId)
 				return res.ok(result)
 			},
-			{ body: clockOutSchema, response: createSuccessResponseSchema(attendanceSchema), auth: true },
+			{ body: ClockOutDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },
 		)
 }

@@ -1,4 +1,5 @@
 import Elysia from 'elysia'
+
 import type { SupplierServiceModule } from '../service'
 import { initSupplierRoute } from './supplier.route'
 

@@ -1,8 +1,10 @@
 import { Elysia } from 'elysia'
+
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import type { AnalyticsService } from '../service'
+
 import * as dto from '../dto'
+import type { AnalyticsService } from '../service'
 
 export function AnalyticsRoute(service: AnalyticsService) {
 	return new Elysia({ prefix: '/analytics', detail: { tags: ['Dashboard - Analytics'] } })

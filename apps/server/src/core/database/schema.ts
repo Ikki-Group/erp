@@ -33,6 +33,35 @@ export const auditColumns = {
 	syncAt: timestamp('sync_at', { mode: 'date', withTimezone: true }),
 } as const
 
+export const timestampColumns = {
+	createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
+} as const
+
+export const actorColumns = {
+	createdBy: integer('created_by').notNull(),
+	updatedBy: integer('updated_by').notNull(),
+} as const
+
+export const softDeleteColumns = {
+	deletedAt: timestamp('deleted_at', { mode: 'date', withTimezone: true }),
+	deletedBy: integer('deleted_by'),
+} as const
+
+export const syncMetaColumns = {
+	syncAt: timestamp('sync_at', { mode: 'date', withTimezone: true }),
+} as const
+
+export const auditBasicColumns = {
+	...timestampColumns,
+	...actorColumns,
+} as const
+
+export const auditFullColumns = {
+	...auditBasicColumns,
+	...softDeleteColumns,
+} as const
+
 /**
  * Reusable stamping utility for Drizzle `insert` and `update` operations.
  */

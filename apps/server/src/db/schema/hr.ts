@@ -1,15 +1,16 @@
-import { integer, numeric, pgTable, text, timestamp, pgEnum, time } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, timestamp, time } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
+
+import {
+	attendanceStatusEnum,
+	leaveStatusEnum,
+	leaveTypeEnum,
+	payrollAdjustmentTypeEnum,
+	payrollStatusEnum,
+} from './_helpers'
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
-
-export const attendanceStatusEnum = pgEnum('attendance_status', [
-	'present',
-	'absent',
-	'late',
-	'on_leave',
-])
 
 export const shiftsTable = pgTable('shifts', {
 	...pk,
@@ -40,13 +41,6 @@ export const attendancesTable = pgTable('attendances', {
 	...auditColumns,
 })
 
-export const payrollStatusEnum = pgEnum('payroll_status', [
-	'draft',
-	'approved',
-	'paid',
-	'cancelled',
-])
-
 export const payrollBatchesTable = pgTable('payroll_batches', {
 	...pk,
 	name: text().notNull(), // e.g., 'March 2024 Payroll'
@@ -76,11 +70,6 @@ export const payrollItemsTable = pgTable('payroll_items', {
 	...auditColumns,
 })
 
-export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
-	'addition',
-	'deduction',
-])
-
 export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
 	...pk,
 	payrollItemId: integer('payroll_item_id')
@@ -89,5 +78,19 @@ export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
 	type: payrollAdjustmentTypeEnum().notNull(),
 	amount: numeric('amount').notNull().default('0'),
 	reason: text().notNull(),
+	...auditColumns,
+})
+
+export const leaveRequestsTable = pgTable('leave_requests', {
+	...pk,
+	employeeId: integer('employee_id')
+		.notNull()
+		.references(() => employeesTable.id, { onDelete: 'cascade' }),
+	type: leaveTypeEnum().notNull(),
+	status: leaveStatusEnum().notNull().default('pending'),
+	dateStart: timestamp('date_start', { mode: 'date' }).notNull(),
+	dateEnd: timestamp('date_end', { mode: 'date' }).notNull(),
+	reason: text().notNull(),
+	note: text(),
 	...auditColumns,
 })

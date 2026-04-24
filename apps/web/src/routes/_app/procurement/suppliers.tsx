@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Building2Icon, PlusIcon, ShieldAlertIcon, StarIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
@@ -14,9 +17,6 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-
-import { useDataTable } from '@/hooks/use-data-table'
-import { useDataTableState } from '@/hooks/use-data-table-state'
 
 export const Route = createFileRoute('/_app/procurement/suppliers')({ component: SuppliersPage })
 

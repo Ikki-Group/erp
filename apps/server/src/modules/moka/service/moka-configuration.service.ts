@@ -1,7 +1,9 @@
 import { eq } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirst } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
+
 import { db } from '@/db'
 import { mokaConfigurationsTable } from '@/db/schema'
 
@@ -18,24 +20,36 @@ const err = {
 		new ConflictError(`Location ${locationId} already has a Moka configuration`),
 }
 
+const cache = bento.namespace('moka.config')
+
 export class MokaConfigurationService {
 	async findByLocationId(locationId: number): Promise<MokaConfigurationDto | null> {
-		const result = await db
-			.select()
-			.from(mokaConfigurationsTable)
-			.where(eq(mokaConfigurationsTable.locationId, locationId))
-		const first = takeFirst(result)
-		return first ? MokaConfigurationDto.parse(first) : null
+		return cache.getOrSet({
+			key: `by-location.${locationId}`,
+			factory: async () => {
+				const result = await db
+					.select()
+					.from(mokaConfigurationsTable)
+					.where(eq(mokaConfigurationsTable.locationId, locationId))
+				const first = takeFirst(result)
+				return first ? MokaConfigurationDto.parse(first) : null
+			},
+		})
 	}
 
 	async handleDetail(id: number): Promise<MokaConfigurationOutputDto> {
-		const result = await db
-			.select()
-			.from(mokaConfigurationsTable)
-			.where(eq(mokaConfigurationsTable.id, id))
-		const first = takeFirst(result)
-		if (!first) throw err.notFound(id)
-		return MokaConfigurationOutputDto.parse(first)
+		return cache.getOrSet({
+			key: `detail.${id}`,
+			factory: async () => {
+				const result = await db
+					.select()
+					.from(mokaConfigurationsTable)
+					.where(eq(mokaConfigurationsTable.id, id))
+				const first = takeFirst(result)
+				if (!first) throw err.notFound(id)
+				return MokaConfigurationOutputDto.parse(first)
+			},
+		})
 	}
 
 	async handleCreate(data: MokaConfigurationCreateDto, actorId: number): Promise<{ id: number }> {
@@ -48,6 +62,7 @@ export class MokaConfigurationService {
 			.returning({ id: mokaConfigurationsTable.id })
 
 		if (!result) throw new Error('Failed to create Moka configuration')
+		await this.clearCache(result.id, data.locationId)
 		return result
 	}
 
@@ -70,6 +85,7 @@ export class MokaConfigurationService {
 			.returning({ id: mokaConfigurationsTable.id })
 
 		if (!result) throw err.notFound(id)
+		await this.clearCache(id, data.locationId)
 		return result
 	}
 
@@ -81,5 +97,13 @@ export class MokaConfigurationService {
 			.update(mokaConfigurationsTable)
 			.set({ ...authData, lastSyncedAt: new Date(), updatedAt: new Date() })
 			.where(eq(mokaConfigurationsTable.id, id))
+		await this.clearCache(id)
+	}
+
+	private async clearCache(id?: number, locationId?: number) {
+		const keys = []
+		if (id) keys.push(`detail.${id}`)
+		if (locationId) keys.push(`by-location.${locationId}`)
+		await cache.deleteMany({ keys })
 	}
 }

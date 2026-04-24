@@ -1,5 +1,5 @@
 ---
-name: Ikki ERP Backend Architect
+name: ikki-architect
 description: Strict supervisor that ensures generated code conforms to the Golden Path 2.1 Backend Architecture of Ikki ERP. Must be used when authoring code, modifying routes, or updating Drizzle schemas.
 ---
 
@@ -24,6 +24,7 @@ When generating Code for the Ikki ERP Backend, you MUST abide by the following:
 - **No `any`**: Ensure typescript correctness.
 - **Method Standardization**: Ensure your service methods use EXACTLY: `handleList`, `handleDetail`, `handleCreate`, `handleUpdate`, `handleRemove`.
 - **Conflict Prevention**: Execute `core.checkConflict` when creating models with unique identifiers (e.g. Code, Name).
+- **Caching (BentoCache)**: Use `bento.namespace()` for reads. Implement `clearCache()` for writes. NO `cache-manager`.
 
 ### 4. DTO Suffix Enforcement
 - **EVERY ZOD SCHEMA**: Any schema exported must append `Dto`. `CreateDto`, `UpdateDto`, `FilterDto`.

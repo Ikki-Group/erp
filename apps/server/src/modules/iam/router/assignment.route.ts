@@ -3,37 +3,76 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zp } from '@/core/validation'
 
-import * as dto from '../dto/user-assignment.dto'
-import type { UserAssignmentService } from '../service/user-assignment.service'
+import * as dto from '../dto/assignment.dto'
+import type { UserAssignmentService } from '../service/assignment.service'
 
-/**
- * User Assignment Module Route (Layer 1)
- */
 export function initUserAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await service.handleList(query)
+				const result = await service.handleGetListPaginated(query)
 				return res.paginated(result)
 			},
 			{
 				query: dto.UserAssignmentFilterDto,
-				response: createPaginatedResponseSchema(dto.UserAssignmentDetailDto),
+				response: createPaginatedResponseSchema(dto.UserAssignmentDto),
 				auth: true,
 			},
 		)
 		.post(
 			'/assign',
 			async function assign({ body, auth }) {
-				await service.handleAssign(body, auth.userId)
+				await service.handleAssignToLocation(body, auth.userId)
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentBaseDto.omit({ isDefault: true }),
+				body: dto.UserAssignmentUpsertDto,
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
+		.post(
+			'/assign-bulk',
+			async function assignBulk({ body, auth }) {
+				await service.handleAssignUsersToLocation(
+					body.userIds,
+					body.locationId,
+					body.roleId,
+					auth.userId,
+				)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(zp.id),
+					locationId: zp.id,
+					roleId: zp.id,
+				}),
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
+		.post(
+			'/update-role-bulk',
+			async function updateRoleBulk({ body, auth }) {
+				await service.handleUpdateRoleForUsersInLocation(
+					body.userIds,
+					body.locationId,
+					body.roleId,
+					auth.userId,
+				)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(zp.id),
+					locationId: zp.id,
+					roleId: zp.id,
+				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},
@@ -41,11 +80,29 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				await service.handleRemove(body.userId, body.locationId)
+				await service.handleRemoveFromLocation(body.userId, body.locationId)
 				return res.ok({ success: true })
 			},
 			{
-				body: dto.UserAssignmentBaseDto.omit({ isDefault: true, roleId: true }),
+				body: z.object({
+					userId: zp.id,
+					locationId: zp.id,
+				}),
+				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				auth: true,
+			},
+		)
+		.delete(
+			'/remove-bulk',
+			async function removeBulk({ body }) {
+				await service.handleRemoveUsersFromLocation(body.userIds, body.locationId)
+				return res.ok({ success: true })
+			},
+			{
+				body: z.object({
+					userIds: z.array(zp.id),
+					locationId: zp.id,
+				}),
 				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
 				auth: true,
 			},

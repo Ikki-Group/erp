@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from '../dto/supplier.dto'
 import type { SupplierServiceModule } from '../service'
@@ -33,7 +29,7 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(dto.SupplierDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(dto.SupplierDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -43,7 +39,7 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 			},
 			{
 				body: dto.SupplierCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -56,7 +52,7 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 			},
 			{
 				body: dto.SupplierUpdateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -66,6 +62,6 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

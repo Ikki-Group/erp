@@ -3,7 +3,6 @@ import {
 	boolean,
 	integer,
 	numeric,
-	pgEnum,
 	pgTable,
 	text,
 	timestamp,
@@ -13,24 +12,10 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
-import { suppliersTable } from './supplier'
+
+import { accountTypeEnum, expenditureStatusEnum, expenditureTypeEnum } from './_helpers'
 import { locationsTable } from './location'
-
-export const accountTypeEnum = pgEnum('account_type', [
-	'ASSET',
-	'LIABILITY',
-	'EQUITY',
-	'REVENUE',
-	'EXPENSE',
-])
-
-export const expenditureTypeEnum = pgEnum('expenditure_type', ['BILLS', 'ASSET', 'PURCHASES'])
-export const expenditureStatusEnum = pgEnum('expenditure_status', [
-	'PENDING',
-	'PAID',
-	'VOID',
-	'REFUNDED',
-])
+import { suppliersTable } from './supplier'
 
 export const accountsTable = pgTable(
 	'accounts',

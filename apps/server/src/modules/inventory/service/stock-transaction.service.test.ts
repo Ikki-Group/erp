@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'bun:test'
-
 import { StockTransactionService } from './stock-transaction.service'
+import { describe, expect, it } from 'bun:test'
 
 describe('StockTransactionService', () => {
 	// @ts-expect-error - access private method for testing

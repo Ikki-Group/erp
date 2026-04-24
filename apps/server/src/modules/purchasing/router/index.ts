@@ -1,8 +1,8 @@
 import Elysia from 'elysia'
 
 import type { PurchasingServiceModule } from '../service'
-import { initPurchaseOrderRoute } from './purchase-order.route'
 import { initGoodsReceiptRoute } from './goods-receipt.route'
+import { initPurchaseOrderRoute } from './purchase-order.route'
 
 export function initPurchasingRouteModule(service: PurchasingServiceModule) {
 	const purchaseOrderRouter = initPurchaseOrderRoute(service.purchaseOrder)

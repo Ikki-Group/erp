@@ -1,8 +1,10 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { useQuery } from '@tanstack/react-query'
 
 import { FlameIcon, SearchIcon, TagIcon } from 'lucide-react'
+
+import { useDataTable } from '@/hooks/use-data-table'
 
 import { toDateTimeStamp } from '@/lib/formatter'
 
@@ -13,7 +15,6 @@ import { Page } from '@/components/layout/page'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
-import { useDataTable } from '@/hooks/use-data-table'
 import { expenditureApi } from '@/features/finance/api'
 import { ExpenditureDialog } from '@/features/finance/components/expenditure-dialog'
 import type { ExpenditureDto } from '@/features/finance/dto/expenditure.dto'
@@ -26,7 +27,11 @@ const columns = [
 	ch.accessor('id', {
 		header: 'Ref ID',
 		size: 100,
-		cell: ({ row }) => <span className="font-mono text-muted-foreground">EXP-{row.original.id.toString().padStart(6, '0')}</span>,
+		cell: ({ row }) => (
+			<span className="font-mono text-muted-foreground">
+				EXP-{row.original.id.toString().padStart(6, '0')}
+			</span>
+		),
 	}),
 	ch.accessor('date', {
 		header: 'Tanggal',
@@ -86,7 +91,7 @@ function FinanceExpensesPage() {
 	})
 
 	const totalBulanIni = expenditures
-		.filter(e => e.status === 'PAID')
+		.filter((e) => e.status === 'PAID')
 		.reduce((acc, curr) => acc + Number(curr.amount), 0)
 
 	return (

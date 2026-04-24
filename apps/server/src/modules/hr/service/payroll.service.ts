@@ -1,8 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+
+const cache = bento.namespace('hr.payroll')
 import { ConflictError } from '@/core/http/errors'
+
 import { db } from '@/db'
 import {
 	employeesTable,
@@ -11,13 +15,13 @@ import {
 	payrollItemsTable,
 } from '@/db/schema'
 
+import type { AccountService, GeneralLedgerService } from '../../finance/service'
 import type {
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 } from '../dto/payroll.dto'
-import type { AccountService, GeneralLedgerService } from '../../finance/service'
 import type { InferSelectModel } from 'drizzle-orm'
 
 type PayrollBatch = InferSelectModel<typeof payrollBatchesTable>
@@ -47,7 +51,7 @@ export class PayrollService {
 				)
 			}
 
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [batch] = await tx
@@ -92,6 +96,8 @@ export class PayrollService {
 
 				return finalBatch as unknown as PayrollBatchDto
 			})
+			await cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -100,7 +106,7 @@ export class PayrollService {
 		actorId: number,
 	): Promise<PayrollAdjustmentDto> {
 		return record('PayrollService.handleAddAdjustment', async () => {
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [adjustment] = await tx
@@ -108,7 +114,7 @@ export class PayrollService {
 					.values({
 						payrollItemId: data.payrollItemId,
 						type: data.type,
-						amount: data.amount,
+						amount: data.amount.toString(),
 						reason: data.reason,
 						...metadata,
 					})
@@ -161,12 +167,14 @@ export class PayrollService {
 
 				return adjustment as unknown as PayrollAdjustmentDto
 			})
+			await cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
 	async handleFinalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollService.handleFinalizeBatch', async () => {
-			return db.transaction(async (tx) => {
+			const result = await db.transaction(async (tx) => {
 				const batchResult = await tx
 					.select()
 					.from(payrollBatchesTable)
@@ -195,6 +203,8 @@ export class PayrollService {
 
 				return finalizedBatch as unknown as PayrollBatchDto
 			})
+			await cache.deleteMany({ keys: ['list', 'count', `${batchId}`] })
+			return result
 		})
 	}
 

@@ -1,10 +1,6 @@
 import { z } from 'zod'
 
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zRecordIdDto,
-} from '@/lib/zod'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/lib/zod'
 
 export const ExpenditureTypeEnum = z.enum(['BILLS', 'ASSET', 'PURCHASES'])
 export type ExpenditureTypeEnum = z.infer<typeof ExpenditureTypeEnum>

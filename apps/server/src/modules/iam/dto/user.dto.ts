@@ -1,87 +1,104 @@
 import { z } from 'zod'
 
-import {
-	zBool,
-	zEmail,
-	zMetadataDto,
-	zPaginationDto,
-	zPassword,
-	zQueryBoolean,
-	zQueryId,
-	zQuerySearch,
-	zRecordIdDto,
-	zStr,
-	zStrNullable,
-	zUsername,
-	zAuditResolvedDto,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-import { UserAssignmentDetailDto, UserAssignmentUpsertDto } from './user-assignment.dto'
+import { LocationDto } from '@/modules/location'
 
-export const UserBaseDto = z.object({
-	email: zEmail,
-	username: zUsername,
-	fullname: zStr,
-	pinCode: zStrNullable,
-	isRoot: zBool,
-	isActive: zBool,
-})
-export type UserBaseDto = z.infer<typeof UserBaseDto>
+import { UserAssignmentDto } from './assignment.dto'
+import { RoleDto } from './role.dto'
+
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const UserDto = z.object({
-	...zRecordIdDto.shape,
-	...UserBaseDto.shape,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	email: zp.str,
+	username: zp.str,
+	fullname: zp.str,
+	pinCode: zp.strNullable,
+	isRoot: zp.bool,
+	isSystem: zp.bool,
+	isActive: zp.bool,
+	defaultLocationId: zp.id.nullable(),
+	...zc.AuditBasic.shape,
 })
 export type UserDto = z.infer<typeof UserDto>
+
+export const UserAssignmentDetailDto = z.object({
+	...UserAssignmentDto.omit({ roleId: true, locationId: true, userId: true }).shape,
+	isDefault: zp.bool,
+	role: RoleDto,
+	location: LocationDto,
+})
+export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
 
 export const UserDetailDto = z.object({
 	...UserDto.shape,
 	assignments: z.array(UserAssignmentDetailDto),
-	...zAuditResolvedDto.shape,
 })
+export type UserDetailDto = z.infer<typeof UserDetailDto>
 
 /**
- * Input for creating a new User.
+ * User Detail with Audit information.
+ * Used for response schemas to include resolved audit metadata.
  */
+export const UserDetailResolvedDto = z.object({
+	...UserDetailDto.shape,
+	...zc.AuditResolved.shape,
+})
+export type UserDetailResolvedDto = z.infer<typeof UserDetailResolvedDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
+
+const UserMutationDto = z.object({
+	email: zc.email,
+	username: zc.username,
+	fullname: zc.fullname,
+	pinCode: zp.strNullable,
+	isActive: zp.bool.default(true),
+	isRoot: zp.bool.default(false),
+	defaultLocationId: zp.id.nullable(),
+	assignments: z.array(
+		z.object({
+			locationId: zp.id,
+			roleId: zp.id,
+		}),
+	),
+})
+
 export const UserCreateDto = z.object({
-	...UserBaseDto.shape,
-	password: zPassword,
-	assignments: z.array(UserAssignmentUpsertDto).default([]),
+	...UserMutationDto.shape,
+	password: zc.password,
 })
 export type UserCreateDto = z.infer<typeof UserCreateDto>
 
-/**
- * Input for updating an existing User (Full Update).
- */
 export const UserUpdateDto = z.object({
-	...zRecordIdDto.shape,
-	...UserBaseDto.shape,
-	password: zPassword.optional(),
-	assignments: z.array(UserAssignmentUpsertDto).optional(),
+	...zc.RecordId.shape,
+	...UserMutationDto.shape,
+	password: zc.password.optional(),
 })
 export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 
-/**
- * Filter criteria for listing Users.
- */
+/* --------------------------------- FILTER --------------------------------- */
+
 export const UserFilterDto = z.object({
-	...zPaginationDto.shape,
-	q: zQuerySearch,
-	isActive: zQueryBoolean,
-	isRoot: zQueryBoolean,
-	locationId: zQueryId.optional(),
+	...zq.pagination.shape,
+	q: zq.search,
+	isActive: zq.boolean,
+	isRoot: zq.boolean,
+	locationId: zq.id.optional(),
 })
 export type UserFilterDto = z.infer<typeof UserFilterDto>
 
-/**
- * Password change DTO for current user.
- */
-export const UserChangePasswordDto = z.object({ oldPassword: zPassword, newPassword: zPassword })
+/* -------------------------------- PASSWORD -------------------------------- */
+
+export const UserChangePasswordDto = z.object({
+	oldPassword: zc.password,
+	newPassword: zc.password,
+})
 export type UserChangePasswordDto = z.infer<typeof UserChangePasswordDto>
 
-/**
- * Administrative password reset.
- */
-export const UserAdminUpdatePasswordDto = z.object({ ...zRecordIdDto.shape, password: zPassword })
+export const UserAdminUpdatePasswordDto = z.object({
+	...zc.RecordId.shape,
+	password: zc.password,
+})
 export type UserAdminUpdatePasswordDto = z.infer<typeof UserAdminUpdatePasswordDto>

@@ -1,8 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
+import { and, eq, isNull } from 'drizzle-orm'
+
+import { bento } from '@/core/cache'
+import { stampCreate } from '@/core/database'
+
+const cache = bento.namespace('finance.gl')
+
 import { db } from '@/db'
 import { journalEntriesTable, journalItemsTable } from '@/db/schema/finance'
-import { stampCreate } from '@/core/database'
-import { and, eq, isNull } from 'drizzle-orm'
+
 import type { InferSelectModel } from 'drizzle-orm'
 
 export interface JournalItemInput {
@@ -69,7 +75,9 @@ export class GeneralLedgerService {
 					})
 				}
 
-				return entry
+				const res = entry
+				await this.clearCache(input.sourceType, input.sourceId)
+				return res
 			})
 		})
 	}
@@ -78,25 +86,36 @@ export class GeneralLedgerService {
 		sourceType: string,
 		sourceId: number,
 	): Promise<JournalEntryWithItems | null> {
-		const [entry] = await db
-			.select()
-			.from(journalEntriesTable)
-			.where(
-				and(
-					eq(journalEntriesTable.sourceType, sourceType),
-					eq(journalEntriesTable.sourceId, sourceId),
-					isNull(journalEntriesTable.deletedAt),
-				),
-			)
-			.limit(1)
+		return cache.getOrSet({
+			key: `source.${sourceType}.${sourceId}`,
+			factory: async () => {
+				const [entry] = await db
+					.select()
+					.from(journalEntriesTable)
+					.where(
+						and(
+							eq(journalEntriesTable.sourceType, sourceType),
+							eq(journalEntriesTable.sourceId, sourceId),
+							isNull(journalEntriesTable.deletedAt),
+						),
+					)
+					.limit(1)
 
-		if (!entry) return null
+				if (!entry) return null
 
-		const items = await db
-			.select()
-			.from(journalItemsTable)
-			.where(eq(journalItemsTable.journalEntryId, entry.id))
+				const items = await db
+					.select()
+					.from(journalItemsTable)
+					.where(eq(journalItemsTable.journalEntryId, entry.id))
 
-		return { ...entry, items }
+				return { ...entry, items }
+			},
+		})
+	}
+
+	private async clearCache(sourceType?: string, sourceId?: number) {
+		const keys = []
+		if (sourceType && sourceId) keys.push(`source.${sourceType}.${sourceId}`)
+		await cache.deleteMany({ keys })
 	}
 }

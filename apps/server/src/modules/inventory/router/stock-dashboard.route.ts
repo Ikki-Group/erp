@@ -4,7 +4,7 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createSuccessResponseSchema } from '@/core/validation'
 
-import { dashboardKpiFilterSchema, dashboardKpiSelectSchema } from '../dto'
+import { DashboardKpiFilterDto, DashboardKpiSelectDto } from '../dto'
 import type { InventoryServiceModule } from '../service'
 
 export function initStockDashboardRoute(s: InventoryServiceModule) {
@@ -15,8 +15,8 @@ export function initStockDashboardRoute(s: InventoryServiceModule) {
 			return res.ok(result)
 		},
 		{
-			query: dashboardKpiFilterSchema,
-			response: createSuccessResponseSchema(dashboardKpiSelectSchema),
+			query: DashboardKpiFilterDto,
+			response: createSuccessResponseSchema(DashboardKpiSelectDto),
 			auth: true,
 			detail: { tags: ['Inventory Dashboard'] },
 		},

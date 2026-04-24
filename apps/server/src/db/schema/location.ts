@@ -1,7 +1,6 @@
-import { isNull } from 'drizzle-orm'
 import { pgTable, text, uniqueIndex, boolean } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from '@/core/database/schema'
 
 import { locationTypeEnum } from './_helpers'
 
@@ -22,10 +21,10 @@ export const locationsTable = pgTable(
 		address: text('address'),
 		phone: text('phone'),
 		isActive: boolean('is_active').notNull().default(true),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
-		uniqueIndex('locations_code_idx').on(t.code).where(isNull(t.deletedAt)),
-		uniqueIndex('locations_name_idx').on(t.name).where(isNull(t.deletedAt)),
+		uniqueIndex('locations_code_idx').on(t.code),
+		uniqueIndex('locations_name_idx').on(t.name),
 	],
 )

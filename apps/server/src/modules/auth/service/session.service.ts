@@ -1,19 +1,21 @@
-import { InternalServerError } from '@/core/http/errors'
 import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
-import { env } from '@/config/env'
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import { takeFirst } from '@/core/database'
+import { InternalServerError } from '@/core/http/errors'
 import { logger } from '@/core/logger'
+
 import { db } from '@/db'
 import { sessionsTable } from '@/db/schema'
+
 import type { UserDto } from '@/modules/iam/dto'
 
 import { SessionPayloadDto, type SessionDto } from '../dto'
+import { env } from '@/config/env'
 
-const cacheKey = { byId: (id: number) => `session.byId.${id}` }
+const cache = bento.namespace('session')
 
 const err = {
 	createFailed: () =>
@@ -26,9 +28,12 @@ export class SessionService {
 	 */
 	async getById(id: number): Promise<SessionDto | null> {
 		return record('SessionService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
-				return takeFirst(result)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
+					return takeFirst(result)
+				},
 			})
 		})
 	}
@@ -93,7 +98,7 @@ export class SessionService {
 	async deleteSession(id: number): Promise<void> {
 		return record('SessionService.deleteSession', async () => {
 			await db.delete(sessionsTable).where(eq(sessionsTable.id, id))
-			await cache.del(cacheKey.byId(id))
+			await cache.deleteMany({ keys: [`${id}`] })
 		})
 	}
 

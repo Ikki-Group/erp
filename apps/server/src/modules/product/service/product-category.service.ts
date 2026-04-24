@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -14,13 +14,15 @@ import {
 } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { productCategoriesTable } from '@/db/schema'
 
 import type {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
-	ProductCategoryMutationDto,
+	ProductCategoryCreateDto,
+	ProductCategoryUpdateDto,
 } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -41,11 +43,7 @@ const uniqueFields: ConflictField<'name'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'productCategory.count',
-	list: 'productCategory.list',
-	byId: (id: number) => `productCategory.byId.${id}`,
-}
+const cache = bento.namespace('product-category')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -56,12 +54,15 @@ export class ProductCategoryService {
 	 */
 	async find(): Promise<ProductCategoryDto[]> {
 		return record('ProductCategoryService.find', async () => {
-			return cache.wrap(cacheKey.list, async () => {
-				return db
-					.select()
-					.from(productCategoriesTable)
-					.where(isNull(productCategoriesTable.deletedAt))
-					.orderBy(productCategoriesTable.name)
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					return db
+						.select()
+						.from(productCategoriesTable)
+						.where(isNull(productCategoriesTable.deletedAt))
+						.orderBy(productCategoriesTable.name)
+				},
 			})
 		})
 	}
@@ -71,16 +72,19 @@ export class ProductCategoryService {
 	 */
 	async getById(id: number): Promise<ProductCategoryDto> {
 		return record('ProductCategoryService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db
-					.select()
-					.from(productCategoriesTable)
-					.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
-				return takeFirstOrThrow(
-					result,
-					`Product category with ID ${id} not found`,
-					'PRODUCT_CATEGORY_NOT_FOUND',
-				)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(productCategoriesTable)
+						.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
+					return takeFirstOrThrow(
+						result,
+						`Product category with ID ${id} not found`,
+						'PRODUCT_CATEGORY_NOT_FOUND',
+					)
+				},
 			})
 		})
 	}
@@ -90,12 +94,15 @@ export class ProductCategoryService {
 	 */
 	async count(): Promise<number> {
 		return record('ProductCategoryService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(productCategoriesTable)
-					.where(isNull(productCategoriesTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(productCategoriesTable)
+						.where(isNull(productCategoriesTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -108,11 +115,11 @@ export class ProductCategoryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return record('ProductCategoryService.handleList', async () => {
-			const { search, parentId } = filter
+			const { q, parentId } = filter
 
 			const where = and(
 				isNull(productCategoriesTable.deletedAt),
-				searchFilter(productCategoriesTable.name, search),
+				searchFilter(productCategoriesTable.name, q),
 				parentId ? eq(productCategoriesTable.parentId, parentId) : undefined,
 			)
 
@@ -143,7 +150,7 @@ export class ProductCategoryService {
 	/**
 	 * Creates a new product category. Invalidates cache.
 	 */
-	async handleCreate(data: ProductCategoryMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: ProductCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
@@ -169,11 +176,7 @@ export class ProductCategoryService {
 	/**
 	 * Updates existing product category. Invalidates cache.
 	 */
-	async handleUpdate(
-		id: number,
-		data: Partial<ProductCategoryMutationDto>,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: ProductCategoryUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleUpdate', async () => {
 			const existing = await this.getById(id)
 
@@ -238,10 +241,8 @@ export class ProductCategoryService {
 	 * Clears relevant product category caches.
 	 */
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

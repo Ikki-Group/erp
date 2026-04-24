@@ -2,12 +2,14 @@ import * as React from 'react'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@tanstack/react-query'
+
+import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { DataCombobox } from '@/components/ui/data-combobox'
 import {
 	Dialog,
 	DialogContent,
@@ -20,19 +22,15 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
-import { DataCombobox } from '@/components/ui/data-combobox'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { locationApi } from '@/features/location/api/location.api'
+import { supplierApi } from '@/features/supplier/api/supplier.api'
 
 import { expenditureApi } from '../api/finance-expenditure.api'
 import { accountApi } from '../api/finance.api'
-import { supplierApi } from '@/features/supplier/api/supplier.api'
-import { locationApi } from '@/features/location/api/location.api'
-
-import {
-	ExpenditureCreateDto,
-	ExpenditureTypeEnum,
-} from '../dto/expenditure.dto'
+import { ExpenditureCreateDto, ExpenditureTypeEnum } from '../dto/expenditure.dto'
 
 interface ExpenditureDialogProps {
 	children?: React.ReactNode
@@ -85,8 +83,8 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 			queryFn: () => supplierApi.list({ search }),
 			select: (res) => res.data,
 		})
-        
-    const locationOptions = (search: string) =>
+
+	const locationOptions = (search: string) =>
 		queryOptions({
 			queryKey: ['locations', 'list', search],
 			queryFn: () => locationApi.list({ search }),
@@ -149,7 +147,10 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 									onValueChange={(val) => form.setValue('amount', val ?? 0)}
 								/>
 							</Field>
-							<Field label="Kategori Akun (Debit)" error={form.formState.errors.targetAccountId?.message}>
+							<Field
+								label="Kategori Akun (Debit)"
+								error={form.formState.errors.targetAccountId?.message}
+							>
 								<DataCombobox
 									value={form.watch('targetAccountId')?.toString()}
 									onValueChange={(val) => form.setValue('targetAccountId', Number(val))}
@@ -162,7 +163,10 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">
-							<Field label="Sumber Dana (Kredit)" error={form.formState.errors.sourceAccountId?.message}>
+							<Field
+								label="Sumber Dana (Kredit)"
+								error={form.formState.errors.sourceAccountId?.message}
+							>
 								<DataCombobox
 									value={form.watch('sourceAccountId')?.toString()}
 									onValueChange={(val) => form.setValue('sourceAccountId', Number(val))}
@@ -202,7 +206,10 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 								</div>
 								{form.watch('isInstallment') && (
 									<div className="mt-4">
-										<Field label="Akun Hutang" error={form.formState.errors.liabilityAccountId?.message}>
+										<Field
+											label="Akun Hutang"
+											error={form.formState.errors.liabilityAccountId?.message}
+										>
 											<DataCombobox
 												value={form.watch('liabilityAccountId')?.toString()}
 												onValueChange={(val) => form.setValue('liabilityAccountId', Number(val))}

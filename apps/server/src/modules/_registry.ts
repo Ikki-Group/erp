@@ -3,23 +3,21 @@ import { logger } from '@/core/logger'
 
 import { AuthServiceModule } from './auth'
 import { DashboardServiceModule } from './dashboard'
+import { EmployeeServiceModule } from './employee'
+import { FinanceServiceModule } from './finance'
+import { HRServiceModule } from './hr'
 import { IamServiceModule } from './iam'
 import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
 import { MaterialServiceModule } from './material'
 import { MokaServiceModule } from './moka'
 import { ProductServiceModule } from './product'
+import { ProductionServiceModule } from './production'
+import { PurchasingServiceModule } from './purchasing'
 import { RecipeServiceModule } from './recipe'
 import { SalesServiceModule } from './sales'
-import { ToolServiceModule } from './tool'
-import { PurchasingServiceModule } from './purchasing'
-
 import { SupplierServiceModule } from './supplier'
-import { EmployeeServiceModule } from './employee'
-
-import { FinanceServiceModule } from './finance'
-import { ProductionServiceModule } from './production'
-import { HRServiceModule } from './hr'
+import { ToolServiceModule } from './tool'
 
 export function createModules() {
 	// Layer 0 — Core

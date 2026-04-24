@@ -1,10 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import {
 	materialLocationsTable,
@@ -16,10 +17,11 @@ import {
 
 import type {
 	RecipeCostDto,
+	RecipeCreateDto,
 	RecipeDto,
 	RecipeFilterDto,
-	RecipeMutationDto,
 	RecipeSelectDto,
+	RecipeUpdateDto,
 } from '../dto/recipe.dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -28,11 +30,7 @@ const err = {
 	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
 }
 
-const cacheKey = {
-	count: 'recipe.count',
-	list: 'recipe.list',
-	byId: (id: number) => `recipe.byId.${id}`,
-}
+const cache = bento.namespace('recipe')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -70,32 +68,42 @@ export class RecipeService {
 	 */
 	async getById(id: number): Promise<RecipeDto> {
 		return record('RecipeService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db
-					.select()
-					.from(recipesTable)
-					.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
-				const recipe = takeFirstOrThrow(
-					result,
-					`Recipe with ID ${id} not found`,
-					'RECIPE_NOT_FOUND',
-				)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(recipesTable)
+						.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+					const recipe = takeFirstOrThrow(
+						result,
+						`Recipe with ID ${id} not found`,
+						'RECIPE_NOT_FOUND',
+					)
 
-				const items = await this.getRecipeItems(id)
+					const items = await this.getRecipeItems(id)
 
-				return { ...recipe, items }
+					return {
+						...recipe,
+						targetQty: Number(recipe.targetQty),
+						items,
+					}
+				},
 			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('RecipeService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(recipesTable)
-					.where(isNull(recipesTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(recipesTable)
+						.where(isNull(recipesTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -166,14 +174,15 @@ export class RecipeService {
 
 			const itemsByRecipe = new Map<number, typeof allItems>()
 			for (const item of allItems) {
-				const list = itemsByRecipe.get(item.recipeId) || []
+				const list = itemsByRecipe.get(item.recipeId) ?? []
 				list.push(item)
 				itemsByRecipe.set(item.recipeId, list)
 			}
 
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
-				items: itemsByRecipe.get(r.id) || [],
+				targetQty: Number(r.targetQty),
+				items: itemsByRecipe.get(r.id) ?? [],
 			}))
 
 			return { data, meta: result.meta }
@@ -224,7 +233,7 @@ export class RecipeService {
 		}
 	}
 
-	async handleCreate(data: RecipeMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: RecipeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleCreate', async () => {
 			await this.checkTargetConflict({
 				materialId: data.materialId,
@@ -241,7 +250,7 @@ export class RecipeService {
 						materialId: data.materialId ?? null,
 						productId: data.productId ?? null,
 						productVariantId: data.productVariantId ?? null,
-						targetQty: data.targetQty,
+						targetQty: (data.targetQty ?? 1).toString(),
 						isActive: data.isActive,
 						instructions: data.instructions,
 						...meta,
@@ -255,11 +264,11 @@ export class RecipeService {
 						data.items.map((item) => ({
 							recipeId: recipe.id,
 							materialId: item.materialId,
-							qty: item.qty,
-							scrapPercentage: item.scrapPercentage,
+							qty: item.qty.toString(),
+							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes,
-							sortOrder: item.sortOrder.toString(),
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...meta,
 						})),
 					)
@@ -273,12 +282,9 @@ export class RecipeService {
 		})
 	}
 
-	async handleUpdate(
-		id: number,
-		data: RecipeMutationDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(data: RecipeUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleUpdate', async () => {
+			const { id } = data
 			const existing = await this.getById(id)
 
 			const target = {
@@ -303,9 +309,10 @@ export class RecipeService {
 							data.productVariantId === undefined
 								? existing.productVariantId
 								: data.productVariantId,
-						targetQty: data.targetQty,
-						isActive: data.isActive,
-						instructions: data.instructions,
+						targetQty: (data.targetQty ?? existing.targetQty).toString(),
+						isActive: data.isActive ?? existing.isActive,
+						instructions:
+							data.instructions === undefined ? existing.instructions : data.instructions,
 						...updateMeta,
 					})
 					.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
@@ -318,11 +325,11 @@ export class RecipeService {
 						data.items.map((item) => ({
 							recipeId: id,
 							materialId: item.materialId,
-							qty: item.qty,
-							scrapPercentage: item.scrapPercentage,
+							qty: item.qty.toString(),
+							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes ?? null,
-							sortOrder: item.sortOrder.toString(),
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...createMeta,
 						})),
 					)
@@ -381,11 +388,9 @@ export class RecipeService {
 	}
 
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 
 	/* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */
@@ -397,7 +402,7 @@ export class RecipeService {
 	async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
 		return record('RecipeService.handleCalculateCost', async () => {
 			const recipe = await this.getById(recipeId)
-			const items = recipe.items || []
+			const items = recipe.items ?? []
 
 			let totalCost = 0
 			const detailedItems = []
@@ -415,7 +420,7 @@ export class RecipeService {
 						),
 					)
 
-				const avgCost = Number(valuation?.avgCost || 0)
+				const avgCost = Number(valuation?.avgCost ?? 0)
 				const qty = Number(item.qty)
 				const scrap = Number(item.scrapPercentage)
 

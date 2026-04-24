@@ -1,15 +1,19 @@
-import { db } from '@/db'
+import { record } from '@elysiajs/opentelemetry'
+
 import { stampCreate, type DbTx } from '@/core/database'
-import { stockTransactionsTable } from '@/db/schema'
-import { MovementLogic } from './movement-logic'
 import { BadRequestError } from '@/core/http/errors'
+
+import { db } from '@/db'
+import { stockTransactionsTable } from '@/db/schema'
+
 import type {
 	TransferTransactionDto,
 	AdjustmentTransactionDto,
 	StockOpnameDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
-import { record } from '@elysiajs/opentelemetry'
+
+import { MovementLogic } from './movement-logic'
 
 export class StockInternalMovementService extends MovementLogic {
 	/**

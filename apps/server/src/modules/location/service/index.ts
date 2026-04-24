@@ -1,11 +1,11 @@
-import { LocationService } from './location.service'
+import { LocationMasterService } from './location-master.service'
 
 export class LocationServiceModule {
-	public location: LocationService
+	public location: LocationMasterService
 
 	constructor() {
-		this.location = new LocationService()
+		this.location = new LocationMasterService()
 	}
 }
 
-export type { LocationService } from './location.service'
+export { LocationMasterService }

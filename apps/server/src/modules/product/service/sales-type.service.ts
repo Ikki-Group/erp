@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -14,10 +14,16 @@ import {
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 
-import type { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
+import type {
+	SalesTypeCreateDto,
+	SalesTypeDto,
+	SalesTypeFilterDto,
+	SalesTypeUpdateDto,
+} from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -39,11 +45,7 @@ const uniqueFields: ConflictField<'code'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'salesType.count',
-	list: 'salesType.list',
-	byId: (id: number) => `salesType.byId.${id}`,
-}
+const cache = bento.namespace('sales-type')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -53,8 +55,11 @@ export class SalesTypeService {
 	 */
 	async find(): Promise<SalesTypeDto[]> {
 		return record('SalesTypeService.find', async () => {
-			return cache.wrap(cacheKey.list, async () => {
-				return db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					return db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
+				},
 			})
 		})
 	}
@@ -64,13 +69,16 @@ export class SalesTypeService {
 	 */
 	async getById(id: number): Promise<SalesTypeDto> {
 		return record('SalesTypeService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
-				return takeFirstOrThrow(
-					result,
-					`Sales type with ID ${id} not found`,
-					'SALES_TYPE_NOT_FOUND',
-				)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
+					return takeFirstOrThrow(
+						result,
+						`Sales type with ID ${id} not found`,
+						'SALES_TYPE_NOT_FOUND',
+					)
+				},
 			})
 		})
 	}
@@ -80,9 +88,12 @@ export class SalesTypeService {
 	 */
 	async count(): Promise<number> {
 		return record('SalesTypeService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db.select({ val: count() }).from(salesTypesTable)
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db.select({ val: count() }).from(salesTypesTable)
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -95,8 +106,8 @@ export class SalesTypeService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () => {
-			const { search } = filter
-			const where = searchFilter(salesTypesTable.name, search)
+			const { q } = filter
+			const where = searchFilter(salesTypesTable.name, q)
 
 			return paginate<SalesTypeDto>({
 				data: ({ limit, offset }) =>
@@ -125,7 +136,7 @@ export class SalesTypeService {
 	/**
 	 * Seeds sales types
 	 */
-	async seed(data: (SalesTypeMutationDto & { id?: number; createdBy: number })[]): Promise<void> {
+	async seed(data: (SalesTypeCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
 		return record('SalesTypeService.seed', async () => {
 			for (const d of data) {
 				const metadata = stampCreate(d.createdBy)
@@ -150,7 +161,7 @@ export class SalesTypeService {
 	/**
 	 * Creates a new sales type. Invalidates cache.
 	 */
-	async handleCreate(data: SalesTypeMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: SalesTypeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('SalesTypeService.handleCreate', async () => {
 			const code = data.code.trim().toLowerCase()
 			const name = data.name.trim()
@@ -179,7 +190,7 @@ export class SalesTypeService {
 	 */
 	async handleUpdate(
 		id: number,
-		data: Partial<SalesTypeMutationDto>,
+		data: Partial<SalesTypeUpdateDto>,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('SalesTypeService.handleUpdate', async () => {
@@ -231,10 +242,8 @@ export class SalesTypeService {
 	 * Clears relevant sales type caches.
 	 */
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

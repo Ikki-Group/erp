@@ -5,7 +5,8 @@ import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zRecordIdDto,
+	zc,
+	zq,
 } from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
@@ -26,7 +27,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				query: dto.UserFilterDto,
-				response: createPaginatedResponseSchema(dto.UserDto),
+				response: createPaginatedResponseSchema(dto.UserDetailDto),
 				auth: true,
 			},
 		)
@@ -36,7 +37,11 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(dto.UserDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(dto.UserDetailResolvedDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',
@@ -44,7 +49,7 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleCreate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: dto.UserCreateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: dto.UserCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
@@ -52,7 +57,7 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleUpdate(body.id, body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: dto.UserUpdateDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: dto.UserUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.post(
 			'/change-password',
@@ -62,7 +67,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				body: dto.UserChangePasswordDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -74,24 +79,16 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				body: dto.UserAdminUpdatePasswordDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.delete(
 			'/remove',
-			async function remove({ body, auth }) {
-				const result = await service.handleRemove(body.id, auth.userId)
+			async function remove({ body }) {
+				const result = await service.handleRemove(body.id)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
-		)
-		.delete(
-			'/hard-remove',
-			async function hardRemove({ body }) {
-				const result = await service.handleHardRemove(body.id)
-				return res.ok(result)
-			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

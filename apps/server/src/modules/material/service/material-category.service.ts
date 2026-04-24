@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -14,13 +14,15 @@ import {
 } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
 
 import type {
+	MaterialCategoryCreateDto,
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
-	MaterialCategoryMutationDto,
+	MaterialCategoryUpdateDto,
 } from '../dto'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -41,11 +43,7 @@ const uniqueFields: ConflictField<'name'>[] = [
 	},
 ]
 
-const cacheKey = {
-	count: 'materialCategory.count',
-	list: 'materialCategory.list',
-	byId: (id: number) => `materialCategory.byId.${id}`,
-}
+const cache = bento.namespace('material-category')
 
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
@@ -55,12 +53,15 @@ export class MaterialCategoryService {
 	 */
 	async find(): Promise<MaterialCategoryDto[]> {
 		return record('MaterialCategoryService.find', async () => {
-			return cache.wrap(cacheKey.list, async () => {
-				return db
-					.select()
-					.from(materialCategoriesTable)
-					.where(isNull(materialCategoriesTable.deletedAt))
-					.orderBy(materialCategoriesTable.name)
+			return cache.getOrSet({
+				key: 'list',
+				factory: async () => {
+					return db
+						.select()
+						.from(materialCategoriesTable)
+						.where(isNull(materialCategoriesTable.deletedAt))
+						.orderBy(materialCategoriesTable.name)
+				},
 			})
 		})
 	}
@@ -70,16 +71,21 @@ export class MaterialCategoryService {
 	 */
 	async getById(id: number): Promise<MaterialCategoryDto> {
 		return record('MaterialCategoryService.getById', async () => {
-			return cache.wrap(cacheKey.byId(id), async () => {
-				const result = await db
-					.select()
-					.from(materialCategoriesTable)
-					.where(and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)))
-				return takeFirstOrThrow(
-					result,
-					`Material category with ID ${id} not found`,
-					'MATERIAL_CATEGORY_NOT_FOUND',
-				)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const result = await db
+						.select()
+						.from(materialCategoriesTable)
+						.where(
+							and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)),
+						)
+					return takeFirstOrThrow(
+						result,
+						`Material category with ID ${id} not found`,
+						'MATERIAL_CATEGORY_NOT_FOUND',
+					)
+				},
 			})
 		})
 	}
@@ -89,12 +95,15 @@ export class MaterialCategoryService {
 	 */
 	async count(): Promise<number> {
 		return record('MaterialCategoryService.count', async () => {
-			return cache.wrap(cacheKey.count, async () => {
-				const result = await db
-					.select({ val: count() })
-					.from(materialCategoriesTable)
-					.where(isNull(materialCategoriesTable.deletedAt))
-				return result[0]?.val ?? 0
+			return cache.getOrSet({
+				key: 'count',
+				factory: async () => {
+					const result = await db
+						.select({ val: count() })
+						.from(materialCategoriesTable)
+						.where(isNull(materialCategoriesTable.deletedAt))
+					return result[0]?.val ?? 0
+				},
 			})
 		})
 	}
@@ -107,10 +116,10 @@ export class MaterialCategoryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		return record('MaterialCategoryService.handleList', async () => {
-			const { search, parentId } = filter
+			const { q, parentId } = filter
 			const where = and(
 				isNull(materialCategoriesTable.deletedAt),
-				searchFilter(materialCategoriesTable.name, search),
+				searchFilter(materialCategoriesTable.name, q),
 				parentId === undefined ? undefined : eq(materialCategoriesTable.parentId, parentId),
 			)
 
@@ -141,7 +150,7 @@ export class MaterialCategoryService {
 	/**
 	 * Creates a new material category. Invalidates cache.
 	 */
-	async handleCreate(data: MaterialCategoryMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: MaterialCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
@@ -169,7 +178,7 @@ export class MaterialCategoryService {
 	 */
 	async handleUpdate(
 		id: number,
-		data: Partial<MaterialCategoryMutationDto>,
+		data: Partial<MaterialCategoryUpdateDto>,
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleUpdate', async () => {
@@ -234,10 +243,8 @@ export class MaterialCategoryService {
 	 * Clears relevant material category caches.
 	 */
 	private async clearCache(id?: number) {
-		await Promise.all([
-			cache.del(cacheKey.count),
-			cache.del(cacheKey.list),
-			id ? cache.del(cacheKey.byId(id)) : Promise.resolve(),
-		])
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

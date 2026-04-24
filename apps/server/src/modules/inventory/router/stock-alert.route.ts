@@ -1,16 +1,12 @@
 import Elysia from 'elysia'
+import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/core/validation'
 
-import { stockAlertFilterSchema, stockAlertSelectSchema } from '../dto'
+import { StockAlertFilterDto, StockAlertSelectDto } from '../dto'
 import type { InventoryServiceModule } from '../service'
-import z from 'zod'
 
 export function initStockAlertRoute(s: InventoryServiceModule) {
 	return new Elysia({ prefix: '/alert' })
@@ -22,8 +18,8 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: stockAlertFilterSchema.extend(zPaginationDto.shape),
-				response: createPaginatedResponseSchema(stockAlertSelectSchema),
+				query: StockAlertFilterDto.extend(zq.pagination.shape),
+				response: createPaginatedResponseSchema(StockAlertSelectDto),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },
 			},
@@ -35,7 +31,7 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 				return res.ok(result)
 			},
 			{
-				query: stockAlertFilterSchema,
+				query: StockAlertFilterDto,
 				response: createSuccessResponseSchema(z.object({ count: z.number() })),
 				auth: true,
 				detail: { tags: ['Inventory Alert'] },

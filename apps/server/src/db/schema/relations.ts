@@ -2,16 +2,27 @@
 // oxlint-disable max-lines
 import { defineRelations } from 'drizzle-orm'
 
-import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-import { stockSummariesTable, stockTransactionsTable } from './inventory'
-import { locationsTable } from './location'
+import { customersTable } from './customer'
+import { employeesTable } from './employee'
+import { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
+import { paymentsTable, paymentInvoicesTable } from './finance_payment'
 import {
 	attendancesTable,
+	leaveRequestsTable,
 	payrollAdjustmentsTable,
 	payrollBatchesTable,
 	payrollItemsTable,
 	shiftsTable,
 } from './hr'
+import { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
+import {
+	stockAdjustmentItemsTable,
+	stockAdjustmentsTable,
+	stockBatchesTable,
+	stockSummariesTable,
+	stockTransactionsTable,
+} from './inventory'
+import { locationsTable } from './location'
 import {
 	materialCategoriesTable,
 	materialConversionsTable,
@@ -29,35 +40,29 @@ import {
 	salesTypesTable,
 	variantPricesTable,
 } from './product'
+import { workOrdersTable } from './production'
+import {
+	goodsReceiptNoteItemsTable,
+	goodsReceiptNotesTable,
+	purchaseInvoiceItemsTable,
+	purchaseInvoicesTable,
+	purchaseOrderItemsTable,
+	purchaseOrdersTable,
+	purchaseRequestItemsTable,
+	purchaseRequestsTable,
+} from './purchasing'
 import { recipeItemsTable, recipesTable } from './recipe'
 import {
 	salesExternalRefsTable,
+	salesInvoiceItemsTable,
+	salesInvoicesTable,
 	salesOrderBatchesTable,
 	salesOrderItemsTable,
 	salesOrdersTable,
 	salesVoidsTable,
 } from './sales'
 import { suppliersTable } from './supplier'
-import { employeesTable } from './employee'
-import { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
-import {
-	goodsReceiptNoteItemsTable,
-	goodsReceiptNotesTable,
-	purchaseOrderItemsTable,
-	purchaseOrdersTable,
-	purchaseRequestItemsTable,
-	purchaseRequestsTable,
-} from './purchasing'
-import { workOrdersTable } from './production'
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  RELATIONS (Drizzle v1 — defineRelations API)
-//
-//  All relations are defined here in a single place to guarantee:
-//  1. No circular-import issues between module files
-//  2. A single source of truth for the relationship graph
-//  3. Easy discoverability when onboarding
-// ═══════════════════════════════════════════════════════════════════════════════
+import { taxesTable } from './tax'
 
 export const relations = defineRelations(
 	{
@@ -73,6 +78,9 @@ export const relations = defineRelations(
 		materialLocationsTable,
 		stockTransactionsTable,
 		stockSummariesTable,
+		stockBatchesTable,
+		stockAdjustmentsTable,
+		stockAdjustmentItemsTable,
 		salesTypesTable,
 		productCategoriesTable,
 		productsTable,
@@ -87,9 +95,12 @@ export const relations = defineRelations(
 		salesOrdersTable,
 		salesOrderBatchesTable,
 		salesOrderItemsTable,
+		salesInvoicesTable,
+		salesInvoiceItemsTable,
 		salesVoidsTable,
 		salesExternalRefsTable,
 		suppliersTable,
+		customersTable,
 		employeesTable,
 		accountsTable,
 		journalEntriesTable,
@@ -98,6 +109,8 @@ export const relations = defineRelations(
 		purchaseRequestItemsTable,
 		purchaseOrdersTable,
 		purchaseOrderItemsTable,
+		purchaseInvoicesTable,
+		purchaseInvoiceItemsTable,
 		goodsReceiptNoteItemsTable,
 		goodsReceiptNotesTable,
 		workOrdersTable,
@@ -105,9 +118,12 @@ export const relations = defineRelations(
 		shiftsTable,
 		payrollBatchesTable,
 		payrollItemsTable,
-		payrollItemsTable,
 		payrollAdjustmentsTable,
+		leaveRequestsTable,
 		expendituresTable,
+		taxesTable,
+		paymentsTable,
+		paymentInvoicesTable,
 	},
 	(r) => ({
 		// ─── IAM ──────────────────────────────────────────────────────────
@@ -139,6 +155,26 @@ export const relations = defineRelations(
 			products: r.many.productsTable(),
 			mokaConfigurations: r.many.mokaConfigurationsTable(),
 			salesOrders: r.many.salesOrdersTable(),
+			purchaseRequests: r.many.purchaseRequestsTable(),
+			purchaseOrders: r.many.purchaseOrdersTable(),
+			purchaseInvoices: r.many.purchaseInvoicesTable(),
+			salesInvoices: r.many.salesInvoicesTable(),
+			stockAdjustments: r.many.stockAdjustmentsTable(),
+		},
+
+		// ─── Taxation ─────────────────────────────────────────────────────
+
+		taxesTable: {
+			account: r.one.accountsTable({ from: r.taxesTable.accountId, to: r.accountsTable.id }),
+			materials: r.many.materialsTable(),
+			products: r.many.productsTable(),
+		},
+
+		// ─── CRM ──────────────────────────────────────────────────────────
+
+		customersTable: {
+			salesOrders: r.many.salesOrdersTable(),
+			salesInvoices: r.many.salesInvoicesTable(),
 		},
 
 		// ─── Material ─────────────────────────────────────────────────────
@@ -150,12 +186,15 @@ export const relations = defineRelations(
 				from: r.materialsTable.categoryId,
 				to: r.materialCategoriesTable.id,
 			}),
+			tax: r.one.taxesTable({ from: r.materialsTable.taxId, to: r.taxesTable.id }),
 			conversions: r.many.materialConversionsTable(),
 			materialLocations: r.many.materialLocationsTable(),
 			stockTransactions: r.many.stockTransactionsTable(),
 			stockSummaries: r.many.stockSummariesTable(),
+			stockBatches: r.many.stockBatchesTable(),
 			recipe: r.many.recipesTable(),
 			recipeItems: r.many.recipeItemsTable(),
+			purchaseOrderItems: r.many.purchaseOrderItemsTable(),
 		},
 
 		materialConversionsTable: {
@@ -193,6 +232,14 @@ export const relations = defineRelations(
 				to: r.locationsTable.id,
 				alias: 'counterpartLocation',
 			}),
+			batch: r.one.stockBatchesTable({
+				from: r.stockTransactionsTable.batchId,
+				to: r.stockBatchesTable.id,
+			}),
+			adjustmentItem: r.one.stockAdjustmentItemsTable({
+				from: r.stockTransactionsTable.adjustmentItemId,
+				to: r.stockAdjustmentItemsTable.id,
+			}),
 		},
 
 		stockSummariesTable: {
@@ -203,6 +250,37 @@ export const relations = defineRelations(
 			location: r.one.locationsTable({
 				from: r.stockSummariesTable.locationId,
 				to: r.locationsTable.id,
+			}),
+		},
+
+		stockBatchesTable: {
+			material: r.one.materialsTable({
+				from: r.stockBatchesTable.materialId,
+				to: r.materialsTable.id,
+			}),
+			transactions: r.many.stockTransactionsTable(),
+		},
+
+		stockAdjustmentsTable: {
+			location: r.one.locationsTable({
+				from: r.stockAdjustmentsTable.locationId,
+				to: r.locationsTable.id,
+			}),
+			items: r.many.stockAdjustmentItemsTable(),
+		},
+
+		stockAdjustmentItemsTable: {
+			header: r.one.stockAdjustmentsTable({
+				from: r.stockAdjustmentItemsTable.adjustmentId,
+				to: r.stockAdjustmentsTable.id,
+			}),
+			material: r.one.materialsTable({
+				from: r.stockAdjustmentItemsTable.materialId,
+				to: r.materialsTable.id,
+			}),
+			batch: r.one.stockBatchesTable({
+				from: r.stockAdjustmentItemsTable.batchId,
+				to: r.stockBatchesTable.id,
 			}),
 		},
 
@@ -222,6 +300,7 @@ export const relations = defineRelations(
 				from: r.productsTable.categoryId,
 				to: r.productCategoriesTable.id,
 			}),
+			tax: r.one.taxesTable({ from: r.productsTable.taxId, to: r.taxesTable.id }),
 			variants: r.many.productVariantsTable(),
 			prices: r.many.productPricesTable(),
 			externalMappings: r.many.productExternalMappingsTable(),
@@ -318,12 +397,17 @@ export const relations = defineRelations(
 				from: r.salesOrdersTable.locationId,
 				to: r.locationsTable.id,
 			}),
+			customer: r.one.customersTable({
+				from: r.salesOrdersTable.customerId,
+				to: r.customersTable.id,
+			}),
 			salesType: r.one.salesTypesTable({
 				from: r.salesOrdersTable.salesTypeId,
 				to: r.salesTypesTable.id,
 			}),
 			batches: r.many.salesOrderBatchesTable(),
 			items: r.many.salesOrderItemsTable(),
+			invoices: r.many.salesInvoicesTable(),
 			voids: r.many.salesVoidsTable(),
 			externalRefs: r.many.salesExternalRefsTable(),
 		},
@@ -352,6 +436,35 @@ export const relations = defineRelations(
 			variant: r.one.productVariantsTable({
 				from: r.salesOrderItemsTable.variantId,
 				to: r.productVariantsTable.id,
+			}),
+			invoiceItems: r.many.salesInvoiceItemsTable(),
+		},
+
+		salesInvoicesTable: {
+			order: r.one.salesOrdersTable({
+				from: r.salesInvoicesTable.orderId,
+				to: r.salesOrdersTable.id,
+			}),
+			customer: r.one.customersTable({
+				from: r.salesInvoicesTable.customerId,
+				to: r.customersTable.id,
+			}),
+			location: r.one.locationsTable({
+				from: r.salesInvoicesTable.locationId,
+				to: r.locationsTable.id,
+			}),
+			items: r.many.salesInvoiceItemsTable(),
+			paymentAllocations: r.many.paymentInvoicesTable(),
+		},
+
+		salesInvoiceItemsTable: {
+			invoice: r.one.salesInvoicesTable({
+				from: r.salesInvoiceItemsTable.invoiceId,
+				to: r.salesInvoicesTable.id,
+			}),
+			orderItem: r.one.salesOrderItemsTable({
+				from: r.salesInvoiceItemsTable.salesOrderItemId,
+				to: r.salesOrderItemsTable.id,
 			}),
 		},
 
@@ -408,6 +521,7 @@ export const relations = defineRelations(
 			}),
 			items: r.many.purchaseOrderItemsTable(),
 			receipts: r.many.goodsReceiptNotesTable(),
+			invoices: r.many.purchaseInvoicesTable(),
 		},
 
 		purchaseOrderItemsTable: {
@@ -424,6 +538,7 @@ export const relations = defineRelations(
 				to: r.materialsTable.id,
 			}),
 			receiptItems: r.many.goodsReceiptNoteItemsTable(),
+			invoiceItems: r.many.purchaseInvoiceItemsTable(),
 		},
 
 		goodsReceiptNotesTable: {
@@ -457,9 +572,41 @@ export const relations = defineRelations(
 			}),
 		},
 
+		purchaseInvoicesTable: {
+			order: r.one.purchaseOrdersTable({
+				from: r.purchaseInvoicesTable.orderId,
+				to: r.purchaseOrdersTable.id,
+			}),
+			supplier: r.one.suppliersTable({
+				from: r.purchaseInvoicesTable.supplierId,
+				to: r.suppliersTable.id,
+			}),
+			location: r.one.locationsTable({
+				from: r.purchaseInvoicesTable.locationId,
+				to: r.locationsTable.id,
+			}),
+			items: r.many.purchaseInvoiceItemsTable(),
+			paymentAllocations: r.many.paymentInvoicesTable(),
+		},
+
+		purchaseInvoiceItemsTable: {
+			invoice: r.one.purchaseInvoicesTable({
+				from: r.purchaseInvoiceItemsTable.invoiceId,
+				to: r.purchaseInvoicesTable.id,
+			}),
+			orderItem: r.one.purchaseOrderItemsTable({
+				from: r.purchaseInvoiceItemsTable.purchaseOrderItemId,
+				to: r.purchaseOrderItemsTable.id,
+			}),
+		},
+
 		// ─── Finance ──────────────────────────────────────────────────────
 
-		accountsTable: { journalItems: r.many.journalItemsTable() },
+		accountsTable: {
+			journalItems: r.many.journalItemsTable(),
+			taxes: r.many.taxesTable(),
+			payments: r.many.paymentsTable(),
+		},
 		journalEntriesTable: { items: r.many.journalItemsTable() },
 		journalItemsTable: {
 			entry: r.one.journalEntriesTable({
@@ -494,6 +641,26 @@ export const relations = defineRelations(
 			}),
 		},
 
+		paymentsTable: {
+			account: r.one.accountsTable({ from: r.paymentsTable.accountId, to: r.accountsTable.id }),
+			invoiceAllocations: r.many.paymentInvoicesTable(),
+		},
+
+		paymentInvoicesTable: {
+			payment: r.one.paymentsTable({
+				from: r.paymentInvoicesTable.paymentId,
+				to: r.paymentsTable.id,
+			}),
+			salesInvoice: r.one.salesInvoicesTable({
+				from: r.paymentInvoicesTable.salesInvoiceId,
+				to: r.salesInvoicesTable.id,
+			}),
+			purchaseInvoice: r.one.purchaseInvoicesTable({
+				from: r.paymentInvoicesTable.purchaseInvoiceId,
+				to: r.purchaseInvoicesTable.id,
+			}),
+		},
+
 		// ─── HR ───────────────────────────────────────────────────────────
 
 		attendancesTable: {
@@ -524,6 +691,12 @@ export const relations = defineRelations(
 			payrollItem: r.one.payrollItemsTable({
 				from: r.payrollAdjustmentsTable.payrollItemId,
 				to: r.payrollItemsTable.id,
+			}),
+		},
+		leaveRequestsTable: {
+			employee: r.one.employeesTable({
+				from: r.leaveRequestsTable.employeeId,
+				to: r.employeesTable.id,
 			}),
 		},
 

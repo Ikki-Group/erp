@@ -1,15 +1,17 @@
 import { z } from 'zod'
 
-import { zId } from '@/core/validation'
+import { zp } from '@/core/validation'
 
-export const dashboardKpiFilterSchema = z.object({ locationId: zId.optional() })
-
-export type DashboardKpiFilterDto = z.infer<typeof dashboardKpiFilterSchema>
-
-export const dashboardKpiSelectSchema = z.object({
-	totalStockValue: z.number(),
-	totalActiveSku: z.number(),
-	lowStockCount: z.number(),
+export const DashboardKpiFilterDto = z.object({
+	locationId: zp.id.optional(),
 })
 
-export type DashboardKpiSelectDto = z.infer<typeof dashboardKpiSelectSchema>
+export type DashboardKpiFilterDto = z.infer<typeof DashboardKpiFilterDto>
+
+export const DashboardKpiSelectDto = z.object({
+	totalStockValue: zp.decimal,
+	totalActiveSku: zp.num,
+	lowStockCount: zp.num,
+})
+
+export type DashboardKpiSelectDto = z.infer<typeof DashboardKpiSelectDto>

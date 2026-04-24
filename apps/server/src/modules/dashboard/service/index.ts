@@ -1,10 +1,10 @@
+import type { FinanceServiceModule } from '@/modules/finance/service'
 import type { IamServiceModule } from '@/modules/iam/service'
 import type { LocationServiceModule } from '@/modules/location/service'
-import type { FinanceServiceModule } from '@/modules/finance/service'
 import type { SalesServiceModule } from '@/modules/sales/service'
 
-import { SettingsService } from './settings.service'
 import { AnalyticsService } from './analytics.service'
+import { SettingsService } from './settings.service'
 
 export class DashboardServiceModule {
 	public settings: SettingsService

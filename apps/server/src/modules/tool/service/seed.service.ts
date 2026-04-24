@@ -1,11 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { SEED_CONFIG } from '@/config/seed-config'
 import { db } from '@/db'
+
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
 import type { ProductServiceModule } from '@/modules/product'
+
+import { SEED_CONFIG } from '@/config/seed-config'
 
 export class SeedService {
 	constructor(
@@ -22,7 +24,7 @@ export class SeedService {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
-				await this.iamSvc.role.seed([
+				await this.iamSvc.role.repo.seed([
 					{
 						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
 						name: 'Administrator',
@@ -51,14 +53,16 @@ export class SeedService {
 						password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
 						passwordHash: superAdminPasswordHash,
 						isRoot: true,
+						pinCode: null,
 						isActive: true,
+						defaultLocationId: null,
 						createdBy: SYSTEM_ACTOR_ID,
 						assignments: [],
 					},
 				])
 
 				// 3. Seed Locations
-				await this.locationSvc.location.seed(
+				await this.locationSvc.location.repo.seed(
 					SEED_CONFIG.LOCATIONS.map((l) => ({
 						code: l.code,
 						name: l.name,
@@ -159,7 +163,7 @@ export class SeedService {
 			for (const m of materialsData) {
 				try {
 					await this.materialSvc.material.handleCreate(
-						{ ...m, conversions: [], description: null },
+						{ ...m, conversions: [], description: null, locationIds: [] },
 						SYSTEM_ACTOR_ID,
 					)
 				} catch (error) {

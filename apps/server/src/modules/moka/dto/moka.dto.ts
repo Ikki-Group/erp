@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zDate } from '@/core/validation'
+import { zp } from '@/core/validation'
 
 import { MokaScrapType } from './moka-scrap-history.dto'
 
@@ -63,26 +63,31 @@ export const MokaSalesDetailRawDto = z
 		items: z.array(MokaSalesItemRawDto).optional(),
 		order_items: z.record(z.string(), z.array(MokaSalesItemRawDto)).optional(),
 	})
-	.passthrough() // Use passthrough to allow other fields from the raw API
+	.passthrough()
 
 export type MokaSalesDetailRawDto = z.infer<typeof MokaSalesDetailRawDto>
 
 /* ---------------------------------- DTO ---------------------------------- */
 
 export const MokaProductDetailDto = z.object({
-	id: z.number(),
-	name: z.string(),
-	category_name: z.string().nullable(),
+	id: zp.num,
+	name: zp.str,
+	category_name: zp.str.nullable(),
 	item_variants: z.array(
-		z.object({ id: z.number(), name: z.string(), price: z.number(), sku: z.string().nullable() }),
+		z.object({
+			id: zp.num,
+			name: zp.str,
+			price: zp.decimal,
+			sku: zp.str.nullable(),
+		}),
 	),
 })
 export type MokaProductDetailDto = z.infer<typeof MokaProductDetailDto>
 
 export const MokaTriggerInputDto = z.object({
-	locationId: z.number(),
+	locationId: zp.id,
 	type: MokaScrapType,
-	dateFrom: zDate.optional(),
-	dateTo: zDate.optional(),
+	dateFrom: zp.date.optional(),
+	dateTo: zp.date.optional(),
 })
 export type MokaTriggerInputDto = z.infer<typeof MokaTriggerInputDto>

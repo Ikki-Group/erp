@@ -1,9 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, ilike, isNull, lte, or, sql } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { paginate, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+
+const cache = bento.namespace('hr')
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@/db/schema'
 
@@ -33,22 +37,27 @@ export class HRService {
 
 	async handleShiftList(pq: PaginationQuery): Promise<WithPaginationResult<ShiftDto>> {
 		return record('HRService.handleShiftList', async () => {
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select()
-						.from(shiftsTable)
-						.where(isNull(shiftsTable.deletedAt))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db
-					.select({ count: sql<number>`count(*)` })
-					.from(shiftsTable)
-					.where(isNull(shiftsTable.deletedAt)),
-			})
+			return cache.getOrSet({
+				key: `shifts.${pq.page}.${pq.limit}`,
+				factory: async () => {
+					const result = await paginate({
+						data: ({ limit, offset }) =>
+							db
+								.select()
+								.from(shiftsTable)
+								.where(isNull(shiftsTable.deletedAt))
+								.limit(limit)
+								.offset(offset),
+						pq,
+						countQuery: db
+							.select({ count: sql<number>`count(*)` })
+							.from(shiftsTable)
+							.where(isNull(shiftsTable.deletedAt)),
+					})
 
-			return result as unknown as WithPaginationResult<ShiftDto>
+					return result as unknown as WithPaginationResult<ShiftDto>
+				},
+			})
 		})
 	}
 
@@ -66,7 +75,9 @@ export class HRService {
 				})
 				.returning()
 
-			return result[0] as unknown as ShiftDto
+			const shift = result[0] as unknown as ShiftDto
+			await cache.deleteMany({ keys: ['shifts.list'] }) // Simplistic clear for shifts
+			return shift
 		})
 	}
 
@@ -77,69 +88,75 @@ export class HRService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<AttendanceSelectDto>> {
 		return record('HRService.handleAttendanceList', async () => {
-			const { search, employeeId, locationId, status, dateFrom, dateTo } = filter
+			const { q, employeeId, locationId, status, dateFrom, dateTo } = filter
 
-			const searchCondition = search
-				? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
-				: undefined
+			const key = `attendance.list.${JSON.stringify(filter)}.${pq.page}.${pq.limit}`
+			return cache.getOrSet({
+				key,
+				factory: async () => {
+					const searchCondition = q
+						? or(ilike(employeesTable.name, `%${q}%`), ilike(employeesTable.code, `%${q}%`))
+						: undefined
 
-			const dateCondition =
-				dateFrom && dateTo
-					? and(gte(attendancesTable.date, dateFrom), lte(attendancesTable.date, dateTo))
-					: dateFrom
-						? gte(attendancesTable.date, dateFrom)
-						: dateTo
-							? lte(attendancesTable.date, dateTo)
-							: undefined
+					const dateCondition =
+						dateFrom && dateTo
+							? and(gte(attendancesTable.date, dateFrom), lte(attendancesTable.date, dateTo))
+							: dateFrom
+								? gte(attendancesTable.date, dateFrom)
+								: dateTo
+									? lte(attendancesTable.date, dateTo)
+									: undefined
 
-			const where = and(
-				isNull(attendancesTable.deletedAt),
-				employeeId ? eq(attendancesTable.employeeId, employeeId) : undefined,
-				locationId ? eq(attendancesTable.locationId, locationId) : undefined,
-				status ? eq(attendancesTable.status, status) : undefined,
-				dateCondition,
-				searchCondition,
-			)
+					const where = and(
+						isNull(attendancesTable.deletedAt),
+						employeeId ? eq(attendancesTable.employeeId, employeeId) : undefined,
+						locationId ? eq(attendancesTable.locationId, locationId) : undefined,
+						status ? eq(attendancesTable.status, status) : undefined,
+						dateCondition,
+						searchCondition,
+					)
 
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select({
-							id: attendancesTable.id,
-							employeeId: attendancesTable.employeeId,
-							locationId: attendancesTable.locationId,
-							shiftId: attendancesTable.shiftId,
-							date: attendancesTable.date,
-							clockIn: attendancesTable.clockIn,
-							clockOut: attendancesTable.clockOut,
-							status: attendancesTable.status,
-							note: attendancesTable.note,
-							createdAt: attendancesTable.createdAt,
-							updatedAt: attendancesTable.updatedAt,
-							createdBy: attendancesTable.createdBy,
-							updatedBy: attendancesTable.updatedBy,
-							employeeName: employeesTable.name,
-							employeeCode: employeesTable.code,
-							locationName: locationsTable.name,
-							shiftName: shiftsTable.name,
-						})
-						.from(attendancesTable)
-						.innerJoin(employeesTable, eq(attendancesTable.employeeId, employeesTable.id))
-						.innerJoin(locationsTable, eq(attendancesTable.locationId, locationsTable.id))
-						.leftJoin(shiftsTable, eq(attendancesTable.shiftId, shiftsTable.id))
-						.where(where)
-						.orderBy(desc(attendancesTable.date))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db
-					.select({ count: sql<number>`count(*)` })
-					.from(attendancesTable)
-					.innerJoin(employeesTable, eq(attendancesTable.employeeId, employeesTable.id))
-					.where(where),
+					const result = await paginate({
+						data: ({ limit, offset }) =>
+							db
+								.select({
+									id: attendancesTable.id,
+									employeeId: attendancesTable.employeeId,
+									locationId: attendancesTable.locationId,
+									shiftId: attendancesTable.shiftId,
+									date: attendancesTable.date,
+									clockIn: attendancesTable.clockIn,
+									clockOut: attendancesTable.clockOut,
+									status: attendancesTable.status,
+									note: attendancesTable.note,
+									createdAt: attendancesTable.createdAt,
+									updatedAt: attendancesTable.updatedAt,
+									createdBy: attendancesTable.createdBy,
+									updatedBy: attendancesTable.updatedBy,
+									employeeName: employeesTable.name,
+									employeeCode: employeesTable.code,
+									locationName: locationsTable.name,
+									shiftName: shiftsTable.name,
+								})
+								.from(attendancesTable)
+								.innerJoin(employeesTable, eq(attendancesTable.employeeId, employeesTable.id))
+								.innerJoin(locationsTable, eq(attendancesTable.locationId, locationsTable.id))
+								.leftJoin(shiftsTable, eq(attendancesTable.shiftId, shiftsTable.id))
+								.where(where)
+								.orderBy(desc(attendancesTable.date))
+								.limit(limit)
+								.offset(offset),
+						pq,
+						countQuery: db
+							.select({ count: sql<number>`count(*)` })
+							.from(attendancesTable)
+							.innerJoin(employeesTable, eq(attendancesTable.employeeId, employeesTable.id))
+							.where(where),
+					})
+
+					return result as unknown as WithPaginationResult<AttendanceSelectDto>
+				},
 			})
-
-			return result as unknown as WithPaginationResult<AttendanceSelectDto>
 		})
 	}
 
@@ -174,7 +191,9 @@ export class HRService {
 				})
 				.returning()
 
-			return result[0] as unknown as AttendanceDto
+			const attendance = result[0] as unknown as AttendanceDto
+			await cache.deleteMany({ keys: ['attendance.list'] })
+			return attendance
 		})
 	}
 
@@ -201,7 +220,9 @@ export class HRService {
 				.where(eq(attendancesTable.id, data.id))
 				.returning()
 
-			return updateResult[0] as unknown as AttendanceDto
+			const attendanceResult = updateResult[0] as unknown as AttendanceDto
+			await cache.deleteMany({ keys: ['attendance.list'] })
+			return attendanceResult
 		})
 	}
 }

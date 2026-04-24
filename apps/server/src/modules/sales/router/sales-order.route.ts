@@ -4,8 +4,8 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -29,7 +29,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
+				query: z.object({ ...SalesOrderFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(SalesOrderOutputDto),
 				auth: true,
 			},
@@ -41,7 +41,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 				return res.ok(order)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				response: createSuccessResponseSchema(SalesOrderOutputDto),
 				auth: true,
 			},
@@ -54,7 +54,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 			},
 			{
 				body: SalesOrderCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -65,7 +65,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 				return res.ok(result)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				body: SalesOrderAddBatchDto,
 				response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
 				auth: true,
@@ -77,7 +77,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 				const result = await s.order.handleClose(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.post(
 			'/void',
@@ -86,9 +86,9 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 				return res.ok(result)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				body: SalesOrderVoidDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)

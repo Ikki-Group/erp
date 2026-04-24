@@ -5,9 +5,34 @@ export {
 	materialTypeEnum,
 	productStatusEnum,
 	transactionTypeEnum,
+	invoiceStatusEnum,
+	paymentMethodEnum,
+	paymentTypeEnum,
+	stockAdjustmentTypeEnum,
+	leaveStatusEnum,
+	leaveTypeEnum,
+	accountTypeEnum,
+	expenditureTypeEnum,
+	expenditureStatusEnum,
+	attendanceStatusEnum,
+	payrollStatusEnum,
+	payrollAdjustmentTypeEnum,
+	salesOrderStatusEnum,
+	workOrderStatusEnum,
+	mokaScrapTypeEnum,
+	mokaScrapStatusEnum,
+	purchaseRequestStatusEnum,
+	purchaseOrderStatusEnum,
+	goodsReceiptStatusEnum,
 } from './_helpers'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-export { stockSummariesTable, stockTransactionsTable } from './inventory'
+export {
+	stockSummariesTable,
+	stockTransactionsTable,
+	stockBatchesTable,
+	stockAdjustmentsTable,
+	stockAdjustmentItemsTable,
+} from './inventory'
 export { locationsTable } from './location'
 export {
 	materialCategoriesTable,
@@ -25,47 +50,42 @@ export {
 	salesTypesTable,
 	variantPricesTable,
 } from './product'
-export {
-	mokaConfigurationsTable,
-	mokaScrapHistoriesTable,
-	mokaScrapStatusEnum,
-	mokaScrapTypeEnum,
-} from './moka'
+export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
 export {
 	salesExternalRefsTable,
 	salesOrderBatchesTable,
 	salesOrderItemsTable,
 	salesOrdersTable,
-	salesOrderStatusEnum,
 	salesVoidsTable,
+	salesInvoicesTable,
+	salesInvoiceItemsTable,
 } from './sales'
 export { suppliersTable } from './supplier'
+export { customersTable } from './customer'
 export { employeesTable } from './employee'
-export { accountTypeEnum, accountsTable, journalEntriesTable, journalItemsTable } from './finance'
+export { taxesTable } from './tax'
+export { paymentsTable, paymentInvoicesTable } from './finance_payment'
+export { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
 export {
-	attendanceStatusEnum,
 	attendancesTable,
-	payrollAdjustmentTypeEnum,
 	payrollAdjustmentsTable,
 	payrollBatchesTable,
 	payrollItemsTable,
-	payrollStatusEnum,
 	shiftsTable,
+	leaveRequestsTable,
 } from './hr'
 export {
 	goodsReceiptNoteItemsTable,
 	goodsReceiptNotesTable,
-	goodsReceiptStatusEnum,
 	purchaseOrderItemsTable,
 	purchaseOrdersTable,
-	purchaseOrderStatusEnum,
 	purchaseRequestItemsTable,
 	purchaseRequestsTable,
-	purchaseRequestStatusEnum,
+	purchaseInvoicesTable,
+	purchaseInvoiceItemsTable,
 } from './purchasing'
-export { workOrdersTable, workOrderStatusEnum } from './production'
-export * from './inventory'
+export { workOrdersTable } from './production'
 
 // ─── Re-export Relations ──────────────────────────────────────────────────────
 

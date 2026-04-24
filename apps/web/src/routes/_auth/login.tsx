@@ -6,6 +6,8 @@ import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'luci
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { useAppState } from '@/hooks/use-app-state'
+
 import { zEmail, zPassword } from '@/lib/zod/primitive'
 
 import { useAppForm } from '@/components/form'
@@ -14,8 +16,6 @@ import { Button } from '@/components/ui/button'
 import { FieldSeparator } from '@/components/ui/field'
 
 import { authApi } from '@/features/auth'
-
-import { useAppState } from '@/hooks/use-app-state'
 
 export const Route = createFileRoute('/_auth/login')({
 	validateSearch: zodValidator(

@@ -2,11 +2,7 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zRecordIdDto,
-} from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from '../dto/purchase-order.dto'
 import type { PurchaseOrderService } from '../service/purchase-order.service'
@@ -26,7 +22,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				query: dto.PurchaseOrderFilterDto,
-				response: createPaginatedResponseSchema(dto.PurchaseOrderBaseDto),
+				response: createPaginatedResponseSchema(dto.PurchaseOrderSelectDto),
 				auth: true,
 			},
 		)
@@ -37,7 +33,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				query: zRecordIdDto,
+				query: zc.RecordId,
 				response: createSuccessResponseSchema(dto.PurchaseOrderDto),
 				auth: true,
 			},
@@ -50,7 +46,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				body: dto.PurchaseOrderCreateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -63,7 +59,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				body: dto.PurchaseOrderUpdateDto,
-				response: createSuccessResponseSchema(zRecordIdDto),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -73,7 +69,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				const result = await service.handleRemove(body.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -81,6 +77,6 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				const result = await service.handleHardRemove(body.id)
 				return res.ok(result)
 			},
-			{ body: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

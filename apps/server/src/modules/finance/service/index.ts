@@ -1,6 +1,6 @@
 import { AccountService } from './account.service'
-import { GeneralLedgerService } from './general-ledger.service'
 import { ExpenditureService } from './expenditure.service'
+import { GeneralLedgerService } from './general-ledger.service'
 
 export class FinanceServiceModule {
 	public account: AccountService

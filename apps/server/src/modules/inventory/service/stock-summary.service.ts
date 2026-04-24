@@ -18,12 +18,15 @@ import {
 	sum,
 } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import { paginate, stampCreate } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { materialsTable, stockSummariesTable, stockTransactionsTable, uomsTable } from '@/db/schema'
+
 import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
 
 import type {
@@ -33,6 +36,8 @@ import type {
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
 } from '../dto'
+
+const cache = bento.namespace('inventory.summary')
 
 export class StockSummaryService {
 	constructor(private readonly mLocationSvc: MaterialLocationService) {}
@@ -50,93 +55,100 @@ export class StockSummaryService {
 		return record('StockSummaryService.handleByLocation', async () => {
 			const { locationId, materialId, dateFrom, dateTo } = filter
 
-			const where = and(
-				isNull(stockSummariesTable.deletedAt),
-				eq(stockSummariesTable.locationId, locationId),
-				materialId === undefined ? undefined : eq(stockSummariesTable.materialId, materialId),
-				gte(stockSummariesTable.date, toWibDateKey(dateFrom)),
-				lte(stockSummariesTable.date, toWibDateKey(dateTo)),
-			)
+			const key = `by-location.${JSON.stringify({ ...filter, pq })}`
+			return cache.getOrSet({
+				key,
+				factory: async () => {
+					const where = and(
+						isNull(stockSummariesTable.deletedAt),
+						eq(stockSummariesTable.locationId, locationId),
+						materialId === undefined ? undefined : eq(stockSummariesTable.materialId, materialId),
+						gte(stockSummariesTable.date, toWibDateKey(dateFrom)),
+						lte(stockSummariesTable.date, toWibDateKey(dateTo)),
+					)
 
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select({
-							id: stockSummariesTable.id,
-							materialId: stockSummariesTable.materialId,
-							locationId: stockSummariesTable.locationId,
-							date: stockSummariesTable.date,
-							openingQty: stockSummariesTable.openingQty,
-							openingAvgCost: stockSummariesTable.openingAvgCost,
-							openingValue: stockSummariesTable.openingValue,
-							purchaseQty: stockSummariesTable.purchaseQty,
-							purchaseValue: stockSummariesTable.purchaseValue,
-							transferInQty: stockSummariesTable.transferInQty,
-							transferInValue: stockSummariesTable.transferInValue,
-							transferOutQty: stockSummariesTable.transferOutQty,
-							transferOutValue: stockSummariesTable.transferOutValue,
-							adjustmentQty: stockSummariesTable.adjustmentQty,
-							adjustmentValue: stockSummariesTable.adjustmentValue,
-							usageQty: stockSummariesTable.usageQty,
-							usageValue: stockSummariesTable.usageValue,
-							productionInQty: stockSummariesTable.productionInQty,
-							productionInValue: stockSummariesTable.productionInValue,
-							productionOutQty: stockSummariesTable.productionOutQty,
-							productionOutValue: stockSummariesTable.productionOutValue,
-							sellQty: stockSummariesTable.sellQty,
-							sellValue: stockSummariesTable.sellValue,
-							closingQty: stockSummariesTable.closingQty,
-							closingAvgCost: stockSummariesTable.closingAvgCost,
-							closingValue: stockSummariesTable.closingValue,
-							createdAt: stockSummariesTable.createdAt,
-							updatedAt: stockSummariesTable.updatedAt,
-							createdBy: stockSummariesTable.createdBy,
-							updatedBy: stockSummariesTable.updatedBy,
-							syncAt: stockSummariesTable.syncAt,
-							materialName: materialsTable.name,
-							materialSku: materialsTable.sku,
-						})
-						.from(stockSummariesTable)
-						.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
-						.where(where)
-						.orderBy(desc(stockSummariesTable.date))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db
-					.select({ count: count() })
-					.from(stockSummariesTable)
-					.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
-					.where(where),
+					const result = await paginate({
+						data: ({ limit, offset }) =>
+							db
+								.select({
+									id: stockSummariesTable.id,
+									materialId: stockSummariesTable.materialId,
+									locationId: stockSummariesTable.locationId,
+									date: stockSummariesTable.date,
+									openingQty: stockSummariesTable.openingQty,
+									openingAvgCost: stockSummariesTable.openingAvgCost,
+									openingValue: stockSummariesTable.openingValue,
+									purchaseQty: stockSummariesTable.purchaseQty,
+									purchaseValue: stockSummariesTable.purchaseValue,
+									transferInQty: stockSummariesTable.transferInQty,
+									transferInValue: stockSummariesTable.transferInValue,
+									transferOutQty: stockSummariesTable.transferOutQty,
+									transferOutValue: stockSummariesTable.transferOutValue,
+									adjustmentQty: stockSummariesTable.adjustmentQty,
+									adjustmentValue: stockSummariesTable.adjustmentValue,
+									usageQty: stockSummariesTable.usageQty,
+									usageValue: stockSummariesTable.usageValue,
+									productionInQty: stockSummariesTable.productionInQty,
+									productionInValue: stockSummariesTable.productionInValue,
+									productionOutQty: stockSummariesTable.productionOutQty,
+									productionOutValue: stockSummariesTable.productionOutValue,
+									sellQty: stockSummariesTable.sellQty,
+									sellValue: stockSummariesTable.sellValue,
+									closingQty: stockSummariesTable.closingQty,
+									closingAvgCost: stockSummariesTable.closingAvgCost,
+									closingValue: stockSummariesTable.closingValue,
+									createdAt: stockSummariesTable.createdAt,
+									updatedAt: stockSummariesTable.updatedAt,
+									createdBy: stockSummariesTable.createdBy,
+									updatedBy: stockSummariesTable.updatedBy,
+									syncAt: stockSummariesTable.syncAt,
+									materialName: materialsTable.name,
+									materialSku: materialsTable.sku,
+								})
+								.from(stockSummariesTable)
+								.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
+								.where(where)
+								.orderBy(desc(stockSummariesTable.date))
+								.limit(limit)
+								.offset(offset),
+						pq,
+						countQuery: db
+							.select({ count: count() })
+							.from(stockSummariesTable)
+							.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
+							.where(where),
+					})
+
+					return {
+						data: result.data.map((r) => ({
+							...r,
+							openingQty: Number(r.openingQty),
+							openingAvgCost: Number(r.openingAvgCost),
+							openingValue: Number(r.openingValue),
+							purchaseQty: Number(r.purchaseQty),
+							purchaseValue: Number(r.purchaseValue),
+							transferInQty: Number(r.transferInQty),
+							transferInValue: Number(r.transferInValue),
+							transferOutQty: Number(r.transferOutQty),
+							transferOutValue: Number(r.transferOutValue),
+							adjustmentQty: Number(r.adjustmentQty),
+							adjustmentValue: Number(r.adjustmentValue),
+							usageQty: Number(r.usageQty),
+							usageValue: Number(r.usageValue),
+							productionInQty: Number(r.productionInQty),
+							productionInValue: Number(r.productionInValue),
+							productionOutQty: Number(r.productionOutQty),
+							productionOutValue: Number(r.productionOutValue),
+							sellQty: Number(r.sellQty),
+							sellValue: Number(r.sellValue),
+							closingQty: Number(r.closingQty),
+							closingAvgCost: Number(r.closingAvgCost),
+							closingValue: Number(r.closingValue),
+						})),
+						meta: result.meta,
+					}
+				},
 			})
-
-			const data = result.data.map((r) => ({
-				...r,
-				openingQty: Number(r.openingQty),
-				openingAvgCost: Number(r.openingAvgCost),
-				openingValue: Number(r.openingValue),
-				purchaseQty: Number(r.purchaseQty),
-				purchaseValue: Number(r.purchaseValue),
-				transferInQty: Number(r.transferInQty),
-				transferInValue: Number(r.transferInValue),
-				transferOutQty: Number(r.transferOutQty),
-				transferOutValue: Number(r.transferOutValue),
-				adjustmentQty: Number(r.adjustmentQty),
-				adjustmentValue: Number(r.adjustmentValue),
-				usageQty: Number(r.usageQty),
-				usageValue: Number(r.usageValue),
-				productionInQty: Number(r.productionInQty),
-				productionInValue: Number(r.productionInValue),
-				productionOutQty: Number(r.productionOutQty),
-				productionOutValue: Number(r.productionOutValue),
-				sellQty: Number(r.sellQty),
-				sellValue: Number(r.sellValue),
-				closingQty: Number(r.closingQty),
-				closingAvgCost: Number(r.closingAvgCost),
-				closingValue: Number(r.closingValue),
-			}))
-
-			return { data, meta: result.meta }
 		})
 	}
 
@@ -151,51 +163,55 @@ export class StockSummaryService {
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<StockLedgerSelectDto>> {
 		return record('StockSummaryService.handleLedger', async () => {
-			const { locationId, materialId, dateFrom, dateTo, search } = filter
+			const { locationId, materialId, dateFrom, dateTo, q } = filter
 
-			const startKey = toWibDateKey(dateFrom)
-			const endKey = toWibDateKey(dateTo)
+			const key = `ledger.${JSON.stringify({ ...filter, pq })}`
+			return cache.getOrSet({
+				key,
+				factory: async () => {
+					const startKey = toWibDateKey(dateFrom)
+					const endKey = toWibDateKey(dateTo)
 
-			// 1. Paginate Materials matching filter
-			const matWhere = and(
-				isNull(materialsTable.deletedAt),
-				materialId === undefined ? undefined : eq(materialsTable.id, materialId),
-				search
-					? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
-					: undefined,
-			)
+					// 1. Paginate Materials matching filter
+					const matWhere = and(
+						isNull(materialsTable.deletedAt),
+						materialId === undefined ? undefined : eq(materialsTable.id, materialId),
+						q
+							? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
+							: undefined,
+					)
 
-			const matResult = await paginate({
-				data: ({ limit, offset }) =>
-					db
-						.select({
-							id: materialsTable.id,
-							name: materialsTable.name,
-							sku: materialsTable.sku,
-							baseUomCode: uomsTable.code,
-						})
-						.from(materialsTable)
-						.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
-						.where(matWhere)
-						.orderBy(asc(materialsTable.name))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db.select({ count: count() }).from(materialsTable).where(matWhere),
-			})
+					const matResult = await paginate({
+						data: ({ limit, offset }) =>
+							db
+								.select({
+									id: materialsTable.id,
+									name: materialsTable.name,
+									sku: materialsTable.sku,
+									baseUomCode: uomsTable.code,
+								})
+								.from(materialsTable)
+								.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+								.where(matWhere)
+								.orderBy(asc(materialsTable.name))
+								.limit(limit)
+								.offset(offset),
+						pq,
+						countQuery: db.select({ count: count() }).from(materialsTable).where(matWhere),
+					})
 
-			// If no materials match, return empty early
-			if (matResult.data.length === 0) {
-				return { data: [], meta: matResult.meta }
-			}
+					// If no materials match, return empty early
+					if (matResult.data.length === 0) {
+						return { data: [], meta: matResult.meta }
+					}
 
-			const materialIds = matResult.data.map((m) => m.id)
+					const materialIds = matResult.data.map((m) => m.id)
 
-			// 2. Compute Ledger Data for all materials in current page
-			const locFilter = locationId ? sql`AND "locationId" = ${locationId}` : sql``
+					// 2. Compute Ledger Data for all materials in current page
+					const locFilter = locationId ? sql`AND "locationId" = ${locationId}` : sql``
 
-			// A. Opening Qty: Sum of the latest closing balance before dateFrom per location
-			const openingQuery = sql`
+					// A. Opening Qty: Sum of the latest closing balance before dateFrom per location
+					const openingQuery = sql`
         SELECT "materialId", SUM("closingQty") as total_qty
         FROM (
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty"
@@ -206,42 +222,44 @@ export class StockSummaryService {
         ) latest
         GROUP BY "materialId"
       `
-			// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-			const openingRaw = (await db.execute(openingQuery)) as unknown as {
-				materialId: number
-				total_qty: string
-			}[]
-			const openingMap = new Map(openingRaw.map((r) => [r.materialId, Number(r.total_qty)]))
+					// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+					const openingRaw = (await db.execute(openingQuery)) as unknown as {
+						materialId: number
+						total_qty: string
+					}[]
+					const openingMap = new Map(openingRaw.map((r) => [r.materialId, Number(r.total_qty)]))
 
-			// B. Movements: Sum of all daily movements within date range
-			const movements = await db
-				.select({
-					materialId: stockSummariesTable.materialId,
-					purchaseQty: sum(stockSummariesTable.purchaseQty),
-					transferInQty: sum(stockSummariesTable.transferInQty),
-					transferOutQty: sum(stockSummariesTable.transferOutQty),
-					adjustmentQty: sum(stockSummariesTable.adjustmentQty),
-					usageQty: sum(stockSummariesTable.usageQty),
-					productionInQty: sum(stockSummariesTable.productionInQty),
-					productionOutQty: sum(stockSummariesTable.productionOutQty),
-					sellQty: sum(stockSummariesTable.sellQty),
-				})
-				.from(stockSummariesTable)
-				.where(
-					and(
-						isNull(stockSummariesTable.deletedAt),
-						inArray(stockSummariesTable.materialId, materialIds),
-						locationId === undefined ? undefined : eq(stockSummariesTable.locationId, locationId),
-						gte(stockSummariesTable.date, startKey),
-						lte(stockSummariesTable.date, endKey),
-					),
-				)
-				.groupBy(stockSummariesTable.materialId)
+					// B. Movements: Sum of all daily movements within date range
+					const movements = await db
+						.select({
+							materialId: stockSummariesTable.materialId,
+							purchaseQty: sum(stockSummariesTable.purchaseQty),
+							transferInQty: sum(stockSummariesTable.transferInQty),
+							transferOutQty: sum(stockSummariesTable.transferOutQty),
+							adjustmentQty: sum(stockSummariesTable.adjustmentQty),
+							usageQty: sum(stockSummariesTable.usageQty),
+							productionInQty: sum(stockSummariesTable.productionInQty),
+							productionOutQty: sum(stockSummariesTable.productionOutQty),
+							sellQty: sum(stockSummariesTable.sellQty),
+						})
+						.from(stockSummariesTable)
+						.where(
+							and(
+								isNull(stockSummariesTable.deletedAt),
+								inArray(stockSummariesTable.materialId, materialIds),
+								locationId === undefined
+									? undefined
+									: eq(stockSummariesTable.locationId, locationId),
+								gte(stockSummariesTable.date, startKey),
+								lte(stockSummariesTable.date, endKey),
+							),
+						)
+						.groupBy(stockSummariesTable.materialId)
 
-			const movementMap = new Map(movements.map((m) => [m.materialId, m]))
+					const movementMap = new Map(movements.map((m) => [m.materialId, m]))
 
-			// C. Closing Balance: Sum of the latest closing balance up to dateTo per location
-			const closingQuery = sql`
+					// C. Closing Balance: Sum of the latest closing balance up to dateTo per location
+					const closingQuery = sql`
         SELECT "materialId", SUM("closingQty") as total_qty, SUM("closingValue") as total_value
         FROM (
           SELECT DISTINCT ON ("materialId", "locationId") "materialId", "closingQty", "closingValue"
@@ -252,51 +270,53 @@ export class StockSummaryService {
         ) latest
         GROUP BY "materialId"
       `
-			// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-			const closingRaw = (await db.execute(closingQuery)) as unknown as {
-				materialId: number
-				total_qty: string
-				total_value: string
-			}[]
-			const closingMap = new Map(closingRaw.map((r) => [r.materialId, r]))
+					// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+					const closingRaw = (await db.execute(closingQuery)) as unknown as {
+						materialId: number
+						total_qty: string
+						total_value: string
+					}[]
+					const closingMap = new Map(closingRaw.map((r) => [r.materialId, r]))
 
-			// 3. Map into final DTO
-			const data: StockLedgerSelectDto[] = matResult.data.map((m) => {
-				const mv = movementMap.get(m.id)
-				const cl = closingMap.get(m.id)
+					// 3. Map into final DTO
+					const data: StockLedgerSelectDto[] = matResult.data.map((m) => {
+						const mv = movementMap.get(m.id)
+						const cl = closingMap.get(m.id)
 
-				const openingQty = openingMap.get(m.id) ?? 0
-				const purchaseQty = Number(mv?.purchaseQty ?? 0)
-				const transferInQty = Number(mv?.transferInQty ?? 0)
-				const transferOutQty = Number(mv?.transferOutQty ?? 0)
-				const adjustmentQty = Number(mv?.adjustmentQty ?? 0)
-				const sellQty = Number(mv?.sellQty ?? 0)
+						const openingQty = openingMap.get(m.id) ?? 0
+						const purchaseQty = Number(mv?.purchaseQty ?? 0)
+						const transferInQty = Number(mv?.transferInQty ?? 0)
+						const transferOutQty = Number(mv?.transferOutQty ?? 0)
+						const adjustmentQty = Number(mv?.adjustmentQty ?? 0)
+						const sellQty = Number(mv?.sellQty ?? 0)
 
-				const closingQty = Number(cl?.total_qty ?? 0)
-				const closingValue = Number(cl?.total_value ?? 0)
-				const closingAvgCost = closingQty === 0 ? 0 : Math.abs(closingValue / closingQty)
+						const closingQty = Number(cl?.total_qty ?? 0)
+						const closingValue = Number(cl?.total_value ?? 0)
+						const closingAvgCost = closingQty === 0 ? 0 : Math.abs(closingValue / closingQty)
 
-				return {
-					materialId: m.id,
-					materialName: m.name,
-					materialSku: m.sku,
-					baseUomCode: m.baseUomCode,
-					openingQty,
-					purchaseQty,
-					transferInQty,
-					transferOutQty,
-					sellQty,
-					adjustmentQty,
-					usageQty: Number(mv?.usageQty ?? 0),
-					productionInQty: Number(mv?.productionInQty ?? 0),
-					productionOutQty: Number(mv?.productionOutQty ?? 0),
-					closingQty,
-					closingValue,
-					closingAvgCost,
-				}
+						return {
+							materialId: m.id,
+							materialName: m.name,
+							materialSku: m.sku,
+							baseUomCode: m.baseUomCode,
+							openingQty,
+							purchaseQty,
+							transferInQty,
+							transferOutQty,
+							sellQty,
+							adjustmentQty,
+							usageQty: Number(mv?.usageQty ?? 0),
+							productionInQty: Number(mv?.productionInQty ?? 0),
+							productionOutQty: Number(mv?.productionOutQty ?? 0),
+							closingQty,
+							closingValue,
+							closingAvgCost,
+						}
+					})
+
+					return { data, meta: matResult.meta }
+				},
 			})
-
-			return { data, meta: matResult.meta }
 		})
 	}
 
@@ -536,7 +556,9 @@ export class StockSummaryService {
 						},
 					})
 
-				return { generatedCount: upsertData.length }
+				const res = { generatedCount: upsertData.length }
+				await this.clearCache()
+				return res
 			})
 		})
 	}
@@ -554,6 +576,7 @@ export class StockSummaryService {
 
 			if (result.length === 0) throw new NotFoundError('Summary not found', 'SUMMARY_NOT_FOUND')
 
+			await this.clearCache()
 			return { id }
 		})
 	}
@@ -570,7 +593,12 @@ export class StockSummaryService {
 
 			if (result.length === 0) throw new NotFoundError('Summary not found', 'SUMMARY_NOT_FOUND')
 
+			await this.clearCache()
 			return { id }
 		})
+	}
+
+	private async clearCache() {
+		await cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
 	}
 }

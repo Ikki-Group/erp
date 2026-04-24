@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ilike, count, isNull, or } from 'drizzle-orm'
 
+import { bento } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -9,8 +10,8 @@ import {
 	stampUpdate,
 	takeFirstOrThrow,
 } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+
 import { db } from '@/db'
 import { employeesTable } from '@/db/schema/employee'
 
@@ -21,16 +22,18 @@ import {
 	type EmployeeUpdateDto,
 } from '../dto/employee.dto'
 
+const cache = bento.namespace('employee')
+
 export class EmployeeService {
 	async handleList(
 		filter: EmployeeFilterDto,
 		pq: PaginationQuery,
 	): Promise<WithPaginationResult<EmployeeDto>> {
 		return record('EmployeeService.handleList', async () => {
-			const { search } = filter
+			const { q } = filter
 
-			const searchCondition = search
-				? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
+			const searchCondition = q
+				? or(ilike(employeesTable.name, `%${q}%`), ilike(employeesTable.code, `%${q}%`))
 				: undefined
 
 			const where = and(isNull(employeesTable.deletedAt), searchCondition)
@@ -54,15 +57,19 @@ export class EmployeeService {
 
 	async handleDetail(id: number): Promise<EmployeeDto> {
 		return record('EmployeeService.handleDetail', async () => {
-			const rows = await db
-				.select()
-				.from(employeesTable)
-				.where(and(eq(employeesTable.id, id), isNull(employeesTable.deletedAt)))
-			if (rows.length === 0)
-				throw new NotFoundError(`Employee ${id} not found`, 'EMPLOYEE_NOT_FOUND')
-			return EmployeeDto.parse(
-				takeFirstOrThrow(rows, `Employee ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
-			)
+			return cache.getOrSet({
+				key: `${id}`,
+				factory: async () => {
+					const rows = await db
+						.select()
+						.from(employeesTable)
+						.where(and(eq(employeesTable.id, id), isNull(employeesTable.deletedAt)))
+
+					return EmployeeDto.parse(
+						takeFirstOrThrow(rows, `Employee ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
+					)
+				},
+			})
 		})
 	}
 
@@ -88,11 +95,13 @@ export class EmployeeService {
 				.values({ ...data, ...stamps })
 				.returning({ id: employeesTable.id })
 
-			return takeFirstOrThrow(
+			const result = takeFirstOrThrow(
 				rows,
 				'Failed to return employee data on create',
 				'EMPLOYEE_CREATE_ERROR',
 			)
+			await this.clearCache()
+			return result
 		})
 	}
 
@@ -126,7 +135,13 @@ export class EmployeeService {
 				.where(eq(employeesTable.id, id))
 				.returning({ id: employeesTable.id })
 
-			return takeFirstOrThrow(rows, `Employee ${id} not found on update`, 'EMPLOYEE_NOT_FOUND')
+			const result = takeFirstOrThrow(
+				rows,
+				`Employee ${id} not found on update`,
+				'EMPLOYEE_NOT_FOUND',
+			)
+			await this.clearCache(id)
+			return result
 		})
 	}
 
@@ -138,7 +153,19 @@ export class EmployeeService {
 				.where(eq(employeesTable.id, id))
 				.returning({ id: employeesTable.id })
 
-			return takeFirstOrThrow(rows, `Employee ${id} not found on remove`, 'EMPLOYEE_NOT_FOUND')
+			const result = takeFirstOrThrow(
+				rows,
+				`Employee ${id} not found on remove`,
+				'EMPLOYEE_NOT_FOUND',
+			)
+			await this.clearCache(id)
+			return result
 		})
+	}
+
+	private async clearCache(id?: number) {
+		const keys = ['list', 'count']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
 	}
 }

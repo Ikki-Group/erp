@@ -1,52 +1,30 @@
 import { z } from 'zod'
 
-export const zStr = z.string().trim()
-export const zStrNullable = z
-	.string()
-	.trim()
-	.transform((val) => (val === '' ? null : val))
-	.nullable()
-export const zNum = z.number()
-export const zNumCoerce = z.coerce.number()
-export const zDate = z.coerce.date()
-export const zBool = z.boolean()
-export const zEmail = z.email().transform((v) => v.toLowerCase())
-export const zUuid = z.uuidv7()
+const str = z.string()
+const strNullable = str.nullable()
 
-export const zId = z.coerce.number().int().positive()
+const num = z.number()
+const numCoerce = z.coerce.number()
 
-export const zCodeUpper = z.string().trim().toUpperCase()
-export const zPassword = z
-	.string()
-	.trim()
-	.min(8, 'Password must be at least 8 characters')
-	.max(100, 'Password must not exceed 100 characters')
-export const zUsername = z
-	.string()
-	.trim()
-	.min(3, 'Username must be at least 3 characters')
-	.max(50, 'Username must not exceed 50 characters')
-	.transform((v) => v.toLowerCase())
+const bool = z.boolean()
+const boolCoerce = z.coerce.boolean()
 
-/** Decimal string — for monetary amounts, prices, quantities stored as string (e.g. Decimal DB columns). */
-export const zDecimal = z.string().trim()
+const date = z.coerce.date()
 
-/** Sort order / display order integer */
-/** @deprecated */
-export const zSortOrder = z.number().int().nonnegative()
+const id = z.number().int().positive()
+const uuid = z.uuidv7()
+
+const decimal = z.coerce.number()
 
 export const zp = {
-	str: zStr,
-	strNullable: zStrNullable,
-	num: zNum,
-	numCoerce: zNumCoerce,
-	date: zDate,
-	bool: zBool,
-	email: zEmail,
-	uuid: zUuid,
-	id: zId,
-	codeUpper: zCodeUpper,
-	password: zPassword,
-	username: zUsername,
-	decimal: zDecimal,
+	str,
+	strNullable,
+	num,
+	numCoerce,
+	bool,
+	boolCoerce,
+	date,
+	id,
+	uuid,
+	decimal,
 }

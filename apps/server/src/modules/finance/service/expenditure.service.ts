@@ -1,11 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, desc, eq, isNull, or } from 'drizzle-orm'
+
+import { bento } from '@/core/cache'
+import { searchFilter, stampCreate } from '@/core/database'
+
+const cache = bento.namespace('finance.expenditure')
 
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
-import { stampCreate } from '@/core/database'
-import { GeneralLedgerService } from './general-ledger.service'
+
 import type { ExpenditureCreateDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
+import { GeneralLedgerService, type JournalItemInput } from './general-ledger.service'
 
 export class ExpenditureService {
 	constructor(private readonly journal: GeneralLedgerService) {}
@@ -20,6 +25,7 @@ export class ExpenditureService {
 					.insert(expendituresTable)
 					.values({
 						...input,
+						amount: input.amount.toString(),
 						...metadata,
 					})
 					.returning()
@@ -28,35 +34,28 @@ export class ExpenditureService {
 
 				// 2. Prepare Journal Items
 				// Standard: Debit the Target (Expense/Asset)
-				const items = [
+				const items: JournalItemInput[] = [
 					{
 						accountId: input.targetAccountId,
-						debit: input.amount,
+						debit: input.amount.toString(),
 						credit: '0',
 					},
 				]
 
 				if (input.isInstallment && input.liabilityAccountId) {
-					// Installment Logic: Target (DR) vs Source (CR - Paid) + Liability (CR - Debt)
-					// For simplicity in MVP, we assume it's either fully paid or fully debt if not specified.
-					// But let's allow a split if we add a 'paidAmount' later. 
-					// For now: FULL amount is credited to Liability if isInstallment is true and status is not PAID?
-					// Let's go with: 
-					// Status PAID + isInstallment = Source Account (CR)
-					// Status PENDING + isInstallment = Liability Account (CR)
-					
-					const creditAccountId = input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
+					const creditAccountId =
+						input.status === 'PAID' ? input.sourceAccountId : input.liabilityAccountId
 					items.push({
 						accountId: creditAccountId,
 						debit: '0',
-						credit: input.amount,
+						credit: input.amount.toString(),
 					})
 				} else {
 					// Normal Logic: Target (DR) vs Source (CR)
 					items.push({
 						accountId: input.sourceAccountId,
 						debit: '0',
-						credit: input.amount,
+						credit: input.amount.toString(),
 					})
 				}
 
@@ -73,34 +72,52 @@ export class ExpenditureService {
 					actorId,
 				)
 
-				return expenditure
+				const res = expenditure
+				await this.clearCache()
+				return res
 			})
 		})
 	}
 
 	async listExpenditures(filter: ExpenditureFilterDto) {
 		return record('ExpenditureService.listExpenditures', async () => {
-			const { page = 1, limit = 20, search, type, status, locationId } = filter
-			const offset = (page - 1) * limit
+			const { page, limit } = filter
+			const key = `list.${JSON.stringify(filter)}`
 
-			const where = and(
-				isNull(expendituresTable.deletedAt),
-				type ? eq(expendituresTable.type, type) : undefined,
-				status ? eq(expendituresTable.status, status) : undefined,
-				locationId ? eq(expendituresTable.locationId, locationId) : undefined,
-			)
+			return cache.getOrSet({
+				key,
+				factory: async () => {
+					const offset = (page - 1) * limit
+					const { q, type, status, locationId } = filter
 
-			// search logic could be added here if needed
+					const where = and(
+						isNull(expendituresTable.deletedAt),
+						q
+							? or(
+									searchFilter(expendituresTable.title, q),
+									searchFilter(expendituresTable.description, q),
+								)
+							: undefined,
+						type ? eq(expendituresTable.type, type) : undefined,
+						status ? eq(expendituresTable.status, status) : undefined,
+						locationId ? eq(expendituresTable.locationId, locationId) : undefined,
+					)
 
-			const data = await db
-				.select()
-				.from(expendituresTable)
-				.where(where)
-				.limit(limit)
-				.offset(offset)
-				.orderBy(desc(expendituresTable.date))
+					const data = await db
+						.select()
+						.from(expendituresTable)
+						.where(where)
+						.limit(limit)
+						.offset(offset)
+						.orderBy(desc(expendituresTable.date))
 
-			return data
+					return data
+				},
+			})
 		})
+	}
+
+	private async clearCache() {
+		await cache.deleteMany({ keys: ['list'] })
 	}
 }

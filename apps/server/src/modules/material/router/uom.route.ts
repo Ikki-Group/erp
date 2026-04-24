@@ -4,8 +4,8 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import {
-	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@/core/validation'
@@ -23,7 +23,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...UomFilterDto.shape, ...zPaginationDto.shape }),
+				query: z.object({ ...UomFilterDto.shape, ...zq.pagination.shape }),
 				response: createPaginatedResponseSchema(UomDto),
 				auth: true,
 			},
@@ -34,7 +34,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				const category = await s.uom.handleDetail(query.id)
 				return res.ok(category)
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(UomDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(UomDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -42,7 +42,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				const { id } = await s.uom.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
-			{ body: UomMutationDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ body: UomMutationDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
@@ -51,8 +51,8 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				return res.ok({ id })
 			},
 			{
-				body: z.object({ ...zRecordIdDto.shape, ...UomMutationDto.shape }),
-				response: createSuccessResponseSchema(zRecordIdDto),
+				body: z.object({ ...zc.RecordId.shape, ...UomMutationDto.shape }),
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -62,7 +62,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				const { id } = await s.uom.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -70,6 +70,6 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 				const { id } = await s.uom.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
-			{ query: zRecordIdDto, response: createSuccessResponseSchema(zRecordIdDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

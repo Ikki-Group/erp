@@ -3,6 +3,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
 
+import { useDataTable } from '@/hooks/use-data-table'
+
 import { toDateTimeStamp } from '@/lib/formatter'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
@@ -10,8 +12,6 @@ import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
-
-import { useDataTable } from '@/hooks/use-data-table'
 
 export const Route = createFileRoute('/_app/sales/orders')({ component: SalesOrderPage })
 

@@ -1,5 +1,3 @@
-import type { Logger } from 'pino'
-
 import type { MokaConfigurationDto } from '../dto/moka-configuration.dto'
 import type { MokaTriggerInputDto } from '../dto/moka.dto'
 import { MokaAuthEngine } from './engine/moka-auth.service'
@@ -9,6 +7,7 @@ import { MokaSalesEngine } from './engine/moka-sales.service'
 import type { MokaConfigurationService } from './moka-configuration.service'
 import type { MokaScrapHistoryService } from './moka-scrap-history.service'
 import type { MokaTransformationService } from './moka-transformation.service'
+import type { Logger } from 'pino'
 
 export class MokaScrapService {
 	constructor(
