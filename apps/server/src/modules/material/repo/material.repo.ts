@@ -101,7 +101,7 @@ export class MaterialRepo {
 			// Fetch UOM details for each material
 			const uomIds = result.data
 				.map((m) => m.baseUomId)
-				.filter((id) => id !== null) as number[]
+				.filter((id) => id !== null)
 			const uoms =
 				uomIds.length > 0
 					? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))

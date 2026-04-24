@@ -1,11 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, exists, inArray, isNull, notExists } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
-import {
-	checkConflict,
-	type ConflictField,
-} from '@/core/database'
+import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
@@ -19,7 +16,6 @@ import {
 } from '@/db/schema'
 
 import type { LocationMasterService } from '@/modules/location'
-import { MaterialCategoryRepo, MaterialLocationRepo, MaterialRepo } from '../repo'
 
 import type {
 	MaterialCategoryDto,
@@ -29,9 +25,9 @@ import type {
 	MaterialSelectDto,
 	UomDto,
 } from '../dto'
+import { MaterialCategoryRepo, MaterialLocationRepo, MaterialRepo } from '../repo'
 import type { MaterialCategoryService } from './material-category.service'
 import type { UomService } from './uom.service'
-
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -95,9 +91,10 @@ export class MaterialService {
 		])
 
 		const uomIds = conversions.map((c) => c.uomId)
-		const uoms = uomIds.length > 0
-			? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
-			: []
+		const uoms =
+			uomIds.length > 0
+				? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
+				: []
 		const uomMap = new Map(uoms.map((u) => [u.id, u]))
 
 		return {
@@ -151,9 +148,10 @@ export class MaterialService {
 
 		// Fetch UOMs in batch
 		const uomIds = conversions.map((c) => c.uomId)
-		const uoms = uomIds.length > 0
-			? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
-			: []
+		const uoms =
+			uomIds.length > 0
+				? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
+				: []
 		const uomMap = new Map(uoms.map((u) => [u.id, u]))
 
 		const map = new Map<
