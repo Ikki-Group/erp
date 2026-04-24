@@ -1,5 +1,3 @@
-import type { UserSelectDto } from '../dto'
-
 import { useStore } from '@tanstack/react-form'
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -25,21 +23,24 @@ import { roleApi } from '@/features/iam/api/role.api'
 import { locationApi } from '@/features/location/api/location.api'
 
 import { userApi } from '../api'
+import type { UserDetailDto } from '../dto'
 
 const FormDto = z.object({
 	fullname: zStr.min(1, 'Nama lengkap wajib diisi'),
 	username: zUsername,
-	email: zEmail,
 	password: zPassword.optional(),
+	email: zEmail,
 	isRoot: zBool,
 	isActive: zBool,
+	pinCode: z.string(),
+	defaultLocationId: z.number().nullable(),
 	assignments: z.array(z.object({ roleId: z.number(), locationId: z.number(), isDefault: zBool })),
 })
 
 type FormDto = z.infer<typeof FormDto>
 const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
-function getDefaultValues(v?: UserSelectDto): FormDto {
+function getDefaultValues(v?: UserDetailDto): FormDto {
 	return {
 		email: v?.email ?? '',
 		fullname: v?.fullname ?? '',
@@ -47,10 +48,12 @@ function getDefaultValues(v?: UserSelectDto): FormDto {
 		password: v ? undefined : '',
 		isRoot: v?.isRoot ?? false,
 		isActive: v?.isActive ?? true,
+		pinCode: '',
+		defaultLocationId: null,
 		assignments:
 			v?.assignments?.map((a) => ({
-				roleId: a.roleId,
-				locationId: a.locationId,
+				roleId: a.role.id,
+				locationId: a.location.id,
 				isDefault: a.isDefault,
 			})) ?? [],
 	}

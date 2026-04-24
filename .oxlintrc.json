@@ -27,6 +27,7 @@
 		"nursery": "off"
 	},
 	"rules": {
+		"import/no-cycle": "error",
 		// "unicorn/no-empty-file": "off",
 		// "unicorn/prefer-top-level-await": "off"
 		"no-await-in-loop": "off",

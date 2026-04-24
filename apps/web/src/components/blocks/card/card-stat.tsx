@@ -1,8 +1,8 @@
-import type { LucideIcon } from 'lucide-react'
-
 import { cn } from '@/lib/utils'
 
 import { Skeleton } from '@/components/ui/skeleton'
+
+import type { LucideIcon } from 'lucide-react'
 
 export interface CardStatProps {
 	title: string
@@ -29,7 +29,7 @@ export function CardStat({
 			)}
 		>
 			<div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/8 ring-1 ring-primary/10">
-				<Icon className="size-[18px] text-primary" />
+				<Icon className="size-4.5 text-primary" />
 			</div>
 			<div className="grid gap-1">
 				<p className="text-badge uppercase text-muted-foreground">{title}</p>

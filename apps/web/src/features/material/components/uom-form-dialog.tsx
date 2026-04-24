@@ -1,5 +1,3 @@
-import type { UomDto } from '../dto'
-
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
@@ -20,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 
 import { uomApi } from '../api'
+import type { UomDto } from '../dto'
 
 const FormDto = z.object({ code: z.string().min(1) })
 
@@ -52,6 +51,7 @@ export const UomFormDialog = createCallable<UomFormDialogProps>((props) => {
 		...fopts,
 		defaultValues: getDefaultValues(selectedUom.data?.data),
 		onSubmit: async ({ value }) => {
+			value.code = value.code.toUpperCase()
 			const promise = isCreate
 				? create.mutateAsync({ body: { ...value } })
 				: update.mutateAsync({ body: { id: id, ...value } })

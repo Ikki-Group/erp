@@ -57,15 +57,18 @@ export class UserAssignmentRepo {
 		return record('UserAssignmentRepo.replaceBulkByUserId', async () => {
 			await db.transaction(async (tx) => {
 				await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
-				await tx.insert(userAssignmentsTable).values(
-					assignments.map((a) => ({
-						userId,
-						roleId: a.roleId,
-						locationId: a.locationId,
-						addedAt: new Date(),
-						addedBy: actorId,
-					})),
-				)
+
+				if (assignments.length > 0) {
+					await tx.insert(userAssignmentsTable).values(
+						assignments.map((a) => ({
+							userId,
+							roleId: a.roleId,
+							locationId: a.locationId,
+							addedAt: new Date(),
+							addedBy: actorId,
+						})),
+					)
+				}
 			})
 		})
 	}

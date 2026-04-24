@@ -16,11 +16,8 @@ export const zNum = z.number()
 export const zNumCoerce = z.coerce.number()
 export const zDate = z.coerce.date()
 export const zBool = z.boolean()
-export const zEmail = z
-	.string()
-	.email()
-	.transform((v) => v.toLowerCase())
-export const zUuid = z.string().uuid()
+export const zEmail = z.email().transform((v) => v.toLowerCase())
+export const zUuid = z.uuid()
 
 /** Standard Primary Key validation (Coerced Integer). */
 export const zId = z.coerce.number().int().positive()

@@ -62,7 +62,7 @@ function SettingsSummarySection() {
 	] satisfies Array<CardStatProps>
 
 	return (
-		<Page.Content className="flex flex-wrap gap-2">
+		<Page.Content className="flex flex-wrap flex-row gap-2">
 			{stats.map((stat) => (
 				<CardStat key={stat.title} {...stat} />
 			))}
