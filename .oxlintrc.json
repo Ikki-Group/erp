@@ -87,6 +87,17 @@
 		},
 		{
 			"files": [
+				"apps/web/src/components/ui/**/*.{ts,tsx}"
+			],
+			"rules": {
+				"typescript/no-unsafe-assignment": "off",
+				"typescript/no-unsafe-member-access": "off",
+				"typescript/consistent-return": "off",
+				"typescript/no-unsafe-argument": "off"
+			}
+		},
+		{
+			"files": [
 				"*.test.ts"
 			],
 			"rules": {
