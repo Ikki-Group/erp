@@ -1,9 +1,9 @@
-import type { ComponentRegistryEntry } from '../registry'
-import type { DateRange } from 'react-day-picker'
-
 import * as React from 'react'
 
 import { DateRangePicker } from '@/components/ui/date-range-picker'
+
+import type { ComponentRegistryEntry } from '../registry'
+import type { DateRange } from 'react-day-picker'
 
 export const formPreviews: Record<string, ComponentRegistryEntry['preview']> = {
 	FormFieldComponent: () => {

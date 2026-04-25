@@ -1,5 +1,3 @@
-import type { DateRange } from 'react-day-picker'
-
 import { useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
@@ -17,9 +15,9 @@ import {
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
-// import { cn } from '@/lib/utils'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+// import { cn } from '@/lib/utils'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
@@ -35,10 +33,12 @@ import { Card } from '@/components/ui/card'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-// import { locationApi } from '@/features/location'
 
 import type { StockLedgerSelectDto } from '@/features/inventory'
+// import { locationApi } from '@/features/location'
 import { stockSummaryApi, stockDashboardApi } from '@/features/inventory'
+
+import type { DateRange } from 'react-day-picker'
 
 export const Route = createFileRoute('/_app/inventory/summary')({ component: RouteComponent })
 

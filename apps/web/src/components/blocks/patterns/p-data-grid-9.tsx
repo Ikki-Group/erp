@@ -1,5 +1,3 @@
-import type { VariantProps } from 'class-variance-authority'
-
 import { useMemo, useState } from 'react'
 
 import {
@@ -22,6 +20,8 @@ import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+
+import type { VariantProps } from 'class-variance-authority'
 
 interface OrderItemData {
 	id: string

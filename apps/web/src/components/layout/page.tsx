@@ -1,5 +1,3 @@
-import type { VariantProps } from 'class-variance-authority'
-
 import * as React from 'react'
 
 import { Link } from '@tanstack/react-router'
@@ -13,6 +11,7 @@ import { ArrowLeftIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { Button } from '../ui/button'
+import type { VariantProps } from 'class-variance-authority'
 
 const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-4 animate-enter', {
 	variants: {

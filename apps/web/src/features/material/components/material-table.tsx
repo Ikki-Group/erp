@@ -1,5 +1,3 @@
-import type { MaterialFilterDto, MaterialSelectDto } from '../dto'
-
 import { useMemo, useState } from 'react'
 
 import { useMutation, useQuery, useSuspenseQueries } from '@tanstack/react-query'
@@ -42,6 +40,7 @@ import { locationApi } from '@/features/location'
 import { materialCategoryApi } from '@/features/material/api/material-category.api'
 
 import { materialApi } from '../api'
+import type { MaterialFilterDto, MaterialSelectDto } from '../dto'
 import { MaterialBadgeProps } from '../utils'
 import { MaterialAssignToLocationDialog } from './material-assign-to-location-dialog'
 

@@ -1,5 +1,3 @@
-import type { UseDataTableReturn } from './data-table-types'
-
 import type { PropsWithChildren } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -9,6 +7,7 @@ import { DataTableContext } from './data-table-context'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableTable } from './data-table-table'
 import { DataTableToolbar } from './data-table-toolbar'
+import type { UseDataTableReturn } from './data-table-types'
 
 type DataTableProps = PropsWithChildren<{ table: UseDataTableReturn<any> }>
 

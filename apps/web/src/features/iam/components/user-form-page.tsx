@@ -17,7 +17,17 @@ import { Page } from '@/components/layout/page'
 
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table'
 
 import { roleApi } from '@/features/iam/api/role.api'
 import { locationApi } from '@/features/location/api/location.api'
@@ -214,81 +224,92 @@ function AssignmentsCard() {
 					{(field) => {
 						if (field.state.value.length === 0) {
 							return (
-								<div className="flex flex-col items-center justify-center py-10 px-4 border border-dashed rounded-lg bg-muted/5 text-center transition-colors">
-									<div className="h-10 w-10 flex items-center justify-center rounded-full bg-muted mb-3">
-										<ShieldAlertIcon className="size-5 text-muted-foreground" />
-									</div>
-									<p className="text-sm font-medium text-foreground">
-										Belum ada role yang ditambahkan
-									</p>
-									<p className="text-xs text-muted-foreground mt-1 max-w-sm">
-										Pengguna ini berpotensi gagal login karena tidak memiliki hak akses role dan
-										lokasi pada aplikasi.
-									</p>
-								</div>
+								<Empty className="border-dashed">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<ShieldAlertIcon />
+										</EmptyMedia>
+										<EmptyTitle>Belum ada role yang ditambahkan</EmptyTitle>
+										<EmptyDescription>
+											Pengguna ini berpotensi gagal login karena tidak memiliki hak akses role dan
+											lokasi pada aplikasi.
+										</EmptyDescription>
+									</EmptyHeader>
+								</Empty>
 							)
 						}
 
 						return (
-							<div className="border rounded-md overflow-hidden bg-background">
-								<table className="w-full text-sm text-left">
-									<thead className="bg-muted/40 border-b">
-										<tr>
-											<th className="h-10 px-4 font-medium text-muted-foreground w-1/2">
-												Role Sistem
-											</th>
-											<th className="h-10 px-4 font-medium text-muted-foreground w-[40%]">
-												Lokasi Gudang/Cabang
-											</th>
-											<th className="h-10 px-4 font-medium text-muted-foreground w-[10%] text-right">
-												Aksi
-											</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y">
-										{field.state.value.map((_, i) => (
-											<tr key={i} className="hover:bg-muted/5 transition-colors">
-												<td className="p-3 align-top">
-													<form.AppField name={`assignments[${i}].roleId`}>
-														{(subField) => (
-															<div className="w-full">
-																<subField.Select
-																	placeholder="Pilih Role"
-																	options={roleOptions}
-																	disabled={roles.isLoading}
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead className="w-[35%]">Lokasi Gudang/Cabang</TableHead>
+										<TableHead className="w-[35%]">Role Sistem</TableHead>
+										<TableHead className="w-[15%] text-left">Default</TableHead>
+										<TableHead className="w-[15%] text-right">Aksi</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{field.state.value.map((_, i) => (
+										<TableRow key={i}>
+											<TableCell>
+												<form.AppField name={`assignments[${i}].locationId`}>
+													{(subField) => (
+														<div className="w-full">
+															<subField.Select
+																placeholder="Pilih Lokasi"
+																options={locationOptions}
+																disabled={locations.isLoading}
+															/>
+														</div>
+													)}
+												</form.AppField>
+											</TableCell>
+											<TableCell>
+												<form.AppField name={`assignments[${i}].roleId`}>
+													{(subField) => (
+														<div className="w-full">
+															<subField.Select
+																placeholder="Pilih Role"
+																options={roleOptions}
+																disabled={roles.isLoading}
+															/>
+														</div>
+													)}
+												</form.AppField>
+											</TableCell>
+											<TableCell>
+												<form.AppField name={`assignments[${i}].isDefault`}>
+													{(subField) => (
+														<subField.Field>
+															<subField.Control>
+																<Switch
+																	onCheckedChange={(checked: boolean) => {
+																		subField.handleChange(checked)
+																	}}
+																	checked={subField.state.value}
+																	onBlur={subField.handleBlur}
+																	name={subField.name}
 																/>
-															</div>
-														)}
-													</form.AppField>
-												</td>
-												<td className="p-3 align-top">
-													<form.AppField name={`assignments[${i}].locationId`}>
-														{(subField) => (
-															<div className="w-full">
-																<subField.Select
-																	placeholder="Pilih Lokasi"
-																	options={locationOptions}
-																	disabled={locations.isLoading}
-																/>
-															</div>
-														)}
-													</form.AppField>
-												</td>
-												<td className="p-3 align-top text-right">
-													<Button
-														variant="destructive"
-														size="icon-sm"
-														type="button"
-														onClick={() => field.removeValue(i)}
-													>
-														<Trash2Icon className="size-4" />
-													</Button>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
+															</subField.Control>
+														</subField.Field>
+													)}
+												</form.AppField>
+											</TableCell>
+											<TableCell className="text-right">
+												<Button
+													variant="destructive"
+													size="icon-sm"
+													type="button"
+													onClick={() => field.removeValue(i)}
+												>
+													<Trash2Icon />
+												</Button>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
 						)
 					}}
 				</form.AppField>

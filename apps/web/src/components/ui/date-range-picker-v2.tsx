@@ -1,5 +1,3 @@
-import type { DateRange } from 'react-day-picker'
-
 import { useMemo, useState } from 'react'
 
 import {
@@ -21,6 +19,8 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
+
+import type { DateRange } from 'react-day-picker'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

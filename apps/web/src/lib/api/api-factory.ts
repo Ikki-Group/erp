@@ -1,6 +1,3 @@
-import type { KyInstance } from 'ky'
-import type { ZodError, ZodType, z } from 'zod'
-
 import { queryOptions } from '@tanstack/react-query'
 
 import { HTTPError } from 'ky'
@@ -8,6 +5,8 @@ import { treeifyError } from 'zod'
 
 import { apiClient } from './api-client'
 import { ApiError } from './api-error'
+import type { KyInstance } from 'ky'
+import type { ZodError, ZodType, z } from 'zod'
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 

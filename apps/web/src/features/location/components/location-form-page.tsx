@@ -1,5 +1,3 @@
-import type { LocationDto } from '../dto'
-
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -17,6 +15,7 @@ import { Page } from '@/components/layout/page'
 import { Separator } from '@/components/ui/separator'
 
 import { locationApi } from '../api'
+import type { LocationDto } from '../dto'
 
 const FormDto = z.object({
 	name: z.string().min(1),

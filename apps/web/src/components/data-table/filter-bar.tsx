@@ -1,5 +1,3 @@
-import type { Option, StringOrNumber } from '@/types/common'
-
 import type { ComponentProps, ReactNode } from 'react'
 
 import { SearchIcon, XIcon } from 'lucide-react'
@@ -15,6 +13,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
+
+import type { Option, StringOrNumber } from '@/types/common'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

@@ -1,6 +1,3 @@
-import type { Option, StringOrNumber } from '@/types/common'
-import type { DateRange } from 'react-day-picker'
-
 import type * as React from 'react'
 
 // oxlint-disable max-lines
@@ -30,6 +27,8 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { useFieldContext } from './form-hook-context'
 import { Field, FieldControl, FieldDescription, FieldError, FieldLabel } from './form-tanstack'
+import type { Option, StringOrNumber } from '@/types/common'
+import type { DateRange } from 'react-day-picker'
 
 export interface BaseFieldProps {
 	label?: string

@@ -1,5 +1,3 @@
-import type { SalesTypeDto } from '../dto'
-
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
@@ -23,6 +21,7 @@ import {
 } from '@/components/ui/dialog'
 
 import { salesTypeApi } from '../api'
+import type { SalesTypeDto } from '../dto'
 
 const FormDto = z.object({ code: z.string().min(1), name: z.string().min(1) })
 

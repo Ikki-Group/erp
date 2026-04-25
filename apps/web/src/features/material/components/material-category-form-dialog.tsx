@@ -1,5 +1,3 @@
-import type { MaterialCategoryDto } from '../dto'
-
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
@@ -20,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 
 import { materialCategoryApi } from '../api'
+import type { MaterialCategoryDto } from '../dto'
 
 const FormDto = z.object({ name: z.string().min(1), description: z.string() })
 

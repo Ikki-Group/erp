@@ -1,7 +1,6 @@
-import type { ComponentRegistry } from '../registry'
-
 import React from 'react'
 
+import type { ComponentRegistry } from '../registry'
 import { DataGridCellPreview } from './data-grid/preview'
 
 /**

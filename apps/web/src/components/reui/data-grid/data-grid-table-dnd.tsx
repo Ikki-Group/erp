@@ -1,7 +1,5 @@
 'use client'
 
-import type { DragEndEvent, Modifier } from '@dnd-kit/core'
-
 import { Fragment, useId, useRef } from 'react'
 import type { CSSProperties } from 'react'
 
@@ -39,6 +37,8 @@ import {
 } from '@/components/reui/data-grid/data-grid-table'
 
 import { Button } from '@/components/ui/button'
+
+import type { DragEndEvent, Modifier } from '@dnd-kit/core'
 
 function DataGridTableDndHeader<TData>({ header }: { header: Header<TData, unknown> }) {
 	const { props } = useDataGrid()

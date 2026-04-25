@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
-
 import {
 	BanknoteIcon,
 	BarChart3Icon,
@@ -16,6 +14,8 @@ import {
 	UsersIcon,
 	WarehouseIcon,
 } from 'lucide-react'
+
+import type { LucideIcon } from 'lucide-react'
 
 export interface AppMenu {
 	title: string

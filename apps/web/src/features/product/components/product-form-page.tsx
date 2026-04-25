@@ -1,5 +1,3 @@
-import type { ProductSelectDto } from '../dto'
-
 import { formOptions, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -30,6 +28,7 @@ import {
 } from '@/components/ui/table'
 
 import { productApi, productCategoryApi, salesTypeApi } from '../api'
+import type { ProductSelectDto } from '../dto'
 
 const FormDto = z.object({
 	name: z.string().min(1, 'Nama produk wajib diisi'),

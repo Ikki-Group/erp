@@ -1,5 +1,3 @@
-import type { MaterialLocationStockDto } from '../dto'
-
 import { formOptions } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 
@@ -21,6 +19,7 @@ import {
 } from '@/components/ui/sheet'
 
 import { materialLocationApi } from '../api'
+import type { MaterialLocationStockDto } from '../dto'
 
 /* ─────────── Config Form Schema ─────────── */
 

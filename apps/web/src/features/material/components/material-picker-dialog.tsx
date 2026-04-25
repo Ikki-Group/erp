@@ -1,5 +1,3 @@
-import type { MaterialSelectDto } from '..'
-
 import { useEffect, useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 
+import type { MaterialSelectDto } from '..'
 import { materialApi } from '..'
 
 interface MaterialPickerDialogProps {

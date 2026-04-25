@@ -1,5 +1,3 @@
-import type { Option, StringOrNumber } from '@/types/common'
-
 import * as React from 'react'
 
 import { useDebounce } from '@uidotdev/usehooks'
@@ -19,6 +17,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
+
+import type { Option, StringOrNumber } from '@/types/common'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

@@ -1,7 +1,6 @@
-import type { ComponentRegistryEntry } from '../registry'
-
 import { InboxIcon } from 'lucide-react'
 
+import type { ComponentRegistryEntry } from '../registry'
 import { IkkiLogo } from './brand/logo'
 import { BadgeDot } from './data-display/badge-dot'
 import { ActiveStatusBadge, StatusBadge, activeStatusMap } from './data-display/status-badge'
