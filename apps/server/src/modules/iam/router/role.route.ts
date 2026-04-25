@@ -11,19 +11,19 @@ import {
 } from '@/core/validation'
 
 import * as dto from '../dto'
-import type { RoleUsecases } from '../usecase/role.usecase'
+import type { RoleService } from '../service/role.service'
 
 /**
  * Role Module Route (Layer 1)
  * Standard functional route pattern (Golden Path 2.1).
  */
-export function initRoleRoute(usecase: RoleUsecases) {
+export function initRoleRoute(service: RoleService) {
 	return new Elysia({ prefix: '/role' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await usecase.handleList(query)
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -35,7 +35,7 @@ export function initRoleRoute(usecase: RoleUsecases) {
 		.get(
 			'/detail',
 			async function detail({ query }) {
-				const result = await usecase.handleDetail(query.id)
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -47,7 +47,7 @@ export function initRoleRoute(usecase: RoleUsecases) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const result = await usecase.handleCreate(body, auth.userId)
+				const result = await service.handleCreate(body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.RoleCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -55,7 +55,7 @@ export function initRoleRoute(usecase: RoleUsecases) {
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const result = await usecase.handleUpdate(body, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.RoleUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -63,7 +63,7 @@ export function initRoleRoute(usecase: RoleUsecases) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				const result = await usecase.handleRemove(body.id)
+				const result = await service.handleRemove(body.id)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },

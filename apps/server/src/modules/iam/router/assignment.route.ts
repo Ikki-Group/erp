@@ -6,15 +6,15 @@ import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zp } from '@/core/validation'
 
 import * as dto from '../dto/assignment.dto'
-import type { AssignmentUsecases } from '../usecase/assignment.usecase'
+import type { UserAssignmentService } from '../service/assignment.service'
 
-export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
+export function initUserAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await usecase.handleGetListPaginated(query)
+				const result = await service.handleGetListPaginated(query)
 				return res.paginated(result)
 			},
 			{
@@ -26,7 +26,7 @@ export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
 		.post(
 			'/assign',
 			async function assign({ body, auth }) {
-				await usecase.handleAssignToLocation(body, auth.userId)
+				await service.handleAssignToLocation(body, auth.userId)
 				return res.ok({ success: true })
 			},
 			{
@@ -38,7 +38,7 @@ export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
 		.post(
 			'/assign-bulk',
 			async function assignBulk({ body, auth }) {
-				await usecase.handleAssignUsersToLocation(
+				await service.handleAssignUsersToLocation(
 					body.userIds,
 					body.locationId,
 					body.roleId,
@@ -59,7 +59,7 @@ export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
 		.post(
 			'/update-role-bulk',
 			async function updateRoleBulk({ body, auth }) {
-				await usecase.handleUpdateRoleForUsersInLocation(
+				await service.handleUpdateRoleForUsersInLocation(
 					body.userIds,
 					body.locationId,
 					body.roleId,
@@ -80,7 +80,7 @@ export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				await usecase.handleRemoveFromLocation(body.userId, body.locationId)
+				await service.handleRemoveFromLocation(body.userId, body.locationId)
 				return res.ok({ success: true })
 			},
 			{
@@ -95,7 +95,7 @@ export function initUserAssignmentRoute(usecase: AssignmentUsecases) {
 		.delete(
 			'/remove-bulk',
 			async function removeBulk({ body }) {
-				await usecase.handleRemoveUsersFromLocation(body.userIds, body.locationId)
+				await service.handleRemoveUsersFromLocation(body.userIds, body.locationId)
 				return res.ok({ success: true })
 			},
 			{

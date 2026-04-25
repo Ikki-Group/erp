@@ -21,7 +21,7 @@ export function createRoutes(m: Modules) {
 	return [
 		initAuthRoute(m.auth.auth),
 		initDashboardRouteModule(m.dashboard),
-		initIamRouteModule(m.iam.usecase),
+		initIamRouteModule(m.iam),
 		initInventoryRouteModule(m.inventory),
 		initLocationRouteModule(m.location),
 		initMaterialRouteModule(m.material),

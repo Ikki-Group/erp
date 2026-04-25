@@ -10,13 +10,15 @@ import {
 } from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
+import type { UserService } from '../service/user.service'
 import type { UserUsecases } from '../usecase/user.usecase'
 
 /**
  * User Module Route (Layer 1)
- * Standard functional route pattern (Golden Path 2.1).
+ * Uses UserUsecases for cross-module operations (list/detail/create/update)
+ * Uses UserService directly for single-domain operations (password/remove)
  */
-export function initUserRoute(usecase: UserUsecases) {
+export function initUserRoute(service: UserService, usecase: UserUsecases) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
 		.get(
@@ -62,7 +64,7 @@ export function initUserRoute(usecase: UserUsecases) {
 		.post(
 			'/change-password',
 			async function changePassword({ body, auth }) {
-				const result = await usecase.handleChangePassword(auth.userId, body, auth.userId)
+				const result = await service.handleChangePassword(auth.userId, body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -74,7 +76,7 @@ export function initUserRoute(usecase: UserUsecases) {
 		.post(
 			'/admin/password-reset',
 			async function adminUpdatePassword({ body, auth }) {
-				const result = await usecase.handleAdminUpdatePassword(body, auth.userId)
+				const result = await service.handleAdminUpdatePassword(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -86,7 +88,7 @@ export function initUserRoute(usecase: UserUsecases) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				const result = await usecase.handleRemove(body.id)
+				const result = await service.handleRemove(body.id)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },

@@ -5,8 +5,6 @@ import { resolveAudit } from '@/core/utils/audit-resolver'
 import type { RelationMap } from '@/core/utils/relation-map'
 import type { AuditResolved } from '@/core/validation'
 
-import { usersTable } from '@/db/schema'
-
 import type { LocationDto } from '@/modules/location'
 import type { LocationMasterService } from '@/modules/location/service'
 
@@ -18,21 +16,9 @@ import type { UserAssignmentService } from '../service/assignment.service'
 import type { RoleService } from '../service/role.service'
 import type { UserService } from '../service/user.service'
 
-const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
-	{
-		field: 'email',
-		column: usersTable.email,
-		message: 'Email already exists',
-		code: 'USER_EMAIL_ALREADY_EXISTS',
-	},
-	{
-		field: 'username',
-		column: usersTable.username,
-		message: 'Username already exists',
-		code: 'USER_USERNAME_ALREADY_EXISTS',
-	},
-]
-
+// User Usecases
+// Cross-module orchestration layer — combines User + Role + Assignment + Location
+// This exists because user operations need data from external modules (Location)
 export class UserUsecases {
 	constructor(
 		private userService: UserService,
@@ -40,6 +26,10 @@ export class UserUsecases {
 		private assignmentService: UserAssignmentService,
 		private locationService: LocationMasterService,
 	) {}
+
+	/* ========================================================================== */
+	/*                              PRIVATE HELPERS                              */
+	/* ========================================================================== */
 
 	private async getUserAssignments(
 		user: dto.UserDto,
@@ -90,6 +80,10 @@ export class UserUsecases {
 		})
 	}
 
+	/* ========================================================================== */
+	/*                              PUBLIC METHODS                               */
+	/* ========================================================================== */
+
 	async getUserDetail(id: number): Promise<dto.UserDetailDto> {
 		return record('UserUsecases.getUserDetail', async () => {
 			const user = await this.userService.getById(id)
@@ -103,36 +97,35 @@ export class UserUsecases {
 		})
 	}
 
+	/* ========================================================================== */
+	/*                            HANDLER OPERATIONS                             */
+	/* ========================================================================== */
+
 	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserUsecases.handleCreate', async () => {
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
-			})
-
 			const { password, assignments, isRoot } = data
 			const passwordHash = await Bun.password.hash(password)
 
-			const insertedId = await this.userService.repo.create({ ...data, passwordHash }, actorId)
-			if (!insertedId) throw UserErrors.createFailed()
+			// Create user via service (handles conflict check + cache)
+			const { id: insertedId } = await this.userService.handleCreate(
+				{ ...data, passwordHash },
+				actorId,
+			)
 
+			// Assign to locations if provided and not a root user
 			if (assignments && assignments.length > 0 && !isRoot) {
 				const assignmentsWithUserId = assignments.map((a) => ({
 					userId: insertedId,
 					roleId: a.roleId,
 					locationId: a.locationId,
 				}))
-				await this.assignmentService.repo.replaceBulkByUserId(
+				await this.assignmentService.handleReplaceBulkByUserId(
 					insertedId,
 					assignmentsWithUserId,
 					actorId,
 				)
-				await this.assignmentService.invalidateUsersCaches([insertedId])
 			}
 
-			await this.userService.clearCache()
 			return { id: insertedId }
 		})
 	}
@@ -143,77 +136,31 @@ export class UserUsecases {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('UserUsecases.handleUpdate', async () => {
-			const existing = await this.userService.getById(id)
-			if (!existing) throw UserErrors.notFound(id)
-
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
-				existing,
-			})
-
 			const { assignments, password, isRoot } = data
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
 
-			await this.userService.repo.update({ ...data, id, passwordHash: passwordHash! }, actorId)
+			// Update user via service (handles conflict check + cache)
+			await this.userService.handleUpdate(
+				id,
+				{ ...data, ...(passwordHash ? { passwordHash } : {}) },
+				actorId,
+			)
 
+			// Update assignments if provided and not a root user
 			if (assignments && assignments.length >= 0 && !isRoot) {
 				const assignmentsWithUserId = assignments.map((a) => ({
 					userId: id,
 					roleId: a.roleId,
 					locationId: a.locationId,
 				}))
-				await this.assignmentService.repo.replaceBulkByUserId(id, assignmentsWithUserId, actorId)
-				await this.assignmentService.invalidateUsersCaches([id])
+				await this.assignmentService.handleReplaceBulkByUserId(
+					id,
+					assignmentsWithUserId,
+					actorId,
+				)
 			}
 
-			await this.userService.clearCache(id)
 			return { id }
-		})
-	}
-
-	async handleAdminUpdatePassword(
-		data: dto.UserAdminUpdatePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserUsecases.handleAdminUpdatePassword', async () => {
-			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
-
-			await this.userService.repo.updatePassword(id, passwordHash, actorId)
-			await this.userService.clearCache(id)
-			return { id }
-		})
-	}
-
-	async handleChangePassword(
-		id: number,
-		data: dto.UserChangePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserUsecases.handleChangePassword', async () => {
-			const passwordHash = await this.userService.repo.getPasswordHash(id)
-			if (!passwordHash) throw UserErrors.notFound(id)
-
-			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw UserErrors.passwordMismatch()
-
-			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			await this.userService.repo.updatePassword(id, newPasswordHash, actorId)
-
-			await this.userService.clearCache(id)
-			return { id }
-		})
-	}
-
-	async handleRemove(id: number): Promise<{ id: number }> {
-		return record('UserUsecases.handleRemove', async () => {
-			const result = await this.userService.repo.remove(id)
-			if (!result) throw UserErrors.notFound(id)
-			await this.userService.clearCache(id)
-			return { id: result }
 		})
 	}
 
@@ -221,7 +168,7 @@ export class UserUsecases {
 		filter: dto.UserFilterDto,
 	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
 		return record('UserUsecases.handleList', async () => {
-			const p = await this.userService.repo.getListPaginated(filter)
+			const p = await this.userService.getListPaginated(filter)
 
 			const [roleMap, locationMap] = await Promise.all([
 				this.roleService.getRelationMap(),
