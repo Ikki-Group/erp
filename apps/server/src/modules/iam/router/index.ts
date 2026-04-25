@@ -6,9 +6,12 @@ import { initRoleRoute } from './role.route'
 import { initUserRoute } from './user.route'
 
 export function initIamRouteModule(m: IamModule) {
-	const userRouter = initUserRoute(m.service.user, m.usecase.user)
-	const roleRouter = initRoleRoute(m.service.role)
-	const assignmentRouter = initUserAssignmentRoute(m.service.assignment)
-
-	return new Elysia({ prefix: '/iam' }).use(userRouter).use(roleRouter).use(assignmentRouter)
+	return new Elysia({ prefix: '/iam' })
+		.use(initUserRoute(m.service.user))
+		.use(initRoleRoute(m.service.role))
+		.use(initUserAssignmentRoute(m.service.assignment))
 }
+
+export * from './user.route'
+export * from './role.route'
+export * from './assignment.route'

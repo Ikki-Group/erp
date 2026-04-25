@@ -1,7 +1,6 @@
 import type { LocationServiceModule } from '@/modules/location/service'
 
 import { RoleService, UserAssignmentService, UserService } from './service'
-import { UserUsecases } from './usecase'
 
 export interface IamServices {
 	user: UserService
@@ -9,33 +8,23 @@ export interface IamServices {
 	assignment: UserAssignmentService
 }
 
-export interface IamUsecaseRegistry {
-	user: UserUsecases
-}
-
 export class IamModule {
 	public readonly service: IamServices
-	public readonly usecase: IamUsecaseRegistry
 
 	constructor(private getExternalModules: () => { location: LocationServiceModule }) {
-		this.service = {
-			user: new UserService(),
-			role: new RoleService(),
-			assignment: new UserAssignmentService(),
-		}
+		const role = new RoleService()
+		const assignment = new UserAssignmentService()
+		const user = new UserService(
+			undefined, // use default repo
+			() => role,
+			() => assignment,
+			() => this.getExternalModules().location.location,
+		)
 
-		this.usecase = {
-			user: new UserUsecases(
-				this.service.user,
-				this.service.role,
-				this.service.assignment,
-				this.getExternalModules().location.location,
-			),
-		}
+		this.service = { user, role, assignment }
 	}
 }
 
 export * from './dto'
 export * from './router'
 export * from './service'
-export * from './usecase'

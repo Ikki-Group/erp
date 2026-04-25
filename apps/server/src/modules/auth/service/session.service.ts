@@ -2,7 +2,6 @@ import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
 import { bento } from '@/core/cache'
-import { InternalServerError } from '@/core/http/errors'
 import { logger } from '@/core/logger'
 
 import { SessionRepo } from '../repo'
@@ -13,10 +12,6 @@ import type { UserDto } from '@/modules/iam/dto'
 
 const cache = bento.namespace('session')
 
-const err = {
-	createFailed: () =>
-		new InternalServerError('Failed to create session', 'AUTH_SESSION_CREATE_FAILED'),
-}
 
 export class SessionService {
 	constructor(private readonly repo = new SessionRepo()) {}

@@ -11,20 +11,14 @@ import {
 
 import * as dto from '../dto/user.dto'
 import type { UserService } from '../service/user.service'
-import type { UserUsecases } from '../usecase/user.usecase'
 
-/**
- * User Module Route (Layer 1)
- * Uses UserUsecases for cross-module operations (list/detail/create/update)
- * Uses UserService directly for single-domain operations (password/remove)
- */
-export function initUserRoute(service: UserService, usecase: UserUsecases) {
+export function initUserRoute(service: UserService) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await usecase.handleList(query)
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -36,7 +30,7 @@ export function initUserRoute(service: UserService, usecase: UserUsecases) {
 		.get(
 			'/detail',
 			async function detail({ query }) {
-				const result = await usecase.handleDetail(query.id)
+				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -48,7 +42,7 @@ export function initUserRoute(service: UserService, usecase: UserUsecases) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const result = await usecase.handleCreate(body, auth.userId)
+				const result = await service.handleCreate(body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.UserCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -56,7 +50,7 @@ export function initUserRoute(service: UserService, usecase: UserUsecases) {
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const result = await usecase.handleUpdate(body.id, body, auth.userId)
+				const result = await service.handleUpdate(body.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.UserUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },

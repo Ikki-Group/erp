@@ -2,13 +2,23 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
+import { resolveAudit } from '@/core/utils/audit-resolver'
+import type { RelationMap } from '@/core/utils/relation-map'
+import type { AuditResolved } from '@/core/validation'
+
+import type { LocationDto } from '@/modules/location'
+import type { LocationMasterService } from '@/modules/location/service'
 
 import { usersTable } from '@/db/schema'
 
 import { IAM_CACHE_KEYS } from '../constants'
+import type { RoleDto } from '../dto'
 import * as dto from '../dto/user.dto'
 import { UserErrors } from '../errors'
 import { UserRepo } from '../repo/user.repo'
+
+import type { UserAssignmentService } from './assignment.service'
+import type { RoleService } from './role.service'
 
 const cache = bento.namespace('user')
 
@@ -28,20 +38,31 @@ const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 ]
 
 // User Service
-// Handles identity, profile, and single-entity user operations
-// Cross-module orchestration (assignments enrichment) lives in UserUsecases
+// Naming convention:
+//   get*()    — internal domain queries (cache-backed, used by other services)
+//   handle*() — router-facing methods (orchestration, conflict checks, cache invalidation)
 export class UserService {
-	constructor(private repo = new UserRepo()) {}
+	constructor(
+		private repo = new UserRepo(),
+		// Injected lazily to avoid circular dependency at module boot
+		private getRoleService?: () => RoleService,
+		private getAssignmentService?: () => UserAssignmentService,
+		private getLocationService?: () => LocationMasterService,
+	) {}
 
 	/* ========================================================================== */
-	/*                              QUERY OPERATIONS                             */
+	/*                              CACHE MANAGEMENT                             */
 	/* ========================================================================== */
 
-	private async clearCache(id?: number) {
+	private async clearCache(id?: number): Promise<void> {
 		const keys = [IAM_CACHE_KEYS.USER_LIST, IAM_CACHE_KEYS.USER_COUNT]
 		if (id) keys.push(IAM_CACHE_KEYS.USER_DETAIL(id))
 		await cache.deleteMany({ keys })
 	}
+
+	/* ========================================================================== */
+	/*                              QUERY OPERATIONS                             */
+	/* ========================================================================== */
 
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserService.getList', async () => {
@@ -79,14 +100,8 @@ export class UserService {
 		})
 	}
 
-	async getListPaginated(filter: dto.UserFilterDto): Promise<core.WithPaginationResult<dto.UserDto>> {
-		return record('UserService.getListPaginated', async () => {
-			return this.repo.getListPaginated(filter)
-		})
-	}
-
 	/* ========================================================================== */
-	/*                              COMMAND OPERATIONS                           */
+	/*                              SEED OPERATION                               */
 	/* ========================================================================== */
 
 	async seed(
@@ -98,15 +113,97 @@ export class UserService {
 		})
 	}
 
-	/**
-	 * Creates a user record (without assignments — that's handled by UserUsecases).
-	 * Returns the inserted ID.
-	 */
-	async handleCreate(
-		data: dto.UserCreateDto & { passwordHash: string },
-		actorId: number,
-	): Promise<{ id: number }> {
+	/* ========================================================================== */
+	/*                          PRIVATE HELPERS (ENRICHMENT)                     */
+	/* ========================================================================== */
+
+	private async buildUserAssignments(
+		user: dto.UserDto,
+		roleMapper?: RelationMap<number, RoleDto>,
+		locationMapper?: RelationMap<number, LocationDto>,
+	): Promise<dto.UserAssignmentDetailDto[]> {
+		const roleService = this.getRoleService!()
+		const assignmentService = this.getAssignmentService!()
+		const locationService = this.getLocationService!()
+
+		const assignments: dto.UserAssignmentDetailDto[] = []
+		const { id: userId, isRoot, defaultLocationId } = user
+
+		if (isRoot) {
+			const [superadmin, locations] = await Promise.all([
+				roleService.getSuperadmin(),
+				locationService.getList(),
+			])
+			const defaultAssignment = assignmentService.getDefaultAssignmentForSuperadmin()
+			for (const location of locations) {
+				assignments.push({ ...defaultAssignment, isDefault: false, role: superadmin, location })
+			}
+		} else {
+			const [rawAssignments, roleMap, locationMap] = await Promise.all([
+				assignmentService.findByUserId(userId),
+				roleMapper ?? roleService.getRelationMap(),
+				locationMapper ?? locationService.getRelationMap(),
+			])
+
+			assignments.push(
+				...rawAssignments.map((a) => ({
+					...a,
+					isDefault: false,
+					role: roleMap.getRequired(a.roleId),
+					location: locationMap.getRequired(a.locationId),
+				})),
+			)
+		}
+
+		if (assignments.length > 0 && defaultLocationId === null && assignments[0]) {
+			assignments[0].isDefault = true
+		}
+
+		return assignments
+	}
+
+	/* ========================================================================== */
+	/*                            HANDLER OPERATIONS                             */
+	/* ========================================================================== */
+
+	async handleList(
+		filter: dto.UserFilterDto,
+	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
+		return record('UserService.handleList', async () => {
+			const p = await this.repo.getListPaginated(filter)
+
+			const roleService = this.getRoleService!()
+			const locationService = this.getLocationService!()
+			const [roleMap, locationMap] = await Promise.all([
+				roleService.getRelationMap(),
+				locationService.getRelationMap(),
+			])
+
+			const data = await Promise.all(
+				p.data.map(async (user) => {
+					const assignments = await this.buildUserAssignments(user, roleMap, locationMap)
+					return { ...user, assignments }
+				}),
+			)
+
+			return { ...p, data }
+		})
+	}
+
+	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
+		return record('UserService.handleDetail', async () => {
+			const user = await this.getById(id)
+			if (!user) throw UserErrors.notFound(id)
+			const assignments = await this.buildUserAssignments(user)
+			return resolveAudit({ ...user, assignments })
+		})
+	}
+
+	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserService.handleCreate', async () => {
+			const { password, assignments, isRoot } = data
+			const passwordHash = await Bun.password.hash(password)
+
 			await core.checkConflict({
 				table: usersTable,
 				pkColumn: usersTable.id,
@@ -114,23 +211,27 @@ export class UserService {
 				input: data,
 			})
 
-			const insertedId = await this.repo.create(data, actorId)
+			const insertedId = await this.repo.create({ ...data, passwordHash }, actorId)
 			if (!insertedId) throw UserErrors.createFailed()
+
+			if (assignments && assignments.length > 0 && !isRoot) {
+				const assignmentService = this.getAssignmentService!()
+				await assignmentService.handleReplaceBulkByUserId(
+					insertedId,
+					assignments.map((a) => ({ userId: insertedId, roleId: a.roleId, locationId: a.locationId })),
+					actorId,
+				)
+			}
 
 			await this.clearCache()
 			return { id: insertedId }
 		})
 	}
 
-	/**
-	 * Updates a user record (without assignments — that's handled by UserUsecases).
-	 */
-	async handleUpdate(
-		id: number,
-		data: dto.UserUpdateDto & { passwordHash?: string },
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: dto.UserUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('UserService.handleUpdate', async () => {
+			const { assignments, password, isRoot } = data
+
 			const existing = await this.getById(id)
 			if (!existing) throw UserErrors.notFound(id)
 
@@ -142,22 +243,18 @@ export class UserService {
 				existing,
 			})
 
-			await this.repo.update({ ...data, id, passwordHash: data.passwordHash! }, actorId)
+			const passwordHash = password ? await Bun.password.hash(password) : undefined
+			await this.repo.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
 
-			await this.clearCache(id)
-			return { id }
-		})
-	}
+			if (assignments && assignments.length >= 0 && !isRoot) {
+				const assignmentService = this.getAssignmentService!()
+				await assignmentService.handleReplaceBulkByUserId(
+					id,
+					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
+					actorId,
+				)
+			}
 
-	async handleAdminUpdatePassword(
-		data: dto.UserAdminUpdatePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleAdminUpdatePassword', async () => {
-			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
-
-			await this.repo.updatePassword(id, passwordHash, actorId)
 			await this.clearCache(id)
 			return { id }
 		})
@@ -183,6 +280,19 @@ export class UserService {
 		})
 	}
 
+	async handleAdminUpdatePassword(
+		data: dto.UserAdminUpdatePasswordDto,
+		actorId: number,
+	): Promise<{ id: number }> {
+		return record('UserService.handleAdminUpdatePassword', async () => {
+			const { id, password } = data
+			const passwordHash = await Bun.password.hash(password)
+			await this.repo.updatePassword(id, passwordHash, actorId)
+			await this.clearCache(id)
+			return { id }
+		})
+	}
+
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('UserService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
@@ -190,5 +300,13 @@ export class UserService {
 			await this.clearCache(id)
 			return { id: result }
 		})
+	}
+
+	// Used by AuthService to get a full user detail after login
+	async getDetailById(id: number): Promise<dto.UserDetailDto> {
+		const user = await this.getById(id)
+		if (!user) throw UserErrors.notFound(id)
+		const assignments = await this.buildUserAssignments(user)
+		return { ...user, assignments }
 	}
 }

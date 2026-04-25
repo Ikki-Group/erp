@@ -9,7 +9,7 @@ export class AuthServiceModule {
 
 	constructor(iam: IamModule) {
 		this.session = new SessionService()
-		this.auth = new AuthService(iam.service.user, iam.usecase.user, this.session)
+		this.auth = new AuthService(iam.service.user, this.session)
 	}
 }
 
