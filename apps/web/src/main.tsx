@@ -2,8 +2,8 @@
 // oxlint-disable unicorn/prefer-query-selector
 // import 'geist/style.css'
 
-import './styles/main.css'
-// import './styles/backup.css'
+// import './styles/main.css'
+import './styles/backup.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 

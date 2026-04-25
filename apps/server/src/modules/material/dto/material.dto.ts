@@ -51,7 +51,7 @@ export const MaterialMutationDto = z.object({
 	conversions: z
 		.array(
 			z.object({
-				toBaseFactor: zp.decimal, // Decimals are already coerced and typed
+				toBaseFactor: zp.decimal,
 				uomId: zp.id,
 			}),
 		)
