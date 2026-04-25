@@ -1,4 +1,4 @@
-import type { IamServiceModule } from '@/modules/iam/service'
+import type { IamModule } from '@/modules/iam'
 
 import { AuthService } from './auth.service'
 import { SessionService } from './session.service'
@@ -7,9 +7,9 @@ export class AuthServiceModule {
 	public readonly auth: AuthService
 	public readonly session: SessionService
 
-	constructor(iam: IamServiceModule) {
+	constructor(iam: IamModule) {
 		this.session = new SessionService()
-		this.auth = new AuthService(iam.user, this.session)
+		this.auth = new AuthService(iam.service.user, iam.usecase.user, this.session)
 	}
 }
 

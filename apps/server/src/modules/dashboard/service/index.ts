@@ -1,5 +1,5 @@
 import type { FinanceServiceModule } from '@/modules/finance/service'
-import type { IamServiceModule } from '@/modules/iam/service'
+import type { IamModule } from '@/modules/iam/index'
 import type { LocationServiceModule } from '@/modules/location/service'
 import type { SalesServiceModule } from '@/modules/sales/service'
 
@@ -11,7 +11,7 @@ export class DashboardServiceModule {
 	public analytics: AnalyticsService
 
 	constructor(
-		iam: IamServiceModule,
+		iam: IamModule,
 		location: LocationServiceModule,
 		_finance: FinanceServiceModule,
 		_sales: SalesServiceModule,

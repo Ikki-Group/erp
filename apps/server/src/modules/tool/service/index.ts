@@ -1,4 +1,4 @@
-import type { IamServiceModule } from '@/modules/iam'
+import type { IamModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
 import type { ProductServiceModule } from '@/modules/product'
@@ -9,7 +9,7 @@ export class ToolServiceModule {
 	public readonly seed: SeedService
 
 	constructor(
-		iamSvc: IamServiceModule,
+		iamSvc: IamModule,
 		locationSvc: LocationServiceModule,
 		productSvc: ProductServiceModule,
 		materialSvc: MaterialServiceModule,

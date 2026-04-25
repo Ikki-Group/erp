@@ -10,19 +10,19 @@ import {
 } from '@/core/validation'
 
 import * as dto from '../dto/user.dto'
-import type { UserService } from '../service/user.service'
+import type { UserUsecases } from '../usecase/user.usecase'
 
 /**
  * User Module Route (Layer 1)
  * Standard functional route pattern (Golden Path 2.1).
  */
-export function initUserRoute(service: UserService) {
+export function initUserRoute(usecase: UserUsecases) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await service.handleList(query)
+				const result = await usecase.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -34,7 +34,7 @@ export function initUserRoute(service: UserService) {
 		.get(
 			'/detail',
 			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
+				const result = await usecase.handleDetail(query.id)
 				return res.ok(result)
 			},
 			{
@@ -46,7 +46,7 @@ export function initUserRoute(service: UserService) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
+				const result = await usecase.handleCreate(body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.UserCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -54,7 +54,7 @@ export function initUserRoute(service: UserService) {
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body.id, body, auth.userId)
+				const result = await usecase.handleUpdate(body.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: dto.UserUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -62,7 +62,7 @@ export function initUserRoute(service: UserService) {
 		.post(
 			'/change-password',
 			async function changePassword({ body, auth }) {
-				const result = await service.handleChangePassword(auth.userId, body, auth.userId)
+				const result = await usecase.handleChangePassword(auth.userId, body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -74,7 +74,7 @@ export function initUserRoute(service: UserService) {
 		.post(
 			'/admin/password-reset',
 			async function adminUpdatePassword({ body, auth }) {
-				const result = await service.handleAdminUpdatePassword(body, auth.userId)
+				const result = await usecase.handleAdminUpdatePassword(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -86,7 +86,7 @@ export function initUserRoute(service: UserService) {
 		.delete(
 			'/remove',
 			async function remove({ body }) {
-				const result = await service.handleRemove(body.id)
+				const result = await usecase.handleRemove(body.id)
 				return res.ok(result)
 			},
 			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
