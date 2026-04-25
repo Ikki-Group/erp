@@ -1,6 +1,6 @@
 # 🚀 Code Patterns — Quick Reference
 
-**Golden Path 2.1 — Backend**
+**Golden Path 1.0 — Backend**
 
 ---
 

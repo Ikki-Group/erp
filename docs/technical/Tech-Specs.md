@@ -1,13 +1,10 @@
 # Technical Specifications: Ikki ERP
 
-> **Version**: 1.3  
+> **Version**: 1.0
 > **Last Updated**: 2026-04-26  
 > **Changelog**:
 >
-> - `v1.3` (2026-04-26) — Service Simplification: Removed usecase layer, established `get*`/`handle*` naming convention, enforced barrel import policy, and formalized lazy injection pattern for cross-module deps
-> - `v1.2` (2026-04-03) — Architectural Reboot: Switched to Serial Integer IDs globally, introduced the Functional/Inline Router pattern, and standardized DTO suffixes (Golden Path 2.1)
-> - `v1.1` (2026-03-26) — Corrected workspace docs, removed Eden Treaty reference, fixed naming conventions, added Bun Catalog guidance, updated dependency versions
-> - `v1.0` (Initial) — Original technical specification
+> - `v1.0` (2026-04-26) — Service Simplification: Removed usecase layer, established `get*`/`handle*` naming convention, enforced barrel import policy, and formalized lazy injection pattern for cross-module deps
 
 This document outlines the software architecture, dependency rules, and infrastructure constraints governing the development of the Ikki ERP application.
 
@@ -133,7 +130,7 @@ To completely eliminate architectural gridlocks (circular dependencies), all int
 
 > **Note**: The `moka` module is an external POS integration engine classified as a Layer 3 Aggregator.
 
-### 3.4 Strict Module Scaffolding (Golden Path 2.1)
+### 3.4 Strict Module Scaffolding
 
 Every domain module inside `server/src/modules/` must follow this structure:
 

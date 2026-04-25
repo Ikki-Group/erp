@@ -17,7 +17,6 @@ export function initExpenditureRoute(module: FinanceServiceModule) {
 				const result = await service.listExpenditures(query)
 				// Manual pagination wrap since service returns a plain array currently
 				// In a full implementation, we'd use a repository with count.
-				// For Ikki ERP Golden Path 2.1, keeping it simple as requested.
 				return res.ok(result)
 			},
 			{

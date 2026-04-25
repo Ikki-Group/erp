@@ -7,10 +7,6 @@ import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '
 import * as dto from '../dto/purchase-order.dto'
 import type { PurchaseOrderService } from '../service/purchase-order.service'
 
-/**
- * Purchasing Module Route (Layer 2)
- * Standard functional route pattern (Golden Path 2.1).
- */
 export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 	return new Elysia({ prefix: '/purchase-order' })
 		.use(authPluginMacro)

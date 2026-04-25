@@ -7,10 +7,6 @@ import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '
 import * as dto from '../dto/goods-receipt.dto'
 import type { GoodsReceiptService } from '../service/goods-receipt.service'
 
-/**
- * Goods Receipt Module Route (Layer 2)
- * Standard functional route pattern (Golden Path 2.1).
- */
 export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 	return new Elysia({ prefix: '/goods-receipt' })
 		.use(authPluginMacro)

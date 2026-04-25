@@ -13,10 +13,6 @@ import {
 import * as dto from '../dto'
 import type { RoleService } from '../service/role.service'
 
-/**
- * Role Module Route (Layer 1)
- * Standard functional route pattern (Golden Path 2.1).
- */
 export function initRoleRoute(service: RoleService) {
 	return new Elysia({ prefix: '/role' })
 		.use(authPluginMacro)

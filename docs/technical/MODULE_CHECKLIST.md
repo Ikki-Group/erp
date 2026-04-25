@@ -1,6 +1,6 @@
 # 📋 Module Review Checklist
 
-Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Golden Path 2.1**.
+Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Golden Path 1.0**.
 
 ---
 
