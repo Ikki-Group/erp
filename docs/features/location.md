@@ -1,505 +1,109 @@
 # Location Management
 
-**Layer**: 0 (Core System - No Dependencies)  
-**Status**: MVP - Foundation for all inventory operations  
-**Complexity**: Low (CRUD + simple tree)
+**Layer**: 0 (Core) | **Status**: MVP | **Priority**: Critical | **Estimate**: 12 hours
 
 ---
 
 ## 1. Overview
 
-The Location module defines the physical boundaries of operations in the ERP. Every stock movement, user assignment, and inventory count is scoped to a location. Locations form the backbone of Location-Based Access Control (LBAC) - the primary security model.
-
-**Location Types**:
-- **Warehouse** (Gudang Utama): Central inventory hub, receives from suppliers, distributes to outlets
-- **Outlet** (Ikki Coffee, Ikki Resto): Customer-facing locations with POS, holds display/operating inventory
-- **Kitchen**: Food preparation area, receives materials from warehouse, produces finished goods
-
-**Design Philosophy**: Flat structure (no nested zones/racks/bins) for operational speed in F&B environment.
+UMKM F&B chains have multiple outlets (Ikki Coffee, Ikki Resto, warehouse). Location module tracks each outlet's name, address, settings (hours, manager, capacity). All data is filtered by location—sales are per-outlet, inventory is per-location, staff assignments are location-specific.
 
 ---
 
 ## 2. Core Objectives
 
-- **Operational Clarity**: Mirror actual business structure (2 outlets + central warehouse)
-- **Inventory Scoping**: All stock movements tied to locations for accurate traceability
-- **Access Control**: Primary dimension for role-based access (user → location → permissions)
-- **Transfer Paths**: Define allowed stock movement routes (warehouse ↔ outlet, warehouse ↔ kitchen)
-- **Organizational Context**: Serve as context for all transactional queries (sales, opname, transfers)
+- **Multi-Outlet Support**: Manage multiple physical locations in one system
+- **Location Identity**: Name, address, manager, timezone, business hours for each outlet
+- **Data Isolation**: Barista at Outlet A can't see Outlet B's inventory/sales
+- **Location Settings**: Configure outlet-specific settings (open hours, delivery partner, payment methods)
+- **Headquarters Support**: Central warehouse tracked as separate location (can see all outbound stock)
 
 ---
 
-## 3. Key Entities & Relationships
+## 3. Use Cases & Workflows
 
-```
-Location (Foundation)
-├─ Gudang Utama (Warehouse)
-│  ├─ type: "warehouse"
-│  ├─ can_receive_from_supplier: true
-│  └─ can_transfer_to: [outlet, kitchen]
-├─ Ikki Coffee (Outlet)
-│  ├─ type: "outlet"
-│  ├─ manager_id: FK → User (who manages this location?)
-│  └─ can_receive_from: [warehouse]
-├─ Ikki Coffee - Kitchen (Kitchen)
-│  ├─ type: "kitchen"
-│  └─ can_receive_from: [warehouse]
-└─ Ikki Resto (Outlet)
-   ├─ type: "outlet"
-   ├─ manager_id: FK → User
-   └─ can_receive_from: [warehouse]
+### UC-001: Admin Creates New Outlet (Business expansion)
 
-Relationships:
-- Location → User (many-to-many via UserAssignment)
-  [User assigned to location with role + permissions]
-- Location → MaterialLocation (one-to-many)
-  [Each material can exist at multiple locations with different stock levels]
-- Location → StockMovement (one-to-many)
-  [Every stock movement from_location or to_location]
-- Location → StockOpname (one-to-many)
-  [Each location has separate monthly opname]
-
-Transfer Path Rules (MVP):
-✓ warehouse ↔ kitchen (internal redistribution)
-✓ warehouse ↔ outlet (delivery to store)
-✗ outlet ↔ outlet (not allowed - must go through warehouse)
-✗ kitchen ↔ outlet (not allowed - must go through warehouse)
-```
-
----
-
-## 4. Use Cases & Workflows
-
-### UC-001: Setup New Outlet (Opening Ikki Coffee - Bali)
-
-**Actors**: Manager, System Admin  
-**Precondition**: Business decision made to open new outlet
+**Who**: Admin / Owner  
+**When**: Opening new outlet (Ikki Coffee branch #3)  
+**Goal**: Set up new location in system
 
 **Steps**:
-1. Admin creates Location: "Ikki Coffee - Bali"
-   - Type: "outlet"
-   - Address: "Jl. Raya Ubud, Bali"
-   - Manager ID: Budi (user_id=5)
-   - Status: Active
-2. System generates location_id: 4
-3. Admin assigns materials to this location
-   - For each material (coffee, milk, cups, etc):
-   - Create MaterialLocation(material=coffee, location=4, min_stock=50kg, max_stock=200kg)
-4. Admin assigns staff users to location
-   - Barista (role=staff) → location 4
-   - Chef (role=staff) → location 4
-5. Manager Budi can now:
-   - Request stock from warehouse
-   - Track inventory at Bali outlet
-   - Approve monthly opname
-6. Moka POS configured to sync sales to this location
+1. Admin opens "Create Location"
+2. Enters: Name "Ikki Coffee - BSD", Address "Jl. Serpong 123", City "Tangerang"
+3. Sets: Manager "Pak Rendi", Opening hour "06:00", Closing "21:00"
+4. Sets: Type "Outlet" (vs "Warehouse", "Head Office")
+5. Saves → System creates Location record
+6. Can now assign staff, create inventory for this location, run outlet-specific reports
 
-**Business Rules**:
-- Location name must be unique
-- Manager must be existing user
-- Cannot create outlet without warehouse having materials
-- All active materials must be assigned to new location
+**Why it matters**: 
+- New outlet live in system immediately
+- Staff can be assigned to specific location
+- Sales/inventory tracked per outlet
+- Reports show location-specific P&L
 
 ---
 
-### UC-002: Request Stock From Warehouse (Daily morning)
+### UC-002: View Multi-Location Dashboard (Owner perspective)
 
-**Actors**: Barista/Chef (at outlet), Warehouse Manager  
-**Precondition**: Location has materials assigned with reorder_point set
+**Who**: Owner  
+**When**: Checking business performance  
+**Goal**: See all outlets at a glance
 
 **Steps**:
-1. Barista at Ikki Coffee checks stock: Milk = 45L (threshold: 100L)
-2. Milk status: YELLOW (low)
-3. Barista clicks "Request Stock" → selects Milk
-4. System shows: current 45L, suggests qty: 200L (2x reorder qty)
-5. Barista submits request
-6. Warehouse Manager receives notification
-7. Warehouse packs 200L milk
-8. Updates system: StockTransfer from warehouse to Ikki Coffee
-9. Stock updated:
-   - Warehouse: -200L
-   - Ikki Coffee: +200L
-10. Barista confirms receipt
+1. Owner opens Dashboard → sees list of locations
+2. Selects "Ikki Coffee" → sees revenue $1,245, profit $865, waste $23.50
+3. Selects "Ikki Resto" → sees revenue $1,850, profit $980, waste $45
+4. Selects "Compare All" → side-by-side comparison of all outlets
+5. Owner can drill down to any outlet for details
 
-**Business Rules**:
-- Only warehouse can send to outlet
-- Only outlet can request from warehouse
-- Transfer path must be pre-defined (valid)
-- Cannot transfer more than warehouse available stock
+**Why it matters**: 
+- Owner sees complete picture
+- Easy comparison (which outlet performs better)
+- Spot problems early (location with high waste)
 
 ---
 
-### UC-003: Inter-Location Stock Check (Inventory manager's daily task)
+### UC-003: Configure Location-Specific Settings
 
-**Actors**: Warehouse Manager  
-**Precondition**: User has manager role at warehouse location
+**Who**: Location Manager / Admin  
+**When**: Updating outlet operations  
+**Goal**: Set outlet rules (hours, payment methods, delivery partners)
 
 **Steps**:
-1. Manager opens Dashboard
-2. Selects location: "Gudang Utama"
-3. Views summary: 
-   - Total materials: 47 types
-   - Stock value: Rp 125,000,000
-   - Low-stock items: 5 (below minimum)
-   - Stock accuracy: 97.2% (from last opname)
-4. Drills down to low-stock items:
-   - Espresso: 12kg (min: 50kg) - CRITICAL
-   - Milk: 45L (min: 100L) - CRITICAL
-   - Cups: 150 (min: 500) - CRITICAL
-5. Manager decides: 
-   - Order espresso from supplier (via purchasing module Phase 2)
-   - Transfer milk from backup stock
-   - Order cups immediately
+1. Manager opens "Settings" for "Ikki Coffee"
+2. Configures:
+   - Opening hours: "06:00 - 21:00" (closes at 9pm)
+   - Delivery partner: "GrabFood, Gojek" (for delivery orders)
+   - Payment methods: "Cash, Card, GCash" (what we accept)
+   - Max capacity: "80 customers" (fire code limit)
+3. Saves → Settings apply to this location only
 
-**Business Rules**:
-- Only users assigned to location can see its data
-- Admin can view all locations
-- Stock queries by location are cached (refresh every 15 min)
+**Why it matters**: 
+- Each outlet can have different hours/rules
+- Payment methods match local market
+- System aware of outlet constraints
 
 ---
 
-### UC-004: Location-Based Access Control (Permission scoping)
+## 4. Recommended Enhancements (Phase 2+)
 
-**Actors**: System Admin  
-**Precondition**: User created, location created
+- **Location Hierarchy**: Organize outlets by region/district
+  - Priority: Nice-to-have (large chains 10+ outlets)
+  - Why: Better organization as chain grows
+  - Estimate: 8 hours
 
-**Steps**:
-1. Staff "Adi" hired at Ikki Coffee
-2. Admin creates: UserAssignment
-   - User: Adi
-   - Role: "Staff"
-   - Location: Ikki Coffee
-3. Adi logs into system
-4. System loads: user permissions scoped to Ikki Coffee
-5. Adi can access:
-   - Stock check at Ikki Coffee ✓
-   - Waste entry at Ikki Coffee ✓
-   - Opname at Ikki Coffee ✓
-   - Stock check at Ikki Resto ✗ (denied)
-   - Warehouse inventory ✗ (denied)
-6. Adi cannot:
-   - View other location's stock
-   - Create purchase orders (manager only)
-   - Approve opname variance (manager only)
-   - Delete locations (admin only)
+- **Location Photos**: Store outlet appearance, menu board photos
+  - Priority: Nice-to-have (visual documentation)
+  - Why: Training, consistency checks, marketing
+  - Estimate: 4 hours
 
-**Business Rules**:
-- Users can have multiple location assignments
-- Role determines actions, location determines scope
-- Admin/Owner can bypass location filters
-- All queries auto-filtered by user's assigned locations
+- **Distance/Delivery Zone Mapping**: Show location on map, set delivery radius
+  - Priority: Nice-to-have (delivery optimization)
+  - Why: Know which outlet serves which neighborhoods
+  - Estimate: 12 hours
 
----
-
-## 5. Data Model
-
-### Location Table
-
-```sql
-CREATE TABLE locations (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL UNIQUE,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('warehouse', 'outlet', 'kitchen')),
-  address TEXT,
-  phone VARCHAR(20),
-  manager_id INTEGER REFERENCES users(id),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  created_by INTEGER REFERENCES users(id),
-  updated_by INTEGER REFERENCES users(id)
-)
-
-CREATE INDEX idx_locations_type ON locations(type);
-CREATE INDEX idx_locations_manager ON locations(manager_id);
-CREATE INDEX idx_locations_is_active ON locations(is_active);
-```
-
-### Key Fields:
-
-| Field | Type | Purpose | Example |
-|-------|------|---------|---------|
-| `id` | SERIAL | Unique identifier | 1 |
-| `name` | VARCHAR(255) | Display name | Gudang Utama |
-| `type` | VARCHAR(50) | warehouse/outlet/kitchen | outlet |
-| `address` | TEXT | Physical location | Jl. Raya Ubud |
-| `phone` | VARCHAR(20) | Contact number | 081234567890 |
-| `manager_id` | INTEGER | Who manages (FK User) | 3 |
-| `is_active` | BOOLEAN | Soft-delete flag | true |
-
-### Transfer Path Logic
-
-```typescript
-const TRANSFER_PATHS = {
-  warehouse: ['outlet', 'kitchen'],  // warehouse can send to outlet/kitchen
-  outlet: ['warehouse'],              // outlet can receive from warehouse
-  kitchen: ['warehouse'],             // kitchen can receive from warehouse
-  // Blocked: outlet ↔ outlet, kitchen ↔ outlet, kitchen ↔ kitchen
-}
-
-// Validation in StockMovement creation:
-if (!TRANSFER_PATHS[fromLocation.type]?.includes(toLocation.type)) {
-  throw new ConflictError('Invalid transfer path', 'INVALID_TRANSFER_PATH')
-}
-```
-
----
-
-## 6. Business Rules & Validations
-
-**Creation Rules**:
-- Name must be unique (case-insensitive)
-- Type must be one of: warehouse, outlet, kitchen
-- Manager must exist (if provided)
-- At least one warehouse must exist
-
-**Update Rules**:
-- Can update: name, address, phone, manager_id, status
-- Cannot change type (immutable after creation)
-- Cannot deactivate if active stock exists (prevents orphaning inventory)
-
-**Deletion Rules**:
-- Locations never hard-deleted
-- Mark as `is_active = false` (soft-delete)
-- Inactive locations:
-  - Excluded from list views
-  - Excluded from stock transfers
-  - Preserved for historical reporting
-
-**Stock Transfer Rules**:
-- Only valid transfer paths allowed (see Transfer Path Logic)
-- Cannot transfer more qty than source location has
-- From and to must be different locations
-- Both locations must be active
-
----
-
-## 7. API Endpoints & Routes
-
-### GET `/locations/list`
-**Description**: List all locations (optionally filtered by type)  
-**Auth**: Optional (some views public)  
-**Query Params**:
-```typescript
-{
-  type?: 'warehouse' | 'outlet' | 'kitchen',
-  is_active?: boolean (default true)
-}
-```
-**Response**:
-```json
-{
-  "success": true,
-  "code": "OK",
-  "data": [
-    {
-      "id": 1,
-      "name": "Gudang Utama",
-      "type": "warehouse",
-      "address": "Jl. Warehouse No. 1",
-      "phone": "081234567890",
-      "manager_id": 2,
-      "manager_name": "Warehouse Manager",
-      "is_active": true,
-      "stock_count": 47,
-      "stock_value_rp": 125000000,
-      "user_count": 8
-    }
-  ]
-}
-```
-
-### GET `/locations/:id`
-**Description**: Get location detail with stock summary  
-**Auth**: User must have access to location (or Admin)  
-**Response**:
-```json
-{
-  "success": true,
-  "code": "OK",
-  "data": {
-    "id": 1,
-    "name": "Gudang Utama",
-    "type": "warehouse",
-    "address": "Jl. Warehouse No. 1",
-    "phone": "081234567890",
-    "manager_id": 2,
-    "manager_name": "Warehouse Manager",
-    "is_active": true,
-    "created_at": "2026-04-01T10:00:00Z",
-    "created_by": 1,
-    "updated_at": "2026-04-24T15:30:00Z",
-    "updated_by": 3,
-    "stock_summary": {
-      "total_materials": 47,
-      "low_stock_count": 5,
-      "total_stock_value_rp": 125000000,
-      "last_opname_accuracy": 97.2,
-      "last_opname_date": "2026-04-20T18:00:00Z"
-    },
-    "users_assigned": [
-      { "id": 2, "name": "Warehouse Manager", "role": "manager" },
-      { "id": 5, "name": "Staff A", "role": "staff" }
-    ]
-  }
-}
-```
-
-### POST `/locations/create`
-**Description**: Create new location  
-**Auth**: Required (Admin)  
-**Body**:
-```typescript
-{
-  name: "Ikki Coffee - Bali",
-  type: "outlet",
-  address: "Jl. Raya Ubud, Bali",
-  phone: "0361-123456",
-  manager_id: 5
-}
-```
-**Response**: 201 Created with new location data
-
-### PUT `/locations/:id`
-**Description**: Update location  
-**Auth**: Required (Admin or Manager of location)  
-**Body** (all optional):
-```typescript
-{
-  name?: "Ikki Coffee - Ubud",
-  address?: "New address",
-  phone?: "0361-999999",
-  manager_id?: 6,
-  is_active?: false
-}
-```
-**Response**: 200 OK with updated location
-
-### GET `/locations/:id/stock-summary`
-**Description**: Get detailed stock analysis for location  
-**Auth**: Required (User assigned to location or Admin)  
-**Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "location_id": 1,
-    "location_name": "Gudang Utama",
-    "total_materials": 47,
-    "materials": [
-      {
-        "material_id": 5,
-        "name": "Espresso Beans",
-        "current_stock": 12,
-        "min_stock": 50,
-        "max_stock": 200,
-        "status": "CRITICAL",
-        "unit": "kg"
-      }
-    ],
-    "low_stock_items": [...]
-  }
-}
-```
-
-### GET `/locations/:from/transfer-paths`
-**Description**: Get valid transfer destination locations  
-**Auth**: Required  
-**Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "from_location": "Gudang Utama",
-    "valid_destinations": [
-      { "id": 2, "name": "Ikki Coffee", "type": "outlet" },
-      { "id": 3, "name": "Ikki Resto", "type": "outlet" },
-      { "id": 5, "name": "Ikki Coffee - Kitchen", "type": "kitchen" }
-    ]
-  }
-}
-```
-
----
-
-## 8. Integration Points
-
-### Upstream Dependencies:
-- **None** (Layer 0, no external dependencies)
-
-### Downstream Dependencies:
-- **Material** (Layer 1): Materials assigned to locations via MaterialLocation
-- **IAM** (Layer 1): Users assigned to locations for access control
-- **Inventory** (Layer 2): All stock movements scoped to locations
-- **Sales** (Layer 2): Sales orders belong to specific outlet location
-- **Dashboard** (Layer 3): Aggregations filtered by location
-
-### Data Flow:
-```
-Location (Foundation)
-  ├─ MaterialLocation (material at location)
-  ├─ UserAssignment (user at location with role)
-  └─ All transactions scoped to location
-       ├─ StockMovement (from/to locations)
-       ├─ StockOpname (per location)
-       ├─ SalesOrder (at location)
-       └─ Dashboard (filtered by location)
-```
-
----
-
-## 9. Implementation Notes
-
-### Caching Strategy
-```typescript
-// Cache locations (rarely change)
-const LOCATION_CACHE_KEYS = {
-  LIST: 'location.list',
-  DETAIL: (id: number) => `location.detail.${id}`,
-  TREE: 'location.tree', // For dropdown in UI
-  BY_TYPE: (type: string) => `location.type.${type}`,
-}
-
-// Cache TTL: 1 hour (low volatility)
-// Invalidate on: create, update, deactivate
-```
-
-### LBAC Implementation Pattern
-```typescript
-// In router/service, get user context:
-const userLocations = await getUserAssignedLocations(auth.userId)
-
-// Filter queries by location:
-const result = await repo.getList({
-  ...filter,
-  location_ids: userLocations  // Auto-scoped
-})
-
-// Or explicit check:
-if (!userLocations.includes(locationId)) {
-  throw new ForbiddenError('Not authorized for this location')
-}
-```
-
-### Performance Considerations
-- Typically 3-10 locations (small dataset)
-- Index on `type` for filtering (warehouse vs. outlets)
-- Location list cached for UI dropdowns
-- All user queries auto-filtered by location
-
----
-
-## 10. Future Enhancements (Phase 2+)
-
-- **Nested Locations**: Support zone/section/aisle breakdown in warehouse
-- **Location Groups**: Group locations for bulk reporting
-- **Transfer Scheduling**: Pre-schedule recurring transfers (e.g., daily 3pm)
-- **Location Capabilities**: Define what operations each location supports
-- **Territory Management**: Sales rep territory assignments per location
-
----
-
-**Module Status**: ✅ MVP-Ready  
-**Dependencies**: None (Layer 0)  
-**Estimated Implementation**: 6-8 hours
-
+- **Location Consolidation**: Merge outlet data (closing/relocating outlet)
+  - Priority: Nice-to-have (rare but needed)
+  - Why: Reorg scenario (merge two small outlets)
+  - Estimate: 6 hours
