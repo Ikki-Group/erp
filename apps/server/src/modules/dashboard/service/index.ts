@@ -1,5 +1,5 @@
 import type { FinanceServiceModule } from '@/modules/finance/service'
-import type { IamModule } from '@/modules/iam/index'
+import type { IamModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location/service'
 import type { SalesServiceModule } from '@/modules/sales/service'
 

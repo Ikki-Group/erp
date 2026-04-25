@@ -11,7 +11,3 @@ export function initIamRouteModule(m: IamModule) {
 		.use(initRoleRoute(m.service.role))
 		.use(initUserAssignmentRoute(m.service.assignment))
 }
-
-export * from './user.route'
-export * from './role.route'
-export * from './assignment.route'

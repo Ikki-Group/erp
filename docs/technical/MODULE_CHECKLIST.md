@@ -1,339 +1,309 @@
 # 📋 Module Review Checklist
 
-Gunakan checklist ini untuk review modules `src/modules/*` dengan standar yang sama seperti core infrastructure.
+Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Golden Path 2.1**.
 
 ---
 
 ## ✅ Phase 1: Structure & Organization
 
 - [ ] **Directory Structure**
-  - [ ] `/repo/` folder exists with database queries
-  - [ ] `/service/` folder exists with business logic
-  - [ ] `/router/` folder exists with HTTP handlers
-  - [ ] `/dto/` folder exists with validation schemas
-  - [ ] `index.ts` exports all public APIs
+  - [ ] `/dto/` — Zod schemas
+  - [ ] `/repo/` — Drizzle queries
+  - [ ] `/service/` — Business logic
+  - [ ] `/router/` — HTTP handlers
+  - [ ] `constants.ts` — Cache keys & config
+  - [ ] `errors.ts` — Domain error factories
+  - [ ] `index.ts` — **Public API only** (hanya Module class + Services interface)
 
 - [ ] **Naming Consistency**
-  - [ ] Files use lowercase with hyphens: `user.repo.ts`, `user.service.ts`
-  - [ ] Classes use PascalCase: `UserService`, `UserRepo`
-  - [ ] Methods use camelCase: `handleCreate()`, `getById()`
-  - [ ] DTOs end with `Dto`: `UserCreateDto`, `UserUpdateDto`
-  - [ ] Constants use UPPERCASE: `SYSTEM_ROLES`, `IAM_CONFIG`
+  - [ ] Files: lowercase + hyphens (`user.repo.ts`, `user.service.ts`)
+  - [ ] Classes: PascalCase (`UserService`, `UserRepo`)
+  - [ ] Methods: camelCase (`handleCreate()`, `getById()`)
+  - [ ] DTOs: suffix `Dto` (`UserCreateDto`, `UserUpdateDto`)
+  - [ ] Constants: UPPERCASE (`IAM_CACHE_KEYS`, `SYSTEM_ROLES`)
 
-- [ ] **Layer Dependency**
-  - [ ] Service instantiates Repo in constructor
-  - [ ] Router calls Service methods only
-  - [ ] No circular dependencies between modules
-  - [ ] Lower layers don't know about higher layers
-
----
-
-## ✅ Phase 2: Type Safety
-
-- [ ] **TypeScript Strict Mode**
-  - [ ] No `any` types (except approved cases with comments)
-  - [ ] All function parameters typed
-  - [ ] All return types explicit
-  - [ ] Generics used properly (no lost type inference)
-
-- [ ] **Zod Validation**
-  - [ ] DTOs use Zod schemas
-  - [ ] Schemas use spread-shape pattern: `z.object({ ...BaseDto.shape, ...NewFields.shape })`
-  - [ ] No `.extend()` chains (breaks inference)
-  - [ ] Input validation at route level
-  - [ ] Response validation matches schema
-
-- [ ] **Null/Undefined Handling**
-  - [ ] Explicit optional types: `SomeType | null` not `SomeType?`
-  - [ ] No sneaky optional chaining without checks
-  - [ ] Error thrown for expected values
+- [ ] **Barrel Import Policy**
+  - [ ] Root `index.ts` TIDAK melakukan `export * from './dto'`
+  - [ ] Root `index.ts` TIDAK melakukan `export * from './service'`
+  - [ ] Root `index.ts` TIDAK melakukan `export * from './router'`
+  - [ ] External consumers mengimport DTOs via `@/modules/xxx/dto` (bukan via root)
+  - [ ] Tidak ada consumer yang melakukan `import * from '@/modules/xxx'`
 
 ---
 
-## ✅ Phase 3: Error Handling
+## ✅ Phase 2: Service Layer
 
-- [ ] **Error Classes**
-  - [ ] Uses core error classes: `NotFoundError`, `ConflictError`, `UnauthorizedError`
-  - [ ] Custom errors extend `HttpError` (or use error factories)
-  - [ ] Error codes match HTTP status: 404 for NotFound, 409 for Conflict
-  - [ ] Error messages are clear and helpful
+- [ ] **Method Naming Convention**
+  - [ ] `get*()` — cache-backed reads, boleh dipanggil service lain
+  - [ ] `handle*()` — router-facing, dipanggil **router saja**
+  - [ ] Router TIDAK memanggil `get*()` langsung (harus lewat `handle*()`)
+  - [ ] Service lain boleh memanggil `get*()` tapi TIDAK `handle*()`
 
-- [ ] **Service Methods**
-  - [ ] Throws errors instead of returning `null/undefined`
-  - [ ] Error handling delegated to framework, not middleware
+- [ ] **Encapsulation**
+  - [ ] `repo` selalu `private` — tidak pernah diekspos ke luar service
+  - [ ] `clearCache()` selalu `private` — cache invalidation tidak bisa di-skip dari luar
+  - [ ] Helper enrichment (e.g. `buildUserDetail()`) selalu `private`
 
-- [ ] **Route Handlers**
-  - [ ] Route handlers don't catch errors (framework does)
-  - [ ] Use `auth: true` for protected endpoints
-  - [ ] Validation errors converted to 422/400
+- [ ] **Cache Management**
+  - [ ] `bento.namespace('entity')` — isolated per entity
+  - [ ] Cache keys dari constants (`ENTITY_CACHE_KEYS`), tidak hardcoded string
+  - [ ] `clearCache()` dipanggil di semua write handler: `handleCreate`, `handleUpdate`, `handleRemove`
+  - [ ] `cache.deleteMany()` untuk batch invalidation (LIST + COUNT + DETAIL)
+  - [ ] `cache.getOrSet({ factory: async ({ skip }) => ... ?? skip() })` — tidak cache `undefined`
 
----
+- [ ] **No Usecase Layer**
+  - [ ] Tidak ada folder `usecase/` di dalam modul
+  - [ ] Orkestrasi lintas entity diselesaikan di dalam service menggunakan lazy getter
 
-## ✅ Phase 4: Database & Caching
-
-- [ ] **Repository**
-  - [ ] Methods organized: QUERY, MUTATION, PRIVATE sections
-  - [ ] All mutations wrapped in transactions where needed
-  - [ ] Uses `record()` wrapper from OpenTelemetry
-  - [ ] Drizzle typed correctly (no `as any` casts)
-
-- [ ] **Service Caching**
-  - [ ] Uses `bento.namespace()` for cache isolation
-  - [ ] Cache keys from constants (not hardcoded strings)
-  - [ ] Cache invalidation on all mutations
-  - [ ] `getOrSet()` pattern for lazy loading
-
-- [ ] **Query Optimization**
-  - [ ] Batch operations prefer single query + loop over N queries
-  - [ ] Uses `inArray()` for bulk filters
-  - [ ] Pagination uses parallel data + count
-  - [ ] Search uses `searchFilter()` helper
+- [ ] **Dependency Injection**
+  - [ ] Cross-module dep diinject via lazy getter `() => dep` (bukan direct reference)
+  - [ ] Module class (`XxxModule`) sebagai DI container
+  - [ ] `getExternalModules()` factory untuk resolve cross-module dep
 
 ---
 
-## ✅ Phase 5: Validation & Conflict Checking
+## ✅ Phase 3: Repository Layer
 
-- [ ] **Input Validation**
-  - [ ] All routes have `body` or `query` validation with Zod
-  - [ ] Email/username validated with `zc.email`, `zc.username`
-  - [ ] Passwords validated with `zc.password` (min 8 chars)
+- [ ] **Structure**
+  - [ ] Section: QUERY, MUTATION, PRIVATE (dengan comment separator)
+  - [ ] Tidak ada business logic di repo (no validation, no caching)
+  - [ ] Setiap method di-wrap dengan `record('ClassName.methodName', ...)`
 
-- [ ] **Uniqueness Checking**
-  - [ ] CREATE: uses `checkConflict()` without `existing`
-  - [ ] UPDATE: uses `checkConflict()` with `existing` parameter
-  - [ ] Error messages and codes per-field
+- [ ] **Query Patterns**
+  - [ ] Batch fetch menggunakan `inArray()` bukan loop+await
+  - [ ] Paginated query menggunakan `paginate()` dari `@/core/database`
+  - [ ] Search menggunakan `searchFilter()` dari `@/core/database`
+  - [ ] `buildWhereClause()` di-extract ke private method
 
-- [ ] **Audit Trails**
-  - [ ] All writes include `createdBy`/`updatedBy` (actor ID)
-  - [ ] Uses `stampCreate()` and `stampUpdate()` helpers
-  - [ ] Timestamps set to database time (not client time)
+- [ ] **Mutation Patterns**
+  - [ ] Menggunakan `stampCreate(actorId)` / `stampUpdate(actorId)` untuk audit columns
+  - [ ] `.returning({ id: table.id })` untuk mendapatkan inserted/updated ID
+  - [ ] Multi-step mutation menggunakan `db.transaction(async (tx) => { ... })`
 
 ---
 
-## ✅ Phase 6: HTTP & Routes
+## ✅ Phase 4: Router Layer
 
-- [ ] **Route Handlers**
-  - [ ] Inline async functions with explicit names: `async function create({ body, auth }) { ... }`
-  - [ ] Method names describe action: `list`, `detail`, `create`, `update`, `delete`
-  - [ ] Routes grouped logically: GET /list, POST /create, PUT /:id, DELETE /:id
+- [ ] **Handler Pattern**
+  - [ ] Router function menggunakan `initXxxRoute(service: XxxService)` — function, bukan class
+  - [ ] Setiap endpoint menggunakan named inner function: `async function create({ body, auth }) { ... }`
+  - [ ] Router HANYA memanggil `service.handle*()` — tidak memanggil `get*()` langsung
+
+- [ ] **Endpoint Convention**
+  - [ ] `GET /list` → `handleList(filter)`
+  - [ ] `GET /detail` + query id → `handleDetail(id)`
+  - [ ] `POST /create` → `handleCreate(data, actorId)`
+  - [ ] `PUT /update` → `handleUpdate(id, data, actorId)`
+  - [ ] `DELETE /remove` → `handleRemove(id)`
 
 - [ ] **Response Format**
-  - [ ] Single object: `res.ok(data)`
-  - [ ] List response: `res.paginated(result)`
-  - [ ] Created: `res.created(data)`
-  - [ ] No content: `res.noContent()` (returns undefined)
+  - [ ] List: `res.paginated(result)`
+  - [ ] Single: `res.ok(result)`
+  - [ ] Schema response: `createPaginatedResponseSchema(dto.EntityDto)` / `createSuccessResponseSchema(...)`
 
-- [ ] **Authentication**
-  - [ ] Protected routes have `auth: true` in options
-  - [ ] Public routes omit `auth: true` (or explicitly `auth: false`)
-  - [ ] Uses `auth.userId` for actor ID in service calls
+- [ ] **Auth**
+  - [ ] Protected endpoints punya `auth: true`
+  - [ ] `auth.userId` digunakan sebagai `actorId`
 
 ---
 
-## ✅ Phase 7: Utilities & Helpers
+## ✅ Phase 5: Type Safety
 
-- [ ] **Service Utilities**
-  - [ ] Reusable logic extracted to helper functions
-  - [ ] No duplicated code between methods
-  - [ ] Large methods broken into smaller ones
+- [ ] **TypeScript**
+  - [ ] Tidak ada `any`
+  - [ ] Semua parameter dan return type dideklarasikan
+  - [ ] Tidak ada `!` non-null assertion tanpa alasan yang jelas
 
-- [ ] **Type Aliases**
-  - [ ] Common types exported from DTOs
-  - [ ] Type inference preserved (no unnecessary `as` casts)
-  - [ ] Generics used for reusable patterns
+- [ ] **Zod DTOs**
+  - [ ] Menggunakan spread-shape: `z.object({ ...Base.shape, ...Extra.shape })`
+  - [ ] Tidak menggunakan `.extend()` (menyebabkan hilangnya type inference)
+  - [ ] Response schema terdaftar di route options (`response: createSuccessResponseSchema(...)`)
 
-- [ ] **Constants**
-  - [ ] Magic numbers extracted to `constants.ts`
-  - [ ] Cache keys defined (not hardcoded)
-  - [ ] Role IDs and system values centralized
-
----
-
-## ✅ Phase 8: Testing
-
-- [ ] **Unit Tests**
-  - [ ] Service methods tested with mocked repos
-  - [ ] Edge cases covered (empty arrays, null values)
-  - [ ] Error scenarios tested (missing records, conflicts)
-
-- [ ] **Integration Tests** (if applicable)
-  - [ ] Full route tested with real service
-  - [ ] Auth scenarios: authenticated, unauthenticated, forbidden
-  - [ ] Validation errors caught (400/422)
-
-- [ ] **Test Organization**
-  - [ ] Tests colocated with code (`.test.ts` next to `.ts`)
-  - [ ] Test name matches function: `describe('UserService')`, `it('should create user')`
-  - [ ] Clear arrange-act-assert pattern
+- [ ] **Error Handling**
+  - [ ] Service TIDAK mengembalikan `null/undefined` untuk kondisi error — throw instead
+  - [ ] Menggunakan error factory dari `errors.ts`
+  - [ ] Route handler tidak melakukan try/catch (biarkan framework handle)
 
 ---
 
-## ✅ Phase 9: Documentation & Comments
+## ✅ Phase 6: Validation & Conflict Checking
 
-- [ ] **JSDoc Comments**
-  - [ ] Public functions have brief description
-  - [ ] Complex logic has comment explaining WHY (not WHAT)
-  - [ ] Examples provided for non-obvious patterns
+- [ ] **Input Validation**
+  - [ ] Semua route punya `body` atau `query` yang di-typed dengan DTO
 
-- [ ] **Type Documentation**
-  - [ ] DTOs documented if purpose isn't obvious
-  - [ ] Error codes documented (what triggers them)
+- [ ] **Uniqueness Checking**
+  - [ ] CREATE: `checkConflict({ ..., input: data })` tanpa `existing`
+  - [ ] UPDATE: `checkConflict({ ..., input: data, existing })` dengan `existing`
+  - [ ] `conflictFields` didefinisikan di luar class (module-level constant)
 
-- [ ] **README or Docs**
-  - [ ] Module purpose documented
-  - [ ] Key entities/concepts explained
-  - [ ] Example requests shown for main endpoints
+- [ ] **Audit Trails**
+  - [ ] Semua write menyertakan `actorId` (`createdBy`/`updatedBy`)
 
 ---
 
-## ✅ Phase 10: Quality Checks
+## ✅ Phase 7: Performance
 
-- [ ] **Linting**
-  - [ ] `bun run lint` returns 0 errors, 0 warnings for this module
-  - [ ] No unused imports
-  - [ ] No unused variables
+- [ ] Tidak ada N+1 query (gunakan `inArray()` + `RelationMap`)
+- [ ] Parallel independent queries menggunakan `Promise.all([])`
+- [ ] Data yang sering dibaca di-cache (`bento.getOrSet()`)
+- [ ] List endpoint punya pagination (tidak return semua data)
 
-- [ ] **Type Checking**
-  - [ ] All TypeScript compiles without errors
-  - [ ] No `any` types or `!` null assertions without comments
-  - [ ] Generics properly constrained
+---
 
-- [ ] **Performance**
-  - [ ] No N+1 queries (use batch operations or joins)
-  - [ ] Cache utilized for frequently accessed data
-  - [ ] Pagination enforced for list endpoints (max 100 items)
+## ✅ Phase 8: Quality Checks
 
-- [ ] **Security**
-  - [ ] No SQL injection (Drizzle prevents this)
-  - [ ] No XSS (backend doesn't render HTML)
-  - [ ] No auth bypass (all protected routes have `auth: true`)
-  - [ ] No secrets in code (use environment variables)
+- [ ] `npx tsc --noEmit` zero errors untuk module ini
+- [ ] Tidak ada unused imports / unused variables
+- [ ] Tidak ada hardcoded string untuk cache keys, IDs, atau kode error
 
 ---
 
 ## 📊 Scoring
 
-Count checkmarks in each phase:
-
 ```
-Phase 1 (Structure):    __ / 11
-Phase 2 (Type Safety):  __ / 9
-Phase 3 (Errors):       __ / 7
-Phase 4 (DB/Cache):     __ / 9
-Phase 5 (Validation):   __ / 9
-Phase 6 (HTTP):         __ / 9
-Phase 7 (Utilities):    __ / 7
-Phase 8 (Testing):      __ / 8
-Phase 9 (Docs):         __ / 7
-Phase 10 (Quality):     __ / 8
+Phase 1 (Structure):         __ / 10
+Phase 2 (Service Layer):     __ / 15
+Phase 3 (Repository):        __ / 11
+Phase 4 (Router):            __ / 12
+Phase 5 (Type Safety):       __ / 8
+Phase 6 (Validation):        __ / 7
+Phase 7 (Performance):       __ / 4
+Phase 8 (Quality):           __ / 3
 
-TOTAL:                  __ / 84
+TOTAL:                       __ / 70
 ```
 
 ### Score Interpretation
-- **84/84** - Production-ready, gold standard
-- **75-83** - Excellent, ship with confidence
-- **65-74** - Good, minor improvements recommended
-- **55-64** - Needs work, address before shipping
-- **<55** - Significant issues, revise before merge
+
+| Score | Verdict |
+|-------|---------|
+| 70/70 | 🟢 Production-ready, gold standard |
+| 60–69 | 🟢 Ship with confidence |
+| 50–59 | 🟡 Minor improvements before merge |
+| 40–49 | 🟡 Needs work, address before shipping |
+| < 40  | 🔴 Major revisions required |
 
 ---
 
-## 🎯 Common Issues to Watch For
+## ❌ Anti-patterns to Avoid
 
-### ❌ Anti-patterns to Avoid
+### 1. Router memanggil `get*()` langsung
 
-1. **Service calls repository multiple times for same data**
-   ```typescript
-   // ❌ BAD: 2 DB calls
-   const user = await repo.getById(id)
-   const assignments = await repo.getByUser(user.id)
-   
-   // ✅ GOOD: 1 DB call
-   const user = await repo.getById(id, { includeAssignments: true })
-   ```
+```typescript
+// ❌ SALAH
+async function detail({ query }) {
+  const user = await service.getById(query.id) // bukan handle*()!
+}
 
-2. **Loose error handling**
-   ```typescript
-   // ❌ BAD: returns null, caller has to handle
-   const user = await repo.getById(id) ?? null
-   
-   // ✅ GOOD: throws, caller knows to expect error
-   const user = await repo.getById(id)
-   if (!user) throw NotFoundError('User', id)
-   ```
+// ✅ BENAR
+async function detail({ query }) {
+  const result = await service.handleDetail(query.id)
+}
+```
 
-3. **No cache invalidation on updates**
-   ```typescript
-   // ❌ BAD: Update succeeds but read cache is stale
-   await repo.update(id, data)
-   // Cache still has old data!
-   
-   // ✅ GOOD: Clear cache on mutation
-   await repo.update(id, data)
-   await cache.delete(IAM_CACHE_KEYS.USER_DETAIL(id))
-   ```
+### 2. `repo` diekspos keluar service
 
-4. **Generic type inference lost**
-   ```typescript
-   // ❌ BAD: Using .extend() breaks inference
-   const UserDto = BaseDto.extend({ username: z.string() })
-   
-   // ✅ GOOD: Using spread preserves inference
-   const UserDto = z.object({ ...BaseDto.shape, username: z.string() })
-   ```
+```typescript
+// ❌ SALAH — repo jadi public sehingga bisa di-bypass
+export class UserService {
+  constructor(public repo = new UserRepo()) {} // ← public
+}
+// lalu dari luar: service.repo.create(...)
 
-5. **Hardcoded cache keys**
-   ```typescript
-   // ❌ BAD: String scattered everywhere
-   await cache.delete('user.detail.123')
-   
-   // ✅ GOOD: Centralized, type-safe
-   await cache.delete(USER_CACHE_KEYS.DETAIL(userId))
-   ```
+// ✅ BENAR
+export class UserService {
+  constructor(private repo = new UserRepo()) {} // ← private
+}
+```
+
+### 3. `clearCache()` dipanggil dari luar
+
+```typescript
+// ❌ SALAH — clearCache bisa di-skip (forgotten)
+export class UserService {
+  public async clearCache() { ... } // ← public
+}
+// dari luar: await service.clearCache()
+
+// ✅ BENAR
+export class UserService {
+  private async clearCache() { ... } // ← private, selalu dipanggil oleh handle*()
+}
+```
+
+### 4. Root `index.ts` mengekspos semua symbol
+
+```typescript
+// ❌ SALAH — membebani autocompletion editor
+export * from './dto'
+export * from './service'
+export * from './router'
+
+// ✅ BENAR — hanya public API
+export class IamModule { ... }
+export interface IamServices { ... }
+```
+
+### 5. Usecase layer untuk orkestrasi sederhana
+
+```typescript
+// ❌ SALAH — menambah layer tanpa alasan
+// usecase/role.usecase.ts
+export class RoleUsecases {
+  constructor(private roleService: RoleService) {} // hanya 1 dep dari module sendiri!
+  async handleCreate(data, actorId) {
+    return this.roleService.handleCreate(data, actorId) // cuma proxy
+  }
+}
+
+// ✅ BENAR — router langsung ke service
+initRoleRoute(m.service.role)
+```
+
+### 6. Cache invalidation terlewat
+
+```typescript
+// ❌ SALAH — cache tidak di-invalidate
+async handleCreate(data, actorId) {
+  const id = await this.repo.create(data, actorId)
+  return { id }  // ← clearCache() tidak dipanggil!
+}
+
+// ✅ BENAR
+async handleCreate(data, actorId) {
+  const id = await this.repo.create(data, actorId)
+  await this.clearCache()  // ← selalu dipanggil setelah write
+  return { id }
+}
+```
 
 ---
 
 ## 📝 Review Template
 
-When reviewing a module, use this summary:
-
 ```markdown
 # Module Review: [ModuleName]
 
 ## Overall Assessment
-⭐⭐⭐⭐⭐ (1-5 stars)
+⭐⭐⭐⭐⭐ (1–5 stars)
 
 ## Strengths
-- [List 3-5 things done well]
+- ...
 
 ## Issues Found
-- [List critical issues]
-
-## Recommendations
-- [List improvements for next PR]
-
-## Checklist Summary
-- Structure & Organization: 10/11 ✓
-- Type Safety: 8/9 ✓
-- Error Handling: 7/7 ✓
 - ...
-- **Total: 75/84**
+
+## Score
+- Structure: __ / 10
+- Service Layer: __ / 15
+- Repository: __ / 11
+- Router: __ / 12
+- Type Safety: __ / 8
+- Validation: __ / 7
+- Performance: __ / 4
+- Quality: __ / 3
+- **Total: __ / 70**
 
 ## Verdict
-🟢 **Ready to ship** / 🟡 **Needs minor fixes** / 🔴 **Major revisions needed**
+🟢 Ready to ship / 🟡 Minor fixes needed / 🔴 Major revisions required
 ```
-
----
-
-## 🚀 Next Steps
-
-1. **Review all modules** in `src/modules/` using this checklist
-2. **Create issue** for any `🔴 Major issues` found
-3. **Create PR** for any `🟡 Minor fixes` (consistent with core standards)
-4. **Document results** in module-specific review files
-5. **Update CLAUDE.md** with any new patterns discovered
-
----
-
-**Baseline:** Core infrastructure review completed. It's 5/5 stars. Use it as template.

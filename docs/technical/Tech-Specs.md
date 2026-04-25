@@ -1,9 +1,10 @@
 # Technical Specifications: Ikki ERP
 
-> **Version**: 1.2  
-> **Last Updated**: 2026-04-03  
+> **Version**: 1.3  
+> **Last Updated**: 2026-04-26  
 > **Changelog**:
 >
+> - `v1.3` (2026-04-26) — Service Simplification: Removed usecase layer, established `get*`/`handle*` naming convention, enforced barrel import policy, and formalized lazy injection pattern for cross-module deps
 > - `v1.2` (2026-04-03) — Architectural Reboot: Switched to Serial Integer IDs globally, introduced the Functional/Inline Router pattern, and standardized DTO suffixes (Golden Path 2.1)
 > - `v1.1` (2026-03-26) — Corrected workspace docs, removed Eden Treaty reference, fixed naming conventions, added Bun Catalog guidance, updated dependency versions
 > - `v1.0` (Initial) — Original technical specification
@@ -106,7 +107,7 @@ src/
 
 ## 3. Backend Architecture (`apps/server`)
 
-The backend engine enforces a highly disciplined **Service-Controller** tiered architecture via **ElysiaJS**.
+The backend enforces a **3-layer architecture** (Router → Service → Repo) via **ElysiaJS**. There is no usecase layer — all business logic, including cross-entity orchestration, lives in the Service layer with a clear method naming convention that eliminates ambiguity.
 
 ### 3.1 Infrastructure Integrations
 
@@ -134,47 +135,89 @@ To completely eliminate architectural gridlocks (circular dependencies), all int
 
 ### 3.4 Strict Module Scaffolding (Golden Path 2.1)
 
-Every designated domain application inside `server/src/modules/` must follow the prescribed hierarchical blueprint, prioritizing functional route definitions over class-based handlers:
+Every domain module inside `server/src/modules/` must follow this structure:
 
 ```text
 modules/<domain>/
-├── dto/                    # API contractual layers / Zod schema mapping
-│   ├── index.ts            # Barrel export
-│   └── <entity>.dto.ts     # Zod schemas with 'Dto' suffix
-├── router/                 # Functional Elysia route definitions (Layer 1)
-│   ├── index.ts            # Mounting point
-│   └── <entity>.route.ts   # Inline async handlers
-├── service/                # Protected Business Logic & Database (Layer 0)
-│   ├── index.ts            # Barrel export
-│   └── <entity>.service.ts # Domain logic orchestration
-└── index.ts                # Master Module Barrel Export
+├── dto/
+│   ├── index.ts              # Barrel (internal convenience only)
+│   └── <entity>.dto.ts       # Zod schemas
+├── repo/
+│   ├── index.ts              # Barrel (internal convenience only)
+│   └── <entity>.repo.ts      # Drizzle queries, no business logic
+├── service/
+│   ├── index.ts              # Barrel (internal convenience only)
+│   └── <entity>.service.ts   # ALL business logic
+├── router/
+│   ├── index.ts              # Route assembly: initXxxRouteModule()
+│   └── <entity>.route.ts     # HTTP handlers
+├── constants.ts              # Cache keys, config constants
+├── errors.ts                 # Domain error factories
+└── index.ts                  # PUBLIC API: Module class + Services interface ONLY
+                              # ⚠️ NEVER: export * from './dto|service|router'
 ```
+
+**Method Naming Convention (Service layer):**
+
+| Prefix | Called by | Responsibility |
+|--------|-----------|----------------|
+| `get*()` | Other services | Cache-backed domain queries |
+| `handle*()` | Router only | Full business logic (conflict, cache invalidation, orchestration) |
+| `seed()` | SeedService | Initial data seeding |
+| `clearCache()` (private) | Internal service | Cache invalidation — always private |
+
+**Barrel Import Policy:**
+- Root `index.ts` exports **only** the Module class and Services interface
+- External modules import DTOs via `@/modules/xxx/dto/entity.dto` (not root)
+- `import * from '@/modules/xxx'` is **forbidden**
 
 ### 3.5 Module Registry & Dependency Injection
 
-All modules are instantiated and wired in `src/modules/_registry.ts` using **constructor-based dependency injection**. The registry enforces layer ordering:
+All modules are instantiated and wired in `src/modules/_registry.ts` using **constructor-based DI**. Cross-module dependencies use **lazy getter factories** `() => dep` to prevent circular dependency issues at bootstrap:
 
 ```typescript
 // Layer 0 — Core (zero dependencies)
 const location = new LocationServiceModule()
 const product = new ProductServiceModule()
 
-// Layer 1 — Masters (depends on Layer 0)
-const iam = new IamServiceModule(location)
+// Layer 1 — Masters
+// IamModule uses lazy factory for external dep (location)
+const iam = new IamModule(() => ({ location }))
 const material = new MaterialServiceModule(location)
 
-// Layer 1.5 — Auth (depends on Layer 1)
+// Layer 1.5 — Auth
 const auth = new AuthServiceModule(iam)
 
-// Layer 2 — Operations (depends on Layer 0/1)
+// Layer 2 — Operations
 const inventory = new InventoryServiceModule(material)
 const recipe = new RecipeServiceModule()
 const sales = new SalesServiceModule()
 
-// Layer 3 — Aggregators (depends on any layer)
-const dashboard = new DashboardServiceModule(iam, location)
+// Layer 3 — Aggregators
+const dashboard = new DashboardServiceModule(iam, location, finance, sales)
 const tool = new ToolServiceModule(iam, location, product, material)
-const moka = new MokaServiceModule(logger)
+const moka = new MokaServiceModule(logger, finance)
+```
+
+**Lazy Injection Pattern** (used when cross-module dep would cause circular bootstrap):
+
+```typescript
+// Service receives lazy getter instead of direct reference
+export class UserService {
+  constructor(
+    private repo = new UserRepo(),
+    private getRoleService?: () => RoleService,          // lazy
+    private getLocationService?: () => LocationMasterService, // lazy: external
+  ) {}
+}
+
+// Module wires at construction time
+const role = new RoleService()
+const user = new UserService(
+  undefined,
+  () => role,
+  () => this.getExternalModules().location.location,
+)
 ```
 
 ### 3.6 Database Authority Governance
