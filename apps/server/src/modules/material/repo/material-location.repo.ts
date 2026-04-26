@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import { bento } from '@/core/cache'
+import { paginate, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
 
 import { db } from '@/db'
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
