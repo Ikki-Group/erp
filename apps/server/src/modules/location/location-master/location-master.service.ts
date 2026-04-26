@@ -1,6 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
@@ -8,10 +7,8 @@ import type { RecordId } from '@/core/validation'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from '../dto'
-import { LocationMasterRepo } from '../repo/location-master.repo'
-
-const cache = bento.namespace('location-master')
+import * as dto from './location-master.dto'
+import { LocationMasterRepo } from './location-master.repo'
 
 const uniqueFields: ConflictField<'code' | 'name'>[] = [
 	{
@@ -37,20 +34,11 @@ const err = {
 export class LocationMasterService {
 	constructor(public repo = new LocationMasterRepo()) {}
 
-	// Internal
-	private async clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
-	}
+	/* --------------------------------- PUBLIC --------------------------------- */
 
-	// Public methods
 	async getList(): Promise<dto.LocationDto[]> {
 		return record('LocationMasterService.getList', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.repo.getList(),
-			})
+			return this.repo.getList()
 		})
 	}
 
@@ -63,26 +51,18 @@ export class LocationMasterService {
 
 	async getById(id: number): Promise<dto.LocationDto | undefined> {
 		return record('LocationMasterService.getById', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const result = await this.repo.getById(id)
-					return result ?? skip()
-				},
-			})
+			return this.repo.getById(id)
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('LocationMasterService.count', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => this.repo.count(),
-			})
+			return this.repo.count()
 		})
 	}
 
-	// Handler layer
+	/* --------------------------------- HANDLER -------------------------------- */
+
 	async handleList(filter: dto.LocationFilterDto): Promise<WithPaginationResult<dto.LocationDto>> {
 		return record('LocationMasterService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
@@ -109,7 +89,6 @@ export class LocationMasterService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
-			await this.clearCache()
 			return { id: result }
 		})
 	}
@@ -120,6 +99,7 @@ export class LocationMasterService {
 
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
+
 			await checkConflict({
 				table: locationsTable,
 				pkColumn: locationsTable.id,
@@ -131,7 +111,6 @@ export class LocationMasterService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
-			await this.clearCache(id)
 			return { id }
 		})
 	}
@@ -140,7 +119,6 @@ export class LocationMasterService {
 		return record('LocationMasterService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
-			await this.clearCache(id)
 			return { id }
 		})
 	}

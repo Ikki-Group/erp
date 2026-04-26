@@ -9,8 +9,8 @@ import {
 	zq,
 } from '@/core/validation'
 
-import * as dto from '../dto'
-import type { LocationMasterService } from '../service/location-master.service'
+import * as dto from './location-master.dto'
+import type { LocationMasterService } from './location-master.service'
 
 export function initLocationRoute(service: LocationMasterService) {
 	return new Elysia()

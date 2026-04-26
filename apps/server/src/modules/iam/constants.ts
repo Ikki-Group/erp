@@ -1,9 +1,4 @@
 /**
- * IAM Module Constants
- * Centralized constants for cache keys, system roles, and configurations
- */
-
-/**
  * System role IDs (hardcoded in DB, immutable)
  */
 export const SYSTEM_ROLES = {
