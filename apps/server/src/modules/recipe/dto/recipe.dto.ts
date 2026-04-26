@@ -66,7 +66,7 @@ const RecipeItemMutationDto = z.object({
 	scrapPercentage: zp.decimal.optional().default("0"),
 	uomId: zp.id,
 	notes: zc.strTrimNullable,
-	sortOrder: zp.num.optional().default("0"),
+	sortOrder: zp.num.optional().default(0),
 })
 
 export const RecipeCreateDto = z

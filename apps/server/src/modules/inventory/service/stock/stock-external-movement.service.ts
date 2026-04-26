@@ -13,6 +13,7 @@ import type {
 	ProductionOutTransactionDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
+import Decimal from 'decimal.js'
 
 import { MovementLogic } from './movement-logic'
 
@@ -63,7 +64,7 @@ export class StockExternalMovementService extends MovementLogic {
 					notes: notes ?? null,
 					qty: qty.toString(),
 					unitCost: unitCost.toString(),
-					totalCost: (qty * unitCost).toString(),
+					totalCost: new Decimal(qty).mul(unitCost).toString(),
 					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
@@ -72,7 +73,7 @@ export class StockExternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
 					actorId,
 					tx,
 				)
@@ -130,7 +131,7 @@ export class StockExternalMovementService extends MovementLogic {
 						notes: notes ?? null,
 						qty: qty.toString(),
 						unitCost: unitCost.toString(),
-						totalCost: (qty * unitCost).toString(),
+						totalCost: new Decimal(qty).mul(unitCost).toString(),
 						runningQty: newQty.toString(),
 						runningAvgCost: newAvgCost.toString(),
 						...metadata,
@@ -139,7 +140,7 @@ export class StockExternalMovementService extends MovementLogic {
 					await this.mLocationSvc.updateCurrentStock(
 						materialId,
 						locationId,
-						{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+						{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
 						actorId,
 						tx,
 					)

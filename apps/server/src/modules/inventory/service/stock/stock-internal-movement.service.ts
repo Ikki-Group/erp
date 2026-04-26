@@ -12,6 +12,7 @@ import type {
 	StockOpnameDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
+import Decimal from 'decimal.js'
 
 import { MovementLogic } from './movement-logic'
 
@@ -49,13 +50,16 @@ export class StockInternalMovementService extends MovementLogic {
 				const sourceAssignment = await this.mLocationSvc.findOne(materialId, sourceLocationId)
 				const destAssignment = await this.mLocationSvc.findOne(materialId, destinationLocationId)
 
-				if (sourceAssignment.currentQty < qty) {
+				const sQtyDec = new Decimal(sourceAssignment.currentQty)
+				const qtyDec = new Decimal(qty)
+
+				if (sQtyDec.lt(qtyDec)) {
 					throw new BadRequestError(
 						`Insufficient stock for material ${materialId} at source: available ${sourceAssignment.currentQty}, requested ${qty}`,
 					)
 				}
 
-				const transferCost = qty * sourceAssignment.currentAvgCost
+				const transferCost = qtyDec.mul(sourceAssignment.currentAvgCost)
 
 				// ── Transfer OUT (Delegating to Logic)
 				await this.handleStockOut(
@@ -101,7 +105,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					destinationLocationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
 					actorId,
 					tx,
 				)
@@ -140,19 +144,19 @@ export class StockInternalMovementService extends MovementLogic {
 
 			await record(`StockInternalMovementService.handleOpname.item:${materialId}`, async () => {
 				const assignment = await this.mLocationSvc.findOne(materialId, locationId)
-				const diffQty = physicalQty - assignment.currentQty
+				const diffQty = new Decimal(physicalQty).minus(assignment.currentQty)
 
-				if (diffQty === 0) return
+				if (diffQty.isZero()) return
 
 				const { newQty, newAvgCost } =
-					diffQty > 0
+					diffQty.isPositive()
 						? this.calculateIncomingWAC(
 								assignment.currentQty,
 								assignment.currentAvgCost,
-								diffQty,
+								diffQty.toString(),
 								assignment.currentAvgCost,
 							)
-						: { newQty: physicalQty, newAvgCost: assignment.currentAvgCost }
+						: { newQty: new Decimal(physicalQty).toString(), newAvgCost: assignment.currentAvgCost.toString() }
 
 				await tx.insert(stockTransactionsTable).values({
 					materialId,
@@ -163,7 +167,7 @@ export class StockInternalMovementService extends MovementLogic {
 					notes: `Stock Opname: ${notes ?? ''}`.trim(),
 					qty: diffQty.toString(),
 					unitCost: assignment.currentAvgCost.toString(),
-					totalCost: (Math.abs(diffQty) * assignment.currentAvgCost).toString(),
+					totalCost: diffQty.abs().mul(assignment.currentAvgCost).toString(),
 					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
@@ -172,7 +176,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
 					actorId,
 					tx,
 				)
@@ -213,17 +217,18 @@ export class StockInternalMovementService extends MovementLogic {
 				const assignment = await this.mLocationSvc.findOne(materialId, locationId)
 				const effectiveUnitCost = item.unitCost ?? assignment.currentAvgCost
 
+				const qtyDec = new Decimal(qty)
 				const { newQty, newAvgCost } =
-					qty > 0
+					qtyDec.isPositive()
 						? this.calculateIncomingWAC(
 								assignment.currentQty,
 								assignment.currentAvgCost,
 								qty,
 								effectiveUnitCost,
 							)
-						: { newQty: assignment.currentQty + qty, newAvgCost: assignment.currentAvgCost }
+						: { newQty: new Decimal(assignment.currentQty).plus(qtyDec).toString(), newAvgCost: assignment.currentAvgCost.toString() }
 
-				if (newQty < 0)
+				if (new Decimal(newQty).isNegative())
 					throw new BadRequestError(
 						`Adjustment results in negative stock for material ${materialId}`,
 					)
@@ -237,7 +242,7 @@ export class StockInternalMovementService extends MovementLogic {
 					notes: notes ?? null,
 					qty: qty.toString(),
 					unitCost: effectiveUnitCost.toString(),
-					totalCost: (Math.abs(qty) * effectiveUnitCost).toString(),
+					totalCost: qtyDec.abs().mul(effectiveUnitCost).toString(),
 					runningQty: newQty.toString(),
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
@@ -246,7 +251,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: newQty * newAvgCost },
+					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
 					actorId,
 					tx,
 				)

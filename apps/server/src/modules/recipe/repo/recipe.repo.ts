@@ -263,7 +263,7 @@ export class RecipeRepo {
 							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes,
-							sortOrder: (item.sortOrder ?? 0).toString(),
+							sortOrder: item.sortOrder ?? 0,
 							...meta,
 						})),
 					)
@@ -316,7 +316,7 @@ export class RecipeRepo {
 							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes ?? null,
-							sortOrder: (item.sortOrder ?? 0).toString(),
+							sortOrder: item.sortOrder ?? 0,
 							...createMeta,
 						})),
 					)

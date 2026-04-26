@@ -73,27 +73,27 @@ export type StockTransactionFilterDto = z.infer<typeof StockTransactionFilterDto
 /** Single item within a purchase transaction */
 const PurchaseItemDto = z.object({
 	materialId: zp.id,
-	qty: zp.decimal.refine((v) => v > 0, 'Quantity must be positive'),
-	unitCost: zp.decimal.refine((v) => v >= 0, 'Unit cost must be non-negative'),
+	qty: zp.decimal.refine((v) => Number(v) > 0, 'Quantity must be positive'),
+	unitCost: zp.decimal.refine((v) => Number(v) >= 0, 'Unit cost must be non-negative'),
 })
 
 /** Single item within a transfer transaction */
 const TransferItemDto = z.object({
 	materialId: zp.id,
-	qty: zp.decimal.refine((v) => v > 0, 'Quantity must be positive'),
+	qty: zp.decimal.refine((v) => Number(v) > 0, 'Quantity must be positive'),
 })
 
 /** Single item within an adjustment transaction */
 const AdjustmentItemDto = z.object({
 	materialId: zp.id,
-	qty: zp.decimal.refine((v) => v !== 0, 'Quantity must not be zero'),
-	unitCost: zp.decimal.refine((v) => v >= 0, "Must be non-negative").optional(),
+	qty: zp.decimal.refine((v) => Number(v) !== 0, 'Quantity must not be zero'),
+	unitCost: zp.decimal.refine((v) => Number(v) >= 0, "Must be non-negative").optional(),
 })
 
 /** Single item within a stock out (usage/sell) transaction */
 const UsageItemDto = z.object({
 	materialId: zp.id,
-	qty: zp.decimal.refine((v) => v > 0, 'Quantity must be positive'),
+	qty: zp.decimal.refine((v) => Number(v) > 0, 'Quantity must be positive'),
 })
 
 /* ──────────────────── MUTATION: BATCH OPS ────────────────────── */
