@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { transformDecimals } from '@/core/utils/decimal'
 import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
 
 import { db } from '@/db'
@@ -37,7 +38,7 @@ export class WorkOrderRepo {
 						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
 					if (!wo) return skip()
-					return wo as unknown as WorkOrderDto
+					return transformDecimals(wo) as WorkOrderDto
 				},
 			})
 		})
@@ -55,7 +56,7 @@ export class WorkOrderRepo {
 				status ? eq(workOrdersTable.status, status) : undefined,
 			)
 
-			return paginate({
+			const result = await paginate({
 				data: ({ limit: l, offset }) =>
 					db
 						.select()
@@ -69,7 +70,12 @@ export class WorkOrderRepo {
 					.select({ count: count() })
 					.from(workOrdersTable)
 					.where(where),
-			}) as unknown as WithPaginationResult<WorkOrderDto>
+			})
+
+			return {
+				...result,
+				data: result.data.map((wo) => transformDecimals(wo) as WorkOrderDto),
+			}
 		})
 	}
 
@@ -94,7 +100,7 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to create work order')
 			void this.#clearCache()
-			return result as unknown as WorkOrderDto
+			return transformDecimals(result) as WorkOrderDto
 		})
 	}
 
@@ -108,7 +114,7 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to update work order')
 			void this.#clearCache(id)
-			return result as unknown as WorkOrderDto
+			return transformDecimals(result) as WorkOrderDto
 		})
 	}
 

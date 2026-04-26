@@ -14,10 +14,6 @@
 		"promise",
 		"vitest"
 	],
-	"options": {
-		"typeAware": true,
-		"typeCheck": true
-	},
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",

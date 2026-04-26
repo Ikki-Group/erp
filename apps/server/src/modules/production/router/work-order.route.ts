@@ -19,7 +19,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
 		.get(
 			'/list',
 			async ({ query }) => {
-				const result = await service.handleList(query as any)
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -39,7 +39,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
 		.post(
 			'/create',
 			async ({ body, auth }) => {
-				const result = await service.handleCreate(body as any, auth.userId)
+				const result = await service.handleCreate(body, auth.userId)
 				return res.created(result)
 			},
 			{

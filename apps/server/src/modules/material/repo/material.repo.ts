@@ -106,13 +106,16 @@ export class MaterialRepo {
 					: []
 			const uomMap = new Map(uoms.map((u) => [u.id, u]))
 
-			const data: MaterialSelectDto[] = result.data.map((m) => ({
-				...m,
-				uom: m.baseUomId ? (uomMap.get(m.baseUomId) ?? null) : null,
-				category: null, // Populated by service
-				conversions: [],
-				locationIds: [],
-			}) as any)
+			const data: MaterialSelectDto[] = result.data.map((m) => {
+				const dto: MaterialSelectDto = {
+					...m,
+					uom: m.baseUomId ? (uomMap.get(m.baseUomId) ?? null) : null,
+					category: null, // Populated by service
+					conversions: [],
+					locationIds: [],
+				}
+				return dto
+			})
 
 			return { data, meta: result.meta }
 		})

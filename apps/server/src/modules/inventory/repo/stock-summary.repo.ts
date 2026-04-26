@@ -300,7 +300,7 @@ export class StockSummaryRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async upsertMany(data: any[]): Promise<number> {
+	async upsertMany(data: (typeof stockSummariesTable.$inferInsert)[]): Promise<number> {
 		return record('StockSummaryRepo.upsertMany', async () => {
 			await db
 				.insert(stockSummariesTable)

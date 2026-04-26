@@ -55,7 +55,7 @@ export class GoodsReceiptService {
 
 	async handleComplete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleComplete', async () => {
-			return await db.transaction(async (tx) => {
+			return db.transaction(async (tx) => {
 				const grn = await this.getById(id)
 				if (grn.status !== 'open') {
 					throw new ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')

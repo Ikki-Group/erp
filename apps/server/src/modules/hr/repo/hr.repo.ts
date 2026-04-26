@@ -127,7 +127,7 @@ export class HRRepo {
 		})
 	}
 
-	async findOpenAttendance(employeeId: number): Promise<any | undefined> {
+	async findOpenAttendance(employeeId: number): Promise<AttendanceDto | undefined> {
 		const [existing] = await db
 			.select()
 			.from(attendancesTable)
@@ -141,7 +141,7 @@ export class HRRepo {
 		return existing
 	}
 
-	async getAttendanceById(id: number): Promise<any | undefined> {
+	async getAttendanceById(id: number): Promise<AttendanceDto | undefined> {
 		const [result] = await db
 			.select()
 			.from(attendancesTable)
@@ -195,7 +195,7 @@ export class HRRepo {
 			const metadata = stampUpdate(actorId)
 			const [result] = await db
 				.update(attendancesTable)
-				.set({ clockOut: new Date(), note: note as any, ...metadata })
+				.set({ clockOut: new Date(), note, ...metadata })
 				.where(eq(attendancesTable.id, id))
 				.returning()
 

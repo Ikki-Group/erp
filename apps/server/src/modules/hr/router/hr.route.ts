@@ -37,7 +37,7 @@ export function initHRRoute(s: HRService) {
 		.get(
 			'/attendances',
 			async ({ query }) => {
-				const result = await s.handleAttendanceList(query as any)
+				const result = await s.handleAttendanceList(query)
 				return res.paginated(result)
 			},
 			{
@@ -49,7 +49,7 @@ export function initHRRoute(s: HRService) {
 		.post(
 			'/clock-in',
 			async ({ body, auth }) => {
-				const result = await s.handleClockIn(body as any, auth.userId)
+				const result = await s.handleClockIn(body, auth.userId)
 				return res.created(result)
 			},
 			{ body: ClockInDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },
@@ -57,7 +57,7 @@ export function initHRRoute(s: HRService) {
 		.post(
 			'/clock-out',
 			async ({ body, auth }) => {
-				const result = await s.handleClockOut(body as any, auth.userId)
+				const result = await s.handleClockOut(body, auth.userId)
 				return res.ok(result)
 			},
 			{ body: ClockOutDto, response: createSuccessResponseSchema(AttendanceDto), auth: true },

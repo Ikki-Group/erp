@@ -53,7 +53,7 @@ export class PayrollService {
 
 				const finalizedBatch = await this.repo.finalizeBatch(batchId, actorId)
 
-				await this.postPayrollToGL(finalizedBatch as any, actorId)
+				await this.postPayrollToGL(finalizedBatch, actorId)
 
 				return finalizedBatch
 			})
@@ -62,7 +62,7 @@ export class PayrollService {
 
 	/* --------------------------------- PRIVATE -------------------------------- */
 
-	private async postPayrollToGL(batch: any, actorId: number) {
+	private async postPayrollToGL(batch: PayrollBatchDto, actorId: number) {
 		const expenseAcc = await this.accountSvc.findByCode('5201')
 		const payableAcc = await this.accountSvc.findByCode('2102')
 
@@ -79,8 +79,8 @@ export class PayrollService {
 				sourceId: batch.id,
 				note: `Automated posting from Payroll Finalization (Batch: ${batch.name})`,
 				items: [
-					{ accountId: expenseAcc.id, debit: batch.totalAmount, credit: '0' },
-					{ accountId: payableAcc.id, debit: '0', credit: batch.totalAmount },
+					{ accountId: expenseAcc.id, debit: batch.totalAmount.toString(), credit: '0' },
+					{ accountId: payableAcc.id, debit: '0', credit: batch.totalAmount.toString() },
 				],
 			},
 			actorId,

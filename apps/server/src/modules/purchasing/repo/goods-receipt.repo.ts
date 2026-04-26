@@ -130,11 +130,11 @@ export class GoodsReceiptRepo {
 		})
 	}
 
-	async updateStatus(id: number, status: string, actorId: number): Promise<{ id: number }> {
+	async updateStatus(id: number, status: dto.GoodsReceiptStatus, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptRepo.updateStatus', async () => {
 			await db
 				.update(goodsReceiptNotesTable)
-				.set({ status: status as any, ...stampUpdate(actorId) })
+				.set({ status, ...stampUpdate(actorId) })
 				.where(eq(goodsReceiptNotesTable.id, id))
 			void this.#clearCache(id)
 			return { id }
