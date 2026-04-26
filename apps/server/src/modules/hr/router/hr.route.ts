@@ -37,7 +37,7 @@ export function initHRRoute(s: HRService) {
 		.get(
 			'/attendances',
 			async ({ query }) => {
-				const result = await s.handleAttendanceList(query as any, query as any)
+				const result = await s.handleAttendanceList(query as any)
 				return res.paginated(result)
 			},
 			{

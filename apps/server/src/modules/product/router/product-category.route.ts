@@ -18,7 +18,7 @@ export function initProductCategoryRoute(s: ProductServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.category.handleList(query, query)
+				const result = await s.category.handleList(query)
 				return res.paginated(result)
 			},
 			{

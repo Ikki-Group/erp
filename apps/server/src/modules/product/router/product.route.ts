@@ -13,7 +13,7 @@ export function initProductRoute(s: ProductServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.product.handleList(query, query)
+				const result = await s.product.handleList(query)
 				return res.paginated(result)
 			},
 			{
