@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'drizzle-orm'
 
-import { paginate, takeFirstOrThrow } from '@/core/database'
+import { paginate, sortBy, takeFirstOrThrow } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
@@ -15,16 +15,13 @@ import type {
 } from '@/modules/inventory/dto'
 
 export class StockTransactionRepo {
-	/* -------------------------------------------------------------------------- */
-	/*                                    QUERY                                   */
-	/* -------------------------------------------------------------------------- */
+	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getList(
+	async getListPaginated(
 		filter: StockTransactionFilterDto,
-		pq: PaginationQuery,
 	): Promise<WithPaginationResult<StockTransactionSelectDto>> {
-		return record('StockTransactionRepo.getList', async () => {
-			const { locationId, materialId, type, search, dateFrom, dateTo } = filter
+		return record('StockTransactionRepo.getListPaginated', async () => {
+			const { locationId, materialId, type, search, dateFrom, dateTo, page, limit } = filter
 
 			const searchCondition = search
 				? or(
@@ -56,7 +53,7 @@ export class StockTransactionRepo {
 			)
 
 			return paginate({
-				data: ({ limit, offset }) =>
+				data: ({ limit: l, offset }) =>
 					db
 						.select({
 							id: stockTransactionsTable.id,
@@ -79,12 +76,13 @@ export class StockTransactionRepo {
 							updatedBy: stockTransactionsTable.updatedBy,
 						})
 						.from(stockTransactionsTable)
+						.leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
 						.where(where)
 						.orderBy(desc(stockTransactionsTable.date), desc(stockTransactionsTable.id))
-						.limit(limit)
+						.limit(l)
 						.offset(offset),
-				pq,
-				countQuery: db.select({ count: count() }).from(stockTransactionsTable).where(where),
+				pq: { page, limit },
+				countQuery: db.select({ count: count() }).from(stockTransactionsTable).leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id)).where(where),
 			})
 		})
 	}
@@ -110,9 +108,7 @@ export class StockTransactionRepo {
 		})
 	}
 
-	/* -------------------------------------------------------------------------- */
-	/*                                  MUTATION                                  */
-	/* -------------------------------------------------------------------------- */
+	/* -------------------------------- MUTATION -------------------------------- */
 
 	async create(data: typeof stockTransactionsTable.$inferInsert): Promise<StockTransactionDto> {
 		return record('StockTransactionRepo.create', async () => {

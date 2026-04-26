@@ -1,5 +1,6 @@
+import { record } from '@elysiajs/opentelemetry'
 import type { DbTx } from '@/core/database'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
 
@@ -39,35 +40,46 @@ export class StockTransactionService {
 		this.internal = new StockInternalMovementService(mLocationSvc)
 	}
 
-	/* ─────────────────────── READ OPERATIONS ─────────────────────── */
+	/* --------------------------------- HANDLER -------------------------------- */
+
+	/* ─── READ OPERATIONS ────────────────────────────────────────────────────── */
 
 	async handleList(
 		filter: StockTransactionFilterDto,
-		pq: PaginationQuery,
 	): Promise<WithPaginationResult<StockTransactionSelectDto>> {
-		return this.history.handleList(filter, pq)
+		return record('StockTransactionService.handleList', async () => {
+			return this.history.handleList(filter)
+		})
 	}
 
 	async handleDetail(id: number): Promise<StockTransactionDto> {
-		return this.history.handleDetail(id)
+		return record('StockTransactionService.handleDetail', async () => {
+			return this.history.handleDetail(id)
+		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
-		return this.history.handleRemove(id, actorId)
+		return record('StockTransactionService.handleRemove', async () => {
+			return this.history.handleRemove(id, actorId)
+		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return this.history.handleHardRemove(id)
+		return record('StockTransactionService.handleHardRemove', async () => {
+			return this.history.handleHardRemove(id)
+		})
 	}
 
-	/* ─────────────────────── WRITE OPERATIONS: EXTERNAL ─────────────────────── */
+	/* ─── WRITE OPERATIONS: EXTERNAL ─────────────────────────────────────────── */
 
 	async handlePurchase(
 		data: PurchaseTransactionDto,
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.external.handlePurchase(data, actorId, tx)
+		return record('StockTransactionService.handlePurchase', async () => {
+			return this.external.handlePurchase(data, actorId, tx)
+		})
 	}
 
 	async handleProductionIn(
@@ -75,7 +87,9 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.external.handleProductionIn(data, actorId, tx)
+		return record('StockTransactionService.handleProductionIn', async () => {
+			return this.external.handleProductionIn(data, actorId, tx)
+		})
 	}
 
 	async handleUsage(
@@ -83,7 +97,9 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.external.handleUsage(data, actorId, tx)
+		return record('StockTransactionService.handleUsage', async () => {
+			return this.external.handleUsage(data, actorId, tx)
+		})
 	}
 
 	async handleSell(
@@ -91,7 +107,9 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.external.handleSell(data, actorId, tx)
+		return record('StockTransactionService.handleSell', async () => {
+			return this.external.handleSell(data, actorId, tx)
+		})
 	}
 
 	async handleProductionOut(
@@ -99,17 +117,21 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.external.handleProductionOut(data, actorId, tx)
+		return record('StockTransactionService.handleProductionOut', async () => {
+			return this.external.handleProductionOut(data, actorId, tx)
+		})
 	}
 
-	/* ─────────────────────── WRITE OPERATIONS: INTERNAL ─────────────────────── */
+	/* ─── WRITE OPERATIONS: INTERNAL ─────────────────────────────────────────── */
 
 	async handleTransfer(
 		data: TransferTransactionDto,
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.internal.handleTransfer(data, actorId, tx)
+		return record('StockTransactionService.handleTransfer', async () => {
+			return this.internal.handleTransfer(data, actorId, tx)
+		})
 	}
 
 	async handleAdjustment(
@@ -117,7 +139,9 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.internal.handleAdjustment(data, actorId, tx)
+		return record('StockTransactionService.handleAdjustment', async () => {
+			return this.internal.handleAdjustment(data, actorId, tx)
+		})
 	}
 
 	async handleOpname(
@@ -125,6 +149,8 @@ export class StockTransactionService {
 		actorId: number,
 		tx: DbTx | typeof db = db,
 	): Promise<TransactionResultDto> {
-		return this.internal.handleOpname(data, actorId, tx)
+		return record('StockTransactionService.handleOpname', async () => {
+			return this.internal.handleOpname(data, actorId, tx)
+		})
 	}
 }

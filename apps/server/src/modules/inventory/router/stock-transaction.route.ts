@@ -149,7 +149,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.get(
 				'/list',
 				async function list({ query }) {
-					const result = await s.transaction.handleList(query, query)
+					const result = await s.transaction.handleList(query)
 					return res.paginated(result)
 				},
 				{

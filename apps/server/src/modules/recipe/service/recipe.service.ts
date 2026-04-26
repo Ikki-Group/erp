@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
-import { ConflictError } from '@/core/http/errors'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
 
-import { bento } from '@/core/cache'
 import { RecipeRepo } from '../repo'
 
 import type {
@@ -12,56 +11,46 @@ import type {
 	RecipeSelectDto,
 	RecipeUpdateDto,
 } from '../dto/recipe.dto'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
 const err = {
+	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
 	targetMissing: () =>
 		new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET'),
 	targetExists: () =>
 		new ConflictError('A recipe already exists for this target', 'RECIPE_TARGET_ALREADY_EXISTS'),
 }
 
-const cache = bento.namespace('recipe')
-
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class RecipeService {
-	private readonly repo = new RecipeRepo()
+	constructor(private readonly repo = new RecipeRepo()) {}
 
-	/* ─── Public Reads ─────────────────────────────────────────────────────────*/
+	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<RecipeDto> {
 		return record('RecipeService.getById', async () => {
-			return cache.getOrSet({
-				key: `${id}`,
-				factory: async () => {
-					const recipe = await this.repo.getById(id)
-					if (!recipe) throw new Error(`Recipe with ID ${id} not found`)
-					return recipe
-				},
-			})
+			const recipe = await this.repo.getById(id)
+			if (!recipe) throw err.notFound(id)
+			return recipe
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('RecipeService.count', async () => {
-			return cache.getOrSet({
-				key: 'count',
-				factory: async () => this.repo.count(),
-			})
+			return this.repo.count()
 		})
 	}
 
-	/* ─── Public Handlers ──────────────────────────────────────────────────────*/
+	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
 		filter: RecipeFilterDto,
-		pq: PaginationQuery,
 	): Promise<WithPaginationResult<RecipeSelectDto>> {
 		return record('RecipeService.handleList', async () => {
-			return this.repo.getList(filter, pq)
+			return this.repo.getListPaginated(filter)
 		})
 	}
 
@@ -87,9 +76,7 @@ export class RecipeService {
 				throw err.targetExists()
 			}
 
-			const created = await this.repo.create(data, actorId)
-			await this.clearCache()
-			return created
+			return this.repo.create(data, actorId)
 		})
 	}
 
@@ -109,25 +96,19 @@ export class RecipeService {
 				throw err.targetExists()
 			}
 
-			const updated = await this.repo.update(data, actorId)
-			await this.clearCache(data.id)
-			return updated
+			return this.repo.update(data, actorId)
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
-			await this.clearCache(id)
-			return result
+			return this.repo.softDelete(id, actorId)
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('RecipeService.handleHardRemove', async () => {
-			const result = await this.repo.hardDelete(id)
-			await this.clearCache(id)
-			return result
+			return this.repo.hardDelete(id)
 		})
 	}
 
@@ -158,11 +139,5 @@ export class RecipeService {
 
 			return { recipeId, targetQty, totalCost, unitCost, items: detailedItems }
 		})
-	}
-
-	private async clearCache(id?: number) {
-		const keys = ['count', 'list']
-		if (id) keys.push(`${id}`)
-		await cache.deleteMany({ keys })
 	}
 }

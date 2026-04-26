@@ -19,7 +19,7 @@ export function initRecipeRoute(s: RecipeServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.recipe.handleList(query, query)
+				const result = await s.recipe.handleList(query)
 				return res.paginated(result)
 			},
 			{
