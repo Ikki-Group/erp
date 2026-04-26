@@ -10,7 +10,7 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import { transformDecimals } from '@/core/utils/decimal'
+import Decimal from 'decimal.js'
 
 import { db } from '@/db'
 import {
@@ -68,15 +68,15 @@ export class SalesOrderRepo {
 				.map((v: { itemId: number | null }) => v.itemId as number),
 		)
 
-		let totalAmount = 0
-		let discountAmount = 0
-		let taxAmount = 0
+		let totalAmount = new Decimal(0)
+		let discountAmount = new Decimal(0)
+		let taxAmount = new Decimal(0)
 
 		for (const item of allItems) {
 			if (!voidedItemIds.has(item.id)) {
-				totalAmount += Number(item.subtotal)
-				discountAmount += Number(item.discountAmount)
-				taxAmount += Number(item.taxAmount)
+				totalAmount = totalAmount.plus(item.subtotal)
+				discountAmount = discountAmount.plus(item.discountAmount)
+				taxAmount = taxAmount.plus(item.taxAmount)
 			}
 		}
 
@@ -109,11 +109,11 @@ export class SalesOrderRepo {
 					])
 
 					return {
-						...transformDecimals<SalesOrderDto>(row),
-						items: items.map((i) => transformDecimals<SalesOrderItemDto>(i)),
-						batches: batches.map((b) => transformDecimals<SalesOrderBatchDto>(b)),
-						voids: voids.map((v) => transformDecimals<SalesVoidDto>(v)),
-					}
+						...row,
+						items: items as unknown as SalesOrderItemDto[],
+						batches: batches as unknown as SalesOrderBatchDto[],
+						voids: voids as unknown as SalesVoidDto[],
+					} as unknown as SalesOrderOutputDto
 				},
 			})
 		})
@@ -159,7 +159,7 @@ export class SalesOrderRepo {
 
 			return {
 				...result,
-				data: result.data.map((row) => transformDecimals<SalesOrderDto>(row)),
+				data: result.data as unknown as SalesOrderDto[],
 			}
 		})
 	}

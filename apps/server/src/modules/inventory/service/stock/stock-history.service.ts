@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { NotFoundError } from '@/core/http/errors'
-import { transformDecimals } from '@/core/utils/decimal'
+
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import type {
@@ -23,7 +23,7 @@ export class StockHistoryService {
 		return record('StockHistoryService.getById', async () => {
 			const result = await this.repo.getById(id)
 			if (!result) throw new NotFoundError(`Stock transaction ${id} not found`)
-			return transformDecimals(result) as unknown as StockTransactionDto
+			return result as unknown as StockTransactionDto
 		})
 	}
 
@@ -39,7 +39,7 @@ export class StockHistoryService {
 			const result = await this.repo.getListPaginated(filter)
 			return {
 				...result,
-				data: transformDecimals(result.data) as unknown as StockTransactionSelectDto[],
+				data: result.data as unknown as StockTransactionSelectDto[],
 			}
 		})
 	}

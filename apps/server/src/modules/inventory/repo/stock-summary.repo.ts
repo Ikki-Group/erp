@@ -18,6 +18,7 @@ import {
 import { bento } from '@/core/cache'
 import { paginate, type WithPaginationResult } from '@/core/database'
 import { toWibDateKey } from '@/core/utils/date.util'
+import Decimal from 'decimal.js'
 
 import { db } from '@/db'
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
@@ -111,31 +112,7 @@ export class StockSummaryRepo {
 					})
 
 					return {
-						data: result.data.map((r) => ({
-							...r,
-							openingQty: Number(r.openingQty),
-							openingAvgCost: Number(r.openingAvgCost),
-							openingValue: Number(r.openingValue),
-							purchaseQty: Number(r.purchaseQty),
-							purchaseValue: Number(r.purchaseValue),
-							transferInQty: Number(r.transferInQty),
-							transferInValue: Number(r.transferInValue),
-							transferOutQty: Number(r.transferOutQty),
-							transferOutValue: Number(r.transferOutValue),
-							adjustmentQty: Number(r.adjustmentQty),
-							adjustmentValue: Number(r.adjustmentValue),
-							usageQty: Number(r.usageQty),
-							usageValue: Number(r.usageValue),
-							productionInQty: Number(r.productionInQty),
-							productionInValue: Number(r.productionInValue),
-							productionOutQty: Number(r.productionOutQty),
-							productionOutValue: Number(r.productionOutValue),
-							sellQty: Number(r.sellQty),
-							sellValue: Number(r.sellValue),
-							closingQty: Number(r.closingQty),
-							closingAvgCost: Number(r.closingAvgCost),
-							closingValue: Number(r.closingValue),
-						})),
+						data: result.data as unknown as StockSummarySelectDto[],
 						meta: result.meta,
 					}
 				},
@@ -207,7 +184,7 @@ export class StockSummaryRepo {
 						materialId: number
 						total_qty: string
 					}[]
-					const openingMap = new Map(openingRaw.map((r) => [r.materialId, Number(r.total_qty)]))
+					const openingMap = new Map(openingRaw.map((r) => [r.materialId, r.total_qty]))
 
 					// B. Movements
 					const movements = await db
@@ -261,35 +238,38 @@ export class StockSummaryRepo {
 						const mv = movementMap.get(m.id)
 						const cl = closingMap.get(m.id)
 
-						const openingQty = openingMap.get(m.id) ?? 0
-						const purchaseQty = Number(mv?.purchaseQty ?? 0)
-						const transferInQty = Number(mv?.transferInQty ?? 0)
-						const transferOutQty = Number(mv?.transferOutQty ?? 0)
-						const adjustmentQty = Number(mv?.adjustmentQty ?? 0)
-						const sellQty = Number(mv?.sellQty ?? 0)
+						const openingQty = new Decimal(openingMap.get(m.id) ?? 0)
+						const purchaseQty = new Decimal(mv?.purchaseQty ?? 0)
+						const transferInQty = new Decimal(mv?.transferInQty ?? 0)
+						const transferOutQty = new Decimal(mv?.transferOutQty ?? 0)
+						const adjustmentQty = new Decimal(mv?.adjustmentQty ?? 0)
+						const sellQty = new Decimal(mv?.sellQty ?? 0)
+						const usageQty = new Decimal(mv?.usageQty ?? 0)
+						const productionInQty = new Decimal(mv?.productionInQty ?? 0)
+						const productionOutQty = new Decimal(mv?.productionOutQty ?? 0)
 
-						const closingQty = Number(cl?.total_qty ?? 0)
-						const closingValue = Number(cl?.total_value ?? 0)
-						const closingAvgCost = closingQty === 0 ? 0 : Math.abs(closingValue / closingQty)
+						const closingQty = new Decimal(cl?.total_qty ?? 0)
+						const closingValue = new Decimal(cl?.total_value ?? 0)
+						const closingAvgCost = closingQty.isZero() ? new Decimal(0) : closingValue.div(closingQty).abs()
 
 						return {
 							materialId: m.id,
 							materialName: m.name,
 							materialSku: m.sku,
 							baseUomCode: m.baseUomCode,
-							openingQty,
-							purchaseQty,
-							transferInQty,
-							transferOutQty,
-							sellQty,
-							adjustmentQty,
-							usageQty: Number(mv?.usageQty ?? 0),
-							productionInQty: Number(mv?.productionInQty ?? 0),
-							productionOutQty: Number(mv?.productionOutQty ?? 0),
-							closingQty,
-							closingValue,
-							closingAvgCost,
-						}
+							openingQty: openingQty.toString(),
+							purchaseQty: purchaseQty.toString(),
+							transferInQty: transferInQty.toString(),
+							transferOutQty: transferOutQty.toString(),
+							sellQty: sellQty.toString(),
+							adjustmentQty: adjustmentQty.toString(),
+							usageQty: usageQty.toString(),
+							productionInQty: productionInQty.toString(),
+							productionOutQty: productionOutQty.toString(),
+							closingQty: closingQty.toString(),
+							closingValue: closingValue.toString(),
+							closingAvgCost: closingAvgCost.toString(),
+						} as unknown as StockLedgerSelectDto
 					})
 
 					return { data, meta: matResult.meta }

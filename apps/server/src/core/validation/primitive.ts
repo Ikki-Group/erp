@@ -14,7 +14,7 @@ const date = z.coerce.date()
 const id = z.number().int().positive()
 const uuid = z.uuidv7()
 
-const decimal = z.coerce.number()
+const decimal = z.union([z.string(), z.number()]).transform((val) => val.toString())
 
 export const zp = {
 	str,

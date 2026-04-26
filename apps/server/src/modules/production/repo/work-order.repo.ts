@@ -3,7 +3,7 @@ import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
-import { transformDecimals } from '@/core/utils/decimal'
+
 
 import { db } from '@/db'
 import { workOrdersTable } from '@/db/schema/production'
@@ -34,7 +34,7 @@ export class WorkOrderRepo {
 						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
 					if (!wo) return skip()
-					return transformDecimals<WorkOrderDto>(wo)
+					return wo as unknown as WorkOrderDto
 				},
 			})
 		})
@@ -65,7 +65,7 @@ export class WorkOrderRepo {
 
 			return {
 				...result,
-				data: result.data.map((wo) => transformDecimals<WorkOrderDto>(wo)),
+				data: result.data as unknown as WorkOrderDto[],
 			}
 		})
 	}
@@ -91,7 +91,7 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to create work order')
 			void this.#clearCache()
-			return transformDecimals<WorkOrderDto>(result)
+			return result as unknown as WorkOrderDto
 		})
 	}
 
@@ -109,7 +109,7 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to update work order')
 			void this.#clearCache(id)
-			return transformDecimals<WorkOrderDto>(result)
+			return result as unknown as WorkOrderDto
 		})
 	}
 
