@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, desc, eq, isNull, sql } from 'drizzle-orm'
+import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow, type WithPaginationResult } from '@/core/database'
+import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
 
 import { db } from '@/db'
 import { workOrdersTable } from '@/db/schema/production'
@@ -69,7 +69,7 @@ export class WorkOrderRepo {
 					.select({ count: count() })
 					.from(workOrdersTable)
 					.where(where),
-			})
+			}) as unknown as WithPaginationResult<WorkOrderDto>
 		})
 	}
 

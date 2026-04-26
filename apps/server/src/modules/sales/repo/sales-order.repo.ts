@@ -97,13 +97,13 @@ export class SalesOrderRepo {
 
 					return {
 						...row,
-						totalAmount: row.totalAmount,
-						discountAmount: row.discountAmount,
-						taxAmount: row.taxAmount,
+						totalAmount: Number(row.totalAmount),
+						discountAmount: Number(row.discountAmount),
+						taxAmount: Number(row.taxAmount),
 						items: items as any,
 						batches: batches as any,
 						voids: voids as any,
-					}
+					} as unknown as SalesOrderOutputDto
 				},
 			})
 		})
@@ -145,7 +145,7 @@ export class SalesOrderRepo {
 						.offset(offset),
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(salesOrdersTable).where(where),
-			})
+			}) as unknown as WithPaginationResult<SalesOrderDto>
 		})
 	}
 

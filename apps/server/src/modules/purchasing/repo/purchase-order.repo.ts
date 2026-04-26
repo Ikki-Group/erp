@@ -2,12 +2,12 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirstOrThrow, type WithPaginationResult } from '@/core/database'
+import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
 
 import { db } from '@/db'
 import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 
-import type {
+import {
 	PurchaseOrderCreateDto,
 	PurchaseOrderDto,
 	PurchaseOrderFilterDto,
@@ -139,9 +139,9 @@ export class PurchaseOrderRepo {
 					.update(purchaseOrdersTable)
 					.set({
 						...orderData,
-						...(orderData.totalAmount !== undefined && { totalAmount: orderData.totalAmount.toString() }),
-						...(orderData.discountAmount !== undefined && { discountAmount: orderData.discountAmount.toString() }),
-						...(orderData.taxAmount !== undefined && { taxAmount: orderData.taxAmount.toString() }),
+						totalAmount: orderData.totalAmount?.toString(),
+						discountAmount: orderData.discountAmount?.toString(),
+						taxAmount: orderData.taxAmount?.toString(),
 						...updateMeta,
 					})
 					.where(eq(purchaseOrdersTable.id, id))

@@ -2,8 +2,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
-import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
+import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import {
@@ -20,7 +20,6 @@ import type {
 	ProductFilterDto,
 	ProductMutationDto,
 	ProductPriceDto,
-	ProductSelectDto,
 	ProductVariantDto,
 	VariantPriceDto,
 } from '../dto/product.dto'

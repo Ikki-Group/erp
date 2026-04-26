@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { db } from '@/db'
 
-import type { IamModule } from '@/modules/iam'
+import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
 import type { ProductServiceModule } from '@/modules/product'
@@ -11,7 +11,7 @@ import { SEED_CONFIG } from '@/config/seed-config'
 
 export class SeedService {
 	constructor(
-		private readonly iamSvc: IamModule,
+		private readonly iamSvc: IamServiceModule,
 		private readonly locationSvc: LocationServiceModule,
 		private readonly productSvc: ProductServiceModule,
 		private readonly materialSvc: MaterialServiceModule,
@@ -24,7 +24,7 @@ export class SeedService {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
-				await this.iamSvc.service.role.seed([
+				await this.iamSvc.role.seed([
 					{
 						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
 						name: 'Administrator',
@@ -45,7 +45,7 @@ export class SeedService {
 
 				// 2. Seed Users
 				const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
-				await this.iamSvc.service.user.seed([
+				await this.iamSvc.user.seed([
 					{
 						email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
 						username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
@@ -62,7 +62,7 @@ export class SeedService {
 				])
 
 				// 3. Seed Locations
-				await this.locationSvc.location.repo.seed(
+				await this.locationSvc.master.repo.seed(
 					SEED_CONFIG.LOCATIONS.map((l) => ({
 						code: l.code,
 						name: l.name,

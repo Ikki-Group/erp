@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirstOrThrow, type WithPaginationResult } from '@/core/database'
+import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
 
 import { db } from '@/db'
 import {
@@ -10,12 +10,11 @@ import {
 	goodsReceiptNotesTable,
 } from '@/db/schema'
 
-import type {
+import {
 	GoodsReceiptNoteCreateDto,
 	GoodsReceiptNoteDto,
 	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteSelectDto,
-	GoodsReceiptNoteUpdateDto,
 } from '../dto/goods-receipt.dto'
 
 const cache = bento.namespace('purchasing.receipt')

@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import type { ProductCategoryDto } from '../dto/product-category.dto'
+
 import type {
 	ProductDto,
 	ProductFilterDto,
@@ -45,7 +45,7 @@ export class ProductService {
 		return record('ProductService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 
-			const allCategories = await this.categorySvc.handleList({}, { page: 1, limit: 1000 })
+			const allCategories = await this.categorySvc.handleList({ page: 1, limit: 1000 })
 			const categoriesMap = new Map<number, any>(allCategories.data.map((cat) => [cat.id, cat]))
 
 			const data: ProductSelectDto[] = result.data.map((p: any) => ({
