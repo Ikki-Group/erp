@@ -287,7 +287,7 @@ export class MaterialLocationRepo {
 
 	async updateConfig(
 		id: number,
-		data: { minStock?: number; maxStock?: number | null; reorderPoint?: number },
+		data: { minStock?: number | undefined; maxStock?: number | null | undefined; reorderPoint?: number | undefined },
 		actorId: number,
 	): Promise<number | undefined> {
 		return record('MaterialLocationRepo.updateConfig', async () => {

@@ -83,7 +83,7 @@ export class MaterialLocationService {
 
 			// 1. Validate all locations exist
 			for (const locId of locationIds) {
-				await this.locationSvc.location.getById(locId)
+				await this.locationSvc.master.getById(locId)
 			}
 
 			// 2. Validate all materials exist
@@ -129,7 +129,7 @@ export class MaterialLocationService {
 	): Promise<WithPaginationResult<MaterialLocationStockDto>> {
 		return record('MaterialLocationService.handleStockByLocation', async () => {
 			const { locationId } = filter
-			await this.locationSvc.location.getById(locationId)
+			await this.locationSvc.master.getById(locationId)
 			return this.repo.getStockByLocationPaginated(filter)
 		})
 	}

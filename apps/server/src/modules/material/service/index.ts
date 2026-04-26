@@ -1,4 +1,4 @@
-import type { LocationServiceModule } from '@/modules/location/service'
+import type { LocationServiceModule } from '@/modules/location'
 
 import { MaterialCategoryService } from './material-category.service'
 import { MaterialLocationService } from './material-location.service'
@@ -14,7 +14,7 @@ export class MaterialServiceModule {
 	constructor(locationServiceModule: LocationServiceModule) {
 		this.category = new MaterialCategoryService()
 		this.uom = new UomService()
-		this.material = new MaterialService(this.category, this.uom, locationServiceModule.location)
+		this.material = new MaterialService(this.category, this.uom, locationServiceModule.master)
 		this.mLocation = new MaterialLocationService(this.material, locationServiceModule)
 	}
 }

@@ -356,7 +356,7 @@ export class RecipeRepo {
 
 			if (result.length === 0) throw new Error(`Recipe with ID ${id} not found`)
 			void this.#clearCache(id)
-			return result[0]
+			return result[0] as { id: number }
 		})
 	}
 }
