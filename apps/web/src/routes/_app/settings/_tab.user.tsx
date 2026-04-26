@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
-import { KeyRoundIcon, PencilIcon } from 'lucide-react'
+import { KeyRoundIcon, PencilIcon, ZoomInIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -17,7 +17,16 @@ import {
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Popover,
+	PopoverContent,
+	PopoverDescription,
+	PopoverHeader,
+	PopoverTitle,
+	PopoverTrigger,
+} from '@/components/ui/popover'
 
 import type { UserDetailDto } from '@/features/iam'
 import { userApi } from '@/features/iam'
@@ -65,6 +74,58 @@ const columnDefs = [
 		enableSorting: false,
 	}),
 	ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
+	ch.accessor('assignments', {
+		header: 'Penugasan',
+		cell: ({ row }) => {
+			const { isRoot, assignments } = row.original
+			if (isRoot) return <Badge variant="secondary">Super Admin</Badge>
+
+			if (!assignments?.length) {
+				return <span className="text-muted-foreground italic text-xs">Belum ada penugasan</span>
+			}
+
+			return (
+				<div className="flex items-center gap-2">
+					<span className="text-xs font-medium">{assignments.length} Penugasan</span>
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button variant="ghost" size="icon-xs" className="size-6">
+								<ZoomInIcon />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-64 p-3" side="right">
+							<PopoverHeader className="mb-2">
+								<PopoverTitle>Daftar Penugasan</PopoverTitle>
+								<PopoverDescription>Detail role dan lokasi pengguna</PopoverDescription>
+							</PopoverHeader>
+							<div className="space-y-2 max-h-60 overflow-auto pr-1">
+								{assignments.map((a, i) => (
+									<div
+										key={i}
+										className="flex flex-col gap-0.5 border-b last:border-0 pb-1.5 last:pb-0"
+									>
+										<div className="flex items-center justify-between gap-2">
+											<span className="font-semibold text-xs truncate">{a.role.name}</span>
+											{a.isDefault && (
+												<Badge variant="outline" className="h-4 px-1 text-[10px]">
+													Default
+												</Badge>
+											)}
+										</div>
+										<span className="text-muted-foreground text-[11px] truncate">
+											{a.location.name}
+										</span>
+									</div>
+								))}
+							</div>
+						</PopoverContent>
+					</Popover>
+				</div>
+			)
+		},
+		size: 150,
+		enableSorting: false,
+	}),
 	ch.display({
 		id: 'action',
 		cell: ({ row }) => {
