@@ -1,14 +1,11 @@
 import Elysia from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@/core/validation'
 
 import * as dto from './assignment.dto'
 import type { UserAssignmentService } from './assignment.service'
-
-const successSchema = createSuccessResponseSchema(z.object({ success: z.boolean() }))
 
 export function initAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
@@ -29,11 +26,11 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 			'/assign',
 			async function assign({ body, auth }) {
 				await service.handleAssignToLocation(body, auth.userId)
-				return res.ok({ success: true })
+				return res.noData()
 			},
 			{
 				body: dto.UserAssignmentUpsertDto,
-				response: successSchema,
+				response: successNoDataSchema,
 				auth: true,
 			},
 		)
@@ -46,11 +43,11 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 					body.roleId,
 					auth.userId,
 				)
-				return res.ok({ success: true })
+				return res.noData()
 			},
 			{
 				body: dto.AssignmentBulkBodyDto,
-				response: successSchema,
+				response: successNoDataSchema,
 				auth: true,
 			},
 		)
@@ -63,11 +60,11 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 					body.roleId,
 					auth.userId,
 				)
-				return res.ok({ success: true })
+				return res.noData()
 			},
 			{
 				body: dto.AssignmentBulkBodyDto,
-				response: successSchema,
+				response: successNoDataSchema,
 				auth: true,
 			},
 		)
@@ -75,11 +72,11 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 			'/remove',
 			async function remove({ body }) {
 				await service.handleRemoveFromLocation(body.userId, body.locationId)
-				return res.ok({ success: true })
+				return res.noData()
 			},
 			{
 				body: dto.AssignmentRemoveBodyDto,
-				response: successSchema,
+				response: successNoDataSchema,
 				auth: true,
 			},
 		)
@@ -87,11 +84,11 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 			'/remove-bulk',
 			async function removeBulk({ body }) {
 				await service.handleRemoveUsersFromLocation(body.userIds, body.locationId)
-				return res.ok({ success: true })
+				return res.noData()
 			},
 			{
 				body: dto.AssignmentRemoveBulkBodyDto,
-				response: successSchema,
+				response: successNoDataSchema,
 				auth: true,
 			},
 		)

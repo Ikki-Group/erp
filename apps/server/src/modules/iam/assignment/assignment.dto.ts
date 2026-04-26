@@ -14,15 +14,6 @@ export const UserAssignmentDto = z.object({
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
-
-export const UserAssignmentUpsertDto = z.object({
-	userId: zp.id,
-	roleId: zp.id,
-	locationId: zp.id,
-})
-export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
-
 /* ---------------------------------- FILTER ---------------------------------- */
 
 export const UserAssignmentFilterDto = z.object({
@@ -33,7 +24,14 @@ export const UserAssignmentFilterDto = z.object({
 })
 export type UserAssignmentFilterDto = z.infer<typeof UserAssignmentFilterDto>
 
-/* --------------------------------- BULK OPS --------------------------------- */
+/* -------------------------------- MUTATION -------------------------------- */
+
+export const UserAssignmentUpsertDto = z.object({
+	userId: zp.id,
+	roleId: zp.id,
+	locationId: zp.id,
+})
+export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
 
 export const AssignmentBulkBodyDto = z.object({
 	userIds: z.array(zp.id),

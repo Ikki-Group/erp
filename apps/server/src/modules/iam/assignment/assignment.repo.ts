@@ -2,12 +2,12 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
 import { paginate, sortBy, type WithPaginationResult } from '@/core/database'
-import type { OmitPaginationQuery } from '@/types/utils'
 
 import { db } from '@/db'
 import { userAssignmentsTable } from '@/db/schema'
 
 import * as dto from './assignment.dto'
+import type { OmitPaginationQuery } from '@/types/utils'
 
 export class UserAssignmentRepo {
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -24,15 +24,6 @@ export class UserAssignmentRepo {
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getList(
-		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
-	): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getList', async () => {
-			const where = this.#buildWhereClause(filter)
-			return db.select().from(userAssignmentsTable).where(where)
-		})
-	}
 
 	async getListPaginated(
 		filter: dto.UserAssignmentFilterDto,
@@ -53,6 +44,14 @@ export class UserAssignmentRepo {
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
 			})
+		})
+	}
+
+	async getList(
+		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
+	): Promise<dto.UserAssignmentDto[]> {
+		return record('UserAssignmentRepo.getList', async () => {
+			return db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
 		})
 	}
 

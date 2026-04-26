@@ -1,29 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { bento } from '@/core/cache'
-import type { OmitPaginationQuery } from '@/types/utils'
-
-import { IAM_CACHE_KEYS, IAM_CONFIG, SYSTEM_ROLES } from '../constants'
+import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
 import * as dto from './assignment.dto'
 import { UserAssignmentRepo } from './assignment.repo'
-
-const cache = bento.namespace('assignment')
+import type { OmitPaginationQuery } from '@/types/utils'
 
 export class UserAssignmentService {
 	constructor(private repo = new UserAssignmentRepo()) {}
 
-	/* ========================================================================== */
-	/*                              CACHE MANAGEMENT                             */
-	/* ========================================================================== */
-
-	private async invalidateUsersCaches(userIds: number[]): Promise<void> {
-		const keys = userIds.map((id) => IAM_CACHE_KEYS.ASSIGNMENT_BY_USER(id))
-		await cache.deleteMany({ keys })
-	}
-
-	/* ========================================================================== */
-	/*                              QUERY OPERATIONS                             */
-	/* ========================================================================== */
+	/* --------------------------------- PUBLIC --------------------------------- */
 
 	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
 		const now = new Date()
@@ -43,10 +28,7 @@ export class UserAssignmentService {
 	 */
 	async findByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentService.findByUserId', async () => {
-			return cache.getOrSet({
-				key: IAM_CACHE_KEYS.ASSIGNMENT_BY_USER(userId),
-				factory: async () => this.repo.getList({ userId }),
-			})
+			return this.repo.getList({ userId })
 		})
 	}
 
@@ -75,7 +57,6 @@ export class UserAssignmentService {
 	): Promise<void> {
 		return record('UserAssignmentService.handleReplaceBulkByUserId', async () => {
 			await this.repo.replaceBulkByUserId(userId, assignments, actorId)
-			await this.invalidateUsersCaches([userId])
 		})
 	}
 
@@ -94,7 +75,11 @@ export class UserAssignmentService {
 			}))
 
 			if (existingIndex === -1) {
-				newAssignments.push({ userId: data.userId, roleId: data.roleId, locationId: data.locationId })
+				newAssignments.push({
+					userId: data.userId,
+					roleId: data.roleId,
+					locationId: data.locationId,
+				})
 			} else {
 				newAssignments[existingIndex] = {
 					userId: data.userId,
@@ -104,14 +89,12 @@ export class UserAssignmentService {
 			}
 
 			await this.repo.replaceBulkByUserId(data.userId, newAssignments, actorId)
-			await this.invalidateUsersCaches([data.userId])
 		})
 	}
 
 	async handleRemoveFromLocation(userId: number, locationId: number): Promise<void> {
 		return record('UserAssignmentService.handleRemoveFromLocation', async () => {
 			await this.repo.removeByUserAndLocation(userId, locationId)
-			await this.invalidateUsersCaches([userId])
 		})
 	}
 
@@ -119,7 +102,6 @@ export class UserAssignmentService {
 	async handleRemoveUsersFromLocation(userIds: number[], locationId: number): Promise<void> {
 		return record('UserAssignmentService.handleRemoveUsersFromLocation', async () => {
 			await this.repo.removeUsersBulkFromLocation(userIds, locationId)
-			await this.invalidateUsersCaches(userIds)
 		})
 	}
 
@@ -152,7 +134,6 @@ export class UserAssignmentService {
 			}
 
 			await this.repo.replaceBulkByUserIds(userIds, assignmentsByUserId, actorId)
-			await this.invalidateUsersCaches(userIds)
 		})
 	}
 
@@ -165,7 +146,6 @@ export class UserAssignmentService {
 	): Promise<void> {
 		return record('UserAssignmentService.handleUpdateRoleForUsersInLocation', async () => {
 			await this.repo.updateRoleBulkByLocation(userIds, locationId, roleId, actorId)
-			await this.invalidateUsersCaches(userIds)
 		})
 	}
 }

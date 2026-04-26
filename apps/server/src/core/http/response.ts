@@ -11,6 +11,11 @@ export const res = {
 	ok: <T>(data: T, code = 'OK') => ({ success: true as const, code, data }),
 
 	/**
+	 * 200 OK - Standard success without data.
+	 */
+	noData: (code = 'OK') => ({ success: true as const, code, data: undefined }),
+
+	/**
 	 * 201 Created - Succesfull resource creation.
 	 */
 	created: <T>(data: T, code = 'CREATED') => ({ success: true as const, code, data }),
