@@ -49,8 +49,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 		.patch(
 			'/update',
 			async function update({ body, auth }) {
-				const { id, ...data } = body
-				const result = await service.handleUpdate(id, data, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{

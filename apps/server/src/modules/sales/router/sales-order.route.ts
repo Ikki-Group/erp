@@ -25,7 +25,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.order.handleList(query, query)
+				const result = await s.order.handleList(query)
 				return res.paginated(result)
 			},
 			{
