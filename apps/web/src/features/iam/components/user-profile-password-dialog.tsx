@@ -50,6 +50,7 @@ export const UserProfilePasswordDialog = createCallable((props) => {
 				title="Ubah Password"
 				description="Gunakan password yang kuat dengan perpaduan huruf dan angka untuk keamanan akun Anda."
 				className="sm:max-w-md"
+				onSubmit={() => form.handleSubmit()}
 				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
 			>
 				<div className="flex flex-col gap-4 py-2">

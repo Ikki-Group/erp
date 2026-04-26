@@ -81,6 +81,7 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
 				onOpenChange={(open) => !open && call.end()}
 				title={isCreate ? 'Tambah Role' : 'Edit Role'}
 				description="Kelola role untuk mengatur hak akses pengguna dalam sistem."
+				onSubmit={() => form.handleSubmit()}
 				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
 			>
 				<form.AppField name="name">
