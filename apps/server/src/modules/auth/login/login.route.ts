@@ -10,7 +10,7 @@ import { AuthOutputDto, LoginDto } from './login.dto'
 import type { LoginService } from './login.service'
 
 export function initAuthRoute(svc: LoginService) {
-	return new Elysia({ prefix: '/auth' })
+	return new Elysia()
 		.use(authPluginMacro)
 		.post(
 			'/login',
