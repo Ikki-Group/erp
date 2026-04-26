@@ -164,7 +164,7 @@ export class HRRepo {
 				.returning()
 
 			if (!result) throw new Error('Failed to create shift')
-			void this.#clearCache(undefined, 'shift')
+			void this.#clearCache()
 			return result as unknown as ShiftDto
 		})
 	}

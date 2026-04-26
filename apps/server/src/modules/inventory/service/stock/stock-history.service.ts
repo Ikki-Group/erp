@@ -22,7 +22,7 @@ export class StockHistoryService {
 	async getById(id: number): Promise<StockTransactionDto> {
 		return record('StockHistoryService.getById', async () => {
 			const result = await this.repo.getById(id)
-			if (!result) throw new NotFoundError('Stock transaction', id)
+			if (!result) throw new NotFoundError(`Stock transaction ${id} not found`)
 			return transformDecimals(result) as unknown as StockTransactionDto
 		})
 	}
@@ -59,7 +59,7 @@ export class StockHistoryService {
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('StockHistoryService.handleRemove', async () => {
 			const existing = await this.repo.getById(id)
-			if (!existing) throw new NotFoundError('Stock transaction', id)
+			if (!existing) throw new NotFoundError(`Stock transaction ${id} not found`)
 			return this.repo.softDelete(id, actorId)
 		})
 	}

@@ -1,7 +1,7 @@
 import { getCurrentSpan, record } from '@elysiajs/opentelemetry'
 import { Elysia } from 'elysia'
 
-import type { AuthServiceModule } from '@/modules/auth/service'
+import type { AuthServiceModule } from '@/modules/auth'
 
 import { AuthContext } from './auth-macro'
 

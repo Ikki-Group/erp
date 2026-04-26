@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'drizzle-orm'
 
-import { paginate, sortBy, takeFirstOrThrow } from '@/core/database'
+import { paginate } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
 import { materialsTable, stockTransactionsTable } from '@/db/schema'

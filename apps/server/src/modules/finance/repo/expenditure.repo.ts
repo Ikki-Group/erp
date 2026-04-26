@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { searchFilter, stampCreate, type WithPaginationResult } from '@/core/database'
+import { searchFilter, stampCreate } from '@/core/database'
 
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'

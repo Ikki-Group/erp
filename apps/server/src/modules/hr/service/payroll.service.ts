@@ -43,7 +43,7 @@ export class PayrollService {
 
 	async handleFinalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollService.handleFinalizeBatch', async () => {
-			return db.transaction(async (tx) => {
+			return db.transaction(async () => {
 				const batch = await this.repo.getBatchById(batchId)
 				if (!batch) throw new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
 

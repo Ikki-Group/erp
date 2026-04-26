@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import { z } from 'zod'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
@@ -99,7 +100,7 @@ export class MaterialCategoryRepo {
 	/* -------------------------------- MUTATION -------------------------------- */
 
 	async create(
-		data: MaterialCategoryMutationDto & { createdBy: number },
+		data: z.infer<typeof MaterialCategoryMutationDto> & { createdBy: number },
 	): Promise<{ id: number }> {
 		return record('MaterialCategoryRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
@@ -116,7 +117,7 @@ export class MaterialCategoryRepo {
 
 	async update(
 		id: number,
-		data: Partial<MaterialCategoryMutationDto> & { updatedBy: number },
+		data: Partial<z.infer<typeof MaterialCategoryMutationDto>> & { updatedBy: number },
 	): Promise<{ id: number }> {
 		return record('MaterialCategoryRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)

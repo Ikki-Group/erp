@@ -11,7 +11,6 @@ import {
 } from 'drizzle-orm'
 
 import { stampCreate } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 

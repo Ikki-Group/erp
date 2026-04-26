@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow, type WithPaginationResult } from '@/core/database'
+import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
 
 import { db } from '@/db'
 import { accountsTable } from '@/db/schema/finance'
@@ -39,7 +39,7 @@ export class AccountRepo {
 		})
 	}
 
-	async getListPaginated(query: AccountFilterDto): Promise<WithPaginationResult<any>> {
+	async getListPaginated(query: AccountFilterDto) {
 		return record('AccountRepo.getListPaginated', async () => {
 			const { q, type, parentId, limit, page } = query
 

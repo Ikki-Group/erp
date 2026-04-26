@@ -9,7 +9,6 @@ import {
 	ilike,
 	inArray,
 	isNull,
-	lt,
 	lte,
 	or,
 	sql,
@@ -17,11 +16,11 @@ import {
 } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
-import { paginate, stampCreate, type WithPaginationResult } from '@/core/database'
-import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
+import { paginate, type WithPaginationResult } from '@/core/database'
+import { toWibDateKey } from '@/core/utils/date.util'
 
 import { db } from '@/db'
-import { materialsTable, stockSummariesTable, stockTransactionsTable, uomsTable } from '@/db/schema'
+import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 
 import type {
 	StockLedgerFilterDto,
