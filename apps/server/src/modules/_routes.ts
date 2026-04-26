@@ -1,5 +1,5 @@
 import type { Modules } from './_registry'
-import { initAuthRoute } from './auth'
+import { initAuthRouteModule } from './auth'
 import { initDashboardRouteModule } from './dashboard'
 import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
@@ -18,9 +18,8 @@ import { initToolRouteModule } from './tool'
 
 export function createRoutes(m: Modules) {
 	return [
-		initAuthRoute(m.auth.auth),
+		initAuthRouteModule(m.auth),
 		initDashboardRouteModule(m.dashboard),
-		m.iam.initRouter(),
 		initInventoryRouteModule(m.inventory),
 		initLocationRouteModule(m.location),
 		initMaterialRouteModule(m.material),

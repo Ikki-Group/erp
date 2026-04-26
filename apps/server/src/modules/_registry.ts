@@ -6,7 +6,7 @@ import { DashboardServiceModule } from './dashboard'
 import { EmployeeServiceModule } from './employee'
 import { FinanceServiceModule } from './finance'
 import { HRServiceModule } from './hr'
-import { IamModule } from './iam'
+import { IamServiceModule } from './iam'
 import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
 import { MaterialServiceModule } from './material'
@@ -25,7 +25,7 @@ export function createModules() {
 	const product = new ProductServiceModule()
 
 	// Layer 1 — Masters
-	const iam = new IamModule(() => ({ location }))
+	const iam = new IamServiceModule(location)
 	const material = new MaterialServiceModule(location)
 	const supplier = new SupplierServiceModule()
 	const employee = new EmployeeServiceModule()
