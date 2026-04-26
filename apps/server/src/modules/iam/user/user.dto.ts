@@ -4,8 +4,8 @@ import { zc, zp, zq } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location'
 
-import { UserAssignmentDto } from './assignment.dto'
-import { RoleDto } from './role.dto'
+import { UserAssignmentDto } from '../assignment/assignment.dto'
+import { RoleDto } from '../role/role.dto'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
@@ -37,10 +37,6 @@ export const UserDetailDto = z.object({
 })
 export type UserDetailDto = z.infer<typeof UserDetailDto>
 
-/**
- * User Detail with Audit information.
- * Used for response schemas to include resolved audit metadata.
- */
 export const UserDetailResolvedDto = z.object({
 	...UserDetailDto.shape,
 	...zc.AuditResolved.shape,

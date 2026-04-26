@@ -41,10 +41,3 @@ export const IAM_CONFIG = {
 	CACHE_TTL_SHORT: 300, // 5 minutes
 	CACHE_TTL_LONG: 3600, // 1 hour
 } as const
-
-/**
- * User assignment constants
- */
-export const USER_ASSIGNMENT = {
-	SUPERADMIN_ROLE_ID: SYSTEM_ROLES.SUPERADMIN_ID,
-} as const

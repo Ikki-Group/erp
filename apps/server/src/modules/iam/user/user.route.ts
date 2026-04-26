@@ -9,8 +9,8 @@ import {
 	zq,
 } from '@/core/validation'
 
-import * as dto from '../dto/user.dto'
-import type { UserService } from '../service/user.service'
+import * as dto from './user.dto'
+import type { UserService } from './user.service'
 
 export function initUserRoute(service: UserService) {
 	return new Elysia({ prefix: '/user' })

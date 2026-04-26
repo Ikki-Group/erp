@@ -3,12 +3,14 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zp } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/core/validation'
 
-import * as dto from '../dto/assignment.dto'
-import type { UserAssignmentService } from '../service/assignment.service'
+import * as dto from './assignment.dto'
+import type { UserAssignmentService } from './assignment.service'
 
-export function initUserAssignmentRoute(service: UserAssignmentService) {
+const successSchema = createSuccessResponseSchema(z.object({ success: z.boolean() }))
+
+export function initAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
 		.use(authPluginMacro)
 		.get(
@@ -31,7 +33,7 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 			},
 			{
 				body: dto.UserAssignmentUpsertDto,
-				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				response: successSchema,
 				auth: true,
 			},
 		)
@@ -47,12 +49,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: z.object({
-					userIds: z.array(zp.id),
-					locationId: zp.id,
-					roleId: zp.id,
-				}),
-				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				body: dto.AssignmentBulkBodyDto,
+				response: successSchema,
 				auth: true,
 			},
 		)
@@ -68,12 +66,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: z.object({
-					userIds: z.array(zp.id),
-					locationId: zp.id,
-					roleId: zp.id,
-				}),
-				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				body: dto.AssignmentBulkBodyDto,
+				response: successSchema,
 				auth: true,
 			},
 		)
@@ -84,11 +78,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: z.object({
-					userId: zp.id,
-					locationId: zp.id,
-				}),
-				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				body: dto.AssignmentRemoveBodyDto,
+				response: successSchema,
 				auth: true,
 			},
 		)
@@ -99,11 +90,8 @@ export function initUserAssignmentRoute(service: UserAssignmentService) {
 				return res.ok({ success: true })
 			},
 			{
-				body: z.object({
-					userIds: z.array(zp.id),
-					locationId: zp.id,
-				}),
-				response: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+				body: dto.AssignmentRemoveBulkBodyDto,
+				response: successSchema,
 				auth: true,
 			},
 		)

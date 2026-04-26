@@ -4,7 +4,6 @@ import { initDashboardRouteModule } from './dashboard'
 import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
 import { initHRRouteModule } from './hr'
-import { initIamRouteModule } from './iam/router'
 import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
 import { initMaterialRouteModule } from './material'
@@ -21,7 +20,7 @@ export function createRoutes(m: Modules) {
 	return [
 		initAuthRoute(m.auth.auth),
 		initDashboardRouteModule(m.dashboard),
-		initIamRouteModule(m.iam),
+		m.iam.initRouter(),
 		initInventoryRouteModule(m.inventory),
 		initLocationRouteModule(m.location),
 		initMaterialRouteModule(m.material),

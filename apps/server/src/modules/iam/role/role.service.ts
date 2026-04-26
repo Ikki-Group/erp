@@ -7,9 +7,9 @@ import { RelationMap } from '@/core/utils/relation-map'
 import { rolesTable } from '@/db/schema'
 
 import { IAM_CACHE_KEYS, SYSTEM_ROLES } from '../constants'
-import * as dto from '../dto/role.dto'
 import { RoleErrors } from '../errors'
-import { RoleRepo } from '../repo/role.repo'
+import * as dto from './role.dto'
+import { RoleRepo } from './role.repo'
 
 const cache = bento.namespace('role')
 
@@ -29,13 +29,13 @@ const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 // Role Service
-// Handles authorization role definitions and permission sets
-// Self-contained domain service — no cross-module dependencies
+// Handles authorization role definitions and permission sets.
+// Self-contained domain service — no cross-module dependencies.
 export class RoleService {
 	constructor(private repo = new RoleRepo()) {}
 
 	/* ========================================================================== */
-	/*                              QUERY OPERATIONS                             */
+	/*                              CACHE MANAGEMENT                             */
 	/* ========================================================================== */
 
 	private async clearCache(id?: number) {
@@ -43,6 +43,10 @@ export class RoleService {
 		if (id) keys.push(IAM_CACHE_KEYS.ROLE_DETAIL(id))
 		await cache.deleteMany({ keys })
 	}
+
+	/* ========================================================================== */
+	/*                              QUERY OPERATIONS                             */
+	/* ========================================================================== */
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleService.getList', async () => {
@@ -100,6 +104,24 @@ export class RoleService {
 		})
 	}
 
+	/* ========================================================================== */
+	/*                            HANDLER OPERATIONS                             */
+	/* ========================================================================== */
+
+	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
+		return record('RoleService.handleList', async () => {
+			return this.repo.getListPaginated(filter)
+		})
+	}
+
+	async handleDetail(id: number): Promise<dto.RoleDto> {
+		return record('RoleService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw RoleErrors.notFound(id)
+			return result
+		})
+	}
+
 	async handleCreate(data: dto.RoleCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('RoleService.handleCreate', async () => {
 			await core.checkConflict({
@@ -123,7 +145,6 @@ export class RoleService {
 
 			const existing = await this.getById(id)
 			if (!existing) throw RoleErrors.notFound(id)
-
 			if (existing.isSystem) throw RoleErrors.updateSystemRole()
 
 			await core.checkConflict({
@@ -146,7 +167,6 @@ export class RoleService {
 		return record('RoleService.handleRemove', async () => {
 			const existing = await this.getById(id)
 			if (!existing) throw RoleErrors.notFound(id)
-
 			if (existing.isSystem) throw RoleErrors.deleteSystemRole()
 
 			const result = await this.repo.remove(id)
@@ -154,24 +174,6 @@ export class RoleService {
 
 			await this.clearCache(id)
 			return { id }
-		})
-	}
-
-	/* ========================================================================== */
-	/*                            HANDLER OPERATIONS                             */
-	/* ========================================================================== */
-
-	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
-		return record('RoleService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
-		})
-	}
-
-	async handleDetail(id: number): Promise<dto.RoleDto> {
-		return record('RoleService.handleDetail', async () => {
-			const result = await this.getById(id)
-			if (!result) throw RoleErrors.notFound(id)
-			return result
 		})
 	}
 }

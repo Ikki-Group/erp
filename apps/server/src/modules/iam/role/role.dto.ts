@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { zp, zc, zq } from '@/core/validation'
 
+/* ---------------------------------- ENTITY ---------------------------------- */
+
 export const RoleDto = z.object({
 	...zc.RecordId.shape,
 	code: zp.str,
@@ -12,6 +14,8 @@ export const RoleDto = z.object({
 	...zc.AuditBasic.shape,
 })
 export type RoleDto = z.infer<typeof RoleDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
 
 const RoleMutationDto = z.object({
 	code: zc.strTrim.min(2).max(32).toUpperCase(),
@@ -26,6 +30,8 @@ export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
 export const RoleUpdateDto = z.object({ ...zc.RecordId.shape, ...RoleMutationDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
+
+/* --------------------------------- FILTER --------------------------------- */
 
 export const RoleFilterDto = z.object({ ...zq.pagination.shape, q: zq.search })
 export type RoleFilterDto = z.infer<typeof RoleFilterDto>

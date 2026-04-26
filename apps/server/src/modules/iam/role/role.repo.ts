@@ -13,7 +13,7 @@ import {
 import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
-import * as dto from '../dto'
+import * as dto from './role.dto'
 
 export class RoleRepo {
 	/* -------------------------------------------------------------------------- */

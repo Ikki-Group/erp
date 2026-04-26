@@ -1,5 +1,4 @@
 import { Elysia } from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -10,8 +9,8 @@ import {
 	zq,
 } from '@/core/validation'
 
-import * as dto from '../dto'
-import type { RoleService } from '../service/role.service'
+import * as dto from './role.dto'
+import type { RoleService } from './role.service'
 
 export function initRoleRoute(service: RoleService) {
 	return new Elysia({ prefix: '/role' })
@@ -35,7 +34,7 @@ export function initRoleRoute(service: RoleService) {
 				return res.ok(result)
 			},
 			{
-				query: z.object({ id: zq.id }),
+				query: zq.recordId,
 				response: createSuccessResponseSchema(dto.RoleDto),
 				auth: true,
 			},

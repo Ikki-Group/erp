@@ -14,7 +14,7 @@ import {
 import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import * as dto from '../dto/user.dto'
+import * as dto from './user.dto'
 
 export class UserRepo {
 	/* -------------------------------------------------------------------------- */

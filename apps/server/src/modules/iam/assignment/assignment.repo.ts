@@ -2,12 +2,12 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
 import { paginate, sortBy, type WithPaginationResult } from '@/core/database'
+import type { OmitPaginationQuery } from '@/types/utils'
 
 import { db } from '@/db'
 import { userAssignmentsTable } from '@/db/schema'
 
-import * as dto from '../dto'
-import type { OmitPaginationQuery } from '@/types/utils'
+import * as dto from './assignment.dto'
 
 export class UserAssignmentRepo {
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -56,9 +56,7 @@ export class UserAssignmentRepo {
 		})
 	}
 
-	/**
-	 * Get assignments for multiple users in a single query
-	 */
+	/** Get assignments for multiple users in a single query */
 	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentRepo.getListByUserIds', async () => {
 			return db
@@ -107,9 +105,7 @@ export class UserAssignmentRepo {
 		})
 	}
 
-	/**
-	 * Remove multiple users from a location in a single query
-	 */
+	/** Remove multiple users from a location in a single query */
 	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
 		return record('UserAssignmentRepo.removeUsersBulkFromLocation', async () => {
 			await db
@@ -123,9 +119,7 @@ export class UserAssignmentRepo {
 		})
 	}
 
-	/**
-	 * Update role for multiple users in a location in a single query
-	 */
+	/** Update role for multiple users in a location in a single query */
 	async updateRoleBulkByLocation(
 		userIds: number[],
 		locationId: number,
@@ -149,8 +143,8 @@ export class UserAssignmentRepo {
 	}
 
 	/**
-	 * Replace assignments for multiple users in a single transaction
-	 * Deletes all existing assignments for these users, then inserts new ones
+	 * Replace assignments for multiple users in a single transaction.
+	 * Deletes all existing assignments for these users, then inserts new ones.
 	 */
 	async replaceBulkByUserIds(
 		userIds: number[],
@@ -159,10 +153,8 @@ export class UserAssignmentRepo {
 	): Promise<void> {
 		return record('UserAssignmentRepo.replaceBulkByUserIds', async () => {
 			await db.transaction(async (tx) => {
-				// Delete all assignments for all users in one query
 				await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
 
-				// Build and insert all new assignments in one query
 				const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
 				for (const userId of userIds) {
 					const assignments = assignmentsByUserId.get(userId) ?? []

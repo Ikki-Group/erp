@@ -1,11 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { bento } from '@/core/cache'
-
-import { IAM_CONFIG, SYSTEM_ROLES, IAM_CACHE_KEYS } from '../constants'
-import * as dto from '../dto/assignment.dto'
-import { UserAssignmentRepo } from '../repo/assignment.repo'
 import type { OmitPaginationQuery } from '@/types/utils'
+
+import { IAM_CACHE_KEYS, IAM_CONFIG, SYSTEM_ROLES } from '../constants'
+import * as dto from './assignment.dto'
+import { UserAssignmentRepo } from './assignment.repo'
 
 const cache = bento.namespace('assignment')
 
@@ -13,7 +13,7 @@ export class UserAssignmentService {
 	constructor(private repo = new UserAssignmentRepo()) {}
 
 	/* ========================================================================== */
-	/*                              QUERY OPERATIONS                             */
+	/*                              CACHE MANAGEMENT                             */
 	/* ========================================================================== */
 
 	private async invalidateUsersCaches(userIds: number[]): Promise<void> {
@@ -21,7 +21,11 @@ export class UserAssignmentService {
 		await cache.deleteMany({ keys })
 	}
 
-	private getDefaultAssignmentForSuperadminInternal(): dto.UserAssignmentDto {
+	/* ========================================================================== */
+	/*                              QUERY OPERATIONS                             */
+	/* ========================================================================== */
+
+	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
 		const now = new Date()
 		return {
 			id: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
@@ -33,16 +37,30 @@ export class UserAssignmentService {
 		}
 	}
 
-	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
-		return this.getDefaultAssignmentForSuperadminInternal()
-	}
-
+	/**
+	 * Get assignments for a single user — cached.
+	 * Used internally by UserService and externally by router.
+	 */
 	async findByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentService.findByUserId', async () => {
 			return cache.getOrSet({
 				key: IAM_CACHE_KEYS.ASSIGNMENT_BY_USER(userId),
 				factory: async () => this.repo.getList({ userId }),
 			})
+		})
+	}
+
+	async handleGetList(
+		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
+	): Promise<dto.UserAssignmentDto[]> {
+		return record('UserAssignmentService.handleGetList', async () => {
+			return this.repo.getList(filter)
+		})
+	}
+
+	async handleGetListPaginated(filter: dto.UserAssignmentFilterDto) {
+		return record('UserAssignmentService.handleGetListPaginated', async () => {
+			return this.repo.getListPaginated(filter)
 		})
 	}
 
@@ -76,11 +94,7 @@ export class UserAssignmentService {
 			}))
 
 			if (existingIndex === -1) {
-				newAssignments.push({
-					userId: data.userId,
-					roleId: data.roleId,
-					locationId: data.locationId,
-				})
+				newAssignments.push({ userId: data.userId, roleId: data.roleId, locationId: data.locationId })
 			} else {
 				newAssignments[existingIndex] = {
 					userId: data.userId,
@@ -101,9 +115,7 @@ export class UserAssignmentService {
 		})
 	}
 
-	/**
-	 * Remove multiple users from a location with single query
-	 */
+	/** Remove multiple users from a location with single query */
 	async handleRemoveUsersFromLocation(userIds: number[], locationId: number): Promise<void> {
 		return record('UserAssignmentService.handleRemoveUsersFromLocation', async () => {
 			await this.repo.removeUsersBulkFromLocation(userIds, locationId)
@@ -111,9 +123,7 @@ export class UserAssignmentService {
 		})
 	}
 
-	/**
-	 * Assign multiple users to a location with same role
-	 */
+	/** Assign multiple users to a location with same role */
 	async handleAssignUsersToLocation(
 		userIds: number[],
 		locationId: number,
@@ -121,10 +131,8 @@ export class UserAssignmentService {
 		actorId: number,
 	): Promise<void> {
 		return record('UserAssignmentService.handleAssignUsersToLocation', async () => {
-			// Get all existing assignments for these users in one query
 			const existingAssignments = await this.repo.getListByUserIds(userIds)
 
-			// Build new assignments for all users in memory (no DB calls)
 			const assignmentsByUserId = new Map<number, dto.UserAssignmentUpsertDto[]>()
 			for (const userId of userIds) {
 				const userAssignments = existingAssignments.filter((a) => a.userId === userId)
@@ -137,25 +145,18 @@ export class UserAssignmentService {
 				}))
 
 				if (!hasLocationAssignment) {
-					newAssignments.push({
-						userId,
-						roleId,
-						locationId,
-					})
+					newAssignments.push({ userId, roleId, locationId })
 				}
 
 				assignmentsByUserId.set(userId, newAssignments)
 			}
 
-			// Single bulk operation: delete all + insert all in one transaction
 			await this.repo.replaceBulkByUserIds(userIds, assignmentsByUserId, actorId)
 			await this.invalidateUsersCaches(userIds)
 		})
 	}
 
-	/**
-	 * Update role for multiple users in a location with single query
-	 */
+	/** Update role for multiple users in a location with single query */
 	async handleUpdateRoleForUsersInLocation(
 		userIds: number[],
 		locationId: number,
@@ -165,33 +166,6 @@ export class UserAssignmentService {
 		return record('UserAssignmentService.handleUpdateRoleForUsersInLocation', async () => {
 			await this.repo.updateRoleBulkByLocation(userIds, locationId, roleId, actorId)
 			await this.invalidateUsersCaches(userIds)
-		})
-	}
-
-	/* ========================================================================== */
-	/*                            HANDLER OPERATIONS                             */
-	/* ========================================================================== */
-
-	async handleGetList(
-		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
-	): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentService.handleGetList', async () => {
-			return this.repo.getList(filter)
-		})
-	}
-
-	async handleGetListPaginated(filter: dto.UserAssignmentFilterDto) {
-		return record('UserAssignmentService.handleGetListPaginated', async () => {
-			return this.repo.getListPaginated(filter)
-		})
-	}
-
-	async handleGetByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentService.handleGetByUserId', async () => {
-			return cache.getOrSet({
-				key: IAM_CACHE_KEYS.ASSIGNMENT_BY_USER(userId),
-				factory: async () => this.repo.getList({ userId }),
-			})
 		})
 	}
 }

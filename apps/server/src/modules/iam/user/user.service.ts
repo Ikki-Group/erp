@@ -12,13 +12,12 @@ import type { LocationMasterService } from '@/modules/location/service'
 import { usersTable } from '@/db/schema'
 
 import { IAM_CACHE_KEYS } from '../constants'
-import type { RoleDto } from '../dto'
-import * as dto from '../dto/user.dto'
 import { UserErrors } from '../errors'
-import { UserRepo } from '../repo/user.repo'
-
-import type { UserAssignmentService } from './assignment.service'
-import type { RoleService } from './role.service'
+import type { UserAssignmentService } from '../assignment/assignment.service'
+import type { RoleService } from '../role/role.service'
+import type { RoleDto } from '../role/role.dto'
+import * as dto from './user.dto'
+import { UserRepo } from './user.repo'
 
 const cache = bento.namespace('user')
 
@@ -302,7 +301,7 @@ export class UserService {
 		})
 	}
 
-	// Used by AuthService to get a full user detail after login
+	/** Used by AuthService to get a full user detail after login */
 	async getDetailById(id: number): Promise<dto.UserDetailDto> {
 		const user = await this.getById(id)
 		if (!user) throw UserErrors.notFound(id)

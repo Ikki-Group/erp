@@ -1,6 +1,13 @@
+import { Elysia } from 'elysia'
+
 import type { LocationServiceModule } from '@/modules/location/service'
 
-import { RoleService, UserAssignmentService, UserService } from './service'
+import { UserAssignmentService } from './assignment/assignment.service'
+import { initAssignmentRoute } from './assignment/assignment.route'
+import { RoleService } from './role/role.service'
+import { initRoleRoute } from './role/role.route'
+import { UserService } from './user/user.service'
+import { initUserRoute } from './user/user.route'
 
 export interface IamServices {
 	user: UserService
@@ -16,12 +23,12 @@ export interface IamServices {
  * │                                                                 │
  * │ External modules SHOULD import:                                 │
  * │   IamModule, IamServices  →  '@/modules/iam'                   │
- * │   DTOs                    →  '@/modules/iam/dto/user.dto'       │
- * │   DTOs (multi)            →  '@/modules/iam/dto'               │
- * │   Specific service type   →  '@/modules/iam/service/user.service'│
+ * │   User DTOs               →  '@/modules/iam/user/user.dto'     │
+ * │   Role DTOs               →  '@/modules/iam/role/role.dto'     │
+ * │   Assignment DTOs         →  '@/modules/iam/assignment/...'    │
+ * │   Specific service type   →  '@/modules/iam/user/user.service' │
  * │                                                                 │
  * │ External modules MUST NOT:                                      │
- * │   import * from '@/modules/iam'  (causes heavy autocomplete)   │
  * │   import repo classes directly                                  │
  * └─────────────────────────────────────────────────────────────────┘
  */
@@ -39,5 +46,12 @@ export class IamModule {
 		)
 
 		this.service = { user, role, assignment }
+	}
+
+	initRouter() {
+		return new Elysia({ prefix: '/iam' })
+			.use(initUserRoute(this.service.user))
+			.use(initRoleRoute(this.service.role))
+			.use(initAssignmentRoute(this.service.assignment))
 	}
 }
