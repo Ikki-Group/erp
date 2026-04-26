@@ -58,11 +58,11 @@ const cache = bento.namespace('material')
 
 export class MaterialService {
 	constructor(
-		private readonly materialRepo = new MaterialRepo(),
-		private readonly materialLocationRepo = new MaterialLocationRepo(),
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
+		private readonly materialRepo = new MaterialRepo(),
+		private readonly materialLocationRepo = new MaterialLocationRepo(),
 	) {}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -307,7 +307,6 @@ export class MaterialService {
 				sku,
 				name,
 				createdBy: actorId,
-				updatedBy: actorId,
 			})
 
 			await this.clearCache()

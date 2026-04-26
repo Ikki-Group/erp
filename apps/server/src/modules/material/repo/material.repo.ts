@@ -29,7 +29,7 @@ export class MaterialRepo {
 				.select()
 				.from(materialsTable)
 				.where(isNull(materialsTable.deletedAt))
-				.orderBy(materialsTable.name),
+				.orderBy(materialsTable.name) as unknown as MaterialDto[],
 		)
 	}
 
@@ -39,7 +39,7 @@ export class MaterialRepo {
 				.select()
 				.from(materialsTable)
 				.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
-				.then(takeFirst),
+				.then(takeFirst) as unknown as MaterialDto | null,
 		)
 	}
 
@@ -49,7 +49,7 @@ export class MaterialRepo {
 			db
 				.select()
 				.from(materialsTable)
-				.where(and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt))),
+				.where(and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt))) as unknown as MaterialDto[],
 		)
 	}
 
@@ -225,7 +225,7 @@ export class MaterialRepo {
 				.returning({ id: materialsTable.id })
 
 			if (result.length === 0) throw new Error(`Material ${id} not found`)
-			return result[0]
+			return result[0] as { id: number }
 		})
 	}
 }

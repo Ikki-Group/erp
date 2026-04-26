@@ -3,7 +3,7 @@ import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import {

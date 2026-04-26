@@ -45,7 +45,7 @@ export class ProductService {
 		return record('ProductService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 
-			const allCategories = await this.categorySvc.handleList({ page: 1, limit: 1000 })
+			const allCategories = await this.categorySvc.handleList({ q: undefined, page: 1, limit: 1000 })
 			const categoriesMap = new Map<number, any>(allCategories.data.map((cat) => [cat.id, cat]))
 
 			const data: ProductSelectDto[] = result.data.map((p: any) => ({
