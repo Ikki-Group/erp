@@ -83,7 +83,7 @@ export class StockTransactionRepo {
 						.offset(offset),
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(stockTransactionsTable).leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id)).where(where),
-			})
+			}) as unknown as WithPaginationResult<StockTransactionSelectDto>
 		})
 	}
 
@@ -94,7 +94,7 @@ export class StockTransactionRepo {
 				.from(stockTransactionsTable)
 				.where(and(eq(stockTransactionsTable.id, id), isNull(stockTransactionsTable.deletedAt)))
 
-			return result[0] ?? null
+			return (result[0] ?? null) as unknown as StockTransactionDto | null
 		})
 	}
 
@@ -104,7 +104,7 @@ export class StockTransactionRepo {
 			return db
 				.select()
 				.from(stockTransactionsTable)
-				.where(and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt)))
+				.where(and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt))) as unknown as StockTransactionDto[]
 		})
 	}
 
@@ -118,7 +118,7 @@ export class StockTransactionRepo {
 				.returning()
 
 			if (!result) throw new Error('Failed to create stock transaction')
-			return result as StockTransactionDto
+			return result as unknown as StockTransactionDto
 		})
 	}
 
@@ -141,8 +141,8 @@ export class StockTransactionRepo {
 				.where(eq(stockTransactionsTable.id, id))
 				.returning({ id: stockTransactionsTable.id })
 
-			if (result.length === 0) throw new NotFoundError('Stock transaction', id)
-			return result[0]
+			if (result.length === 0) throw new NotFoundError(`Stock transaction ${id} not found`)
+			return result[0] as { id: number }
 		})
 	}
 }

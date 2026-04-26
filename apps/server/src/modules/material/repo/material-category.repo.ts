@@ -7,7 +7,7 @@ import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, ty
 import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
 
-import type { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
+import { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
 
 const cache = bento.namespace('material-category')
 

@@ -7,7 +7,7 @@ import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, ty
 import { db } from '@/db'
 import { uomsTable } from '@/db/schema'
 
-import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
+import type { UomDto, UomFilterDto } from '../dto'
 
 const cache = bento.namespace('uom')
 

@@ -5,7 +5,7 @@ import { bento } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
 import {
@@ -112,7 +112,7 @@ export class MaterialService {
 			conversions: conversions.map((c) => ({
 				toBaseFactor: Number(c.toBaseFactor),
 				uomId: c.uomId,
-				uom: uomMap.get(c.uomId) ?? null,
+				uom: uomMap.get(c.uomId),
 			})),
 			locationIds: locations.map((l) => l.locationId),
 		}

@@ -112,7 +112,7 @@ export class MaterialRepo {
 				category: null, // Populated by service
 				conversions: [],
 				locationIds: [],
-			}))
+			}) as any)
 
 			return { data, meta: result.meta }
 		})

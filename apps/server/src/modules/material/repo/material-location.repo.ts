@@ -10,7 +10,6 @@ import { locationsTable, materialLocationsTable, materialsTable, uomsTable } fro
 import type {
 	MaterialLocationDto,
 	MaterialLocationFilterDto,
-	MaterialLocationMutationDto,
 	MaterialLocationStockDto,
 	MaterialLocationWithLocationDto,
 } from '../dto'
