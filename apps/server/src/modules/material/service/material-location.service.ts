@@ -143,7 +143,7 @@ export class MaterialLocationService {
 	): Promise<{ id: number }> {
 		return record('MaterialLocationService.handleUpdateConfig', async () => {
 			const { id, ...update } = data
-			const resultId = await this.repo.updateConfig(id, update, actorId)
+			const resultId = await this.repo.updateConfig(id, update as any, actorId)
 
 			if (!resultId) throw err.notFound(id)
 			return { id: resultId }

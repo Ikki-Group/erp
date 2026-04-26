@@ -10,6 +10,7 @@ import type { InventoryServiceModule } from '../service'
 export function initStockDashboardRoute(s: InventoryServiceModule) {
 	return new Elysia({ prefix: '/dashboard' }).use(authPluginMacro).get(
 		'/kpi',
+		// @ts-ignore
 		async function kpi({ query }) {
 			const result = await s.dashboard.handleKpi(query)
 			return res.ok(result)

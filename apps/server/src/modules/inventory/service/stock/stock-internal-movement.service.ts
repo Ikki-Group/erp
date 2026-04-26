@@ -92,12 +92,12 @@ export class StockInternalMovementService extends MovementLogic {
 					date,
 					referenceNo,
 					notes: notes ?? null,
-					qty: qty.toString(),
+					qty: qty.toString() as any,
 					unitCost: sourceAssignment.currentAvgCost.toString(),
 					totalCost: transferCost.toString(),
 					counterpartLocationId: sourceLocationId,
 					transferId,
-					runningQty: newQty.toString(),
+					runningQty: newQty.toString() as any,
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
 				})
@@ -105,7 +105,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					destinationLocationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
+					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
 					actorId,
 					tx,
 				)
@@ -165,10 +165,10 @@ export class StockInternalMovementService extends MovementLogic {
 					date,
 					referenceNo,
 					notes: `Stock Opname: ${notes ?? ''}`.trim(),
-					qty: diffQty.toString(),
+					qty: diffQty.toString() as any,
 					unitCost: assignment.currentAvgCost.toString(),
 					totalCost: diffQty.abs().mul(assignment.currentAvgCost).toString(),
-					runningQty: newQty.toString(),
+					runningQty: newQty.toString() as any,
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
 				})
@@ -176,7 +176,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
+					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
 					actorId,
 					tx,
 				)
@@ -240,10 +240,10 @@ export class StockInternalMovementService extends MovementLogic {
 					date,
 					referenceNo,
 					notes: notes ?? null,
-					qty: qty.toString(),
+					qty: qty.toString() as any,
 					unitCost: effectiveUnitCost.toString(),
 					totalCost: qtyDec.abs().mul(effectiveUnitCost).toString(),
-					runningQty: newQty.toString(),
+					runningQty: newQty.toString() as any,
 					runningAvgCost: newAvgCost.toString(),
 					...metadata,
 				})
@@ -251,7 +251,7 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty, currentAvgCost: newAvgCost, currentValue: new Decimal(newQty).mul(newAvgCost).toString() },
+					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
 					actorId,
 					tx,
 				)

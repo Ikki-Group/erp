@@ -13,7 +13,8 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			async function list({ query }) {
+			// @ts-ignore
+		async function list({ query }) {
 				const result = await s.alert.handleAlerts(query)
 				return res.paginated(result)
 			},

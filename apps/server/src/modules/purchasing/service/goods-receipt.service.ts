@@ -77,8 +77,8 @@ export class GoodsReceiptService {
 						notes: grn.notes ?? null,
 						items: grn.items.map((item) => {
 							const unitCost = item.purchaseOrderItemId
-								? (poItemMap.get(item.purchaseOrderItemId) ?? 0)
-								: 0
+								? String(poItemMap.get(item.purchaseOrderItemId) ?? '0')
+								: '0'
 							return { materialId: item.materialId!, qty: item.quantityReceived, unitCost }
 						}),
 					},

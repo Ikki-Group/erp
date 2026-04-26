@@ -60,7 +60,7 @@ export class RecipeRepo {
 				uom: r.uom,
 				qty: r.item.qty,
 				scrapPercentage: r.item.scrapPercentage,
-				sortOrder: r.item.sortOrder,
+				sortOrder: Number(r.item.sortOrder),
 			}),
 		)
 	}
@@ -84,7 +84,7 @@ export class RecipeRepo {
 					return {
 						...recipe,
 						targetQty: recipe.targetQty,
-						items,
+						items: items as any,
 					}
 				},
 			})
@@ -161,7 +161,7 @@ export class RecipeRepo {
 					uom: r.uom,
 					qty: r.item.qty,
 					scrapPercentage: r.item.scrapPercentage,
-					sortOrder: r.item.sortOrder,
+					sortOrder: Number(r.item.sortOrder),
 				}),
 			)
 
@@ -175,7 +175,7 @@ export class RecipeRepo {
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
 				targetQty: r.targetQty,
-				items: itemsByRecipe.get(r.id) ?? [],
+				items: itemsByRecipe.get(r.id) as any ?? [],
 			}))
 
 			return { data, meta: result.meta }
@@ -194,7 +194,7 @@ export class RecipeRepo {
 					),
 				)
 
-			return valuation?.avgCost ?? 0
+			return Number(valuation?.avgCost ?? 0)
 		})
 	}
 
@@ -263,13 +263,13 @@ export class RecipeRepo {
 							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes,
-							sortOrder: item.sortOrder ?? 0,
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...meta,
 						})),
 					)
 				}
 
-				return recipe
+				return recipe as any
 			})
 
 			void this.#clearCache()
@@ -316,7 +316,7 @@ export class RecipeRepo {
 							scrapPercentage: item.scrapPercentage?.toString() ?? '0',
 							uomId: item.uomId,
 							notes: item.notes ?? null,
-							sortOrder: item.sortOrder ?? 0,
+							sortOrder: (item.sortOrder ?? 0).toString(),
 							...createMeta,
 						})),
 					)

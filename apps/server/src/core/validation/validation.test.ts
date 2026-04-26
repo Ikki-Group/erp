@@ -60,13 +60,13 @@ describe('Primitive Validators (zp)', () => {
 	})
 
 	describe('decimal', () => {
-		it('coerces values to number', () => {
-			expect(zp.decimal.parse('123.45')).toBe(123.45)
-			expect(zp.decimal.parse(123.45)).toBe(123.45)
+		it('coerces values to string', () => {
+			expect(zp.decimal.parse('123.45')).toBe('123.45')
+			expect(zp.decimal.parse(123.45)).toBe('123.45')
 		})
 
 		it('handles integers as decimals', () => {
-			expect(zp.decimal.parse(100)).toBe(100)
+			expect(zp.decimal.parse(100)).toBe('100')
 		})
 	})
 })

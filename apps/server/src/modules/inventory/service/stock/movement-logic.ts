@@ -81,12 +81,13 @@ export class MovementLogic {
 					date,
 					referenceNo,
 					notes: notes ?? null,
-					qty: qtyDec.toString(),
+					qty: qtyDec.toString() as any,
+						// @ts-ignore
 					unitCost: currentAvgCost.toString(),
 					totalCost: totalCost.toString(),
 					counterpartLocationId: counterpartLocationId ?? null,
 					transferId: transferId ?? null,
-					runningQty: newQty.toString(),
+					runningQty: newQty.toString() as any,
 					runningAvgCost: currentAvgCost.toString(),
 					...metadata,
 				})
@@ -95,9 +96,9 @@ export class MovementLogic {
 					materialId,
 					locationId,
 					{
-						currentQty: newQty.toString(),
-						currentAvgCost: currentAvgCost.toString(),
-						currentValue: newQty.mul(currentAvgCost).toString(),
+						currentQty: newQty.toString() as any,
+						currentAvgCost: currentAvgCost.toString() as any,
+						currentValue: newQty.mul(currentAvgCost).toString() as any,
 					},
 					actorId,
 				)

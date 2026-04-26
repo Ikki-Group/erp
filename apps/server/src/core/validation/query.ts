@@ -17,7 +17,7 @@ const boolean = z.coerce.boolean().optional()
 const recordId = z.object({ id: id })
 
 const pagination = z.object({
-	page: z.coerce.number().int().positive().default("1").catch(1),
+	page: z.coerce.number().int().positive().default(1).catch(1),
 	limit: z.coerce.number().int().positive().max(100).default(10).catch(10),
 })
 
