@@ -10,15 +10,26 @@ import * as dto from '../dto'
 import type { OmitPaginationQuery } from '@/types/utils'
 
 export class UserAssignmentRepo {
-	/* -------------------------------------------------------------------------- */
-	/*                                    QUERY                                   */
-	/* -------------------------------------------------------------------------- */
+	/* --------------------------------- PRIVATE -------------------------------- */
+
+	#buildWhereClause(
+		filter: Partial<Pick<dto.UserAssignmentFilterDto, 'userId' | 'roleId' | 'locationId'>>,
+	) {
+		const { userId, roleId, locationId } = filter
+		return and(
+			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
+			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
+			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
+		)
+	}
+
+	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getList(
 		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
 	): Promise<dto.UserAssignmentDto[]> {
 		return record('UserAssignmentRepo.getList', async () => {
-			const where = this.buildWhereClause(filter)
+			const where = this.#buildWhereClause(filter)
 			return db.select().from(userAssignmentsTable).where(where)
 		})
 	}
@@ -27,7 +38,7 @@ export class UserAssignmentRepo {
 		filter: dto.UserAssignmentFilterDto,
 	): Promise<WithPaginationResult<dto.UserAssignmentDto>> {
 		return record('UserAssignmentRepo.getListPaginated', async () => {
-			const where = this.buildWhereClause(filter)
+			const where = this.#buildWhereClause(filter)
 			const { page, limit } = filter
 
 			return paginate<dto.UserAssignmentDto>({
@@ -45,9 +56,19 @@ export class UserAssignmentRepo {
 		})
 	}
 
-	/* -------------------------------------------------------------------------- */
-	/*                                  MUTATION                                  */
-	/* -------------------------------------------------------------------------- */
+	/**
+	 * Get assignments for multiple users in a single query
+	 */
+	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
+		return record('UserAssignmentRepo.getListByUserIds', async () => {
+			return db
+				.select()
+				.from(userAssignmentsTable)
+				.where(inArray(userAssignmentsTable.userId, userIds))
+		})
+	}
+
+	/* -------------------------------- MUTATION -------------------------------- */
 
 	async replaceBulkByUserId(
 		userId: number,
@@ -99,18 +120,6 @@ export class UserAssignmentRepo {
 						eq(userAssignmentsTable.locationId, locationId),
 					),
 				)
-		})
-	}
-
-	/**
-	 * Get assignments for multiple users in a single query
-	 */
-	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getListByUserIds', async () => {
-			return db
-				.select()
-				.from(userAssignmentsTable)
-				.where(inArray(userAssignmentsTable.userId, userIds))
 		})
 	}
 
@@ -173,20 +182,5 @@ export class UserAssignmentRepo {
 				}
 			})
 		})
-	}
-
-	/* -------------------------------------------------------------------------- */
-	/*                                  PRIVATE                                   */
-	/* -------------------------------------------------------------------------- */
-
-	private buildWhereClause(
-		filter: Partial<Pick<dto.UserAssignmentFilterDto, 'userId' | 'roleId' | 'locationId'>>,
-	) {
-		const { userId, roleId, locationId } = filter
-		return and(
-			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
-			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
-			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
-		)
 	}
 }

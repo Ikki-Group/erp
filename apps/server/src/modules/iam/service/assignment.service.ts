@@ -9,9 +9,6 @@ import type { OmitPaginationQuery } from '@/types/utils'
 
 const cache = bento.namespace('assignment')
 
-// User Assignment Service
-// Handles user location and role assignments
-// Self-contained domain service — no cross-module dependencies
 export class UserAssignmentService {
 	constructor(private repo = new UserAssignmentRepo()) {}
 
