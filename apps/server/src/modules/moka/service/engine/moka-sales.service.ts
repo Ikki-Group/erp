@@ -1,4 +1,3 @@
-import { z } from 'zod'
 
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
 import { MokaSalesDetailRawDto } from '../../dto/moka.dto'
