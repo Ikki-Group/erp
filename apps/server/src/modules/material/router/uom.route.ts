@@ -19,7 +19,7 @@ export function initMaterialUomRoute(s: MaterialServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.uom.handleList(query, query)
+				const result = await s.uom.handleList(query)
 				return res.paginated(result)
 			},
 			{

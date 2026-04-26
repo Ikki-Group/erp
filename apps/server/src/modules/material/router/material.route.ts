@@ -19,7 +19,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.material.handleList(query, query)
+				const result = await s.material.handleList(query)
 				return res.paginated(result)
 			},
 			{

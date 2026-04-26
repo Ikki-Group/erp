@@ -1,21 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
-import {
-	checkConflict,
-	paginate,
-	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	takeFirstOrThrow,
-	type ConflictField,
-} from '@/core/database'
+import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
 
 import type {
@@ -24,6 +12,7 @@ import type {
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
 } from '../dto'
+import { MaterialCategoryRepo } from '../repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -43,113 +32,49 @@ const uniqueFields: ConflictField<'name'>[] = [
 	},
 ]
 
-const cache = bento.namespace('material-category')
-
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class MaterialCategoryService {
-	/**
-	 * Returns all material categories, cached.
-	 */
+	constructor(private repo = new MaterialCategoryRepo()) {}
+
+	/* --------------------------------- PUBLIC --------------------------------- */
+
 	async find(): Promise<MaterialCategoryDto[]> {
 		return record('MaterialCategoryService.find', async () => {
-			return cache.getOrSet({
-				key: 'list',
-				factory: async () => {
-					return db
-						.select()
-						.from(materialCategoriesTable)
-						.where(isNull(materialCategoriesTable.deletedAt))
-						.orderBy(materialCategoriesTable.name)
-				},
-			})
+			return this.repo.getList()
 		})
 	}
 
-	/**
-	 * Finds a single material category by ID. Throws if not found.
-	 */
-	async getById(id: number): Promise<MaterialCategoryDto> {
+	async getById(id: number): Promise<MaterialCategoryDto | undefined> {
 		return record('MaterialCategoryService.getById', async () => {
-			return cache.getOrSet({
-				key: `${id}`,
-				factory: async () => {
-					const result = await db
-						.select()
-						.from(materialCategoriesTable)
-						.where(
-							and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)),
-						)
-					return takeFirstOrThrow(
-						result,
-						`Material category with ID ${id} not found`,
-						'MATERIAL_CATEGORY_NOT_FOUND',
-					)
-				},
-			})
+			return this.repo.getById(id)
 		})
 	}
 
-	/**
-	 * Returns total count of material categories, cached.
-	 */
 	async count(): Promise<number> {
 		return record('MaterialCategoryService.count', async () => {
-			return cache.getOrSet({
-				key: 'count',
-				factory: async () => {
-					const result = await db
-						.select({ val: count() })
-						.from(materialCategoriesTable)
-						.where(isNull(materialCategoriesTable.deletedAt))
-					return result[0]?.val ?? 0
-				},
-			})
+			return this.repo.count()
 		})
 	}
 
-	/**
-	 * Fetches paginated list of material categories.
-	 */
+	/* --------------------------------- HANDLER -------------------------------- */
+
 	async handleList(
 		filter: MaterialCategoryFilterDto,
-		pq: PaginationQuery,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		return record('MaterialCategoryService.handleList', async () => {
-			const { q, parentId } = filter
-			const where = and(
-				isNull(materialCategoriesTable.deletedAt),
-				searchFilter(materialCategoriesTable.name, q),
-				parentId === undefined ? undefined : eq(materialCategoriesTable.parentId, parentId),
-			)
-
-			return paginate<MaterialCategoryDto>({
-				data: ({ limit, offset }) =>
-					db
-						.select()
-						.from(materialCategoriesTable)
-						.where(where)
-						.orderBy(sortBy(materialCategoriesTable.updatedAt, 'desc'))
-						.limit(limit)
-						.offset(offset),
-				pq,
-				countQuery: db.select({ count: count() }).from(materialCategoriesTable).where(where),
-			})
+			return this.repo.getListPaginated(filter)
 		})
 	}
 
-	/**
-	 * Serves material category detail.
-	 */
 	async handleDetail(id: number): Promise<MaterialCategoryDto> {
 		return record('MaterialCategoryService.handleDetail', async () => {
-			return this.getById(id)
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
 		})
 	}
 
-	/**
-	 * Creates a new material category. Invalidates cache.
-	 */
 	async handleCreate(data: MaterialCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
@@ -161,21 +86,11 @@ export class MaterialCategoryService {
 				input: { name },
 			})
 
-			const [inserted] = await db
-				.insert(materialCategoriesTable)
-				.values({ ...data, name, ...stampCreate(actorId) })
-				.returning({ id: materialCategoriesTable.id })
-
-			if (!inserted) throw err.createFailed()
-
-			await this.clearCache()
-			return inserted
+			const result = await this.repo.create({ ...data, name, createdBy: actorId })
+			return result
 		})
 	}
 
-	/**
-	 * Updates existing material category. Invalidates cache.
-	 */
 	async handleUpdate(
 		id: number,
 		data: Partial<MaterialCategoryUpdateDto>,
@@ -183,6 +98,7 @@ export class MaterialCategoryService {
 	): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleUpdate', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
 			const name = data.name ? data.name.trim() : existing.name
 
@@ -194,57 +110,32 @@ export class MaterialCategoryService {
 				existing,
 			})
 
-			await db
-				.update(materialCategoriesTable)
-				.set({ ...data, name, ...stampUpdate(actorId) })
-				.where(eq(materialCategoriesTable.id, id))
-
-			await this.clearCache(id)
-			return { id }
+			const result = await this.repo.update(id, { ...data, name, updatedBy: actorId })
+			return result
 		})
 	}
 
-	/**
-	 * Marks a material category as deleted (Soft Delete).
-	 */
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleRemove', async () => {
-			const result = await db
-				.update(materialCategoriesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(materialCategoriesTable.id, id))
-				.returning({ id: materialCategoriesTable.id })
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-			if (result.length === 0) throw err.notFound(id)
+			const result = await this.repo.remove(id, actorId)
+			if (!result) throw err.notFound(id)
 
-			await this.clearCache(id)
-			return { id }
+			return result
 		})
 	}
 
-	/**
-	 * Permanently deletes a material category (Hard Delete).
-	 * USE WITH CAUTION.
-	 */
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleHardRemove', async () => {
-			const result = await db
-				.delete(materialCategoriesTable)
-				.where(eq(materialCategoriesTable.id, id))
-				.returning({ id: materialCategoriesTable.id })
-			if (result.length === 0) throw err.notFound(id)
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-			await this.clearCache(id)
-			return { id }
+			const result = await this.repo.hardRemove(id)
+			if (!result) throw err.notFound(id)
+
+			return result
 		})
-	}
-
-	/**
-	 * Clears relevant material category caches.
-	 */
-	private async clearCache(id?: number) {
-		const keys = ['count', 'list']
-		if (id) keys.push(`${id}`)
-		await cache.deleteMany({ keys })
 	}
 }

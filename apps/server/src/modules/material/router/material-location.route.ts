@@ -65,7 +65,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 		.get(
 			'/stock',
 			async function stock({ query }) {
-				const result = await s.mLocation.handleStockByLocation(query, query)
+				const result = await s.mLocation.handleStockByLocation(query)
 				return res.paginated(result)
 			},
 			{
