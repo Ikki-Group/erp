@@ -65,6 +65,17 @@ export class MaterialService {
 		private readonly locationSvc: LocationMasterService,
 	) {}
 
+	/* --------------------------------- PRIVATE -------------------------------- */
+
+	/**
+	 * Clears relevant material caches.
+	 */
+	private async clearCache(id?: number) {
+		const keys = ['count', 'list']
+		if (id) keys.push(`${id}`)
+		await cache.deleteMany({ keys })
+	}
+
 	/**
 	 * Helper to fetch full material detail including conversions and locationIds
 	 */
@@ -176,6 +187,8 @@ export class MaterialService {
 		return map
 	}
 
+	/* --------------------------------- PUBLIC --------------------------------- */
+
 	async find(): Promise<MaterialDto[]> {
 		return record('MaterialService.find', async () => {
 			return cache.getOrSet({
@@ -219,15 +232,13 @@ export class MaterialService {
 		})
 	}
 
+	/* --------------------------------- HANDLER -------------------------------- */
+
 	async handleList(
 		filter: MaterialFilterDto,
-		pq: PaginationQuery,
 	): Promise<WithPaginationResult<MaterialSelectDto>> {
 		return record('MaterialService.handleList', async () => {
-			const result = await this.materialRepo.getListPaginated({
-				...filter,
-				...pq,
-			})
+			const result = await this.materialRepo.getListPaginated(filter)
 
 			const materialIds = result.data.map((m) => m.id)
 			const relationsMap = await this.getMaterialsBatchWithRelations(materialIds)
@@ -356,14 +367,5 @@ export class MaterialService {
 			await this.clearCache(id)
 			return result
 		})
-	}
-
-	/**
-	 * Clears relevant material caches.
-	 */
-	private async clearCache(id?: number) {
-		const keys = ['count', 'list']
-		if (id) keys.push(`${id}`)
-		await cache.deleteMany({ keys })
 	}
 }

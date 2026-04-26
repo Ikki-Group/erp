@@ -14,7 +14,7 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await service.handleList(query, query)
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -46,8 +46,7 @@ export function initSupplierRoute(module: SupplierServiceModule) {
 		.patch(
 			'/update',
 			async function update({ body, auth }) {
-				const { id, ...data } = body
-				const result = await service.handleUpdate(id, data, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{

@@ -19,6 +19,7 @@ import * as dto from './location-master.dto'
 const cache = bento.namespace('location-master')
 
 export class LocationMasterRepo {
+	/* -------------------------------- INTERNAL -------------------------------- */
 	#clearCache(id?: number): Promise<void> {
 		return record('LocationMasterRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
