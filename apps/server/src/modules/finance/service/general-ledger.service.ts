@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import type { JournalEntryInput, GeneralLedgerRepo } from '../repo/general-ledger.repo'
+import type { JournalEntryInput } from '../repo/general-ledger.repo'
 import { GeneralLedgerRepo as GLRepo } from '../repo/general-ledger.repo'
 
 export type { JournalItemInput, JournalEntryWithItems, JournalEntry, JournalItem, JournalEntryInput } from '../repo/general-ledger.repo'

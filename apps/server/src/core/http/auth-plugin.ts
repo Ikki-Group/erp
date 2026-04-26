@@ -16,7 +16,7 @@ export function createAuthPlugin(authService: AuthServiceModule) {
 
 				if (token) {
 					token = token.startsWith('Bearer ') ? token.slice(7) : token
-					const user = await authService.auth.verifyToken(token).catch(() => null)
+					const user = await authService.verifyToken(token).catch(() => null)
 					if (user) {
 						auth = new AuthContext(user)
 						set.headers['X-User-Id'] = user.id.toString()

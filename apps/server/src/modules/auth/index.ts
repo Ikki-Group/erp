@@ -20,6 +20,12 @@ export class AuthServiceModule {
 			session: this.session,
 		})
 	}
+
+	async verifyToken(token: string) {
+		const session = await this.session.verifySession(token)
+		if (!session) return null
+		return this.svc.user.getById(session.userId)
+	}
 }
 
 export function initAuthRouteModule(s: AuthServiceModule) {

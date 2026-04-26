@@ -9,7 +9,6 @@ import {
 	sortBy,
 	stampCreate,
 	stampUpdate,
-	takeFirstOrThrow,
 	type ConflictField,
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'

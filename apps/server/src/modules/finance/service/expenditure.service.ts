@@ -15,7 +15,7 @@ export class ExpenditureService {
 
 	async createExpenditure(input: ExpenditureCreateDto, actorId: number) {
 		return record('ExpenditureService.createExpenditure', async () => {
-			return db.transaction(async (tx) => {
+			return db.transaction(async () => {
 				// 1. Insert Expenditure Record
 				const expenditure = await this.repo.create(input, actorId)
 
