@@ -55,7 +55,7 @@ export class ProductRepo {
 		const map = new Map<number, ProductPriceDto[]>()
 		for (const id of productIds) map.set(id, [])
 		for (const p of prices) {
-			map.get(p.productId)!.push({ ...p, price: Number(p.price) })
+			map.get(p.productId)!.push({ ...p, price: p.price })
 		}
 		return map
 	}
@@ -79,7 +79,7 @@ export class ProductRepo {
 		const pricesByVariant = new Map<number, VariantPriceDto[]>()
 		for (const p of prices) {
 			const list = pricesByVariant.get(p.variantId) ?? []
-			list.push({ ...p, price: Number(p.price) })
+			list.push({ ...p, price: p.price })
 			pricesByVariant.set(p.variantId, list)
 		}
 
@@ -88,8 +88,8 @@ export class ProductRepo {
 		for (const v of variants) {
 			map.get(v.productId)!.push({
 				...v,
-				basePrice: Number(v.basePrice),
-				prices: (pricesByVariant.get(v.id) ?? []).map((p) => ({ ...p, price: Number(p.price) })),
+				basePrice: v.basePrice,
+				prices: (pricesByVariant.get(v.id) ?? []).map((p) => ({ ...p, price: p.price })),
 			})
 		}
 		return map
@@ -133,7 +133,7 @@ export class ProductRepo {
 
 					return {
 						...product,
-						basePrice: Number(product.basePrice),
+						basePrice: product.basePrice,
 						variants: variantsMap.get(id) ?? [],
 						prices: pricesMap.get(id) ?? [],
 						externalMappings: mappingsMap.get(id) ?? [],
@@ -201,7 +201,7 @@ export class ProductRepo {
 				data: result.data.map((p) =>
 					ProductDto.parse({
 						...p,
-						basePrice: Number(p.basePrice),
+						basePrice: p.basePrice,
 						variants: variantsMap.get(p.id) ?? [],
 						prices: pricesMap.get(p.id) ?? [],
 						externalMappings: mappingsMap.get(p.id) ?? [],
@@ -289,7 +289,7 @@ export class ProductRepo {
 									name: DEFAULT_VARIANT_NAME,
 									isDefault: true,
 									prices: [],
-									basePrice: 0,
+									basePrice: '0',
 									sku: data.sku,
 								},
 							]

@@ -67,7 +67,7 @@ export class GoodsReceiptService {
 					.from(purchaseOrderItemsTable)
 					.where(and(inArray(purchaseOrderItemsTable.id, poItemIds)))
 
-				const poItemMap = new Map(poItems.map((i) => [i.id, Number(i.unitPrice)]))
+				const poItemMap = new Map(poItems.map((i) => [i.id, i.unitPrice]))
 
 				await this.inventorySvc.handlePurchase(
 					{
@@ -79,7 +79,7 @@ export class GoodsReceiptService {
 							const unitCost = item.purchaseOrderItemId
 								? (poItemMap.get(item.purchaseOrderItemId) ?? 0)
 								: 0
-							return { materialId: item.materialId!, qty: Number(item.quantityReceived), unitCost }
+							return { materialId: item.materialId!, qty: item.quantityReceived, unitCost }
 						}),
 					},
 					actorId,

@@ -48,10 +48,10 @@ export type PurchaseOrderSelectDto = z.infer<typeof PurchaseOrderSelectDto>
 const PurchaseOrderItemMutationDto = z.object({
 	materialId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
-	quantity: zp.decimal.gt(0),
-	unitPrice: zp.decimal.nonnegative(),
-	discountAmount: zp.decimal.default(0),
-	taxAmount: zp.decimal.default(0),
+	quantity: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
+	unitPrice: zp.decimal.refine((v) => Number(v) >= 0, "Must be non-negative"),
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
 	subtotal: zp.decimal,
 })
 
@@ -62,8 +62,8 @@ const PurchaseOrderMutationDto = z.object({
 	transactionDate: zp.date.default(() => new Date()),
 	expectedDeliveryDate: zp.date.nullable().optional(),
 	totalAmount: zp.decimal,
-	discountAmount: zp.decimal.default(0),
-	taxAmount: zp.decimal.default(0),
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
 	notes: zc.strTrimNullable,
 	items: z.array(PurchaseOrderItemMutationDto.extend({ id: zp.id.optional() })).min(1),
 })

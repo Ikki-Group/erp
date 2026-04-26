@@ -51,7 +51,7 @@ export type WorkOrderFilterDto = z.infer<typeof WorkOrderFilterDto>
 export const WorkOrderCreateDto = z.object({
 	recipeId: zp.id,
 	locationId: zp.id,
-	expectedQty: zp.decimal.gt(0),
+	expectedQty: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
 	note: zc.strTrimNullable,
 })
 
@@ -59,7 +59,7 @@ export type WorkOrderCreateDto = z.infer<typeof WorkOrderCreateDto>
 
 export const WorkOrderUpdateDto = z.object({
 	...zc.RecordId.shape,
-	expectedQty: zp.decimal.gt(0).optional(),
+	expectedQty: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0").optional(),
 	status: WorkOrderStatusEnum.optional(),
 	note: zc.strTrimNullable,
 })
@@ -68,7 +68,7 @@ export type WorkOrderUpdateDto = z.infer<typeof WorkOrderUpdateDto>
 
 export const WorkOrderCompleteDto = z.object({
 	...zc.RecordId.shape,
-	actualQty: zp.decimal.gt(0),
+	actualQty: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
 	note: zc.strTrimNullable,
 })
 

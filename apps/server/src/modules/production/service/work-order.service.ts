@@ -4,6 +4,7 @@ import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
+import Decimal from 'decimal.js'
 
 import type { InventoryServiceModule } from '@/modules/inventory/service'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
@@ -76,12 +77,12 @@ export class WorkOrderService {
 				)
 
 			const recipe = await this.recipeSvc.getById(wo.recipeId)
-			const actualQty = Number(data.actualQty)
-			const targetQty = Number(recipe.targetQty)
-			const multiplier = actualQty / (targetQty > 0 ? targetQty : 1)
+			const actualQty = new Decimal(data.actualQty)
+			const targetQty = new Decimal(recipe.targetQty)
+			const multiplier = actualQty.div(targetQty.isPositive() ? targetQty : 1)
 
 			const costRes = await this.recipeSvc.handleCalculateCost(wo.recipeId)
-			const actualTotalCost = Number(costRes.totalCost) * multiplier
+			const actualTotalCost = new Decimal(costRes.totalCost).mul(multiplier)
 
 			return db.transaction(async (tx) => {
 				// 1. Consume raw materials
@@ -94,7 +95,7 @@ export class WorkOrderService {
 							notes: `Consumed for Work Order #${wo.id}`,
 							items: recipe.items.map((item) => ({
 								materialId: item.materialId,
-								qty: Number(item.qty) * multiplier * (1 + Number(item.scrapPercentage) / 100),
+								qty: new Decimal(item.qty).mul(multiplier).mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100))).toString(),
 							})),
 						},
 						actorId,
@@ -113,8 +114,8 @@ export class WorkOrderService {
 							items: [
 								{
 									materialId: recipe.materialId,
-									qty: actualQty,
-									unitCost: actualTotalCost / actualQty,
+									qty: actualQty.toString(),
+									unitCost: actualTotalCost.div(actualQty).toString(),
 								},
 							],
 						},

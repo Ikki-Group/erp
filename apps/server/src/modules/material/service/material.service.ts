@@ -110,7 +110,7 @@ export class MaterialService {
 		return {
 			...result,
 			conversions: conversions.map((c) => ({
-				toBaseFactor: Number(c.toBaseFactor),
+				toBaseFactor: c.toBaseFactor,
 				uomId: c.uomId,
 				uom: uomMap.get(c.uomId),
 			})),
@@ -174,7 +174,7 @@ export class MaterialService {
 
 		for (const c of conversions) {
 			map.get(c.materialId)!.conversions.push({
-				toBaseFactor: Number(c.toBaseFactor),
+				toBaseFactor: c.toBaseFactor,
 				uomId: c.uomId,
 				uom: uomMap.get(c.uomId),
 			})

@@ -100,10 +100,10 @@ const SalesOrderItemMutationDto = z.object({
 	productId: zp.id.optional().nullable(),
 	variantId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
-	quantity: zp.decimal.gt(0),
-	unitPrice: zp.decimal.nonnegative(),
-	discountAmount: zp.decimal.default(0),
-	taxAmount: zp.decimal.default(0),
+	quantity: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
+	unitPrice: zp.decimal.refine((v) => Number(v) >= 0, "Must be non-negative"),
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
 	subtotal: zp.decimal,
 })
 
@@ -114,8 +114,8 @@ export const SalesOrderMutationDto = z.object({
 	status: SalesOrderStatusEnum.default('open'),
 	transactionDate: zp.date.default(() => new Date()),
 	totalAmount: zp.decimal,
-	discountAmount: zp.decimal.default(0),
-	taxAmount: zp.decimal.default(0),
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
 	items: z.array(SalesOrderItemMutationDto).optional(),
 })
 export type SalesOrderMutationDto = z.infer<typeof SalesOrderMutationDto>

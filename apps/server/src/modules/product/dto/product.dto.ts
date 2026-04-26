@@ -103,7 +103,7 @@ const ProductVariantMutationDto = z.object({
 	name: zc.strTrim.min(1).max(100),
 	sku: zc.strTrim.uppercase().optional().nullable(),
 	isDefault: zp.bool.default(false),
-	basePrice: zp.decimal.default(0),
+	basePrice: zp.decimal.default('0'),
 	prices: z.array(VariantPriceMutationDto).default([]),
 })
 
@@ -116,7 +116,7 @@ export const ProductMutationDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
 	sku: zc.strTrim.uppercase().min(3).max(50),
-	basePrice: zp.decimal.default(0),
+	basePrice: zp.decimal.default('0'),
 	locationId: zp.id,
 	categoryId: zp.id.nullable(),
 	status: ProductStatusEnum.default('active'),

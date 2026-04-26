@@ -5,6 +5,7 @@ import { BadRequestError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
+import Decimal from 'decimal.js'
 
 import type { TransactionResultDto } from '@/modules/inventory/dto'
 import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
@@ -16,15 +17,21 @@ export class MovementLogic {
 	 * Weighted Average Cost calculation for incoming stock.
 	 */
 	protected calculateIncomingWAC(
-		currentQty: number,
-		currentAvgCost: number,
-		incomingQty: number,
-		incomingUnitCost: number,
-	): { newQty: number; newAvgCost: number } {
-		const newQty = currentQty + incomingQty
-		const newAvgCost =
-			newQty > 0 ? (currentQty * currentAvgCost + incomingQty * incomingUnitCost) / newQty : 0
-		return { newQty, newAvgCost }
+		currentQty: string | number,
+		currentAvgCost: string | number,
+		incomingQty: string | number,
+		incomingUnitCost: string | number,
+	): { newQty: string; newAvgCost: string } {
+		const cQty = new Decimal(currentQty)
+		const cCost = new Decimal(currentAvgCost)
+		const iQty = new Decimal(incomingQty)
+		const iCost = new Decimal(incomingUnitCost)
+
+		const newQty = cQty.plus(iQty)
+		const newAvgCost = newQty.isPositive()
+			? cQty.mul(cCost).plus(iQty.mul(iCost)).div(newQty)
+			: new Decimal(0)
+		return { newQty: newQty.toString(), newAvgCost: newAvgCost.toString() }
 	}
 
 	/**
@@ -37,7 +44,7 @@ export class MovementLogic {
 			date: Date
 			referenceNo: string
 			notes?: string | null | undefined
-			items: Array<{ materialId: number; qty: number }>
+			items: Array<{ materialId: number; qty: string | number }>
 			counterpartLocationId?: number | null | undefined
 			transferId?: number | null | undefined
 		},
@@ -54,15 +61,18 @@ export class MovementLogic {
 			await record(`MovementLogic.handleStockOut.${type}.item:${materialId}`, async () => {
 				const assignment = await this.mLocationSvc.findOne(materialId, locationId)
 
-				if (assignment.currentQty < qty) {
+				const qtyDec = new Decimal(qty)
+				const cQtyDec = new Decimal(assignment.currentQty)
+
+				if (cQtyDec.lt(qtyDec)) {
 					throw new BadRequestError(
 						`Insufficient stock for material ${materialId}: available ${assignment.currentQty}, requested ${qty}`,
 					)
 				}
 
-				const currentAvgCost = assignment.currentAvgCost
-				const newQty = assignment.currentQty - qty
-				const totalCost = qty * currentAvgCost
+				const currentAvgCost = new Decimal(assignment.currentAvgCost)
+				const newQty = cQtyDec.minus(qtyDec)
+				const totalCost = qtyDec.mul(currentAvgCost)
 
 				await tx.insert(stockTransactionsTable).values({
 					materialId,
@@ -71,7 +81,7 @@ export class MovementLogic {
 					date,
 					referenceNo,
 					notes: notes ?? null,
-					qty: qty.toString(),
+					qty: qtyDec.toString(),
 					unitCost: currentAvgCost.toString(),
 					totalCost: totalCost.toString(),
 					counterpartLocationId: counterpartLocationId ?? null,
@@ -85,9 +95,9 @@ export class MovementLogic {
 					materialId,
 					locationId,
 					{
-						currentQty: newQty,
-						currentAvgCost: currentAvgCost,
-						currentValue: newQty * currentAvgCost,
+						currentQty: newQty.toString(),
+						currentAvgCost: currentAvgCost.toString(),
+						currentValue: newQty.mul(currentAvgCost).toString(),
 					},
 					actorId,
 				)

@@ -58,9 +58,9 @@ export class RecipeRepo {
 			Object.assign({}, r.item, {
 				material: r.material,
 				uom: r.uom,
-				qty: Number(r.item.qty),
-				scrapPercentage: Number(r.item.scrapPercentage),
-				sortOrder: Number(r.item.sortOrder),
+				qty: r.item.qty,
+				scrapPercentage: r.item.scrapPercentage,
+				sortOrder: r.item.sortOrder,
 			}),
 		)
 	}
@@ -83,7 +83,7 @@ export class RecipeRepo {
 
 					return {
 						...recipe,
-						targetQty: Number(recipe.targetQty),
+						targetQty: recipe.targetQty,
 						items,
 					}
 				},
@@ -159,9 +159,9 @@ export class RecipeRepo {
 				Object.assign({}, r.item, {
 					material: r.material,
 					uom: r.uom,
-					qty: Number(r.item.qty),
-					scrapPercentage: Number(r.item.scrapPercentage),
-					sortOrder: Number(r.item.sortOrder),
+					qty: r.item.qty,
+					scrapPercentage: r.item.scrapPercentage,
+					sortOrder: r.item.sortOrder,
 				}),
 			)
 
@@ -174,7 +174,7 @@ export class RecipeRepo {
 
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
-				targetQty: Number(r.targetQty),
+				targetQty: r.targetQty,
 				items: itemsByRecipe.get(r.id) ?? [],
 			}))
 
@@ -194,7 +194,7 @@ export class RecipeRepo {
 					),
 				)
 
-			return Number(valuation?.avgCost ?? 0)
+			return valuation?.avgCost ?? 0
 		})
 	}
 

@@ -63,10 +63,10 @@ export type RecipeSelectDto = z.infer<typeof RecipeSelectDto>
 const RecipeItemMutationDto = z.object({
 	materialId: zp.id,
 	qty: zp.decimal,
-	scrapPercentage: zp.decimal.optional().default(0),
+	scrapPercentage: zp.decimal.optional().default("0"),
 	uomId: zp.id,
 	notes: zc.strTrimNullable,
-	sortOrder: zp.num.optional().default(0),
+	sortOrder: zp.num.optional().default("0"),
 })
 
 export const RecipeCreateDto = z
@@ -74,7 +74,7 @@ export const RecipeCreateDto = z
 		materialId: zp.id.optional().nullable(),
 		productId: zp.id.optional().nullable(),
 		productVariantId: zp.id.optional().nullable(),
-		targetQty: zp.decimal.optional().default(1),
+		targetQty: zp.decimal.optional().default("1"),
 		isActive: zp.bool.default(true),
 		instructions: zc.strTrimNullable,
 		items: z.array(RecipeItemMutationDto).min(1, 'At least one item is required'),

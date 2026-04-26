@@ -12,6 +12,7 @@ import type {
 	RecipeUpdateDto,
 } from '../dto/recipe.dto'
 import { RecipeRepo } from '../repo'
+import Decimal from 'decimal.js'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -117,25 +118,25 @@ export class RecipeService {
 			const recipe = await this.getById(recipeId)
 			const items = recipe.items ?? []
 
-			let totalCost = 0
+			let totalCost = new Decimal(0)
 			const detailedItems = []
 
 			for (const item of items) {
-				const avgCost = await this.repo.getAvgCostForMaterial(item.materialId)
-				const qty = Number(item.qty)
-				const scrap = Number(item.scrapPercentage)
+				const avgCost = new Decimal(await this.repo.getAvgCostForMaterial(item.materialId))
+				const qty = new Decimal(item.qty)
+				const scrap = new Decimal(item.scrapPercentage)
 
-				const scrapFactor = 1 + scrap / 100
-				const itemCost = qty * scrapFactor * avgCost
+				const scrapFactor = new Decimal(1).plus(scrap.div(100))
+				const itemCost = qty.mul(scrapFactor).mul(avgCost)
 
-				totalCost += itemCost
-				detailedItems.push({ ...item, unitCost: avgCost, extendedCost: itemCost })
+				totalCost = totalCost.plus(itemCost)
+				detailedItems.push({ ...item, unitCost: avgCost.toString(), extendedCost: itemCost.toString() })
 			}
 
-			const targetQty = Number(recipe.targetQty)
-			const unitCost = targetQty > 0 ? totalCost / targetQty : totalCost
+			const targetQty = new Decimal(recipe.targetQty)
+			const unitCost = targetQty.isPositive() ? totalCost.div(targetQty) : totalCost
 
-			return { recipeId, targetQty, totalCost, unitCost, items: detailedItems }
+			return { recipeId, targetQty: targetQty.toString(), totalCost: totalCost.toString(), unitCost: unitCost.toString(), items: detailedItems }
 		})
 	}
 }

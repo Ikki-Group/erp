@@ -7,7 +7,7 @@ import { zc, zp } from '@/core/validation'
  */
 const StockOpnameItemDto = z.object({
 	materialId: zp.id,
-	physicalQty: zp.decimal.nonnegative('Physical quantity cannot be negative'),
+	physicalQty: zp.decimal.refine((v) => Number(v) >= 0, 'Physical quantity cannot be negative'),
 	notes: zc.strTrimNullable,
 })
 
