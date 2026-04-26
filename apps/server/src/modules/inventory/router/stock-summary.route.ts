@@ -23,7 +23,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.get(
 				'/by-location',
 				async function byLocation({ query }) {
-					const result = await s.summary.handleByLocation(query, query)
+					const result = await s.summary.handleByLocation(query)
 					return res.paginated(result)
 				},
 				{
@@ -38,7 +38,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.get(
 				'/ledger',
 				async function ledger({ query }) {
-					const result = await s.summary.handleLedger(query, query)
+					const result = await s.summary.handleLedger(query)
 					return res.paginated(result)
 				},
 				{
