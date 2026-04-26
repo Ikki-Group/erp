@@ -1,6 +1,6 @@
 import type { FinanceServiceModule } from '@/modules/finance/service'
-import type { IamModule } from '@/modules/iam'
-import type { LocationServiceModule } from '@/modules/location/service'
+import type { IamServiceModule } from '@/modules/iam'
+import type { LocationServiceModule } from '@/modules/location'
 import type { SalesServiceModule } from '@/modules/sales/service'
 
 import { AnalyticsService } from './analytics.service'
@@ -11,12 +11,12 @@ export class DashboardServiceModule {
 	public analytics: AnalyticsService
 
 	constructor(
-		iam: IamModule,
-		location: LocationServiceModule,
+		iamSvc: IamServiceModule,
+		locationSvc: LocationServiceModule,
 		_finance: FinanceServiceModule,
 		_sales: SalesServiceModule,
 	) {
-		this.settings = new SettingsService(iam, location)
+		this.settings = new SettingsService(iamSvc, locationSvc)
 		this.analytics = new AnalyticsService()
 	}
 }

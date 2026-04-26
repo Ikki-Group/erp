@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, desc, eq, gte, ilike, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
@@ -12,7 +12,6 @@ import type {
 	AttendanceFilterDto,
 	AttendanceSelectDto,
 	ClockInDto,
-	ClockOutDto,
 	ShiftCreateDto,
 	ShiftDto,
 } from '../dto/hr.dto'
@@ -22,7 +21,7 @@ const cache = bento.namespace('hr')
 export class HRRepo {
 	/* -------------------------------- INTERNAL -------------------------------- */
 
-	async #clearCache(id?: number, type: 'shift' | 'attendance' = 'attendance'): Promise<void> {
+	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
 		await cache.deleteMany({ keys })

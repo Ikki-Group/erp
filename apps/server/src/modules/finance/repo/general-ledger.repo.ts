@@ -7,19 +7,23 @@ import { stampCreate } from '@/core/database'
 import { db } from '@/db'
 import { journalEntriesTable, journalItemsTable } from '@/db/schema/finance'
 
-export interface JournalItemInput {
-	accountId: number
-	debit: string
-	credit: string
-}
+export type JournalEntry = typeof journalEntriesTable.$inferSelect
+export type JournalItem = typeof journalItemsTable.$inferSelect
+export type JournalEntryWithItems = JournalEntry & { items: JournalItem[] }
 
-export interface JournalEntryInput {
+export type JournalEntryInput = {
 	date: Date
 	reference: string
 	sourceType: string
 	sourceId: number
-	note?: string | null
+	note?: string
 	items: JournalItemInput[]
+}
+
+export type JournalItemInput = {
+	accountId: number
+	debit: string
+	credit: string
 }
 
 const cache = bento.namespace('finance.gl')
