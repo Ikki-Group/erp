@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp } from '@/core/validation'
 
-import { UserDetailDto } from '@/modules/iam/dto'
+import { UserDetailDto } from '@/modules/iam'
 
 export const LoginDto = z.object({
 	identifier: zc.strTrim.min(1),

@@ -9,32 +9,37 @@ import { RoleService } from './role/role.service'
 import { initUserRoute } from './user/user.route'
 import { UserService } from './user/user.service'
 
-export interface IamServices {
-	user: UserService
-	role: RoleService
-	assignment: UserAssignmentService
-}
+export class IamServiceModule {
+	public role: RoleService
+	public assignment: UserAssignmentService
+	public user: UserService
 
-export class IamModule {
-	public readonly service: IamServices
-
-	constructor(private getExternalModules: () => { location: LocationServiceModule }) {
-		const role = new RoleService()
-		const assignment = new UserAssignmentService()
-		const user = new UserService(
-			undefined,
-			() => role,
-			() => assignment,
-			() => this.getExternalModules().location.location,
-		)
-
-		this.service = { user, role, assignment }
-	}
-
-	initRouter() {
-		return new Elysia({ prefix: '/iam' })
-			.use(initUserRoute(this.service.user))
-			.use(initRoleRoute(this.service.role))
-			.use(initAssignmentRoute(this.service.assignment))
+	constructor(private location: LocationServiceModule) {
+		this.role = new RoleService()
+		this.assignment = new UserAssignmentService()
+		this.user = new UserService({
+			role: this.role,
+			assignment: this.assignment,
+			location: this.location,
+		})
 	}
 }
+
+export function initIamRouteModule(s: IamServiceModule) {
+	return new Elysia({ prefix: '/iam' })
+		.use(initRoleRoute(s.role))
+		.use(initAssignmentRoute(s.assignment))
+		.use(initUserRoute(s.user))
+}
+
+export * from './assignment/assignment.dto'
+export * from './assignment/assignment.repo'
+export * from './assignment/assignment.service'
+
+export * from './role/role.dto'
+export * from './role/role.repo'
+export * from './role/role.service'
+
+export * from './user/user.dto'
+export * from './user/user.repo'
+export * from './user/user.service'

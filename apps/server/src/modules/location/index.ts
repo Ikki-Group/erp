@@ -4,15 +4,15 @@ import { initLocationRoute } from './location-master/location-master.route'
 import { LocationMasterService } from './location-master/location-master.service'
 
 export class LocationServiceModule {
-	public location: LocationMasterService
+	public master: LocationMasterService
 
 	constructor() {
-		this.location = new LocationMasterService()
+		this.master = new LocationMasterService()
 	}
 }
 
 export function initLocationRouteModule(service: LocationServiceModule) {
-	const locationRouter = initLocationRoute(service.location)
+	const locationRouter = initLocationRoute(service.master)
 
 	return new Elysia({ prefix: '/location' }).use(locationRouter)
 }

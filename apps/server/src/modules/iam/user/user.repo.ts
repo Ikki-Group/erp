@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, or } from 'drizzle-orm'
+import { omit } from 'es-toolkit'
 
+import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -16,16 +18,18 @@ import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import * as dto from './user.dto'
 
-export class UserRepo {
-	/* -------------------------------------------------------------------------- */
-	/*                                    QUERY                                   */
-	/* -------------------------------------------------------------------------- */
+const cache = bento.namespace('iam:user')
 
-	async getList(): Promise<dto.UserDto[]> {
-		return record('UserRepo.getList', async () =>
-			db.select().from(usersTable).orderBy(usersTable.fullname),
-		)
+export class UserRepo {
+	#clearCache(id?: number): Promise<void> {
+		return record('UserRepo.#clearCache', async () => {
+			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
+			await cache.deleteMany({ keys })
+		})
 	}
+
+	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(filter: dto.UserFilterDto): Promise<WithPaginationResult<dto.UserDto>> {
 		return record('UserRepo.getListPaginated', async () => {
@@ -70,13 +74,34 @@ export class UserRepo {
 		})
 	}
 
-	async getById(id: number): Promise<dto.UserDto | null> {
+	async getList(): Promise<dto.UserDto[]> {
+		return record('UserRepo.getList', async () =>
+			cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.list,
+				factory: async () => db.select().from(usersTable).orderBy(usersTable.id),
+			}),
+		)
+	}
+
+	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserRepo.getById', async () => {
-			return db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
+			return cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.byId(id),
+				factory: async ({ skip }) => {
+					const res = await db
+						.select()
+						.from(usersTable)
+						.where(eq(usersTable.id, id))
+						.limit(1)
+						.then(takeFirst)
+
+					return res ?? skip()
+				},
+			})
 		})
 	}
 
-	async findByIdentifier(
+	async getByIdentifier(
 		identifier: string,
 	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
 		return record('UserRepo.findByIdentifier', async () => {
@@ -88,7 +113,7 @@ export class UserRepo {
 				.then(takeFirst)
 
 			if (!user) return null
-			return { ...dto.UserDto.parse(user), passwordHash: user.passwordHash }
+			return user
 		})
 	}
 
@@ -106,16 +131,19 @@ export class UserRepo {
 
 	async count(): Promise<number> {
 		return record('UserRepo.count', async () => {
-			return db
-				.select({ count: count() })
-				.from(usersTable)
-				.then((rows) => rows[0]?.count ?? 0)
+			return cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.count,
+				factory: async () => {
+					return db
+						.select({ count: count() })
+						.from(usersTable)
+						.then((rows) => rows[0]?.count ?? 0)
+				},
+			})
 		})
 	}
 
-	/* -------------------------------------------------------------------------- */
-	/*                                  MUTATION                                  */
-	/* -------------------------------------------------------------------------- */
+	/* -------------------------------- MUTATION -------------------------------- */
 
 	async seed(
 		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
@@ -143,6 +171,8 @@ export class UserRepo {
 
 				if (inserted) insertedIds.push(inserted.id)
 			}
+
+			void this.#clearCache()
 			return insertedIds
 		})
 	}
@@ -152,13 +182,14 @@ export class UserRepo {
 		actorId: number,
 	): Promise<number | undefined> {
 		return record('UserRepo.create', async () => {
-			// oxlint-disable-next-line no-unused-vars
-			const { assignments, ...rest } = data
+			const userData = omit(data, ['assignments'])
 			const metadata = stampCreate(actorId)
 			const [res] = await db
 				.insert(usersTable)
-				.values({ ...rest, ...metadata })
+				.values({ ...userData, ...metadata })
 				.returning({ id: usersTable.id })
+
+			void this.#clearCache()
 			return res?.id
 		})
 	}
@@ -168,14 +199,15 @@ export class UserRepo {
 		actorId: number,
 	): Promise<number | undefined> {
 		return record('UserRepo.update', async () => {
-			// oxlint-disable-next-line no-unused-vars
-			const { assignments, ...rest } = data
+			const userData = omit(data, ['assignments'])
 			const metadata = stampUpdate(actorId)
 			const [res] = await db
 				.update(usersTable)
-				.set({ ...rest, ...metadata })
+				.set({ ...userData, ...metadata })
 				.where(eq(usersTable.id, data.id))
 				.returning({ id: usersTable.id })
+
+			void this.#clearCache(data.id)
 			return res?.id
 		})
 	}
@@ -192,6 +224,8 @@ export class UserRepo {
 				.set({ passwordHash, ...metadata })
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
+
+			void this.#clearCache(id)
 			return res?.id
 		})
 	}
@@ -202,6 +236,8 @@ export class UserRepo {
 				.delete(usersTable)
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
+
+			void this.#clearCache(id)
 			return res?.id
 		})
 	}

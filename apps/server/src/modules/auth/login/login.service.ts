@@ -1,11 +1,10 @@
 import { UnauthorizedError } from '@/core/http/errors'
 import { verifyPassword } from '@/core/password'
 
-import type { AuthOutputDto, LoginDto } from '@/modules/auth/dto'
-import type { UserDetailDto, UserDto } from '@/modules/iam/dto'
-import type { UserService } from '@/modules/iam/service/user.service'
+import type { UserDetailDto, UserDto, UserService } from '@/modules/iam'
 
-import type { SessionService } from './session.service'
+import type { SessionService } from '../session/session.service'
+import type { AuthOutputDto, LoginDto } from './login.dto'
 
 const err = {
 	userNotFound: () => new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND'),
@@ -13,15 +12,17 @@ const err = {
 		new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS'),
 }
 
-export class AuthService {
+export class LoginService {
 	constructor(
-		private readonly userSvc: UserService,
-		private readonly sessionSvc: SessionService,
+		private readonly svc: {
+			user: UserService
+			session: SessionService
+		},
 	) {}
 
 	async login(input: LoginDto): Promise<AuthOutputDto> {
 		const { identifier, password } = input
-		const targetUser = await this.userSvc.getByIdentifier(identifier)
+		const targetUser = await this.svc.user.getByIdentifier(identifier)
 
 		if (!targetUser || !targetUser.isActive) {
 			throw err.userNotFound()
@@ -32,22 +33,22 @@ export class AuthService {
 			throw err.invalidCredentials()
 		}
 
-		const session = await this.sessionSvc.createSession(targetUser)
-		const userDetail = await this.userSvc.getDetailById(targetUser.id)
+		const session = await this.svc.session.createSession(targetUser)
+		const userDetail = await this.svc.user.getDetailById(targetUser.id)
 
 		return { user: userDetail, token: session.token }
 	}
 
 	async verifyToken(token: string): Promise<UserDto> {
-		const session = await this.sessionSvc.verifySession(token)
+		const session = await this.svc.session.verifySession(token)
 		if (!session) {
 			throw err.invalidCredentials()
 		}
 
-		return this.userSvc.getDetailById(session.userId)
+		return this.svc.user.getDetailById(session.userId)
 	}
 
 	async getById(userId: number): Promise<UserDetailDto> {
-		return this.userSvc.getDetailById(userId)
+		return this.svc.user.getDetailById(userId)
 	}
 }

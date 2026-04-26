@@ -6,26 +6,6 @@ export const SYSTEM_ROLES = {
 } as const
 
 /**
- * Cache key strategies
- * Structure: {domain}:{operation}:{id?}
- */
-export const IAM_CACHE_KEYS = {
-	// User cache
-	USER_LIST: 'iam:user:list',
-	USER_COUNT: 'iam:user:count',
-	USER_DETAIL: (id: number) => `iam:user:${id}`,
-
-	// Role cache
-	ROLE_LIST: 'iam:role:list',
-	ROLE_COUNT: 'iam:role:count',
-	ROLE_DETAIL: (id: number) => `iam:role:${id}`,
-
-	// Assignment cache (per-user, invalidated on mutations)
-	ASSIGNMENT_BY_USER: (userId: number) => `iam:assignment:user:${userId}`,
-	ASSIGNMENT_LIST_BY_LOCATION: (locationId: number) => `iam:assignment:location:${locationId}`,
-}
-
-/**
  * IAM configuration
  */
 export const IAM_CONFIG = {

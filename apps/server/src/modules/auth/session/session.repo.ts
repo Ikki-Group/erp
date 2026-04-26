@@ -1,46 +1,47 @@
 import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 
+import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { takeFirst } from '@/core/database'
 
 import { db } from '@/db'
 import { sessionsTable } from '@/db/schema'
 
-import type { SessionDto } from '../dto'
+import type { SessionDto } from './session.dto'
+
+const cache = bento.namespace('auth:session')
 
 export class SessionRepo {
-	/* -------------------------------------------------------------------------- */
-	/*                                    QUERY                                   */
-	/* -------------------------------------------------------------------------- */
+	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<SessionDto | null> {
-		return record('SessionRepo.getById', async () => {
-			const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
-			return takeFirst(result)
-		})
+	async getById(id: number): Promise<SessionDto | undefined> {
+		return record('SessionRepo.getById', async () =>
+			cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.byId(id),
+				factory: async ({ skip }) => {
+					const result = await db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
+					return takeFirst(result) ?? skip()
+				},
+			}),
+		)
 	}
 
-	async getByUserId(userId: number): Promise<SessionDto | null> {
+	async getByUserId(userId: number): Promise<SessionDto[]> {
 		return record('SessionRepo.getByUserId', async () => {
 			const result = await db
 				.select()
 				.from(sessionsTable)
 				.where(eq(sessionsTable.userId, userId))
 				.orderBy(sessionsTable.createdAt)
-			return takeFirst(result)
+			return result
 		})
 	}
 
-	/* -------------------------------------------------------------------------- */
-	/*                                  MUTATION                                  */
-	/* -------------------------------------------------------------------------- */
+	/* -------------------------------- MUTATION -------------------------------- */
 
 	async create(data: typeof sessionsTable.$inferInsert): Promise<SessionDto> {
 		return record('SessionRepo.create', async () => {
-			const [session] = await db
-				.insert(sessionsTable)
-				.values(data)
-				.returning()
+			const [session] = await db.insert(sessionsTable).values(data).returning()
 
 			if (!session) throw new Error('Failed to create session')
 			return session as SessionDto
@@ -49,10 +50,7 @@ export class SessionRepo {
 
 	async invalidate(id: number): Promise<void> {
 		return record('SessionRepo.invalidate', async () => {
-			await db
-				.update(sessionsTable)
-				.set({ expiredAt: new Date() })
-				.where(eq(sessionsTable.id, id))
+			await db.update(sessionsTable).set({ expiredAt: new Date() }).where(eq(sessionsTable.id, id))
 		})
 	}
 

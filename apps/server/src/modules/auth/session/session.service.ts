@@ -1,17 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
-import { bento } from '@/core/cache'
+import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { logger } from '@/core/logger'
 
-import { SessionRepo } from '../repo'
-import { SessionPayloadDto, type SessionDto } from '../dto'
+import type { UserDto } from '@/modules/iam'
+
+import { SessionPayloadDto, type SessionDto } from './session.dto'
+import { SessionRepo } from './session.repo'
 import { env } from '@/config/env'
 
-import type { UserDto } from '@/modules/iam/dto'
-
 const cache = bento.namespace('session')
-
 
 export class SessionService {
 	constructor(private readonly repo = new SessionRepo()) {}
@@ -19,10 +18,10 @@ export class SessionService {
 	/**
 	 * Finds a single session by its ID. Cached.
 	 */
-	async getById(id: number): Promise<SessionDto | null> {
+	async getById(id: number): Promise<SessionDto | undefined> {
 		return record('SessionService.getById', async () => {
 			return cache.getOrSet({
-				key: `${id}`,
+				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async () => this.repo.getById(id),
 			})
 		})

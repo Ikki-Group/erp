@@ -2,15 +2,14 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { logger } from '@/core/logger'
 import { createSuccessResponseSchema } from '@/core/validation'
 
-import { UserDetailDto } from '@/modules/iam/dto'
+import { UserDetailDto } from '@/modules/iam'
 
-import { AuthOutputDto, LoginDto } from '../dto'
-import type { AuthService } from '../service/auth.service'
+import { AuthOutputDto, LoginDto } from './login.dto'
+import type { LoginService } from './login.service'
 
-export function initAuthRoute(svc: AuthService) {
+export function initAuthRoute(svc: LoginService) {
 	return new Elysia({ prefix: '/auth' })
 		.use(authPluginMacro)
 		.post(
@@ -24,7 +23,6 @@ export function initAuthRoute(svc: AuthService) {
 		.get(
 			'/me',
 			async function me({ auth }) {
-				logger.info({ userId: auth.user?.id }, 'Auth.me')
 				const userWithDetails = await svc.getById(auth.user!.id)
 				return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
 			},
