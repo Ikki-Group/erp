@@ -234,9 +234,7 @@ export class MaterialService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: MaterialFilterDto,
-	): Promise<WithPaginationResult<MaterialSelectDto>> {
+	async handleList(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialSelectDto>> {
 		return record('MaterialService.handleList', async () => {
 			const result = await this.materialRepo.getListPaginated(filter)
 

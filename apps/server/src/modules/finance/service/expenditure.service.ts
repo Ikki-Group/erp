@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { db } from '@/db'
 
 import type { ExpenditureCreateDto, ExpenditureFilterDto } from '../dto/expenditure.dto'

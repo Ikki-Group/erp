@@ -2,17 +2,13 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { transformDecimals } from '@/core/utils/decimal'
 import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import { transformDecimals } from '@/core/utils/decimal'
 
 import { db } from '@/db'
 import { workOrdersTable } from '@/db/schema/production'
 
-import type {
-	WorkOrderCreateDto,
-	WorkOrderDto,
-	WorkOrderFilterDto,
-} from '../dto/work-order.dto'
+import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from '../dto/work-order.dto'
 
 const cache = bento.namespace('production.work-order')
 
@@ -38,15 +34,13 @@ export class WorkOrderRepo {
 						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
 					if (!wo) return skip()
-					return transformDecimals(wo) as WorkOrderDto
+					return transformDecimals<WorkOrderDto>(wo)
 				},
 			})
 		})
 	}
 
-	async getListPaginated(
-		filter: WorkOrderFilterDto,
-	): Promise<WithPaginationResult<WorkOrderDto>> {
+	async getListPaginated(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
 		return record('WorkOrderRepo.getListPaginated', async () => {
 			const { locationId, status, page, limit } = filter
 
@@ -66,15 +60,12 @@ export class WorkOrderRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db
-					.select({ count: count() })
-					.from(workOrdersTable)
-					.where(where),
+				countQuery: db.select({ count: count() }).from(workOrdersTable).where(where),
 			})
 
 			return {
 				...result,
-				data: result.data.map((wo) => transformDecimals(wo) as WorkOrderDto),
+				data: result.data.map((wo) => transformDecimals<WorkOrderDto>(wo)),
 			}
 		})
 	}
@@ -100,11 +91,15 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to create work order')
 			void this.#clearCache()
-			return transformDecimals(result) as WorkOrderDto
+			return transformDecimals<WorkOrderDto>(result)
 		})
 	}
 
-	async update(id: number, data: Partial<typeof workOrdersTable.$inferInsert>, actorId: number): Promise<WorkOrderDto> {
+	async update(
+		id: number,
+		data: Partial<typeof workOrdersTable.$inferInsert>,
+		actorId: number,
+	): Promise<WorkOrderDto> {
 		return record('WorkOrderRepo.update', async () => {
 			const [result] = await db
 				.update(workOrdersTable)
@@ -114,7 +109,7 @@ export class WorkOrderRepo {
 
 			if (!result) throw new Error('Failed to update work order')
 			void this.#clearCache(id)
-			return transformDecimals(result) as WorkOrderDto
+			return transformDecimals<WorkOrderDto>(result)
 		})
 	}
 

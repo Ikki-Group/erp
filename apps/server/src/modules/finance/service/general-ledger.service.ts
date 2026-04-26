@@ -1,8 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import type { JournalEntryInput } from '../repo/general-ledger.repo'
 import { GeneralLedgerRepo as GLRepo } from '../repo/general-ledger.repo'
 
-export type { JournalItemInput, JournalEntryWithItems, JournalEntry, JournalItem, JournalEntryInput } from '../repo/general-ledger.repo'
+export type {
+	JournalItemInput,
+	JournalEntryWithItems,
+	JournalEntry,
+	JournalItem,
+	JournalEntryInput,
+} from '../repo/general-ledger.repo'
 
 export class GeneralLedgerService {
 	constructor(private readonly repo = new GLRepo()) {}

@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import { SalesOrderRepo } from '../repo'
 import type {
 	SalesOrderAddBatchDto,
 	SalesOrderCreateDto,
@@ -11,6 +11,7 @@ import type {
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
 } from '../dto'
+import { SalesOrderRepo } from '../repo'
 
 export class SalesOrderService {
 	constructor(private readonly repo = new SalesOrderRepo()) {}
@@ -65,16 +66,17 @@ export class SalesOrderService {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('SalesOrderService.handleExternalIngestion', async () => {
-			const existingId = await this.repo.checkExistingExternalRef(externalRef.source, externalRef.extId)
+			const existingId = await this.repo.checkExistingExternalRef(
+				externalRef.source,
+				externalRef.extId,
+			)
 			if (existingId) return { id: existingId }
 
 			return this.repo.createWithExternalRef(data, externalRef, actorId)
 		})
 	}
 
-	async handleList(
-		filter: SalesOrderFilterDto,
-	): Promise<WithPaginationResult<SalesOrderDto>> {
+	async handleList(filter: SalesOrderFilterDto): Promise<WithPaginationResult<SalesOrderDto>> {
 		return record('SalesOrderService.handleList', async () => {
 			return this.repo.getListPaginated(filter)
 		})

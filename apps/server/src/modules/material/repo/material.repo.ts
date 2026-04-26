@@ -13,43 +13,46 @@ import {
 import { db } from '@/db'
 import { materialConversionsTable, materialsTable, uomsTable } from '@/db/schema'
 
-import type {
-	MaterialDto,
-	MaterialFilterDto,
-	MaterialMutationDto,
-	MaterialSelectDto,
-} from '../dto'
+import type { MaterialDto, MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
 
-	/* ---------------------------------- QUERY --------------------------------- */
+/* ---------------------------------- QUERY --------------------------------- */
 
 export class MaterialRepo {
 	async getList(): Promise<MaterialDto[]> {
-		return record('MaterialRepo.getList', async () =>
-			db
-				.select()
-				.from(materialsTable)
-				.where(isNull(materialsTable.deletedAt))
-				.orderBy(materialsTable.name) as unknown as MaterialDto[],
+		return record(
+			'MaterialRepo.getList',
+			async () =>
+				db
+					.select()
+					.from(materialsTable)
+					.where(isNull(materialsTable.deletedAt))
+					.orderBy(materialsTable.name) as unknown as MaterialDto[],
 		)
 	}
 
 	async getById(id: number): Promise<MaterialDto | null> {
-		return record('MaterialRepo.getById', async () =>
-			db
-				.select()
-				.from(materialsTable)
-				.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
-				.then(takeFirst) as unknown as MaterialDto | null,
+		return record(
+			'MaterialRepo.getById',
+			async () =>
+				db
+					.select()
+					.from(materialsTable)
+					.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
+					.then(takeFirst) as unknown as MaterialDto | null,
 		)
 	}
 
 	async getByIds(ids: number[]): Promise<MaterialDto[]> {
 		if (ids.length === 0) return []
-		return record('MaterialRepo.getByIds', async () =>
-			db
-				.select()
-				.from(materialsTable)
-				.where(and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt))) as unknown as MaterialDto[],
+		return record(
+			'MaterialRepo.getByIds',
+			async () =>
+				db
+					.select()
+					.from(materialsTable)
+					.where(
+						and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt)),
+					) as unknown as MaterialDto[],
 		)
 	}
 
@@ -70,10 +73,7 @@ export class MaterialRepo {
 			const { search, type, categoryId } = filter
 
 			const searchCondition = search
-				? or(
-						ilike(materialsTable.name, `%${search}%`),
-						ilike(materialsTable.sku, `%${search}%`),
-					)
+				? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
 				: undefined
 
 			const where = and(
@@ -97,9 +97,7 @@ export class MaterialRepo {
 			})
 
 			// Fetch UOM details for each material
-			const uomIds = result.data
-				.map((m) => m.baseUomId)
-				.filter((id) => id !== null)
+			const uomIds = result.data.map((m) => m.baseUomId).filter((id) => id !== null)
 			const uoms =
 				uomIds.length > 0
 					? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
@@ -113,6 +111,8 @@ export class MaterialRepo {
 					category: null, // Populated by service
 					conversions: [],
 					locationIds: [],
+					creator: null,
+					updater: null,
 				}
 				return dto
 			})
@@ -123,9 +123,7 @@ export class MaterialRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(
-		data: MaterialMutationDto & { createdBy: number },
-	): Promise<{ id: number }> {
+	async create(data: MaterialMutationDto & { createdBy: number }): Promise<{ id: number }> {
 		return record('MaterialRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
 			const { conversions, ...materialData } = data
@@ -171,7 +169,10 @@ export class MaterialRepo {
 			const { conversions, ...updateData } = data
 
 			await db.transaction(async (tx) => {
-				await tx.update(materialsTable).set({ ...updateData, ...metadata }).where(eq(materialsTable.id, id))
+				await tx
+					.update(materialsTable)
+					.set({ ...updateData, ...metadata })
+					.where(eq(materialsTable.id, id))
 
 				if (conversions !== undefined) {
 					await tx

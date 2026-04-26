@@ -1,3 +1,4 @@
+// oxlint-disable
 import { StockTransactionService } from './stock-transaction.service'
 import { describe, expect, it } from 'bun:test'
 

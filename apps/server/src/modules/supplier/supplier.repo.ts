@@ -14,7 +14,12 @@ import {
 import { db } from '@/db'
 import { suppliersTable } from '@/db/schema/supplier'
 
-import type { SupplierCreateDto, SupplierDto, SupplierFilterDto, SupplierUpdateDto } from './dto/supplier.dto'
+import type {
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierUpdateDto,
+} from './dto/supplier.dto'
 
 const cache = bento.namespace('supplier')
 

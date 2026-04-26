@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
@@ -13,7 +14,11 @@ export class PurchaseOrderService {
 	async getById(id: number): Promise<dto.PurchaseOrderDto> {
 		return record('PurchaseOrderService.getById', async () => {
 			const order = await this.repo.getById(id)
-			if (!order) throw new NotFoundError(`Purchase Order with ID ${id} not found`, 'PURCHASE_ORDER_NOT_FOUND')
+			if (!order)
+				throw new NotFoundError(
+					`Purchase Order with ID ${id} not found`,
+					'PURCHASE_ORDER_NOT_FOUND',
+				)
 			return order
 		})
 	}
@@ -40,10 +45,7 @@ export class PurchaseOrderService {
 		})
 	}
 
-	async handleUpdate(
-		data: dto.PurchaseOrderUpdateDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(data: dto.PurchaseOrderUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleUpdate', async () => {
 			return this.repo.update(data, actorId)
 		})

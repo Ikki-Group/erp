@@ -55,10 +55,7 @@ export class PayrollRepo {
 	}
 
 	async getPayrollItemById(id: number): Promise<any | undefined> {
-		const [result] = await db
-			.select()
-			.from(payrollItemsTable)
-			.where(eq(payrollItemsTable.id, id))
+		const [result] = await db.select().from(payrollItemsTable).where(eq(payrollItemsTable.id, id))
 		return result
 	}
 
@@ -114,7 +111,10 @@ export class PayrollRepo {
 		})
 	}
 
-	async addAdjustment(data: PayrollAdjustmentCreateDto, actorId: number): Promise<PayrollAdjustmentDto> {
+	async addAdjustment(
+		data: PayrollAdjustmentCreateDto,
+		actorId: number,
+	): Promise<PayrollAdjustmentDto> {
 		return record('PayrollRepo.addAdjustment', async () => {
 			const result = await db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
@@ -140,7 +140,8 @@ export class PayrollRepo {
 				const item = takeFirstOrThrow(itemResult, 'Payroll item not found')
 
 				const currentAdjustments = Number(item.adjustmentsAmount)
-				const adjustmentAmount = data.type === 'addition' ? Number(data.amount) : -Number(data.amount)
+				const adjustmentAmount =
+					data.type === 'addition' ? Number(data.amount) : -Number(data.amount)
 				const newAdjustments = currentAdjustments + adjustmentAmount
 				const newTotal = Number(item.baseSalary) + newAdjustments + Number(item.serviceChargeAmount)
 

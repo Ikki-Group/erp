@@ -2,7 +2,15 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
 import { uomsTable } from '@/db/schema'
@@ -105,7 +113,10 @@ export class UomRepo {
 		})
 	}
 
-	async update(id: number, data: { code: string } & { updatedBy: number }): Promise<number | undefined> {
+	async update(
+		id: number,
+		data: { code: string } & { updatedBy: number },
+	): Promise<number | undefined> {
 		return record('UomRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)
 			const [res] = await db

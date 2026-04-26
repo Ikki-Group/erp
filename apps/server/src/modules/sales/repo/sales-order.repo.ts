@@ -2,8 +2,15 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, stampCreate, stampUpdate, takeFirstOrThrow, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	stampCreate,
+	stampUpdate,
+	takeFirstOrThrow,
+	type WithPaginationResult,
+} from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import { transformDecimals } from '@/core/utils/decimal'
 
 import { db } from '@/db'
 import {
@@ -16,19 +23,25 @@ import {
 
 import type {
 	SalesOrderAddBatchDto,
+	SalesOrderBatchDto,
 	SalesOrderCreateDto,
 	SalesOrderDto,
 	SalesOrderFilterDto,
+	SalesOrderItemDto,
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
+	SalesVoidDto,
 } from '../dto'
 
 const cache = bento.namespace('sales.order')
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
-	itemNotFound: (id: number) => new NotFoundError(`Sales Order Item ${id} not found`, 'SALES_ORDER_ITEM_NOT_FOUND'),
-	notOpen: (id: number) => new BadRequestError(`Sales Order ${id} is not open`, 'SALES_ORDER_NOT_OPEN'),
+	notFound: (id: number) =>
+		new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
+	itemNotFound: (id: number) =>
+		new NotFoundError(`Sales Order Item ${id} not found`, 'SALES_ORDER_ITEM_NOT_FOUND'),
+	notOpen: (id: number) =>
+		new BadRequestError(`Sales Order ${id} is not open`, 'SALES_ORDER_NOT_OPEN'),
 }
 
 export class SalesOrderRepo {
@@ -40,7 +53,7 @@ export class SalesOrderRepo {
 		await cache.deleteMany({ keys })
 	}
 
-	async #recalculateOrderTotals(tx: any, orderId: number, actorId: number) {
+	async #recalculateOrderTotals(tx: any = db, orderId: number, actorId: number) {
 		const allItems = await tx
 			.select()
 			.from(salesOrderItemsTable)
@@ -51,8 +64,8 @@ export class SalesOrderRepo {
 			.where(eq(salesVoidsTable.orderId, orderId))
 		const voidedItemIds = new Set<number>(
 			allVoids
-				.filter((v: any) => v.itemId !== null)
-				.map((v: any) => v.itemId as number),
+				.filter((v: { itemId: number | null }) => v.itemId !== null)
+				.map((v: { itemId: number | null }) => v.itemId as number),
 		)
 
 		let totalAmount = 0
@@ -96,14 +109,11 @@ export class SalesOrderRepo {
 					])
 
 					return {
-						...row,
-						totalAmount: Number(row.totalAmount),
-						discountAmount: Number(row.discountAmount),
-						taxAmount: Number(row.taxAmount),
-						items: items as any,
-						batches: batches as any,
-						voids: voids as any,
-					} as unknown as SalesOrderOutputDto
+						...transformDecimals<SalesOrderDto>(row),
+						items: items.map((i) => transformDecimals<SalesOrderItemDto>(i)),
+						batches: batches.map((b) => transformDecimals<SalesOrderBatchDto>(b)),
+						voids: voids.map((v) => transformDecimals<SalesVoidDto>(v)),
+					}
 				},
 			})
 		})
@@ -134,7 +144,7 @@ export class SalesOrderRepo {
 				dateCondition,
 			)
 
-			return paginate({
+			const result = await paginate({
 				data: ({ limit: l, offset }) =>
 					db
 						.select()
@@ -145,11 +155,19 @@ export class SalesOrderRepo {
 						.offset(offset),
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(salesOrdersTable).where(where),
-			}) as unknown as WithPaginationResult<SalesOrderDto>
+			})
+
+			return {
+				...result,
+				data: result.data.map((row) => transformDecimals<SalesOrderDto>(row)),
+			}
 		})
 	}
 
-	async checkExistingExternalRef(source: string, extId: number | string): Promise<number | undefined> {
+	async checkExistingExternalRef(
+		source: string,
+		extId: number | string,
+	): Promise<number | undefined> {
 		const [existingRef] = await db
 			.select({ orderId: salesExternalRefsTable.orderId })
 			.from(salesExternalRefsTable)

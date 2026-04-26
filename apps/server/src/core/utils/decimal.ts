@@ -11,9 +11,9 @@
  * Recursively converts string-encoded decimals in an object or array to numbers.
  * This is specific to Drizzle's Decimal behavior where numeric precision is preserved via strings.
  */
-export function transformDecimals<T>(data: T): T {
+export function transformDecimals<T = any>(data: any): T {
 	if (data === null || typeof data !== 'object') {
-		return data
+		return data as T
 	}
 
 	if (Array.isArray(data)) {

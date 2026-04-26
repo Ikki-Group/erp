@@ -4,12 +4,12 @@ import { NotFoundError } from '@/core/http/errors'
 import { transformDecimals } from '@/core/utils/decimal'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import { StockTransactionRepo } from '@/modules/inventory/repo'
 import type {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
 } from '@/modules/inventory/dto'
+import { StockTransactionRepo } from '@/modules/inventory/repo'
 
 export class StockHistoryService {
 	constructor(private readonly repo = new StockTransactionRepo()) {}

@@ -359,9 +359,7 @@ export class StockSummaryRepo {
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('StockSummaryRepo.hardDelete', async () => {
-			await db
-				.delete(stockSummariesTable)
-				.where(eq(stockSummariesTable.id, id))
+			await db.delete(stockSummariesTable).where(eq(stockSummariesTable.id, id))
 			void this.#clearCache()
 			return { id }
 		})

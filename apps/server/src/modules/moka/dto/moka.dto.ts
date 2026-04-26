@@ -63,7 +63,7 @@ export const MokaSalesDetailRawDto = z
 		items: z.array(MokaSalesItemRawDto).optional(),
 		order_items: z.record(z.string(), z.array(MokaSalesItemRawDto)).optional(),
 	})
-	.passthrough()
+	.loose()
 
 export type MokaSalesDetailRawDto = z.infer<typeof MokaSalesDetailRawDto>
 

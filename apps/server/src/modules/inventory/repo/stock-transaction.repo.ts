@@ -1,5 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { paginate } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
@@ -82,7 +83,11 @@ export class StockTransactionRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(stockTransactionsTable).leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id)).where(where),
+				countQuery: db
+					.select({ count: count() })
+					.from(stockTransactionsTable)
+					.leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
+					.where(where),
 			}) as unknown as WithPaginationResult<StockTransactionSelectDto>
 		})
 	}
@@ -104,7 +109,9 @@ export class StockTransactionRepo {
 			return db
 				.select()
 				.from(stockTransactionsTable)
-				.where(and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt))) as unknown as StockTransactionDto[]
+				.where(
+					and(inArray(stockTransactionsTable.id, ids), isNull(stockTransactionsTable.deletedAt)),
+				) as unknown as StockTransactionDto[]
 		})
 	}
 
@@ -112,10 +119,7 @@ export class StockTransactionRepo {
 
 	async create(data: typeof stockTransactionsTable.$inferInsert): Promise<StockTransactionDto> {
 		return record('StockTransactionRepo.create', async () => {
-			const [result] = await db
-				.insert(stockTransactionsTable)
-				.values(data)
-				.returning()
+			const [result] = await db.insert(stockTransactionsTable).values(data).returning()
 
 			if (!result) throw new Error('Failed to create stock transaction')
 			return result as unknown as StockTransactionDto
@@ -142,7 +146,7 @@ export class StockTransactionRepo {
 				.returning({ id: stockTransactionsTable.id })
 
 			if (result.length === 0) throw new NotFoundError(`Stock transaction ${id} not found`)
-			return result[0] as { id: number }
+			return z.object({ id: z.number() }).parse(result[0])
 		})
 	}
 }

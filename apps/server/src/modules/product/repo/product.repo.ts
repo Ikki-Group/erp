@@ -2,7 +2,14 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+} from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
@@ -14,7 +21,7 @@ import {
 	variantPricesTable,
 } from '@/db/schema'
 
-import type {
+import {
 	ProductDto,
 	ProductExternalMappingDto,
 	ProductFilterDto,
@@ -61,12 +68,13 @@ export class ProductRepo {
 			.where(inArray(productVariantsTable.productId, productIds))
 
 		const variantIds = variants.map((v) => v.id)
-		const prices = variantIds.length > 0
-			? await db
-					.select()
-					.from(variantPricesTable)
-					.where(inArray(variantPricesTable.variantId, variantIds))
-			: []
+		const prices =
+			variantIds.length > 0
+				? await db
+						.select()
+						.from(variantPricesTable)
+						.where(inArray(variantPricesTable.variantId, variantIds))
+				: []
 
 		const pricesByVariant = new Map<number, VariantPriceDto[]>()
 		for (const p of prices) {
@@ -87,7 +95,9 @@ export class ProductRepo {
 		return map
 	}
 
-	async #getProductExternalMappingsBatch(productIds: number[]): Promise<Map<number, ProductExternalMappingDto[]>> {
+	async #getProductExternalMappingsBatch(
+		productIds: number[],
+	): Promise<Map<number, ProductExternalMappingDto[]>> {
 		if (productIds.length === 0) return new Map()
 		const mappings = await db
 			.select()
@@ -133,7 +143,7 @@ export class ProductRepo {
 		})
 	}
 
-	async getListPaginated(filter: ProductFilterDto): Promise<any> {
+	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
 		return record('ProductRepo.getListPaginated', async () => {
 			const { search, status, categoryId, locationId, isExternal, provider, page, limit } = filter
 
@@ -145,8 +155,8 @@ export class ProductRepo {
 								.from(productExternalMappingsTable)
 								.where(
 									and(
+										eq(productExternalMappingsTable.provider, provider ?? 'moka'),
 										eq(productExternalMappingsTable.productId, productsTable.id),
-										provider ? eq(productExternalMappingsTable.provider, provider) : undefined,
 									),
 								),
 						)
@@ -188,19 +198,25 @@ export class ProductRepo {
 			])
 
 			return {
-				data: result.data.map((p) => ({
-					...p,
-					basePrice: Number(p.basePrice),
-					variants: variantsMap.get(p.id) ?? [],
-					prices: pricesMap.get(p.id) ?? [],
-					externalMappings: mappingsMap.get(p.id) ?? [],
-				})),
+				data: result.data.map((p) =>
+					ProductDto.parse({
+						...p,
+						basePrice: Number(p.basePrice),
+						variants: variantsMap.get(p.id) ?? [],
+						prices: pricesMap.get(p.id) ?? [],
+						externalMappings: mappingsMap.get(p.id) ?? [],
+					}),
+				),
 				meta: result.meta,
 			}
 		})
 	}
 
-	async checkScopedConflict(locationId: number, input: { sku: string; name: string }, excludeId?: number) {
+	async checkScopedConflict(
+		locationId: number,
+		input: { sku: string; name: string },
+		excludeId?: number,
+	) {
 		const conditions = [
 			eq(productsTable.locationId, locationId),
 			isNull(productsTable.deletedAt),
@@ -215,8 +231,16 @@ export class ProductRepo {
 			.limit(1)
 
 		if (conflict) {
-			if (conflict.sku === input.sku) throw new ConflictError('Product SKU already exists in this location', 'PRODUCT_SKU_ALREADY_EXISTS')
-			if (conflict.name === input.name) throw new ConflictError('Product name already exists in this location', 'PRODUCT_NAME_ALREADY_EXISTS')
+			if (conflict.sku === input.sku)
+				throw new ConflictError(
+					'Product SKU already exists in this location',
+					'PRODUCT_SKU_ALREADY_EXISTS',
+				)
+			if (conflict.name === input.name)
+				throw new ConflictError(
+					'Product name already exists in this location',
+					'PRODUCT_NAME_ALREADY_EXISTS',
+				)
 		}
 	}
 
@@ -245,13 +269,30 @@ export class ProductRepo {
 				if (!product) throw new Error('Create product failed')
 
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx.insert(productPricesTable).values(
-						data.prices.map((p) => ({ productId: product.id, salesTypeId: p.salesTypeId, price: p.price.toString(), ...meta }))
-					)
+					await tx
+						.insert(productPricesTable)
+						.values(
+							data.prices.map((p) => ({
+								productId: product.id,
+								salesTypeId: p.salesTypeId,
+								price: p.price.toString(),
+								...meta,
+							})),
+						)
 				}
 
 				const inputVariants = data.hasVariants
-					? (data.variants && data.variants.length > 0) ? data.variants : [{ name: DEFAULT_VARIANT_NAME, isDefault: true, prices: [], basePrice: 0, sku: data.sku }]
+					? data.variants && data.variants.length > 0
+						? data.variants
+						: [
+								{
+									name: DEFAULT_VARIANT_NAME,
+									isDefault: true,
+									prices: [],
+									basePrice: 0,
+									sku: data.sku,
+								},
+							]
 					: []
 
 				for (const variant of inputVariants) {
@@ -268,9 +309,16 @@ export class ProductRepo {
 						.returning({ id: productVariantsTable.id })
 
 					if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-						await tx.insert(variantPricesTable).values(
-							variant.prices.map((p) => ({ variantId: insertedV.id, salesTypeId: p.salesTypeId, price: p.price.toString(), ...meta }))
-						)
+						await tx
+							.insert(variantPricesTable)
+							.values(
+								variant.prices.map((p) => ({
+									variantId: insertedV.id,
+									salesTypeId: p.salesTypeId,
+									price: p.price.toString(),
+									...meta,
+								})),
+							)
 					}
 				}
 				return product
@@ -302,9 +350,16 @@ export class ProductRepo {
 
 				await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx.insert(productPricesTable).values(
-						data.prices.map((p) => ({ productId: id, salesTypeId: p.salesTypeId, price: p.price.toString(), ...createMeta }))
-					)
+					await tx
+						.insert(productPricesTable)
+						.values(
+							data.prices.map((p) => ({
+								productId: id,
+								salesTypeId: p.salesTypeId,
+								price: p.price.toString(),
+								...createMeta,
+							})),
+						)
 				}
 
 				if (data.hasVariants && data.variants) {
@@ -323,9 +378,16 @@ export class ProductRepo {
 							.returning({ id: productVariantsTable.id })
 
 						if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-							await tx.insert(variantPricesTable).values(
-								variant.prices.map((p) => ({ variantId: insertedV.id, salesTypeId: p.salesTypeId, price: p.price.toString(), ...createMeta }))
-							)
+							await tx
+								.insert(variantPricesTable)
+								.values(
+									variant.prices.map((p) => ({
+										variantId: insertedV.id,
+										salesTypeId: p.salesTypeId,
+										price: p.price.toString(),
+										...createMeta,
+									})),
+								)
 						}
 					}
 				} else if (!data.hasVariants) {

@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
+
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema/location'
 import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
@@ -27,13 +28,17 @@ export class StockAlertRepo {
 					const conditions = [
 						isNull(materialLocationsTable.deletedAt),
 						isNull(materialsTable.deletedAt),
-						filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
+						filter.locationId
+							? eq(materialLocationsTable.locationId, filter.locationId)
+							: undefined,
 					]
 
 					if (filter.type === 'below_min') {
 						conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
 					} else if (filter.type === 'below_reorder') {
-						conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+						conditions.push(
+							lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+						)
 					} else {
 						conditions.push(
 							or(
@@ -90,13 +95,17 @@ export class StockAlertRepo {
 					const conditions = [
 						isNull(materialLocationsTable.deletedAt),
 						isNull(materialsTable.deletedAt),
-						filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
+						filter.locationId
+							? eq(materialLocationsTable.locationId, filter.locationId)
+							: undefined,
 					]
 
 					if (filter.type === 'below_min') {
 						conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
 					} else if (filter.type === 'below_reorder') {
-						conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+						conditions.push(
+							lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+						)
 					} else {
 						conditions.push(
 							or(

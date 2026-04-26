@@ -1,8 +1,15 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
 import {
@@ -99,9 +106,7 @@ export class RecipeRepo {
 		})
 	}
 
-	async getListPaginated(
-		filter: RecipeFilterDto,
-	): Promise<WithPaginationResult<RecipeSelectDto>> {
+	async getListPaginated(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
 		return record('RecipeRepo.getListPaginated', async () => {
 			const { materialId, productId, productVariantId, isActive, page, limit } = filter
 
@@ -355,8 +360,7 @@ export class RecipeRepo {
 				.returning({ id: recipesTable.id })
 
 			if (result.length === 0) throw new Error(`Recipe with ID ${id} not found`)
-			void this.#clearCache(id)
-			return result[0] as { id: number }
+			return z.object({ id: z.number() }).parse(result[0])
 		})
 	}
 }

@@ -2,19 +2,24 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
-import {
-	goodsReceiptNoteItemsTable,
-	goodsReceiptNotesTable,
-} from '@/db/schema'
+import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
 
 import {
 	GoodsReceiptNoteCreateDto,
 	GoodsReceiptNoteDto,
 	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteSelectDto,
+	type GoodsReceiptStatus,
 } from '../dto/goods-receipt.dto'
 
 const cache = bento.namespace('purchasing.receipt')
@@ -130,7 +135,11 @@ export class GoodsReceiptRepo {
 		})
 	}
 
-	async updateStatus(id: number, status: dto.GoodsReceiptStatus, actorId: number): Promise<{ id: number }> {
+	async updateStatus(
+		id: number,
+		status: GoodsReceiptStatus,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('GoodsReceiptRepo.updateStatus', async () => {
 			await db
 				.update(goodsReceiptNotesTable)

@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
 import { MokaSalesDetailRawDto } from '../../dto/moka.dto'
 import type { MokaAuthEngine } from './moka-auth.service'
@@ -87,6 +89,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 		const response = await api.get<unknown>(`/order-reporting/backoffice/v1/orders/${token}`, {
 			headers: this.getHeaders('OUTLET'),
 		})
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 		return MokaSalesDetailRawDto.parse(response.data) as unknown as MokaSalesDetailRaw
 	}
 }

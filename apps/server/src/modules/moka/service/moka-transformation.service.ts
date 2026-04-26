@@ -160,7 +160,7 @@ export class MokaTransformationService {
 				orderId: order.id,
 				externalSource: 'moka',
 				externalOrderId: sale.uuid,
-				rawPayload: sale as any,
+				rawPayload: sale,
 				...stampCreate(actorId),
 			})
 

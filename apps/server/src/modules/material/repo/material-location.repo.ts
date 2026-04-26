@@ -2,7 +2,13 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
@@ -286,7 +292,11 @@ export class MaterialLocationRepo {
 
 	async updateConfig(
 		id: number,
-		data: { minStock?: number | undefined; maxStock?: number | null | undefined; reorderPoint?: number | undefined },
+		data: {
+			minStock?: number | undefined
+			maxStock?: number | null | undefined
+			reorderPoint?: number | undefined
+		},
 		actorId: number,
 	): Promise<number | undefined> {
 		return record('MaterialLocationRepo.updateConfig', async () => {

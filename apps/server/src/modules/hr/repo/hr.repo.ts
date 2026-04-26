@@ -29,7 +29,10 @@ export class HRRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getShiftListPaginated(page: number, limit: number): Promise<WithPaginationResult<ShiftDto>> {
+	async getShiftListPaginated(
+		page: number,
+		limit: number,
+	): Promise<WithPaginationResult<ShiftDto>> {
 		return record('HRRepo.getShiftListPaginated', async () => {
 			return cache.getOrSet({
 				key: `shifts.${page}.${limit}`,

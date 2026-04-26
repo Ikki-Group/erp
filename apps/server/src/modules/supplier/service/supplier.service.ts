@@ -5,7 +5,12 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
-import type { SupplierCreateDto, SupplierDto, SupplierFilterDto, SupplierUpdateDto } from '../dto/supplier.dto'
+import type {
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierUpdateDto,
+} from '../dto/supplier.dto'
 import { SupplierRepo } from '../supplier.repo'
 
 const supplierConflictFields: ConflictField<'code'>[] = [
@@ -18,7 +23,8 @@ const supplierConflictFields: ConflictField<'code'>[] = [
 ]
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Supplier with ID ${id} not found`, 'SUPPLIER_NOT_FOUND'),
+	notFound: (id: number) =>
+		new NotFoundError(`Supplier with ID ${id} not found`, 'SUPPLIER_NOT_FOUND'),
 	createFailed: () => new InternalServerError('Supplier creation failed', 'SUPPLIER_CREATE_FAILED'),
 }
 

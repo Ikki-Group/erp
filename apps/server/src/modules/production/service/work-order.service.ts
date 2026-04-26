@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
-import { db } from '@/db'
 
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-import { transformDecimals } from '@/core/utils/decimal'
 import type { WithPaginationResult } from '@/core/utils/pagination'
+
+import { db } from '@/db'
 
 import type { InventoryServiceModule } from '@/modules/inventory/service'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
@@ -29,21 +29,15 @@ export class WorkOrderService {
 		return record('WorkOrderService.getById', async () => {
 			const wo = await this.repo.getById(id)
 			if (!wo) throw new NotFoundError(`Work Order with ID ${id} not found`, 'WORK_ORDER_NOT_FOUND')
-			return transformDecimals(wo) as unknown as WorkOrderDto
+			return wo
 		})
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: WorkOrderFilterDto,
-	): Promise<WithPaginationResult<WorkOrderDto>> {
+	async handleList(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
 		return record('WorkOrderService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return {
-				data: transformDecimals(result.data) as unknown as WorkOrderDto[],
-				meta: result.meta,
-			}
+			return this.repo.getListPaginated(filter)
 		})
 	}
 
@@ -75,7 +69,11 @@ export class WorkOrderService {
 	): Promise<WorkOrderDto> {
 		return record('WorkOrderService.handleComplete', async () => {
 			const wo = await this.getById(id)
-			if (wo.status !== 'in_progress') throw new ConflictError(`Work Order with ID ${id} is not in progress`, 'WORK_ORDER_STATUS_CONFLICT')
+			if (wo.status !== 'in_progress')
+				throw new ConflictError(
+					`Work Order with ID ${id} is not in progress`,
+					'WORK_ORDER_STATUS_CONFLICT',
+				)
 
 			const recipe = await this.recipeSvc.getById(wo.recipeId)
 			const actualQty = Number(data.actualQty)
@@ -126,14 +124,16 @@ export class WorkOrderService {
 				}
 
 				// 3. Finalize Work Order
-				const updatedWo = await this.repo.update(id, {
-					status: 'completed',
-					actualQty: actualQty.toString(),
-					totalCost: actualTotalCost.toString(),
-					completedAt: new Date(),
-				}, actorId)
-
-				return transformDecimals(updatedWo) as unknown as WorkOrderDto
+				return this.repo.update(
+					id,
+					{
+						status: 'completed',
+						actualQty: actualQty.toString(),
+						totalCost: actualTotalCost.toString(),
+						completedAt: new Date(),
+					},
+					actorId,
+				)
 			})
 		})
 	}

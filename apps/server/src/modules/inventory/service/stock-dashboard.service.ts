@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import type { DashboardKpiFilterDto } from '../dto'
 import { StockDashboardRepo } from '../repo/stock-dashboard.repo'
 

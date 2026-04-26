@@ -1,9 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
-import { z } from 'zod'
 import { and, count, eq, isNull } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, type WithPaginationResult } from '@/core/database'
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type WithPaginationResult,
+} from '@/core/database'
 
 import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
@@ -40,7 +48,9 @@ export class MaterialCategoryRepo {
 		})
 	}
 
-	async getListPaginated(filter: MaterialCategoryFilterDto): Promise<WithPaginationResult<MaterialCategoryDto>> {
+	async getListPaginated(
+		filter: MaterialCategoryFilterDto,
+	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		return record('MaterialCategoryRepo.getListPaginated', async () => {
 			const { q, parentId, page, limit } = filter
 			const where = and(

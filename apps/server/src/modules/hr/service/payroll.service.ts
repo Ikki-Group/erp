@@ -1,7 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { db } from '@/db'
 
 import { ConflictError, NotFoundError } from '@/core/http/errors'
+
+import { db } from '@/db'
 
 import type { AccountService, GeneralLedgerService } from '../../finance/service'
 import type {
@@ -25,7 +26,9 @@ export class PayrollService {
 		return record('PayrollService.handleBatchCreate', async () => {
 			const existing = await this.repo.findBatchByPeriod(data.periodMonth, data.periodYear)
 			if (existing) {
-				throw new ConflictError(`Payroll batch for ${data.periodMonth}/${data.periodYear} already exists`)
+				throw new ConflictError(
+					`Payroll batch for ${data.periodMonth}/${data.periodYear} already exists`,
+				)
 			}
 
 			return this.repo.createBatch(data, actorId)

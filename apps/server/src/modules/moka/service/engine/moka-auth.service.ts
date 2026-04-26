@@ -1,4 +1,9 @@
-import axios, { type AxiosInstance, type RawAxiosRequestHeaders } from 'axios'
+import axios, {
+	type AxiosError,
+	type AxiosInstance,
+	type InternalAxiosRequestConfig,
+	type RawAxiosRequestHeaders,
+} from 'axios'
 
 import type { MokaLoginResponse } from '../../dto/moka-raw.types'
 import type { Logger } from 'pino'
@@ -15,6 +20,10 @@ const BASE_HEADERS: RawAxiosRequestHeaders = {
 	'sec-fetch-site': 'same-site',
 }
 
+interface MokaAxiosConfig extends InternalAxiosRequestConfig {
+	_retry?: boolean
+}
+
 export class MokaAuthEngine {
 	private api: AxiosInstance
 	public token: string | null = null
@@ -29,12 +38,15 @@ export class MokaAuthEngine {
 		// Add 401 interceptor for auto-relogin
 		this.api.interceptors.response.use(
 			(response) => response,
-			async (error) => {
-				if (error.response?.status === 401 && !error.config._retry) {
-					error.config._retry = true
+			async (error: AxiosError) => {
+				const config = error.config as MokaAxiosConfig | undefined
+				if (error.response?.status === 401 && config && !config._retry) {
+					config._retry = true
 					await this.login()
-					error.config.headers['Authorization'] = `${this.token}`
-					return this.api.request(error.config)
+					if (config.headers) {
+						config.headers['Authorization'] = `${this.token}`
+					}
+					return this.api.request(config)
 				}
 				throw error
 			},
@@ -57,13 +69,13 @@ export class MokaAuthEngine {
 		this.logger.info({ email: this.credentials.email }, 'Logging into Moka')
 
 		try {
-			const response = await axios.post(
+			const response = await axios.post<MokaLoginResponse>(
 				`${AUTH_URL}/account/v2/login`,
 				{ session: this.credentials },
 				{ headers: BASE_HEADERS },
 			)
 
-			const result = response.data as MokaLoginResponse
+			const result = response.data
 			this.token = result.access_token
 			this.mokaOutletId = result.outlets[0]?.id?.toString() ?? null
 

@@ -1,8 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import type { AccountCreateDto, AccountUpdateDto, AccountFilterDto } from '../dto/account.dto'
+import {
+	AccountDto,
+	AccountCreateDto,
+	AccountUpdateDto,
+	AccountFilterDto,
+} from '../dto/account.dto'
 import { AccountRepo } from '../repo/account.repo'
 
 export class AccountService {
@@ -26,7 +32,7 @@ export class AccountService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(query: AccountFilterDto): Promise<WithPaginationResult<any>> {
+	async handleList(query: AccountFilterDto): Promise<WithPaginationResult<AccountDto>> {
 		return record('AccountService.handleList', async () => {
 			return this.repo.getListPaginated(query)
 		})

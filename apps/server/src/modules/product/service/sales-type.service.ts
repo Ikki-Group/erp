@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
@@ -18,7 +19,8 @@ export class SalesTypeService {
 	async getById(id: number): Promise<SalesTypeDto> {
 		return record('SalesTypeService.getById', async () => {
 			const type = await this.repo.getById(id)
-			if (!type) throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
+			if (!type)
+				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
 			return type
 		})
 	}
@@ -31,9 +33,7 @@ export class SalesTypeService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: SalesTypeFilterDto,
-	): Promise<WithPaginationResult<SalesTypeDto>> {
+	async handleList(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () => {
 			return this.repo.getListPaginated(filter)
 		})

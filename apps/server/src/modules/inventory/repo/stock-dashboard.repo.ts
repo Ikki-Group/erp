@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
+
 import { db } from '@/db'
 import { materialLocationsTable, materialsTable } from '@/db/schema/material'
 
@@ -21,7 +22,9 @@ export class StockDashboardRepo {
 					const conditions = [
 						isNull(materialLocationsTable.deletedAt),
 						isNull(materialsTable.deletedAt),
-						filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
+						filter.locationId
+							? eq(materialLocationsTable.locationId, filter.locationId)
+							: undefined,
 					]
 
 					const whereClause = and(...conditions.filter(Boolean))

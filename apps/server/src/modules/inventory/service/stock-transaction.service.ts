@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import type { DbTx } from '@/core/database'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 

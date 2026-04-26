@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import type { StockAlertFilterDto } from '../dto'
 import { StockAlertRepo } from '../repo/stock-alert.repo'
 

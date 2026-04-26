@@ -1,8 +1,4 @@
-import {
-	BadRequestError,
-	InternalServerError,
-	NotFoundError,
-} from '@/core/http/errors'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
 /**
  * User errors - simple factory functions

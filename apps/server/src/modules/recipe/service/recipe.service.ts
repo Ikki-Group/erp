@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
 
-import { RecipeRepo } from '../repo'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import type {
 	RecipeCostDto,
@@ -11,7 +11,7 @@ import type {
 	RecipeSelectDto,
 	RecipeUpdateDto,
 } from '../dto/recipe.dto'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import { RecipeRepo } from '../repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -46,9 +46,7 @@ export class RecipeService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: RecipeFilterDto,
-	): Promise<WithPaginationResult<RecipeSelectDto>> {
+	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
 		return record('RecipeService.handleList', async () => {
 			return this.repo.getListPaginated(filter)
 		})

@@ -14,7 +14,12 @@ import {
 import { db } from '@/db'
 import { employeesTable } from '@/db/schema/employee'
 
-import type { EmployeeCreateDto, EmployeeDto, EmployeeFilterDto, EmployeeUpdateDto } from './dto/employee.dto'
+import type {
+	EmployeeCreateDto,
+	EmployeeDto,
+	EmployeeFilterDto,
+	EmployeeUpdateDto,
+} from './dto/employee.dto'
 
 const cache = bento.namespace('employee')
 

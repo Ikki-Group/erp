@@ -1,8 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-
+import type { ProductCategoryDto } from '../dto/product-category.dto'
 import type {
 	ProductDto,
 	ProductFilterDto,
@@ -39,14 +40,18 @@ export class ProductService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: ProductFilterDto,
-	): Promise<WithPaginationResult<ProductSelectDto>> {
+	async handleList(filter: ProductFilterDto): Promise<WithPaginationResult<ProductSelectDto>> {
 		return record('ProductService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 
-			const allCategories = await this.categorySvc.handleList({ q: undefined, page: 1, limit: 1000 })
-			const categoriesMap = new Map<number, ProductCategoryDto>(allCategories.data.map((cat) => [cat.id, cat]))
+			const allCategories = await this.categorySvc.handleList({
+				q: undefined,
+				page: 1,
+				limit: 1000,
+			})
+			const categoriesMap = new Map<number, ProductCategoryDto>(
+				allCategories.data.map((cat) => [cat.id, cat]),
+			)
 
 			const data: ProductSelectDto[] = result.data.map((p) => ({
 				...p,
@@ -93,11 +98,7 @@ export class ProductService {
 			const sku = data.sku ? data.sku.trim() : existing.sku
 			const name = data.name ? data.name.trim() : existing.name
 
-			await this.repo.checkScopedConflict(
-				data.locationId ?? existing.locationId,
-				{ sku, name },
-				id,
-			)
+			await this.repo.checkScopedConflict(data.locationId ?? existing.locationId, { sku, name }, id)
 
 			if (data.hasVariants && data.variants) {
 				this.validateDefaultVariant(data.variants)

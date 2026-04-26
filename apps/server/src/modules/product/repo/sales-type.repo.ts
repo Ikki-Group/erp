@@ -10,18 +10,14 @@ import {
 	stampCreate,
 	stampUpdate,
 	type ConflictField,
+	type WithPaginationResult,
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 
-import type {
-	SalesTypeCreateDto,
-	SalesTypeDto,
-	SalesTypeFilterDto,
-	SalesTypeUpdateDto,
-} from '../dto'
+import { SalesTypeCreateDto, SalesTypeDto, SalesTypeFilterDto, SalesTypeUpdateDto } from '../dto'
 
 const cache = bento.namespace('sales-type')
 
@@ -52,26 +48,28 @@ export class SalesTypeRepo {
 				factory: async ({ skip }) => {
 					const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
 					if (result.length === 0) return skip()
-					return result[0] as unknown as SalesTypeDto
+					return SalesTypeDto.parse(result[0])
 				},
 			})
 		})
 	}
 
-	async getListPaginated(filter: SalesTypeFilterDto): Promise<any> {
+	async getListPaginated(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeRepo.getListPaginated', async () => {
 			const { q, page, limit } = filter
 			const where = searchFilter(salesTypesTable.name, q)
 
 			return paginate({
-				data: ({ limit: l, offset }) =>
-					db
+				data: async ({ limit: l, offset }) => {
+					const rows = await db
 						.select()
 						.from(salesTypesTable)
 						.where(where)
 						.orderBy(sortBy(salesTypesTable.updatedAt, 'desc'))
 						.limit(l)
-						.offset(offset),
+						.offset(offset)
+					return rows.map((r) => SalesTypeDto.parse(r))
+				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(salesTypesTable).where(where),
 			})
@@ -83,9 +81,10 @@ export class SalesTypeRepo {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
 				factory: async () => {
-					return db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
+					const rows = await db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
+					return rows.map((r) => SalesTypeDto.parse(r))
 				},
-			}) as unknown as Promise<SalesTypeDto[]>
+			})
 		})
 	}
 
@@ -129,18 +128,25 @@ export class SalesTypeRepo {
 				.values({ ...data, code, name, isSystem: false, ...stampCreate(actorId) })
 				.returning({ id: salesTypesTable.id })
 
-			if (!inserted) throw new InternalServerError('Sales type creation failed', 'SALES_TYPE_CREATE_FAILED')
+			if (!inserted)
+				throw new InternalServerError('Sales type creation failed', 'SALES_TYPE_CREATE_FAILED')
 
 			void this.#clearCache()
 			return inserted
 		})
 	}
 
-	async update(id: number, data: Partial<SalesTypeUpdateDto>, actorId: number): Promise<{ id: number }> {
+	async update(
+		id: number,
+		data: Partial<SalesTypeUpdateDto>,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('SalesTypeRepo.update', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
-			if (existing.isSystem) throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
+			if (!existing)
+				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
+			if (existing.isSystem)
+				throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
 
 			const code = data.code ? data.code.trim().toLowerCase() : existing.code
 			const name = data.name ? data.name.trim() : existing.name
@@ -166,15 +172,18 @@ export class SalesTypeRepo {
 	async delete(id: number): Promise<{ id: number }> {
 		return record('SalesTypeRepo.delete', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
-			if (existing.isSystem) throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
+			if (!existing)
+				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
+			if (existing.isSystem)
+				throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
 
 			const result = await db
 				.delete(salesTypesTable)
 				.where(eq(salesTypesTable.id, id))
 				.returning({ id: salesTypesTable.id })
 
-			if (result.length === 0) throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
+			if (result.length === 0)
+				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
 
 			void this.#clearCache(id)
 			return { id }

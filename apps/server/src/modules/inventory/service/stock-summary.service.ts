@@ -1,14 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import {
-	and,
-	eq,
-	gte,
-	inArray,
-	isNull,
-	lt,
-	sql,
-	sum,
-} from 'drizzle-orm'
+import { and, eq, gte, inArray, isNull, lt, sql, sum } from 'drizzle-orm'
 
 import { stampCreate } from '@/core/database'
 import { toWibDateKey, toWibDayBounds } from '@/core/utils/date.util'
@@ -160,18 +151,50 @@ export class StockSummaryService {
 						const qty = Number(m.qty ?? 0)
 						const value = Number(m.totalCost ?? 0)
 						switch (m.type) {
-							case 'purchase': purchaseQty += qty; purchaseValue += value; break
-							case 'transfer_in': transferInQty += qty; transferInValue += value; break
-							case 'transfer_out': transferOutQty += qty; transferOutValue += value; break
-							case 'adjustment': adjustmentQty += qty; adjustmentValue += value; break
-							case 'sell': sellQty += qty; sellValue += value; break
-							case 'usage': usageQty += qty; usageValue += value; break
-							case 'production_in': productionInQty += qty; productionInValue += value; break
-							case 'production_out': productionOutQty += qty; productionOutValue += value; break
+							case 'purchase':
+								purchaseQty += qty
+								purchaseValue += value
+								break
+							case 'transfer_in':
+								transferInQty += qty
+								transferInValue += value
+								break
+							case 'transfer_out':
+								transferOutQty += qty
+								transferOutValue += value
+								break
+							case 'adjustment':
+								adjustmentQty += qty
+								adjustmentValue += value
+								break
+							case 'sell':
+								sellQty += qty
+								sellValue += value
+								break
+							case 'usage':
+								usageQty += qty
+								usageValue += value
+								break
+							case 'production_in':
+								productionInQty += qty
+								productionInValue += value
+								break
+							case 'production_out':
+								productionOutQty += qty
+								productionOutValue += value
+								break
 						}
 					}
 
-					const closingQty = openingQty + purchaseQty + transferInQty - transferOutQty + adjustmentQty + (productionInQty - productionOutQty) - usageQty - sellQty
+					const closingQty =
+						openingQty +
+						purchaseQty +
+						transferInQty -
+						transferOutQty +
+						adjustmentQty +
+						(productionInQty - productionOutQty) -
+						usageQty -
+						sellQty
 					const lastTx = lastTxMap.get(materialId)
 					const closingAvgCost = lastTx ? Number(lastTx.runningAvgCost) : openingAvgCost
 					const closingValue = closingQty * closingAvgCost

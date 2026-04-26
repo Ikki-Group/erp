@@ -5,7 +5,12 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { employeesTable } from '@/db/schema/employee'
 
-import type { EmployeeCreateDto, EmployeeDto, EmployeeFilterDto, EmployeeUpdateDto } from '../dto/employee.dto'
+import type {
+	EmployeeCreateDto,
+	EmployeeDto,
+	EmployeeFilterDto,
+	EmployeeUpdateDto,
+} from '../dto/employee.dto'
 import { EmployeeRepo } from '../employee.repo'
 
 const employeeConflictFields: ConflictField<'code'>[] = [
@@ -18,7 +23,8 @@ const employeeConflictFields: ConflictField<'code'>[] = [
 ]
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Employee with ID ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
+	notFound: (id: number) =>
+		new NotFoundError(`Employee with ID ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
 	createFailed: () => new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED'),
 }
 

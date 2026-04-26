@@ -10,13 +10,14 @@ import {
 	stampCreate,
 	stampUpdate,
 	type ConflictField,
+	type WithPaginationResult,
 } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import { productCategoriesTable } from '@/db/schema'
 
-import type {
+import {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
 	ProductCategoryCreateDto,
@@ -50,19 +51,21 @@ export class ProductCategoryRepo {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const result = await db
+					const [result] = await db
 						.select()
 						.from(productCategoriesTable)
 						.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
 
-					if (result.length === 0) return skip()
-					return result[0] as unknown as ProductCategoryDto
+					if (!result) return skip()
+					return ProductCategoryDto.parse(result)
 				},
 			})
 		})
 	}
 
-	async getListPaginated(filter: ProductCategoryFilterDto): Promise<any> {
+	async getListPaginated(
+		filter: ProductCategoryFilterDto,
+	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return record('ProductCategoryRepo.getListPaginated', async () => {
 			const { q, parentId, page, limit } = filter
 
@@ -73,14 +76,16 @@ export class ProductCategoryRepo {
 			)
 
 			return paginate({
-				data: ({ limit: l, offset }) =>
-					db
+				data: async ({ limit: l, offset }) => {
+					const rows = await db
 						.select()
 						.from(productCategoriesTable)
 						.where(where)
 						.orderBy(sortBy(productCategoriesTable.updatedAt, 'desc'))
 						.limit(l)
-						.offset(offset),
+						.offset(offset)
+					return rows.map((r) => ProductCategoryDto.parse(r))
+				},
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(productCategoriesTable).where(where),
 			})
@@ -92,13 +97,14 @@ export class ProductCategoryRepo {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
 				factory: async () => {
-					return db
+					const rows = await db
 						.select()
 						.from(productCategoriesTable)
 						.where(isNull(productCategoriesTable.deletedAt))
 						.orderBy(productCategoriesTable.name)
+					return rows.map((r) => ProductCategoryDto.parse(r))
 				},
-			}) as unknown as Promise<ProductCategoryDto[]>
+			})
 		})
 	}
 
@@ -120,17 +126,29 @@ export class ProductCategoryRepo {
 				.values({ ...data, name, ...stampCreate(actorId) })
 				.returning({ id: productCategoriesTable.id })
 
-			if (!inserted) throw new InternalServerError('Product category creation failed', 'PRODUCT_CATEGORY_CREATE_FAILED')
+			if (!inserted)
+				throw new InternalServerError(
+					'Product category creation failed',
+					'PRODUCT_CATEGORY_CREATE_FAILED',
+				)
 
 			void this.#clearCache()
 			return inserted
 		})
 	}
 
-	async update(id: number, data: ProductCategoryUpdateDto, actorId: number): Promise<{ id: number }> {
+	async update(
+		id: number,
+		data: ProductCategoryUpdateDto,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.update', async () => {
 			const existing = await this.getById(id)
-			if (!existing) throw new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
+			if (!existing)
+				throw new NotFoundError(
+					`Product category with ID ${id} not found`,
+					'PRODUCT_CATEGORY_NOT_FOUND',
+				)
 
 			const name = data.name ? data.name.trim() : existing.name
 
@@ -160,7 +178,11 @@ export class ProductCategoryRepo {
 				.where(eq(productCategoriesTable.id, id))
 				.returning({ id: productCategoriesTable.id })
 
-			if (result.length === 0) throw new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
+			if (result.length === 0)
+				throw new NotFoundError(
+					`Product category with ID ${id} not found`,
+					'PRODUCT_CATEGORY_NOT_FOUND',
+				)
 
 			void this.#clearCache(id)
 			return { id }
@@ -174,7 +196,11 @@ export class ProductCategoryRepo {
 				.where(eq(productCategoriesTable.id, id))
 				.returning({ id: productCategoriesTable.id })
 
-			if (result.length === 0) throw new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
+			if (result.length === 0)
+				throw new NotFoundError(
+					`Product category with ID ${id} not found`,
+					'PRODUCT_CATEGORY_NOT_FOUND',
+				)
 
 			void this.#clearCache(id)
 			return { id }

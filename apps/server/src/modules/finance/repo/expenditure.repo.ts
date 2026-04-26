@@ -1,13 +1,18 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, desc, eq, isNull, or } from 'drizzle-orm'
+import { and, count, desc, eq, isNull, or } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { searchFilter, stampCreate } from '@/core/database'
+import { paginate, searchFilter, stampCreate, type WithPaginationResult } from '@/core/database'
+import { transformDecimals } from '@/core/utils/decimal'
 
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
 
-import type { ExpenditureCreateDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
+import type {
+	ExpenditureCreateDto,
+	ExpenditureDto,
+	ExpenditureFilterDto,
+} from '../dto/expenditure.dto'
 
 const cache = bento.namespace('finance.expenditure')
 
@@ -20,15 +25,15 @@ export class ExpenditureRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getListPaginated(filter: ExpenditureFilterDto): Promise<any[]> {
+	async getListPaginated(
+		filter: ExpenditureFilterDto,
+	): Promise<WithPaginationResult<ExpenditureDto>> {
 		return record('ExpenditureRepo.getListPaginated', async () => {
-			const { page, limit } = filter
 			const key = `list.${JSON.stringify(filter)}`
 
 			return cache.getOrSet({
 				key,
 				factory: async () => {
-					const offset = (page - 1) * limit
 					const { q, type, status, locationId } = filter
 
 					const where = and(
@@ -44,13 +49,23 @@ export class ExpenditureRepo {
 						locationId ? eq(expendituresTable.locationId, locationId) : undefined,
 					)
 
-					return db
-						.select()
-						.from(expendituresTable)
-						.where(where)
-						.limit(limit)
-						.offset(offset)
-						.orderBy(desc(expendituresTable.date))
+					const result = await paginate({
+						data: ({ limit: l, offset }) =>
+							db
+								.select()
+								.from(expendituresTable)
+								.where(where)
+								.limit(l)
+								.offset(offset)
+								.orderBy(desc(expendituresTable.date)),
+						pq: filter,
+						countQuery: db.select({ count: count() }).from(expendituresTable).where(where),
+					})
+
+					return {
+						...result,
+						data: result.data.map((row) => transformDecimals<ExpenditureDto>(row)),
+					}
 				},
 			})
 		})

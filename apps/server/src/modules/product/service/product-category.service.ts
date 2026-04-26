@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
@@ -18,7 +19,11 @@ export class ProductCategoryService {
 	async getById(id: number): Promise<ProductCategoryDto> {
 		return record('ProductCategoryService.getById', async () => {
 			const category = await this.repo.getById(id)
-			if (!category) throw new NotFoundError(`Product category with ID ${id} not found`, 'PRODUCT_CATEGORY_NOT_FOUND')
+			if (!category)
+				throw new NotFoundError(
+					`Product category with ID ${id} not found`,
+					'PRODUCT_CATEGORY_NOT_FOUND',
+				)
 			return category
 		})
 	}
@@ -45,7 +50,11 @@ export class ProductCategoryService {
 		})
 	}
 
-	async handleUpdate(id: number, data: ProductCategoryUpdateDto, actorId: number): Promise<{ id: number }> {
+	async handleUpdate(
+		id: number,
+		data: ProductCategoryUpdateDto,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleUpdate', async () => {
 			return this.repo.update(id, data, actorId)
 		})
