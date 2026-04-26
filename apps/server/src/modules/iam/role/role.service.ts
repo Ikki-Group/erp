@@ -1,17 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { RelationMap } from '@/core/utils/relation-map'
 
 import { rolesTable } from '@/db/schema'
 
-import { IAM_CACHE_KEYS, SYSTEM_ROLES } from '../constants'
+import { SYSTEM_ROLES } from '../constants'
 import { RoleErrors } from '../errors'
 import * as dto from './role.dto'
 import { RoleRepo } from './role.repo'
-
-const cache = bento.namespace('role')
 
 const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
 	{
@@ -28,32 +25,14 @@ const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
 	},
 ]
 
-// Role Service
-// Handles authorization role definitions and permission sets.
-// Self-contained domain service — no cross-module dependencies.
 export class RoleService {
 	constructor(private repo = new RoleRepo()) {}
 
-	/* ========================================================================== */
-	/*                              CACHE MANAGEMENT                             */
-	/* ========================================================================== */
-
-	private async clearCache(id?: number) {
-		const keys = [IAM_CACHE_KEYS.ROLE_LIST, IAM_CACHE_KEYS.ROLE_COUNT]
-		if (id) keys.push(IAM_CACHE_KEYS.ROLE_DETAIL(id))
-		await cache.deleteMany({ keys })
-	}
-
-	/* ========================================================================== */
-	/*                              QUERY OPERATIONS                             */
-	/* ========================================================================== */
+	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleService.getList', async () => {
-			return cache.getOrSet({
-				key: IAM_CACHE_KEYS.ROLE_LIST,
-				factory: async () => this.repo.getList(),
-			})
+			return this.repo.getList()
 		})
 	}
 
@@ -66,13 +45,7 @@ export class RoleService {
 
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleService.getById', async () => {
-			return cache.getOrSet({
-				key: IAM_CACHE_KEYS.ROLE_DETAIL(id),
-				factory: async ({ skip }) => {
-					const result = await this.repo.getById(id)
-					return result ?? skip()
-				},
-			})
+			return this.repo.getById(id)
 		})
 	}
 
@@ -86,27 +59,17 @@ export class RoleService {
 
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {
-			return cache.getOrSet({
-				key: IAM_CACHE_KEYS.ROLE_COUNT,
-				factory: async () => this.repo.count(),
-			})
+			return this.repo.count()
 		})
 	}
-
-	/* ========================================================================== */
-	/*                              COMMAND OPERATIONS                           */
-	/* ========================================================================== */
 
 	async seed(data: (dto.RoleCreateDto & { createdBy: number })[]): Promise<void> {
 		return record('RoleService.seed', async () => {
 			await this.repo.seed(data)
-			await this.clearCache()
 		})
 	}
 
-	/* ========================================================================== */
-	/*                            HANDLER OPERATIONS                             */
-	/* ========================================================================== */
+	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(filter: dto.RoleFilterDto): Promise<core.WithPaginationResult<dto.RoleDto>> {
 		return record('RoleService.handleList', async () => {
@@ -134,7 +97,6 @@ export class RoleService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw RoleErrors.createFailed()
 
-			await this.clearCache()
 			return { id: result }
 		})
 	}
@@ -158,7 +120,6 @@ export class RoleService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw RoleErrors.notFound(id)
 
-			await this.clearCache(id)
 			return { id }
 		})
 	}
@@ -172,7 +133,6 @@ export class RoleService {
 			const result = await this.repo.remove(id)
 			if (!result) throw RoleErrors.notFound(id)
 
-			await this.clearCache(id)
 			return { id }
 		})
 	}

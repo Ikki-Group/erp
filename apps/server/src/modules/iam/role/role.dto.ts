@@ -15,6 +15,11 @@ export const RoleDto = z.object({
 })
 export type RoleDto = z.infer<typeof RoleDto>
 
+/* --------------------------------- FILTER --------------------------------- */
+
+export const RoleFilterDto = z.object({ ...zq.pagination.shape, q: zq.search })
+export type RoleFilterDto = z.infer<typeof RoleFilterDto>
+
 /* -------------------------------- MUTATION -------------------------------- */
 
 const RoleMutationDto = z.object({
@@ -30,8 +35,3 @@ export type RoleCreateDto = z.infer<typeof RoleCreateDto>
 
 export const RoleUpdateDto = z.object({ ...zc.RecordId.shape, ...RoleMutationDto.shape })
 export type RoleUpdateDto = z.infer<typeof RoleUpdateDto>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const RoleFilterDto = z.object({ ...zq.pagination.shape, q: zq.search })
-export type RoleFilterDto = z.infer<typeof RoleFilterDto>
