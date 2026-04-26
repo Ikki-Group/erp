@@ -19,7 +19,7 @@ export const workOrderRouter = (service: WorkOrderService) =>
 		.get(
 			'/list',
 			async ({ query }) => {
-				const result = await service.handleList(query as any, query as any)
+				const result = await service.handleList(query as any)
 				return res.paginated(result)
 			},
 			{
