@@ -25,7 +25,7 @@ import type {
 	MaterialSelectDto,
 	UomDto,
 } from '../dto'
-import { MaterialCategoryRepo, MaterialLocationRepo, MaterialRepo } from '../repo'
+import { MaterialLocationRepo, MaterialRepo } from '../repo'
 import type { MaterialCategoryService } from './material-category.service'
 import type { UomService } from './uom.service'
 
@@ -60,7 +60,6 @@ export class MaterialService {
 	constructor(
 		private readonly materialRepo = new MaterialRepo(),
 		private readonly materialLocationRepo = new MaterialLocationRepo(),
-		private readonly materialCategoryRepo = new MaterialCategoryRepo(),
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
@@ -247,7 +246,6 @@ export class MaterialService {
 				uomsMap.set(uom.id, uom)
 			}
 
-			// @ts-expect-error
 			const data: MaterialSelectDto[] = result.data.map((m) => {
 				const relations = relationsMap.get(m.id)!
 				return {

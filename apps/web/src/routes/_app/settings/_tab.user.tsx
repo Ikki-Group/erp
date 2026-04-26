@@ -88,10 +88,8 @@ const columnDefs = [
 				<div className="flex items-center gap-2">
 					<span className="text-xs font-medium">{assignments.length} Penugasan</span>
 					<Popover>
-						<PopoverTrigger asChild>
-							<Button variant="ghost" size="icon-xs" className="size-6">
-								<ZoomInIcon />
-							</Button>
+						<PopoverTrigger render={<Button variant="ghost" size="icon-xs" className="size-6" />}>
+							<ZoomInIcon />
 						</PopoverTrigger>
 						<PopoverContent className="w-64 p-3" side="right">
 							<PopoverHeader className="mb-2">
