@@ -1,14 +1,15 @@
-import { db } from '@/db'
 import { sql } from 'drizzle-orm'
 
+import { db } from '@/db'
+
 async function main() {
-  const resetSql = sql`
+	const resetSql = sql`
 DROP SCHEMA drizzle CASCADE;
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 `
-  await db.execute(resetSql)
+	await db.execute(resetSql)
 }
 
 // oxlint-disable-next-line unicorn/prefer-top-level-await typescript/no-floating-promises
-main()
+await main()

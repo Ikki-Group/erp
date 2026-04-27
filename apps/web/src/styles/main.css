@@ -1,315 +1,578 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 @import '@fontsource-variable/inter';
+@import '@fontsource/poppins';
+@import '@fontsource-variable/roboto';
 
 @custom-variant dark (&:is(.dark *));
-/* @custom-variant fixed (&:is(.layout-fixed *)); */
 
-/* @theme static {
-  --container-8xl: 1440px;
-
-  --spacing: 0.25rem;
-  --spacing-main: calc(var(--spacing) * 6);
-} */
+/* ========================================================================== */
+/*  Notion-Inspired Design Tokens                                              */
+/*  DESIGN.md reference — warm neutrals, whisper borders, Notion Blue accent   */
+/* ========================================================================== */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans: var(--font-sans);
-  --font-heading: var(--font-heading);
-  --font-mono: var(--font-mono);
+	--font-sans: var(--font-sans);
+	--font-heading: var(--font-heading);
+	--font-mono: var(--font-mono);
 
-  --color-background: var(--background);
-  --color-background-secondary: var(--background-secondary);
-  --color-foreground: var(--foreground);
+	--color-background: var(--background);
+	--color-background-secondary: var(--background-secondary);
+	--color-foreground: var(--foreground);
 
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
 
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
 
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
 
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
 
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
 
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
 
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
 
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
 
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
 
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
 
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
 
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
 
-  --color-code: var(--code);
-  --color-code-foreground: var(--code-foreground);
-  --color-code-highlight: var(--code-highlight);
+	--color-code: var(--code);
+	--color-code-foreground: var(--code-foreground);
+	--color-code-highlight: var(--code-highlight);
 
-  --animate-skeleton: skeleton 2s -1s infinite linear;
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-invert: var(--invert);
+	--color-invert-foreground: var(--invert-foreground);
 
-  --color-invert-foreground: var(--invert-foreground);
+	--animate-skeleton: skeleton 2s -1s infinite linear;
 
-  --color-invert: var(--invert);
+	--color-invert-foreground: var(--invert-foreground);
+	--color-invert: var(--invert);
 
-  @keyframes skeleton {
-    to {
-      background-position: -200% 0;
-    }
-  }
+	@keyframes skeleton {
+		to {
+			background-position: -200% 0;
+		}
+	}
 }
+
+/* ========================================================================== */
+/*  Light Mode — Notion Warm Palette                                           */
+/* ========================================================================== */
 
 :root {
-  --radius: 0.625rem;
+	/* --- Typography: Inter Variable (Notion-style) --- */
+	--font-sans:
+		'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue',
+		Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+		'Noto Color Emoji';
+	--font-heading: var(--font-sans);
+	--font-mono:
+		'Geist Mono', 'Geist Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		'Liberation Mono', 'Courier New', monospace;
 
-  --font-sans:
-    'Geist', 'Geist Fallback', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-    'Noto Color Emoji';
-  --font-serif: 'Geist', 'Geist Fallback', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-mono:
-    'Geist Mono', 'Geist Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+	/* --- Border Radius: Notion scale --- */
+	--radius: 0.625rem; /* 10px base, buttons/inputs get 4px via --radius-sm */
 
-  /* --background: oklch(0.98 0.01 93.48);
-  --background-secondary: oklch(0.98 0.01 93);
-  --foreground: oklch(0 0 0);
-  --card: oklch(1 0.01 95);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.27 0.02 99.7);
-  --primary: oklch(0.62 0.14 39.15);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.92 0.01 87.42);
-  --secondary-foreground: oklch(0.43 0.02 99.33);
-  --muted: oklch(0.93 0.02 91.55);
-  --muted-foreground: oklch(0.55 0 91.49);
-  --accent: oklch(0.92 0.01 87.42);
-  --accent-foreground: oklch(0.27 0.02 99.7);
-  --destructive: oklch(0.64 0.21 25.39);
-  --border: oklch(0.88 0.01 100.76);
-  --input: oklch(0.76 0.02 96.91);
-  --ring: oklch(0.59 0.17 252.92);
-  --chart-1: oklch(0.56 0.13 42.95);
-  --chart-2: oklch(0.69 0.16 290.29);
-  --chart-3: oklch(0.88 0.03 91.64);
-  --chart-4: oklch(0.88 0.04 298.21);
-  --chart-5: oklch(0.56 0.13 41.94);
-  --sidebar: oklch(0.97 0.01 93.49);
-  --sidebar-foreground: oklch(0.36 0.01 106.85);
-  --sidebar-primary: oklch(0.62 0.14 39.15);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.92 0.01 87.42);
-  --sidebar-accent-foreground: oklch(0.33 0 0);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0.77 0 0); */
+	/* --- Primary: Notion Blue (#0075de) --- */
+	--primary: oklch(0.55 0.17 248);
+	--primary-foreground: oklch(1 0 0);
 
-  --radius: 0.65rem;
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.89 0.04 160);
-  --primary-foreground: oklch(0.2 0.02 160);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.95 0.03 160);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.89 0.04 160 / 50%);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+	/* --- Surfaces: Pure white + warm white --- */
+	--background: oklch(1 0 0);
+	--background-secondary: oklch(0.97 0.005 80);
+	--foreground: oklch(0.14 0.008 65);
 
-  --code: oklch(1 0 0);
-  --code-foreground: var(--foreground);
-  --code-highlight: oklch(0 0 0 / 4%);
-  --destructive-foreground: var(--color-red-800);
-  --success: oklch(0.65 0.15 160);
-  --success-foreground: oklch(0.98 0.02 160);
-  --info: var(--color-violet-500);
-  --info-foreground: var(--color-violet-900);
-  --warning: var(--color-yellow-500);
-  --warning-foreground: var(--color-yellow-900);
-  --invert: var(--color-zinc-900);
-  --invert-foreground: var(--color-zinc-50);
+	/* --- Cards: White surface --- */
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.14 0.008 65);
+
+	/* --- Popover --- */
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.14 0.008 65);
+
+	/* --- Secondary: Warm white surface --- */
+	--secondary: oklch(0.97 0.005 80);
+	--secondary-foreground: oklch(0.22 0.008 65);
+
+	/* --- Muted: Warm gray scale (#f6f5f4 bg, #615d59 text) --- */
+	--muted: oklch(0.97 0.005 80);
+	--muted-foreground: oklch(0.46 0.015 65);
+
+	/* --- Accent: Warm white with warm dark foreground --- */
+	--accent: oklch(0.97 0.005 80);
+	--accent-foreground: oklch(0.22 0.008 65);
+
+	/* --- Destructive: Keep red semantic --- */
+	--destructive: oklch(0.577 0.245 27.325);
+	--destructive-foreground: var(--color-red-800);
+
+	/* --- Borders: Whisper-weight (rgba(0,0,0,0.1) equivalent) --- */
+	--border: oklch(0.9 0.003 80);
+	--input: oklch(0.88 0.004 80);
+	--ring: oklch(0.55 0.17 248 / 50%);
+
+	/* --- Chart palette: Warm Notion-aligned --- */
+	--chart-1: oklch(0.55 0.17 248); /* Notion Blue */
+	--chart-2: oklch(0.58 0.14 180); /* Teal (#2a9d99) */
+	--chart-3: oklch(0.62 0.18 145); /* Green (#1aae39) */
+	--chart-4: oklch(0.65 0.18 55); /* Orange (#dd5b00) */
+	--chart-5: oklch(0.55 0.12 320); /* Purple (#391c57 lighter) */
+
+	/* --- Sidebar: Slightly warm white --- */
+	--sidebar: oklch(0.985 0.003 80);
+	--sidebar-foreground: oklch(0.14 0.008 65);
+	--sidebar-primary: oklch(0.22 0.008 65);
+	--sidebar-primary-foreground: oklch(0.985 0.003 80);
+	--sidebar-accent: oklch(0.97 0.005 80);
+	--sidebar-accent-foreground: oklch(0.22 0.008 65);
+	--sidebar-border: oklch(0.92 0.003 80);
+	--sidebar-ring: oklch(0.72 0 0);
+
+	/* --- Code blocks --- */
+	--code: oklch(1 0 0);
+	--code-foreground: var(--foreground);
+	--code-highlight: oklch(0 0 0 / 4%);
+
+	/* --- Semantic colors --- */
+	/* --success: oklch(0.62 0.17 160);
+	--success-foreground: oklch(0.98 0.02 160);
+	--info: oklch(0.55 0.17 248);
+	--info-foreground: oklch(0.35 0.12 248);
+	--warning: oklch(0.75 0.16 65);
+	--warning-foreground: oklch(0.35 0.1 55); */
+
+	--destructive-foreground: var(--color-red-800);
+	--info: var(--color-violet-500);
+	--info-foreground: var(--color-violet-900);
+	--success: var(--color-emerald-500);
+	--success-foreground: var(--color-emerald-900);
+	--warning: var(--color-yellow-500);
+	--warning-foreground: var(--color-yellow-900);
+	--invert: var(--color-zinc-900);
+	--invert-foreground: var(--color-zinc-50);
+
+	/* --- Invert --- */
+	--invert: oklch(0.22 0.008 65);
+	--invert-foreground: oklch(0.97 0.005 80);
+
+	/* --- Shadow system: Multi-layer Notion stacks --- */
+	--shadow-card:
+		0px 0.175px 1.04px rgba(0, 0, 0, 0.01), 0px 0.8px 2.93px rgba(0, 0, 0, 0.02),
+		0px 2.025px 7.85px rgba(0, 0, 0, 0.027), 0px 4px 18px rgba(0, 0, 0, 0.04);
+	--shadow-deep:
+		0px 1px 3px rgba(0, 0, 0, 0.01), 0px 3px 7px rgba(0, 0, 0, 0.02),
+		0px 7px 15px rgba(0, 0, 0, 0.02), 0px 14px 28px rgba(0, 0, 0, 0.04),
+		0px 23px 52px rgba(0, 0, 0, 0.05);
+	--shadow-whisper: 0px 1px 3px rgba(0, 0, 0, 0.02);
 }
+
+/* ========================================================================== */
+/*  Dark Mode — Warm Dark Palette                                              */
+/* ========================================================================== */
 
 .dark {
-  --background: oklch(0.27 0 0);
-  --background-secondary: oklch(0.21 0 0);
-  --foreground: oklch(0.81 0.01 93.53);
-  --card: oklch(0.27 0 0);
-  --card-foreground: oklch(0.98 0.01 93.48);
-  --popover: oklch(0.31 0 0);
-  --popover-foreground: oklch(0.92 0 0);
-  --primary: oklch(0.7 0.12 160);
-  --primary-foreground: oklch(0.15 0.02 160);
-  --secondary: oklch(0.98 0.01 93.48);
-  --secondary-foreground: oklch(0.31 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.77 0.02 100.64);
-  --accent: oklch(0.25 0.05 160);
-  --accent-foreground: oklch(0.97 0.01 93.49);
-  --destructive: oklch(0.64 0.21 25.39);
-  --border: oklch(0.36 0.01 106.85);
-  --input: oklch(0.43 0.01 99.03);
-  --ring: oklch(0.7 0.12 160 / 50%);
-  --chart-1: oklch(0.56 0.13 42.95);
-  --chart-2: oklch(0.69 0.16 290.29);
-  --chart-3: oklch(0.21 0.01 88.79);
-  --chart-4: oklch(0.31 0.05 289.74);
-  --chart-5: oklch(0.56 0.13 41.94);
-  --sidebar: oklch(0.24 0 0);
-  --sidebar-foreground: oklch(0.81 0.01 93.53);
-  --sidebar-primary: oklch(0.33 0 0);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.17 0 0);
-  --sidebar-accent-foreground: oklch(0.81 0.01 93.53);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0.77 0 0);
+	/* --- Warm dark surfaces (yellow-brown tint, not cold gray) --- */
+	--background: oklch(0.22 0.008 65);
+	--background-secondary: oklch(0.18 0.008 65);
+	--foreground: oklch(0.92 0.005 80);
 
-  --code: color-mix(in srgb, oklch(0.21 0.006 285.885) 80%, oklch(0.141 0.005 285.823));
-  --code-foreground: var(--foreground);
-  --code-highlight: oklch(1 0 0 / 8%);
-  --destructive-foreground: var(--color-red-600);
-  --success: oklch(0.6 0.15 160);
-  --success-foreground: oklch(0.1 0.02 160);
-  --info: var(--color-violet-500);
-  --info-foreground: var(--color-violet-600);
-  --warning: var(--color-yellow-500);
-  --warning-foreground: var(--color-yellow-600);
-  --invert: var(--color-zinc-700);
-  --invert-foreground: var(--color-zinc-50);
+	/* --- Cards: Slightly lighter than background --- */
+	--card: oklch(0.25 0.008 65);
+	--card-foreground: oklch(0.95 0.005 80);
+
+	/* --- Popover --- */
+	--popover: oklch(0.28 0.008 65);
+	--popover-foreground: oklch(0.92 0.005 80);
+
+	/* --- Primary: Slightly lighter blue for dark bg readability --- */
+	--primary: oklch(0.65 0.17 248);
+	--primary-foreground: oklch(0.15 0.02 248);
+
+	/* --- Secondary --- */
+	--secondary: oklch(0.28 0.006 65);
+	--secondary-foreground: oklch(0.88 0.005 80);
+
+	/* --- Muted: Warm dark grays --- */
+	--muted: oklch(0.2 0.008 65);
+	--muted-foreground: oklch(0.65 0.01 80);
+
+	/* --- Accent --- */
+	--accent: oklch(0.25 0.008 65);
+	--accent-foreground: oklch(0.92 0.005 80);
+
+	/* --- Destructive --- */
+	--destructive: oklch(0.64 0.21 25.39);
+	--destructive-foreground: var(--color-red-600);
+
+	/* --- Borders: Warm dark whisper --- */
+	--border: oklch(0.33 0.008 65);
+	--input: oklch(0.38 0.008 65);
+	--ring: oklch(0.65 0.17 248 / 50%);
+
+	/* --- Chart palette (warm dark) --- */
+	--chart-1: oklch(0.65 0.17 248);
+	--chart-2: oklch(0.58 0.14 180);
+	--chart-3: oklch(0.55 0.12 145);
+	--chart-4: oklch(0.6 0.15 55);
+	--chart-5: oklch(0.55 0.12 320);
+
+	/* --- Sidebar: Deeper warm dark --- */
+	--sidebar: oklch(0.2 0.008 65);
+	--sidebar-foreground: oklch(0.88 0.005 80);
+	--sidebar-primary: oklch(0.3 0.006 65);
+	--sidebar-primary-foreground: oklch(0.98 0.005 80);
+	--sidebar-accent: oklch(0.16 0.006 65);
+	--sidebar-accent-foreground: oklch(0.88 0.005 80);
+	--sidebar-border: oklch(0.33 0.008 65);
+	--sidebar-ring: oklch(0.5 0 0);
+
+	/* --- Code blocks --- */
+	--code: oklch(0.18 0.006 65);
+	--code-foreground: var(--foreground);
+	--code-highlight: oklch(1 0 0 / 6%);
+
+	/* --- Semantic --- */
+	/* --success: oklch(0.58 0.15 160);
+	--success-foreground: oklch(0.12 0.02 160);
+	--info: oklch(0.6 0.15 248);
+	--info-foreground: oklch(0.7 0.12 248);
+	--warning: oklch(0.7 0.14 65);
+	--warning-foreground: oklch(0.75 0.12 65); */
+
+	--destructive-foreground: var(--color-red-600);
+	--info: var(--color-violet-500);
+	--info-foreground: var(--color-violet-600);
+	--success: var(--color-emerald-500);
+	--success-foreground: var(--color-emerald-600);
+	--warning: var(--color-yellow-500);
+	--warning-foreground: var(--color-yellow-600);
+	--invert: var(--color-zinc-700);
+	--invert-foreground: var(--color-zinc-50);
+
+	/* --- Invert --- */
+	--invert: oklch(0.6 0.005 65);
+	--invert-foreground: oklch(0.97 0.005 80);
+
+	/* --- Dark shadow system --- */
+	--shadow-card:
+		0px 0.175px 1.04px rgba(0, 0, 0, 0.04), 0px 0.8px 2.93px rgba(0, 0, 0, 0.06),
+		0px 2.025px 7.85px rgba(0, 0, 0, 0.08), 0px 4px 18px rgba(0, 0, 0, 0.1);
+	--shadow-deep:
+		0px 1px 3px rgba(0, 0, 0, 0.05), 0px 3px 7px rgba(0, 0, 0, 0.08),
+		0px 7px 15px rgba(0, 0, 0, 0.1), 0px 14px 28px rgba(0, 0, 0, 0.12),
+		0px 23px 52px rgba(0, 0, 0, 0.15);
+	--shadow-whisper: 0px 1px 3px rgba(0, 0, 0, 0.06);
 }
+
+/* ========================================================================== */
+/*  Base Layer                                                                 */
+/* ========================================================================== */
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+	* {
+		@apply border-border outline-ring/50;
+	}
 
-  body {
-    @apply font-sans bg-background text-foreground;
-  }
+	/* body {
+		@apply font-sans bg-background text-foreground;
+		font-feature-settings: 'lnum', 'locl';
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	} */
 
-  html {
-    @apply font-sans;
-  }
+	html {
+		@apply font-sans;
+		scroll-behavior: smooth;
+	}
 
-  button:not(:disabled),
-  [role='button']:not(:disabled) {
-    cursor: pointer;
-  }
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
+	}
 }
 
-@utility no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ========================================================================== */
+/*  Utility Layer                                                              */
+/* ========================================================================== */
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+@utility no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 @utility transition-fg {
-  transition-property: color, background-color, border-color, box-shadow, opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 0.15s;
+	transition-property: color, background-color, border-color, box-shadow, opacity;
+	transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+	transition-duration: 0.15s;
 }
 
-/** Custom Container **/
-/* @utility container-main {
-  margin-inline: auto;
-  padding-inline: 1.5rem;
-  @media (width >= --theme(--breakpoint-sm)) {
-    max-width: none;
-  }
-  @media (width >= 1440px) {
-    padding-inline: 2rem;
-    max-width: 1440px;
-  }
-} */
+/* --- Notion Typography Utilities --- */
 
-/** Smooth scroll **/
-html {
-  scroll-behavior: smooth;
+@utility heading-display {
+	font-size: 4rem;
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -2.125px;
+	font-feature-settings: 'lnum', 'locl';
 }
 
-/** Smooth visual entry animations **/
+@utility heading-section {
+	font-size: 3rem;
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -1.5px;
+	font-feature-settings: 'lnum', 'locl';
+}
+
+@utility heading-sub {
+	font-size: 1.625rem;
+	font-weight: 700;
+	line-height: 1.23;
+	letter-spacing: -0.625px;
+}
+
+@utility heading-card {
+	font-size: 1.375rem;
+	font-weight: 700;
+	line-height: 1.27;
+	letter-spacing: -0.25px;
+}
+
+@utility text-body-large {
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: -0.125px;
+}
+
+@utility text-body-medium {
+	font-size: 1rem;
+	font-weight: 500;
+	line-height: 1.5;
+}
+
+@utility text-nav {
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.33;
+}
+
+@utility text-caption {
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1.43;
+}
+
+@utility text-badge {
+	font-size: 0.75rem;
+	font-weight: 600;
+	line-height: 1.33;
+	letter-spacing: 0.125px;
+}
+
+@utility text-micro {
+	font-size: 0.75rem;
+	font-weight: 400;
+	line-height: 1.33;
+	letter-spacing: 0.125px;
+}
+
+/* --- Shadow Utilities --- */
+
+@utility shadow-card {
+	box-shadow: var(--shadow-card);
+}
+
+@utility shadow-deep {
+	box-shadow: var(--shadow-deep);
+}
+
+@utility shadow-whisper {
+	box-shadow: var(--shadow-whisper);
+}
+
+/* --- Animation Utilities --- */
+
 @utility animate-enter {
-  animation: enter 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+	animation: enter 0.5s cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
 @utility animate-fade-in {
-  animation: fade-in 0.4s ease-out forwards;
+	animation: fade-in 0.35s ease-out forwards;
 }
 
+@utility animate-slide-up {
+	animation: slide-up 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@utility animate-scale-in {
+	animation: scale-in 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@utility animate-shimmer {
+	background: linear-gradient(90deg, var(--muted) 25%, oklch(0.94 0.005 80) 50%, var(--muted) 75%);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* --- Keyframes --- */
+
 @keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+/* --- Reduced Motion --- */
+/* @media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+} */
+
+/* ========================================================================== */
+/*  Third-Party Overrides (Sonner Toast)                                       */
+/* ========================================================================== */
+
+[data-sonner-toaster] {
+	/* Override Sonner defaults with Notion aesthetic */
+	font-family: var(--font-sans) !important;
+}
+
+[data-sonner-toast] {
+	background-color: oklch(1 0 0) !important;
+	border: 1px solid oklch(0.9 0.003 80) !important;
+	box-shadow: var(--shadow-deep) !important;
+	border-radius: 12px !important;
+	color: oklch(0.14 0.008 65) !important;
+}
+
+.dark [data-sonner-toast] {
+	background-color: oklch(0.25 0.008 65) !important;
+	border: 1px solid oklch(0.33 0.008 65) !important;
+	color: oklch(0.95 0.005 80) !important;
+}
+
+[data-sonner-toast] [data-icon] {
+	color: var(--primary) !important;
+}
+
+[data-sonner-toast][data-type='success'] [data-icon] {
+	color: var(--success) !important;
+}
+
+[data-sonner-toast][data-type='error'] [data-icon] {
+	color: var(--destructive) !important;
+}
+
+[data-sonner-toast] [data-title] {
+	font-weight: 600 !important;
+	letter-spacing: -0.125px !important;
+}
+
+[data-sonner-toast] [data-description] {
+	color: oklch(0.46 0.015 65) !important;
+}
+
+.dark [data-sonner-toast] [data-description] {
+	color: oklch(0.65 0.01 80) !important;
 }

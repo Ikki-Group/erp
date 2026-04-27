@@ -1,123 +1,107 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, ilike, count, isNull, or } from 'drizzle-orm'
 
-import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-import { db } from '@/db'
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
+
 import { employeesTable } from '@/db/schema/employee'
 
-import {
-  EmployeeDto,
-  type EmployeeCreateDto,
-  type EmployeeFilterDto,
-  type EmployeeUpdateDto,
+import type {
+	EmployeeCreateDto,
+	EmployeeDto,
+	EmployeeFilterDto,
+	EmployeeUpdateDto,
 } from '../dto/employee.dto'
+import { EmployeeRepo } from '../employee.repo'
+
+const employeeConflictFields: ConflictField<'code'>[] = [
+	{
+		field: 'code',
+		column: employeesTable.code,
+		message: 'Employee code already exists',
+		code: 'EMPLOYEE_CODE_ALREADY_EXISTS',
+	},
+]
+
+const err = {
+	notFound: (id: number) =>
+		new NotFoundError(`Employee with ID ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
+	createFailed: () => new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED'),
+}
 
 export class EmployeeService {
-  async handleList(filter: EmployeeFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<EmployeeDto>> {
-    return record('EmployeeService.handleList', async () => {
-      const { search } = filter
+	constructor(private repo = new EmployeeRepo()) {}
 
-      const searchCondition = search
-        ? or(ilike(employeesTable.name, `%${search}%`), ilike(employeesTable.code, `%${search}%`))
-        : undefined
+	/* --------------------------------- PUBLIC --------------------------------- */
 
-      const where = and(isNull(employeesTable.deletedAt), searchCondition)
+	async getById(id: number): Promise<EmployeeDto | undefined> {
+		return record('EmployeeService.getById', async () => {
+			return this.repo.getById(id)
+		})
+	}
 
-      const result = await paginate({
-        data: ({ limit, offset }) =>
-          db
-            .select()
-            .from(employeesTable)
-            .where(where)
-            .orderBy(sortBy(employeesTable.updatedAt, 'desc'))
-            .limit(limit)
-            .offset(offset),
-        pq,
-        countQuery: db.select({ count: count() }).from(employeesTable).where(where),
-      })
+	/* --------------------------------- HANDLER -------------------------------- */
 
-      return { data: result.data.map((row) => EmployeeDto.parse(row)), meta: result.meta }
-    })
-  }
+	async handleList(filter: EmployeeFilterDto): Promise<WithPaginationResult<EmployeeDto>> {
+		return record('EmployeeService.handleList', async () => {
+			return this.repo.getListPaginated(filter)
+		})
+	}
 
-  async handleDetail(id: number): Promise<EmployeeDto> {
-    return record('EmployeeService.handleDetail', async () => {
-      const rows = await db
-        .select()
-        .from(employeesTable)
-        .where(and(eq(employeesTable.id, id), isNull(employeesTable.deletedAt)))
-      if (rows.length === 0) throw new NotFoundError(`Employee ${id} not found`, 'EMPLOYEE_NOT_FOUND')
-      return EmployeeDto.parse(takeFirstOrThrow(rows, `Employee ${id} not found`, 'EMPLOYEE_NOT_FOUND'))
-    })
-  }
+	async handleDetail(id: number): Promise<EmployeeDto> {
+		return record('EmployeeService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
 
-  async handleCreate(data: EmployeeCreateDto, userId: number): Promise<{ id: number }> {
-    return record('EmployeeService.handleCreate', async () => {
-      await checkConflict({
-        table: employeesTable,
-        pkColumn: employeesTable.id,
-        fields: [
-          {
-            field: 'code',
-            column: employeesTable.code,
-            message: 'Employee code already exists',
-            code: 'EMPLOYEE_CODE_ALREADY_EXISTS',
-          },
-        ],
-        input: data,
-      })
+	async handleCreate(data: EmployeeCreateDto, actorId: number): Promise<{ id: number }> {
+		return record('EmployeeService.handleCreate', async () => {
+			await checkConflict({
+				table: employeesTable,
+				pkColumn: employeesTable.id,
+				fields: employeeConflictFields,
+				input: data,
+			})
 
-      const stamps = stampCreate(userId)
-      const rows = await db
-        .insert(employeesTable)
-        .values({ ...data, ...stamps })
-        .returning({ id: employeesTable.id })
+			const result = await this.repo.create(data, actorId)
+			if (!result) throw err.createFailed()
 
-      return takeFirstOrThrow(rows, 'Failed to return employee data on create', 'EMPLOYEE_CREATE_ERROR')
-    })
-  }
+			return { id: result }
+		})
+	}
 
-  async handleUpdate(id: number, data: Omit<EmployeeUpdateDto, 'id'>, userId: number): Promise<{ id: number }> {
-    return record('EmployeeService.handleUpdate', async () => {
-      const existing = await this.handleDetail(id)
+	async handleUpdate(data: EmployeeUpdateDto, actorId: number): Promise<{ id: number }> {
+		return record('EmployeeService.handleUpdate', async () => {
+			const { id } = data
 
-      await checkConflict({
-        table: employeesTable,
-        pkColumn: employeesTable.id,
-        fields: [
-          {
-            field: 'code',
-            column: employeesTable.code,
-            message: 'Employee code already exists',
-            code: 'EMPLOYEE_CODE_ALREADY_EXISTS',
-          },
-        ],
-        input: data,
-        existing,
-      })
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-      const stamps = stampUpdate(userId)
-      const rows = await db
-        .update(employeesTable)
-        .set({ ...data, ...stamps })
-        .where(eq(employeesTable.id, id))
-        .returning({ id: employeesTable.id })
+			await checkConflict({
+				table: employeesTable,
+				pkColumn: employeesTable.id,
+				fields: employeeConflictFields,
+				input: data,
+				existing,
+			})
 
-      return takeFirstOrThrow(rows, `Employee ${id} not found on update`, 'EMPLOYEE_NOT_FOUND')
-    })
-  }
+			const result = await this.repo.update(data, actorId)
+			if (!result) throw err.notFound(id)
 
-  async handleRemove(id: number, userId: number): Promise<{ id: number }> {
-    return record('EmployeeService.handleRemove', async () => {
-      const rows = await db
-        .update(employeesTable)
-        .set({ deletedAt: new Date(), deletedBy: userId })
-        .where(eq(employeesTable.id, id))
-        .returning({ id: employeesTable.id })
+			return { id }
+		})
+	}
 
-      return takeFirstOrThrow(rows, `Employee ${id} not found on remove`, 'EMPLOYEE_NOT_FOUND')
-    })
-  }
+	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+		return record('EmployeeService.handleRemove', async () => {
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
+
+			const result = await this.repo.remove(id, actorId)
+			if (!result) throw err.notFound(id)
+
+			return { id }
+		})
+	}
 }

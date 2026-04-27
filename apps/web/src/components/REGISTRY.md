@@ -18,14 +18,14 @@
 
 ## Layer: form (6 components)
 
-| Component                                                 | Import                                   | Usage                                                                                                                            |
-| --------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `useAppForm`                                              | `@/components/form`                      | Core form hook with Zod validation. Includes **Smart Fields** (Input, Select, Date, Checkbox, etc.) via `AppField` render props. |
-| `useFieldContext`                                         | `@/components/form`                      | Access field state in custom renderers.                                                                                          |
-| `Field, FieldLabel, FieldError`                           | `@/components/form/form-tanstack`        | TanStack-integrated field primitives with unified error display logic.                                                           |
+| Component                                                                        | Import                                   | Usage                                                                                                                            |
+| -------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `useAppForm`                                                                     | `@/components/form`                      | Core form hook with Zod validation. Includes **Smart Fields** (Input, Select, Date, Checkbox, etc.) via `AppField` render props. |
+| `useFieldContext`                                                                | `@/components/form`                      | Access field state in custom renderers.                                                                                          |
+| `Field, FieldLabel, FieldError`                                                  | `@/components/form/form-tanstack`        | TanStack-integrated field primitives with unified error display logic.                                                           |
 | `field.Input, field.Select, field.Checkbox, field.Switch, field.DateRangePicker` | `@/components/form`                      | **Smart Components**: Automatically handle labels, descriptions, and error states. Use inside `AppField`.                        |
-| `FormComponent`                                           | `@/components/form/form-component`       | Layout wrapper (`form.Form`) and action buttons (`form.SimpleActions`).                                                          |
-| `FieldBase`                                               | `@/components/form/form-field-component` | Base primitive for building custom smart fields.                                                                                 |
+| `FormComponent`                                                                  | `@/components/form/form-component`       | Layout wrapper (`form.Form`) and action buttons (`form.SimpleActions`).                                                          |
+| `FieldBase`                                                                      | `@/components/form/form-field-component` | Base primitive for building custom smart fields.                                                                                 |
 
 ## Layer: data-table (7 components)
 
@@ -92,14 +92,14 @@ import { FeatureTable } from '@/features/[domain]/components/[domain]-table'
 
 // Route file: only compose, never define UI
 function RouteComponent() {
-  return (
-    <Page>
-      <Page.BlockHeader title="..." action={<Button>Create</Button>} />
-      <Page.Content>
-        <FeatureTable />
-      </Page.Content>
-    </Page>
-  )
+	return (
+		<Page>
+			<Page.BlockHeader title="..." action={<Button>Create</Button>} />
+			<Page.Content>
+				<FeatureTable />
+			</Page.Content>
+		</Page>
+	)
 }
 ```
 
@@ -110,19 +110,19 @@ import { Page } from '@/components/layout/page'
 import { FormLayout } from '@/components/layout/form-layout'
 
 function RouteComponent() {
-  return (
-    <Page size="md">
-      <Page.BlockHeader title="..." back={{ to: '/...' }} />
-      <Page.Content>
-        <FormLayout>
-          <FormLayout.CardSection title="...">
-            <FormLayout.Grid>...</FormLayout.Grid>
-          </FormLayout.CardSection>
-          <FormLayout.Actions>...</FormLayout.Actions>
-        </FormLayout>
-      </Page.Content>
-    </Page>
-  )
+	return (
+		<Page size="md">
+			<Page.BlockHeader title="..." back={{ to: '/...' }} />
+			<Page.Content>
+				<FormLayout>
+					<FormLayout.CardSection title="...">
+						<FormLayout.Grid>...</FormLayout.Grid>
+					</FormLayout.CardSection>
+					<FormLayout.Actions>...</FormLayout.Actions>
+				</FormLayout>
+			</Page.Content>
+		</Page>
+	)
 }
 ```
 

@@ -1,68 +1,81 @@
 import { z } from 'zod'
 
-import {
-  zMetadataDto,
-  zPaginationDto,
-  zQueryId,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-export const goodsReceiptStatusEnum = z.enum(['open', 'completed', 'void'])
+/* ---------------------------------- ENUM ---------------------------------- */
 
-export const GoodsReceiptNoteItemBaseDto = z.object({
-  purchaseOrderItemId: z.number(),
-  materialId: z.number().nullable().optional(),
-  itemName: zStr.min(1).max(255),
-  quantityReceived: z.string().or(z.number()),
-  notes: zStrNullable.optional(),
-})
-export type GoodsReceiptNoteItemBaseDto = z.infer<typeof GoodsReceiptNoteItemBaseDto>
+export const GoodsReceiptStatusEnum = z.enum(['open', 'completed', 'void'])
+export type GoodsReceiptStatus = z.infer<typeof GoodsReceiptStatusEnum>
 
-export const GoodsReceiptNoteBaseDto = z.object({
-  orderId: z.number(),
-  locationId: z.number(),
-  supplierId: z.number(),
-  receiveDate: z.coerce.date(),
-  status: goodsReceiptStatusEnum.default('open'),
-  referenceNumber: zStrNullable.optional(),
-  notes: zStrNullable.optional(),
-})
-export type GoodsReceiptNoteBaseDto = z.infer<typeof GoodsReceiptNoteBaseDto>
+/* ---------------------------------- ITEM ---------------------------------- */
 
 export const GoodsReceiptNoteItemDto = z.object({
-  ...zRecordIdDto.shape,
-  grnId: z.number(),
-  ...GoodsReceiptNoteItemBaseDto.shape,
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	grnId: zp.id,
+	purchaseOrderItemId: zp.id,
+	materialId: zp.id.nullable().optional(),
+	itemName: zp.str,
+	quantityReceived: zp.decimal,
+	notes: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 export type GoodsReceiptNoteItemDto = z.infer<typeof GoodsReceiptNoteItemDto>
 
+/* ---------------------------------- ENTITY --------------------------------- */
+
 export const GoodsReceiptNoteDto = z.object({
-  ...zRecordIdDto.shape,
-  ...GoodsReceiptNoteBaseDto.shape,
-  items: z.array(GoodsReceiptNoteItemDto),
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	locationId: zp.id,
+	supplierId: zp.id,
+	receiveDate: zp.date,
+	status: GoodsReceiptStatusEnum,
+	referenceNumber: zp.strNullable,
+	notes: zp.strNullable,
+	items: z.array(GoodsReceiptNoteItemDto),
+	...zc.AuditBasic.shape,
 })
 export type GoodsReceiptNoteDto = z.infer<typeof GoodsReceiptNoteDto>
+export const GoodsReceiptNoteSelectDto = GoodsReceiptNoteDto.omit({ items: true })
+export type GoodsReceiptNoteSelectDto = z.infer<typeof GoodsReceiptNoteSelectDto>
 
-export const GoodsReceiptNoteCreateItemDto = z.object({ ...GoodsReceiptNoteItemBaseDto.shape })
-export type GoodsReceiptNoteCreateItemDto = z.infer<typeof GoodsReceiptNoteCreateItemDto>
+/* -------------------------------- MUTATION -------------------------------- */
 
-export const GoodsReceiptNoteCreateDto = z.object({
-  ...GoodsReceiptNoteBaseDto.shape,
-  items: z.array(GoodsReceiptNoteCreateItemDto).min(1),
+const GoodsReceiptNoteItemMutationDto = z.object({
+	purchaseOrderItemId: zp.id,
+	materialId: zp.id.optional().nullable(),
+	itemName: zc.strTrim.min(1).max(255),
+	quantityReceived: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
+	notes: zc.strTrimNullable,
 })
+
+const GoodsReceiptNoteMutationDto = z.object({
+	orderId: zp.id,
+	locationId: zp.id,
+	supplierId: zp.id,
+	receiveDate: zp.date.default(() => new Date()),
+	status: GoodsReceiptStatusEnum.default('open'),
+	referenceNumber: zc.strTrimNullable,
+	notes: zc.strTrimNullable,
+	items: z.array(GoodsReceiptNoteItemMutationDto).min(1),
+})
+
+export const GoodsReceiptNoteCreateDto = GoodsReceiptNoteMutationDto
 export type GoodsReceiptNoteCreateDto = z.infer<typeof GoodsReceiptNoteCreateDto>
 
+export const GoodsReceiptNoteUpdateDto = GoodsReceiptNoteMutationDto.extend({
+	...zc.RecordId.shape,
+})
+export type GoodsReceiptNoteUpdateDto = z.infer<typeof GoodsReceiptNoteUpdateDto>
+
+/* --------------------------------- FILTER --------------------------------- */
+
 export const GoodsReceiptNoteFilterDto = z.object({
-  ...zPaginationDto.shape,
-  q: zQuerySearch,
-  status: goodsReceiptStatusEnum.optional(),
-  orderId: zQueryId.optional(),
-  locationId: zQueryId.optional(),
-  supplierId: zQueryId.optional(),
+	...zq.pagination.shape,
+	q: zq.search,
+	status: GoodsReceiptStatusEnum.optional(),
+	orderId: zq.id.optional(),
+	locationId: zq.id.optional(),
+	supplierId: zq.id.optional(),
 })
 export type GoodsReceiptNoteFilterDto = z.infer<typeof GoodsReceiptNoteFilterDto>

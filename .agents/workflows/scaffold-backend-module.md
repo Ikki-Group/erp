@@ -1,10 +1,10 @@
 ---
-description: scaffold a new Ikki ERP backend module following Golden Path 2.1
+description: scaffold a new Ikki ERP backend module following Golden Path 1.0
 ---
 
 # Scaffold Backend Module Workflow
 
-This workflow ensures that any new module generated in the `apps/server/src/modules/` directory strictly adheres to the Golden Path 2.1 architecture.
+This workflow ensures that any new module generated in the `apps/server/src/modules/` directory strictly adheres to the Golden Path 1.0 architecture.
 
 > **AI Agent Context**: Run these steps sequentially. Do not deviate from the templates.
 
@@ -24,7 +24,7 @@ mkdir -p apps/server/src/modules/${DOMAIN_NAME}/service
 ```
 
 ## Step 3: Implement DTOs (`dto/`)
-Generate the DTOs inside `dto/${DOMAIN_NAME}.dto.ts` according to the Golden Path 2.1 standards.
+Generate the DTOs inside `dto/${DOMAIN_NAME}.dto.ts` according to the Golden Path 1.0 standards.
 **Rules**:
 - Must include the `Dto` suffix.
 - Must use the precise Spread Pattern (`...BaseDto.shape`).

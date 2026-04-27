@@ -1,28 +1,41 @@
 import { z } from 'zod'
 
-import { zId, zDate, zEmail, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zc, zp } from '@/core/validation'
+
+/* ---------------------------------- ENTITY ---------------------------------- */
 
 export const MokaConfigurationDto = z.object({
-  ...zRecordIdDto.shape,
-  locationId: zId,
-  email: zEmail,
-  password: z.string(),
-  businessId: z.string().nullable(),
-  outletId: z.string().nullable(),
-  accessToken: z.string().nullable(),
-  lastSyncedAt: zDate.nullable(),
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	locationId: zp.id,
+	email: zp.str,
+	password: zp.str,
+	businessId: zp.str.nullable(),
+	outletId: zp.str.nullable(),
+	accessToken: zp.str.nullable(),
+	lastSyncedAt: zp.date.nullable(),
+	...zc.AuditBasic.shape,
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
+
+/* ---------------------------------- OUTPUT ---------------------------------- */
 
 export const MokaConfigurationOutputDto = MokaConfigurationDto.omit({ password: true })
 export type MokaConfigurationOutputDto = z.infer<typeof MokaConfigurationOutputDto>
 
-export const MokaConfigurationCreateDto = z.object({ locationId: zId, email: zEmail, password: z.string().min(6) })
+/* -------------------------------- MUTATION -------------------------------- */
+
+const MokaConfigurationMutationDto = z.object({
+	locationId: zp.id,
+	email: zc.email,
+	password: zc.password,
+	businessId: zc.strTrimNullable,
+	outletId: zc.strTrimNullable,
+})
+
+export const MokaConfigurationCreateDto = MokaConfigurationMutationDto
 export type MokaConfigurationCreateDto = z.infer<typeof MokaConfigurationCreateDto>
 
-export const MokaConfigurationUpdateDto = z.object({
-  ...MokaConfigurationCreateDto.partial().shape,
-  locationId: zId.optional(),
+export const MokaConfigurationUpdateDto = MokaConfigurationMutationDto.partial().extend({
+	...zc.RecordId.shape,
 })
 export type MokaConfigurationUpdateDto = z.infer<typeof MokaConfigurationUpdateDto>

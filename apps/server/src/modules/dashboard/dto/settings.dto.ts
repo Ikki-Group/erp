@@ -1,7 +1,11 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zNum } from '@/core/validation'
+import { zp } from '@/core/validation'
 
-export const SettingsSummaryDto = z.object({ users: zNum, roles: zNum, locations: zNum })
+export const SettingsSummaryDto = z.object({
+	users: zp.num,
+	roles: zp.num,
+	locations: zp.num,
+})
 
 export type SettingsSummaryDto = z.infer<typeof SettingsSummaryDto>

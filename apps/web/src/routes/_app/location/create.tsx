@@ -5,5 +5,5 @@ import { LocationFormPage } from '@/features/location/components/location-form-p
 export const Route = createFileRoute('/_app/location/create')({ component: RouteComponent })
 
 function RouteComponent() {
-  return <LocationFormPage mode="create" backTo={{ to: '/location' }} />
+	return <LocationFormPage mode="create" backTo={{ to: '/location' }} />
 }

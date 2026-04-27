@@ -1,103 +1,68 @@
-import { count, ilike, or, and, eq, isNull } from 'drizzle-orm'
 import { record } from '@elysiajs/opentelemetry'
-import { db } from '@/db'
-import { accountsTable } from '@/db/schema/finance'
-import { stampCreate, stampUpdate, takeFirstOrThrow, paginate, sortBy } from '@/core/database'
-import type { AccountCreateDto, AccountUpdateDto, AccountFilterDto } from '../dto/account.dto'
+
+import { NotFoundError } from '@/core/http/errors'
+import type { WithPaginationResult } from '@/core/utils/pagination'
+
+import {
+	AccountDto,
+	AccountCreateDto,
+	AccountUpdateDto,
+	AccountFilterDto,
+} from '../dto/account.dto'
+import { AccountRepo } from '../repo/account.repo'
 
 export class AccountService {
-  async handleList(query: AccountFilterDto) {
-    return record('AccountService.handleList', async () => {
-      const { search, type, parentId, limit = 50, page = 1 } = query
+	constructor(private readonly repo = new AccountRepo()) {}
 
-      const where = and(
-        search ? or(ilike(accountsTable.name, `%${search}%`), ilike(accountsTable.code, `%${search}%`)) : undefined,
-        isNull(accountsTable.deletedAt),
-        type ? eq(accountsTable.type, type) : undefined,
-        parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
-      )
+	/* --------------------------------- PUBLIC --------------------------------- */
 
-      return paginate({
-        data: async ({ limit: l, offset }) => {
-          return db
-            .select()
-            .from(accountsTable)
-            .where(where)
-            .limit(l)
-            .offset(offset)
-            .orderBy(sortBy(accountsTable.code, 'asc'))
-        },
-        pq: { page, limit },
-        countQuery: db.select({ count: count() }).from(accountsTable).where(where),
-      })
-    })
-  }
+	async getById(id: number) {
+		return record('AccountService.getById', async () => {
+			const account = await this.repo.getById(id)
+			if (!account) throw new NotFoundError(`Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
+			return account
+		})
+	}
 
-  async handleDetail(id: number) {
-    return record('AccountService.handleDetail', async () => {
-      const result = await db
-        .select()
-        .from(accountsTable)
-        .where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+	async findByCode(code: string) {
+		return record('AccountService.findByCode', async () => {
+			return this.repo.findByCode(code)
+		})
+	}
 
-      return takeFirstOrThrow(result, `Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
-    })
-  }
+	/* --------------------------------- HANDLER -------------------------------- */
 
-  async handleCreate(data: AccountCreateDto, actorId: number) {
-    return record('AccountService.handleCreate', async () => {
-      const stamps = stampCreate(actorId)
-      const rows = await db
-        .insert(accountsTable)
-        .values({ ...data, ...stamps })
-        .returning({ id: accountsTable.id })
+	async handleList(query: AccountFilterDto): Promise<WithPaginationResult<AccountDto>> {
+		return record('AccountService.handleList', async () => {
+			return this.repo.getListPaginated(query)
+		})
+	}
 
-      return takeFirstOrThrow(rows, 'Failed to create account', 'ACCOUNT_CREATE_FAILED')
-    })
-  }
+	async handleDetail(id: number) {
+		return record('AccountService.handleDetail', async () => {
+			return this.getById(id)
+		})
+	}
 
-  async handleUpdate(id: number, data: AccountUpdateDto, actorId: number) {
-    return record('AccountService.handleUpdate', async () => {
-      const stamps = stampUpdate(actorId)
-      const rows = await db
-        .update(accountsTable)
-        .set({ ...data, ...stamps })
-        .where(eq(accountsTable.id, id))
-        .returning({ id: accountsTable.id })
+	async handleCreate(data: AccountCreateDto, actorId: number) {
+		return record('AccountService.handleCreate', async () => {
+			return this.repo.create(data, actorId)
+		})
+	}
 
-      return takeFirstOrThrow(rows, 'Failed to update account', 'ACCOUNT_UPDATE_FAILED')
-    })
-  }
+	async handleUpdate(id: number, data: AccountUpdateDto, actorId: number) {
+		return record('AccountService.handleUpdate', async () => {
+			return this.repo.update(id, data, actorId)
+		})
+	}
 
-  async handleRemove(id: number, actorId: number) {
-    return record('AccountService.handleRemove', async () => {
-      const children = await db
-        .select({ id: accountsTable.id })
-        .from(accountsTable)
-        .where(and(eq(accountsTable.parentId, id), isNull(accountsTable.deletedAt)))
-        .limit(1)
-      if (children.length > 0) {
-        throw new Error('Account has children, cannot delete')
-      }
-
-      const stamps = stampUpdate(actorId)
-      const rows = await db
-        .update(accountsTable)
-        .set({ deletedAt: stamps.updatedAt, deletedBy: actorId })
-        .where(eq(accountsTable.id, id))
-        .returning({ id: accountsTable.id })
-
-      return takeFirstOrThrow(rows, `Account ${id} not found on remove`, 'ACCOUNT_NOT_FOUND')
-    })
-  }
-
-  async findByCode(code: string) {
-    const [result] = await db
-      .select()
-      .from(accountsTable)
-      .where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
-      .limit(1)
-
-    return result ?? null
-  }
+	async handleRemove(id: number, actorId: number) {
+		return record('AccountService.handleRemove', async () => {
+			const hasChildren = await this.repo.hasChildren(id)
+			if (hasChildren) {
+				throw new Error('Account has children, cannot delete')
+			}
+			return this.repo.softDelete(id, actorId)
+		})
+	}
 }

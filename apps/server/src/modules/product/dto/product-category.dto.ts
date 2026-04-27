@@ -1,31 +1,41 @@
-import z from 'zod'
+import { z } from 'zod'
 
-import { zStrNullable, zStr, zId, zQuerySearch, zMetadataDto, zRecordIdDto } from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-/* --------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY ---------------------------------- */
 
-export const productCategorySchema = z.object({
-  ...zRecordIdDto.shape,
-  name: zStr,
-  description: zStrNullable,
-  parentId: zId.nullable(),
-  ...zMetadataDto.shape,
+export const ProductCategoryDto = z.object({
+	...zc.RecordId.shape,
+	name: zp.str,
+	description: zp.strNullable,
+	parentId: zp.id.nullable(),
+	...zc.AuditBasic.shape,
 })
 
-export type ProductCategoryDto = z.infer<typeof productCategorySchema>
+export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const productCategoryFilterSchema = z.object({ search: zQuerySearch, parentId: zId.optional() })
+export const ProductCategoryFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	parentId: zq.id.optional(),
+})
 
-export type ProductCategoryFilterDto = z.infer<typeof productCategoryFilterSchema>
+export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const productCategoryMutationSchema = productCategorySchema.pick({
-  name: true,
-  description: true,
-  parentId: true,
+const ProductCategoryMutationDto = z.object({
+	name: zc.strTrim.min(1).max(100),
+	description: zc.strTrimNullable,
+	parentId: zp.id.optional().nullable(),
 })
 
-export type ProductCategoryMutationDto = z.infer<typeof productCategoryMutationSchema>
+export const ProductCategoryCreateDto = ProductCategoryMutationDto
+export type ProductCategoryCreateDto = z.infer<typeof ProductCategoryCreateDto>
+
+export const ProductCategoryUpdateDto = ProductCategoryMutationDto.extend({
+	...zc.RecordId.shape,
+})
+export type ProductCategoryUpdateDto = z.infer<typeof ProductCategoryUpdateDto>

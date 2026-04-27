@@ -5,18 +5,18 @@ import { Badge } from '@/components/reui/badge'
 export interface BadgeDotProps extends ComponentProps<typeof Badge> {}
 
 export function BadgeDot({ children, ...props }: BadgeDotProps) {
-  return (
-    <Badge {...props}>
-      <span className="ms-px size-1.25 rounded-full! bg-current" />
-      {children}
-    </Badge>
-  )
+	return (
+		<Badge {...props}>
+			<span className="ms-px size-1.25 rounded-full! bg-current" />
+			{children}
+		</Badge>
+	)
 }
 
 export function getActiveStatusBadge(isActive: boolean): BadgeDotProps {
-  if (isActive) {
-    return { variant: 'success-outline', children: 'Aktif' }
-  }
+	if (isActive) {
+		return { variant: 'success-outline', children: 'Aktif' }
+	}
 
-  return { variant: 'destructive-outline', children: 'Tidak Aktif' }
+	return { variant: 'destructive-outline', children: 'Tidak Aktif' }
 }

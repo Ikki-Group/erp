@@ -1,28 +1,131 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "semi": false,
-  "singleQuote": true,
-  "trailingComma": "all",
-  "printWidth": 120,
-  "tabWidth": 2,
-  "sortPackageJson": true,
-  "objectWrap": "collapse",
-  // "sortImports": {
-  //   "groups": [
-  //     [
-  //       "^react$",
-  //       "^elysia$"
-  //     ],
-  //     [
-  //       "^@/"
-  //     ],
-  //     [
-  //       "^\\.\\./"
-  //     ],
-  //     [
-  //       "^\\./"
-  //     ]
-  //   ]
-  // },
-  "ignorePatterns": ["**/*.lock", ".agents/**", "./docs/**"]
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"semi": false,
+	"singleQuote": true,
+	"trailingComma": "all",
+	"printWidth": 100,
+	"tabWidth": 2,
+	"sortPackageJson": true,
+	"objectWrap": "preserve",
+	"useTabs": true,
+	"ignorePatterns": [
+		"node_modules",
+		".agents/**",
+		"./docs/**",
+		"**/*.lock"
+	],
+	"overrides": [
+		{
+			"files": [
+				"apps/web/**/*.{ts,tsx}"
+			],
+			"options": {
+				"sortImports": {
+					"newlinesBetween": true,
+					"internalPattern": [
+						"@/"
+					],
+					"customGroups": [
+						{
+							"groupName": "react-core",
+							"elementNamePattern": [
+								"react",
+								"react-dom",
+								"react-dom/**"
+							]
+						},
+						{
+							"groupName": "tanstack",
+							"elementNamePattern": [
+								"@tanstack/**"
+							]
+						},
+						{
+							"groupName": "internal-aliases",
+							"elementNamePattern": [
+								"@/config/**",
+								"@/hooks/**"
+							]
+						},
+						{
+							"groupName": "ui",
+							"elementNamePattern": [
+								"@/components/ui/**"
+							]
+						},
+						{
+							"groupName": "components-general",
+							"elementNamePattern": [
+								"@/components/**"
+							]
+						},
+						{
+							"groupName": "lib",
+							"elementNamePattern": [
+								"@/lib/**"
+							]
+						},
+						{
+							"groupName": "internal-features",
+							"elementNamePattern": [
+								"@/features/**"
+							]
+						}
+					],
+					"groups": [
+						"react-core",
+						"tanstack",
+						"value-external",
+						"internal-aliases",
+						"lib",
+						"components-general",
+						"ui",
+						"internal-features",
+						"unknown"
+					]
+				}
+			}
+		},
+		{
+			"files": [
+				"apps/server/**/*.{ts,tsx}"
+			],
+			"options": {
+				"sortImports": {
+					"newlinesBetween": true,
+					"internalPattern": [
+						"@/"
+					],
+					"customGroups": [
+						{
+							"groupName": "core",
+							"elementNamePattern": [
+								"@/core/**"
+							]
+						},
+						{
+							"groupName": "db",
+							"elementNamePattern": [
+								"@/db",
+								"@/db/**"
+							]
+						},
+						{
+							"groupName": "internal-modules",
+							"elementNamePattern": [
+								"@/modules/**"
+							]
+						}
+					],
+					"groups": [
+						"value-external",
+						"core",
+						"db",
+						"internal-modules",
+						"unknown"
+					]
+				}
+			}
+		}
+	]
 }

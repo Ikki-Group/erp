@@ -1,48 +1,34 @@
 import { z } from 'zod'
 
-import { zBool, zId, zMetadataDto, zPaginationDto, zRecordIdDto } from '@/lib/zod'
+import { zc, zp, zq } from '@/lib/validation'
 
-/**
- * Common User Assignment attributes.
- */
-export const UserAssignmentBaseDto = z.object({ userId: zId, roleId: zId, locationId: zId, isDefault: zBool })
-export type UserAssignmentBaseDto = z.infer<typeof UserAssignmentBaseDto>
+/* ---------------------------------- ENTITY ---------------------------------- */
 
-/**
- * User Assignment database record.
- */
 export const UserAssignmentDto = z.object({
-  ...zRecordIdDto.shape,
-  ...UserAssignmentBaseDto.shape,
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	userId: zp.id,
+	roleId: zp.id,
+	locationId: zp.id,
+	addedAt: zp.date,
+	addedBy: zp.id.nullable(),
 })
 export type UserAssignmentDto = z.infer<typeof UserAssignmentDto>
 
-/**
- * Detailed User Assignment (including role/location names/codes).
- */
-export const UserAssignmentDetailDto = z.object({
-  ...UserAssignmentDto.shape,
-  roleName: z.string(),
-  roleCode: z.string(),
-  locationName: z.string(),
-  locationCode: z.string(),
-})
-export type UserAssignmentDetailDto = z.infer<typeof UserAssignmentDetailDto>
+/* -------------------------------- MUTATION -------------------------------- */
 
-/**
- * Input for upserting a User Assignment.
- */
-export const UserAssignmentUpsertDto = UserAssignmentBaseDto
+export const UserAssignmentUpsertDto = z.object({
+	userId: zp.id,
+	roleId: zp.id,
+	locationId: zp.id,
+})
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
 
-/**
- * Filter criteria for listing User Assignments.
- */
+/* ---------------------------------- FILTER ---------------------------------- */
+
 export const UserAssignmentFilterDto = z.object({
-  ...zPaginationDto.shape,
-  userId: zId.optional(),
-  roleId: zId.optional(),
-  locationId: zId.optional(),
+	...zq.pagination.shape,
+	userId: zq.id.optional(),
+	roleId: zq.id.optional(),
+	locationId: zq.id.optional(),
 })
 export type UserAssignmentFilterDto = z.infer<typeof UserAssignmentFilterDto>

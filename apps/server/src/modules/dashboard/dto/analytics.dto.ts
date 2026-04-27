@@ -1,13 +1,16 @@
 import { z } from 'zod'
-import { zDate } from '@/core/validation'
 
-export const PnLRequestDto = z.object({ startDate: zDate, endDate: zDate })
+import { zp } from '@/core/validation'
+
+export const PnLRequestDto = z.object({
+	startDate: zp.date,
+	endDate: zp.date,
+})
+export type PnLRequestDto = z.infer<typeof PnLRequestDto>
 
 export const TopSalesRequestDto = z.object({
-  startDate: zDate,
-  endDate: zDate,
-  limit: z.number().int().positive().optional().default(5),
+	startDate: zp.date,
+	endDate: zp.date,
+	limit: zp.num.int().positive().optional().default(5),
 })
-
-export type PnLRequestDto = z.infer<typeof PnLRequestDto>
 export type TopSalesRequestDto = z.infer<typeof TopSalesRequestDto>

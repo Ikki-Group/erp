@@ -44,7 +44,6 @@ import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledg
 import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
 import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/accounts'
 import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
-import { Route as AppExamplesFormComponentsRouteImport } from './routes/_app/examples/form-components'
 import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
 import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
 import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
@@ -248,12 +247,6 @@ const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
   path: '/examples/page-new',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesFormComponentsRoute =
-  AppExamplesFormComponentsRouteImport.update({
-    id: '/examples/form-components',
-    path: '/examples/form-components',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
 const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
   id: '/examples/data-table',
   path: '/examples/data-table',
@@ -422,7 +415,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
-  '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/finance/accounts': typeof AppFinanceAccountsRoute
   '/finance/expenses': typeof AppFinanceExpensesRoute
@@ -487,7 +479,6 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/examples/data-table': typeof AppExamplesDataTableRoute
-  '/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/examples/page-new': typeof AppExamplesPageNewRoute
   '/finance/accounts': typeof AppFinanceAccountsRoute
   '/finance/expenses': typeof AppFinanceExpensesRoute
@@ -556,7 +547,6 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/analytics/production': typeof AppAnalyticsProductionRoute
   '/_app/examples/data-table': typeof AppExamplesDataTableRoute
-  '/_app/examples/form-components': typeof AppExamplesFormComponentsRoute
   '/_app/examples/page-new': typeof AppExamplesPageNewRoute
   '/_app/finance/accounts': typeof AppFinanceAccountsRoute
   '/_app/finance/expenses': typeof AppFinanceExpensesRoute
@@ -623,7 +613,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/analytics/production'
     | '/examples/data-table'
-    | '/examples/form-components'
     | '/examples/page-new'
     | '/finance/accounts'
     | '/finance/expenses'
@@ -688,7 +677,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/analytics/production'
     | '/examples/data-table'
-    | '/examples/form-components'
     | '/examples/page-new'
     | '/finance/accounts'
     | '/finance/expenses'
@@ -756,7 +744,6 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/analytics/production'
     | '/_app/examples/data-table'
-    | '/_app/examples/form-components'
     | '/_app/examples/page-new'
     | '/_app/finance/accounts'
     | '/_app/finance/expenses'
@@ -1069,13 +1056,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExamplesPageNewRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/examples/form-components': {
-      id: '/_app/examples/form-components'
-      path: '/examples/form-components'
-      fullPath: '/examples/form-components'
-      preLoaderRoute: typeof AppExamplesFormComponentsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/examples/data-table': {
       id: '/_app/examples/data-table'
       path: '/examples/data-table'
@@ -1308,7 +1288,6 @@ interface AppRouteRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAnalyticsProductionRoute: typeof AppAnalyticsProductionRoute
   AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
-  AppExamplesFormComponentsRoute: typeof AppExamplesFormComponentsRoute
   AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
   AppFinanceAccountsRoute: typeof AppFinanceAccountsRoute
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
@@ -1369,7 +1348,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAnalyticsProductionRoute: AppAnalyticsProductionRoute,
   AppExamplesDataTableRoute: AppExamplesDataTableRoute,
-  AppExamplesFormComponentsRoute: AppExamplesFormComponentsRoute,
   AppExamplesPageNewRoute: AppExamplesPageNewRoute,
   AppFinanceAccountsRoute: AppFinanceAccountsRoute,
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,

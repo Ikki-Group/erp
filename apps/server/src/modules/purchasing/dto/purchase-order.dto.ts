@@ -1,81 +1,88 @@
 import { z } from 'zod'
 
-import {
-  zMetadataDto,
-  zPaginationDto,
-  zQueryId,
-  zQuerySearch,
-  zRecordIdDto,
-  zStr,
-  zStrNullable,
-} from '@/core/validation'
+import { zc, zp, zq } from '@/core/validation'
 
-export const purchaseOrderStatusEnum = z.enum(['open', 'closed', 'void'])
+/* ---------------------------------- ENUM ---------------------------------- */
 
-export const PurchaseOrderItemBaseDto = z.object({
-  materialId: z.number().nullable().optional(),
-  itemName: zStr.min(1).max(255),
-  quantity: z.string().or(z.number()),
-  unitPrice: z.string().or(z.number()),
-  discountAmount: z.string().or(z.number()),
-  taxAmount: z.string().or(z.number()),
-  subtotal: z.string().or(z.number()),
-})
-export type PurchaseOrderItemBaseDto = z.infer<typeof PurchaseOrderItemBaseDto>
+export const PurchaseOrderStatusEnum = z.enum(['open', 'closed', 'void'])
+export type PurchaseOrderStatus = z.infer<typeof PurchaseOrderStatusEnum>
 
-export const PurchaseOrderBaseDto = z.object({
-  locationId: z.number(),
-  supplierId: z.number(),
-  status: purchaseOrderStatusEnum.default('open'),
-  transactionDate: z.coerce.date(),
-  expectedDeliveryDate: z.coerce.date().nullable().optional(),
-  totalAmount: z.string().or(z.number()),
-  discountAmount: z.string().or(z.number()),
-  taxAmount: z.string().or(z.number()),
-  notes: zStrNullable.optional(),
-})
-export type PurchaseOrderBaseDto = z.infer<typeof PurchaseOrderBaseDto>
+/* ---------------------------------- ITEM ---------------------------------- */
 
 export const PurchaseOrderItemDto = z.object({
-  ...zRecordIdDto.shape,
-  orderId: z.number(),
-  ...PurchaseOrderItemBaseDto.shape,
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	materialId: zp.id.nullable().optional(),
+	itemName: zp.str,
+	quantity: zp.decimal,
+	unitPrice: zp.decimal,
+	discountAmount: zp.decimal,
+	taxAmount: zp.decimal,
+	subtotal: zp.decimal,
+	...zc.AuditBasic.shape,
 })
 export type PurchaseOrderItemDto = z.infer<typeof PurchaseOrderItemDto>
 
+/* ---------------------------------- ENTITY --------------------------------- */
+
 export const PurchaseOrderDto = z.object({
-  ...zRecordIdDto.shape,
-  ...PurchaseOrderBaseDto.shape,
-  items: z.array(PurchaseOrderItemDto),
-  ...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	locationId: zp.id,
+	supplierId: zp.id,
+	status: PurchaseOrderStatusEnum,
+	transactionDate: zp.date,
+	expectedDeliveryDate: zp.date.nullable().optional(),
+	totalAmount: zp.decimal,
+	discountAmount: zp.decimal,
+	taxAmount: zp.decimal,
+	notes: zp.strNullable,
+	items: z.array(PurchaseOrderItemDto),
+	...zc.AuditBasic.shape,
 })
 export type PurchaseOrderDto = z.infer<typeof PurchaseOrderDto>
+export const PurchaseOrderSelectDto = PurchaseOrderDto.omit({ items: true })
+export type PurchaseOrderSelectDto = z.infer<typeof PurchaseOrderSelectDto>
 
-export const PurchaseOrderCreateItemDto = z.object({
-  ...PurchaseOrderItemBaseDto.shape,
-  ...zRecordIdDto.partial().shape,
-})
-export type PurchaseOrderCreateItemDto = z.infer<typeof PurchaseOrderCreateItemDto>
+/* -------------------------------- MUTATION -------------------------------- */
 
-export const PurchaseOrderCreateDto = z.object({
-  ...PurchaseOrderBaseDto.shape,
-  items: z.array(PurchaseOrderCreateItemDto).min(1),
+const PurchaseOrderItemMutationDto = z.object({
+	materialId: zp.id.optional().nullable(),
+	itemName: zc.strTrim.min(1).max(255),
+	quantity: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
+	unitPrice: zp.decimal.refine((v) => Number(v) >= 0, "Must be non-negative"),
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
+	subtotal: zp.decimal,
 })
+
+const PurchaseOrderMutationDto = z.object({
+	locationId: zp.id,
+	supplierId: zp.id,
+	status: PurchaseOrderStatusEnum.default('open'),
+	transactionDate: zp.date.default(() => new Date()),
+	expectedDeliveryDate: zp.date.nullable().optional(),
+	totalAmount: zp.decimal,
+	discountAmount: zp.decimal.default('0'),
+	taxAmount: zp.decimal.default('0'),
+	notes: zc.strTrimNullable,
+	items: z.array(PurchaseOrderItemMutationDto.extend({ id: zp.id.optional() })).min(1),
+})
+
+export const PurchaseOrderCreateDto = PurchaseOrderMutationDto
 export type PurchaseOrderCreateDto = z.infer<typeof PurchaseOrderCreateDto>
 
-export const PurchaseOrderUpdateDto = z.object({
-  ...zRecordIdDto.shape,
-  ...PurchaseOrderBaseDto.partial().shape,
-  items: z.array(PurchaseOrderCreateItemDto).optional(),
+export const PurchaseOrderUpdateDto = PurchaseOrderMutationDto.extend({
+	...zc.RecordId.shape,
 })
 export type PurchaseOrderUpdateDto = z.infer<typeof PurchaseOrderUpdateDto>
 
+/* --------------------------------- FILTER --------------------------------- */
+
 export const PurchaseOrderFilterDto = z.object({
-  ...zPaginationDto.shape,
-  q: zQuerySearch,
-  status: purchaseOrderStatusEnum.optional(),
-  locationId: zQueryId.optional(),
-  supplierId: zQueryId.optional(),
+	...zq.pagination.shape,
+	q: zq.search,
+	status: PurchaseOrderStatusEnum.optional(),
+	locationId: zq.id.optional(),
+	supplierId: zq.id.optional(),
 })
 export type PurchaseOrderFilterDto = z.infer<typeof PurchaseOrderFilterDto>

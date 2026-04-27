@@ -5,6 +5,6 @@ import { ProductFormPage } from '@/features/product'
 export const Route = createFileRoute('/_app/product/$id')({ component: RouteComponent })
 
 function RouteComponent() {
-  const { id } = Route.useParams()
-  return <ProductFormPage mode="update" id={Number(id)} backTo={{ to: '/product' }} />
+	const { id } = Route.useParams()
+	return <ProductFormPage mode="update" id={Number(id)} backTo={{ to: '/product' }} />
 }

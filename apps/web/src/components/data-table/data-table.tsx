@@ -12,13 +12,13 @@ import type { UseDataTableReturn } from './data-table-types'
 type DataTableProps = PropsWithChildren<{ table: UseDataTableReturn<any> }>
 
 function DataTable({ table, children }: DataTableProps) {
-  return (
-    <DataTableContext value={table}>
-      <div data-slot="data-table" className={cn('grid w-full')}>
-        <div className="flex flex-col overflow-auto gap-2">{children}</div>
-      </div>
-    </DataTableContext>
-  )
+	return (
+		<DataTableContext value={table}>
+			<div data-slot="data-table" className={cn('grid w-full')}>
+				<div className="flex flex-col overflow-auto gap-2">{children}</div>
+			</div>
+		</DataTableContext>
+	)
 }
 
 DataTable.Table = DataTableTable

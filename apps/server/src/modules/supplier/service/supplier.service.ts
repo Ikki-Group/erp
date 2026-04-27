@@ -1,123 +1,107 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, ilike, count, isNull, or } from 'drizzle-orm'
 
-import { checkConflict, paginate, sortBy, stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
-import { db } from '@/db'
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
+
 import { suppliersTable } from '@/db/schema/supplier'
 
-import {
-  SupplierDto,
-  type SupplierCreateDto,
-  type SupplierFilterDto,
-  type SupplierUpdateDto,
+import type {
+	SupplierCreateDto,
+	SupplierDto,
+	SupplierFilterDto,
+	SupplierUpdateDto,
 } from '../dto/supplier.dto'
+import { SupplierRepo } from '../supplier.repo'
+
+const supplierConflictFields: ConflictField<'code'>[] = [
+	{
+		field: 'code',
+		column: suppliersTable.code,
+		message: 'Supplier code already exists',
+		code: 'SUPPLIER_CODE_ALREADY_EXISTS',
+	},
+]
+
+const err = {
+	notFound: (id: number) =>
+		new NotFoundError(`Supplier with ID ${id} not found`, 'SUPPLIER_NOT_FOUND'),
+	createFailed: () => new InternalServerError('Supplier creation failed', 'SUPPLIER_CREATE_FAILED'),
+}
 
 export class SupplierService {
-  async handleList(filter: SupplierFilterDto, pq: PaginationQuery): Promise<WithPaginationResult<SupplierDto>> {
-    return record('SupplierService.handleList', async () => {
-      const { search } = filter
+	constructor(private repo = new SupplierRepo()) {}
 
-      const searchCondition = search
-        ? or(ilike(suppliersTable.name, `%${search}%`), ilike(suppliersTable.code, `%${search}%`))
-        : undefined
+	/* --------------------------------- PUBLIC --------------------------------- */
 
-      const where = and(isNull(suppliersTable.deletedAt), searchCondition)
+	async getById(id: number): Promise<SupplierDto | undefined> {
+		return record('SupplierService.getById', async () => {
+			return this.repo.getById(id)
+		})
+	}
 
-      const result = await paginate({
-        data: ({ limit, offset }) =>
-          db
-            .select()
-            .from(suppliersTable)
-            .where(where)
-            .orderBy(sortBy(suppliersTable.updatedAt, 'desc'))
-            .limit(limit)
-            .offset(offset),
-        pq,
-        countQuery: db.select({ count: count() }).from(suppliersTable).where(where),
-      })
+	/* --------------------------------- HANDLER -------------------------------- */
 
-      return { data: result.data.map((row) => SupplierDto.parse(row)), meta: result.meta }
-    })
-  }
+	async handleList(filter: SupplierFilterDto): Promise<WithPaginationResult<SupplierDto>> {
+		return record('SupplierService.handleList', async () => {
+			return this.repo.getListPaginated(filter)
+		})
+	}
 
-  async handleDetail(id: number): Promise<SupplierDto> {
-    return record('SupplierService.handleDetail', async () => {
-      const rows = await db
-        .select()
-        .from(suppliersTable)
-        .where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
-      if (rows.length === 0) throw new NotFoundError(`Supplier ${id} not found`, 'SUPPLIER_NOT_FOUND')
-      return SupplierDto.parse(takeFirstOrThrow(rows, `Supplier ${id} not found`, 'SUPPLIER_NOT_FOUND'))
-    })
-  }
+	async handleDetail(id: number): Promise<SupplierDto> {
+		return record('SupplierService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
 
-  async handleCreate(data: SupplierCreateDto, userId: number): Promise<{ id: number }> {
-    return record('SupplierService.handleCreate', async () => {
-      await checkConflict({
-        table: suppliersTable,
-        pkColumn: suppliersTable.id,
-        fields: [
-          {
-            field: 'code',
-            column: suppliersTable.code,
-            message: 'Supplier code already exists',
-            code: 'SUPPLIER_CODE_ALREADY_EXISTS',
-          },
-        ],
-        input: data,
-      })
+	async handleCreate(data: SupplierCreateDto, actorId: number): Promise<{ id: number }> {
+		return record('SupplierService.handleCreate', async () => {
+			await checkConflict({
+				table: suppliersTable,
+				pkColumn: suppliersTable.id,
+				fields: supplierConflictFields,
+				input: data,
+			})
 
-      const stamps = stampCreate(userId)
-      const rows = await db
-        .insert(suppliersTable)
-        .values({ ...data, ...stamps })
-        .returning({ id: suppliersTable.id })
+			const result = await this.repo.create(data, actorId)
+			if (!result) throw err.createFailed()
 
-      return takeFirstOrThrow(rows, 'Failed to return supplier data on create', 'SUPPLIER_CREATE_ERROR')
-    })
-  }
+			return { id: result }
+		})
+	}
 
-  async handleUpdate(id: number, data: Omit<SupplierUpdateDto, 'id'>, userId: number): Promise<{ id: number }> {
-    return record('SupplierService.handleUpdate', async () => {
-      const existing = await this.handleDetail(id)
+	async handleUpdate(data: SupplierUpdateDto, actorId: number): Promise<{ id: number }> {
+		return record('SupplierService.handleUpdate', async () => {
+			const { id } = data
 
-      await checkConflict({
-        table: suppliersTable,
-        pkColumn: suppliersTable.id,
-        fields: [
-          {
-            field: 'code',
-            column: suppliersTable.code,
-            message: 'Supplier code already exists',
-            code: 'SUPPLIER_CODE_ALREADY_EXISTS',
-          },
-        ],
-        input: data,
-        existing,
-      })
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
-      const stamps = stampUpdate(userId)
-      const rows = await db
-        .update(suppliersTable)
-        .set({ ...data, ...stamps })
-        .where(eq(suppliersTable.id, id))
-        .returning({ id: suppliersTable.id })
+			await checkConflict({
+				table: suppliersTable,
+				pkColumn: suppliersTable.id,
+				fields: supplierConflictFields,
+				input: data,
+				existing,
+			})
 
-      return takeFirstOrThrow(rows, `Supplier ${id} not found on update`, 'SUPPLIER_NOT_FOUND')
-    })
-  }
+			const result = await this.repo.update(data, actorId)
+			if (!result) throw err.notFound(id)
 
-  async handleRemove(id: number, userId: number): Promise<{ id: number }> {
-    return record('SupplierService.handleRemove', async () => {
-      const rows = await db
-        .update(suppliersTable)
-        .set({ deletedAt: new Date(), deletedBy: userId })
-        .where(eq(suppliersTable.id, id))
-        .returning({ id: suppliersTable.id })
+			return { id }
+		})
+	}
 
-      return takeFirstOrThrow(rows, `Supplier ${id} not found on remove`, 'SUPPLIER_NOT_FOUND')
-    })
-  }
+	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+		return record('SupplierService.handleRemove', async () => {
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
+
+			const result = await this.repo.remove(id, actorId)
+			if (!result) throw err.notFound(id)
+
+			return { id }
+		})
+	}
 }
