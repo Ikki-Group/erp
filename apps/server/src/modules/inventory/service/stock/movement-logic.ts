@@ -8,7 +8,7 @@ import { stockTransactionsTable } from '@/db/schema'
 import Decimal from 'decimal.js'
 
 import type { TransactionResultDto } from '@/modules/inventory/dto'
-import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
+import type { MaterialLocationService } from '@/modules/material'
 
 export class MovementLogic {
 	constructor(protected readonly mLocationSvc: MaterialLocationService) {}

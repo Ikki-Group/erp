@@ -10,52 +10,48 @@ import {
 	createPaginatedResponseSchema,
 } from '@/core/validation'
 
-import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
-import type { MaterialServiceModule } from '../service'
+import { UomFilterDto, UomMutationDto, UomDto } from './uom.dto'
+import type { UomService } from './uom.service'
 
-export function initMaterialRoute(s: MaterialServiceModule) {
-	return new Elysia()
+export function initMaterialUomRoute(s: UomService) {
+	return new Elysia({ prefix: '/uom' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.material.handleList(query)
+				const result = await s.handleList(query)
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...MaterialFilterDto.shape, ...zq.pagination.shape }),
-				response: createPaginatedResponseSchema(MaterialSelectDto),
+				query: z.object({ ...UomFilterDto.shape, ...zq.pagination.shape }),
+				response: createPaginatedResponseSchema(UomDto),
 				auth: true,
 			},
 		)
 		.get(
 			'/detail',
 			async function detail({ query }) {
-				const category = await s.material.handleDetail(query.id)
+				const category = await s.handleDetail(query.id)
 				return res.ok(category)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(MaterialSelectDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(UomDto), auth: true },
 		)
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const { id } = await s.material.handleCreate(body, auth.userId)
+				const { id } = await s.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
-			{
-				body: MaterialMutationDto,
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
-			},
+			{ body: UomMutationDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id } = await s.material.handleUpdate(body.id, body, auth.userId)
+				const { id } = await s.handleUpdate(body.id, body, auth.userId)
 				return res.ok({ id })
 			},
 			{
-				body: z.object({ ...zc.RecordId.shape, ...MaterialMutationDto.shape }),
+				body: z.object({ ...zc.RecordId.shape, ...UomMutationDto.shape }),
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -63,7 +59,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
 		.delete(
 			'/remove',
 			async function remove({ query, auth }) {
-				const { id } = await s.material.handleRemove(query.id, auth.userId)
+				const { id } = await s.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -71,7 +67,7 @@ export function initMaterialRoute(s: MaterialServiceModule) {
 		.delete(
 			'/hard-remove',
 			async function hardRemove({ query }) {
-				const { id } = await s.material.handleHardRemove(query.id)
+				const { id } = await s.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },

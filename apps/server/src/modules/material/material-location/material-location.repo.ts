@@ -18,7 +18,7 @@ import type {
 	MaterialLocationFilterDto,
 	MaterialLocationStockDto,
 	MaterialLocationWithLocationDto,
-} from '../dto'
+} from './material-location.dto'
 
 const cache = bento.namespace('material-location')
 

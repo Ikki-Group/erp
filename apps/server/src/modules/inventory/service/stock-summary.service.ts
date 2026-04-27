@@ -8,7 +8,7 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { stockSummariesTable, stockTransactionsTable } from '@/db/schema'
 
-import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
+import type { MaterialLocationService } from '@/modules/material'
 
 import type {
 	GenerateSummaryDto,

@@ -4,7 +4,7 @@ import { zc, zp, zq } from '@/core/validation'
 
 import { LocationDto } from '@/modules/location'
 
-import { UomDto } from './uom.dto'
+import { UomDto } from '../uom/uom.dto'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

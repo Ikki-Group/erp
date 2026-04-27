@@ -14,9 +14,9 @@ import type {
 	MaterialLocationStockDto,
 	MaterialLocationUnassignDto,
 	MaterialLocationWithLocationDto,
-} from '../dto'
-import { MaterialLocationRepo } from '../repo'
-import type { MaterialService } from './material.service'
+} from './material-location.dto'
+import { MaterialLocationRepo } from './material-location.repo'
+import { MaterialService } from '../material-master/material.service'
 
 const err = {
 	notFound: (id: number) =>

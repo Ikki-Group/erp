@@ -19,7 +19,7 @@ import type {
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
 } from '@/modules/inventory/dto'
-import type { MaterialLocationService } from '@/modules/material/service/material-location.service'
+import type { MaterialLocationService } from '@/modules/material'
 
 import { StockExternalMovementService } from './stock/stock-external-movement.service'
 import { StockHistoryService } from './stock/stock-history.service'

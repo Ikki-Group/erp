@@ -15,7 +15,7 @@ import {
 import { db } from '@/db'
 import { uomsTable } from '@/db/schema'
 
-import type { UomDto, UomFilterDto } from '../dto'
+import type { UomDto, UomFilterDto } from './uom.dto'
 
 const cache = bento.namespace('uom')
 

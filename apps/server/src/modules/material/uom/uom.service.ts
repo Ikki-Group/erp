@@ -6,8 +6,8 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { uomsTable } from '@/db/schema'
 
-import type { UomDto, UomFilterDto, UomMutationDto } from '../dto'
-import { UomRepo } from '../repo'
+import type { UomDto, UomFilterDto, UomMutationDto } from './uom.dto'
+import { UomRepo } from './uom.repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 

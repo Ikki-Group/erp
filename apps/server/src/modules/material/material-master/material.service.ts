@@ -15,19 +15,19 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
-import type { LocationMasterService } from '@/modules/location'
+import { LocationMasterService } from '@/modules/location'
 
-import type {
+import {
 	MaterialCategoryDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialMutationDto,
 	MaterialSelectDto,
 	UomDto,
-} from '../dto'
-import { MaterialLocationRepo, MaterialRepo } from '../repo'
-import type { MaterialCategoryService } from './material-category.service'
-import type { UomService } from './uom.service'
+} from './material.dto'
+import { MaterialRepo } from './material.repo'; import { MaterialLocationRepo } from '../material-location/material-location.repo'
+import { MaterialCategoryService } from '../material-category/material-category.service'
+import { UomService } from '../uom/uom.service'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -61,8 +61,8 @@ export class MaterialService {
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
-		private readonly materialRepo = new MaterialRepo(),
-		private readonly materialLocationRepo = new MaterialLocationRepo(),
+		private readonly repo = new MaterialRepo(),
+		private readonly locationRepo = new MaterialLocationRepo(),
 	) {}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -80,7 +80,7 @@ export class MaterialService {
 	 * Helper to fetch full material detail including conversions and locationIds
 	 */
 	private async getMaterialWithRelations(id: number): Promise<MaterialDto> {
-		const result = await this.materialRepo.getById(id)
+		const result = await this.repo.getById(id)
 		if (!result) throw err.notFound(id)
 
 		const [conversions, locations] = await Promise.all([
@@ -97,7 +97,7 @@ export class MaterialService {
 					),
 				),
 
-			this.materialLocationRepo.getByMaterialId(id),
+			this.locationRepo.getByMaterialId(id),
 		])
 
 		const uomIds = conversions.map((c) => c.uomId)
@@ -194,7 +194,7 @@ export class MaterialService {
 			return cache.getOrSet({
 				key: 'list',
 				factory: async () => {
-					const rawMaterials = await this.materialRepo.getList()
+					const rawMaterials = await this.repo.getList()
 					const relationsMap = await this.getMaterialsBatchWithRelations(
 						rawMaterials.map((m) => m.id),
 					)
@@ -226,7 +226,7 @@ export class MaterialService {
 			return cache.getOrSet({
 				key: 'count',
 				factory: async () => {
-					return this.materialRepo.count()
+					return this.repo.count()
 				},
 			})
 		})
@@ -236,7 +236,7 @@ export class MaterialService {
 
 	async handleList(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialSelectDto>> {
 		return record('MaterialService.handleList', async () => {
-			const result = await this.materialRepo.getListPaginated(filter)
+			const result = await this.repo.getListPaginated(filter)
 
 			const materialIds = result.data.map((m) => m.id)
 			const relationsMap = await this.getMaterialsBatchWithRelations(materialIds)
@@ -300,7 +300,7 @@ export class MaterialService {
 				input: { sku, name },
 			})
 
-			const created = await this.materialRepo.create({
+			const created = await this.repo.create({
 				...data,
 				sku,
 				name,
@@ -331,7 +331,7 @@ export class MaterialService {
 				existing,
 			})
 
-			const updated = await this.materialRepo.update(id, {
+			const updated = await this.repo.update(id, {
 				...data,
 				sku,
 				name,
@@ -348,7 +348,7 @@ export class MaterialService {
 	 */
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('MaterialService.handleRemove', async () => {
-			const result = await this.materialRepo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
 			await this.clearCache(id)
 			return result
 		})
@@ -360,7 +360,7 @@ export class MaterialService {
 	 */
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('MaterialService.handleHardRemove', async () => {
-			const result = await this.materialRepo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
 			await this.clearCache(id)
 			return result
 		})

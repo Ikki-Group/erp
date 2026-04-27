@@ -17,16 +17,16 @@ import {
 	MaterialLocationStockDto,
 	MaterialLocationUnassignDto,
 	MaterialLocationWithLocationDto,
-} from '../dto'
-import type { MaterialServiceModule } from '../service'
+} from './material-location.dto'
+import type { MaterialLocationService } from './material-location.service'
 
-export function initMaterialLocationRoute(s: MaterialServiceModule) {
+export function initMaterialLocationRoute(s: MaterialLocationService) {
 	return new Elysia({ prefix: '/location' })
 		.use(authPluginMacro)
 		.post(
 			'/assign',
 			async function assign({ body, auth }) {
-				const result = await s.mLocation.handleAssign(body, auth.userId)
+				const result = await s.handleAssign(body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -39,7 +39,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 		.delete(
 			'/unassign',
 			async function unassign({ query }) {
-				const result = await s.mLocation.handleUnassign(query)
+				const result = await s.handleUnassign(query)
 				return res.ok(result)
 			},
 			{
@@ -52,7 +52,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 		.get(
 			'/by-material',
 			async function byMaterial({ query }) {
-				const data = await s.mLocation.handleLocationsByMaterial(query.id)
+				const data = await s.handleLocationsByMaterial(query.id)
 				return res.ok(data)
 			},
 			{
@@ -65,7 +65,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 		.get(
 			'/stock',
 			async function stock({ query }) {
-				const result = await s.mLocation.handleStockByLocation(query)
+				const result = await s.handleStockByLocation(query)
 				return res.paginated(result)
 			},
 			{
@@ -78,7 +78,7 @@ export function initMaterialLocationRoute(s: MaterialServiceModule) {
 		.put(
 			'/config',
 			async function config({ body, auth }) {
-				const result = await s.mLocation.handleUpdateConfig(body, auth.userId)
+				const result = await s.handleUpdateConfig(body, auth.userId)
 				return res.ok(result)
 			},
 			{

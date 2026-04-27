@@ -1,4 +1,4 @@
-import type { MaterialServiceModule } from '@/modules/material/service'
+import type { MaterialServiceModule } from '@/modules/material'
 
 export * from './stock-summary.service'
 export * from './stock-transaction.service'
@@ -17,8 +17,8 @@ export class InventoryServiceModule {
 	public readonly dashboard: StockDashboardService
 
 	constructor(materialServiceModule: MaterialServiceModule) {
-		this.transaction = new StockTransactionService(materialServiceModule.mLocation)
-		this.summary = new StockSummaryService(materialServiceModule.mLocation)
+		this.transaction = new StockTransactionService(materialServiceModule.location)
+		this.summary = new StockSummaryService(materialServiceModule.location)
 		this.alert = new StockAlertService()
 		this.dashboard = new StockDashboardService()
 	}

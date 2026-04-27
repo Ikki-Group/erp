@@ -50,7 +50,6 @@ function getColumns(
 	handleDelete: (id: number) => Promise<void>,
 ): ColumnDef<MaterialSelectDto, any>[] {
 	return [
-		ch.accessor('category', {}),
 		ch.display({
 			id: 'select',
 			header: ({ table }) => (
@@ -92,7 +91,7 @@ function getColumns(
 							</span>
 						</div>
 						{material.description && (
-							<span className="text-[11px] text-muted-foreground/60 line-clamp-1 max-w-[300px] h-4 leading-relaxed">
+							<span className="text-[11px] text-muted-foreground/60 line-clamp-1 max-w-75 h-4 leading-relaxed">
 								{material.description}
 							</span>
 						)}

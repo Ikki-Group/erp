@@ -16,7 +16,7 @@ import {
 import { db } from '@/db'
 import { materialCategoriesTable } from '@/db/schema'
 
-import { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
+import { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from './material-category.dto'
 
 const cache = bento.namespace('material-category')
 

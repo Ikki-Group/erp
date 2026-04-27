@@ -162,7 +162,7 @@ export class SeedService {
 
 			for (const m of materialsData) {
 				try {
-					await this.materialSvc.material.handleCreate(
+					await this.materialSvc.master.handleCreate(
 						{ ...m, conversions: [], description: null, locationIds: [] },
 						SYSTEM_ACTOR_ID,
 					)

@@ -5,8 +5,8 @@ import { zc, zp, zq } from '@/core/validation'
 import { LocationDto } from '@/modules/location'
 import { RecipeDto } from '@/modules/recipe'
 
-import { MaterialCategoryDto } from './material-category.dto'
-import { UomDto } from './uom.dto'
+import { MaterialCategoryDto } from '../material-category/material-category.dto'; export { MaterialCategoryDto }
+import { UomDto } from '../uom/uom.dto'; export { UomDto }
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

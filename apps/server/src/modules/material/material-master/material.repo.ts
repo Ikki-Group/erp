@@ -13,7 +13,7 @@ import {
 import { db } from '@/db'
 import { materialConversionsTable, materialsTable, uomsTable } from '@/db/schema'
 
-import type { MaterialDto, MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
+import type { MaterialDto, MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from './material.dto'
 
 /* ---------------------------------- QUERY --------------------------------- */
 

@@ -71,7 +71,7 @@ function FormDialog({
 	className,
 	onSubmit,
 }: FormDialogProps) {
-	const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+	const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
 		e.preventDefault()
 		e.stopPropagation()
 		onSubmit?.(e)

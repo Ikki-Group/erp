@@ -11,8 +11,8 @@ import type {
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryUpdateDto,
-} from '../dto'
-import { MaterialCategoryRepo } from '../repo'
+} from './material-category.dto'
+import { MaterialCategoryRepo } from './material-category.repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
