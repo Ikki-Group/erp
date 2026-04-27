@@ -14,14 +14,14 @@ export const MaterialLocationDto = z.object({
 	locationId: zId,
 
 	// Per-location configuration
-	minStock: zNum.default(0),
-	maxStock: zNum.nullable().default(null),
-	reorderPoint: zNum.default(0),
+	minStock: z.coerce.number().default(0),
+	maxStock: z.coerce.number().nullable().default(null),
+	reorderPoint: z.coerce.number().default(0),
 
 	// Current stock snapshot (maintained by inventory module)
-	currentQty: zNum.default(0),
-	currentAvgCost: zNum.default(0),
-	currentValue: zNum.default(0),
+	currentQty: z.coerce.number().default(0),
+	currentAvgCost: z.coerce.number().default(0),
+	currentValue: z.coerce.number().default(0),
 
 	...zMetadataDto.shape,
 })
