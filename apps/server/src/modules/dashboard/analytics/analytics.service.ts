@@ -25,17 +25,12 @@ export interface TopSalesItem {
 }
 
 export class AnalyticsService {
-	/**
-	 * Calculates Profit & Loss for a specific period.
-	 * Utilizes the General Ledger (FIN-02) as the source of truth.
-	 */
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
 		return cache.getOrSet({
 			key: `pnl.${startDate.toISOString()}.${endDate.toISOString()}`,
 			ttl: '1h',
 			factory: async () => {
 				return record('AnalyticsService.getPnL', async () => {
-					// 1. Fetch all GL items within the period
 					const glItems = await db
 						.select({
 							accountCode: accountsTable.code,
@@ -83,9 +78,6 @@ export class AnalyticsService {
 		})
 	}
 
-	/**
-	 * Identifies top selling products based on sales order items.
-	 */
 	async getTopSales(startDate: Date, endDate: Date, limit: number = 5): Promise<TopSalesItem[]> {
 		return cache.getOrSet({
 			key: `top_sales.${startDate.toISOString()}.${endDate.toISOString()}.${limit}`,

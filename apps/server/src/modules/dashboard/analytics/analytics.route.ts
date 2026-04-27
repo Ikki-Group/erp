@@ -3,13 +3,12 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from '../dto'
-import type { AnalyticsService } from '../service'
+import * as dto from './analytics.dto'
+import type { AnalyticsService } from './analytics.service'
 
-export function AnalyticsRoute(service: AnalyticsService) {
+export function initAnalyticsRoute(service: AnalyticsService) {
 	return new Elysia({ prefix: '/analytics', detail: { tags: ['Dashboard - Analytics'] } })
 		.use(authPluginMacro)
-
 		.post(
 			'/pnl',
 			async ({ body }) => {
@@ -19,7 +18,6 @@ export function AnalyticsRoute(service: AnalyticsService) {
 			},
 			{ body: dto.PnLRequestDto, auth: true },
 		)
-
 		.post(
 			'/top-sales',
 			async ({ body }) => {

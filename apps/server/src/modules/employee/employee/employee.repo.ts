@@ -19,7 +19,7 @@ import type {
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
-} from './dto/employee.dto'
+} from './employee.dto'
 
 const cache = bento.namespace('employee')
 

@@ -10,8 +10,8 @@ import type {
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
-} from '../dto/employee.dto'
-import { EmployeeRepo } from '../employee.repo'
+} from './employee.dto'
+import { EmployeeRepo } from './employee.repo'
 
 const employeeConflictFields: ConflictField<'code'>[] = [
 	{

@@ -4,11 +4,10 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
-import * as dto from '../dto/employee.dto'
-import type { EmployeeServiceModule } from '../service'
+import * as dto from './employee.dto'
+import type { EmployeeService } from './employee.service'
 
-export function initEmployeeRoute(module: EmployeeServiceModule) {
-	const service = module.employee
+export function initEmployeeRoute(service: EmployeeService) {
 	return new Elysia({ prefix: '/employee' })
 		.use(authPluginMacro)
 		.get(
