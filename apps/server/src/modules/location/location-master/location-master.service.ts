@@ -32,7 +32,7 @@ const err = {
 }
 
 export class LocationMasterService {
-	constructor(public repo = new LocationMasterRepo()) {}
+	constructor(private readonly repo = new LocationMasterRepo()) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
@@ -58,6 +58,12 @@ export class LocationMasterService {
 	async count(): Promise<number> {
 		return record('LocationMasterService.count', async () => {
 			return this.repo.count()
+		})
+	}
+
+	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
+		return record('LocationMasterService.seed', async () => {
+			await this.repo.seed(data)
 		})
 	}
 

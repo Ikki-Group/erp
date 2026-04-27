@@ -69,7 +69,7 @@ export class LocationMasterRepo {
 	async getById(id: number): Promise<dto.LocationDto | undefined> {
 		return record('LocationMasterRepo.getById', async () => {
 			return cache.getOrSet({
-				key: `${id}`,
+				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
 					const res = await db
 						.select()

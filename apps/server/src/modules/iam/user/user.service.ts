@@ -33,14 +33,13 @@ const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 ]
 
 export class UserService {
-	private r = new UserRepo()
-
 	constructor(
-		private svc: {
+		private readonly svc: {
 			role: RoleService
 			assignment: UserAssignmentService
 			location: LocationServiceModule
 		},
+		private readonly repo = new UserRepo(),
 	) {}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -89,12 +88,12 @@ export class UserService {
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.UserDto[]> {
-		return record('UserService.getList', async () => this.r.getList())
+		return record('UserService.getList', async () => this.repo.getList())
 	}
 
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserService.getById', async () => {
-			return this.r.getById(id)
+			return this.repo.getById(id)
 		})
 	}
 
@@ -110,12 +109,12 @@ export class UserService {
 	async getByIdentifier(
 		identifier: string,
 	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
-		return this.r.getByIdentifier(identifier)
+		return this.repo.getByIdentifier(identifier)
 	}
 
 	async count(): Promise<number> {
 		return record('UserService.count', async () => {
-			return this.r.count()
+			return this.repo.count()
 		})
 	}
 
@@ -123,7 +122,7 @@ export class UserService {
 		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
 	): Promise<void> {
 		await record('UserService.seed', async () => {
-			await this.r.seed(data)
+			await this.repo.seed(data)
 		})
 	}
 
@@ -133,7 +132,7 @@ export class UserService {
 		filter: dto.UserFilterDto,
 	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
 		return record('UserService.handleList', async () => {
-			const p = await this.r.getListPaginated(filter)
+			const p = await this.repo.getListPaginated(filter)
 
 			const [roleMap, locationMap] = await Promise.all([
 				this.svc.role.getRelationMap(),
@@ -172,7 +171,7 @@ export class UserService {
 				input: data,
 			})
 
-			const insertedId = await this.r.create({ ...data, passwordHash }, actorId)
+			const insertedId = await this.repo.create({ ...data, passwordHash }, actorId)
 			if (!insertedId) throw UserErrors.createFailed()
 
 			if (assignments && assignments.length > 0 && !isRoot) {
@@ -211,7 +210,7 @@ export class UserService {
 			})
 
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
-			await this.r.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
+			await this.repo.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
 
 			if (assignments && assignments.length >= 0 && !isRoot) {
 				await this.svc.assignment.handleReplaceBulkByUserId(
@@ -231,14 +230,14 @@ export class UserService {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getPasswordHash(id)
+			const passwordHash = await this.repo.getPasswordHash(id)
 			if (!passwordHash) throw UserErrors.notFound(id)
 
 			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
 			if (!isMatch) throw UserErrors.passwordMismatch()
 
 			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			await this.r.updatePassword(id, newPasswordHash, actorId)
+			await this.repo.updatePassword(id, newPasswordHash, actorId)
 
 			return { id }
 		})
@@ -251,14 +250,14 @@ export class UserService {
 		return record('UserService.handleAdminUpdatePassword', async () => {
 			const { id, password } = data
 			const passwordHash = await Bun.password.hash(password)
-			await this.r.updatePassword(id, passwordHash, actorId)
+			await this.repo.updatePassword(id, passwordHash, actorId)
 			return { id }
 		})
 	}
 
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('UserService.handleRemove', async () => {
-			const result = await this.r.remove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw UserErrors.notFound(id)
 			return { id: result }
 		})

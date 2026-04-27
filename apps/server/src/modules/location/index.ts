@@ -4,7 +4,7 @@ import { initLocationRoute } from './location-master/location-master.route'
 import { LocationMasterService } from './location-master/location-master.service'
 
 export class LocationServiceModule {
-	public master: LocationMasterService
+	public readonly master: LocationMasterService
 
 	constructor() {
 		this.master = new LocationMasterService()

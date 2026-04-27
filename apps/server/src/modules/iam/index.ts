@@ -10,11 +10,11 @@ import { initUserRoute } from './user/user.route'
 import { UserService } from './user/user.service'
 
 export class IamServiceModule {
-	public role: RoleService
-	public assignment: UserAssignmentService
-	public user: UserService
+	public readonly role: RoleService
+	public readonly assignment: UserAssignmentService
+	public readonly user: UserService
 
-	constructor(private location: LocationServiceModule) {
+	constructor(private readonly location: LocationServiceModule) {
 		this.role = new RoleService()
 		this.assignment = new UserAssignmentService()
 		this.user = new UserService({

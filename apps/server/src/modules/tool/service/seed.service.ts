@@ -62,7 +62,7 @@ export class SeedService {
 				])
 
 				// 3. Seed Locations
-				await this.locationSvc.master.repo.seed(
+				await this.locationSvc.master.seed(
 					SEED_CONFIG.LOCATIONS.map((l) => ({
 						code: l.code,
 						name: l.name,

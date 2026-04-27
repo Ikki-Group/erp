@@ -26,7 +26,7 @@ const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 export class RoleService {
-	constructor(private repo = new RoleRepo()) {}
+	constructor(private readonly repo = new RoleRepo()) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

@@ -64,7 +64,7 @@ export class RoleRepo {
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleRepo.getById', async () => {
 			return cache.getOrSet({
-				key: `${id}`,
+				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
 					const res = await db
 						.select()

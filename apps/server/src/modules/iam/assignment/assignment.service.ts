@@ -6,7 +6,7 @@ import { UserAssignmentRepo } from './assignment.repo'
 import type { OmitPaginationQuery } from '@/types/utils'
 
 export class UserAssignmentService {
-	constructor(private repo = new UserAssignmentRepo()) {}
+	constructor(private readonly repo = new UserAssignmentRepo()) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
