@@ -77,8 +77,8 @@ export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto
 
 /** Unassign a material from a location */
 export const MaterialLocationUnassignDto = z.object({
-	materialId: zp.id,
-	locationId: zp.id,
+	materialId: zq.id,
+	locationId: zq.id,
 })
 
 export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassignDto>
