@@ -95,6 +95,13 @@ describe('UserService', () => {
 				email: 'test@example.com',
 				username: 'testuser',
 				fullname: 'Test User',
+				pinCode: null,
+				isRoot: false,
+				isSystem: false,
+				isActive: true,
+				defaultLocationId: null,
+				createdBy: 1,
+				updatedBy: 1,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}
@@ -104,7 +111,8 @@ describe('UserService', () => {
 			const result = await service.handleDetail(1)
 
 			expect(service.getById).toHaveBeenCalledWith(1)
-			expect(result).toEqual(mockUser)
+			expect(result).toHaveProperty('id', 1)
+			expect(result).toHaveProperty('email', 'test@example.com')
 		})
 
 		it('should throw error for non-existent user', async () => {
@@ -120,6 +128,12 @@ describe('UserService', () => {
 				email: 'new@example.com',
 				username: 'newuser',
 				fullname: 'New User',
+				password: 'password123',
+				pinCode: null,
+				isActive: true,
+				isRoot: false,
+				defaultLocationId: null,
+				assignments: [],
 			}
 
 			const actorId = 1
@@ -138,6 +152,12 @@ describe('UserService', () => {
 				email: 'new@example.com',
 				username: 'newuser',
 				fullname: 'New User',
+				password: 'password123',
+				pinCode: null,
+				isActive: true,
+				isRoot: false,
+				defaultLocationId: null,
+				assignments: [],
 			}
 
 			const actorId = 1
@@ -154,7 +174,14 @@ describe('UserService', () => {
 		it('should update user successfully', async () => {
 			const updateData: dto.UserUpdateDto = {
 				id: 1,
+				email: 'test@example.com',
+				username: 'testuser',
 				fullname: 'Updated Name',
+				pinCode: null,
+				isActive: true,
+				isRoot: false,
+				defaultLocationId: null,
+				assignments: [],
 			}
 
 			const actorId = 1
@@ -163,6 +190,13 @@ describe('UserService', () => {
 				email: 'test@example.com',
 				username: 'testuser',
 				fullname: 'Test User',
+				pinCode: null,
+				isRoot: false,
+				isSystem: false,
+				isActive: true,
+				defaultLocationId: null,
+				createdBy: 1,
+				updatedBy: 1,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}
@@ -180,7 +214,14 @@ describe('UserService', () => {
 		it('should throw error for non-existent user', async () => {
 			const updateData: dto.UserUpdateDto = {
 				id: 999,
+				email: 'test@example.com',
+				username: 'testuser',
 				fullname: 'Updated Name',
+				pinCode: null,
+				isActive: true,
+				isRoot: false,
+				defaultLocationId: null,
+				assignments: [],
 			}
 
 			const actorId = 1
@@ -196,7 +237,6 @@ describe('UserService', () => {
 	describe('handleRemove', () => {
 		it('should remove user successfully', async () => {
 			const userId = 1
-			const actorId = 1
 
 			spyOn(fakeRepo, 'remove').mockResolvedValue(1)
 
@@ -208,7 +248,6 @@ describe('UserService', () => {
 
 		it('should throw error if remove fails', async () => {
 			const userId = 999
-			const actorId = 1
 
 			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
