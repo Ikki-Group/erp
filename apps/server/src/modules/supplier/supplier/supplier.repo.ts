@@ -19,7 +19,7 @@ import type {
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierUpdateDto,
-} from './dto/supplier.dto'
+} from './supplier.dto'
 
 const cache = bento.namespace('supplier')
 

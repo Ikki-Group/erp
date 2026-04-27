@@ -10,8 +10,8 @@ import type {
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierUpdateDto,
-} from '../dto/supplier.dto'
-import { SupplierRepo } from '../supplier.repo'
+} from './supplier.dto'
+import { SupplierRepo } from './supplier.repo'
 
 const supplierConflictFields: ConflictField<'code'>[] = [
 	{
@@ -29,7 +29,7 @@ const err = {
 }
 
 export class SupplierService {
-	constructor(private repo = new SupplierRepo()) {}
+	private repo = new SupplierRepo()
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
