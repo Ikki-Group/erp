@@ -32,14 +32,3 @@ export function initIamRouteModule(s: IamServiceModule) {
 		.use(initUserRoute(s.user))
 }
 
-export * from './assignment/assignment.dto'
-export * from './assignment/assignment.repo'
-export * from './assignment/assignment.service'
-
-export * from './role/role.dto'
-export * from './role/role.repo'
-export * from './role/role.service'
-
-export * from './user/user.dto'
-export * from './user/user.repo'
-export * from './user/user.service'
