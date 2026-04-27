@@ -30,7 +30,7 @@ export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 				return res.ok(materialCategory)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				response: createSuccessResponseSchema(MaterialCategoryDto),
 				auth: true,
 			},
@@ -65,7 +65,7 @@ export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 				const { id } = await s.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -73,6 +73,6 @@ export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 				const { id } = await s.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

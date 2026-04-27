@@ -34,7 +34,7 @@ export function initMaterialUomRoute(s: UomService) {
 				const category = await s.handleDetail(query.id)
 				return res.ok(category)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(UomDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(UomDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -62,7 +62,7 @@ export function initMaterialUomRoute(s: UomService) {
 				const { id } = await s.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -70,6 +70,6 @@ export function initMaterialUomRoute(s: UomService) {
 				const { id } = await s.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

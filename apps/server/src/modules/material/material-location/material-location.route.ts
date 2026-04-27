@@ -56,7 +56,7 @@ export function initMaterialLocationRoute(s: MaterialLocationService) {
 				return res.ok(data)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				response: createSuccessResponseSchema(MaterialLocationWithLocationDto.array()),
 				auth: true,
 				detail: { tags: ['Material Location'] },

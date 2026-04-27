@@ -66,7 +66,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 				const { id } = await s.handleRemove(query.id, auth.userId)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -74,6 +74,6 @@ export function initMaterialMasterRoute(s: MaterialService) {
 				const { id } = await s.handleHardRemove(query.id)
 				return res.ok({ id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }
