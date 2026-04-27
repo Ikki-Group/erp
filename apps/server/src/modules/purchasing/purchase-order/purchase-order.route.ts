@@ -4,8 +4,8 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
-import * as dto from '../dto/purchase-order.dto'
-import type { PurchaseOrderService } from '../service/purchase-order.service'
+import * as dto from './purchase-order.dto'
+import type { PurchaseOrderService } from './purchase-order.service'
 
 export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 	return new Elysia({ prefix: '/purchase-order' })

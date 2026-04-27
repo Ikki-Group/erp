@@ -3,11 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import type * as dto from '../dto/purchase-order.dto'
-import { PurchaseOrderRepo } from '../repo/purchase-order.repo'
+import type * as dto from './purchase-order.dto'
+import { PurchaseOrderRepo } from './purchase-order.repo'
 
 export class PurchaseOrderService {
-	constructor(private readonly repo = new PurchaseOrderRepo()) {}
+	private readonly repo = new PurchaseOrderRepo()
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

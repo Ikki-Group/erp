@@ -11,10 +11,8 @@ import type {
 	RecipeFilterDto,
 	RecipeSelectDto,
 	RecipeUpdateDto,
-} from '../dto/recipe.dto'
-import { RecipeRepo } from '../repo'
-
-/* -------------------------------- CONSTANTS -------------------------------- */
+} from './recipe.dto'
+import { RecipeRepo } from './recipe.repo'
 
 const err = {
 	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
@@ -24,10 +22,8 @@ const err = {
 		new ConflictError('A recipe already exists for this target', 'RECIPE_TARGET_ALREADY_EXISTS'),
 }
 
-/* ----------------------------- IMPLEMENTATION ----------------------------- */
-
 export class RecipeService {
-	constructor(private readonly repo = new RecipeRepo()) {}
+	private readonly repo = new RecipeRepo()
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

@@ -9,14 +9,13 @@ import { purchaseOrderItemsTable } from '@/db/schema'
 
 import type { StockTransactionService } from '@/modules/inventory'
 
-import type * as dto from '../dto/goods-receipt.dto'
-import { GoodsReceiptRepo } from '../repo/goods-receipt.repo'
+import type * as dto from './goods-receipt.dto'
+import { GoodsReceiptRepo } from './goods-receipt.repo'
 
 export class GoodsReceiptService {
-	constructor(
-		private readonly inventorySvc: StockTransactionService,
-		private readonly repo = new GoodsReceiptRepo(),
-	) {}
+	private readonly repo = new GoodsReceiptRepo()
+
+	constructor(private readonly inventorySvc: StockTransactionService) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

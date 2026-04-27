@@ -7,7 +7,7 @@ import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@
 import { db } from '@/db'
 import { workOrdersTable } from '@/db/schema/production'
 
-import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from '../dto/work-order.dto'
+import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from './work-order.dto'
 
 const cache = bento.namespace('production.work-order')
 
@@ -49,7 +49,7 @@ export class WorkOrderRepo {
 				status ? eq(workOrdersTable.status, status) : undefined,
 			)
 
-			const result = await paginate({
+			return paginate({
 				data: ({ limit: l, offset }) =>
 					db
 						.select()
@@ -60,12 +60,7 @@ export class WorkOrderRepo {
 						.offset(offset),
 				pq: { page, limit },
 				countQuery: db.select({ count: count() }).from(workOrdersTable).where(where),
-			})
-
-			return {
-				...result,
-				data: result.data as unknown as WorkOrderDto[],
-			}
+			}) as unknown as WithPaginationResult<WorkOrderDto>
 		})
 	}
 
@@ -73,22 +68,17 @@ export class WorkOrderRepo {
 
 	async create(data: WorkOrderCreateDto, actorId: number): Promise<WorkOrderDto> {
 		return record('WorkOrderRepo.create', async () => {
-			const metadata = stampCreate(actorId)
 			const [result] = await db
 				.insert(workOrdersTable)
 				.values({
-					recipeId: data.recipeId,
-					locationId: data.locationId,
+					...data,
 					expectedQty: data.expectedQty.toString(),
-					note: data.note ?? null,
-					status: 'draft',
 					actualQty: '0',
 					totalCost: '0',
-					...metadata,
+					...stampCreate(actorId),
 				})
 				.returning()
 
-			if (!result) throw new Error('Failed to create work order')
 			void this.#clearCache()
 			return result as unknown as WorkOrderDto
 		})
@@ -96,32 +86,29 @@ export class WorkOrderRepo {
 
 	async update(
 		id: number,
-		data: Partial<typeof workOrdersTable.$inferInsert>,
+		data: Partial<{
+			expectedQty: string
+			status: 'draft' | 'in_progress' | 'completed' | 'cancelled'
+			actualQty: string
+			totalCost: string
+			startedAt: Date
+			completedAt: Date
+			note: string | null
+		}>,
 		actorId: number,
 	): Promise<WorkOrderDto> {
 		return record('WorkOrderRepo.update', async () => {
 			const [result] = await db
 				.update(workOrdersTable)
-				.set({ ...data, ...stampUpdate(actorId) })
-				.where(eq(workOrdersTable.id, id))
+				.set({
+					...data,
+					...stampUpdate(actorId),
+				})
+				.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 				.returning()
 
-			if (!result) throw new Error('Failed to update work order')
 			void this.#clearCache(id)
 			return result as unknown as WorkOrderDto
-		})
-	}
-
-	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
-		return record('WorkOrderRepo.softDelete', async () => {
-			const [result] = await db
-				.update(workOrdersTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
-				.where(eq(workOrdersTable.id, id))
-				.returning({ id: workOrdersTable.id })
-			if (!result) throw new Error('Work Order not found')
-			void this.#clearCache(id)
-			return result
 		})
 	}
 }

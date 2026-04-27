@@ -20,7 +20,7 @@ import {
 	PurchaseOrderFilterDto,
 	PurchaseOrderSelectDto,
 	PurchaseOrderUpdateDto,
-} from '../dto/purchase-order.dto'
+} from './purchase-order.dto'
 
 const cache = bento.namespace('purchasing.order')
 

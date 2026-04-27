@@ -10,11 +10,11 @@ import {
 	WorkOrderFilterDto,
 	WorkOrderDto,
 	WorkOrderSelectDto,
-} from '../dto/work-order.dto'
-import type { WorkOrderService } from '../service/work-order.service'
+} from './work-order.dto'
+import type { WorkOrderService } from './work-order.service'
 
-export const workOrderRouter = (service: WorkOrderService) =>
-	new Elysia({ prefix: '/work-orders', detail: { tags: ['Production'] } })
+export function initWorkOrderRoute(service: WorkOrderService) {
+	return new Elysia({ prefix: '/work-orders', detail: { tags: ['Production'] } })
 		.use(authPluginMacro)
 		.get(
 			'/list',
@@ -68,3 +68,4 @@ export const workOrderRouter = (service: WorkOrderService) =>
 				auth: true,
 			},
 		)
+}

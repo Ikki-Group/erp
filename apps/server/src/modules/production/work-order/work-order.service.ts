@@ -7,21 +7,22 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 
 import type { InventoryServiceModule } from '@/modules/inventory'
-import type { RecipeService } from '@/modules/recipe/service/recipe.service'
+import type { RecipeService } from '@/modules/recipe'
 
 import type {
 	WorkOrderCompleteDto,
 	WorkOrderCreateDto,
 	WorkOrderDto,
 	WorkOrderFilterDto,
-} from '../dto/work-order.dto'
-import { WorkOrderRepo } from '../repo/work-order.repo'
+} from './work-order.dto'
+import { WorkOrderRepo } from './work-order.repo'
 
 export class WorkOrderService {
+	private readonly repo = new WorkOrderRepo()
+
 	constructor(
 		private readonly recipeSvc: RecipeService,
 		private readonly inventorySvc: InventoryServiceModule,
-		private readonly repo = new WorkOrderRepo(),
 	) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */

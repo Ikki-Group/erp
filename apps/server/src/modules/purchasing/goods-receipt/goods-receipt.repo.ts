@@ -20,7 +20,7 @@ import {
 	GoodsReceiptNoteFilterDto,
 	GoodsReceiptNoteSelectDto,
 	type GoodsReceiptStatus,
-} from '../dto/goods-receipt.dto'
+} from './goods-receipt.dto'
 
 const cache = bento.namespace('purchasing.receipt')
 

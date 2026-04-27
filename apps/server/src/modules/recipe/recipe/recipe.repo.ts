@@ -26,7 +26,7 @@ import type {
 	RecipeFilterDto,
 	RecipeSelectDto,
 	RecipeUpdateDto,
-} from '../dto/recipe.dto'
+} from './recipe.dto'
 
 const cache = bento.namespace('recipe')
 
@@ -150,7 +150,7 @@ export class RecipeRepo {
 								and(
 									inArray(recipeItemsTable.recipeId, recipeIds),
 									isNull(recipeItemsTable.deletedAt),
-								),
+								)
 							)
 							.orderBy(recipeItemsTable.sortOrder)
 					: []
