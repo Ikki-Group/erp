@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
-import Decimal from 'decimal.js'
 
 import type { InventoryServiceModule } from '@/modules/inventory/service'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
@@ -95,7 +95,10 @@ export class WorkOrderService {
 							notes: `Consumed for Work Order #${wo.id}`,
 							items: recipe.items.map((item) => ({
 								materialId: item.materialId,
-								qty: new Decimal(item.qty).mul(multiplier).mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100))).toString(),
+								qty: new Decimal(item.qty)
+									.mul(multiplier)
+									.mul(new Decimal(1).plus(new Decimal(item.scrapPercentage).div(100)))
+									.toString(),
 							})),
 						},
 						actorId,

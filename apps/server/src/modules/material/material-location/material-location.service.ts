@@ -6,6 +6,7 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import type { LocationMasterService } from '@/modules/location'
 
+import { MaterialService } from '../material-master/material.service'
 import type {
 	MaterialLocationAssignDto,
 	MaterialLocationConfigDto,
@@ -16,7 +17,6 @@ import type {
 	MaterialLocationWithLocationDto,
 } from './material-location.dto'
 import { MaterialLocationRepo } from './material-location.repo'
-import { MaterialService } from '../material-master/material.service'
 
 const err = {
 	notFound: (id: number) =>

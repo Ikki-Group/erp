@@ -14,7 +14,7 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 		.get(
 			'/list',
 			// @ts-ignore
-		async function list({ query }) {
+			async function list({ query }) {
 				const result = await s.alert.handleAlerts(query)
 				return res.paginated(result)
 			},

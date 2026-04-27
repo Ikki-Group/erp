@@ -175,7 +175,7 @@ export class RecipeRepo {
 			const data: RecipeSelectDto[] = result.data.map((r) => ({
 				...r,
 				targetQty: r.targetQty,
-				items: itemsByRecipe.get(r.id) as any ?? [],
+				items: (itemsByRecipe.get(r.id) as any) ?? [],
 			}))
 
 			return { data, meta: result.meta }

@@ -87,7 +87,7 @@ const TransferItemDto = z.object({
 const AdjustmentItemDto = z.object({
 	materialId: zp.id,
 	qty: zp.decimal.refine((v) => Number(v) !== 0, 'Quantity must not be zero'),
-	unitCost: zp.decimal.refine((v) => Number(v) >= 0, "Must be non-negative").optional(),
+	unitCost: zp.decimal.refine((v) => Number(v) >= 0, 'Must be non-negative').optional(),
 })
 
 /** Single item within a stock out (usage/sell) transaction */

@@ -1,4 +1,3 @@
-
 import type { MokaSalesDetailRaw } from '../../dto/moka-raw.types'
 import { MokaSalesDetailRawDto } from '../../dto/moka.dto'
 import type { MokaAuthEngine } from './moka-auth.service'

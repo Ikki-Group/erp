@@ -1,11 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import { stampCreate, type DbTx } from '@/core/database'
 import { BadRequestError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
-import Decimal from 'decimal.js'
 
 import type { TransactionResultDto } from '@/modules/inventory/dto'
 import type { MaterialLocationService } from '@/modules/material'
@@ -82,7 +82,7 @@ export class MovementLogic {
 					referenceNo,
 					notes: notes ?? null,
 					qty: qtyDec.toString() as any,
-						// @ts-ignore
+					// @ts-ignore
 					unitCost: currentAvgCost.toString(),
 					totalCost: totalCost.toString(),
 					counterpartLocationId: counterpartLocationId ?? null,

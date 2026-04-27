@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import { stampCreate, type DbTx } from '@/core/database'
 
@@ -13,7 +14,6 @@ import type {
 	ProductionOutTransactionDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
-import Decimal from 'decimal.js'
 
 import { MovementLogic } from './movement-logic'
 
@@ -73,7 +73,11 @@ export class StockExternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
+					{
+						currentQty: newQty as any,
+						currentAvgCost: newAvgCost as any,
+						currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
+					},
 					actorId,
 					tx,
 				)
@@ -140,7 +144,11 @@ export class StockExternalMovementService extends MovementLogic {
 					await this.mLocationSvc.updateCurrentStock(
 						materialId,
 						locationId,
-						{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
+						{
+							currentQty: newQty as any,
+							currentAvgCost: newAvgCost as any,
+							currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
+						},
 						actorId,
 						tx,
 					)

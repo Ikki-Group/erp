@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
@@ -12,7 +13,6 @@ import type {
 	RecipeUpdateDto,
 } from '../dto/recipe.dto'
 import { RecipeRepo } from '../repo'
-import Decimal from 'decimal.js'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -130,13 +130,23 @@ export class RecipeService {
 				const itemCost = qty.mul(scrapFactor).mul(avgCost)
 
 				totalCost = totalCost.plus(itemCost)
-				detailedItems.push({ ...item, unitCost: avgCost.toString(), extendedCost: itemCost.toString() })
+				detailedItems.push({
+					...item,
+					unitCost: avgCost.toString(),
+					extendedCost: itemCost.toString(),
+				})
 			}
 
 			const targetQty = new Decimal(recipe.targetQty)
 			const unitCost = targetQty.isPositive() ? totalCost.div(targetQty) : totalCost
 
-			return { recipeId, targetQty: targetQty.toString(), totalCost: totalCost.toString(), unitCost: unitCost.toString(), items: detailedItems }
+			return {
+				recipeId,
+				targetQty: targetQty.toString(),
+				totalCost: totalCost.toString(),
+				unitCost: unitCost.toString(),
+				items: detailedItems,
+			}
 		})
 	}
 }

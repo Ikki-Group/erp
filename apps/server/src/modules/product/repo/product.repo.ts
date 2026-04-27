@@ -269,16 +269,14 @@ export class ProductRepo {
 				if (!product) throw new Error('Create product failed')
 
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx
-						.insert(productPricesTable)
-						.values(
-							data.prices.map((p) => ({
-								productId: product.id,
-								salesTypeId: p.salesTypeId,
-								price: p.price.toString(),
-								...meta,
-							})),
-						)
+					await tx.insert(productPricesTable).values(
+						data.prices.map((p) => ({
+							productId: product.id,
+							salesTypeId: p.salesTypeId,
+							price: p.price.toString(),
+							...meta,
+						})),
+					)
 				}
 
 				const inputVariants = data.hasVariants
@@ -309,16 +307,14 @@ export class ProductRepo {
 						.returning({ id: productVariantsTable.id })
 
 					if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-						await tx
-							.insert(variantPricesTable)
-							.values(
-								variant.prices.map((p) => ({
-									variantId: insertedV.id,
-									salesTypeId: p.salesTypeId,
-									price: p.price.toString(),
-									...meta,
-								})),
-							)
+						await tx.insert(variantPricesTable).values(
+							variant.prices.map((p) => ({
+								variantId: insertedV.id,
+								salesTypeId: p.salesTypeId,
+								price: p.price.toString(),
+								...meta,
+							})),
+						)
 					}
 				}
 				return product
@@ -350,16 +346,14 @@ export class ProductRepo {
 
 				await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
 				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx
-						.insert(productPricesTable)
-						.values(
-							data.prices.map((p) => ({
-								productId: id,
-								salesTypeId: p.salesTypeId,
-								price: p.price.toString(),
-								...createMeta,
-							})),
-						)
+					await tx.insert(productPricesTable).values(
+						data.prices.map((p) => ({
+							productId: id,
+							salesTypeId: p.salesTypeId,
+							price: p.price.toString(),
+							...createMeta,
+						})),
+					)
 				}
 
 				if (data.hasVariants && data.variants) {
@@ -378,16 +372,14 @@ export class ProductRepo {
 							.returning({ id: productVariantsTable.id })
 
 						if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-							await tx
-								.insert(variantPricesTable)
-								.values(
-									variant.prices.map((p) => ({
-										variantId: insertedV.id,
-										salesTypeId: p.salesTypeId,
-										price: p.price.toString(),
-										...createMeta,
-									})),
-								)
+							await tx.insert(variantPricesTable).values(
+								variant.prices.map((p) => ({
+									variantId: insertedV.id,
+									salesTypeId: p.salesTypeId,
+									price: p.price.toString(),
+									...createMeta,
+								})),
+							)
 						}
 					}
 				} else if (!data.hasVariants) {

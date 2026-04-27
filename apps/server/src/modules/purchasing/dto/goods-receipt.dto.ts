@@ -45,7 +45,7 @@ const GoodsReceiptNoteItemMutationDto = z.object({
 	purchaseOrderItemId: zp.id,
 	materialId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
-	quantityReceived: zp.decimal.refine((v) => Number(v) > 0, "Must be greater than 0"),
+	quantityReceived: zp.decimal.refine((v) => Number(v) > 0, 'Must be greater than 0'),
 	notes: zc.strTrimNullable,
 })
 

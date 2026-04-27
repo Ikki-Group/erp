@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import type { JournalEntryInput } from '../repo/general-ledger.repo'
 import { GeneralLedgerRepo as GLRepo } from '../repo/general-ledger.repo'
-
-import Decimal from 'decimal.js'
 
 export type {
 	JournalItemInput,

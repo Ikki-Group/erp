@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
+import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
@@ -11,59 +12,87 @@ import {
 } from '@/core/database'
 
 import { db } from '@/db'
-import { materialConversionsTable, materialsTable, uomsTable } from '@/db/schema'
+import { materialConversionsTable, materialsTable } from '@/db/schema'
 
-import type { MaterialDto, MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from './material.dto'
+import type {
+	MaterialDto,
+	MaterialFilterDto,
+	MaterialMutationDto,
+	MaterialSelectDto,
+} from './material.dto'
+
+const cache = bento.namespace('material')
 
 /* ---------------------------------- QUERY --------------------------------- */
 
 export class MaterialRepo {
+	/* -------------------------------- INTERNAL -------------------------------- */
+
+	async #clearCache(id?: number): Promise<void> {
+		return record('MaterialRepo.#clearCache', async () => {
+			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
+			await cache.deleteMany({ keys })
+		})
+	}
+
+	/* ---------------------------------- QUERY --------------------------------- */
+
 	async getList(): Promise<MaterialDto[]> {
-		return record(
-			'MaterialRepo.getList',
-			async () =>
-				db
-					.select()
-					.from(materialsTable)
-					.where(isNull(materialsTable.deletedAt))
-					.orderBy(materialsTable.name) as unknown as MaterialDto[],
-		)
+		return record('MaterialRepo.getList', async () => {
+			return cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.list,
+				factory: async () =>
+					db
+						.select()
+						.from(materialsTable)
+						.where(isNull(materialsTable.deletedAt))
+						.orderBy(materialsTable.name) as unknown as MaterialDto[],
+			})
+		})
 	}
 
 	async getById(id: number): Promise<MaterialDto | null> {
-		return record(
-			'MaterialRepo.getById',
-			async () =>
-				db
-					.select()
-					.from(materialsTable)
-					.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
-					.then(takeFirst) as unknown as MaterialDto | null,
-		)
+		return record('MaterialRepo.getById', async () => {
+			const result = await cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.byId(id),
+				factory: async ({ skip }) => {
+					const res = (await db
+						.select()
+						.from(materialsTable)
+						.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
+						.then(takeFirst)) as unknown as MaterialDto | null
+					return res ?? skip()
+				},
+			})
+			return result ?? null
+		})
 	}
 
 	async getByIds(ids: number[]): Promise<MaterialDto[]> {
 		if (ids.length === 0) return []
-		return record(
-			'MaterialRepo.getByIds',
-			async () =>
-				db
-					.select()
-					.from(materialsTable)
-					.where(
-						and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt)),
-					) as unknown as MaterialDto[],
-		)
+		return record('MaterialRepo.getByIds', async () => {
+			return db
+				.select()
+				.from(materialsTable)
+				.where(
+					and(inArray(materialsTable.id, ids), isNull(materialsTable.deletedAt)),
+				) as unknown as MaterialDto[]
+		})
 	}
 
 	async count(): Promise<number> {
-		return record('MaterialRepo.count', async () =>
-			db
-				.select({ count: count() })
-				.from(materialsTable)
-				.where(isNull(materialsTable.deletedAt))
-				.then((rows) => rows[0]?.count ?? 0),
-		)
+		return record('MaterialRepo.count', async () => {
+			return cache.getOrSet({
+				key: CACHE_KEY_DEFAULT.count,
+				factory: async () =>
+					db
+						.select({ count: count() })
+						.from(materialsTable)
+						.where(isNull(materialsTable.deletedAt))
+						.then((rows) => rows[0]?.count ?? 0),
+			})
+		})
 	}
 
 	async getListPaginated(
@@ -96,18 +125,10 @@ export class MaterialRepo {
 				countQuery: db.select({ count: count() }).from(materialsTable).where(where),
 			})
 
-			// Fetch UOM details for each material
-			const uomIds = result.data.map((m) => m.baseUomId).filter((id) => id !== null)
-			const uoms =
-				uomIds.length > 0
-					? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
-					: []
-			const uomMap = new Map(uoms.map((u) => [u.id, u]))
-
 			const data: MaterialSelectDto[] = result.data.map((m) => {
 				const dto: MaterialSelectDto = {
 					...m,
-					uom: m.baseUomId ? (uomMap.get(m.baseUomId) ?? null) : null,
+					uom: null, // Populated by service
 					category: null, // Populated by service
 					conversions: [],
 					locationIds: [],
@@ -155,6 +176,8 @@ export class MaterialRepo {
 			})
 
 			if (!inserted) throw new Error('Material creation failed')
+
+			void this.#clearCache()
 			return inserted
 		})
 	}
@@ -195,6 +218,7 @@ export class MaterialRepo {
 				}
 			})
 
+			void this.#clearCache(id)
 			return { id }
 		})
 	}
@@ -217,6 +241,7 @@ export class MaterialRepo {
 					.where(eq(materialsTable.id, id))
 			})
 
+			void this.#clearCache(id)
 			return { id }
 		})
 	}
@@ -229,6 +254,8 @@ export class MaterialRepo {
 				.returning({ id: materialsTable.id })
 
 			if (result.length === 0) throw new Error(`Material ${id} not found`)
+
+			void this.#clearCache(id)
 			return result[0] as { id: number }
 		})
 	}

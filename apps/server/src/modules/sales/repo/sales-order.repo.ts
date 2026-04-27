@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
@@ -10,7 +11,6 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import Decimal from 'decimal.js'
 
 import { db } from '@/db'
 import {

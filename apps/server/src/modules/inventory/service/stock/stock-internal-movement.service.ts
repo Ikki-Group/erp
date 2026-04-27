@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 
 import { stampCreate, type DbTx } from '@/core/database'
 import { BadRequestError } from '@/core/http/errors'
@@ -12,7 +13,6 @@ import type {
 	StockOpnameDto,
 	TransactionResultDto,
 } from '@/modules/inventory/dto'
-import Decimal from 'decimal.js'
 
 import { MovementLogic } from './movement-logic'
 
@@ -105,7 +105,11 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					destinationLocationId,
-					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
+					{
+						currentQty: newQty as any,
+						currentAvgCost: newAvgCost as any,
+						currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
+					},
 					actorId,
 					tx,
 				)
@@ -148,15 +152,17 @@ export class StockInternalMovementService extends MovementLogic {
 
 				if (diffQty.isZero()) return
 
-				const { newQty, newAvgCost } =
-					diffQty.isPositive()
-						? this.calculateIncomingWAC(
-								assignment.currentQty,
-								assignment.currentAvgCost,
-								diffQty.toString(),
-								assignment.currentAvgCost,
-							)
-						: { newQty: new Decimal(physicalQty).toString(), newAvgCost: assignment.currentAvgCost.toString() }
+				const { newQty, newAvgCost } = diffQty.isPositive()
+					? this.calculateIncomingWAC(
+							assignment.currentQty,
+							assignment.currentAvgCost,
+							diffQty.toString(),
+							assignment.currentAvgCost,
+						)
+					: {
+							newQty: new Decimal(physicalQty).toString(),
+							newAvgCost: assignment.currentAvgCost.toString(),
+						}
 
 				await tx.insert(stockTransactionsTable).values({
 					materialId,
@@ -176,7 +182,11 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
+					{
+						currentQty: newQty as any,
+						currentAvgCost: newAvgCost as any,
+						currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
+					},
 					actorId,
 					tx,
 				)
@@ -218,15 +228,17 @@ export class StockInternalMovementService extends MovementLogic {
 				const effectiveUnitCost = item.unitCost ?? assignment.currentAvgCost
 
 				const qtyDec = new Decimal(qty)
-				const { newQty, newAvgCost } =
-					qtyDec.isPositive()
-						? this.calculateIncomingWAC(
-								assignment.currentQty,
-								assignment.currentAvgCost,
-								qty,
-								effectiveUnitCost,
-							)
-						: { newQty: new Decimal(assignment.currentQty).plus(qtyDec).toString(), newAvgCost: assignment.currentAvgCost.toString() }
+				const { newQty, newAvgCost } = qtyDec.isPositive()
+					? this.calculateIncomingWAC(
+							assignment.currentQty,
+							assignment.currentAvgCost,
+							qty,
+							effectiveUnitCost,
+						)
+					: {
+							newQty: new Decimal(assignment.currentQty).plus(qtyDec).toString(),
+							newAvgCost: assignment.currentAvgCost.toString(),
+						}
 
 				if (new Decimal(newQty).isNegative())
 					throw new BadRequestError(
@@ -251,7 +263,11 @@ export class StockInternalMovementService extends MovementLogic {
 				await this.mLocationSvc.updateCurrentStock(
 					materialId,
 					locationId,
-					{ currentQty: newQty as any, currentAvgCost: newAvgCost as any, currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any },
+					{
+						currentQty: newQty as any,
+						currentAvgCost: newAvgCost as any,
+						currentValue: new Decimal(newQty).mul(newAvgCost).toString() as any,
+					},
 					actorId,
 					tx,
 				)

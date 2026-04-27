@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import Decimal from 'decimal.js'
 import {
 	and,
 	asc,
@@ -18,7 +19,6 @@ import {
 import { bento } from '@/core/cache'
 import { paginate, type WithPaginationResult } from '@/core/database'
 import { toWibDateKey } from '@/core/utils/date.util'
-import Decimal from 'decimal.js'
 
 import { db } from '@/db'
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
@@ -250,7 +250,9 @@ export class StockSummaryRepo {
 
 						const closingQty = new Decimal(cl?.total_qty ?? 0)
 						const closingValue = new Decimal(cl?.total_value ?? 0)
-						const closingAvgCost = closingQty.isZero() ? new Decimal(0) : closingValue.div(closingQty).abs()
+						const closingAvgCost = closingQty.isZero()
+							? new Decimal(0)
+							: closingValue.div(closingQty).abs()
 
 						return {
 							materialId: m.id,

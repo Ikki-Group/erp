@@ -1,11 +1,7 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"entry": [
-		"src/server.ts"
-	],
-	"project": [
-		"src/**/*.ts"
-	],
+	"entry": ["src/server.ts"],
+	"project": ["src/**/*.ts"],
 	"ignoreDependencies": [
 		"pino-pretty",
 		"@axiomhq/pino",
@@ -14,8 +10,5 @@
 		"bcrypt",
 		"lint-staged",
 	],
-	"ignoreBinaries": [
-		"flyctl",
-		"total-typescript/ts-reset"
-	]
+	"ignoreBinaries": ["flyctl", "total-typescript/ts-reset"],
 }
