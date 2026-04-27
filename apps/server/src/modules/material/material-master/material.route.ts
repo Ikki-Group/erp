@@ -34,7 +34,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 				const category = await s.handleDetail(query.id)
 				return res.ok(category)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(MaterialSelectDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(MaterialSelectDto), auth: true },
 		)
 		.post(
 			'/create',
