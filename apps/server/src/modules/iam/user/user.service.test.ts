@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { UserService } from './user.service'
 import { UserRepo } from './user.repo'
@@ -18,24 +18,24 @@ describe('UserService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getList: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			remove: vi.fn(),
+			getById: spyOn(),
+			getList: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			remove: spyOn(),
 		} as any
 
 		fakeServices = {
 			role: {
-				getRelationMap: vi.fn(),
+				getRelationMap: spyOn(),
 			},
 			assignment: {
-				findByUserId: vi.fn(),
+				findByUserId: spyOn(),
 			},
 			location: {
 				location: {
-					getRelationMap: vi.fn(),
+					getRelationMap: spyOn(),
 				},
 			},
 		}
@@ -49,7 +49,7 @@ describe('UserService', () => {
 				id: 1,
 				email: 'test@example.com',
 				username: 'testuser',
-				fullName: 'Test User',
+				fullname: 'Test User',
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}
@@ -67,10 +67,10 @@ describe('UserService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockUser)
-			vi.spyOn(fakeServices.role, 'getRelationMap').mockResolvedValue(mockRoleMap)
-			vi.spyOn(fakeServices.location.location, 'getRelationMap').mockResolvedValue(mockLocationMap)
-			vi.spyOn(fakeServices.assignment, 'findByUserId').mockResolvedValue(mockAssignments)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockUser)
+			spyOn(fakeServices.role, 'getRelationMap').mockResolvedValue(mockRoleMap)
+			spyOn(fakeServices.location.location, 'getRelationMap').mockResolvedValue(mockLocationMap)
+			spyOn(fakeServices.assignment, 'findByUserId').mockResolvedValue(mockAssignments)
 
 			const result = await service.getById(1)
 
@@ -80,7 +80,7 @@ describe('UserService', () => {
 		})
 
 		it('should return undefined for non-existent user', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.getById(999)
 
@@ -94,12 +94,12 @@ describe('UserService', () => {
 				id: 1,
 				email: 'test@example.com',
 				username: 'testuser',
-				fullName: 'Test User',
+				fullname: 'Test User',
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockUser)
+			spyOn(service, 'getById').mockResolvedValue(mockUser)
 
 			const result = await service.handleDetail(1)
 
@@ -108,7 +108,7 @@ describe('UserService', () => {
 		})
 
 		it('should throw error for non-existent user', async () => {
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleDetail(999)).rejects.toThrow(UserErrors.notFound(999))
 		})
@@ -119,13 +119,13 @@ describe('UserService', () => {
 			const createData: dto.UserCreateDto = {
 				email: 'new@example.com',
 				username: 'newuser',
-				fullName: 'New User',
+				fullname: 'New User',
 			}
 
 			const actorId = 1
 			const newUserId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newUserId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newUserId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -137,12 +137,12 @@ describe('UserService', () => {
 			const createData: dto.UserCreateDto = {
 				email: 'new@example.com',
 				username: 'newuser',
-				fullName: 'New User',
+				fullname: 'New User',
 			}
 
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
 			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
 				UserErrors.createFailed()
@@ -154,7 +154,7 @@ describe('UserService', () => {
 		it('should update user successfully', async () => {
 			const updateData: dto.UserUpdateDto = {
 				id: 1,
-				fullName: 'Updated Name',
+				fullname: 'Updated Name',
 			}
 
 			const actorId = 1
@@ -162,32 +162,32 @@ describe('UserService', () => {
 				id: 1,
 				email: 'test@example.com',
 				username: 'testuser',
-				fullName: 'Test User',
+				fullname: 'Test User',
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingUser)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingUser)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
-			const result = await service.handleUpdate(updateData, actorId)
+			const result = await service.handleUpdate(updateData.id, updateData, actorId)
 
 			expect(service.getById).toHaveBeenCalledWith(1)
-			expect(fakeRepo.update).toHaveBeenCalledWith(updateData, actorId)
+			expect(fakeRepo.update).toHaveBeenCalledWith({ ...updateData, id: 1 }, actorId)
 			expect(result).toEqual({ id: 1 })
 		})
 
 		it('should throw error for non-existent user', async () => {
 			const updateData: dto.UserUpdateDto = {
 				id: 999,
-				fullName: 'Updated Name',
+				fullname: 'Updated Name',
 			}
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
-			await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
+			await expect(service.handleUpdate(updateData.id, updateData, actorId)).rejects.toThrow(
 				UserErrors.notFound(999)
 			)
 		})
@@ -198,11 +198,11 @@ describe('UserService', () => {
 			const userId = 1
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(1)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(1)
 
-			const result = await service.handleRemove(userId, actorId)
+			const result = await service.handleRemove(userId)
 
-			expect(fakeRepo.remove).toHaveBeenCalledWith(userId, actorId)
+			expect(fakeRepo.remove).toHaveBeenCalledWith(userId)
 			expect(result).toEqual({ id: userId })
 		})
 
@@ -210,9 +210,9 @@ describe('UserService', () => {
 			const userId = 999
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
-			await expect(service.handleRemove(userId, actorId)).rejects.toThrow(
+			await expect(service.handleRemove(userId)).rejects.toThrow(
 				UserErrors.notFound(userId)
 			)
 		})
