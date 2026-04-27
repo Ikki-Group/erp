@@ -6,7 +6,7 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
 
-import type { InventoryServiceModule } from '@/modules/inventory/service'
+import type { InventoryServiceModule } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
 
 import type {

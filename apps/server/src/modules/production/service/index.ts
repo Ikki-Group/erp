@@ -1,4 +1,4 @@
-import type { InventoryServiceModule } from '@/modules/inventory/service'
+import type { InventoryServiceModule } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe/service/recipe.service'
 
 import { WorkOrderService } from './work-order.service'

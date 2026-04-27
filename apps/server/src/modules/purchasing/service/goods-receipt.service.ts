@@ -7,7 +7,7 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { purchaseOrderItemsTable } from '@/db/schema'
 
-import type { StockTransactionService } from '@/modules/inventory/service/stock-transaction.service'
+import type { StockTransactionService } from '@/modules/inventory'
 
 import type * as dto from '../dto/goods-receipt.dto'
 import { GoodsReceiptRepo } from '../repo/goods-receipt.repo'
