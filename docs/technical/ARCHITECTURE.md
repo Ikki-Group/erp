@@ -1,8 +1,26 @@
 # 🏛️ Backend Architecture — Golden Path 2.1
 
-**Last Updated:** 2026-04-26  
+**Last Updated:** 2026-04-28  
 **Status:** Production-Ready  
 **Audience:** Developers, AI Agents, Code Reviewers
+
+> **📚 For complete coding standards and implementation details, see:**
+> - [SERVER_STANDARDS.md](./SERVER_STANDARDS.md) — Comprehensive server coding standards
+> - [CODE_PATTERNS.md](./CODE_PATTERNS.md) — Quick reference code patterns
+> - [MODULE_CHECKLIST.md](./MODULE_CHECKLIST.md) — Module review checklist
+
+---
+
+## Quick Summary
+
+| Aspect | Standard |
+|--------|----------|
+| **Structure** | Co-located files (no subfolders) |
+| **DI** | `private readonly repo` constructor injection |
+| **Cache** | `CACHE_KEY_DEFAULT` standardized keys |
+| **Service Methods** | `get*()` for services, `handle*()` for router |
+| **Testing** | Co-located tests, skip DTO tests, mock via DI |
+| **No Usecase** | Orchestration lives in service layer |
 
 ---
 
@@ -90,26 +108,25 @@ Layer 0 (Core)
 3. **Shared Kernel**: `src/core/` tersedia untuk semua layer.
 4. **Lazy Injection untuk Cross-Module**: Gunakan getter function `() => module` jika diperlukan untuk menghindari circular dependency saat bootstrap.
 
-### Module Structure
+### Module Structure (Co-located)
 
 ```
 src/modules/{name}/
 ├── dto/
-│   ├── index.ts              # Barrel (internal convenience)
+│   ├── index.ts              # Barrel (internal only)
 │   └── {entity}.dto.ts       # Zod schemas
-├── repo/
-│   ├── index.ts              # Barrel (internal convenience)
-│   └── {entity}.repo.ts      # Drizzle queries, no logic
-├── service/
-│   ├── index.ts              # Barrel (internal convenience)
-│   └── {entity}.service.ts   # All business logic
-├── router/
-│   ├── index.ts              # Route assembly + initXxxRouteModule()
-│   └── {entity}.route.ts     # HTTP handlers
-├── constants.ts              # Cache keys, config constants
-├── errors.ts                 # Domain error factories (optional)
-└── index.ts                  # PUBLIC API: exports Module class only
+├── {entity}.repo.ts          # Drizzle queries (co-located)
+├── {entity}.service.ts       # Business logic (co-located)
+├── {entity}.service.test.ts  # Service tests (co-located)
+├── {entity}.route.ts         # HTTP handlers (co-located)
+├── {entity}.route.test.ts    # Route tests (co-located)
+├── constants.ts              # Cache keys, config
+├── errors.ts                 # Domain errors
+└── index.ts                  # PUBLIC API: Module class ONLY
+                              # ⚠️ NO export * from './dto|service'
 ```
+
+> **Key Change**: Files are co-located (no `/repo/`, `/service/`, `/router/` subfolders). This simplifies navigation and keeps related code together.
 
 ---
 

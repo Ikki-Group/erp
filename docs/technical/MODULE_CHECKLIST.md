@@ -1,16 +1,20 @@
 # 📋 Module Review Checklist
 
-Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Golden Path 1.0**.
+Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Golden Path 2.0**.
+
+> **Note**: For complete standards, see [SERVER_STANDARDS.md](./SERVER_STANDARDS.md)
 
 ---
 
 ## ✅ Phase 1: Structure & Organization
 
-- [ ] **Directory Structure**
-  - [ ] `/dto/` — Zod schemas
-  - [ ] `/repo/` — Drizzle queries
-  - [ ] `/service/` — Business logic
-  - [ ] `/router/` — HTTP handlers
+- [ ] **Directory Structure (Co-located — No Subfolders)**
+  - [ ] `/dto/` — Zod schemas (satu folder untuk semua DTOs)
+  - [ ] `entity.repo.ts` — Drizzle queries (co-located)
+  - [ ] `entity.service.ts` — Business logic (co-located)
+  - [ ] `entity.route.ts` — HTTP handlers (co-located)
+  - [ ] `entity.service.test.ts` — Service tests (co-located)
+  - [ ] `entity.route.test.ts` — Route tests (co-located)
   - [ ] `constants.ts` — Cache keys & config
   - [ ] `errors.ts` — Domain error factories
   - [ ] `index.ts` — **Public API only** (hanya Module class + Services interface)
@@ -24,10 +28,9 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
 
 - [ ] **Barrel Import Policy**
   - [ ] Root `index.ts` TIDAK melakukan `export * from './dto'`
-  - [ ] Root `index.ts` TIDAK melakukan `export * from './service'`
-  - [ ] Root `index.ts` TIDAK melakukan `export * from './router'`
-  - [ ] External consumers mengimport DTOs via `@/modules/xxx/dto` (bukan via root)
-  - [ ] Tidak ada consumer yang melakukan `import * from '@/modules/xxx'`
+  - [ ] Root `index.ts` TIDAK melakukan `export *` dari service/route
+  - [ ] External import DTOs via `@/modules/xxx/dto/entity.dto` (direct, bukan barrel)
+  - [ ] Tidak ada `import * from '@/modules/xxx'` — hanya import Module class
 
 ---
 
@@ -40,20 +43,20 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
   - [ ] Service lain boleh memanggil `get*()` tapi TIDAK `handle*()`
 
 - [ ] **Encapsulation**
-  - [ ] `repo` selalu `private` — tidak pernah diekspos ke luar service
-  - [ ] `clearCache()` selalu `private` — cache invalidation tidak bisa di-skip dari luar
-  - [ ] Helper enrichment (e.g. `buildUserDetail()`) selalu `private`
+  - [ ] `repo` selalu **`private readonly`** — tidak pernah diekspos
+  - [ ] `clearCache()` selalu `private` — cache invalidation tidak bisa di-skip
+  - [ ] Helper enrichment selalu `private`
 
 - [ ] **Cache Management**
   - [ ] `bento.namespace('entity')` — isolated per entity
-  - [ ] Cache keys dari constants (`ENTITY_CACHE_KEYS`), tidak hardcoded string
-  - [ ] `clearCache()` dipanggil di semua write handler: `handleCreate`, `handleUpdate`, `handleRemove`
-  - [ ] `cache.deleteMany()` untuk batch invalidation (LIST + COUNT + DETAIL)
-  - [ ] `cache.getOrSet({ factory: async ({ skip }) => ... ?? skip() })` — tidak cache `undefined`
+  - [ ] Gunakan `CACHE_KEY_DEFAULT` dari `@/core/cache` — tidak hardcoded
+  - [ ] `clearCache()` dipanggil di semua write handler
+  - [ ] `cache.deleteMany()` untuk batch invalidation (list + count + byId)
+  - [ ] `cache.getOrSet({ factory: async ({ skip }) => ... ?? skip() })
 
 - [ ] **No Usecase Layer**
-  - [ ] Tidak ada folder `usecase/` di dalam modul
-  - [ ] Orkestrasi lintas entity diselesaikan di dalam service menggunakan lazy getter
+  - [ ] ✅ **CONFIRMED** — Tidak ada folder `usecase/`
+  - [ ] Orkestrasi lintas entity di service menggunakan lazy getter `() => dep`
 
 - [ ] **Dependency Injection**
   - [ ] Cross-module dep diinject via lazy getter `() => dep` (bukan direct reference)
@@ -84,10 +87,11 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
 
 ## ✅ Phase 4: Router Layer
 
-- [ ] **Handler Pattern**
-  - [ ] Router function menggunakan `initXxxRoute(service: XxxService)` — function, bukan class
-  - [ ] Setiap endpoint menggunakan named inner function: `async function create({ body, auth }) { ... }`
-  - [ ] Router HANYA memanggil `service.handle*()` — tidak memanggil `get*()` langsung
+- [ ] **Handler Pattern (Co-located)**
+  - [ ] `initXxxRoute(service: XxxService)` — function, bukan class
+  - [ ] File co-located: `entity.route.ts` di folder module (bukan `/router/` subfolder)
+  - [ ] Named inner function: `async function create({ body, auth }) { ... }`
+  - [ ] Router HANYA memanggil `service.handle*()` — tidak `get*()` langsung
 
 - [ ] **Endpoint Convention**
   - [ ] `GET /list` → `handleList(filter)`
@@ -97,9 +101,9 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
   - [ ] `DELETE /remove` → `handleRemove(id)`
 
 - [ ] **Response Format**
-  - [ ] List: `res.paginated(result)`
-  - [ ] Single: `res.ok(result)`
-  - [ ] Schema response: `createPaginatedResponseSchema(dto.EntityDto)` / `createSuccessResponseSchema(...)`
+  - [ ] List: `res.paginated(result)` dengan `createPaginatedResponseSchema`
+  - [ ] Single: `res.ok(result)` dengan `createSuccessResponseSchema`
+  - [ ] Auth: `auth: true` untuk protected endpoints
 
 - [ ] **Auth**
   - [ ] Protected endpoints punya `auth: true`
@@ -150,11 +154,33 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
 
 ---
 
-## ✅ Phase 8: Quality Checks
+## ✅ Phase 8: Testing
 
-- [ ] `npx tsc --noEmit` zero errors untuk module ini
-- [ ] Tidak ada unused imports / unused variables
-- [ ] Tidak ada hardcoded string untuk cache keys, IDs, atau kode error
+- [ ] **Test Structure**
+  - [ ] `entity.service.test.ts` — co-located dengan service
+  - [ ] `entity.route.test.ts` — co-located dengan route
+  - [ ] Skip DTO tests — validation tested via routes
+
+- [ ] **Service Tests**
+  - [ ] Fake repo injection via constructor: `new EntityService(fakeRepo)`
+  - [ ] Test `get*()` methods dengan mocked repo
+  - [ ] Test `handle*()` error cases (throw dengan error.code check)
+  - [ ] Test cross-module interactions dengan mock
+
+- [ ] **Route Tests**
+  - [ ] Mock auth dengan `createMockAuthPlugin()`
+  - [ ] Mock service dengan partial implementation
+  - [ ] Test response format (success, paginated, validation errors)
+  - [ ] Test auth rejection (401)
+
+---
+
+## ✅ Phase 9: Quality Checks
+
+- [ ] `bun run typecheck` zero errors untuk module ini
+- [ ] `bun test` passing untuk semua test files
+- [ ] Tidak ada unused imports / variables (knip clean)
+- [ ] Tidak ada hardcoded cache keys — gunakan `CACHE_KEY_DEFAULT`
 
 ---
 
@@ -163,25 +189,26 @@ Gunakan checklist ini untuk review modules `src/modules/*` sesuai standar **Gold
 ```
 Phase 1 (Structure):         __ / 10
 Phase 2 (Service Layer):     __ / 15
-Phase 3 (Repository):        __ / 11
-Phase 4 (Router):            __ / 12
+Phase 3 (Repository):        __ / 10
+Phase 4 (Router):            __ / 10
 Phase 5 (Type Safety):       __ / 8
 Phase 6 (Validation):        __ / 7
-Phase 7 (Performance):       __ / 4
-Phase 8 (Quality):           __ / 3
+Phase 7 (Performance):       __ / 5
+Phase 8 (Testing):           __ / 10
+Phase 9 (Quality):           __ / 5
 
-TOTAL:                       __ / 70
+TOTAL:                       __ / 80
 ```
 
 ### Score Interpretation
 
 | Score | Verdict |
 |-------|---------|
-| 70/70 | 🟢 Production-ready, gold standard |
-| 60–69 | 🟢 Ship with confidence |
-| 50–59 | 🟡 Minor improvements before merge |
-| 40–49 | 🟡 Needs work, address before shipping |
-| < 40  | 🔴 Major revisions required |
+| 80/80 | 🟢 Production-ready, gold standard |
+| 65–79 | 🟢 Ship with confidence |
+| 50–64 | 🟡 Minor improvements before merge |
+| 35–49 | 🟡 Needs work, address before shipping |
+| < 35  | 🔴 Major revisions required |
 
 ---
 

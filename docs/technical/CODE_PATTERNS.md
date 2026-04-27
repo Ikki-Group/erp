@@ -169,28 +169,29 @@ import { record } from '@elysiajs/opentelemetry'
 import { bento } from '@/core/cache'
 import * as core from '@/core/database'
 import { entityTable } from '@/db/schema'
-import { ENTITY_CACHE_KEYS } from '../constants'
+import { CACHE_KEY_DEFAULT } from '@/core/cache'
 import * as dto from '../dto/entity.dto'
 import { EntityErrors } from '../errors'
 import { EntityRepo } from '../repo/entity.repo'
 
 const cache = bento.namespace('entity')
 
-const entityConflictFields: core.ConflictField<'code' | 'name'>[] = [
+const conflictFields: core.ConflictField<'code' | 'name'>[] = [
   { field: 'code', column: entityTable.code, message: 'Code exists', code: 'ENTITY_CODE_EXISTS' },
   { field: 'name', column: entityTable.name, message: 'Name exists', code: 'ENTITY_NAME_EXISTS' },
 ]
 
 export class EntityService {
-  constructor(private repo = new EntityRepo()) {}
+  // ✅ repo is private readonly — never exposed
+  constructor(private readonly repo = new EntityRepo()) {}
 
   /* ================================================================== */
   /*  CACHE MANAGEMENT (always private)                                  */
   /* ================================================================== */
 
   private async clearCache(id?: number): Promise<void> {
-    const keys = [ENTITY_CACHE_KEYS.LIST, ENTITY_CACHE_KEYS.COUNT]
-    if (id) keys.push(ENTITY_CACHE_KEYS.DETAIL(id))
+    const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+    if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
     await cache.deleteMany({ keys })
   }
 
@@ -201,7 +202,7 @@ export class EntityService {
   async getList(): Promise<dto.EntityDto[]> {
     return record('EntityService.getList', async () => {
       return cache.getOrSet({
-        key: ENTITY_CACHE_KEYS.LIST,
+        key: CACHE_KEY_DEFAULT.list,
         factory: async () => this.repo.getList(),
       })
     })
@@ -210,7 +211,7 @@ export class EntityService {
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityService.getById', async () => {
       return cache.getOrSet({
-        key: ENTITY_CACHE_KEYS.DETAIL(id),
+        key: CACHE_KEY_DEFAULT.byId(id),
         factory: async ({ skip }) => {
           const row = await this.repo.getById(id)
           return row ?? skip()
@@ -222,7 +223,7 @@ export class EntityService {
   async count(): Promise<number> {
     return record('EntityService.count', async () => {
       return cache.getOrSet({
-        key: ENTITY_CACHE_KEYS.COUNT,
+        key: CACHE_KEY_DEFAULT.count,
         factory: () => this.repo.count(),
       })
     })
@@ -251,7 +252,7 @@ export class EntityService {
       await core.checkConflict({
         table: entityTable,
         pkColumn: entityTable.id,
-        fields: entityConflictFields,
+        fields: conflictFields,
         input: data,
       })
       const id = await this.repo.create(data, actorId)
@@ -269,7 +270,7 @@ export class EntityService {
       await core.checkConflict({
         table: entityTable,
         pkColumn: entityTable.id,
-        fields: entityConflictFields,
+        fields: conflictFields,
         input: data,
         existing,
       })
@@ -296,13 +297,13 @@ export class EntityService {
 ### 5️⃣ Router
 
 ```typescript
-// src/modules/feature/router/entity.route.ts
+// src/modules/feature/entity.route.ts (co-located with service)
 import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/core/validation'
-import * as dto from '../dto/entity.dto'
-import type { EntityService } from '../service/entity.service'
+import * as dto from './dto/entity.dto'
+import type { EntityService } from './entity.service'
 
 export function initEntityRoute(service: EntityService) {
   return new Elysia({ prefix: '/entity' })
@@ -339,14 +340,16 @@ export function initEntityRoute(service: EntityService) {
     )
 }
 
-// src/modules/feature/router/index.ts
-import { Elysia } from 'elysia'
-import type { FeatureModule } from '../index'
+// src/modules/feature/index.ts
 import { initEntityRoute } from './entity.route'
 
-export function initFeatureRouteModule(m: FeatureModule) {
-  return new Elysia({ prefix: '/feature' })
-    .use(initEntityRoute(m.service.entity))
+export class FeatureModule {
+  // ... service definition ...
+  
+  initRoutes() {
+    return new Elysia({ prefix: '/feature' })
+      .use(initEntityRoute(this.service.entity))
+  }
 }
 ```
 
@@ -358,8 +361,9 @@ export function initFeatureRouteModule(m: FeatureModule) {
 // Do NOT: export * from './dto'
 // Do NOT: export * from './service'
 // Do NOT: export * from './router'
+// ⚠️ NO subfolders — co-located structure
 
-import { EntityService } from './service'
+import { EntityService } from './entity.service'
 
 export interface FeatureServices {
   entity: EntityService
@@ -370,6 +374,7 @@ export class FeatureModule {
 
   constructor() {
     this.service = {
+      // ✅ DI via constructor — testable
       entity: new EntityService(),
     }
   }
@@ -400,7 +405,7 @@ routes.push(initFeatureRouteModule(m.feature))
 ```typescript
 async getById(id: number): Promise<dto.EntityDto | undefined> {
   return cache.getOrSet({
-    key: ENTITY_CACHE_KEYS.DETAIL(id),
+    key: CACHE_KEY_DEFAULT.byId(id),
     factory: async ({ skip }) => {
       const row = await this.repo.getById(id)
       return row ?? skip() // skip = don't cache undefined
@@ -413,8 +418,8 @@ async getById(id: number): Promise<dto.EntityDto | undefined> {
 
 ```typescript
 private async clearCache(id?: number): Promise<void> {
-  const keys = [ENTITY_CACHE_KEYS.LIST, ENTITY_CACHE_KEYS.COUNT]
-  if (id) keys.push(ENTITY_CACHE_KEYS.DETAIL(id))
+  const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+  if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
   await cache.deleteMany({ keys })
 }
 ```
@@ -474,11 +479,121 @@ export class UserService {
 // In IamModule:
 const role = new RoleService()
 const user = new UserService(
-  undefined,
-  () => role,
-  () => this.getExternalModules().location.location,
+  undefined,  // use default repo
+  () => role,  // lazy getter for cross-module dep
+  () => this.getExternalModules().location.location,  // lazy: external
 )
 ```
+
+---
+
+## Testing Patterns
+
+### Test File Locations (Co-located)
+
+```
+modules/location/location-master/
+├── location-master.service.ts
+├── location-master.service.test.ts   # ← co-located
+├── location-master.route.ts
+├── location-master.route.test.ts     # ← co-located
+```
+
+### Skip DTO Tests
+
+❌ **Don't write DTO tests** — Zod validation is tested implicitly via route tests.
+
+### Service Test Pattern
+
+```typescript
+import { describe, expect, it, beforeEach } from 'bun:test'
+import { EntityService } from './entity.service'
+import { EntityRepo } from './entity.repo'
+
+function createFakeRepo(overrides: Partial<EntityRepo> = {}): EntityRepo {
+  return {
+    getById: async () => undefined,
+    getList: async () => [],
+    create: async () => 1,
+    update: async () => 1,
+    remove: async () => 1,
+    ...overrides,
+  } as EntityRepo
+}
+
+describe('EntityService', () => {
+  let service: EntityService
+  let fakeRepo: EntityRepo
+
+  beforeEach(() => {
+    fakeRepo = createFakeRepo()
+    service = new EntityService(fakeRepo)  // ✅ inject fake repo
+  })
+
+  it('returns entity when found', async () => {
+    fakeRepo.getById = async () => ({ id: 1, name: 'Test' } as EntityDto)
+    const result = await service.getById(1)
+    expect(result?.name).toBe('Test')
+  })
+
+  it('throws NOT_FOUND when missing', async () => {
+    fakeRepo.getById = async () => undefined
+    try {
+      await service.handleDetail(999)
+      expect(false).toBe(true)
+    } catch (error: any) {
+      expect(error.code).toBe('ENTITY_NOT_FOUND')
+    }
+  })
+})
+```
+
+### Route Test Pattern
+
+```typescript
+import { describe, expect, it } from 'bun:test'
+import { Elysia } from 'elysia'
+import { errorHandler } from '@/core/http/error-handler'
+import { createMockAuthPlugin } from '@/tests/helpers/auth'
+import { jsonRequest } from '@/tests/helpers/http'
+import { initEntityRoute } from './entity.route'
+import { EntityService } from './entity.service'
+
+function createMockService(overrides: Partial<EntityService> = {}): EntityService {
+  return {
+    handleList: async () => ({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 0 } }),
+    handleDetail: async () => ({ id: 1, name: 'Test' } as EntityDto),
+    handleCreate: async () => ({ id: 1 }),
+    handleUpdate: async () => ({ id: 1 }),
+    handleRemove: async () => ({ id: 1 }),
+    ...overrides,
+  } as EntityService
+}
+
+function createTestApp(service: EntityService) {
+  return new Elysia()
+    .use(errorHandler)
+    .use(createMockAuthPlugin())
+    .use(initEntityRoute(service))
+}
+
+describe('Entity Routes', () => {
+  it('GET /entity/list returns paginated response', async () => {
+    const app = createTestApp(createMockService())
+    const res = await app.handle(jsonRequest('GET', '/entity/list'))
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.meta).toBeDefined()
+  })
+})
+```
+
+### Test Helpers
+
+See `src/tests/helpers/`:
+- `auth.ts` — `createMockAuthPlugin()`, `mockAuthenticatedUser`
+- `http.ts` — `createRouteTestApp()`, `jsonRequest()`
+- `response.ts` — `expectSuccessResponse()`, `expectPaginatedResponse()`
 
 ---
 
@@ -515,9 +630,20 @@ throw new ForbiddenError('message', 'DOMAIN_CODE')
 2. **Service** = ALL business logic (handle* for router, get* for services)
 3. **Router** = HTTP only (parse, validate, call `handle*`, format response)
 4. **No usecase layer** — orchestration lives in service
-5. **repo is always private** — never exposed outside service
+5. **repo is `private readonly`** — never exposed outside service
 6. **clearCache is always private** — never skippable
 7. **handle* called ONLY from router** — never from another service
 8. **Cache invalidate on every write** — LIST, COUNT, and DETAIL(id)
-9. **Batch queries over loops** — inArray() + RelationMap
-10. **Every repo method wrapped in record()** for telemetry
+9. **Use `CACHE_KEY_DEFAULT`** — standardized cache keys
+10. **Batch queries over loops** — inArray() + RelationMap
+11. **Every repo method wrapped in record()** for telemetry
+12. **Tests co-located** — skip DTO tests, focus on service + route tests
+13. **No subfolders** — co-located: dto/, entity.repo.ts, entity.service.ts, entity.route.ts, entity.test.ts
+
+---
+
+## See Also
+
+- [SERVER_STANDARDS.md](./SERVER_STANDARDS.md) — Complete server coding standards
+- [MODULE_CHECKLIST.md](./MODULE_CHECKLIST.md) — Module review checklist
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — High-level architecture overview
