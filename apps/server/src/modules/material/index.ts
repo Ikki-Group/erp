@@ -27,7 +27,7 @@ export class MaterialServiceModule {
 			locationMaster,
 		)
 		
-		this.location = new MaterialLocationService(this.master, locationMaster as any)
+		this.location = new MaterialLocationService(this.master, locationMaster)
 	}
 }
 

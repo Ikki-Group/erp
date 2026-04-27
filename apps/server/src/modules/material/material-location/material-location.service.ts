@@ -4,7 +4,7 @@ import type { DbTx } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import type { LocationServiceModule } from '@/modules/location'
+import type { LocationMasterService } from '@/modules/location'
 
 import type {
 	MaterialLocationAssignDto,
@@ -39,7 +39,7 @@ const err = {
 export class MaterialLocationService {
 	constructor(
 		private readonly materialSvc: MaterialService,
-		private readonly locationSvc: LocationServiceModule,
+		private readonly locationMaster: LocationMasterService,
 		private readonly repo: MaterialLocationRepo = new MaterialLocationRepo(),
 	) {}
 
@@ -83,7 +83,7 @@ export class MaterialLocationService {
 
 			// 1. Validate all locations exist
 			for (const locId of locationIds) {
-				await this.locationSvc.master.getById(locId)
+				await this.locationMaster.getById(locId)
 			}
 
 			// 2. Validate all materials exist
@@ -129,7 +129,7 @@ export class MaterialLocationService {
 	): Promise<WithPaginationResult<MaterialLocationStockDto>> {
 		return record('MaterialLocationService.handleStockByLocation', async () => {
 			const { locationId } = filter
-			await this.locationSvc.master.getById(locationId)
+			await this.locationMaster.getById(locationId)
 			return this.repo.getStockByLocationPaginated(filter)
 		})
 	}

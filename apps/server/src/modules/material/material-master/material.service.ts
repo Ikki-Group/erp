@@ -17,6 +17,9 @@ import {
 
 import { LocationMasterService } from '@/modules/location'
 
+import { MaterialCategoryService } from '../material-category/material-category.service'
+import { MaterialLocationRepo } from '../material-location/material-location.repo'
+import { UomService } from '../uom/uom.service'
 import {
 	MaterialCategoryDto,
 	MaterialDto,
@@ -25,9 +28,7 @@ import {
 	MaterialSelectDto,
 	UomDto,
 } from './material.dto'
-import { MaterialRepo } from './material.repo'; import { MaterialLocationRepo } from '../material-location/material-location.repo'
-import { MaterialCategoryService } from '../material-category/material-category.service'
-import { UomService } from '../uom/uom.service'
+import { MaterialRepo } from './material.repo'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -277,7 +278,9 @@ export class MaterialService {
 		return record('MaterialService.handleDetail', async () => {
 			const material = await this.getById(id)
 			const [category, uom, locations] = await Promise.all([
-				material.categoryId ? this.categorySvc.getById(material.categoryId) : null,
+				material.categoryId
+					? this.categorySvc.getById(material.categoryId).then((res) => res ?? null)
+					: null,
 				this.uomSvc.getById(material.baseUomId).catch(() => null),
 				material.locationIds.length > 0
 					? Promise.all(material.locationIds.map((lId) => this.locationSvc.getById(lId)))

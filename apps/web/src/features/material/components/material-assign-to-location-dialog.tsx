@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, } from '@tanstack/react-query'
 
 import { useDebounce } from '@uidotdev/usehooks'
 import { Loader2Icon, MapPinIcon, SearchIcon } from 'lucide-react'
@@ -32,7 +32,6 @@ interface MaterialAssignToLocationDialogProps {
 export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLocationDialogProps>(
 	(props) => {
 		const { call, materialIds, materialName } = props
-		const queryClient = useQueryClient()
 
 		const [search, setSearch] = useState('')
 		const [selected, setSelected] = useState<Array<number>>([])
@@ -61,18 +60,11 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 
 		const assignMutation = useMutation({
 			mutationFn: materialLocationApi.assign.mutationFn,
-			onSuccess: () => {
-				// Invalidate material list and detail to update location counts
-				queryClient.invalidateQueries({ queryKey: ['material'] })
-			},
 		})
 
 		/**
 		 * Toggle a location's selection state unless that location is already assigned.
-		 *
 		 * If the given location ID is not in the current selection it will be added; if it is present it will be removed. If the location is already assigned, the selection is left unchanged.
-		 *
-		 * @param id - The location ID to toggle in the current selection
 		 */
 		function toggleSelected(id: number) {
 			if (assignedIds.has(id)) return // Already assigned
