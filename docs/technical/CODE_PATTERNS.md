@@ -50,113 +50,67 @@ export type EntityFilterDto = z.infer<typeof EntityFilterDto>
 ### 2️⃣ Constants & Errors
 
 ```typescript
-// src/modules/feature/constants.ts
-export const ENTITY_CACHE_KEYS = {
-  LIST: 'list',
-  COUNT: 'count',
-  DETAIL: (id: number) => `detail.${id}`,
-}
-
-// src/modules/feature/errors.ts
+// constants.ts — use CACHE_KEY_DEFAULT instead
+// errors.ts
 import { NotFoundError, InternalServerError } from '@/core/http/errors'
 
 export const EntityErrors = {
-  notFound: (id: number) =>
-    new NotFoundError(`Entity with ID ${id} not found`, 'ENTITY_NOT_FOUND'),
-  createFailed: () =>
-    new InternalServerError('Entity creation failed', 'ENTITY_CREATE_FAILED'),
+  notFound: (id: number) => new NotFoundError(`Entity ${id} not found`, 'ENTITY_NOT_FOUND'),
+  createFailed: () => new InternalServerError('Create failed', 'ENTITY_CREATE_FAILED'),
 }
 ```
 
 ### 3️⃣ Repository
 
 ```typescript
-// src/modules/feature/repo/entity.repo.ts
+// src/modules/feature/entity.repo.ts (co-located)
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
-import { paginate, searchFilter, stampCreate, stampUpdate } from '@/core/database'
+import { paginate, searchFilter, stampCreate, stampUpdate, takeFirst } from '@/core/database'
 import { db } from '@/db'
 import { entityTable } from '@/db/schema'
-import * as dto from '../dto/entity.dto'
+import * as dto from './dto/entity.dto'
 
 export class EntityRepo {
-  /* ------------------------------------------------------------------ */
-  /*  QUERY                                                               */
-  /* ------------------------------------------------------------------ */
+  async getById(id: number): Promise<dto.EntityDto | undefined> {
+    return record('EntityRepo.getById', async () => {
+      return db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
+    })
+  }
 
   async getList(): Promise<dto.EntityDto[]> {
-    return record('EntityRepo.getList', async () => {
-      return db.select().from(entityTable)
-    })
+    return record('EntityRepo.getList', async () => db.select().from(entityTable))
   }
 
   async getListPaginated(filter: dto.EntityFilterDto) {
     return record('EntityRepo.getListPaginated', async () => {
-      const where = this.buildWhereClause(filter)
-      return paginate<dto.EntityDto>({
-        data: ({ limit, offset }) =>
-          db.select().from(entityTable).where(where).limit(limit).offset(offset),
+      return paginate({
+        data: ({ limit, offset }) => db.select().from(entityTable).limit(limit).offset(offset),
         pq: { page: filter.page, limit: filter.limit },
-        countQuery: db.select({ count: count() }).from(entityTable).where(where),
+        countQuery: db.select({ count: count() }).from(entityTable),
       })
     })
   }
 
-  async getById(id: number): Promise<dto.EntityDto | undefined> {
-    return record('EntityRepo.getById', async () => {
-      return db.select().from(entityTable).where(eq(entityTable.id, id)).then(r => r[0])
-    })
-  }
-
-  async count(): Promise<number> {
-    return record('EntityRepo.count', async () => {
-      return db.select({ count: count() }).from(entityTable)
-        .then(r => r[0]?.count ?? 0)
-    })
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  MUTATION                                                            */
-  /* ------------------------------------------------------------------ */
-
   async create(data: dto.EntityCreateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.create', async () => {
-      return db
-        .insert(entityTable)
-        .values({ ...stampCreate(actorId), ...data })
-        .returning({ id: entityTable.id })
-        .then(r => r[0]?.id)
+      const [res] = await db.insert(entityTable).values({ ...data, ...stampCreate(actorId) }).returning({ id: entityTable.id })
+      return res?.id
     })
   }
 
   async update(data: dto.EntityUpdateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.update', async () => {
-      return db
-        .update(entityTable)
-        .set({ ...stampUpdate(actorId), ...data })
-        .where(eq(entityTable.id, data.id))
-        .returning({ id: entityTable.id })
-        .then(r => r[0]?.id)
+      const [res] = await db.update(entityTable).set({ ...data, ...stampUpdate(actorId) }).where(eq(entityTable.id, data.id)).returning({ id: entityTable.id })
+      return res?.id
     })
   }
 
   async remove(id: number): Promise<number | undefined> {
     return record('EntityRepo.remove', async () => {
-      return db
-        .delete(entityTable)
-        .where(eq(entityTable.id, id))
-        .returning({ id: entityTable.id })
-        .then(r => r[0]?.id)
+      const [res] = await db.delete(entityTable).where(eq(entityTable.id, id)).returning({ id: entityTable.id })
+      return res?.id
     })
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  PRIVATE                                                             */
-  /* ------------------------------------------------------------------ */
-
-  private buildWhereClause(filter: Partial<dto.EntityFilterDto>) {
-    const { q } = filter
-    return and(q ? searchFilter(entityTable.name, q) : undefined)
   }
 }
 ```
@@ -164,15 +118,15 @@ export class EntityRepo {
 ### 4️⃣ Service
 
 ```typescript
-// src/modules/feature/service/entity.service.ts
+// src/modules/feature/entity.service.ts (co-located)
 import { record } from '@elysiajs/opentelemetry'
 import { bento } from '@/core/cache'
+import { CACHE_KEY_DEFAULT } from '@/core/cache'
 import * as core from '@/core/database'
 import { entityTable } from '@/db/schema'
-import { CACHE_KEY_DEFAULT } from '@/core/cache'
-import * as dto from '../dto/entity.dto'
-import { EntityErrors } from '../errors'
-import { EntityRepo } from '../repo/entity.repo'
+import * as dto from './dto/entity.dto'
+import { EntityErrors } from './errors'
+import { EntityRepo } from './entity.repo'
 
 const cache = bento.namespace('entity')
 
@@ -182,12 +136,7 @@ const conflictFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 export class EntityService {
-  // ✅ repo is private readonly — never exposed
   constructor(private readonly repo = new EntityRepo()) {}
-
-  /* ================================================================== */
-  /*  CACHE MANAGEMENT (always private)                                  */
-  /* ================================================================== */
 
   private async clearCache(id?: number): Promise<void> {
     const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
@@ -195,48 +144,14 @@ export class EntityService {
     await cache.deleteMany({ keys })
   }
 
-  /* ================================================================== */
-  /*  QUERY — get*() — callable by other services                       */
-  /* ================================================================== */
-
-  async getList(): Promise<dto.EntityDto[]> {
-    return record('EntityService.getList', async () => {
-      return cache.getOrSet({
-        key: CACHE_KEY_DEFAULT.list,
-        factory: async () => this.repo.getList(),
-      })
-    })
-  }
-
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityService.getById', async () => {
-      return cache.getOrSet({
-        key: CACHE_KEY_DEFAULT.byId(id),
-        factory: async ({ skip }) => {
-          const row = await this.repo.getById(id)
-          return row ?? skip()
-        },
-      })
+      return cache.getOrSet({ key: CACHE_KEY_DEFAULT.byId(id), factory: async ({ skip }) => (await this.repo.getById(id)) ?? skip() })
     })
   }
 
-  async count(): Promise<number> {
-    return record('EntityService.count', async () => {
-      return cache.getOrSet({
-        key: CACHE_KEY_DEFAULT.count,
-        factory: () => this.repo.count(),
-      })
-    })
-  }
-
-  /* ================================================================== */
-  /*  HANDLER — handle*() — called by Router ONLY                       */
-  /* ================================================================== */
-
-  async handleList(filter: dto.EntityFilterDto): Promise<core.WithPaginationResult<dto.EntityDto>> {
-    return record('EntityService.handleList', async () => {
-      return this.repo.getListPaginated(filter)
-    })
+  async getList(): Promise<dto.EntityDto[]> {
+    return record('EntityService.getList', async () => cache.getOrSet({ key: CACHE_KEY_DEFAULT.list, factory: () => this.repo.getList() }))
   }
 
   async handleDetail(id: number): Promise<dto.EntityDto> {
@@ -249,12 +164,7 @@ export class EntityService {
 
   async handleCreate(data: dto.EntityCreateDto, actorId: number): Promise<{ id: number }> {
     return record('EntityService.handleCreate', async () => {
-      await core.checkConflict({
-        table: entityTable,
-        pkColumn: entityTable.id,
-        fields: conflictFields,
-        input: data,
-      })
+      await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data })
       const id = await this.repo.create(data, actorId)
       if (!id) throw EntityErrors.createFailed()
       await this.clearCache()
@@ -262,24 +172,14 @@ export class EntityService {
     })
   }
 
-  async handleUpdate(id: number, data: dto.EntityUpdateDto, actorId: number): Promise<{ id: number }> {
+  async handleUpdate(data: dto.EntityUpdateDto, actorId: number): Promise<{ id: number }> {
     return record('EntityService.handleUpdate', async () => {
-      const existing = await this.getById(id)
-      if (!existing) throw EntityErrors.notFound(id)
-
-      await core.checkConflict({
-        table: entityTable,
-        pkColumn: entityTable.id,
-        fields: conflictFields,
-        input: data,
-        existing,
-      })
-
-      const result = await this.repo.update(data, actorId)
-      if (!result) throw EntityErrors.notFound(id)
-
-      await this.clearCache(id)
-      return { id }
+      const existing = await this.getById(data.id)
+      if (!existing) throw EntityErrors.notFound(data.id)
+      await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data, existing })
+      await this.repo.update(data, actorId)
+      await this.clearCache(data.id)
+      return { id: data.id }
     })
   }
 
@@ -297,7 +197,7 @@ export class EntityService {
 ### 5️⃣ Router
 
 ```typescript
-// src/modules/feature/entity.route.ts (co-located with service)
+// src/modules/feature/entity.route.ts (co-located)
 import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -308,48 +208,31 @@ import type { EntityService } from './entity.service'
 export function initEntityRoute(service: EntityService) {
   return new Elysia({ prefix: '/entity' })
     .use(authPluginMacro)
-    .get('/list',
-      async function list({ query }) {
-        return res.paginated(await service.handleList(query))
-      },
-      { query: dto.EntityFilterDto, response: createPaginatedResponseSchema(dto.EntityDto), auth: true },
-    )
-    .get('/detail',
-      async function detail({ query }) {
-        return res.ok(await service.handleDetail(query.id))
-      },
-      { query: zq.recordId, response: createSuccessResponseSchema(dto.EntityDto), auth: true },
-    )
-    .post('/create',
-      async function create({ body, auth }) {
-        return res.ok(await service.handleCreate(body, auth.userId))
-      },
-      { body: dto.EntityCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-    )
-    .put('/update',
-      async function update({ body, auth }) {
-        return res.ok(await service.handleUpdate(body.id, body, auth.userId))
-      },
-      { body: dto.EntityUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-    )
-    .delete('/remove',
-      async function remove({ body }) {
-        return res.ok(await service.handleRemove(body.id))
-      },
-      { body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-    )
-}
-
-// src/modules/feature/index.ts
-import { initEntityRoute } from './entity.route'
-
-export class FeatureModule {
-  // ... service definition ...
-  
-  initRoutes() {
-    return new Elysia({ prefix: '/feature' })
-      .use(initEntityRoute(this.service.entity))
-  }
+    .get('/list', async ({ query }) => res.paginated(await service.handleList(query)), {
+      query: dto.EntityFilterDto,
+      response: createPaginatedResponseSchema(dto.EntityDto),
+      auth: true,
+    })
+    .get('/detail', async ({ query }) => res.ok(await service.handleDetail(query.id)), {
+      query: zq.recordId,
+      response: createSuccessResponseSchema(dto.EntityDto),
+      auth: true,
+    })
+    .post('/create', async ({ body, auth }) => res.ok(await service.handleCreate(body, auth.userId)), {
+      body: dto.EntityCreateDto,
+      response: createSuccessResponseSchema(zc.RecordId),
+      auth: true,
+    })
+    .put('/update', async ({ body, auth }) => res.ok(await service.handleUpdate(body, auth.userId)), {
+      body: dto.EntityUpdateDto,
+      response: createSuccessResponseSchema(zc.RecordId),
+      auth: true,
+    })
+    .delete('/remove', async ({ body }) => res.ok(await service.handleRemove(body.id)), {
+      body: zc.RecordId,
+      response: createSuccessResponseSchema(zc.RecordId),
+      auth: true,
+    })
 }
 ```
 
@@ -357,11 +240,9 @@ export class FeatureModule {
 
 ```typescript
 // src/modules/feature/index.ts
-// ⚠️ ONLY export the Module class and Services interface
-// Do NOT: export * from './dto'
-// Do NOT: export * from './service'
-// Do NOT: export * from './router'
-// ⚠️ NO subfolders — co-located structure
+// ⚠️ ONLY export Module class + Services interface
+// NO export * from './dto|service'
+// NO subfolders — co-located
 
 import { EntityService } from './entity.service'
 
@@ -373,10 +254,7 @@ export class FeatureModule {
   public readonly service: FeatureServices
 
   constructor() {
-    this.service = {
-      // ✅ DI via constructor — testable
-      entity: new EntityService(),
-    }
+    this.service = { entity: new EntityService() }
   }
 }
 ```
@@ -384,16 +262,12 @@ export class FeatureModule {
 ### 7️⃣ Register in Registry & Routes
 
 ```typescript
-// src/modules/_registry.ts
-import { FeatureModule } from './feature'
-
+// _registry.ts
 const feature = new FeatureModule()
 return { ..., feature }
 
-// src/modules/_routes.ts
-import { initFeatureRouteModule } from './feature/router'
-
-routes.push(initFeatureRouteModule(m.feature))
+// _routes.ts
+routes.push(feature.initRoutes())
 ```
 
 ---
@@ -427,173 +301,73 @@ private async clearCache(id?: number): Promise<void> {
 ### In-memory Join (RelationMap)
 
 ```typescript
-// ✅ 2 queries total, no N+1
 const [items, roleMap, locationMap] = await Promise.all([
   this.repo.getList(),
-  roleService.getRelationMap(),      // returns RelationMap<id, RoleDto>
-  locationService.getRelationMap(),  // returns RelationMap<id, LocationDto>
+  roleService.getRelationMap(),
+  locationService.getRelationMap(),
 ])
-
-const enriched = items.map(item => ({
-  ...item,
-  role: roleMap.getRequired(item.roleId),
-  location: locationMap.getRequired(item.locationId),
-}))
 ```
 
-### Transaction (Repo layer)
+
+### Lazy Injection (Cross-Module)
 
 ```typescript
-async replaceBulkByUserId(userId: number, assignments: AssignmentUpsertDto[], actorId: number): Promise<void> {
-  return record('AssignmentRepo.replaceBulkByUserId', async () => {
-    await db.transaction(async (tx) => {
-      await tx.delete(assignmentsTable).where(eq(assignmentsTable.userId, userId))
-      if (assignments.length > 0) {
-        await tx.insert(assignmentsTable).values(
-          assignments.map(a => ({ ...a, userId, addedAt: new Date(), addedBy: actorId }))
-        )
-      }
-    })
-  })
-}
-```
-
-### Cross-Module Dependency (Lazy Getter)
-
-```typescript
-// ✅ Inject lazy getters to avoid circular dependency at bootstrap
 export class UserService {
   constructor(
-    private repo = new UserRepo(),
-    private getRoleService?: () => RoleService,
-    private getLocationService?: () => LocationMasterService,
+    private readonly repo = new UserRepo(),
+    private readonly getRoleService?: () => RoleService,
+    private readonly getLocationService?: () => LocationMasterService,
   ) {}
 
   private async buildDetail(user: UserDto) {
-    const roleService = this.getRoleService!()       // called at runtime
+    const roleService = this.getRoleService!()
     const locationService = this.getLocationService!()
     // ...
   }
 }
 
-// In IamModule:
 const role = new RoleService()
-const user = new UserService(
-  undefined,  // use default repo
-  () => role,  // lazy getter for cross-module dep
-  () => this.getExternalModules().location.location,  // lazy: external
-)
+const user = new UserService(undefined, () => role, () => this.getExternalModules().location.location)
 ```
 
 ---
 
 ## Testing Patterns
 
-### Test File Locations (Co-located)
+### Testing
 
 ```
 modules/location/location-master/
 ├── location-master.service.ts
-├── location-master.service.test.ts   # ← co-located
+├── location-master.service.test.ts   # co-located
 ├── location-master.route.ts
-├── location-master.route.test.ts     # ← co-located
+├── location-master.route.test.ts     # co-located
 ```
 
-### Skip DTO Tests
-
-❌ **Don't write DTO tests** — Zod validation is tested implicitly via route tests.
-
-### Service Test Pattern
+❌ Skip DTO tests — Zod validated via routes.
 
 ```typescript
-import { describe, expect, it, beforeEach } from 'bun:test'
-import { EntityService } from './entity.service'
-import { EntityRepo } from './entity.repo'
-
-function createFakeRepo(overrides: Partial<EntityRepo> = {}): EntityRepo {
-  return {
-    getById: async () => undefined,
-    getList: async () => [],
-    create: async () => 1,
-    update: async () => 1,
-    remove: async () => 1,
-    ...overrides,
-  } as EntityRepo
+// Service test
+function createFakeRepo(overrides = {}): EntityRepo {
+  return { getById: async () => undefined, getList: async () => [], ...overrides } as EntityRepo
 }
 
-describe('EntityService', () => {
-  let service: EntityService
-  let fakeRepo: EntityRepo
-
-  beforeEach(() => {
-    fakeRepo = createFakeRepo()
-    service = new EntityService(fakeRepo)  // ✅ inject fake repo
-  })
-
-  it('returns entity when found', async () => {
-    fakeRepo.getById = async () => ({ id: 1, name: 'Test' } as EntityDto)
-    const result = await service.getById(1)
-    expect(result?.name).toBe('Test')
-  })
-
-  it('throws NOT_FOUND when missing', async () => {
-    fakeRepo.getById = async () => undefined
-    try {
-      await service.handleDetail(999)
-      expect(false).toBe(true)
-    } catch (error: any) {
-      expect(error.code).toBe('ENTITY_NOT_FOUND')
-    }
-  })
+beforeEach(() => {
+  fakeRepo = createFakeRepo()
+  service = new EntityService(fakeRepo)  // inject fake repo
 })
-```
 
-### Route Test Pattern
-
-```typescript
-import { describe, expect, it } from 'bun:test'
-import { Elysia } from 'elysia'
-import { errorHandler } from '@/core/http/error-handler'
-import { createMockAuthPlugin } from '@/tests/helpers/auth'
-import { jsonRequest } from '@/tests/helpers/http'
-import { initEntityRoute } from './entity.route'
-import { EntityService } from './entity.service'
-
-function createMockService(overrides: Partial<EntityService> = {}): EntityService {
-  return {
-    handleList: async () => ({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 0 } }),
-    handleDetail: async () => ({ id: 1, name: 'Test' } as EntityDto),
-    handleCreate: async () => ({ id: 1 }),
-    handleUpdate: async () => ({ id: 1 }),
-    handleRemove: async () => ({ id: 1 }),
-    ...overrides,
-  } as EntityService
+// Route test
+function createMockService(overrides = {}): EntityService {
+  return { handleList: async () => ({ data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 0 } }), ...overrides } as EntityService
 }
 
 function createTestApp(service: EntityService) {
-  return new Elysia()
-    .use(errorHandler)
-    .use(createMockAuthPlugin())
-    .use(initEntityRoute(service))
+  return new Elysia().use(errorHandler).use(createMockAuthPlugin()).use(initEntityRoute(service))
 }
-
-describe('Entity Routes', () => {
-  it('GET /entity/list returns paginated response', async () => {
-    const app = createTestApp(createMockService())
-    const res = await app.handle(jsonRequest('GET', '/entity/list'))
-    const body = await res.json()
-    expect(body.success).toBe(true)
-    expect(body.meta).toBeDefined()
-  })
-})
 ```
 
-### Test Helpers
-
-See `src/tests/helpers/`:
-- `auth.ts` — `createMockAuthPlugin()`, `mockAuthenticatedUser`
-- `http.ts` — `createRouteTestApp()`, `jsonRequest()`
-- `response.ts` — `expectSuccessResponse()`, `expectPaginatedResponse()`
+Test helpers: `src/tests/helpers/` — auth.ts, http.ts, response.ts
 
 ---
 
