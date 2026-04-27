@@ -18,17 +18,17 @@ import type {
 	UsageTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-} from '@/modules/inventory/dto'
+} from './stock-transaction.dto'
 import type { MaterialLocationService } from '@/modules/material'
 
-import { StockExternalMovementService } from './stock/stock-external-movement.service'
-import { StockHistoryService } from './stock/stock-history.service'
-import { StockInternalMovementService } from './stock/stock-internal-movement.service'
+import { StockExternalMovementService } from './sub-services/stock-external-movement.service'
+import { StockHistoryService } from './sub-services/stock-history.service'
+import { StockInternalMovementService } from './sub-services/stock-internal-movement.service'
 
 /**
  * StockTransactionService (Layer 2)
  * Primary facade for all inventory stock movements and history.
- * Modularized into sub-services (HARD-01) to comply with < 300 line limit.
+ * Modularized into sub-services to comply with < 300 line limit.
  */
 export class StockTransactionService {
 	private readonly history: StockHistoryService

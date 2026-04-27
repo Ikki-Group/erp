@@ -1,16 +1,25 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, cacheEventBus } from '@/core/cache'
 
 import { db } from '@/db'
 import { materialLocationsTable, materialsTable } from '@/db/schema/material'
 
-import type { DashboardKpiFilterDto } from '../dto'
+import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
 
 const cache = bento.namespace('inventory.dashboard')
 
 export class StockDashboardRepo {
+	/* -------------------------------- INTERNAL -------------------------------- */
+
+	constructor() {
+		// Subscribe to external events for cross-domain cache invalidation
+		cacheEventBus.on('material-location.stock-updated', () => {
+			void cache.clear()
+		})
+	}
+
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getKpi(filter: DashboardKpiFilterDto) {

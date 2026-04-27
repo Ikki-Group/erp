@@ -11,10 +11,10 @@ import {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from '../dto'
-import type { InventoryServiceModule } from '../service'
+} from './stock-summary.dto'
+import type { StockSummaryService } from './stock-summary.service'
 
-export function initStockSummaryRoute(s: InventoryServiceModule) {
+export function initStockSummaryRoute(s: StockSummaryService) {
 	return (
 		new Elysia({ prefix: '/summary' })
 			.use(authPluginMacro)
@@ -23,7 +23,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.get(
 				'/by-location',
 				async function byLocation({ query }) {
-					const result = await s.summary.handleByLocation(query)
+					const result = await s.handleByLocation(query)
 					return res.paginated(result)
 				},
 				{
@@ -38,7 +38,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.get(
 				'/ledger',
 				async function ledger({ query }) {
-					const result = await s.summary.handleLedger(query)
+					const result = await s.handleLedger(query)
 					return res.paginated(result)
 				},
 				{
@@ -53,7 +53,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.post(
 				'/generate',
 				async function generate({ body, auth }) {
-					const result = await s.summary.handleGenerate(body, auth.userId)
+					const result = await s.handleGenerate(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -68,7 +68,7 @@ export function initStockSummaryRoute(s: InventoryServiceModule) {
 			.post(
 				'/remove',
 				async function remove({ query, auth }) {
-					await s.summary.handleRemove(query.id, auth.userId)
+					await s.handleRemove(query.id, auth.userId)
 					return res.ok({ id: query.id })
 				},
 				{

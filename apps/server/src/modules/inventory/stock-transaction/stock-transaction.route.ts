@@ -17,10 +17,10 @@ import {
 	SellTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-} from '../dto'
-import type { InventoryServiceModule } from '../service'
+} from './stock-transaction.dto'
+import type { StockTransactionService } from './stock-transaction.service'
 
-export function initStockTransactionRoute(s: InventoryServiceModule) {
+export function initStockTransactionRoute(s: StockTransactionService) {
 	return (
 		new Elysia({ prefix: '/transaction' })
 			.use(authPluginMacro)
@@ -29,7 +29,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/purchase',
 				async function purchase({ body, auth }) {
-					const result = await s.transaction.handlePurchase(body, auth.userId)
+					const result = await s.handlePurchase(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -44,7 +44,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/transfer',
 				async function transfer({ body, auth }) {
-					const result = await s.transaction.handleTransfer(body, auth.userId)
+					const result = await s.handleTransfer(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -59,7 +59,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/adjustment',
 				async function adjustment({ body, auth }) {
-					const result = await s.transaction.handleAdjustment(body, auth.userId)
+					const result = await s.handleAdjustment(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -70,11 +70,11 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 				},
 			)
 
-			/* ─────── Record stock opname (single material) ─────── */
+			/* ─────── Record stock opname (multiple materials) ─────── */
 			.post(
 				'/opname',
 				async function opname({ body, auth }) {
-					const result = await s.transaction.handleOpname(body, auth.userId)
+					const result = await s.handleOpname(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -89,7 +89,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/usage',
 				async function usage({ body, auth }) {
-					const result = await s.transaction.handleUsage(body, auth.userId)
+					const result = await s.handleUsage(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -104,7 +104,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/sell',
 				async function sell({ body, auth }) {
-					const result = await s.transaction.handleSell(body, auth.userId)
+					const result = await s.handleSell(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -119,7 +119,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/production-in',
 				async function productionIn({ body, auth }) {
-					const result = await s.transaction.handleProductionIn(body, auth.userId)
+					const result = await s.handleProductionIn(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -134,7 +134,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/production-out',
 				async function productionOut({ body, auth }) {
-					const result = await s.transaction.handleProductionOut(body, auth.userId)
+					const result = await s.handleProductionOut(body, auth.userId)
 					return res.ok(result)
 				},
 				{
@@ -149,7 +149,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.get(
 				'/list',
 				async function list({ query }) {
-					const result = await s.transaction.handleList(query)
+					const result = await s.handleList(query)
 					return res.paginated(result)
 				},
 				{
@@ -164,7 +164,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.get(
 				'/detail',
 				async function detail({ query }) {
-					const data = await s.transaction.handleDetail(query.id)
+					const data = await s.handleDetail(query.id)
 					return res.ok(data)
 				},
 				{
@@ -179,7 +179,7 @@ export function initStockTransactionRoute(s: InventoryServiceModule) {
 			.post(
 				'/remove',
 				async function remove({ query, auth }) {
-					await s.transaction.handleRemove(query.id, auth.userId)
+					await s.handleRemove(query.id, auth.userId)
 					return res.ok({ id: query.id })
 				},
 				{

@@ -16,14 +16,13 @@ import type {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from '../dto'
-import { StockSummaryRepo } from '../repo/stock-summary.repo'
+} from './stock-summary.dto'
+import { StockSummaryRepo } from './stock-summary.repo'
 
 export class StockSummaryService {
-	constructor(
-		private readonly mLocationSvc: MaterialLocationService,
-		private readonly repo: StockSummaryRepo = new StockSummaryRepo(),
-	) {}
+	private readonly repo = new StockSummaryRepo()
+
+	constructor(private readonly mLocationSvc: MaterialLocationService) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
@@ -134,9 +133,9 @@ export class StockSummaryService {
 						purchaseValue = 0,
 						transferInQty = 0,
 						transferInValue = 0,
-						adjustmentQty = 0,
 						transferOutQty = 0,
 						transferOutValue = 0,
+						adjustmentQty = 0,
 						adjustmentValue = 0,
 						usageQty = 0,
 						usageValue = 0,

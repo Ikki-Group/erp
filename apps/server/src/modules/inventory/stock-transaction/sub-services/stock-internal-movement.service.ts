@@ -12,7 +12,7 @@ import type {
 	AdjustmentTransactionDto,
 	StockOpnameDto,
 	TransactionResultDto,
-} from '@/modules/inventory/dto'
+} from '../stock-transaction.dto'
 
 import { MovementLogic } from './movement-logic'
 

@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { StockAlertFilterDto } from '../dto'
-import { StockAlertRepo } from '../repo/stock-alert.repo'
+import type { StockAlertFilterDto } from './stock-alert.dto'
+import { StockAlertRepo } from './stock-alert.repo'
 
 export class StockAlertService {
-	constructor(private readonly repo = new StockAlertRepo()) {}
+	private readonly repo = new StockAlertRepo()
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

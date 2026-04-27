@@ -16,7 +16,7 @@ import {
 	sum,
 } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, CACHE_KEY_DEFAULT, cacheEventBus } from '@/core/cache'
 import { paginate, type WithPaginationResult } from '@/core/database'
 import { toWibDateKey } from '@/core/utils/date.util'
 
@@ -28,7 +28,7 @@ import type {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from '../dto'
+} from './stock-summary.dto'
 
 const cache = bento.namespace('inventory.summary')
 
@@ -36,7 +36,10 @@ export class StockSummaryRepo {
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache() {
-		await cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+		return record('StockSummaryRepo.#clearCache', async () => {
+			const keys = [CACHE_KEY_DEFAULT.list, 'by-location', 'ledger', CACHE_KEY_DEFAULT.count]
+			await cache.deleteMany({ keys })
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
@@ -324,6 +327,8 @@ export class StockSummaryRepo {
 					},
 				})
 			void this.#clearCache()
+			// Emit event for potential listeners
+			cacheEventBus.emit('stock-summary.updated', { count: data.length })
 			return data.length
 		})
 	}

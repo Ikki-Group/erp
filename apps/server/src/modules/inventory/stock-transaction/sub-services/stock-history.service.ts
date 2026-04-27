@@ -7,11 +7,11 @@ import type {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
-} from '@/modules/inventory/dto'
-import { StockTransactionRepo } from '@/modules/inventory/repo'
+} from '../stock-transaction.dto'
+import { StockTransactionRepo } from '../stock-transaction.repo'
 
 export class StockHistoryService {
-	constructor(private readonly repo = new StockTransactionRepo()) {}
+	private readonly repo = new StockTransactionRepo()
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

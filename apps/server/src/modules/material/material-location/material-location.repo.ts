@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, cacheEventBus } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
@@ -32,9 +32,8 @@ export class MaterialLocationRepo {
 		if (materialId && locationId) keys.push(`one.${materialId}.${locationId}`)
 
 		await cache.deleteMany({ keys })
-		// Also invalidate dashboard/alert caches as they depend on materialLocationsTable
-		await bento.namespace('inventory.dashboard').clear()
-		await bento.namespace('inventory.alert').clear()
+		// Emit event for cross-domain cache invalidation (inventory dashboard/alert)
+		cacheEventBus.emit('material-location.stock-updated', { materialId, locationId })
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */

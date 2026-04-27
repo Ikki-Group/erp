@@ -7,7 +7,7 @@ import { BadRequestError } from '@/core/http/errors'
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
 
-import type { TransactionResultDto } from '@/modules/inventory/dto'
+import type { TransactionResultDto } from '../stock-transaction.dto'
 import type { MaterialLocationService } from '@/modules/material'
 
 export class MovementLogic {

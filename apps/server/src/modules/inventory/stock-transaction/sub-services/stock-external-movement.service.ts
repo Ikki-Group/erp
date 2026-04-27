@@ -13,7 +13,7 @@ import type {
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
 	TransactionResultDto,
-} from '@/modules/inventory/dto'
+} from '../stock-transaction.dto'
 
 import { MovementLogic } from './movement-logic'
 

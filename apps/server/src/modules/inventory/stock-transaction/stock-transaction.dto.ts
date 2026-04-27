@@ -162,3 +162,22 @@ export const TransactionResultDto = z.object({
 	referenceNo: zp.str,
 })
 export type TransactionResultDto = z.infer<typeof TransactionResultDto>
+
+/* ──────────────────── STOCK OPNAME ────────────────────── */
+
+/** Single material count in a stock opname */
+const StockOpnameItemDto = z.object({
+	materialId: zp.id,
+	physicalQty: z.coerce.string().refine((v) => Number(v) >= 0, 'Physical quantity cannot be negative'),
+	notes: zc.strTrimNullable.optional(),
+})
+
+/** Stock Opname: Recording physical count for multiple materials at one location */
+export const StockOpnameDto = z.object({
+	locationId: zp.id,
+	date: zp.date,
+	referenceNo: zc.strTrim.min(3).max(50),
+	notes: zc.strTrimNullable.optional(),
+	items: z.array(StockOpnameItemDto).min(1, 'At least one item is required'),
+})
+export type StockOpnameDto = z.infer<typeof StockOpnameDto>

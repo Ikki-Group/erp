@@ -1,17 +1,26 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, cacheEventBus } from '@/core/cache'
 
 import { db } from '@/db'
 import { locationsTable } from '@/db/schema/location'
 import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
 
-import type { StockAlertFilterDto } from '../dto'
+import type { StockAlertFilterDto } from './stock-alert.dto'
 
 const cache = bento.namespace('inventory.alert')
 
 export class StockAlertRepo {
+	/* -------------------------------- INTERNAL -------------------------------- */
+
+	constructor() {
+		// Subscribe to external events for cross-domain cache invalidation
+		cacheEventBus.on('material-location.stock-updated', () => {
+			void cache.clear()
+		})
+	}
+
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getAlerts(filter: StockAlertFilterDto & { page?: number; limit?: number }) {

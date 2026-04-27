@@ -5,17 +5,17 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/core/validation'
 
-import { StockAlertFilterDto, StockAlertSelectDto } from '../dto'
-import type { InventoryServiceModule } from '../service'
+import { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert.dto'
+import type { StockAlertService } from './stock-alert.service'
 
-export function initStockAlertRoute(s: InventoryServiceModule) {
+export function initStockAlertRoute(s: StockAlertService) {
 	return new Elysia({ prefix: '/alert' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			// @ts-ignore
 			async function list({ query }) {
-				const result = await s.alert.handleAlerts(query)
+				const result = await s.handleAlerts(query)
 				return res.paginated(result)
 			},
 			{
@@ -28,7 +28,7 @@ export function initStockAlertRoute(s: InventoryServiceModule) {
 		.get(
 			'/count',
 			async function count({ query }) {
-				const result = await s.alert.handleCount(query)
+				const result = await s.handleCount(query)
 				return res.ok(result)
 			},
 			{
