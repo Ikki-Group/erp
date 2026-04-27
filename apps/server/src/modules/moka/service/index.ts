@@ -1,4 +1,4 @@
-import type { FinanceServiceModule } from '../../finance/service'
+import type { FinanceServiceModule } from '@/modules/finance'
 import { MokaConfigurationService } from './moka-configuration.service'
 import { MokaScrapHistoryService } from './moka-scrap-history.service'
 import { MokaScrapService } from './moka-scrap.service'

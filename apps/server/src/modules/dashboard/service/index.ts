@@ -1,4 +1,4 @@
-import type { FinanceServiceModule } from '@/modules/finance/service'
+import type { FinanceServiceModule } from '@/modules/finance'
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { SalesServiceModule } from '@/modules/sales'
