@@ -1,6 +1,8 @@
 # 🚀 Code Patterns — Quick Reference
 
-**Golden Path 1.0 — Backend**
+**Golden Path 2.0 — Backend (Simplified)**
+
+> **Note**: For complete standards, see [SERVER_STANDARDS.md](./SERVER_STANDARDS.md)
 
 ---
 
