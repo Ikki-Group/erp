@@ -10,11 +10,11 @@ import type {
 	SalesOrderFilterDto,
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
-} from '../dto'
-import { SalesOrderRepo } from '../repo'
+} from './sales-order.dto'
+import { SalesOrderRepo } from './sales-order.repo'
 
 export class SalesOrderService {
-	constructor(private readonly repo = new SalesOrderRepo()) {}
+	private readonly repo = new SalesOrderRepo()
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

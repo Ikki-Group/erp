@@ -16,16 +16,16 @@ import {
 	SalesOrderFilterDto,
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
-} from '../dto'
-import type { SalesServiceModule } from '../service'
+} from './sales-order.dto'
+import type { SalesOrderService } from './sales-order.service'
 
-export function initSalesOrderRoute(s: SalesServiceModule) {
+export function initSalesOrderRoute(service: SalesOrderService) {
 	return new Elysia({ prefix: '/order' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
 			async function list({ query }) {
-				const result = await s.order.handleList(query)
+				const result = await service.handleList(query)
 				return res.paginated(result)
 			},
 			{
@@ -37,7 +37,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.get(
 			'/detail',
 			async function detail({ query }) {
-				const order = await s.order.handleDetail(query.id)
+				const order = await service.handleDetail(query.id)
 				return res.ok(order)
 			},
 			{
@@ -49,7 +49,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const { id } = await s.order.handleCreate(body, auth.userId)
+				const { id } = await service.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -61,7 +61,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.post(
 			'/add-batch',
 			async function addBatch({ query, body, auth }) {
-				const result = await s.order.handleAddBatch(query.id, body, auth.userId)
+				const result = await service.handleAddBatch(query.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{
@@ -74,7 +74,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.post(
 			'/close',
 			async function close({ query, auth }) {
-				const result = await s.order.handleClose(query.id, auth.userId)
+				const result = await service.handleClose(query.id, auth.userId)
 				return res.ok(result)
 			},
 			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
@@ -82,7 +82,7 @@ export function initSalesOrderRoute(s: SalesServiceModule) {
 		.post(
 			'/void',
 			async function voidOrder({ query, body, auth }) {
-				const result = await s.order.handleVoid(query.id, body, auth.userId)
+				const result = await service.handleVoid(query.id, body, auth.userId)
 				return res.ok(result)
 			},
 			{

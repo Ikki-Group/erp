@@ -31,7 +31,7 @@ import type {
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
 	SalesVoidDto,
-} from '../dto'
+} from './sales-order.dto'
 
 const cache = bento.namespace('sales.order')
 
@@ -313,7 +313,7 @@ export class SalesOrderRepo {
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
 					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
+					const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
 
 				if (order.status !== 'open') throw err.notOpen(orderId)
 
@@ -362,7 +362,7 @@ export class SalesOrderRepo {
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
 					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
+					const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
 
 				if (order.status !== 'open') throw err.notOpen(orderId)
 
@@ -383,7 +383,7 @@ export class SalesOrderRepo {
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
 					.where(eq(salesOrdersTable.id, orderId))
-				const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
+					const order = takeFirstOrThrow(orderResult, err.notFound(orderId).message)
 
 				const metadata = stampCreate(actorId)
 
@@ -405,7 +405,7 @@ export class SalesOrderRepo {
 						.select({ id: salesOrderItemsTable.id })
 						.from(salesOrderItemsTable)
 						.where(eq(salesOrderItemsTable.id, data.itemId))
-					takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId!).message)
+						takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId!).message)
 
 					if (order.status === 'open') {
 						await this.#recalculateOrderTotals(tx, orderId, actorId)

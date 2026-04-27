@@ -1,7 +1,7 @@
 import type { FinanceServiceModule } from '@/modules/finance/service'
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
-import type { SalesServiceModule } from '@/modules/sales/service'
+import type { SalesServiceModule } from '@/modules/sales'
 
 import { AnalyticsService } from './analytics.service'
 import { SettingsService } from './settings.service'
