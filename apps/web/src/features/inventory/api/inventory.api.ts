@@ -3,7 +3,12 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@/lib/validation'
 
 import {
 	AdjustmentTransactionDto,
@@ -23,10 +28,10 @@ import {
 	SellTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-	stockAlertFilterSchema,
-	stockAlertSelectSchema,
-	dashboardKpiFilterSchema,
-	dashboardKpiSelectSchema,
+	StockAlertFilterDto,
+	StockAlertSelectDto,
+	DashboardKpiFilterDto,
+	DashboardKpiSelectDto,
 } from '../dto'
 
 export const stockSummaryApi = {
@@ -165,13 +170,13 @@ export const stockAlertApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryAlert.list,
-		params: z.object({ ...zq.pagination.shape, ...stockAlertFilterSchema.shape }),
-		result: createPaginatedResponseSchema(stockAlertSelectSchema),
+		params: z.object({ ...zq.pagination.shape, ...StockAlertFilterDto.shape }),
+		result: createPaginatedResponseSchema(StockAlertSelectDto),
 	}),
 	count: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryAlert.count,
-		params: stockAlertFilterSchema,
+		params: StockAlertFilterDto,
 		result: createSuccessResponseSchema(z.object({ count: z.number() })),
 	}),
 }
@@ -180,7 +185,7 @@ export const stockDashboardApi = {
 	kpi: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryDashboard.kpi,
-		params: dashboardKpiFilterSchema,
-		result: createSuccessResponseSchema(dashboardKpiSelectSchema),
+		params: DashboardKpiFilterDto,
+		result: createSuccessResponseSchema(DashboardKpiSelectDto),
 	}),
 }
