@@ -5,10 +5,10 @@ import { describe, expect, it } from 'bun:test'
 setupIntegrationTests()
 
 describe('HR API', () => {
-	describe('GET /hr/list', () => {
+	describe('GET /hr/shifts', () => {
 		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/hr/list'))
+			const res = await app.handle(jsonRequest('GET', '/hr/shifts'))
 			expect(res.status).toBe(401)
 		})
 	})
