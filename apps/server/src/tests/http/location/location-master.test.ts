@@ -8,7 +8,7 @@ import { LocationMasterRepo } from '@/modules/location/location-master/location-
 import { initLocationRoute } from '@/modules/location/location-master/location-master.route'
 import { LocationMasterService } from '@/modules/location/location-master/location-master.service'
 
-import { setupIntegrationTests, Factory } from '@/tests/helpers'
+import { setupIntegrationTests, Factory, getTestDatabase, createTestCache } from '@/tests/helpers'
 import { createMockAuthPlugin } from '@/tests/helpers/auth'
 import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 import { describe, expect, it, beforeAll } from 'bun:test'
@@ -56,7 +56,10 @@ async function expectOK<T>(res: Response): Promise<T> {
 
 // Initialize shared app once
 beforeAll(() => {
-	const repo = new LocationMasterRepo()
+	const db = getTestDatabase()
+	const cache = createTestCache()
+
+	const repo = new LocationMasterRepo(db, cache)
 	service = new LocationMasterService(repo)
 	const route = initLocationRoute(service)
 

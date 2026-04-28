@@ -10,7 +10,13 @@ import { initUserRoute } from '@/modules/iam/user/user.route'
 import { UserService } from '@/modules/iam/user/user.service'
 import { LocationServiceModule } from '@/modules/location'
 
-import { setupIntegrationTests, Factory, IamFixtures } from '@/tests/helpers'
+import {
+	setupIntegrationTests,
+	Factory,
+	IamFixtures,
+	getTestDatabase,
+	createTestCache,
+} from '@/tests/helpers'
 import { createMockAuthPlugin } from '@/tests/helpers/auth'
 import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 import { describe, expect, it, beforeAll } from 'bun:test'
@@ -58,14 +64,20 @@ async function expectOK<T>(res: Response): Promise<T> {
 
 // Initialize shared app once
 beforeAll(() => {
-	const locationModule = new LocationServiceModule()
-	const roleService = new RoleService()
+	const db = getTestDatabase()
+	const cache = createTestCache()
+
+	const locationModule = new LocationServiceModule(db, cache)
+	const roleService = new RoleService(new RoleService())
 	const assignmentService = new UserAssignmentService()
-	userService = new UserService({
-		role: roleService,
-		assignment: assignmentService,
-		location: locationModule,
-	})
+	userService = new UserService(
+		{
+			role: roleService,
+			assignment: assignmentService,
+			location: locationModule,
+		},
+		new UserService(db, cache),
+	)
 
 	const route = initUserRoute(userService)
 
