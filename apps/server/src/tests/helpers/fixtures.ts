@@ -5,7 +5,7 @@
  * Use these to ensure consistency across tests.
  */
 
-import { Factory } from './factory'
+import { Factory } from './factories'
 
 // ==================== IAM Fixtures ====================
 

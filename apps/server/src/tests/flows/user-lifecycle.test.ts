@@ -1,5 +1,5 @@
-import { createTestApp, jsonRequest } from '@/tests/helpers/app'
-import { Factory } from '@/tests/helpers/factory'
+import { createTestApp, jsonRequest } from '@/tests/helpers/app-builder'
+import { Factory } from '@/tests/helpers/factories'
 import { expectSuccessResponse } from '@/tests/helpers/response'
 import { describe, expect, it } from 'bun:test'
 
@@ -138,11 +138,12 @@ describe('User Lifecycle Flow', () => {
 			expect(listRes.status).toBe(200)
 			const listBody = await listRes.json()
 			expectSuccessResponse(listBody)
-			expect(listBody.data.items).toBeArray()
-			expect(listBody.data.items.length).toBeGreaterThan(0)
-			const createdUser = listBody.data.items.find((u: any) => u.email === 'listtest@example.com')
+			const listData = listBody.data as { items: Array<{ email: string; username: string }> }
+			expect(listData.items).toBeArray()
+			expect(listData.items.length).toBeGreaterThan(0)
+			const createdUser = listData.items.find((u) => u.email === 'listtest@example.com')
 			expect(createdUser).toBeDefined()
-			expect(createdUser.username).toBe('listtest')
+			expect(createdUser?.username).toBe('listtest')
 		})
 	})
 

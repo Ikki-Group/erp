@@ -1,5 +1,5 @@
 import { clearTestCache } from './cache'
-import { setupTestDatabase, resetTestDatabase, teardownTestDatabase } from './db'
+import { clearTestData, setupTestDatabase, teardownTestDatabase } from './db'
 import { beforeAll, afterAll, afterEach } from 'bun:test'
 
 /**
@@ -22,7 +22,7 @@ export function setupIntegrationTests(): void {
 	})
 
 	afterEach(async () => {
-		await resetTestDatabase()
+		await clearTestData()
 		await clearTestCache()
 	})
 

@@ -55,6 +55,14 @@ export async function resetTestDatabase(): Promise<void> {
 	}
 }
 
+/**
+ * Clears all test data from tables.
+ * Use this in beforeEach hooks for per-test cleanup.
+ */
+export async function clearTestData(): Promise<void> {
+	await resetTestDatabase()
+}
+
 export async function teardownTestDatabase(): Promise<void> {
 	if (testClient) {
 		await testClient.close()

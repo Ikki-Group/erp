@@ -24,6 +24,26 @@ export function createTestApp(
 }
 
 /**
+ * Creates a test app with optional authentication.
+ * Simplified version for backward compatibility.
+ */
+export function createRouteTestApp(
+	route: (app: Elysia) => Elysia,
+	options: { authenticated?: boolean } = { authenticated: true },
+) {
+	const app = new Elysia()
+	app.use(errorHandler)
+	app.use(requestIdPlugin())
+	app.use(cors())
+
+	if (options.authenticated !== false) {
+		app.use(createMockAuthPlugin())
+	}
+
+	return app.use(route)
+}
+
+/**
  * Helper to make JSON requests in tests
  */
 export function jsonRequest(

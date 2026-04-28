@@ -2,11 +2,11 @@
 // Re-export all test utilities from a single entry point
 
 // Database & Setup
-export { getTestDatabase, setupTestDatabase, resetTestDatabase, teardownTestDatabase } from './db'
+export { getTestDatabase, setupTestDatabase, clearTestData, teardownTestDatabase } from './db'
 
 export { setupIntegrationTests, setupUnitTests } from './setup'
 
-// Factories
+// Factories (reorganized by module)
 export {
 	Factory,
 	createUser,
@@ -17,7 +17,7 @@ export {
 	createMaterial,
 	createProductCategory,
 	createProduct,
-} from './factory'
+} from './factories'
 
 // Fixtures
 export {
@@ -37,9 +37,8 @@ export {
 	authHeaders,
 } from './auth'
 
-// HTTP
-export { createRouteTestApp, jsonRequest } from './http'
-export { createTestApp } from './app'
+// HTTP & App Builders
+export { createTestApp, createRouteTestApp, jsonRequest } from './app-builder'
 
 // Response Assertions
 export {
