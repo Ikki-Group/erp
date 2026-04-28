@@ -3,6 +3,7 @@
 
 // Database & Setup
 export { getTestDatabase, setupTestDatabase, clearTestData, teardownTestDatabase } from './db'
+export { seedReferenceData, seedDevData } from './seed'
 
 export { setupIntegrationTests, setupUnitTests } from './setup'
 

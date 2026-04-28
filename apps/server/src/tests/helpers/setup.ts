@@ -1,5 +1,6 @@
 import { clearTestCache } from './cache'
 import { clearTestData, setupTestDatabase, teardownTestDatabase } from './db'
+import { seedReferenceData } from './seed'
 import { beforeAll, afterAll, afterEach } from 'bun:test'
 
 /**
@@ -18,6 +19,7 @@ import { beforeAll, afterAll, afterEach } from 'bun:test'
  */
 export function setupIntegrationTests(): void {
 	beforeAll(async () => {
+		await seedReferenceData()
 		await setupTestDatabase()
 	})
 
