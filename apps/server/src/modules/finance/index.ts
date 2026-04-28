@@ -39,3 +39,6 @@ export function initFinanceRouteModule(s: FinanceServiceModule) {
 		.use(initExpenditureRoute(s.expenditure))
 		.use(initGeneralLedgerRoute(s.journal))
 }
+
+export type { AccountService } from './account/account.service'
+export type { GeneralLedgerService } from './general-ledger/general-ledger.service'
