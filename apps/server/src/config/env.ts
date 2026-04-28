@@ -24,8 +24,8 @@ const Env = z.object({
 
 	OTEL_LOGS_ENABLED: z
 		.string()
-		.transform((v) => v === 'true')
-		.default(true),
+		.default('true')
+		.transform((v) => v === 'true'),
 	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
 	// App
@@ -33,12 +33,17 @@ const Env = z.object({
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
 	LOG_PRETTY: z
 		.string()
-		.transform((v) => v === 'true')
-		.default(false),
+		.default('false')
+		.transform((v) => v === 'true'),
 
 	// Upstash
 	UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
 	UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
+
+	// Seed
+	SEED_SUPERADMIN_EMAIL: z.email().optional(),
+	SEED_SUPERADMIN_PASSWORD: z.string().min(8).optional(),
+	SEED_SUPERADMIN_USERNAME: z.string().min(3).optional(),
 })
 
 const _env = Env.safeParse(Bun.env)
