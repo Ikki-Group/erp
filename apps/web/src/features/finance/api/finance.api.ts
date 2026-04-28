@@ -48,7 +48,7 @@ export const accountApi = {
 	}),
 }
 
-export const journalApi = {
+export const generalLedgerApi = {
 	entries: apiFactory({
 		method: 'get',
 		url: endpoint.finance.journal.entries,
