@@ -71,6 +71,13 @@ export const goodsReceiptApi = {
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(GoodsReceiptNoteDto),
 	}),
+	create: apiFactory({
+		method: 'post',
+		url: endpoint.purchasing.goodsReceipt.create,
+		body: GoodsReceiptNoteCreateDto,
+		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.purchasing.goodsReceipt.list, endpoint.inventory.summary.byLocation],
+	}),
 	complete: apiFactory({
 		method: 'post',
 		url: endpoint.purchasing.goodsReceipt.complete,

@@ -30,18 +30,21 @@ export const accountApi = {
 		url: endpoint.finance.account.create,
 		body: AccountCreateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.finance.account.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.finance.account.update,
 		body: AccountUpdateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.finance.account.list, endpoint.finance.account.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.finance.account.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.finance.account.list],
 	}),
 }
 

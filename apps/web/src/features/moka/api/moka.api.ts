@@ -31,18 +31,21 @@ export const mokaApi = {
 			deletedAt: true,
 		}),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.moka.configuration.list],
 	}),
 	updateConfiguration: apiFactory({
 		method: 'patch',
 		url: endpoint.moka.configuration.update,
 		body: MokaConfigurationDto.omit({ createdAt: true, updatedAt: true, deletedAt: true }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.moka.configuration.list, endpoint.moka.configuration.detail],
 	}),
 	removeConfiguration: apiFactory({
 		method: 'delete',
 		url: endpoint.moka.configuration.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.moka.configuration.list],
 	}),
 	scrapHistory: apiFactory({
 		method: 'get',
@@ -55,5 +58,6 @@ export const mokaApi = {
 		url: endpoint.moka.scrap.trigger,
 		body: MokaTriggerInputDto,
 		result: createSuccessResponseSchema(z.any()),
+		invalidates: [endpoint.moka.scrap.history],
 	}),
 }

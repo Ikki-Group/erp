@@ -37,6 +37,7 @@ export const hrApi = {
 		url: endpoint.hr.shifts.create,
 		body: ShiftCreateDto,
 		result: createSuccessResponseSchema(ShiftDto),
+		invalidates: [endpoint.hr.shifts.list],
 	}),
 	attendances: apiFactory({
 		method: 'get',
@@ -49,12 +50,14 @@ export const hrApi = {
 		url: endpoint.hr.clockIn,
 		body: ClockInDto,
 		result: createSuccessResponseSchema(AttendanceDto),
+		invalidates: [endpoint.hr.attendances.list],
 	}),
 	clockOut: apiFactory({
 		method: 'post',
 		url: endpoint.hr.clockOut,
 		body: ClockOutDto,
 		result: createSuccessResponseSchema(AttendanceDto),
+		invalidates: [endpoint.hr.attendances.list],
 	}),
 }
 
