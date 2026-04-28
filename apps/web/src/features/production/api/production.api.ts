@@ -3,10 +3,15 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@/lib/validation'
 
 import {
-	WorkOrderCompleteDto,
+	WorkOrderCompleteBodyDto,
 	WorkOrderCreateDto,
 	WorkOrderDto,
 	WorkOrderFilterDto,
@@ -58,7 +63,7 @@ export const workOrderApi = {
 		method: 'post',
 		url: endpoint.production.workOrder.complete,
 		params: zc.RecordId,
-		body: WorkOrderCompleteDto.omit({ id: true }),
+		body: WorkOrderCompleteBodyDto,
 		result: createSuccessResponseSchema(WorkOrderDto),
 		invalidates: [
 			endpoint.production.workOrder.list,

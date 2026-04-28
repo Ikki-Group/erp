@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { zp, zc, zq } from '@/lib/validation'
 
 export const GoodsReceiptStatusEnum = z.enum(['open', 'completed', 'void'])

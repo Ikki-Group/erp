@@ -10,8 +10,6 @@ Required repository secrets
 
 - **Fly.io:**
   - `FLY_API_TOKEN` — Fly.io API token
-  - `FLY_APP_MAIN` — Fly app name for the `main` branch (production)
-  - `FLY_APP_DEV` — Fly app name for the `dev` branch (development)
 
 Notes
 

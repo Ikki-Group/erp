@@ -5,9 +5,13 @@ import { endpoint } from '@/config/endpoint'
 import { apiFactory } from '@/lib/api'
 import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
-import { MokaConfigurationDto } from '../dto/moka-configuration.dto'
-import { MokaScrapHistoryDto } from '../dto/moka-scrap-history.dto'
-import { MokaTriggerInputDto } from '../dto/moka.dto'
+import {
+	MokaConfigurationCreateDto,
+	MokaConfigurationDto,
+	MokaConfigurationUpdateDto,
+} from '../dto/moka-configuration.dto'
+import { MokaScrapHistoryDto, MokaScrapHistoryFilterDto } from '../dto/moka-scrap-history.dto'
+import { MokaTriggerInputDto, MokaTriggerResultDto } from '../dto/moka.dto'
 
 export const mokaApi = {
 	listConfiguration: apiFactory({
@@ -24,19 +28,14 @@ export const mokaApi = {
 	createConfiguration: apiFactory({
 		method: 'post',
 		url: endpoint.moka.configuration.create,
-		body: MokaConfigurationDto.omit({
-			id: true,
-			createdAt: true,
-			updatedAt: true,
-			deletedAt: true,
-		}),
+		body: MokaConfigurationCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.moka.configuration.list],
 	}),
 	updateConfiguration: apiFactory({
 		method: 'patch',
 		url: endpoint.moka.configuration.update,
-		body: MokaConfigurationDto.omit({ createdAt: true, updatedAt: true, deletedAt: true }),
+		body: MokaConfigurationUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.moka.configuration.list, endpoint.moka.configuration.detail],
 	}),
@@ -50,14 +49,14 @@ export const mokaApi = {
 	scrapHistory: apiFactory({
 		method: 'get',
 		url: endpoint.moka.scrap.history,
-		params: z.object({ mokaConfigurationId: z.number().optional() }),
+		params: MokaScrapHistoryFilterDto,
 		result: createSuccessResponseSchema(z.array(MokaScrapHistoryDto)),
 	}),
 	triggerScrap: apiFactory({
 		method: 'post',
 		url: endpoint.moka.scrap.trigger,
 		body: MokaTriggerInputDto,
-		result: createSuccessResponseSchema(z.any()),
+		result: createSuccessResponseSchema(MokaTriggerResultDto),
 		invalidates: [endpoint.moka.scrap.history],
 	}),
 }

@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { zp } from '@/lib/validation'
 
 import { MokaScrapType } from './moka-scrap-history.dto'
@@ -85,3 +87,6 @@ export const MokaTriggerInputDto = z.object({
 	dateTo: zp.date.optional(),
 })
 export type MokaTriggerInputDto = z.infer<typeof MokaTriggerInputDto>
+
+export const MokaTriggerResultDto = z.object({ historyId: zp.id })
+export type MokaTriggerResultDto = z.infer<typeof MokaTriggerResultDto>

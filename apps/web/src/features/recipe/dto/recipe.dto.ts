@@ -12,7 +12,7 @@ export const RecipeItemDto = z.object({
 	scrapPercentage: zp.decimal,
 	uomId: zp.id,
 	notes: zp.strNullable,
-	sortOrder: zSortOrder,
+	sortOrder: zp.num,
 
 	// optional joins
 	material: z.object({ name: z.string(), sku: z.string() }).optional(),
@@ -66,7 +66,7 @@ export const RecipeItemMutationDto = z.object({
 	scrapPercentage: zp.decimal.optional().default('0'),
 	uomId: zp.id,
 	notes: zp.str.optional(),
-	sortOrder: zSortOrder.optional().default(0),
+	sortOrder: zp.num.optional().default(0),
 })
 
 export type RecipeItemMutationDto = z.infer<typeof RecipeItemMutationDto>

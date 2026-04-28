@@ -72,3 +72,7 @@ export const WorkOrderCompleteDto = z.object({
 })
 
 export type WorkOrderCompleteDto = z.infer<typeof WorkOrderCompleteDto>
+
+export const WorkOrderCompleteBodyDto = WorkOrderCompleteDto.omit({ id: true })
+
+export type WorkOrderCompleteBodyDto = z.infer<typeof WorkOrderCompleteBodyDto>

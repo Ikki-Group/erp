@@ -23,7 +23,7 @@ jobs:
       - name: Use Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.1.0
 
       # Monorepo optimization: Install dependencies from the root to leverage the global lockfile and shared cache
       - name: Install dependencies
@@ -36,15 +36,20 @@ jobs:
       - name: Determine Cloudflare project
         id: cf
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
             echo "project=${CLOUDFLARE_PROJECT_MAIN}" >> $GITHUB_OUTPUT
-          else
+          elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
             echo "project=${CLOUDFLARE_PROJECT_DEV}" >> $GITHUB_OUTPUT
+          else
+            echo "Skipping deployment: branch ${GITHUB_REF_NAME} is not main or dev"
+            echo "skip=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Deploy to Cloudflare Pages
+        if: steps.cf.outputs.skip != 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
+          command: pages deploy dist --project-name=${{ steps.cf.outputs.project }}
