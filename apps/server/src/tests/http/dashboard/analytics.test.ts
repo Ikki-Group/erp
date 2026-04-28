@@ -16,5 +16,16 @@ describe('Dashboard Analytics API', () => {
 			)
 			expect(res.status).toBe(401)
 		})
+
+		it('returns 422 for missing required fields', async () => {
+			const app = createIntegrationTestApp()
+			const res = await app.handle(
+				jsonRequest('POST', '/dashboard/analytics/pnl', {
+					startDate: '2024-01-01',
+					// Missing endDate
+				}),
+			)
+			expect(res.status).toBe(422)
+		})
 	})
 })
