@@ -6,7 +6,7 @@ import type { DbClient } from '@/core/database/types'
 
 import { relations } from '@/db/schema'
 
-const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
+const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL
 
 let testClient: SQL | null = null
 let testDb: DbClient | null = null
@@ -18,7 +18,7 @@ export function getTestDatabase(): DbClient {
 			throw new Error('TEST_DATABASE_URL or DATABASE_URL must be set')
 		}
 		testClient = new SQL(TEST_DATABASE_URL)
-		testDb = drizzle({ client: testClient, relations }) as DbClient
+		testDb = drizzle({ client: testClient, relations })
 	}
 	return testDb
 }
@@ -29,15 +29,33 @@ export async function setupTestDatabase(): Promise<void> {
 		await runMigrations()
 		migrationsRun = true
 	}
-
-	// Truncate all tables to start fresh
-	await resetTestDatabase()
 }
 
+/**
+ * Wraps a test function in a transaction that rolls back on completion.
+ * This is faster than truncating tables and provides better isolation.
+ */
+export async function withTransaction<T>(fn: () => Promise<T>): Promise<T> {
+	const db = getTestDatabase()
+	await db.execute(sql`BEGIN`)
+	try {
+		const result = await fn()
+		await db.execute(sql`ROLLBACK`)
+		return result
+	} catch (error) {
+		await db.execute(sql`ROLLBACK`)
+		throw error
+	}
+}
+
+/**
+ * @deprecated Use withTransaction() instead for better performance
+ */
 export async function resetTestDatabase(): Promise<void> {
 	const db = getTestDatabase()
 
 	// Get all table names from the public schema
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 	const tables = (await db.execute(sql`
 		SELECT tablename FROM pg_tables 
 		WHERE schemaname = 'public' 
@@ -56,8 +74,7 @@ export async function resetTestDatabase(): Promise<void> {
 }
 
 /**
- * Clears all test data from tables.
- * Use this in beforeEach hooks for per-test cleanup.
+ * @deprecated Use withTransaction() instead for better performance
  */
 export async function clearTestData(): Promise<void> {
 	await resetTestDatabase()

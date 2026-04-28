@@ -4,11 +4,16 @@ import { Elysia } from 'elysia'
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
 
+import { initModules } from '@/modules/_registry'
+import { initRoutes } from '@/modules/_routes'
+
 import { createMockAuthPlugin, mockAuthenticatedUser } from './auth'
+import { getTestDatabase } from './db'
+import { createApp } from '@/app'
 
 /**
- * Creates a test app instance with mocked auth for HTTP integration tests.
- * This creates a minimal app with just the route under test.
+ * Creates a minimal test app with mocked auth for unit tests.
+ * Fast and focused - use for testing individual routes/components.
  */
 export function createTestApp(
 	route: ((app: Elysia) => Elysia) | Elysia,
@@ -41,6 +46,21 @@ export function createRouteTestApp(
 	}
 
 	return app.use(route)
+}
+
+/**
+ * Creates a full integration test app using real module registry.
+ * Use for realistic integration testing - slower but authentic.
+ */
+export function createIntegrationTestApp() {
+	const db = getTestDatabase()
+	const modules = initModules(db)
+	const routes = initRoutes(modules)
+
+	const app = createApp(modules)
+	routes.register(app)
+
+	return app
 }
 
 /**

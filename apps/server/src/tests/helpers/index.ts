@@ -2,8 +2,7 @@
 // Re-export all test utilities from a single entry point
 
 // Database & Setup
-export { getTestDatabase, setupTestDatabase, clearTestData, teardownTestDatabase } from './db'
-export { seedReferenceData, seedDevData } from './seed'
+export { getTestDatabase, setupTestDatabase, teardownTestDatabase, withTransaction } from './db'
 
 export { setupIntegrationTests, setupUnitTests } from './setup'
 
@@ -39,7 +38,12 @@ export {
 } from './auth'
 
 // HTTP & App Builders
-export { createTestApp, createRouteTestApp, jsonRequest } from './app-builder'
+export {
+	createTestApp,
+	createRouteTestApp,
+	createIntegrationTestApp,
+	jsonRequest,
+} from './app-builder'
 
 // Response Assertions
 export {

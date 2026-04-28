@@ -28,6 +28,7 @@ export function expectPaginatedResponse<T>(
 	response: unknown,
 ): asserts response is PaginatedResponse<T> {
 	expectSuccessResponse<T[]>(response)
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 	const r = response as PaginatedResponse<T>
 	expect(r).toHaveProperty('meta')
 	expect(r.meta).toBeObject()

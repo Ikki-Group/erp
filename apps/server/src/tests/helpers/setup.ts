@@ -1,43 +1,29 @@
 import { clearTestCache } from './cache'
-import { clearTestData, setupTestDatabase, teardownTestDatabase } from './db'
-import { seedReferenceData } from './seed'
+import { setupTestDatabase, teardownTestDatabase } from './db'
 import { beforeAll, afterAll, afterEach } from 'bun:test'
 
 /**
- * Sets up integration test lifecycle hooks.
- * Call this at the top of your integration test file.
- *
- * Example:
- * ```typescript
- * import { setupIntegrationTests } from '@/tests/helpers/setup'
- * setupIntegrationTests()
- *
- * describe('Material HTTP Endpoints', () => {
- *   // your tests here
- * })
- * ```
+ * Setup for unit tests - no database or cache required.
+ */
+export function setupUnitTests(): void {
+	afterEach(async () => {
+		await clearTestCache()
+	})
+}
+
+/**
+ * Setup for integration tests with database.
+ * Each test should use withTransaction() for isolation.
  */
 export function setupIntegrationTests(): void {
 	beforeAll(async () => {
-		await seedReferenceData()
 		await setupTestDatabase()
-	})
-
-	afterEach(async () => {
-		await clearTestData()
-		await clearTestCache()
 	})
 
 	afterAll(async () => {
 		await teardownTestDatabase()
 	})
-}
 
-/**
- * Sets up lightweight test lifecycle for unit tests that don't need DB.
- * Just clears cache between tests.
- */
-export function setupUnitTests(): void {
 	afterEach(async () => {
 		await clearTestCache()
 	})
