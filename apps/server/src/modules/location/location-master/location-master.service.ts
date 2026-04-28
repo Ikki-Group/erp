@@ -32,7 +32,7 @@ const err = {
 }
 
 export class LocationMasterService {
-	constructor(private readonly repo = new LocationMasterRepo()) {}
+	constructor(private readonly repo: LocationMasterRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

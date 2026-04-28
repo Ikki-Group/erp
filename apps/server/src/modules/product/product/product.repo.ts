@@ -1,18 +1,19 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
 	sortBy,
 	stampCreate,
 	stampUpdate,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import {
 	productExternalMappingsTable,
 	productPricesTable,
@@ -31,23 +32,37 @@ import {
 	VariantPriceDto,
 } from './product.dto'
 
-const cache = bento.namespace('product')
+const PRODUCT_CACHE_NAMESPACE = 'product'
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
 export class ProductRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(PRODUCT_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.count, CACHE_KEY_DEFAULT.list]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'ProductRepo cache invalidation failed')
+		})
 	}
 
 	async #getProductPricesBatch(productIds: number[]) {
 		if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
 
-		const prices = await db
+		const prices = await this.db
 			.select()
 			.from(productPricesTable)
 			.where(inArray(productPricesTable.productId, productIds))
@@ -62,7 +77,7 @@ export class ProductRepo {
 
 	async #getVariantsBatch(productIds: number[]) {
 		if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
-		const variants = await db
+		const variants = await this.db
 			.select()
 			.from(productVariantsTable)
 			.where(inArray(productVariantsTable.productId, productIds))
@@ -70,7 +85,7 @@ export class ProductRepo {
 		const variantIds = variants.map((v) => v.id)
 		const prices =
 			variantIds.length > 0
-				? await db
+				? await this.db
 						.select()
 						.from(variantPricesTable)
 						.where(inArray(variantPricesTable.variantId, variantIds))
@@ -99,7 +114,7 @@ export class ProductRepo {
 		productIds: number[],
 	): Promise<Map<number, ProductExternalMappingDto[]>> {
 		if (productIds.length === 0) return new Map()
-		const mappings = await db
+		const mappings = await this.db
 			.select()
 			.from(productExternalMappingsTable)
 			.where(inArray(productExternalMappingsTable.productId, productIds))
@@ -114,10 +129,10 @@ export class ProductRepo {
 
 	async getById(id: number): Promise<ProductDto | undefined> {
 		return record('ProductRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [product] = await db
+					const [product] = await this.db
 						.select()
 						.from(productsTable)
 						.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
@@ -150,7 +165,7 @@ export class ProductRepo {
 			const externalCondition =
 				isExternal !== undefined || provider !== undefined
 					? exists(
-							db
+							this.db
 								.select({ id: productExternalMappingsTable.id })
 								.from(productExternalMappingsTable)
 								.where(
@@ -179,7 +194,7 @@ export class ProductRepo {
 
 			const result = await paginate({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(productsTable)
 						.where(where)
@@ -187,7 +202,7 @@ export class ProductRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(productsTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
 			})
 
 			const productIds = result.data.map((p) => p.id)
@@ -224,7 +239,7 @@ export class ProductRepo {
 		]
 		if (excludeId) conditions.push(not(eq(productsTable.id, excludeId)))
 
-		const [conflict] = await db
+		const [conflict] = await this.db
 			.select({ sku: productsTable.sku, name: productsTable.name })
 			.from(productsTable)
 			.where(and(...conditions))
@@ -249,7 +264,7 @@ export class ProductRepo {
 	async create(data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductRepo.create', async () => {
 			const meta = stampCreate(actorId)
-			return db.transaction(async (tx) => {
+			return this.db.transaction(async (tx) => {
 				const [product] = await tx
 					.insert(productsTable)
 					.values({
@@ -327,7 +342,7 @@ export class ProductRepo {
 			const updateMeta = stampUpdate(actorId)
 			const createMeta = stampCreate(actorId)
 
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				await tx
 					.update(productsTable)
 					.set({
@@ -386,32 +401,32 @@ export class ProductRepo {
 					await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
 				}
 			})
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
 
 	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('ProductRepo.softDelete', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(productsTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(productsTable.id, id))
 				.returning({ id: productsTable.id })
 			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('ProductRepo.hardDelete', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.delete(productsTable)
 				.where(eq(productsTable.id, id))
 				.returning({ id: productsTable.id })
 			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result
 		})
 	}

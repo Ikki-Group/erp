@@ -49,8 +49,8 @@ export function initModules(db: DbClient): Modules {
 	const cacheClient = createCache()
 
 	// Layer 0 — Core
-	const location = new LocationServiceModule()
-	const product = new ProductServiceModule()
+	const location = new LocationServiceModule(db, cacheClient)
+	const product = new ProductServiceModule(db, cacheClient)
 
 	// Layer 1 — Masters
 	const iam = new IamServiceModule(db, cacheClient, { location })
@@ -60,7 +60,7 @@ export function initModules(db: DbClient): Modules {
 	const finance = new FinanceServiceModule()
 
 	// Layer 1.5 — Auth (Depends on Iam)
-	const auth = new AuthServiceModule(iam)
+	const auth = new AuthServiceModule(db, cacheClient, iam)
 
 	// Layer 2 — Operations
 	const inventory = new InventoryServiceModule(material)

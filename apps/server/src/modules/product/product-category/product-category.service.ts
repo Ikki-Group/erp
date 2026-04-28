@@ -12,7 +12,7 @@ import type {
 import { ProductCategoryRepo } from './product-category.repo'
 
 export class ProductCategoryService {
-	constructor(private readonly repo = new ProductCategoryRepo()) {}
+	constructor(private readonly repo: ProductCategoryRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

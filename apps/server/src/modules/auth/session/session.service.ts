@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { logger } from '@/core/logger'
 
 import type { UserDto } from '@/modules/iam'
@@ -10,17 +10,24 @@ import { SessionPayloadDto, type SessionDto } from './session.dto'
 import { SessionRepo } from './session.repo'
 import { env } from '@/config/env'
 
-const cache = bento.namespace('session')
+const SESSION_CACHE_NAMESPACE = 'session'
 
 export class SessionService {
-	constructor(private readonly repo = new SessionRepo()) {}
+	private readonly cache: CacheProvider
+
+	constructor(
+		private readonly repo: SessionRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = cacheClient.namespace(SESSION_CACHE_NAMESPACE)
+	}
 
 	/**
 	 * Finds a single session by its ID. Cached.
 	 */
 	async getById(id: number): Promise<SessionDto | undefined> {
 		return record('SessionService.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async () => this.repo.getById(id),
 			})
@@ -86,7 +93,7 @@ export class SessionService {
 	async deleteSession(id: number): Promise<void> {
 		return record('SessionService.deleteSession', async () => {
 			await this.repo.invalidate(id)
-			await cache.deleteMany({ keys: [`${id}`] })
+			await this.cache.deleteMany({ keys: [`${id}`] })
 		})
 	}
 

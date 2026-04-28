@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -10,11 +10,12 @@ import {
 	stampCreate,
 	stampUpdate,
 	type ConflictField,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 
 import {
@@ -24,7 +25,7 @@ import {
 	SalesTypeUpdateDto,
 } from './sales-type.dto'
 
-const cache = bento.namespace('sales-type')
+const SALES_TYPE_CACHE_NAMESPACE = 'sales-type'
 
 const uniqueFields: ConflictField<'code'>[] = [
 	{
@@ -36,22 +37,39 @@ const uniqueFields: ConflictField<'code'>[] = [
 ]
 
 export class SalesTypeRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(SALES_TYPE_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.count, CACHE_KEY_DEFAULT.list]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'SalesTypeRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<SalesTypeDto | undefined> {
 		return record('SalesTypeRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const result = await db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
+					const result = await this.db
+						.select()
+						.from(salesTypesTable)
+						.where(eq(salesTypesTable.id, id))
 					if (result.length === 0) return skip()
 					return SalesTypeDto.parse(result[0])
 				},
@@ -66,7 +84,7 @@ export class SalesTypeRepo {
 
 			return paginate({
 				data: async ({ limit: l, offset }) => {
-					const rows = await db
+					const rows = await this.db
 						.select()
 						.from(salesTypesTable)
 						.where(where)
@@ -76,17 +94,17 @@ export class SalesTypeRepo {
 					return rows.map((r) => SalesTypeDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(salesTypesTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(salesTypesTable).where(where),
 			})
 		})
 	}
 
 	async getAll(): Promise<SalesTypeDto[]> {
 		return record('SalesTypeRepo.getAll', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
 				factory: async () => {
-					const rows = await db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
+					const rows = await this.db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
 					return rows.map((r) => SalesTypeDto.parse(r))
 				},
 			})
@@ -99,7 +117,7 @@ export class SalesTypeRepo {
 		return record('SalesTypeRepo.seed', async () => {
 			for (const d of data) {
 				const metadata = stampCreate(d.createdBy)
-				await db
+				await this.db
 					.insert(salesTypesTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
@@ -112,7 +130,7 @@ export class SalesTypeRepo {
 						},
 					})
 			}
-			void this.#clearCache()
+			this.#clearCacheAsync()
 		})
 	}
 
@@ -128,7 +146,7 @@ export class SalesTypeRepo {
 				input: { code },
 			})
 
-			const [inserted] = await db
+			const [inserted] = await this.db
 				.insert(salesTypesTable)
 				.values({ ...data, code, name, isSystem: false, ...stampCreate(actorId) })
 				.returning({ id: salesTypesTable.id })
@@ -136,7 +154,7 @@ export class SalesTypeRepo {
 			if (!inserted)
 				throw new InternalServerError('Sales type creation failed', 'SALES_TYPE_CREATE_FAILED')
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -164,12 +182,12 @@ export class SalesTypeRepo {
 				existing,
 			})
 
-			await db
+			await this.db
 				.update(salesTypesTable)
 				.set({ ...data, code, name, isSystem: false, ...stampUpdate(actorId) })
 				.where(eq(salesTypesTable.id, id))
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
@@ -182,7 +200,7 @@ export class SalesTypeRepo {
 			if (existing.isSystem)
 				throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
 
-			const result = await db
+			const result = await this.db
 				.delete(salesTypesTable)
 				.where(eq(salesTypesTable.id, id))
 				.returning({ id: salesTypesTable.id })
@@ -190,7 +208,7 @@ export class SalesTypeRepo {
 			if (result.length === 0)
 				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}

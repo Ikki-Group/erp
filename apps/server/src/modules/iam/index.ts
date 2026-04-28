@@ -7,6 +7,7 @@ import type { LocationServiceModule } from '@/modules/location'
 
 import { initAssignmentRoute } from './assignment/assignment.route'
 import { UserAssignmentService } from './assignment/assignment.service'
+import { RoleRepo } from './role/role.repo'
 import { initRoleRoute } from './role/role.route'
 import { RoleService } from './role/role.service'
 import { UserRepo } from './user/user.repo'
@@ -27,7 +28,8 @@ export class IamServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: IamServiceModuleDeps,
 	) {
-		this.role = new RoleService()
+		const roleRepo = new RoleRepo(this.db, this.cacheClient)
+		this.role = new RoleService(roleRepo)
 		this.assignment = new UserAssignmentService()
 		this.user = new UserService(
 			{

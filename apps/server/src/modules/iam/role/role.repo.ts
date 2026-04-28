@@ -1,30 +1,45 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { rolesTable } from '@/db/schema'
 
 import * as dto from './role.dto'
 
-const cache = bento.namespace('role')
+const ROLE_CACHE_NAMESPACE = 'role'
 
 export class RoleRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(ROLE_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 	#clearCache(id?: number): Promise<void> {
 		return record('RoleRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+			await this.cache.deleteMany({ keys })
+		})
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'RoleRepo cache invalidation failed')
 		})
 	}
 
@@ -37,7 +52,7 @@ export class RoleRepo {
 
 			return paginate<dto.RoleDto>({
 				data: ({ limit: l, offset }) => {
-					const rows = db
+					const rows = this.db
 						.select()
 						.from(rolesTable)
 						.where(where)
@@ -47,26 +62,26 @@ export class RoleRepo {
 					return rows
 				},
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(rolesTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(rolesTable).where(where),
 			})
 		})
 	}
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleRepo.getList', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => db.select().from(rolesTable),
+				factory: async () => this.db.select().from(rolesTable),
 			})
 		})
 	}
 
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const res = await db
+					const res = await this.db
 						.select()
 						.from(rolesTable)
 						.where(eq(rolesTable.id, id))
@@ -81,10 +96,10 @@ export class RoleRepo {
 
 	async count(): Promise<number> {
 		return record('RoleRepo.count', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.count,
 				factory: async () => {
-					return db
+					return this.db
 						.select({ count: count() })
 						.from(rolesTable)
 						.then((rows) => rows[0]?.count ?? 0)
@@ -98,12 +113,12 @@ export class RoleRepo {
 	async create(data: dto.RoleCreateDto, actorId: number): Promise<number | undefined> {
 		return record('RoleRepo.create', async () => {
 			const metadata = stampCreate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.insert(rolesTable)
 				.values({ ...data, ...metadata })
 				.returning({ id: rolesTable.id })
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -111,24 +126,24 @@ export class RoleRepo {
 	async update(data: dto.RoleUpdateDto, actorId: number): Promise<number | undefined> {
 		return record('RoleRepo.update', async () => {
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(rolesTable)
 				.set({ ...data, ...metadata })
 				.where(eq(rolesTable.id, data.id))
 				.returning({ id: rolesTable.id })
 
-			void this.#clearCache(res?.id)
+			this.#clearCacheAsync(res?.id)
 			return res?.id
 		})
 	}
 
 	async remove(id: number): Promise<number | undefined> {
 		return record('RoleRepo.remove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.delete(rolesTable)
 				.where(eq(rolesTable.id, id))
 				.returning({ id: rolesTable.id })
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -137,7 +152,7 @@ export class RoleRepo {
 		return record('RoleRepo.seed', async () => {
 			for (const d of data) {
 				const metadata = stampCreate(d.createdBy)
-				await db
+				await this.db
 					.insert(rolesTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
@@ -153,7 +168,7 @@ export class RoleRepo {
 					})
 			}
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 		})
 	}
 }

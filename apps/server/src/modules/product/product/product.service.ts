@@ -16,7 +16,7 @@ import { ProductRepo } from './product.repo'
 export class ProductService {
 	constructor(
 		private readonly categorySvc: ProductCategoryService,
-		private readonly repo = new ProductRepo(),
+		private readonly repo: ProductRepo,
 	) {}
 
 	/* --------------------------------- PRIVATE -------------------------------- */

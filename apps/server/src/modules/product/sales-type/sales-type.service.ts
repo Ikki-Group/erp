@@ -12,7 +12,7 @@ import type {
 import { SalesTypeRepo } from './sales-type.repo'
 
 export class SalesTypeService {
-	constructor(private readonly repo = new SalesTypeRepo()) {}
+	constructor(private readonly repo: SalesTypeRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
