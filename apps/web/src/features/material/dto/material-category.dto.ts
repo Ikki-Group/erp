@@ -29,3 +29,6 @@ export const MaterialCategoryMutationDto = MaterialCategoryDto.pick({
 })
 
 export type MaterialCategoryMutationDto = z.infer<typeof MaterialCategoryMutationDto>
+export const MaterialCategoryUpdateDto = z.object({ ...zc.RecordId.shape, ...MaterialCategoryMutationDto.shape })
+
+export type MaterialCategoryUpdateDto = z.infer<typeof MaterialCategoryUpdateDto>

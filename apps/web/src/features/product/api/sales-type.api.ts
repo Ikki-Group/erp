@@ -3,9 +3,14 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
-import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto } from '../dto'
+import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto, SalesTypeUpdateDto } from '../dto'
 
 export const salesTypeApi = {
 	list: apiFactory({
@@ -33,7 +38,7 @@ export const salesTypeApi = {
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.product.salesType.update,
-		body: z.object({ id: zp.id, ...SalesTypeMutationDto.shape }),
+		body: SalesTypeUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.product.salesType.list, endpoint.product.salesType.detail],
 	}),

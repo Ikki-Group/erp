@@ -27,3 +27,6 @@ export const SalesTypeMutationDto = z.object({
 })
 
 export type SalesTypeMutationDto = z.infer<typeof SalesTypeMutationDto>
+export const SalesTypeUpdateDto = z.object({ ...zc.RecordId.shape, ...SalesTypeMutationDto.shape })
+
+export type SalesTypeUpdateDto = z.infer<typeof SalesTypeUpdateDto>

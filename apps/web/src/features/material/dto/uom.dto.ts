@@ -19,3 +19,6 @@ export type UomFilterDto = z.infer<typeof UomFilterDto>
 export const UomMutationDto = UomDto.pick({ code: true })
 
 export type UomMutationDto = z.infer<typeof UomMutationDto>
+export const UomUpdateDto = z.object({ ...zc.RecordId.shape, ...UomMutationDto.shape })
+
+export type UomUpdateDto = z.infer<typeof UomUpdateDto>

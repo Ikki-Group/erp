@@ -96,6 +96,9 @@ export const RecipeMutationDto = z
 	)
 
 export type RecipeMutationDto = z.infer<typeof RecipeMutationDto>
+export const RecipeUpdateDto = z.object({ ...zc.RecordId.shape, ...RecipeMutationDto.shape })
+
+export type RecipeUpdateDto = z.infer<typeof RecipeUpdateDto>
 
 /* ---------------------------------- COST ---------------------------------- */
 

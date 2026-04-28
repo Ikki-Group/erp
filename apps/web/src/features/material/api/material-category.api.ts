@@ -3,9 +3,19 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
-import { MaterialCategoryDto, MaterialCategoryFilterDto, MaterialCategoryMutationDto } from '../dto'
+import {
+	MaterialCategoryDto,
+	MaterialCategoryFilterDto,
+	MaterialCategoryMutationDto,
+	MaterialCategoryUpdateDto,
+} from '../dto'
 
 export const materialCategoryApi = {
 	list: apiFactory({
@@ -33,7 +43,7 @@ export const materialCategoryApi = {
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.material.category.update,
-		body: z.object({ id: zp.id, ...MaterialCategoryMutationDto.shape }),
+		body: MaterialCategoryUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.material.category.list, endpoint.material.category.detail],
 	}),

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema,  } from '@/lib/validation'
+import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	SalesOrderAddBatchDto,

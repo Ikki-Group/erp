@@ -29,3 +29,6 @@ export const ProductCategoryMutationDto = ProductCategoryDto.pick({
 })
 
 export type ProductCategoryMutationDto = z.infer<typeof ProductCategoryMutationDto>
+export const ProductCategoryUpdateDto = z.object({ ...zc.RecordId.shape, ...ProductCategoryMutationDto.shape })
+
+export type ProductCategoryUpdateDto = z.infer<typeof ProductCategoryUpdateDto>

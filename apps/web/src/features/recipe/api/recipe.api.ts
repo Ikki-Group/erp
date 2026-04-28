@@ -3,9 +3,14 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
-import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
+import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto, RecipeUpdateDto } from '../dto'
 
 export const recipeApi = {
 	list: apiFactory({
@@ -33,7 +38,7 @@ export const recipeApi = {
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.recipe.update,
-		body: z.object({ id: zp.id, ...RecipeMutationDto.shape }),
+		body: RecipeUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.recipe.list, endpoint.recipe.detail],
 	}),

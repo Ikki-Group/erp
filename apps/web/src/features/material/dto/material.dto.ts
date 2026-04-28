@@ -80,3 +80,6 @@ export const MaterialMutationDto = z.object({
 })
 
 export type MaterialMutationDto = z.infer<typeof MaterialMutationDto>
+export const MaterialUpdateDto = z.object({ ...zc.RecordId.shape, ...MaterialMutationDto.shape })
+
+export type MaterialUpdateDto = z.infer<typeof MaterialUpdateDto>

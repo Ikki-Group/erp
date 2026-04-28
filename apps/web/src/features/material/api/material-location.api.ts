@@ -3,7 +3,7 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import { zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 import {
 	MaterialLocationAssignDto,

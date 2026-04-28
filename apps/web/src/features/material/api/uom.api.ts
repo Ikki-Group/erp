@@ -3,9 +3,14 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
-import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
+import { UomDto, UomFilterDto, UomMutationDto, UomUpdateDto } from '../dto'
 
 export const uomApi = {
 	list: apiFactory({
@@ -33,7 +38,7 @@ export const uomApi = {
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.material.uom.update,
-		body: z.object({ id: zp.id, ...UomMutationDto.shape }),
+		body: UomUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.material.uom.list, endpoint.material.uom.detail],
 	}),

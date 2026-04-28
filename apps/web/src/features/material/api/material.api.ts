@@ -3,9 +3,19 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
-import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from '../dto'
+import {
+	MaterialFilterDto,
+	MaterialMutationDto,
+	MaterialSelectDto,
+	MaterialUpdateDto,
+} from '../dto'
 
 export const materialApi = {
 	list: apiFactory({
@@ -31,7 +41,7 @@ export const materialApi = {
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.material.update,
-		body: z.object({ id: zp.id, ...MaterialMutationDto.shape }),
+		body: MaterialUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.material.list, endpoint.material.detail],
 	}),
