@@ -2,16 +2,17 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
 	stampCreate,
 	stampUpdate,
 	type WithPaginationResult,
+	type DbClient,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import {
 	materialLocationsTable,
 	materialsTable,
@@ -28,21 +29,35 @@ import type {
 	RecipeUpdateDto,
 } from './recipe.dto'
 
-const cache = bento.namespace('recipe')
+const RECIPE_CACHE_NAMESPACE = 'recipe'
 
 export class RecipeRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(RECIPE_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		return record('RecipeRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+			await this.cache.deleteMany({ keys })
+		})
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'RecipeRepo cache invalidation failed')
 		})
 	}
 
 	async #getRecipeItems(recipeId: number) {
-		const results = await db
+		const results = await this.db
 			.select({
 				item: recipeItemsTable,
 				material: { name: materialsTable.name, sku: materialsTable.sku },
@@ -69,10 +84,10 @@ export class RecipeRepo {
 
 	async getById(id: number): Promise<RecipeDto | undefined> {
 		return record('RecipeRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [recipe] = await db
+					const [recipe] = await this.db
 						.select()
 						.from(recipesTable)
 						.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
@@ -93,10 +108,10 @@ export class RecipeRepo {
 
 	async count(): Promise<number> {
 		return record('RecipeRepo.count', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.count,
 				factory: async () => {
-					const result = await db
+					const result = await this.db
 						.select({ val: count() })
 						.from(recipesTable)
 						.where(isNull(recipesTable.deletedAt))
@@ -122,7 +137,7 @@ export class RecipeRepo {
 
 			const result = await paginate({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(recipesTable)
 						.where(where)
@@ -130,14 +145,14 @@ export class RecipeRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(recipesTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(recipesTable).where(where),
 			})
 
 			const recipeIds = result.data.map((r) => r.id)
 
 			const allItemsRaw =
 				recipeIds.length > 0
-					? await db
+					? await this.db
 							.select({
 								item: recipeItemsTable,
 								material: { name: materialsTable.name, sku: materialsTable.sku },
@@ -184,7 +199,7 @@ export class RecipeRepo {
 
 	async getAvgCostForMaterial(materialId: number): Promise<number> {
 		return record('RecipeRepo.getAvgCostForMaterial', async () => {
-			const [valuation] = await db
+			const [valuation] = await this.db
 				.select({ avgCost: sql<string>`COALESCE(AVG("currentAvgCost"), 0)` })
 				.from(materialLocationsTable)
 				.where(
@@ -222,7 +237,7 @@ export class RecipeRepo {
 				conditions.push(ne(recipesTable.id, excludeId))
 			}
 
-			const [conflict] = await db
+			const [conflict] = await this.db
 				.select({ id: recipesTable.id })
 				.from(recipesTable)
 				.where(and(...conditions))
@@ -238,7 +253,7 @@ export class RecipeRepo {
 		return record('RecipeRepo.create', async () => {
 			const meta = stampCreate(actorId)
 
-			const inserted = await db.transaction(async (tx) => {
+			const inserted = await this.db.transaction(async (tx) => {
 				const [recipe] = await tx
 					.insert(recipesTable)
 					.values({
@@ -272,7 +287,7 @@ export class RecipeRepo {
 				return recipe as any
 			})
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -286,7 +301,7 @@ export class RecipeRepo {
 			const updateMeta = stampUpdate(actorId)
 			const createMeta = stampCreate(actorId)
 
-			const updated = await db.transaction(async (tx) => {
+			const updated = await this.db.transaction(async (tx) => {
 				await tx
 					.update(recipesTable)
 					.set({
@@ -325,14 +340,14 @@ export class RecipeRepo {
 				return { id }
 			})
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return updated
 		})
 	}
 
 	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('RecipeRepo.softDelete', async () => {
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				const timestamp = new Date()
 
 				// Also soft delete items
@@ -347,14 +362,14 @@ export class RecipeRepo {
 					.where(eq(recipesTable.id, id))
 			})
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('RecipeRepo.hardDelete', async () => {
-			const result = await db
+			const result = await this.db
 				.delete(recipesTable)
 				.where(eq(recipesTable.id, id))
 				.returning({ id: recipesTable.id })

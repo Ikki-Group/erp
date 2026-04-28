@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -9,9 +9,10 @@ import {
 	stampCreate,
 	stampUpdate,
 	type WithPaginationResult,
+	type DbClient,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 
 import {
@@ -22,32 +23,46 @@ import {
 	PurchaseOrderUpdateDto,
 } from './purchase-order.dto'
 
-const cache = bento.namespace('purchasing.order')
+const PURCHASE_ORDER_CACHE_NAMESPACE = 'purchasing.order'
 
 export class PurchaseOrderRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(PURCHASE_ORDER_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'PurchaseOrderRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<PurchaseOrderDto | undefined> {
 		return record('PurchaseOrderRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [order] = await db
+					const [order] = await this.db
 						.select()
 						.from(purchaseOrdersTable)
 						.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
 
 					if (!order) return skip()
 
-					const items = await db
+					const items = await this.db
 						.select()
 						.from(purchaseOrderItemsTable)
 						.where(
@@ -78,7 +93,7 @@ export class PurchaseOrderRepo {
 
 			return paginate({
 				data: async ({ limit: l, offset }) => {
-					const rows = await db
+					const rows = await this.db
 						.select()
 						.from(purchaseOrdersTable)
 						.where(where)
@@ -88,7 +103,7 @@ export class PurchaseOrderRepo {
 					return rows.map((r) => PurchaseOrderSelectDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(purchaseOrdersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(purchaseOrdersTable).where(where),
 			})
 		})
 	}
@@ -97,7 +112,7 @@ export class PurchaseOrderRepo {
 
 	async create(data: PurchaseOrderCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderRepo.create', async () => {
-			const result = await db.transaction(async (tx) => {
+			const result = await this.db.transaction(async (tx) => {
 				const { items, ...orderData } = data
 				const meta = stampCreate(actorId)
 
@@ -130,7 +145,7 @@ export class PurchaseOrderRepo {
 
 				return insertedOrder
 			})
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -141,7 +156,7 @@ export class PurchaseOrderRepo {
 			const updateMeta = stampUpdate(actorId)
 			const createMeta = stampCreate(actorId)
 
-			const result = await db.transaction(async (tx) => {
+			const result = await this.db.transaction(async (tx) => {
 				await tx
 					.update(purchaseOrdersTable)
 					.set({
@@ -173,32 +188,32 @@ export class PurchaseOrderRepo {
 
 				return { id }
 			})
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result
 		})
 	}
 
 	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderRepo.softDelete', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(purchaseOrdersTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('PurchaseOrderRepo.hardDelete', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.delete(purchaseOrdersTable)
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result
 		})
 	}

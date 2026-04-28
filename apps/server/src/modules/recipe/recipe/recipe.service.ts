@@ -23,7 +23,7 @@ const err = {
 }
 
 export class RecipeService {
-	private readonly repo = new RecipeRepo()
+	constructor(private readonly repo: RecipeRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

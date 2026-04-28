@@ -2,17 +2,18 @@ import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	stampCreate,
 	stampUpdate,
 	takeFirstOrThrow,
 	type WithPaginationResult,
+	type DbClient,
 } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import {
 	salesExternalRefsTable,
 	salesOrderBatchesTable,
@@ -33,7 +34,7 @@ import type {
 	SalesVoidDto,
 } from './sales-order.dto'
 
-const cache = bento.namespace('sales.order')
+const SALES_ORDER_CACHE_NAMESPACE = 'sales.order'
 
 const err = {
 	notFound: (id: number) =>
@@ -45,15 +46,29 @@ const err = {
 }
 
 export class SalesOrderRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(SALES_ORDER_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
 	}
 
-	async #recalculateOrderTotals(tx: any = db, orderId: number, actorId: number) {
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'SalesOrderRepo cache invalidation failed')
+		})
+	}
+
+	async #recalculateOrderTotals(tx: any = this.db, orderId: number, actorId: number) {
 		const allItems = await tx
 			.select()
 			.from(salesOrderItemsTable)
@@ -96,16 +111,22 @@ export class SalesOrderRepo {
 
 	async getById(id: number): Promise<SalesOrderOutputDto | undefined> {
 		return record('SalesOrderRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [row] = await db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
+					const [row] = await this.db
+						.select()
+						.from(salesOrdersTable)
+						.where(eq(salesOrdersTable.id, id))
 					if (!row) return skip()
 
 					const [items, batches, voids] = await Promise.all([
-						db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
-						db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
-						db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
+						this.db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
+						this.db
+							.select()
+							.from(salesOrderBatchesTable)
+							.where(eq(salesOrderBatchesTable.orderId, id)),
+						this.db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
 					])
 
 					return {
@@ -146,7 +167,7 @@ export class SalesOrderRepo {
 
 			const result = await paginate({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(salesOrdersTable)
 						.where(where)
@@ -154,7 +175,7 @@ export class SalesOrderRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(salesOrdersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(salesOrdersTable).where(where),
 			})
 
 			return {
@@ -168,7 +189,7 @@ export class SalesOrderRepo {
 		source: string,
 		extId: number | string,
 	): Promise<number | undefined> {
-		const [existingRef] = await db
+		const [existingRef] = await this.db
 			.select({ orderId: salesExternalRefsTable.orderId })
 			.from(salesExternalRefsTable)
 			.where(
@@ -198,7 +219,7 @@ export class SalesOrderRepo {
 				items,
 			} = data
 
-			const inserted = await db.transaction(async (tx) => {
+			const inserted = await this.db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [order] = await tx
@@ -240,7 +261,7 @@ export class SalesOrderRepo {
 
 				return { id: order!.id }
 			})
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -251,7 +272,7 @@ export class SalesOrderRepo {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('SalesOrderRepo.createWithExternalRef', async () => {
-			const inserted = await db.transaction(async (tx) => {
+			const inserted = await this.db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [order] = await tx
@@ -297,7 +318,7 @@ export class SalesOrderRepo {
 
 				return { id: order!.id }
 			})
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -308,7 +329,7 @@ export class SalesOrderRepo {
 		actorId: number,
 	): Promise<{ batchId: number }> {
 		return record('SalesOrderRepo.addBatch', async () => {
-			const result = await db.transaction(async (tx) => {
+			const result = await this.db.transaction(async (tx) => {
 				const orderResult = await tx
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
@@ -350,14 +371,14 @@ export class SalesOrderRepo {
 				await this.#recalculateOrderTotals(tx, orderId, actorId)
 				return { batchId: batch!.id }
 			})
-			void this.#clearCache(orderId)
+			this.#clearCacheAsync(orderId)
 			return result
 		})
 	}
 
 	async close(orderId: number, actorId: number): Promise<{ id: number }> {
 		return record('SalesOrderRepo.close', async () => {
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				const orderResult = await tx
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
@@ -371,14 +392,14 @@ export class SalesOrderRepo {
 					.set({ status: 'closed', ...stampUpdate(actorId) })
 					.where(eq(salesOrdersTable.id, orderId))
 			})
-			void this.#clearCache(orderId)
+			this.#clearCacheAsync(orderId)
 			return { id: orderId }
 		})
 	}
 
 	async void(orderId: number, data: SalesOrderVoidDto, actorId: number): Promise<{ id: number }> {
 		return record('SalesOrderRepo.void', async () => {
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				const orderResult = await tx
 					.select({ status: salesOrdersTable.status })
 					.from(salesOrdersTable)
@@ -405,14 +426,14 @@ export class SalesOrderRepo {
 						.select({ id: salesOrderItemsTable.id })
 						.from(salesOrderItemsTable)
 						.where(eq(salesOrderItemsTable.id, data.itemId))
-					takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId!).message)
+					takeFirstOrThrow(itemResult, err.itemNotFound(data.itemId).message)
 
 					if (order.status === 'open') {
 						await this.#recalculateOrderTotals(tx, orderId, actorId)
 					}
 				}
 			})
-			void this.#clearCache(orderId)
+			this.#clearCacheAsync(orderId)
 			return { id: orderId }
 		})
 	}

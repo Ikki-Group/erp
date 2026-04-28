@@ -14,7 +14,7 @@ import type {
 import { SalesOrderRepo } from './sales-order.repo'
 
 export class SalesOrderService {
-	private readonly repo = new SalesOrderRepo()
+	constructor(private readonly repo: SalesOrderRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

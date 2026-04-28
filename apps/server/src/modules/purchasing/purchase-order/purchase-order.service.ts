@@ -7,7 +7,7 @@ import type * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'
 
 export class PurchaseOrderService {
-	private readonly repo = new PurchaseOrderRepo()
+	constructor(private readonly repo: PurchaseOrderRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

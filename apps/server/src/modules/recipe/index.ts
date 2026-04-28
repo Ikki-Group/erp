@@ -1,13 +1,21 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
+import type { DbClient } from '@/core/database'
+
+import { RecipeRepo } from './recipe/recipe.repo'
 import { initRecipeRoute } from './recipe/recipe.route'
 import { RecipeService } from './recipe/recipe.service'
 
 export class RecipeServiceModule {
 	public readonly recipe: RecipeService
 
-	constructor() {
-		this.recipe = new RecipeService()
+	constructor(
+		private readonly db: DbClient,
+		private readonly cacheClient: CacheClient,
+	) {
+		const recipeRepo = new RecipeRepo(this.db, this.cacheClient)
+		this.recipe = new RecipeService(recipeRepo)
 	}
 }
 

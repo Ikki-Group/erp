@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, inArray } from 'drizzle-orm'
 
+import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import { db } from '@/db'
 import { purchaseOrderItemsTable } from '@/db/schema'
 
 import type { StockTransactionService } from '@/modules/inventory'
@@ -13,9 +13,11 @@ import type * as dto from './goods-receipt.dto'
 import { GoodsReceiptRepo } from './goods-receipt.repo'
 
 export class GoodsReceiptService {
-	private readonly repo = new GoodsReceiptRepo()
-
-	constructor(private readonly inventorySvc: StockTransactionService) {}
+	constructor(
+		private readonly repo: GoodsReceiptRepo,
+		private readonly inventorySvc: StockTransactionService,
+		private readonly db: DbClient,
+	) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
@@ -54,7 +56,7 @@ export class GoodsReceiptService {
 
 	async handleComplete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleComplete', async () => {
-			return db.transaction(async (tx) => {
+			return this.db.transaction(async (tx) => {
 				const grn = await this.getById(id)
 				if (grn.status !== 'open') {
 					throw new ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')
