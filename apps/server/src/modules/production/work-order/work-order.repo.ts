@@ -1,33 +1,53 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import {
+	paginate,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+	type DbClient,
+} from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { workOrdersTable } from '@/db/schema/production'
 
 import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from './work-order.dto'
 
-const cache = bento.namespace('production.work-order')
+const WORK_ORDER_CACHE_NAMESPACE = 'production.work-order'
 
 export class WorkOrderRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(WORK_ORDER_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'WorkOrderRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<WorkOrderDto | undefined> {
 		return record('WorkOrderRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [wo] = await db
+					const [wo] = await this.db
 						.select()
 						.from(workOrdersTable)
 						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
@@ -51,7 +71,7 @@ export class WorkOrderRepo {
 
 			return paginate({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(workOrdersTable)
 						.where(where)
@@ -59,7 +79,7 @@ export class WorkOrderRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(workOrdersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(workOrdersTable).where(where),
 			}) as unknown as WithPaginationResult<WorkOrderDto>
 		})
 	}
@@ -68,7 +88,7 @@ export class WorkOrderRepo {
 
 	async create(data: WorkOrderCreateDto, actorId: number): Promise<WorkOrderDto> {
 		return record('WorkOrderRepo.create', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.insert(workOrdersTable)
 				.values({
 					...data,
@@ -79,7 +99,7 @@ export class WorkOrderRepo {
 				})
 				.returning()
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result as unknown as WorkOrderDto
 		})
 	}
@@ -98,7 +118,7 @@ export class WorkOrderRepo {
 		actorId: number,
 	): Promise<WorkOrderDto> {
 		return record('WorkOrderRepo.update', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(workOrdersTable)
 				.set({
 					...data,
@@ -107,7 +127,7 @@ export class WorkOrderRepo {
 				.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 				.returning()
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result as unknown as WorkOrderDto
 		})
 	}

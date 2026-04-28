@@ -15,7 +15,7 @@ import type {
 import { HRRepo } from './hr.repo'
 
 export class HRService {
-	constructor(private readonly repo = new HRRepo()) {}
+	constructor(private readonly repo: HRRepo) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

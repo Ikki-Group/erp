@@ -1,16 +1,26 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
+import type { DbClient } from '@/core/database'
+
 import type { InventoryServiceModule } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
+import { WorkOrderRepo } from './work-order/work-order.repo'
 import { initWorkOrderRoute } from './work-order/work-order.route'
 import { WorkOrderService } from './work-order/work-order.service'
 
 export class ProductionServiceModule {
 	public readonly workOrder: WorkOrderService
 
-	constructor(recipeSvc: RecipeService, inventorySvc: InventoryServiceModule) {
-		this.workOrder = new WorkOrderService(recipeSvc, inventorySvc)
+	constructor(
+		private readonly db: DbClient,
+		private readonly cacheClient: CacheClient,
+		recipeSvc: RecipeService,
+		inventorySvc: InventoryServiceModule,
+	) {
+		const workOrderRepo = new WorkOrderRepo(this.db, this.cacheClient)
+		this.workOrder = new WorkOrderService(workOrderRepo, this.db, recipeSvc, inventorySvc)
 	}
 }
 

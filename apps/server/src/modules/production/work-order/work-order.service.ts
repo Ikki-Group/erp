@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
+import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
-
-import { db } from '@/db'
 
 import type { InventoryServiceModule } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
@@ -18,9 +17,9 @@ import type {
 import { WorkOrderRepo } from './work-order.repo'
 
 export class WorkOrderService {
-	private readonly repo = new WorkOrderRepo()
-
 	constructor(
+		private readonly repo: WorkOrderRepo,
+		private readonly db: DbClient,
 		private readonly recipeSvc: RecipeService,
 		private readonly inventorySvc: InventoryServiceModule,
 	) {}
@@ -85,7 +84,7 @@ export class WorkOrderService {
 			const costRes = await this.recipeSvc.handleCalculateCost(wo.recipeId)
 			const actualTotalCost = new Decimal(costRes.totalCost).mul(multiplier)
 
-			return db.transaction(async (tx) => {
+			return this.db.transaction(async (tx) => {
 				// 1. Consume raw materials
 				if (recipe.items) {
 					await this.inventorySvc.transaction.handleProductionOut(

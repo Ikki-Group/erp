@@ -1,8 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-
-import { db } from '@/db'
 
 import type { AccountService, GeneralLedgerService } from '@/modules/finance'
 
@@ -18,7 +17,8 @@ export class PayrollService {
 	constructor(
 		private readonly accountSvc: AccountService,
 		private readonly journalSvc: GeneralLedgerService,
-		private readonly repo = new PayrollRepo(),
+		private readonly repo: PayrollRepo,
+		private readonly db: DbClient,
 	) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
@@ -47,7 +47,7 @@ export class PayrollService {
 
 	async handleFinalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollService.handleFinalizeBatch', async () => {
-			return db.transaction(async () => {
+			return this.db.transaction(async () => {
 				const batch = await this.repo.getBatchById(batchId)
 				if (!batch) throw new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
 

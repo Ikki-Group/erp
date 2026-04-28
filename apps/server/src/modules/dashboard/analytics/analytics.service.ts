@@ -1,11 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import type { CacheClient } from '@/core/cache'
+import { type CacheProvider } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 
-const cache = bento.namespace('analytics')
-
-import { db } from '@/db'
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
 
@@ -24,14 +23,23 @@ export interface TopSalesItem {
 	totalRevenue: number
 }
 
+const ANALYTICS_CACHE_NAMESPACE = 'analytics'
+
 export class AnalyticsService {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(ANALYTICS_CACHE_NAMESPACE)
+	}
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
-		return cache.getOrSet({
+		return this.cache.getOrSet({
 			key: `pnl.${startDate.toISOString()}.${endDate.toISOString()}`,
 			ttl: '1h',
 			factory: async () => {
 				return record('AnalyticsService.getPnL', async () => {
-					const glItems = await db
+					const glItems = await this.db
 						.select({
 							accountCode: accountsTable.code,
 							debit: journalItemsTable.debit,
@@ -40,7 +48,7 @@ export class AnalyticsService {
 						.from(journalItemsTable)
 						.innerJoin(accountsTable, eq(journalItemsTable.accountId, accountsTable.id))
 						.innerJoin(
-							db
+							this.db
 								.select({ id: sql`id`, date: sql`date` })
 								.from(sql`journal_entries`)
 								.as('entries'),
@@ -79,12 +87,12 @@ export class AnalyticsService {
 	}
 
 	async getTopSales(startDate: Date, endDate: Date, limit: number = 5): Promise<TopSalesItem[]> {
-		return cache.getOrSet({
+		return this.cache.getOrSet({
 			key: `top_sales.${startDate.toISOString()}.${endDate.toISOString()}.${limit}`,
 			ttl: '30m',
 			factory: async () => {
 				return record('AnalyticsService.getTopSales', async () => {
-					const result = await db
+					const result = await this.db
 						.select({
 							productId: salesOrderItemsTable.productId,
 							itemName: salesOrderItemsTable.itemName,

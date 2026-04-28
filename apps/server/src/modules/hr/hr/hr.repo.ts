@@ -1,10 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, stampCreate, stampUpdate, type WithPaginationResult } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import {
+	paginate,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+	type DbClient,
+} from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@/db/schema'
 
 import type {
@@ -16,15 +22,29 @@ import type {
 	ShiftDto,
 } from './hr.dto'
 
-const cache = bento.namespace('hr')
+const HR_CACHE_NAMESPACE = 'hr'
 
 export class HRRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(HR_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'HRRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
@@ -34,19 +54,19 @@ export class HRRepo {
 		limit: number,
 	): Promise<WithPaginationResult<ShiftDto>> {
 		return record('HRRepo.getShiftListPaginated', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: `shifts.${page}.${limit}`,
 				factory: async () => {
 					return paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select()
 								.from(shiftsTable)
 								.where(isNull(shiftsTable.deletedAt))
 								.limit(l)
 								.offset(offset),
 						pq: { page, limit },
-						countQuery: db
+						countQuery: this.db
 							.select({ count: count() })
 							.from(shiftsTable)
 							.where(isNull(shiftsTable.deletedAt)),
@@ -63,7 +83,7 @@ export class HRRepo {
 			const { q, employeeId, locationId, status, dateFrom, dateTo, page, limit } = filter
 			const key = `attendance.list.${JSON.stringify(filter)}`
 
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const searchCondition = q
@@ -90,7 +110,7 @@ export class HRRepo {
 
 					return paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select({
 									id: attendancesTable.id,
 									employeeId: attendancesTable.employeeId,
@@ -119,7 +139,7 @@ export class HRRepo {
 								.limit(l)
 								.offset(offset),
 						pq: { page, limit },
-						countQuery: db
+						countQuery: this.db
 							.select({ count: count() })
 							.from(attendancesTable)
 							.innerJoin(employeesTable, eq(attendancesTable.employeeId, employeesTable.id))
@@ -131,7 +151,7 @@ export class HRRepo {
 	}
 
 	async findOpenAttendance(employeeId: number): Promise<AttendanceDto | undefined> {
-		const [existing] = await db
+		const [existing] = await this.db
 			.select()
 			.from(attendancesTable)
 			.where(
@@ -145,7 +165,7 @@ export class HRRepo {
 	}
 
 	async getAttendanceById(id: number): Promise<AttendanceDto | undefined> {
-		const [result] = await db
+		const [result] = await this.db
 			.select()
 			.from(attendancesTable)
 			.where(and(eq(attendancesTable.id, id), isNull(attendancesTable.deletedAt)))
@@ -157,7 +177,7 @@ export class HRRepo {
 	async createShift(data: ShiftCreateDto, actorId: number): Promise<ShiftDto> {
 		return record('HRRepo.createShift', async () => {
 			const metadata = stampCreate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.insert(shiftsTable)
 				.values({
 					...data,
@@ -167,7 +187,7 @@ export class HRRepo {
 				.returning()
 
 			if (!result) throw new Error('Failed to create shift')
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result as unknown as ShiftDto
 		})
 	}
@@ -175,7 +195,7 @@ export class HRRepo {
 	async clockIn(data: ClockInDto, actorId: number): Promise<AttendanceDto> {
 		return record('HRRepo.clockIn', async () => {
 			const metadata = stampCreate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.insert(attendancesTable)
 				.values({
 					...data,
@@ -188,7 +208,7 @@ export class HRRepo {
 				.returning()
 
 			if (!result) throw new Error('Failed to clock in')
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result as unknown as AttendanceDto
 		})
 	}
@@ -196,14 +216,14 @@ export class HRRepo {
 	async clockOut(id: number, note: string | null, actorId: number): Promise<AttendanceDto> {
 		return record('HRRepo.clockOut', async () => {
 			const metadata = stampUpdate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.update(attendancesTable)
 				.set({ clockOut: new Date(), note, ...metadata })
 				.where(eq(attendancesTable.id, id))
 				.returning()
 
 			if (!result) throw new Error('Failed to clock out')
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return result as unknown as AttendanceDto
 		})
 	}

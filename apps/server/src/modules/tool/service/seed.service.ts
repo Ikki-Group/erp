@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { db } from '@/db'
+import type { DbClient } from '@/core/database'
 
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
@@ -11,6 +11,7 @@ import { SEED_CONFIG } from '@/config/seed-config'
 
 export class SeedService {
 	constructor(
+		private readonly db: DbClient,
 		private readonly iamSvc: IamServiceModule,
 		private readonly locationSvc: LocationServiceModule,
 		private readonly productSvc: ProductServiceModule,
@@ -20,7 +21,7 @@ export class SeedService {
 	async seed(): Promise<void> {
 		return record('SeedService.seed', async () => {
 			// Use Drizzle transaction for the entire seed process
-			await db.transaction(async () => {
+			await this.db.transaction(async (_db) => {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
@@ -97,7 +98,7 @@ export class SeedService {
 		return record('SeedService.seedDev', async () => {
 			const SYSTEM_ACTOR_ID = 1
 
-			const uoms = await db.query.uomsTable.findMany()
+			const uoms = await this.db.query.uomsTable.findMany()
 			const getUom = (code: string) => uoms.find((u) => u.code === code)?.id ?? 1
 
 			// 1. Create categories

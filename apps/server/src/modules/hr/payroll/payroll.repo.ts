@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { stampCreate, stampUpdate, takeFirstOrThrow } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import {
 	employeesTable,
 	payrollAdjustmentsTable,
@@ -19,21 +19,35 @@ import type {
 	PayrollAdjustmentDto,
 } from './payroll.dto'
 
-const cache = bento.namespace('hr.payroll')
+const PAYROLL_CACHE_NAMESPACE = 'hr.payroll'
 
 export class PayrollRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(PAYROLL_CACHE_NAMESPACE)
+	}
+
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'PayrollRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async findBatchByPeriod(month: number, year: number): Promise<any | undefined> {
-		const [existing] = await db
+		const [existing] = await this.db
 			.select()
 			.from(payrollBatchesTable)
 			.where(
@@ -47,7 +61,7 @@ export class PayrollRepo {
 	}
 
 	async getBatchById(id: number): Promise<any | undefined> {
-		const [result] = await db
+		const [result] = await this.db
 			.select()
 			.from(payrollBatchesTable)
 			.where(and(eq(payrollBatchesTable.id, id), isNull(payrollBatchesTable.deletedAt)))
@@ -55,7 +69,10 @@ export class PayrollRepo {
 	}
 
 	async getPayrollItemById(id: number): Promise<any | undefined> {
-		const [result] = await db.select().from(payrollItemsTable).where(eq(payrollItemsTable.id, id))
+		const [result] = await this.db
+			.select()
+			.from(payrollItemsTable)
+			.where(eq(payrollItemsTable.id, id))
 		return result
 	}
 
@@ -63,7 +80,7 @@ export class PayrollRepo {
 
 	async createBatch(data: PayrollBatchCreateDto, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollRepo.createBatch', async () => {
-			return db.transaction(async (tx) => {
+			return this.db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [batch] = await tx
@@ -169,21 +186,21 @@ export class PayrollRepo {
 
 				return adjustment as unknown as PayrollAdjustmentDto
 			})
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result
 		})
 	}
 
 	async finalizeBatch(batchId: number, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollRepo.finalizeBatch', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(payrollBatchesTable)
 				.set({ status: 'approved', ...stampUpdate(actorId) })
 				.where(eq(payrollBatchesTable.id, batchId))
 				.returning()
 
 			if (!result) throw new Error('Failed to finalize batch')
-			void this.#clearCache(batchId)
+			this.#clearCacheAsync(batchId)
 			return result as unknown as PayrollBatchDto
 		})
 	}
