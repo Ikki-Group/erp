@@ -26,5 +26,17 @@ describe('Material Category API', () => {
 			)
 			expect(res.status).toBe(401)
 		})
+
+		it('returns 422 for missing required name field', async () => {
+			const app = createIntegrationTestApp()
+			const res = await app.handle(
+				jsonRequest('POST', '/material/category/create', {
+					code: 'CAT-001',
+					parentId: null,
+					// Missing required 'name' field
+				}),
+			)
+			expect(res.status).toBe(422)
+		})
 	})
 })

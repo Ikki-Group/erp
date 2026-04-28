@@ -31,5 +31,16 @@ describe('Material API', () => {
 			)
 			expect(res.status).toBe(401)
 		})
+
+		it('returns 422 for missing required fields', async () => {
+			const app = createIntegrationTestApp()
+			const res = await app.handle(
+				jsonRequest('POST', '/material/create', {
+					code: 'MAT-001',
+					// Missing name, sku, type, categoryId, uomId, baseUomId, locations
+				}),
+			)
+			expect(res.status).toBe(422)
+		})
 	})
 })

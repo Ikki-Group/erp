@@ -44,6 +44,7 @@ export {
 	createRouteTestApp,
 	createIntegrationTestApp,
 	jsonRequest,
+	authenticatedJsonRequest,
 } from './app-builder'
 
 // Response Assertions
