@@ -131,7 +131,16 @@ export function apiFactory<
 
 		// Parse & validate response body
 		const json: unknown = await response.json()
-		return validateOrThrow(config.result, json, 'Response', url) as Result
+		const result = validateOrThrow(config.result, json, 'Response', url) as Result
+
+		// Auto-invalidate declared query keys on successful mutation
+		if (config.invalidates?.length && method !== 'get') {
+			for (const invalidateUrl of config.invalidates) {
+				queryClient.invalidateQueries({ queryKey: [invalidateUrl] })
+			}
+		}
+
+		return result
 	}
 
 	// React Query helpers
@@ -145,24 +154,11 @@ export function apiFactory<
 
 	const mutationFn = (args: Args) => fetch(args)
 
-	const mutation = () =>
-		({
-			mutationFn: fetch as (args: Args) => Promise<Result>,
-			onSuccess: () => {
-				if (config.invalidates?.length) {
-					for (const url of config.invalidates) {
-						queryClient.invalidateQueries({ queryKey: [url] })
-					}
-				}
-			},
-		}) as const
-
 	return {
 		fetch,
 		query,
 		queryKey,
 		mutationFn,
-		mutation,
 
 		// Inference helpers (DX)
 		_types: {

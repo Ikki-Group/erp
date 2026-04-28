@@ -35,17 +35,20 @@ export const employeeApi = {
 		url: endpoint.employee.create,
 		body: EmployeeCreateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.employee.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.employee.update,
 		body: EmployeeUpdateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.employee.list, endpoint.employee.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.employee.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.employee.list],
 	}),
 }
