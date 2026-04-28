@@ -58,7 +58,7 @@ function getDefaultValues(v?: MaterialSelectDto): FormDto {
 		conversions:
 			v?.conversions
 				.filter((c) => c.uomId !== v.baseUomId)
-				.map((c) => ({ uomId: c.uomId, toBaseFactor: c.toBaseFactor })) ?? [],
+				.map((c) => ({ uomId: c.uomId, toBaseFactor: String(c.toBaseFactor) })) ?? [],
 	}
 }
 

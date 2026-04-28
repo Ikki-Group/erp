@@ -116,7 +116,6 @@ export function ProductTable() {
 	const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
 	const { data, isLoading } = useQuery(
-		// @ts-expect-error
 		productApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
 	)
 

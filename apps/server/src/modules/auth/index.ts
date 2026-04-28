@@ -31,7 +31,7 @@ export class AuthServiceModule {
 	async verifyToken(token: string) {
 		const session = await this.session.verifySession(token)
 		if (!session) return null
-		return this.svc.user.getById(session.userId)
+		return this.svc.user.getDetailById(session.userId)
 	}
 }
 

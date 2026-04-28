@@ -9,6 +9,8 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { ButtonLoading } from '@/components/ui/button-loading'
+import { Card } from '@/components/ui/card'
 import { DataCombobox } from '@/components/ui/data-combobox'
 import {
 	Dialog,
@@ -23,7 +25,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputCurrency } from '@/components/ui/input-currency'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { locationApi } from '@/features/location/api/location.api'
 import { supplierApi } from '@/features/supplier/api/supplier.api'
@@ -73,22 +75,22 @@ export function ExpenditureDialog({ children }: ExpenditureDialogProps) {
 	const accountOptions = (search: string) =>
 		queryOptions({
 			queryKey: ['finance', 'accounts', 'list', search],
-			queryFn: () => accountApi.list({ search }),
-			select: (res) => res.data,
+			queryFn: accountApi.list.query({ search }),
+			select: (res: any) => res.data,
 		})
 
 	const supplierOptions = (search: string) =>
 		queryOptions({
 			queryKey: ['suppliers', 'list', search],
-			queryFn: () => supplierApi.list({ search }),
-			select: (res) => res.data,
+			queryFn: supplierApi.list.query({ search }),
+			select: (res: any) => res.data,
 		})
 
 	const locationOptions = (search: string) =>
 		queryOptions({
 			queryKey: ['locations', 'list', search],
-			queryFn: () => locationApi.list({ search }),
-			select: (res) => res.data,
+			queryFn: locationApi.list.query({ search }),
+			select: (res: any) => res.data,
 		})
 
 	return (

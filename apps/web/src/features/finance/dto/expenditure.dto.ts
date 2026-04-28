@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import { zc } from '@/lib/validation'
-
 export const ExpenditureTypeEnum = z.enum(['BILLS', 'ASSET', 'PURCHASES'])
 export type ExpenditureTypeEnum = z.infer<typeof ExpenditureTypeEnum>
 
@@ -36,11 +34,11 @@ export const ExpenditureCreateDto = z.object({
 	description: z.string().optional().nullable(),
 	date: z.date().default(() => new Date()),
 	amount: z.number().min(1, 'Nominal wajib diisi'),
-	sourceAccountId: z.number({ required_error: 'Pilih asal dana' }),
-	targetAccountId: z.number({ required_error: 'Pilih kategori biaya/aset' }),
+	sourceAccountId: z.number().min(1, 'Pilih asal dana'),
+	targetAccountId: z.number().min(1, 'Pilih kategori biaya/aset'),
 	liabilityAccountId: z.number().optional().nullable(),
 	supplierId: z.number().optional().nullable(),
-	locationId: z.number({ required_error: 'Lokasi wajib diisi' }),
+	locationId: z.number().min(1, 'Lokasi wajib diisi'),
 	isInstallment: z.boolean().default(false),
 })
 export type ExpenditureCreateDto = z.infer<typeof ExpenditureCreateDto>

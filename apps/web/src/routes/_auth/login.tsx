@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 import { useAppState } from '@/hooks/use-app-state'
 
-import { zEmail, zPassword } from '@/lib/zod/primitive'
+import { zEmail, zPassword } from '@/lib/validation'
 
 import { useAppForm } from '@/components/form'
 

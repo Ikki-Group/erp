@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { useMutation, useQuery, } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@uidotdev/usehooks'
 import { Loader2Icon, MapPinIcon, SearchIcon } from 'lucide-react'
@@ -48,7 +48,7 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 
 		// 2. Fetch already assigned locations for this material (only if single material)
 		const { data: assignedLocations, isLoading: isLoadingAssigned } = useQuery({
-			...materialLocationApi.byMaterial.query({ id: materialIds[0] }),
+			...materialLocationApi.byMaterial.query({ id: materialIds[0]! }),
 
 			enabled: materialIds.length === 1,
 		})

@@ -2,11 +2,17 @@ import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
+import { requestIdPlugin } from '@/core/http/request-id'
 
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
-import { createMockAuthPlugin, mockAuthenticatedUser } from './auth'
+import {
+	createMockAuthPlugin,
+	mockAuthenticatedUser,
+	MockAuthService,
+	MockLoginService,
+} from './auth'
 import { getTestDatabase } from './db'
 import { createApp } from '@/app'
 
