@@ -22,9 +22,3 @@ export class SalesServiceModule {
 export function initSalesRouteModule(s: SalesServiceModule) {
 	return new Elysia({ prefix: '/sales' }).use(initSalesOrderRoute(s.order))
 }
-
-// Feature exports
-export * from './sales-order/sales-order.dto'
-export * from './sales-order/sales-order.repo'
-export * from './sales-order/sales-order.service'
-export * from './sales-order/sales-order.route'
