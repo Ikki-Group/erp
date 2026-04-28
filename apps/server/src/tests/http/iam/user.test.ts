@@ -5,7 +5,9 @@ import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
 
 import { UserAssignmentService } from '@/modules/iam/assignment/assignment.service'
+import { RoleRepo } from '@/modules/iam/role/role.repo'
 import { RoleService } from '@/modules/iam/role/role.service'
+import { UserRepo } from '@/modules/iam/user/user.repo'
 import { initUserRoute } from '@/modules/iam/user/user.route'
 import { UserService } from '@/modules/iam/user/user.service'
 import { LocationServiceModule } from '@/modules/location'
@@ -68,15 +70,17 @@ beforeAll(() => {
 	const cache = createTestCache()
 
 	const locationModule = new LocationServiceModule(db, cache)
-	const roleService = new RoleService(new RoleService())
+	const roleRepo = new RoleRepo(db, cache)
+	const roleService = new RoleService(roleRepo)
 	const assignmentService = new UserAssignmentService()
+	const userRepo = new UserRepo(db, cache)
 	userService = new UserService(
 		{
 			role: roleService,
 			assignment: assignmentService,
 			location: locationModule,
 		},
-		new UserService(db, cache),
+		userRepo,
 	)
 
 	const route = initUserRoute(userService)

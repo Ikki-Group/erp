@@ -133,7 +133,7 @@ export class PayrollRepo {
 		actorId: number,
 	): Promise<PayrollAdjustmentDto> {
 		return record('PayrollRepo.addAdjustment', async () => {
-			const result = await db.transaction(async (tx) => {
+			const result = await this.db.transaction(async (tx) => {
 				const metadata = stampCreate(actorId)
 
 				const [adjustment] = await tx

@@ -30,17 +30,20 @@ export const roleApi = {
 		url: endpoint.iam.role.create,
 		body: RoleCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.role.list],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.iam.role.update,
 		body: RoleUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.role.list, endpoint.iam.role.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.iam.role.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.role.list],
 	}),
 }

@@ -3,6 +3,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { HTTPError } from 'ky'
 import { treeifyError } from 'zod'
 
+import { queryClient } from '@/lib/tanstack-query'
+
 import { apiClient } from './api-client'
 import { ApiError } from './api-error'
 import type { KyInstance } from 'ky'
@@ -25,6 +27,7 @@ interface ApiFactoryConfig<
 	method: HttpMethod
 	url: string
 	keys?: ReadonlyArray<string>
+	invalidates?: ReadonlyArray<string>
 	params?: TParams
 	body?: TBody
 	result: TResult
@@ -142,11 +145,24 @@ export function apiFactory<
 
 	const mutationFn = (args: Args) => fetch(args)
 
+	const mutation = () =>
+		({
+			mutationFn: fetch as (args: Args) => Promise<Result>,
+			onSuccess: () => {
+				if (config.invalidates?.length) {
+					for (const url of config.invalidates) {
+						queryClient.invalidateQueries({ queryKey: [url] })
+					}
+				}
+			},
+		}) as const
+
 	return {
 		fetch,
 		query,
 		queryKey,
 		mutationFn,
+		mutation,
 
 		// Inference helpers (DX)
 		_types: {

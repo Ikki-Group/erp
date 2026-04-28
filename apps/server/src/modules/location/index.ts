@@ -22,5 +22,5 @@ export function initLocationRouteModule(service: LocationServiceModule) {
 	return new Elysia({ prefix: '/location' }).use(locationRouter)
 }
 
-export type { LocationDto } from './location-master/location-master.dto'
-export type { LocationMasterService } from './location-master/location-master.service'
+export { LocationDto } from './location-master/location-master.dto'
+export { LocationMasterService } from './location-master/location-master.service'

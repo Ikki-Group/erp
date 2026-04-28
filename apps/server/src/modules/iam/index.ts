@@ -49,5 +49,5 @@ export function initIamRouteModule(s: IamServiceModule) {
 		.use(initUserRoute(s.user))
 }
 
-export type { UserDto, UserDetailDto } from './user/user.dto'
+export { UserDto, UserDetailDto } from './user/user.dto'
 export type { UserService } from './user/user.service'
