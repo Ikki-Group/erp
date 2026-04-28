@@ -32,17 +32,20 @@ export const materialApi = {
 		url: endpoint.material.create,
 		body: MaterialMutationDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.list],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.material.update,
 		body: z.object({ id: zId, ...MaterialMutationDto.shape }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.list, endpoint.material.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.material.remove,
 		body: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.list],
 	}),
 }

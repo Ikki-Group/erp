@@ -1,7 +1,9 @@
+import { db } from '@/db'
+
 import { createModules } from '@/modules/_registry'
 
 async function main() {
-	const m = createModules()
+	const m = createModules(db)
 
 	console.log('🌱 Starting core database seed...')
 	await m.tool.seed.seed()
