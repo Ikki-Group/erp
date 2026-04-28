@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 import { SessionService } from './session.service'
 import { SessionRepo } from './session.repo'
@@ -7,16 +7,16 @@ import type { UserDto } from '@/modules/iam'
 
 // Mock JWT module
 vi.mock('jsonwebtoken', () => ({
-	sign: spyOn(),
-	verify: spyOn(),
+	sign: mock().mockReturnValue('mock-token'),
+	verify: mock().mockReturnValue({ id: 1, userId: 1 }),
 }))
 
 // Mock cache module
 vi.mock('@/core/cache', () => ({
 	bento: {
 		namespace: () => ({
-			getOrSet: spyOn(),
-			deleteMany: spyOn(),
+			getOrSet: mock(),
+			deleteMany: mock(),
 		}),
 	},
 	CACHE_KEY_DEFAULT: {
@@ -27,7 +27,7 @@ vi.mock('@/core/cache', () => ({
 // Mock logger
 vi.mock('@/core/logger', () => ({
 	logger: {
-		error: spyOn(),
+		error: mock(),
 	},
 }))
 
@@ -51,18 +51,20 @@ describe('SessionService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: spyOn(),
-			create: spyOn(),
-			invalidate: spyOn(),
-			cleanupExpired: spyOn(),
+			getById: mock(),
+			create: mock(),
+			invalidate: mock(),
+			cleanupExpired: mock(),
 		} as any
 
 		mockCache = {
-			getOrSet: spyOn(),
-			deleteMany: spyOn(),
+			getOrSet: mock(),
+			deleteMany: mock(),
 		}
 
-		vi.mocked(bento.namespace).mockReturnValue(mockCache)
+		// Setup mock for bento.namespace
+		const mockNamespace = mock(() => mockCache)
+		;(bento as any).namespace = mockNamespace
 
 		service = new SessionService(fakeRepo)
 	})
@@ -77,7 +79,7 @@ describe('SessionService', () => {
 				expiredAt: new Date(),
 			}
 
-			vi.mocked(mockCache.getOrSet).mockImplementation(async ({ factory }) => {
+			spyOn(mockCache, 'getOrSet').mockImplementation(async ({ factory }: { factory: () => Promise<any> }) => {
 				return await factory()
 			})
 			spyOn(fakeRepo, 'getById').mockResolvedValue(mockSession)
@@ -94,7 +96,7 @@ describe('SessionService', () => {
 		it('should return undefined when session not found', async () => {
 			const sessionId = 999
 
-			vi.mocked(mockCache.getOrSet).mockImplementation(async ({ factory }) => {
+			spyOn(mockCache, 'getOrSet').mockImplementation(async ({ factory }: { factory: () => Promise<any> }) => {
 				return await factory()
 			})
 			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
@@ -127,7 +129,7 @@ describe('SessionService', () => {
 			const mockToken = 'jwt-token'
 
 			spyOn(fakeRepo, 'create').mockResolvedValue(mockSession)
-			vi.mocked(jwt.sign).mockReturnValue(mockToken)
+			// JWT sign is already mocked in vi.mock, just use it directly
 
 			const result = await service.createSession(mockUser)
 
@@ -170,7 +172,7 @@ describe('SessionService', () => {
 				expiredAt: new Date(Date.now() + 3600000), // 1 hour from now
 			}
 
-			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
+			// JWT verify is already mocked in vi.mock, just use it directly
 			spyOn(service, 'getById').mockResolvedValue(mockSession)
 
 			const result = await service.verifySession(token)
@@ -183,7 +185,8 @@ describe('SessionService', () => {
 		it('should return null when token is invalid', async () => {
 			const token = 'invalid-token'
 
-			vi.mocked(jwt.verify).mockImplementation(() => {
+			// For error case, we need to override the mock - use spyOn to change implementation
+			spyOn(jwt, 'verify').mockImplementation(() => {
 				throw new Error('Invalid token')
 			})
 
@@ -202,7 +205,7 @@ describe('SessionService', () => {
 				username: 'testuser',
 			}
 
-			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
+			// JWT verify is already mocked in vi.mock, just use it directly
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.verifySession(token)
@@ -226,7 +229,7 @@ describe('SessionService', () => {
 				expiredAt: new Date(Date.now() - 3600000), // 1 hour ago (expired)
 			}
 
-			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
+			// JWT verify is already mocked in vi.mock, just use it directly
 			spyOn(service, 'getById').mockResolvedValue(mockSession)
 			spyOn(service, 'deleteSession').mockResolvedValue(undefined)
 

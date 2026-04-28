@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 import { AnalyticsService, type PnLData, type TopSalesItem } from './analytics.service'
 
@@ -6,7 +6,7 @@ import { AnalyticsService, type PnLData, type TopSalesItem } from './analytics.s
 vi.mock('@/core/cache', () => ({
 	bento: {
 		namespace: () => ({
-			getOrSet: spyOn(),
+			getOrSet: mock(),
 		}),
 	},
 }))
@@ -14,13 +14,13 @@ vi.mock('@/core/cache', () => ({
 // Mock database
 vi.mock('@/db', () => ({
 	db: {
-		select: spyOn().mockReturnValue({
-			from: spyOn().mockReturnValue({
-				innerJoin: spyOn().mockReturnValue({
-					where: spyOn().mockReturnValue({
-						groupBy: spyOn().mockReturnValue({
-							orderBy: spyOn().mockReturnValue({
-								limit: spyOn().mockResolvedValue([]),
+		select: mock().mockReturnValue({
+			from: mock().mockReturnValue({
+				innerJoin: mock().mockReturnValue({
+					where: mock().mockReturnValue({
+						groupBy: mock().mockReturnValue({
+							orderBy: mock().mockReturnValue({
+								limit: mock().mockResolvedValue([]),
 							}),
 						}),
 					}),
@@ -40,11 +40,11 @@ describe('AnalyticsService', () => {
 	beforeEach(() => {
 		service = new AnalyticsService()
 		mockCache = {
-			getOrSet: spyOn().mockImplementation(async ({ factory }) => {
+			getOrSet: mock().mockImplementation(async ({ factory }) => {
 				return await factory()
 			}),
 		}
-		vi.mocked(bento.namespace).mockReturnValue(mockCache)
+		;(bento.namespace as any).mockReturnValue(mockCache)
 	})
 
 	describe('getPnL', () => {
@@ -60,17 +60,17 @@ describe('AnalyticsService', () => {
 				{ accountCode: '5202', debit: '1000', credit: '0' },  // Operating expenses
 			]
 
-			const mockSelect = spyOn().mockReturnValue({
-				from: spyOn().mockReturnValue({
-					innerJoin: spyOn().mockReturnValue({
-						innerJoin: spyOn().mockReturnValue({
-							where: spyOn().mockResolvedValue(mockGlItems),
+			const mockSelect = mock().mockReturnValue({
+				from: mock().mockReturnValue({
+					innerJoin: mock().mockReturnValue({
+						innerJoin: mock().mockReturnValue({
+							where: mock().mockResolvedValue(mockGlItems),
 						}),
 					}),
 				}),
 			})
 
-			vi.mocked(db.select).mockReturnValue(mockSelect)
+			;(db.select as any).mockReturnValue(mockSelect)
 
 			const result = await service.getPnL(startDate, endDate)
 
@@ -95,17 +95,17 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = spyOn().mockReturnValue({
-				from: spyOn().mockReturnValue({
-					innerJoin: spyOn().mockReturnValue({
-						innerJoin: spyOn().mockReturnValue({
-							where: spyOn().mockResolvedValue([]),
+			const mockSelect = mock().mockReturnValue({
+				from: mock().mockReturnValue({
+					innerJoin: mock().mockReturnValue({
+						innerJoin: mock().mockReturnValue({
+							where: mock().mockResolvedValue([]),
 						}),
 					}),
 				}),
 			})
 
-			vi.mocked(db.select).mockReturnValue(mockSelect)
+			;(db.select as any).mockReturnValue(mockSelect)
 
 			const result = await service.getPnL(startDate, endDate)
 
@@ -167,13 +167,13 @@ describe('AnalyticsService', () => {
 				},
 			]
 
-			const mockSelect = spyOn().mockReturnValue({
-				from: spyOn().mockReturnValue({
-					innerJoin: spyOn().mockReturnValue({
-						where: spyOn().mockReturnValue({
-							groupBy: spyOn().mockReturnValue({
-								orderBy: spyOn().mockReturnValue({
-									limit: spyOn().mockResolvedValue(mockSalesData),
+			const mockSelect = mock().mockReturnValue({
+				from: mock().mockReturnValue({
+					innerJoin: mock().mockReturnValue({
+						where: mock().mockReturnValue({
+							groupBy: mock().mockReturnValue({
+								orderBy: mock().mockReturnValue({
+									limit: mock().mockResolvedValue(mockSalesData),
 								}),
 							}),
 						}),
@@ -181,7 +181,7 @@ describe('AnalyticsService', () => {
 				}),
 			})
 
-			vi.mocked(db.select).mockReturnValue(mockSelect)
+			;(db.select as any).mockReturnValue(mockSelect)
 
 			const result = await service.getTopSales(startDate, endDate, limit)
 
@@ -219,13 +219,13 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = spyOn().mockReturnValue({
-				from: spyOn().mockReturnValue({
-					innerJoin: spyOn().mockReturnValue({
-						where: spyOn().mockReturnValue({
-							groupBy: spyOn().mockReturnValue({
-								orderBy: spyOn().mockReturnValue({
-									limit: spyOn().mockResolvedValue([]),
+			const mockSelect = mock().mockReturnValue({
+				from: mock().mockReturnValue({
+					innerJoin: mock().mockReturnValue({
+						where: mock().mockReturnValue({
+							groupBy: mock().mockReturnValue({
+								orderBy: mock().mockReturnValue({
+									limit: mock().mockResolvedValue([]),
 								}),
 							}),
 						}),
@@ -233,7 +233,7 @@ describe('AnalyticsService', () => {
 				}),
 			})
 
-			vi.mocked(db.select).mockReturnValue(mockSelect)
+			;(db.select as any).mockReturnValue(mockSelect)
 
 			await service.getTopSales(startDate, endDate)
 
@@ -246,13 +246,13 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = spyOn().mockReturnValue({
-				from: spyOn().mockReturnValue({
-					innerJoin: spyOn().mockReturnValue({
-						where: spyOn().mockReturnValue({
-							groupBy: spyOn().mockReturnValue({
-								orderBy: spyOn().mockReturnValue({
-									limit: spyOn().mockResolvedValue([]),
+			const mockSelect = mock().mockReturnValue({
+				from: mock().mockReturnValue({
+					innerJoin: mock().mockReturnValue({
+						where: mock().mockReturnValue({
+							groupBy: mock().mockReturnValue({
+								orderBy: mock().mockReturnValue({
+									limit: mock().mockResolvedValue([]),
 								}),
 							}),
 						}),
@@ -260,7 +260,7 @@ describe('AnalyticsService', () => {
 				}),
 			})
 
-			vi.mocked(db.select).mockReturnValue(mockSelect)
+			;(db.select as any).mockReturnValue(mockSelect)
 
 			const result = await service.getTopSales(startDate, endDate)
 

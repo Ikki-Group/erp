@@ -57,8 +57,8 @@ describe('ExpenditureService', () => {
 			})
 
 			(db.transaction as any).mockImplementation(mockTransaction)
-			fakeRepo.create.mockResolvedValue(mockExpenditure)
-			fakeJournalService.postEntry.mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
+			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -114,8 +114,8 @@ describe('ExpenditureService', () => {
 			})
 
 			(db.transaction as any).mockImplementation(mockTransaction)
-			fakeRepo.create.mockResolvedValue(mockExpenditure)
-			fakeJournalService.postEntry.mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
+			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -170,8 +170,8 @@ describe('ExpenditureService', () => {
 			})
 
 			(db.transaction as any).mockImplementation(mockTransaction)
-			fakeRepo.create.mockResolvedValue(mockExpenditure)
-			fakeJournalService.postEntry.mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
+			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -224,8 +224,8 @@ describe('ExpenditureService', () => {
 			})
 
 			(db.transaction as any).mockImplementation(mockTransaction)
-			fakeRepo.create.mockResolvedValue(mockExpenditure)
-			fakeJournalService.postEntry.mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
+			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
 			await service.createExpenditure(input, actorId)
 
