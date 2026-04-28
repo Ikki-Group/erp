@@ -34,15 +34,3 @@ export function initPurchasingRouteModule(s: PurchasingServiceModule) {
 		.use(initPurchaseOrderRoute(s.purchaseOrder))
 		.use(initGoodsReceiptRoute(s.goodsReceipt))
 }
-
-// Feature exports - Purchase Order
-export * from './purchase-order/purchase-order.dto'
-export * from './purchase-order/purchase-order.repo'
-export * from './purchase-order/purchase-order.service'
-export * from './purchase-order/purchase-order.route'
-
-// Feature exports - Goods Receipt
-export * from './goods-receipt/goods-receipt.dto'
-export * from './goods-receipt/goods-receipt.repo'
-export * from './goods-receipt/goods-receipt.service'
-export * from './goods-receipt/goods-receipt.route'
