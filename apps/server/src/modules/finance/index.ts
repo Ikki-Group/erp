@@ -39,20 +39,3 @@ export function initFinanceRouteModule(s: FinanceServiceModule) {
 		.use(initExpenditureRoute(s.expenditure))
 		.use(initGeneralLedgerRoute(s.journal))
 }
-
-// Feature exports - Account
-export * from './account/account.dto'
-export * from './account/account.repo'
-export * from './account/account.service'
-export * from './account/account.route'
-
-// Feature exports - Expenditure
-export * from './expenditure/expenditure.dto'
-export * from './expenditure/expenditure.repo'
-export * from './expenditure/expenditure.service'
-export * from './expenditure/expenditure.route'
-
-// Feature exports - General Ledger
-export * from './general-ledger/general-ledger.repo'
-export * from './general-ledger/general-ledger.service'
-export * from './general-ledger/general-ledger.route'
