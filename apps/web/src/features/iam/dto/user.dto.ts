@@ -4,8 +4,8 @@ import { zc, zp, zq } from '@/lib/validation'
 
 import { LocationDto } from '@/features/location'
 
+import { UserAssignmentDto } from './assignment.dto'
 import { RoleDto } from './role.dto'
-import { UserAssignmentDto } from './user-assignment.dto'
 
 export const UserDto = z.object({
 	...zc.RecordId.shape,

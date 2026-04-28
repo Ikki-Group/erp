@@ -10,9 +10,9 @@ import {
 	UserAssignmentDto,
 	UserAssignmentFilterDto,
 	UserAssignmentUpsertDto,
-} from '../dto/user-assignment.dto'
+} from '../dto/assignment.dto'
 
-export const userAssignmentApi = {
+export const assignmentApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.iam.assignment.list,

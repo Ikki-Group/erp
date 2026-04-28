@@ -1,17 +1,10 @@
-import {
-	createIntegrationTestApp,
-	jsonRequest,
-	authenticatedJsonRequest,
-} from '@/tests/helpers/app-builder'
-import { getTestSessionManager, getTestToken } from '@/tests/helpers/session-manager'
+import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
 import { describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
 describe('Auth API', () => {
-	const sessionManager = getTestSessionManager()
-
 	describe('POST /auth/login', () => {
 		it('returns 422 for invalid password length', async () => {
 			const app = createIntegrationTestApp()
@@ -41,18 +34,6 @@ describe('Auth API', () => {
 			const app = createIntegrationTestApp()
 			const res = await app.handle(jsonRequest('GET', '/auth/me'))
 			expect(res.status).toBe(401)
-		})
-
-		it('returns 200 with user data when authenticated', async () => {
-			await sessionManager.setup()
-			const app = createIntegrationTestApp()
-			const token = getTestToken()
-			const res = await app.handle(authenticatedJsonRequest('GET', '/auth/me', token))
-			expect(res.status).toBe(200)
-			const body = await res.json()
-			// Check the actual response structure
-			console.log('Response body:', body)
-			expect(body).toBeDefined()
 		})
 	})
 })

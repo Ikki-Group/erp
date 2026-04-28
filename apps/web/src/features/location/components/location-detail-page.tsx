@@ -45,7 +45,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { ButtonLoading } from '@/components/ui/button-loading'
 import { Separator } from '@/components/ui/separator'
 
-import { userApi, userAssignmentApi } from '@/features/iam'
+import { assignmentApi, userApi } from '@/features/iam'
 
 import { locationApi } from '../api'
 import { LocationAssignMemberDialog } from './location-assign-member-dialog'
