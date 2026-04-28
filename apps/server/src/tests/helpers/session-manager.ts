@@ -1,9 +1,9 @@
-import { getTestDatabase } from './db'
 import { generateTestToken } from './jwt'
 
 /**
  * Test session manager for managing authenticated test sessions.
- * Creates a test user and session once, then provides the token for all tests.
+ * Uses mock JWT tokens without requiring database sessions.
+ * Simpler approach for happy path tests without database dependencies.
  */
 export class TestSessionManager {
 	private static instance: TestSessionManager
@@ -20,40 +20,17 @@ export class TestSessionManager {
 	}
 
 	/**
-	 * Sets up a test session with a user and session in the database.
+	 * Sets up a test session with a mock JWT token.
 	 * Call this in a beforeAll hook.
 	 */
-	async setup(): Promise<void> {
+	setup(): void {
 		if (this.token) return // Already setup
 
-		const db = getTestDatabase()
-		const { usersTable } = await import('@/db/schema/iam')
-
-		// Use a unique email to avoid conflicts
-		const uniqueEmail = `test-${Date.now()}@example.com`
-
-		// Create a test user
-		const userResult = await db
-			.insert(usersTable)
-			.values({
-				email: uniqueEmail,
-				username: `testuser-${Date.now()}`,
-				passwordHash: 'hashed-password-placeholder',
-				fullname: 'Test User',
-				isActive: true,
-				createdBy: 1,
-				updatedBy: 1,
-			})
-			.returning({ id: usersTable.id })
-
-		if (!userResult[0]) throw new Error('Failed to create test user')
-		this.userId = userResult[0].id
-
-		// Generate a JWT token for this user
-		this.token = await generateTestToken({
+		this.userId = 1 // Mock user ID
+		this.token = generateTestToken({
 			userId: this.userId,
-			email: uniqueEmail,
-			username: `testuser-${Date.now()}`,
+			email: 'test@example.com',
+			username: 'testuser',
 		})
 	}
 
