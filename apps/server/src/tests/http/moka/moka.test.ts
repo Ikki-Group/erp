@@ -4,11 +4,11 @@ import { describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
-describe('Tool Seed API', () => {
-	describe('POST /tool/seed/', () => {
+describe('Moka Integration API', () => {
+	describe('GET /moka/scrap/history', () => {
 		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('POST', '/tool/seed/'))
+			const res = await app.handle(jsonRequest('GET', '/moka/scrap/history'))
 			expect(res.status).toBe(401)
 		})
 	})
