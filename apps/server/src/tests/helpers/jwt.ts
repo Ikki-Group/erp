@@ -7,16 +7,11 @@ import type { SessionPayloadDto } from '@/modules/auth/session/session.dto'
  * Uses the same secret and structure as the production SessionService.
  * Does not create a session in the database - use session manager for that.
  */
-export function generateTestToken(payload: Omit<SessionPayloadDto, 'id'>): string {
+export function generateTestToken(payload: SessionPayloadDto): string {
 	const secret = Bun.env.JWT_SECRET ?? 'test-secret-min-32-characters-long-enough'
 	const expiresIn = '7d' // Default from env
 
-	const fullPayload: SessionPayloadDto = {
-		id: 999, // Mock session ID
-		...payload,
-	}
-
-	return jwt.sign(fullPayload, secret, { expiresIn })
+	return jwt.sign(payload, secret, { expiresIn })
 }
 
 /**
@@ -24,6 +19,7 @@ export function generateTestToken(payload: Omit<SessionPayloadDto, 'id'>): strin
  */
 export function generateTestUserToken(): string {
 	return generateTestToken({
+		id: 999, // Mock session ID
 		userId: 1,
 		email: 'test@example.com',
 		username: 'testuser',

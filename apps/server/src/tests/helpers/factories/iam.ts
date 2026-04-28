@@ -64,3 +64,22 @@ export async function createRole(
 	if (!result[0]) throw new Error('Failed to create role')
 	return { id: result[0].id, ...data }
 }
+
+export async function createSession(
+	userId: number,
+	overrides: Partial<{
+		expiredAt: Date
+	}> = {},
+) {
+	const db = getTestDatabase()
+	const { sessionsTable } = await import('@/db/schema/iam')
+
+	const data = {
+		userId,
+		expiredAt: overrides.expiredAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+	}
+
+	const result = await db.insert(sessionsTable).values(data).returning({ id: sessionsTable.id })
+	if (!result[0]) throw new Error('Failed to create session')
+	return { id: result[0].id, ...data }
+}

@@ -5,12 +5,16 @@ import {
 } from '@/tests/helpers/app-builder'
 import { getTestSessionManager, getTestToken } from '@/tests/helpers/session-manager'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
-import { describe, expect, it } from 'bun:test'
+import { beforeAll, describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
 describe('Auth API', () => {
 	const sessionManager = getTestSessionManager()
+
+	beforeAll(async () => {
+		await sessionManager.setup()
+	})
 
 	describe('POST /auth/login', () => {
 		it('returns 422 for invalid password length', async () => {
@@ -43,17 +47,16 @@ describe('Auth API', () => {
 			expect(res.status).toBe(401)
 		})
 
-		it.skip('returns 200 with user data when authenticated', async () => {
-			// Skip - requires database session setup
-			// Mock auth service approach not working with route initialization
-			sessionManager.setup()
+		it('returns 200 with user data when authenticated', async () => {
 			const app = createIntegrationTestApp()
 			const token = getTestToken()
 			const res = await app.handle(authenticatedJsonRequest('GET', '/auth/me', token))
 			expect(res.status).toBe(200)
 			const body = await res.json()
-			expect(body).toHaveProperty('id')
-			expect(body).toHaveProperty('email')
+			expect(body).toBeDefined()
+			expect(body).toHaveProperty('data')
+			expect(body.data).toHaveProperty('email')
+			expect(body.data).toHaveProperty('id')
 		})
 	})
 })

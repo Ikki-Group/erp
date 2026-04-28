@@ -1,14 +1,15 @@
+import { createUser, createSession } from './factories/iam'
 import { generateTestToken } from './jwt'
 
 /**
  * Test session manager for managing authenticated test sessions.
- * Uses mock JWT tokens without requiring database sessions.
- * Simpler approach for happy path tests without database dependencies.
+ * Creates a test user and session in the database, then provides the token for all tests.
  */
 export class TestSessionManager {
 	private static instance: TestSessionManager
 	private token: string | null = null
 	private userId: number | null = null
+	private sessionId: number | null = null
 
 	private constructor() {}
 
@@ -20,17 +21,32 @@ export class TestSessionManager {
 	}
 
 	/**
-	 * Sets up a test session with a mock JWT token.
+	 * Sets up a test session with a user and session in the database.
 	 * Call this in a beforeAll hook.
 	 */
-	setup(): void {
+	async setup(): Promise<void> {
 		if (this.token) return // Already setup
 
-		this.userId = 1 // Mock user ID
+		// Use unique email to avoid conflicts
+		const uniqueEmail = `test-auth-${Date.now()}@example.com`
+
+		// Create a test user
+		const user = await createUser({
+			email: uniqueEmail,
+			username: `testauthuser-${Date.now()}`,
+		})
+		this.userId = user.id
+
+		// Create a session for this user
+		const session = await createSession(this.userId)
+		this.sessionId = session.id
+
+		// Generate a JWT token for this session with the correct session ID
 		this.token = generateTestToken({
+			id: this.sessionId, // Use the actual session ID from database
 			userId: this.userId,
-			email: 'test@example.com',
-			username: 'testuser',
+			email: user.email,
+			username: user.username,
 		})
 	}
 
@@ -59,11 +75,24 @@ export class TestSessionManager {
 	}
 
 	/**
+	 * Gets the test session ID. Throws if not yet setup.
+	 */
+	getSessionId(): number {
+		if (!this.sessionId) {
+			throw new Error(
+				'Test session not setup. Call TestSessionManager.getInstance().setup() in a beforeAll hook.',
+			)
+		}
+		return this.sessionId
+	}
+
+	/**
 	 * Resets the session manager (for cleanup between test suites).
 	 */
 	reset(): void {
 		this.token = null
 		this.userId = null
+		this.sessionId = null
 	}
 }
 
