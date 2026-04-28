@@ -32,15 +32,3 @@ export class HRServiceModule {
 export function initHRRouteModule(s: HRServiceModule) {
 	return new Elysia({ prefix: '/hr' }).use(initHRRoute(s.hr)).use(initPayrollRoute(s.payroll))
 }
-
-// Feature exports - HR
-export * from './hr/hr.dto'
-export * from './hr/hr.repo'
-export * from './hr/hr.service'
-export * from './hr/hr.route'
-
-// Feature exports - Payroll
-export * from './payroll/payroll.dto'
-export * from './payroll/payroll.repo'
-export * from './payroll/payroll.service'
-export * from './payroll/payroll.route'
