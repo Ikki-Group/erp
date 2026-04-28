@@ -48,27 +48,3 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 		.use(initStockAlertRoute(s.alert))
 		.use(initStockDashboardRoute(s.dashboard))
 }
-
-// Feature exports - Stock Transaction
-export * from './stock-transaction/stock-transaction.dto'
-export * from './stock-transaction/stock-transaction.repo'
-export * from './stock-transaction/stock-transaction.service'
-export * from './stock-transaction/stock-transaction.route'
-
-// Feature exports - Stock Summary
-export * from './stock-summary/stock-summary.dto'
-export * from './stock-summary/stock-summary.repo'
-export * from './stock-summary/stock-summary.service'
-export * from './stock-summary/stock-summary.route'
-
-// Feature exports - Stock Alert
-export * from './stock-alert/stock-alert.dto'
-export * from './stock-alert/stock-alert.repo'
-export * from './stock-alert/stock-alert.service'
-export * from './stock-alert/stock-alert.route'
-
-// Feature exports - Stock Dashboard
-export * from './stock-dashboard/stock-dashboard.dto'
-export * from './stock-dashboard/stock-dashboard.repo'
-export * from './stock-dashboard/stock-dashboard.service'
-export * from './stock-dashboard/stock-dashboard.route'
