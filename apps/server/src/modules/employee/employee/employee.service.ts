@@ -29,7 +29,7 @@ const err = {
 }
 
 export class EmployeeService {
-	constructor(private repo = new EmployeeRepo()) {}
+	constructor(private readonly repo: EmployeeRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

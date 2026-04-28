@@ -1,33 +1,46 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, sortBy, stampCreate, stampUpdate } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/this.cache'
+import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { accountsTable } from '@/db/schema/finance'
 
 import type { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.dto'
 
-const cache = bento.namespace('finance.account')
+const ACCOUNT_CACHE_NAMESPACE = 'finance.account'
 
 export class AccountRepo {
+	private readonly db: DbClient
+	private readonly this.cache: CacheProvider
+
+	constructor(db: DbClient, this.cacheClient: CacheClient) {
+		this.db = db
+		this.this.cache = this.cacheClient.namespace(ACCOUNT_CACHE_NAMESPACE)
+	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await cache.deleteMany({ keys })
+		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await this.this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'AccountRepo this.cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number) {
 		return record('AccountRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const [account] = await db
+					const [account] = await this.db
 						.select()
 						.from(accountsTable)
 						.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
@@ -54,7 +67,7 @@ export class AccountRepo {
 
 			return paginate({
 				data: async ({ limit: l, offset }) => {
-					return db
+					return this.db
 						.select()
 						.from(accountsTable)
 						.where(where)
@@ -63,17 +76,17 @@ export class AccountRepo {
 						.orderBy(sortBy(accountsTable.code, 'asc'))
 				},
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(accountsTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(accountsTable).where(where),
 			})
 		})
 	}
 
 	async findByCode(code: string) {
 		return record('AccountRepo.findByCode', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: `code.${code}`,
 				factory: async () => {
-					const [result] = await db
+					const [result] = await this.db
 						.select()
 						.from(accountsTable)
 						.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
@@ -86,7 +99,7 @@ export class AccountRepo {
 	}
 
 	async hasChildren(id: number): Promise<boolean> {
-		const [child] = await db
+		const [child] = await this.db
 			.select({ id: accountsTable.id })
 			.from(accountsTable)
 			.where(and(eq(accountsTable.parentId, id), isNull(accountsTable.deletedAt)))
@@ -99,7 +112,7 @@ export class AccountRepo {
 	async create(data: AccountCreateDto, actorId: number) {
 		return record('AccountRepo.create', async () => {
 			const stamps = stampCreate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.insert(accountsTable)
 				.values({ ...data, ...stamps })
 				.returning({ id: accountsTable.id })
@@ -113,7 +126,7 @@ export class AccountRepo {
 	async update(id: number, data: AccountUpdateDto, actorId: number) {
 		return record('AccountRepo.update', async () => {
 			const stamps = stampUpdate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.update(accountsTable)
 				.set({ ...data, ...stamps })
 				.where(eq(accountsTable.id, id))
@@ -127,7 +140,7 @@ export class AccountRepo {
 
 	async softDelete(id: number, actorId: number) {
 		return record('AccountRepo.softDelete', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(accountsTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(accountsTable.id, id))

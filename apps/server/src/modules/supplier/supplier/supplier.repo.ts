@@ -1,17 +1,18 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { suppliersTable } from '@/db/schema/supplier'
 
 import type {
@@ -21,16 +22,27 @@ import type {
 	SupplierUpdateDto,
 } from './supplier.dto'
 
-const cache = bento.namespace('supplier')
+const SUPPLIER_CACHE_NAMESPACE = 'supplier'
 
 export class SupplierRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(SUPPLIER_CACHE_NAMESPACE)
+	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
-	#clearCache(id?: number): Promise<void> {
-		return record('SupplierRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+	async #clearCache(id?: number): Promise<void> {
+		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'SupplierRepo cache invalidation failed')
 		})
 	}
 
@@ -48,7 +60,7 @@ export class SupplierRepo {
 
 			return paginate<SupplierDto>({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(suppliersTable)
 						.where(where)
@@ -56,17 +68,17 @@ export class SupplierRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(suppliersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(suppliersTable).where(where),
 			})
 		})
 	}
 
 	async getById(id: number): Promise<SupplierDto | undefined> {
 		return record('SupplierRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const res = await db
+					const res = await this.db
 						.select()
 						.from(suppliersTable)
 						.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
@@ -84,12 +96,12 @@ export class SupplierRepo {
 	async create(data: SupplierCreateDto, actorId: number): Promise<number | undefined> {
 		return record('SupplierRepo.create', async () => {
 			const metadata = stampCreate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.insert(suppliersTable)
 				.values({ ...data, ...metadata })
 				.returning({ id: suppliersTable.id })
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -98,26 +110,26 @@ export class SupplierRepo {
 		return record('SupplierRepo.update', async () => {
 			const { id, ...rest } = data
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(suppliersTable)
 				.set({ ...rest, ...metadata })
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			void this.#clearCache(res?.id)
+			this.#clearCacheAsync(res?.id)
 			return res?.id
 		})
 	}
 
 	async remove(id: number, actorId: number): Promise<number | undefined> {
 		return record('SupplierRepo.remove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.update(suppliersTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
