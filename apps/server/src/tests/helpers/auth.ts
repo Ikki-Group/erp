@@ -37,3 +37,17 @@ export function createUnauthenticatedPlugin() {
 export function authHeaders(token: string = 'test-token') {
 	return { Authorization: `Bearer ${token}` }
 }
+
+/**
+ * Mock auth service for testing without database sessions.
+ * Verifies test tokens and returns mock user data.
+ */
+export class MockAuthService {
+	async verifyToken(token: string): Promise<AuthenticatedUser | null> {
+		// For testing, accept any token that looks like a JWT
+		if (token && token.length > 10) {
+			return mockAuthenticatedUser
+		}
+		return null
+	}
+}

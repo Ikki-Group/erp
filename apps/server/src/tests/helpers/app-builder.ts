@@ -7,7 +7,7 @@ import { requestIdPlugin } from '@/core/http/request-id'
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
-import { createMockAuthPlugin, mockAuthenticatedUser } from './auth'
+import { createMockAuthPlugin, mockAuthenticatedUser, MockAuthService } from './auth'
 import { getTestDatabase } from './db'
 import { createApp } from '@/app'
 
@@ -56,6 +56,25 @@ export function createIntegrationTestApp() {
 	const db = getTestDatabase()
 	const modules = initModules(db)
 	const routes = initRoutes(modules)
+
+	const app = createApp(modules)
+	routes.register(app)
+
+	return app
+}
+
+/**
+ * Creates an integration test app with mock auth service.
+ * Use for happy path tests without requiring database sessions.
+ */
+export function createIntegrationTestAppWithMockAuth() {
+	const db = getTestDatabase()
+	const modules = initModules(db)
+	const routes = initRoutes(modules)
+
+	// Replace auth service with mock
+	const mockAuthService = new MockAuthService()
+	modules.auth = mockAuthService as any
 
 	const app = createApp(modules)
 	routes.register(app)
