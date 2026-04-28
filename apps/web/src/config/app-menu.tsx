@@ -21,7 +21,6 @@ export interface AppMenu {
 	title: string
 	href: string
 	icon?: LucideIcon
-	isHide?: boolean
 	isActive?: boolean
 	badge?: number | string
 	children?: Array<Omit<AppMenu, 'children' | 'icon'>>
