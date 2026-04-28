@@ -5,28 +5,30 @@ import { describe, expect, it } from 'bun:test'
 setupIntegrationTests()
 
 describe('User API', () => {
-	describe('GET /user/list', () => {
-		it('returns empty list initially', async () => {
+	describe('GET /iam/user/list', () => {
+		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/user/list'))
+			const res = await app.handle(jsonRequest('GET', '/iam/user/list'))
 			expect(res.status).toBe(401)
 		})
 	})
 
-	describe('POST /user/create', () => {
-		it('creates user with valid data', async () => {
+	describe('POST /iam/user/create', () => {
+		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
 			const createData = {
 				email: 'test@example.com',
 				username: 'testuser',
 				fullname: 'Test User',
 				password: 'password123',
+				pinCode: '123456',
+				defaultLocationId: null,
 				isActive: true,
 				isRoot: false,
 				assignments: [],
 			}
 
-			const res = await app.handle(jsonRequest('POST', '/user/create', createData))
+			const res = await app.handle(jsonRequest('POST', '/iam/user/create', createData))
 			expect(res.status).toBe(401)
 		})
 	})
