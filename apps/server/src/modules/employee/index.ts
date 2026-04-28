@@ -22,8 +22,3 @@ export class EmployeeServiceModule {
 export function initEmployeeRouteModule(service: EmployeeServiceModule) {
 	return new Elysia().use(initEmployeeRoute(service.employee))
 }
-
-export * from './employee/employee.dto'
-export * from './employee/employee.repo'
-export * from './employee/employee.service'
-export * from './employee/employee.route'
