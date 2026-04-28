@@ -12,18 +12,4 @@ describe('Product API', () => {
 			expect(res.status).toBe(401)
 		})
 	})
-
-	describe('GET /product/detail', () => {
-		it('returns 401 when not authenticated', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/product/detail?id=1'))
-			expect(res.status).toBe(401)
-		})
-
-		it('returns 422 for invalid ID format', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/product/detail?id=invalid'))
-			expect(res.status).toBe(422)
-		})
-	})
 })

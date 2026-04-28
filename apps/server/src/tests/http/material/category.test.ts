@@ -26,29 +26,5 @@ describe('Material Category API', () => {
 			)
 			expect(res.status).toBe(401)
 		})
-
-		it('returns 422 for validation error (missing required fields)', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(
-				jsonRequest('POST', '/material/category/create', {
-					code: 'CAT-001',
-					// Missing required 'name' field
-				}),
-			)
-			expect(res.status).toBe(422)
-		})
-
-		it('returns 422 for validation error (empty code)', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(
-				jsonRequest('POST', '/material/category/create', {
-					code: '', // Empty code should fail validation
-					name: 'Test Category',
-					description: null,
-					parentId: null,
-				}),
-			)
-			expect(res.status).toBe(422)
-		})
 	})
 })

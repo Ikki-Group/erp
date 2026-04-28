@@ -11,7 +11,7 @@ import { zPassword } from '@/lib/validation'
 import { useAppForm } from '@/components/form'
 import { FormDialog } from '@/components/layout/form-dialog'
 
-import { userApi } from '../api'
+import { userApi } from '@/features/iam'
 
 const FormDto = z.object({ oldPassword: z.string().min(1), newPassword: zPassword })
 
