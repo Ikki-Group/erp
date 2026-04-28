@@ -39,21 +39,3 @@ export function initProductRouteModule(s: ProductServiceModule) {
 		.use(initSalesTypeRoute(s.salesType))
 		.use(initProductRoute(s.product))
 }
-
-// Feature exports - Product Category
-export * from './product-category/product-category.dto'
-export * from './product-category/product-category.repo'
-export * from './product-category/product-category.service'
-export * from './product-category/product-category.route'
-
-// Feature exports - Sales Type
-export * from './sales-type/sales-type.dto'
-export * from './sales-type/sales-type.repo'
-export * from './sales-type/sales-type.service'
-export * from './sales-type/sales-type.route'
-
-// Feature exports - Product
-export * from './product/product.dto'
-export * from './product/product.repo'
-export * from './product/product.service'
-export * from './product/product.route'
