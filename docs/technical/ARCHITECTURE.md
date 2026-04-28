@@ -7,8 +7,8 @@
 | Aspect | Standard |
 |--------|----------|
 | Structure | Co-located files (no subfolders) |
-| DI | `private readonly repo` constructor injection |
-| Cache | `CACHE_KEY_DEFAULT` standardized keys |
+| DI | `private readonly repo` + `private readonly cacheClient` constructor injection |
+| Cache | `CacheClient` injected at module level, `CacheProvider` for namespaced cache |
 | Service Methods | `get*()` for services, `handle*()` for router |
 | Testing | Co-located tests, skip DTO tests, mock via DI |
 | No Usecase | Orchestration in service layer |
@@ -72,9 +72,10 @@ HTTP Client → Router → Service → Repo → DB
 
 ### Dependency Injection
 
-- Constructor injection with `private readonly repo`
+- Constructor injection with `private readonly repo` and `private readonly cacheClient`
 - Cross-module: lazy getter `() => dep` (avoid circular bootstrap)
 - Module class as DI container
+- Cache initialized at root registry via `createCache()`, injected to modules
 
 ## Repository Layer
 
@@ -87,10 +88,13 @@ HTTP Client → Router → Service → Repo → DB
 
 ## Caching Strategy
 
-- `bento.namespace('entity')` per entity
+- Cache injected via `CacheClient` at module level (initialized via `createCache()` in root registry)
+- `cacheClient.namespace('entity')` per entity (namespace constant defined at module level)
+- Use `CacheProvider` type for namespaced cache
 - Use `CACHE_KEY_DEFAULT` from `@/core/cache` (not hardcoded)
 - `cache.getOrSet({ factory: async ({ skip }) => ... ?? skip() })`
-- Invalidate on every write: `deleteMany({ keys: [list, count, byId] })`
+- Invalidate on every write using `#clearCacheAsync()` with error handling: `deleteMany({ keys: [list, count, byId] })`
+- Fire-and-forget invalidation with `.catch()` + logging to prevent unhandled rejections
 
 ## Error Handling
 

@@ -18,6 +18,9 @@
 - [ ] `get*()` for services, `handle*()` for router only
 - [ ] `repo` is `private readonly` — never exposed
 - [ ] `clearCache()` is private — always called after write
+- [ ] Use `clearCacheAsync()` for fire-and-forget invalidation with error handling
+- [ ] Inject `CacheClient` via constructor, create namespaced cache with `namespace()`
+- [ ] Define namespace constant (e.g., `ENTITY_CACHE_NAMESPACE`) to avoid typos
 - [ ] Use `CACHE_KEY_DEFAULT` from `@/core/cache`
 - [ ] NO `usecase/` folder — orchestration in service
 - [ ] Cross-module deps via lazy getter `() => dep`
@@ -27,6 +30,10 @@
 ## Phase 3: Repository
 
 - [ ] NO business logic (no validation, no caching)
+- [ ] Inject `CacheClient` via constructor, create namespaced cache with `namespace()`
+- [ ] Use `CacheProvider` type for namespaced cache
+- [ ] Define namespace constant (e.g., `ENTITY_CACHE_NAMESPACE`) to avoid typos
+- [ ] Use `#clearCacheAsync()` for fire-and-forget invalidation with error handling
 - [ ] Every method wrapped with `record('ClassName.methodName', ...)`
 - [ ] Batch fetch with `inArray()`, not loops
 - [ ] Use `paginate()`, `searchFilter()` from `@/core/database`
@@ -69,7 +76,8 @@
 
 - [ ] NO N+1 queries (use `inArray()` + `RelationMap`)
 - [ ] Parallel queries with `Promise.all()`
-- [ ] Cache frequently-read data with `bento.getOrSet()`
+- [ ] Cache frequently-read data with `cache.getOrSet()`
+- [ ] Cache injected via `CacheClient` at module level, not global `bento`
 - [ ] List endpoints have pagination
 
 ---

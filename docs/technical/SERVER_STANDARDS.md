@@ -61,28 +61,35 @@ export class EntityService {
 
 ```typescript
 import { record } from '@elysiajs/opentelemetry'
-import { bento } from '@/core/cache'
-import { CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import { logger } from '@/core/logger'
 import * as core from '@/core/database'
 import { entityTable } from '@/db/schema'
 import * as dto from './entity.dto'
 import { EntityErrors } from './errors'
 import { EntityRepo } from './entity.repo'
 
-const cache = bento.namespace('entity')
+const ENTITY_CACHE_NAMESPACE = 'entity'
 
 const conflictFields: core.ConflictField<'code'>[] = [
   { field: 'code', column: entityTable.code, message: 'Code exists', code: 'ENTITY_CODE_EXISTS' },
 ]
 
 export class EntityService {
-  constructor(private readonly repo = new EntityRepo()) {}
+  private readonly cache: CacheProvider
+
+  constructor(
+    private readonly repo = new EntityRepo(),
+    cacheClient: CacheClient,
+  ) {
+    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
+  }
 
   /* --------------------- QUERY (public) --------------------- */
 
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityService.getById', async () => {
-      return cache.getOrSet({
+      return this.cache.getOrSet({
         key: CACHE_KEY_DEFAULT.byId(id),
         factory: async ({ skip }) => (await this.repo.getById(id)) ?? skip(),
       })
@@ -91,7 +98,7 @@ export class EntityService {
 
   async getList(): Promise<dto.EntityDto[]> {
     return record('EntityService.getList', async () => {
-      return cache.getOrSet({ key: CACHE_KEY_DEFAULT.list, factory: () => this.repo.getList() })
+      return this.cache.getOrSet({ key: CACHE_KEY_DEFAULT.list, factory: () => this.repo.getList() })
     })
   }
 
@@ -110,7 +117,7 @@ export class EntityService {
       await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data })
       const id = await this.repo.create(data, actorId)
       if (!id) throw EntityErrors.createFailed()
-      await this.clearCache()
+      this.clearCacheAsync()
       return { id }
     })
   }
@@ -121,7 +128,7 @@ export class EntityService {
       if (!existing) throw EntityErrors.notFound(data.id)
       await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data, existing })
       await this.repo.update(data, actorId)
-      await this.clearCache(data.id)
+      this.clearCacheAsync(data.id)
       return { id: data.id }
     })
   }
@@ -131,7 +138,7 @@ export class EntityService {
       const existing = await this.getById(id)
       if (!existing) throw EntityErrors.notFound(id)
       await this.repo.remove(id)
-      await this.clearCache(id)
+      this.clearCacheAsync(id)
       return { id }
     })
   }
@@ -140,8 +147,14 @@ export class EntityService {
 
   private async clearCache(id?: number): Promise<void> {
     const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-    if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-    await cache.deleteMany({ keys })
+    if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+    await this.cache.deleteMany({ keys })
+  }
+
+  private clearCacheAsync(id?: number): void {
+    void this.clearCache(id).catch((error: unknown) => {
+      logger.error(error, 'EntityService cache invalidation failed')
+    })
   }
 }
 ```
@@ -154,29 +167,52 @@ export class EntityService {
 import { record } from '@elysiajs/opentelemetry'
 import { eq, count } from 'drizzle-orm'
 import { takeFirst, stampCreate, stampUpdate, paginate } from '@/core/database'
-import { db } from '@/db'
+import type { DbClient } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import { logger } from '@/core/logger'
 import { entityTable } from '@/db/schema'
 import * as dto from './entity.dto'
 
+const ENTITY_CACHE_NAMESPACE = 'entity'
+
 export class EntityRepo {
+  private readonly db: DbClient
+  private readonly cache: CacheProvider
+
+  constructor(db: DbClient, cacheClient: CacheClient) {
+    this.db = db
+    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
+  }
+
   /* --------------------- QUERY --------------------- */
 
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityRepo.getById', async () => {
-      return db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
+      return this.cache.getOrSet({
+        key: CACHE_KEY_DEFAULT.byId(id),
+        factory: async ({ skip }) => {
+          const res = await this.db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
+          return res ?? skip()
+        },
+      })
     })
   }
 
   async getList(): Promise<dto.EntityDto[]> {
-    return record('EntityRepo.getList', async () => db.select().from(entityTable))
+    return record('EntityRepo.getList', async () => {
+      return this.cache.getOrSet({
+        key: CACHE_KEY_DEFAULT.list,
+        factory: async () => this.db.select().from(entityTable),
+      })
+    })
   }
 
   async getListPaginated(filter: dto.EntityFilterDto) {
     return record('EntityRepo.getListPaginated', async () => {
       return paginate({
-        data: ({ limit, offset }) => db.select().from(entityTable).limit(limit).offset(offset),
+        data: ({ limit, offset }) => this.db.select().from(entityTable).limit(limit).offset(offset),
         pq: { page: filter.page, limit: filter.limit },
-        countQuery: db.select({ count: count() }).from(entityTable),
+        countQuery: this.db.select({ count: count() }).from(entityTable),
       })
     })
   }
@@ -185,26 +221,45 @@ export class EntityRepo {
 
   async create(data: dto.EntityCreateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.create', async () => {
-      const [res] = await db.insert(entityTable).values({ ...data, ...stampCreate(actorId) }).returning({ id: entityTable.id })
+      const [res] = await this.db.insert(entityTable).values({ ...data, ...stampCreate(actorId) }).returning({ id: entityTable.id })
+      this.clearCacheAsync()
       return res?.id
     })
   }
 
   async update(data: dto.EntityUpdateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.update', async () => {
-      const [res] = await db
+      const [res] = await this.db
         .update(entityTable)
         .set({ ...data, ...stampUpdate(actorId) })
         .where(eq(entityTable.id, data.id))
         .returning({ id: entityTable.id })
+      this.clearCacheAsync(data.id)
       return res?.id
     })
   }
 
   async remove(id: number): Promise<number | undefined> {
     return record('EntityRepo.remove', async () => {
-      const [res] = await db.delete(entityTable).where(eq(entityTable.id, id)).returning({ id: entityTable.id })
+      const [res] = await this.db.delete(entityTable).where(eq(entityTable.id, id)).returning({ id: entityTable.id })
+      this.clearCacheAsync(id)
       return res?.id
+    })
+  }
+
+  /* --------------------- PRIVATE --------------------- */
+
+  #clearCache(id?: number): Promise<void> {
+    return record('EntityRepo.#clearCache', async () => {
+      const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+      if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+      await this.cache.deleteMany({ keys })
+    })
+  }
+
+  #clearCacheAsync(id?: number): void {
+    void this.#clearCache(id).catch((error: unknown) => {
+      logger.error(error, 'EntityRepo cache invalidation failed')
     })
   }
 }
@@ -212,7 +267,10 @@ export class EntityRepo {
 
 ### Rules
 - Wrap every method with `record('ClassName.methodName', ...)`
-- NO caching in repo
+- Inject `CacheClient` via constructor, create namespaced cache with `namespace()`
+- Use `CacheProvider` type for namespaced cache
+- Define namespace constant (e.g., `ENTITY_CACHE_NAMESPACE`) to avoid typos
+- Use `#clearCacheAsync()` for fire-and-forget invalidation with error handling
 - NO business logic in repo
 - Use `stampCreate()` / `stampUpdate()` for audit columns
 
@@ -269,6 +327,25 @@ export function initEntityRoute(service: EntityService) {
 
 ## 5. Cache Standards
 
+### Cache DI Pattern
+
+**Cache is injected via `CacheClient` at module level, not imported globally.**
+
+```typescript
+// In module registry (root level)
+const cacheClient = createCache()
+
+// In module constructor
+constructor(
+  private readonly db: DbClient,
+  private readonly cacheClient: CacheClient,
+  private readonly deps: ModuleDeps,
+) {
+  // Pass to repos
+  this.entity = new EntityRepo(this.db, this.cacheClient)
+}
+```
+
 ### Use `CACHE_KEY_DEFAULT` (Standardized)
 
 ```typescript
@@ -280,24 +357,65 @@ CACHE_KEY_DEFAULT.count          // 'count'
 CACHE_KEY_DEFAULT.byId(123)      // 'byId:123'
 ```
 
+### Cache Pattern in Repo
+
+```typescript
+const ENTITY_CACHE_NAMESPACE = 'entity'
+
+export class EntityRepo {
+  private readonly cache: CacheProvider
+
+  constructor(db: DbClient, cacheClient: CacheClient) {
+    this.db = db
+    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
+  }
+
+  // Read with fallback
+  async getById(id: number) {
+    return this.cache.getOrSet({
+      key: CACHE_KEY_DEFAULT.byId(id),
+      factory: async ({ skip }) => {
+        const res = await this.db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
+        return res ?? skip()
+      },
+    })
+  }
+
+  // Fire-and-forget invalidation with error handling
+  #clearCache(id?: number): Promise<void> {
+    return record('EntityRepo.#clearCache', async () => {
+      const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+      if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+      await this.cache.deleteMany({ keys })
+    })
+  }
+
+  #clearCacheAsync(id?: number): void {
+    void this.#clearCache(id).catch((error: unknown) => {
+      logger.error(error, 'EntityRepo cache invalidation failed')
+    })
+  }
+}
+```
+
 ### Cache Pattern in Service
 
 ```typescript
-const cache = bento.namespace('entity')
+export class EntityService {
+  private readonly cache: CacheProvider
 
-// Read with fallback
-async getById(id: number) {
-  return cache.getOrSet({
-    key: CACHE_KEY_DEFAULT.byId(id),
-    factory: async ({ skip }) => (await this.repo.getById(id)) ?? skip(),
-  })
-}
+  constructor(
+    private readonly repo = new EntityRepo(),
+    cacheClient: CacheClient,
+  ) {
+    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
+  }
 
-// Clear after every write
-private async clearCache(id?: number) {
-  const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-  if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-  await cache.deleteMany({ keys })
+  private clearCacheAsync(id?: number): void {
+    void this.clearCache(id).catch((error: unknown) => {
+      logger.error(error, 'EntityService cache invalidation failed')
+    })
+  }
 }
 ```
 

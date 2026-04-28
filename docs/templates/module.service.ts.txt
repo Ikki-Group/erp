@@ -1,19 +1,42 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ilike } from 'drizzle-orm'
 
-import { cache } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import { logger } from '@/core/logger'
 import * as core from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
+import type { DbClient } from '@/core/database'
 import { db } from '@/db'
 import { myEntityTable } from '@/db/schema' // Replace with your table
 
 import { MyEntityDto, type MyEntityCreateDto, type MyEntityFilterDto, type MyEntityUpdateDto } from '../dto/my-entity.dto'
 
+const MYENTITY_CACHE_NAMESPACE = 'myentity'
+
 /**
  * Replace 'MyEntity' with your domain namespace (e.g. 'Location', 'MaterialCategory')
  */
 export class MyEntityService {
-  constructor(private readonly deps: { /* inject dependencies here */ }) {}
+  private readonly cache: CacheProvider
+
+  constructor(
+    private readonly deps: { /* inject dependencies here */ },
+    cacheClient: CacheClient,
+  ) {
+    this.cache = cacheClient.namespace(MYENTITY_CACHE_NAMESPACE)
+  }
+
+  private clearCacheAsync(id?: number): void {
+    void this.clearCache(id).catch((error: unknown) => {
+      logger.error(error, 'MyEntityService cache invalidation failed')
+    })
+  }
+
+  private async clearCache(id?: number): Promise<void> {
+    const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
+    if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+    await this.cache.deleteMany({ keys })
+  }
 
   async handleList(filter: MyEntityFilterDto) {
     return record('MyEntityService.handleList', async () => {
