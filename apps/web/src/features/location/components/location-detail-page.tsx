@@ -84,7 +84,7 @@ export function LocationDetailPage({ id }: LocationDetailPageProps) {
 	})
 
 	const removeMemberMutation = useMutation({
-		mutationFn: userAssignmentApi.remove.mutationFn,
+		mutationFn: assignmentApi.remove.mutationFn,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['iam', 'user', 'list', { locationId: id }] })
 		},

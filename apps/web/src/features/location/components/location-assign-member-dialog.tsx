@@ -27,7 +27,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
-import { roleApi, userApi, userAssignmentApi } from '@/features/iam'
+import { assignmentApi, roleApi, userApi } from '@/features/iam'
 
 interface LocationAssignMemberDialogProps {
 	locationId: number
@@ -55,7 +55,7 @@ export const LocationAssignMemberDialog = createCallable<LocationAssignMemberDia
 		)
 
 		const assignMutation = useMutation({
-			mutationFn: userAssignmentApi.assign.mutationFn,
+			mutationFn: assignmentApi.assign.mutationFn,
 			onSuccess: () => {
 				// Invalidate user list for this location
 				queryClient.invalidateQueries({ queryKey: ['iam', 'user', 'list'] })
