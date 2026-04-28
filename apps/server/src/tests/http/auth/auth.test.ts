@@ -1,4 +1,8 @@
-import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
+import {
+	createIntegrationTestApp,
+	jsonRequest,
+	authenticatedJsonRequest,
+} from '@/tests/helpers/app-builder'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
 import { describe, expect, it } from 'bun:test'
 

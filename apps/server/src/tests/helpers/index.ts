@@ -58,3 +58,6 @@ export {
 
 // Cache
 export { clearTestCache, createTestCache } from './cache'
+
+// JWT
+export { generateTestToken, generateTestUserToken } from './jwt'
