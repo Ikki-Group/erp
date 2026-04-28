@@ -29,12 +29,15 @@ export class TestSessionManager {
 		const db = getTestDatabase()
 		const { usersTable } = await import('@/db/schema/iam')
 
+		// Use a unique email to avoid conflicts
+		const uniqueEmail = `test-${Date.now()}@example.com`
+
 		// Create a test user
 		const userResult = await db
 			.insert(usersTable)
 			.values({
-				email: 'test@example.com',
-				username: 'testuser',
+				email: uniqueEmail,
+				username: `testuser-${Date.now()}`,
 				passwordHash: 'hashed-password-placeholder',
 				fullname: 'Test User',
 				isActive: true,
@@ -49,8 +52,8 @@ export class TestSessionManager {
 		// Generate a JWT token for this user
 		this.token = await generateTestToken({
 			userId: this.userId,
-			email: 'test@example.com',
-			username: 'testuser',
+			email: uniqueEmail,
+			username: `testuser-${Date.now()}`,
 		})
 	}
 
