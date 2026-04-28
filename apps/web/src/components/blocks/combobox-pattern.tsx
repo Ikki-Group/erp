@@ -7,7 +7,7 @@ import { useQuery, type UnusedSkipTokenOptions } from '@tanstack/react-query'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react'
 import { DatabaseIcon, Loader2Icon } from 'lucide-react'
 
-import type { Option, StringOrNumber } from '@/lib/options'
+import type { SelectOption, StringOrNumber } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
