@@ -13,7 +13,7 @@ export type {
 } from './general-ledger.repo'
 
 export class GeneralLedgerService {
-	constructor(private readonly repo = new GLRepo()) {}
+	constructor(private readonly repo: GLRepo) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

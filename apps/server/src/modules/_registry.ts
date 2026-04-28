@@ -57,7 +57,7 @@ export function initModules(db: DbClient): Modules {
 	const material = new MaterialServiceModule(location.master)
 	const supplier = new SupplierServiceModule(db, cacheClient)
 	const employee = new EmployeeServiceModule(db, cacheClient)
-	const finance = new FinanceServiceModule()
+	const finance = new FinanceServiceModule(db, cacheClient)
 
 	// Layer 1.5 — Auth (Depends on Iam)
 	const auth = new AuthServiceModule(db, cacheClient, iam)

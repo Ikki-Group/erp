@@ -1,21 +1,40 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
-import { paginate, searchFilter, stampCreate, type WithPaginationResult } from '@/core/database'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
+import {
+	paginate,
+	searchFilter,
+	stampCreate,
+	type DbClient,
+	type WithPaginationResult,
+} from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
 
 import type { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from './expenditure.dto'
 
-const cache = bento.namespace('finance.expenditure')
+const EXPENDITURE_CACHE_NAMESPACE = 'finance.expenditure'
 
 export class ExpenditureRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(EXPENDITURE_CACHE_NAMESPACE)
+	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(): Promise<void> {
-		await cache.deleteMany({ keys: [CACHE_KEY_DEFAULT.list] })
+		await this.cache.deleteMany({ keys: [CACHE_KEY_DEFAULT.list] })
+	}
+
+	#clearCacheAsync(): void {
+		void this.#clearCache().catch((error: unknown) => {
+			logger.error(error, 'ExpenditureRepo cache invalidation failed')
+		})
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
@@ -26,7 +45,7 @@ export class ExpenditureRepo {
 		return record('ExpenditureRepo.getListPaginated', async () => {
 			const key = `list.${JSON.stringify(filter)}`
 
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const { q, type, status, locationId } = filter
@@ -46,7 +65,7 @@ export class ExpenditureRepo {
 
 					const result = await paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select()
 								.from(expendituresTable)
 								.where(where)
@@ -54,7 +73,7 @@ export class ExpenditureRepo {
 								.offset(offset)
 								.orderBy(desc(expendituresTable.date)),
 						pq: filter,
-						countQuery: db.select({ count: count() }).from(expendituresTable).where(where),
+						countQuery: this.db.select({ count: count() }).from(expendituresTable).where(where),
 					})
 
 					return {
@@ -71,17 +90,17 @@ export class ExpenditureRepo {
 	async create(data: ExpenditureCreateDto, actorId: number) {
 		return record('ExpenditureRepo.create', async () => {
 			const metadata = stampCreate(actorId)
-			const [result] = await db
+			const [result] = await this.db
 				.insert(expendituresTable)
 				.values({
 					...data,
 					amount: data.amount.toString(),
 					...metadata,
 				})
-				.returning()
+				.returning({ id: expendituresTable.id })
 
-			if (!result) throw new Error('Failed to create expenditure record')
-			void this.#clearCache()
+			if (!result) throw new Error('Failed to create expenditure')
+			this.#clearCacheAsync()
 			return result
 		})
 	}

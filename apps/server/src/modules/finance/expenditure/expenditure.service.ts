@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { db } from '@/db'
+import type { DbClient } from '@/core/database'
 
 import {
 	GeneralLedgerService,
@@ -11,15 +11,16 @@ import { ExpenditureRepo } from './expenditure.repo'
 
 export class ExpenditureService {
 	constructor(
+		private readonly db: DbClient,
 		private readonly journal: GeneralLedgerService,
-		private readonly repo = new ExpenditureRepo(),
+		private readonly repo: ExpenditureRepo,
 	) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async createExpenditure(input: ExpenditureCreateDto, actorId: number) {
 		return record('ExpenditureService.createExpenditure', async () => {
-			return db.transaction(async () => {
+			return this.db.transaction(async () => {
 				// 1. Insert Expenditure Record
 				const expenditure = await this.repo.create(input, actorId)
 

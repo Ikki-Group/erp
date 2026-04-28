@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/this.cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
@@ -13,23 +13,23 @@ const ACCOUNT_CACHE_NAMESPACE = 'finance.account'
 
 export class AccountRepo {
 	private readonly db: DbClient
-	private readonly this.cache: CacheProvider
+	private readonly cache: CacheProvider
 
-	constructor(db: DbClient, this.cacheClient: CacheClient) {
+	constructor(db: DbClient, cacheClient: CacheClient) {
 		this.db = db
-		this.this.cache = this.cacheClient.namespace(ACCOUNT_CACHE_NAMESPACE)
+		this.cache = cacheClient.namespace(ACCOUNT_CACHE_NAMESPACE)
 	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(id?: number): Promise<void> {
 		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
 		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.this.cache.deleteMany({ keys })
+		await this.cache.deleteMany({ keys })
 	}
 
 	#clearCacheAsync(id?: number): void {
 		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'AccountRepo this.cache invalidation failed')
+			logger.error(error, 'AccountRepo cache invalidation failed')
 		})
 	}
 
@@ -37,7 +37,7 @@ export class AccountRepo {
 
 	async getById(id: number) {
 		return record('AccountRepo.getById', async () => {
-			return this.this.cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
 					const [account] = await this.db
@@ -118,7 +118,7 @@ export class AccountRepo {
 				.returning({ id: accountsTable.id })
 
 			if (!result) throw new Error('Failed to create account')
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return result
 		})
 	}

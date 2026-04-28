@@ -7,7 +7,7 @@ import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from
 import { AccountRepo } from './account.repo'
 
 export class AccountService {
-	constructor(private readonly repo = new AccountRepo()) {}
+	constructor(private readonly repo: AccountRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
