@@ -248,7 +248,7 @@ export function MaterialTable() {
 	})
 
 	const { data, isLoading } = useQuery(
-		materialApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
+		materialApi.list.query({ ...ds.pagination, ...ds.filters, search: ds.search }),
 	)
 
 	const deleteMutation = useMutation({

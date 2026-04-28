@@ -38,7 +38,7 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
 		const debouncedSearch = useDebounce(search, 300)
 
 		const { data, isLoading } = useQuery(
-			materialApi.list.query({ page: 1, limit: 50, q: debouncedSearch || undefined }),
+			materialApi.list.query({ page: 1, limit: 50, search: debouncedSearch || undefined }),
 		)
 
 		const assignMutation = useMutation({

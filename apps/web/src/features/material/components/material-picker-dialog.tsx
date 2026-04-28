@@ -48,7 +48,7 @@ export function MaterialPickerDialog({
 	}, [open])
 
 	const { data: results, isLoading } = useQuery({
-		...materialApi.list.query({ q: query, limit: 50 }),
+		...materialApi.list.query({ search: query, limit: 50 }),
 		enabled: open,
 	})
 
