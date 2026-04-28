@@ -1,12 +1,10 @@
-import { z } from 'zod'
+import { zp } from '@/lib/validation'
 
-import { zDate } from '@/lib/validation'
-
-export const PnLRequestDto = z.object({ startDate: zDate, endDate: zDate })
+export const PnLRequestDto = z.object({ startDate: zp.date, endDate: zp.date })
 
 export const TopSalesRequestDto = z.object({
-	startDate: zDate,
-	endDate: zDate,
+	startDate: zp.date,
+	endDate: zp.date,
 	limit: z.number().int().positive().optional().default(5),
 })
 

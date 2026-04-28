@@ -1,5 +1,3 @@
-import { eq } from 'drizzle-orm'
-
 import { getTestDatabase } from '../db'
 
 // Simple ID generator for test data

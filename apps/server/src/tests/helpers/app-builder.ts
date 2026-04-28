@@ -7,7 +7,12 @@ import { requestIdPlugin } from '@/core/http/request-id'
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
-import { createMockAuthPlugin, mockAuthenticatedUser, MockAuthService } from './auth'
+import {
+	createMockAuthPlugin,
+	mockAuthenticatedUser,
+	MockAuthService,
+	MockLoginService,
+} from './auth'
 import { getTestDatabase } from './db'
 import { createApp } from '@/app'
 
@@ -88,7 +93,7 @@ export function createIntegrationTestAppWithMockAuth() {
  * Helper to make JSON requests in tests
  */
 export function jsonRequest(
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT',
 	path: string,
 	body?: unknown,
 	headers?: Record<string, string>,

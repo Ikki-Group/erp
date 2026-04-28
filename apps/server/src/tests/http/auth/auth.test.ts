@@ -55,7 +55,9 @@ describe('Auth API', () => {
 			const body = await res.json()
 			expect(body).toBeDefined()
 			expect(body).toHaveProperty('data')
+			// @ts-expect-error - body.data is confirmed to have these properties from API response
 			expect(body.data).toHaveProperty('email')
+			// @ts-expect-error - body.data is confirmed to have these properties from API response
 			expect(body.data).toHaveProperty('id')
 		})
 	})

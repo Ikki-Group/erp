@@ -1,46 +1,37 @@
-import { z } from 'zod'
-
-import {
-	zMetadataDto,
-	zPaginationDto,
-	zQuerySearch,
-	zRecordIdDto,
-	zStr,
-	zStrNullable,
-} from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 export const SupplierDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStrNullable,
-	phone: zStrNullable,
-	address: zStrNullable,
-	taxId: zStrNullable,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	email: zp.strNullable,
+	phone: zp.strNullable,
+	address: zp.strNullable,
+	taxId: zp.strNullable,
+	...zc.AuditFull.shape,
 })
 export type SupplierDto = z.infer<typeof SupplierDto>
 
 export const SupplierCreateDto = z.object({
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	address: zStr.optional().nullable(),
-	taxId: zStr.optional().nullable(),
+	code: zp.str,
+	name: zp.str,
+	email: zp.str.optional().nullable(),
+	phone: zp.str.optional().nullable(),
+	address: zp.str.optional().nullable(),
+	taxId: zp.str.optional().nullable(),
 })
 export type SupplierCreateDto = z.infer<typeof SupplierCreateDto>
 
 export const SupplierUpdateDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
-	email: zStr.optional().nullable(),
-	phone: zStr.optional().nullable(),
-	address: zStr.optional().nullable(),
-	taxId: zStr.optional().nullable(),
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
+	email: zp.str.optional().nullable(),
+	phone: zp.str.optional().nullable(),
+	address: zp.str.optional().nullable(),
+	taxId: zp.str.optional().nullable(),
 })
 export type SupplierUpdateDto = z.infer<typeof SupplierUpdateDto>
 
-export const SupplierFilterDto = z.object({ ...zPaginationDto.shape, q: zQuerySearch })
+export const SupplierFilterDto = z.object({ ...zq.pagination.shape, q: zq.search })
 export type SupplierFilterDto = z.infer<typeof SupplierFilterDto>
