@@ -23,3 +23,4 @@ export function initLocationRouteModule(service: LocationServiceModule) {
 }
 
 export type { LocationDto } from './location-master/location-master.dto'
+export type { LocationMasterService } from './location-master/location-master.service'

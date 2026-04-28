@@ -35,18 +35,4 @@ export function initMaterialRouteModule(s: MaterialServiceModule) {
 		.use(initMaterialMasterRoute(s.master))
 }
 
-export * from './material-category/material-category.dto'
-export * from './material-category/material-category.repo'
-export * from './material-category/material-category.service'
-
-export * from './uom/uom.dto'
-export * from './uom/uom.repo'
-export * from './uom/uom.service'
-
-export * from './material-location/material-location.dto'
-export * from './material-location/material-location.repo'
-export * from './material-location/material-location.service'
-
-export * from './material-master/material.dto'
-export * from './material-master/material.repo'
-export * from './material-master/material.service'
+export type { MaterialLocationService } from './material-location/material-location.service'
