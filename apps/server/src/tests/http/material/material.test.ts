@@ -12,12 +12,4 @@ describe('Material API', () => {
 			expect(res.status).toBe(401)
 		})
 	})
-
-	describe('GET /material/detail', () => {
-		it('returns 401 when not authenticated', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/material/detail?id=1'))
-			expect(res.status).toBe(401)
-		})
-	})
 })

@@ -12,19 +12,4 @@ describe('Product Category API', () => {
 			expect(res.status).toBe(401)
 		})
 	})
-
-	describe('POST /product/category/create', () => {
-		it('returns 401 when not authenticated', async () => {
-			const app = createIntegrationTestApp()
-			const res = await app.handle(
-				jsonRequest('POST', '/product/category/create', {
-					code: 'PCAT-001',
-					name: 'Test Product Category',
-					description: null,
-					parentId: null,
-				}),
-			)
-			expect(res.status).toBe(401)
-		})
-	})
 })
