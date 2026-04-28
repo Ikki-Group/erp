@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/zod'
+import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 

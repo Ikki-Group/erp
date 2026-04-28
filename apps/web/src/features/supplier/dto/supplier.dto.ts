@@ -7,7 +7,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 export const SupplierDto = z.object({
 	...zRecordIdDto.shape,

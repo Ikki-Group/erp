@@ -9,7 +9,7 @@ import {
 	zQuerySearch,
 	zRecordIdDto,
 	zStr,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 

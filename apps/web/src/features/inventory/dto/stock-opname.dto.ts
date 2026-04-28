@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zDate, zId, zNum, zStr, zStrNullable } from '@/lib/zod'
+import { zDate, zId, zNum, zStr, zStrNullable } from '@/lib/validation'
 
 /**
  * Single material count in a stock opname.

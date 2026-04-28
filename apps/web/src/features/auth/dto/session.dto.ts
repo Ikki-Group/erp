@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zDate, zEmail, zId, zStr } from '@/lib/zod'
+import { zDate, zEmail, zId, zStr } from '@/lib/validation'
 
 export const SessionDto = z.object({ id: zId, userId: zId, createdAt: zDate, expiredAt: zDate })
 

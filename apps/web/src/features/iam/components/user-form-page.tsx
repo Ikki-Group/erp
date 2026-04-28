@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/zod'
+import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/validation'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'

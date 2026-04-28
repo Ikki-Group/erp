@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createSuccessResponseSchema } from '@/lib/zod'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 import { PnLRequestDto, TopSalesRequestDto } from '../dto/analytics.dto'
 

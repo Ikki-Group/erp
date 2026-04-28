@@ -11,7 +11,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import { ProductCategoryDto } from './product-category.dto'
 

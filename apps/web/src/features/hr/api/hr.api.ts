@@ -7,7 +7,7 @@ import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zPaginationDto,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import {
 	AttendanceDto,

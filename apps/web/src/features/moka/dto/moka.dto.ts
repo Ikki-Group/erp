@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zDate } from '@/lib/zod'
+import { zDate } from '@/lib/validation'
 
 import { MokaScrapType } from './moka-scrap-history.dto'
 

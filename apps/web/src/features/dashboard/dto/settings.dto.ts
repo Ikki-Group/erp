@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zNum } from '@/lib/zod'
+import { zNum } from '@/lib/validation'
 
 export const SettingsSummaryDto = z.object({ users: zNum, roles: zNum, locations: zNum })
 

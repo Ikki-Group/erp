@@ -8,7 +8,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 export const PurchaseOrderStatusDto = z.enum(['open', 'closed', 'void'])
 export type PurchaseOrderStatusDto = z.infer<typeof PurchaseOrderStatusDto>

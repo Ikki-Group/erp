@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zId } from '@/lib/zod'
+import { zId } from '@/lib/validation'
 
 export const dashboardKpiFilterSchema = z.object({ locationId: zId.optional() })
 

@@ -8,7 +8,7 @@ import {
 	createSuccessResponseSchema,
 	zPaginationDto,
 	zRecordIdDto,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import {
 	SalesOrderAddBatchDto,

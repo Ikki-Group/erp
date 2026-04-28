@@ -9,7 +9,7 @@ import {
 	zRecordIdDto,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import { UomDto, UomFilterDto, UomMutationDto } from '../dto'
 

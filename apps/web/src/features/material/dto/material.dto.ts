@@ -10,7 +10,7 @@ import {
 	zRecordIdDto,
 	zStr,
 	zStrNullable,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import { LocationDto } from '@/features/location'
 import { RecipeDto } from '@/features/recipe'

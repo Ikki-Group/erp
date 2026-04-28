@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { zPassword } from '@/lib/zod'
+import { zPassword } from '@/lib/validation'
 
 import { useAppForm } from '@/components/form'
 import { FormDialog } from '@/components/layout/form-dialog'

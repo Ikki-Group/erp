@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/lib/zod'
+import { zStr, zNum, zId, zQuerySearch, zQueryId, zMetadataDto } from '@/lib/validation'
 
 import { LocationDto } from '@/features/location'
 
