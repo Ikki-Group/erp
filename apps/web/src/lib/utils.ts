@@ -4,6 +4,8 @@ import { twMerge } from 'tailwind-merge'
 import type { OptionsWithData, StringOrNumber } from '@/types/common'
 import type { ClassValue } from 'clsx'
 
+export type { StringOrNumber }
+
 export function cn(...inputs: Array<ClassValue>) {
 	return twMerge(clsx(inputs))
 }
