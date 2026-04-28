@@ -22,6 +22,7 @@ export interface AppMenu {
 	href: string
 	icon?: LucideIcon
 	isHide?: boolean
+	isComingSoon?: boolean
 	isActive?: boolean
 	badge?: number
 	children?: Array<Omit<AppMenu, 'children' | 'icon'>>
@@ -80,6 +81,11 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							isActive: pathname.startsWith('/sales/orders'),
 						},
 						{
+							title: 'Invoice & Surat Jalan',
+							href: '/sales/invoices',
+							isActive: pathname.startsWith('/sales/invoices'),
+						},
+						{
 							title: 'Daftar Pelanggan',
 							href: '/sales/customers',
 							isActive: pathname.startsWith('/sales/customers'),
@@ -102,6 +108,12 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							isActive: pathname.startsWith('/moka/sync'),
 						},
 					],
+				},
+				{
+					title: 'CRM & Loyalty',
+					href: '/crm',
+					icon: UsersIcon,
+					isComingSoon: true,
 				},
 			],
 		},
@@ -210,6 +222,16 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							href: '/finance/expenses',
 							isActive: pathname.startsWith('/finance/expenses'),
 						},
+						{
+							title: 'Laporan Laba Rugi',
+							href: '/finance/profit-loss',
+							isActive: pathname.startsWith('/finance/profit-loss'),
+						},
+						{
+							title: 'Arus Kas (Cash Flow)',
+							href: '/finance/cash-flow',
+							isActive: pathname.startsWith('/finance/cash-flow'),
+						},
 					],
 				},
 			],
@@ -283,7 +305,18 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 					title: 'Pengaturan',
 					href: '/settings',
 					icon: Settings2Icon,
-					isActive: pathname === '/settings',
+					children: [
+						{
+							title: 'Manajemen User & Role',
+							href: '/settings/users',
+							isActive: pathname.startsWith('/settings/users'),
+						},
+						{
+							title: 'Audit Trail',
+							href: '/settings/audit-trail',
+							isActive: pathname.startsWith('/settings/audit-trail'),
+						},
+					],
 				},
 				{ title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
 			],

@@ -48,38 +48,6 @@ export async function withTransaction<T>(fn: () => Promise<T>): Promise<T> {
 	}
 }
 
-/**
- * @deprecated Use withTransaction() instead for better performance
- */
-export async function resetTestDatabase(): Promise<void> {
-	const db = getTestDatabase()
-
-	// Get all table names from the public schema
-	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-	const tables = (await db.execute(sql`
-		SELECT tablename FROM pg_tables 
-		WHERE schemaname = 'public' 
-		AND tablename NOT LIKE 'pg_%' 
-		AND tablename NOT LIKE '_prisma_%'
-	`)) as { tablename: string }[]
-
-	// Truncate each table
-	for (const row of tables) {
-		const tableName = row.tablename
-		// Skip migration tables
-		if (tableName === 'migrations' || tableName.includes('drizzle')) continue
-
-		await db.execute(sql.raw(`TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`))
-	}
-}
-
-/**
- * @deprecated Use withTransaction() instead for better performance
- */
-export async function clearTestData(): Promise<void> {
-	await resetTestDatabase()
-}
-
 export async function teardownTestDatabase(): Promise<void> {
 	if (testClient) {
 		await testClient.close()
