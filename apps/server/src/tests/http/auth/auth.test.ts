@@ -6,23 +6,23 @@ setupIntegrationTests()
 
 describe('Auth API', () => {
 	describe('POST /auth/login', () => {
-		it('returns 422 with invalid password length', async () => {
+		it('returns 422 for invalid password length', async () => {
 			const app = createIntegrationTestApp()
 			const res = await app.handle(
 				jsonRequest('POST', '/auth/login', {
-					identifier: 'invalid',
-					password: 'wrong',
+					email: 'test@example.com',
+					password: '123', // Too short
 				}),
 			)
 			expect(res.status).toBe(422)
 		})
 
-		it('returns 401 with valid format but invalid credentials', async () => {
+		it('returns 401 for invalid credentials', async () => {
 			const app = createIntegrationTestApp()
 			const res = await app.handle(
 				jsonRequest('POST', '/auth/login', {
-					identifier: 'invalid@example.com',
-					password: 'wrongpass',
+					email: 'nonexistent@example.com',
+					password: 'ValidPassword123!',
 				}),
 			)
 			expect(res.status).toBe(401)
