@@ -56,6 +56,8 @@ type FetchArgs<TParams, TBody> =
  *   - the endpoint that triggered the error
  *   - zod treeifyError (human-readable schema diff)
  *   - the raw data that failed validation
+ *   - the expected schema for comparison
+ *   - error path to quickly locate the issue
  * ---------------------------------------------------------------*/
 function logValidationError(
 	target: 'Params' | 'Body' | 'Response',
@@ -67,9 +69,17 @@ function logValidationError(
 
 	const label = `[api-factory] ${target} validation failed → ${url}`
 
-	console.group(`%c✗ ${label}`, 'color:#f59e0b;font-weight:bold')
-	console.log('%cZod Tree:', 'color:#ef4444;font-weight:600', treeifyError(error))
-	console.log('%cRaw Data:', 'color:#6b7280;font-weight:600', rawData)
+	console.group(`%c✗ ${label}`, 'color:#f59e0b;font-weight:bold;font-size:14px')
+	console.log(
+		'%c📋 Error Path:',
+		'color:#ef4444;font-weight:600',
+		error.issues[0]?.path.join('.') ?? 'root',
+	)
+	console.log('%c❌ Error Message:', 'color:#ef4444;font-weight:600', error.issues[0]?.message)
+	console.log('%c🌳 Zod Tree:', 'color:#ef4444;font-weight:600', treeifyError(error))
+	console.log('%c📦 Raw Data:', 'color:#6b7280;font-weight:600', rawData)
+	console.log('%c📝 All Issues:', 'color:#6b7280;font-weight:600', error.issues)
+	console.trace('%c📍 Stack Trace:', 'color:#8b5cf6;font-weight:600')
 	console.groupEnd()
 }
 
