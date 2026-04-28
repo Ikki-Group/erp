@@ -1,27 +1,44 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
+import type { DbClient } from '@/core/database'
+
 import type { LocationServiceModule } from '@/modules/location'
 
 import { initAssignmentRoute } from './assignment/assignment.route'
 import { UserAssignmentService } from './assignment/assignment.service'
+import { RoleRepo } from './role/role.repo'
 import { initRoleRoute } from './role/role.route'
 import { RoleService } from './role/role.service'
+import { UserRepo } from './user/user.repo'
 import { initUserRoute } from './user/user.route'
 import { UserService } from './user/user.service'
 
-export class IamServiceModule {
-	public role: RoleService
-	public assignment: UserAssignmentService
-	public user: UserService
+interface IamServiceModuleDeps {
+	location: LocationServiceModule
+}
 
-	constructor(private location: LocationServiceModule) {
-		this.role = new RoleService()
+export class IamServiceModule {
+	public readonly role: RoleService
+	public readonly assignment: UserAssignmentService
+	public readonly user: UserService
+
+	constructor(
+		private readonly db: DbClient,
+		private readonly cacheClient: CacheClient,
+		private readonly deps: IamServiceModuleDeps,
+	) {
+		const roleRepo = new RoleRepo(this.db, this.cacheClient)
+		this.role = new RoleService(roleRepo)
 		this.assignment = new UserAssignmentService()
-		this.user = new UserService({
-			role: this.role,
-			assignment: this.assignment,
-			location: this.location,
-		})
+		this.user = new UserService(
+			{
+				location: this.deps.location,
+				assignment: this.assignment,
+				role: this.role,
+			},
+			new UserRepo(this.db, this.cacheClient),
+		)
 	}
 }
 
@@ -32,14 +49,5 @@ export function initIamRouteModule(s: IamServiceModule) {
 		.use(initUserRoute(s.user))
 }
 
-export * from './assignment/assignment.dto'
-export * from './assignment/assignment.repo'
-export * from './assignment/assignment.service'
-
-export * from './role/role.dto'
-export * from './role/role.repo'
-export * from './role/role.service'
-
-export * from './user/user.dto'
-export * from './user/user.repo'
-export * from './user/user.service'
+export { UserDto, UserDetailDto } from './user/user.dto'
+export type { UserService } from './user/user.service'

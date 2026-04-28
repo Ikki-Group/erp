@@ -30,16 +30,9 @@ export class AuthContext {
 export const authPluginMacro = new Elysia({ name: 'auth-macro' })
 	.decorate('auth', null! as AuthContext)
 	.derive(({ auth }) => {
-		if (!auth) return
 		return { auth }
 	})
 	.macro({
-		isAuthenticated: (enabled: boolean) => ({
-			resolve: ({ auth }) => {
-				if (enabled && !auth.isAuthenticated)
-					throw new UnauthorizedError('Unauthorized', 'AUTH_UNAUTHORIZED')
-			},
-		}),
 		auth: (enabled: boolean) => ({
 			resolve: ({ auth }) => {
 				if (enabled && !auth.isAuthenticated)

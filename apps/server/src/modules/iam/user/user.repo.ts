@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, or } from 'drizzle-orm'
 import { omit } from 'es-toolkit'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -10,22 +10,37 @@ import {
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import * as dto from './user.dto'
 
-const cache = bento.namespace('iam:user')
+const USER_CACHE_NAMESPACE = 'iam:user'
 
 export class UserRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(USER_CACHE_NAMESPACE)
+	}
+
 	#clearCache(id?: number): Promise<void> {
 		return record('UserRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+			await this.cache.deleteMany({ keys })
+		})
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'UserRepo cache invalidation failed')
 		})
 	}
 
@@ -47,7 +62,7 @@ export class UserRepo {
 				filter.locationId === undefined
 					? undefined
 					: exists(
-							db
+							this.db
 								.select()
 								.from(userAssignmentsTable)
 								.where(
@@ -61,7 +76,7 @@ export class UserRepo {
 
 			return paginate({
 				data: ({ limit, offset }) =>
-					db
+					this.db
 						.select()
 						.from(usersTable)
 						.where(where)
@@ -69,26 +84,26 @@ export class UserRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(usersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(usersTable).where(where),
 			})
 		})
 	}
 
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserRepo.getList', async () =>
-			cache.getOrSet({
+			this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => db.select().from(usersTable).orderBy(usersTable.id),
+				factory: async () => this.db.select().from(usersTable).orderBy(usersTable.id),
 			}),
 		)
 	}
 
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const res = await db
+					const res = await this.db
 						.select()
 						.from(usersTable)
 						.where(eq(usersTable.id, id))
@@ -105,7 +120,7 @@ export class UserRepo {
 		identifier: string,
 	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
 		return record('UserRepo.findByIdentifier', async () => {
-			const user = await db
+			const user = await this.db
 				.select()
 				.from(usersTable)
 				.where(or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)))
@@ -119,7 +134,7 @@ export class UserRepo {
 
 	async getPasswordHash(id: number): Promise<string | null> {
 		return record('UserRepo.getPasswordHash', async () => {
-			const res = await db
+			const res = await this.db
 				.select({ passwordHash: usersTable.passwordHash })
 				.from(usersTable)
 				.where(eq(usersTable.id, id))
@@ -131,10 +146,10 @@ export class UserRepo {
 
 	async count(): Promise<number> {
 		return record('UserRepo.count', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.count,
 				factory: async () => {
-					return db
+					return this.db
 						.select({ count: count() })
 						.from(usersTable)
 						.then((rows) => rows[0]?.count ?? 0)
@@ -153,7 +168,7 @@ export class UserRepo {
 			// oxlint-disable-next-line no-unused-vars
 			for (const { assignments, ...d } of data) {
 				const metadata = stampCreate(d.createdBy)
-				const [inserted] = await db
+				const [inserted] = await this.db
 					.insert(usersTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
@@ -172,7 +187,7 @@ export class UserRepo {
 				if (inserted) insertedIds.push(inserted.id)
 			}
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return insertedIds
 		})
 	}
@@ -184,12 +199,12 @@ export class UserRepo {
 		return record('UserRepo.create', async () => {
 			const userData = omit(data, ['assignments'])
 			const metadata = stampCreate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.insert(usersTable)
 				.values({ ...userData, ...metadata })
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -201,13 +216,13 @@ export class UserRepo {
 		return record('UserRepo.update', async () => {
 			const userData = omit(data, ['assignments'])
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(usersTable)
 				.set({ ...userData, ...metadata })
 				.where(eq(usersTable.id, data.id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(data.id)
+			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -219,25 +234,25 @@ export class UserRepo {
 	): Promise<number | undefined> {
 		return record('UserRepo.updatePassword', async () => {
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(usersTable)
 				.set({ passwordHash, ...metadata })
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
 
 	async remove(id: number): Promise<number | undefined> {
 		return record('UserRepo.remove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.delete(usersTable)
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}

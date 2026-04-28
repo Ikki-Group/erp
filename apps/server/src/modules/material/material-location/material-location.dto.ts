@@ -77,8 +77,8 @@ export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto
 
 /** Unassign a material from a location */
 export const MaterialLocationUnassignDto = z.object({
-	materialId: zp.id,
-	locationId: zp.id,
+	materialId: zq.id,
+	locationId: zq.id,
 })
 
 export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassignDto>
@@ -86,9 +86,12 @@ export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassig
 /** Update per-location config (min/max stock, reorder point) */
 export const MaterialLocationConfigDto = z.object({
 	...zc.RecordId.shape,
-	minStock: zp.decimal.refine((v) => Number(v) >= 0, "Must be at least 0").optional(),
-	maxStock: zp.decimal.refine((v) => Number(v) >= 0, "Must be at least 0").nullable().optional(),
-	reorderPoint: zp.decimal.refine((v) => Number(v) >= 0, "Must be at least 0").optional(),
+	minStock: zp.decimal.refine((v) => Number(v) >= 0, 'Must be at least 0').optional(),
+	maxStock: zp.decimal
+		.refine((v) => Number(v) >= 0, 'Must be at least 0')
+		.nullable()
+		.optional(),
+	reorderPoint: zp.decimal.refine((v) => Number(v) >= 0, 'Must be at least 0').optional(),
 })
 
 export type MaterialLocationConfigDto = z.infer<typeof MaterialLocationConfigDto>

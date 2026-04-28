@@ -3,9 +3,18 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema, zq } from '@/core/validation'
+import {
+	zc,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zq,
+} from '@/core/validation'
 
-import { MaterialCategoryFilterDto, MaterialCategoryMutationDto, MaterialCategoryDto } from './material-category.dto'
+import {
+	MaterialCategoryFilterDto,
+	MaterialCategoryMutationDto,
+	MaterialCategoryDto,
+} from './material-category.dto'
 import type { MaterialCategoryService } from './material-category.service'
 
 export function initMaterialCategoryRoute(s: MaterialCategoryService) {

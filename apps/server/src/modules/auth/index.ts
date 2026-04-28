@@ -1,8 +1,12 @@
 import Elysia from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
+import type { DbClient } from '@/core/database'
+
 import type { UserService } from '../iam'
 import { initAuthRoute } from './login/login.route'
 import { LoginService } from './login/login.service'
+import { SessionRepo } from './session/session.repo'
 import { SessionService } from './session/session.service'
 
 export class AuthServiceModule {
@@ -10,11 +14,14 @@ export class AuthServiceModule {
 	public readonly session: SessionService
 
 	constructor(
+		private readonly db: DbClient,
+		private readonly cacheClient: CacheClient,
 		private svc: {
 			user: UserService
 		},
 	) {
-		this.session = new SessionService()
+		const sessionRepo = new SessionRepo(this.db, this.cacheClient)
+		this.session = new SessionService(sessionRepo, this.cacheClient)
 		this.login = new LoginService({
 			user: this.svc.user,
 			session: this.session,

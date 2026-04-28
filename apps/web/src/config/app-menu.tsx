@@ -22,8 +22,9 @@ export interface AppMenu {
 	href: string
 	icon?: LucideIcon
 	isHide?: boolean
+	isComingSoon?: boolean
 	isActive?: boolean
-	badge?: number | string
+	badge?: number
 	children?: Array<Omit<AppMenu, 'children' | 'icon'>>
 }
 
@@ -52,7 +53,6 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							href: '/analytics/sales',
 							isActive: pathname === '/analytics/sales',
 						},
-
 						{
 							title: 'Laporan Produksi',
 							href: '/analytics/production',
@@ -68,74 +68,7 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 			],
 		},
 		{
-			label: 'Operasional & Stok',
-			items: [
-				{
-					title: 'Inventori',
-					href: '/inventory/summary',
-					icon: BoxIcon,
-					badge: counts.inventoryAlerts ?? undefined,
-					children: [
-						{
-							title: 'Dashboard Stok',
-							href: '/inventory/summary',
-							isActive: pathname === '/inventory/summary',
-						},
-						{
-							title: 'Alokasi Gudang',
-							href: '/inventory/allocation',
-							isActive: pathname.startsWith('/inventory/allocation'),
-						},
-						{
-							title: 'Mutasi Stok',
-							href: '/inventory/transactions',
-							isActive: pathname.startsWith('/inventory/transactions'),
-						},
-					],
-				},
-				{
-					title: 'Pembelian (PO)',
-					href: '/procurement',
-					icon: ShoppingBagIcon,
-					children: [
-						{
-							title: 'Pesanan Pembelian',
-							href: '/procurement/orders',
-							isActive: pathname.startsWith('/procurement/orders'),
-						},
-						{
-							title: 'Penerimaan Barang',
-							href: '/procurement/receipts',
-							isActive: pathname.startsWith('/procurement/receipts'),
-						},
-						{
-							title: 'Daftar Supplier',
-							href: '/procurement/suppliers',
-							isActive: pathname.startsWith('/procurement/suppliers'),
-						},
-					],
-				},
-				{
-					title: 'Produksi',
-					href: '/production',
-					icon: FactoryIcon,
-					children: [
-						{
-							title: 'Perintah Kerja (WO)',
-							href: '/production/work-orders',
-							isActive: pathname.startsWith('/production/work-orders'),
-						},
-						{
-							title: 'Resep & BOM',
-							href: '/production/recipes',
-							isActive: pathname.startsWith('/production/recipes'),
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'Penjualan & Outlet',
+			label: 'Penjualan',
 			items: [
 				{
 					title: 'Penjualan',
@@ -146,6 +79,11 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							title: 'Transaksi Penjualan',
 							href: '/sales/orders',
 							isActive: pathname.startsWith('/sales/orders'),
+						},
+						{
+							title: 'Invoice & Surat Jalan',
+							href: '/sales/invoices',
+							isActive: pathname.startsWith('/sales/invoices'),
 						},
 						{
 							title: 'Daftar Pelanggan',
@@ -171,10 +109,93 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 						},
 					],
 				},
+				{
+					title: 'CRM & Loyalty',
+					href: '/crm',
+					icon: UsersIcon,
+					isComingSoon: true,
+				},
 			],
 		},
 		{
-			label: 'Keuangan & SDM',
+			label: 'Pembelian & Supplier',
+			items: [
+				{
+					title: 'Pembelian (PO)',
+					href: '/procurement',
+					icon: ShoppingBagIcon,
+					children: [
+						{
+							title: 'Pesanan Pembelian',
+							href: '/procurement/orders',
+							isActive: pathname.startsWith('/procurement/orders'),
+						},
+						{
+							title: 'Penerimaan Barang',
+							href: '/procurement/receipts',
+							isActive: pathname.startsWith('/procurement/receipts'),
+						},
+						{
+							title: 'Daftar Supplier',
+							href: '/procurement/suppliers',
+							isActive: pathname.startsWith('/procurement/suppliers'),
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Inventori',
+			items: [
+				{
+					title: 'Inventori',
+					href: '/inventory/summary',
+					icon: BoxIcon,
+					badge: counts.inventoryAlerts ?? undefined,
+					children: [
+						{
+							title: 'Dashboard Stok',
+							href: '/inventory/summary',
+							isActive: pathname === '/inventory/summary',
+						},
+						{
+							title: 'Alokasi Gudang',
+							href: '/inventory/allocation',
+							isActive: pathname.startsWith('/inventory/allocation'),
+						},
+						{
+							title: 'Mutasi Stok',
+							href: '/inventory/transactions',
+							isActive: pathname.startsWith('/inventory/transactions'),
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Produksi',
+			items: [
+				{
+					title: 'Produksi',
+					href: '/production',
+					icon: FactoryIcon,
+					children: [
+						{
+							title: 'Perintah Kerja (WO)',
+							href: '/production/work-orders',
+							isActive: pathname.startsWith('/production/work-orders'),
+						},
+						{
+							title: 'Resep & BOM',
+							href: '/production/recipes',
+							isActive: pathname.startsWith('/production/recipes'),
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Keuangan',
 			items: [
 				{
 					title: 'Keuangan',
@@ -201,8 +222,23 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							href: '/finance/expenses',
 							isActive: pathname.startsWith('/finance/expenses'),
 						},
+						{
+							title: 'Laporan Laba Rugi',
+							href: '/finance/profit-loss',
+							isActive: pathname.startsWith('/finance/profit-loss'),
+						},
+						{
+							title: 'Arus Kas (Cash Flow)',
+							href: '/finance/cash-flow',
+							isActive: pathname.startsWith('/finance/cash-flow'),
+						},
 					],
 				},
+			],
+		},
+		{
+			label: 'SDM & Payroll',
+			items: [
 				{
 					title: 'Karyawan & Payroll',
 					href: '/hr',
@@ -228,13 +264,13 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 			],
 		},
 		{
-			label: 'Data Master',
+			label: 'Master Data',
 			items: [
 				{
 					title: 'Katalog Produk',
 					href: '/product',
 					icon: PackageIcon,
-					isActive: pathname.startsWith('/product'),
+					isActive: pathname === '/product',
 				},
 				{
 					title: 'Bahan Baku',
@@ -269,7 +305,18 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 					title: 'Pengaturan',
 					href: '/settings',
 					icon: Settings2Icon,
-					isActive: pathname === '/settings',
+					children: [
+						{
+							title: 'Manajemen User & Role',
+							href: '/settings/users',
+							isActive: pathname.startsWith('/settings/users'),
+						},
+						{
+							title: 'Audit Trail',
+							href: '/settings/audit-trail',
+							isActive: pathname.startsWith('/settings/audit-trail'),
+						},
+					],
 				},
 				{ title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
 			],

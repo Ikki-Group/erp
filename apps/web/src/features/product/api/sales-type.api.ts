@@ -33,6 +33,7 @@ export const salesTypeApi = {
 		url: endpoint.product.salesType.create,
 		body: SalesTypeMutationDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.salesType.list],
 	}),
 
 	update: apiFactory({
@@ -40,6 +41,7 @@ export const salesTypeApi = {
 		url: endpoint.product.salesType.update,
 		body: z.object({ id: zId, ...SalesTypeMutationDto.shape }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.salesType.list, endpoint.product.salesType.detail],
 	}),
 
 	remove: apiFactory({
@@ -47,5 +49,6 @@ export const salesTypeApi = {
 		url: endpoint.product.salesType.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.salesType.list],
 	}),
 }

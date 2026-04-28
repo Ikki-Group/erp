@@ -37,12 +37,14 @@ export const userApi = {
 		url: endpoint.iam.user.create,
 		body: UserCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.user.list],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.iam.user.update,
 		body: UserUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.user.list, endpoint.iam.user.detail],
 	}),
 	changePassword: apiFactory({
 		method: 'post',
@@ -61,5 +63,6 @@ export const userApi = {
 		url: endpoint.iam.user.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.iam.user.list],
 	}),
 }

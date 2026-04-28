@@ -23,6 +23,7 @@ export const userAssignmentApi = {
 		url: endpoint.iam.assignment.assign,
 		body: UserAssignmentUpsertDto,
 		result: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+		invalidates: [endpoint.iam.assignment.list],
 	}),
 	assignBulk: apiFactory({
 		method: 'post',
@@ -33,6 +34,7 @@ export const userAssignmentApi = {
 			roleId: z.number(),
 		}),
 		result: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+		invalidates: [endpoint.iam.assignment.list],
 	}),
 	updateRoleBulk: apiFactory({
 		method: 'post',
@@ -43,6 +45,7 @@ export const userAssignmentApi = {
 			roleId: z.number(),
 		}),
 		result: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+		invalidates: [endpoint.iam.assignment.list],
 	}),
 	remove: apiFactory({
 		method: 'delete',
@@ -52,6 +55,7 @@ export const userAssignmentApi = {
 			locationId: z.number(),
 		}),
 		result: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+		invalidates: [endpoint.iam.assignment.list],
 	}),
 	removeBulk: apiFactory({
 		method: 'delete',
@@ -61,5 +65,6 @@ export const userAssignmentApi = {
 			locationId: z.number(),
 		}),
 		result: createSuccessResponseSchema(z.object({ success: z.boolean() })),
+		invalidates: [endpoint.iam.assignment.list],
 	}),
 }

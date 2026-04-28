@@ -1,4 +1,5 @@
-// oxlint-disable import/max-dependencies
+import { createCache } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { AuthServiceModule } from './auth'
@@ -19,34 +20,61 @@ import { SalesServiceModule } from './sales'
 import { SupplierServiceModule } from './supplier'
 import { ToolServiceModule } from './tool'
 
-export function createModules() {
+export interface Modules {
+	location: LocationServiceModule
+	product: ProductServiceModule
+
+	iam: IamServiceModule
+	material: MaterialServiceModule
+	supplier: SupplierServiceModule
+	employee: EmployeeServiceModule
+	finance: FinanceServiceModule
+
+	auth: AuthServiceModule
+
+	inventory: InventoryServiceModule
+	recipe: RecipeServiceModule
+	sales: SalesServiceModule
+	purchasing: PurchasingServiceModule
+
+	moka: MokaServiceModule
+
+	production: ProductionServiceModule
+	hr: HRServiceModule
+	dashboard: DashboardServiceModule
+	tool: ToolServiceModule
+}
+
+export function initModules(db: DbClient): Modules {
+	const cacheClient = createCache()
+
 	// Layer 0 — Core
-	const location = new LocationServiceModule()
-	const product = new ProductServiceModule()
+	const location = new LocationServiceModule(db, cacheClient)
+	const product = new ProductServiceModule(db, cacheClient)
 
 	// Layer 1 — Masters
-	const iam = new IamServiceModule(location)
+	const iam = new IamServiceModule(db, cacheClient, { location })
 	const material = new MaterialServiceModule(location.master)
-	const supplier = new SupplierServiceModule()
-	const employee = new EmployeeServiceModule()
-	const finance = new FinanceServiceModule()
+	const supplier = new SupplierServiceModule(db, cacheClient)
+	const employee = new EmployeeServiceModule(db, cacheClient)
+	const finance = new FinanceServiceModule(db, cacheClient)
 
 	// Layer 1.5 — Auth (Depends on Iam)
-	const auth = new AuthServiceModule(iam)
+	const auth = new AuthServiceModule(db, cacheClient, iam)
 
 	// Layer 2 — Operations
-	const inventory = new InventoryServiceModule(material)
-	const recipe = new RecipeServiceModule()
-	const sales = new SalesServiceModule()
-	const purchasing = new PurchasingServiceModule(inventory)
+	const inventory = new InventoryServiceModule(db, cacheClient, material)
+	const recipe = new RecipeServiceModule(db, cacheClient)
+	const sales = new SalesServiceModule(db, cacheClient)
+	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
 
 	const moka = new MokaServiceModule(logger, finance)
 
 	// Layer 3 — Aggregators
-	const production = new ProductionServiceModule(recipe.recipe, inventory)
-	const hr = new HRServiceModule(finance)
-	const dashboard = new DashboardServiceModule(iam, location, finance, sales)
-	const tool = new ToolServiceModule(iam, location, product, material)
+	const production = new ProductionServiceModule(db, cacheClient, recipe.recipe, inventory)
+	const hr = new HRServiceModule(db, cacheClient, finance)
+	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
+	const tool = new ToolServiceModule(db, iam, location, product, material)
 
 	return {
 		location,
@@ -69,4 +97,4 @@ export function createModules() {
 	}
 }
 
-export type Modules = ReturnType<typeof createModules>
+export const createModules = initModules

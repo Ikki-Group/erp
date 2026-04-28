@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/lib/zod'
+import { createSuccessResponseSchema, zRecordIdDto } from '@/lib/zod'
 
 import { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
 
@@ -19,5 +19,6 @@ export const expenditureApi = {
 		url: endpoint.finance.expenditure.create,
 		body: ExpenditureCreateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.finance.expenditure.list],
 	}),
 }

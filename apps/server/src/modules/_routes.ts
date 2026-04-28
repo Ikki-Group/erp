@@ -16,9 +16,10 @@ import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
 import { initSupplierRouteModule } from './supplier'
 import { initToolRouteModule } from './tool'
+import type Elysia from 'elysia'
 
-export function createRoutes(m: Modules) {
-	return [
+export function initRoutes(m: Modules) {
+	const routes = [
 		initAuthRouteModule(m.auth),
 		initIamRouteModule(m.iam),
 		initDashboardRouteModule(m.dashboard),
@@ -37,4 +38,11 @@ export function createRoutes(m: Modules) {
 		initProductionRouteModule(m.production),
 		initHRRouteModule(m.hr),
 	]
+
+	return {
+		register: (app: Elysia): Elysia => {
+			routes.forEach((route) => app.use(route))
+			return app
+		},
+	}
 }

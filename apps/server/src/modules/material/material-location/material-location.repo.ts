@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
+import { bento, cacheEventBus } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
@@ -26,15 +26,14 @@ export class MaterialLocationRepo {
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache(materialId?: number, locationId?: number) {
-		const keys = ['stock-by-location']
+		const keys: string[] = []
 		if (materialId) keys.push(`by-material.${materialId}`, `locations-by-material.${materialId}`)
 		if (locationId) keys.push(`by-location.${locationId}`)
 		if (materialId && locationId) keys.push(`one.${materialId}.${locationId}`)
 
 		await cache.deleteMany({ keys })
-		// Also invalidate dashboard/alert caches as they depend on materialLocationsTable
-		await bento.namespace('inventory.dashboard').clear()
-		await bento.namespace('inventory.alert').clear()
+		// Emit event for cross-domain cache invalidation (inventory dashboard/alert)
+		cacheEventBus.emit('material-location.stock-updated', { materialId, locationId })
 	}
 
 	/* ---------------------------------- QUERY --------------------------------- */
@@ -166,65 +165,60 @@ export class MaterialLocationRepo {
 		return record('MaterialLocationRepo.getStockByLocationPaginated', async () => {
 			const { locationId, q, page, limit } = filter
 
-			return cache.getOrSet({
-				key: `stock-by-location.${JSON.stringify(filter)}`,
-				factory: async () => {
-					const searchCondition = q
-						? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
-						: undefined
+			const searchCondition = q
+				? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
+				: undefined
 
-					const where = and(
-						eq(materialLocationsTable.locationId, locationId),
-						isNull(materialLocationsTable.deletedAt),
-						searchCondition,
-					)
+			const where = and(
+				eq(materialLocationsTable.locationId, locationId),
+				isNull(materialLocationsTable.deletedAt),
+				searchCondition,
+			)
 
-					const result = await paginate({
-						data: ({ limit: l, offset }) =>
-							db
-								.select({
-									id: materialLocationsTable.id,
-									materialId: materialLocationsTable.materialId,
-									locationId: materialLocationsTable.locationId,
-									materialName: materialsTable.name,
-									materialSku: materialsTable.sku,
-									baseUomId: materialsTable.baseUomId,
-									minStock: materialLocationsTable.minStock,
-									maxStock: materialLocationsTable.maxStock,
-									reorderPoint: materialLocationsTable.reorderPoint,
-									currentQty: materialLocationsTable.currentQty,
-									currentAvgCost: materialLocationsTable.currentAvgCost,
-									currentValue: materialLocationsTable.currentValue,
-									uom: uomsTable,
-								})
-								.from(materialLocationsTable)
-								.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-								.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
-								.where(where)
-								.orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
-								.limit(l)
-								.offset(offset),
-						pq: { page, limit },
-						countQuery: db
-							.select({ count: count() })
-							.from(materialLocationsTable)
-							.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-							.where(where),
-					})
-
-					const data = result.data.map((stock) => ({
-						...stock,
-						minStock: stock.minStock,
-						maxStock: stock.maxStock ? stock.maxStock : null,
-						reorderPoint: stock.reorderPoint,
-						currentQty: stock.currentQty,
-						currentAvgCost: stock.currentAvgCost,
-						currentValue: stock.currentValue,
-					}))
-
-					return { data, meta: result.meta }
-				},
+			const result = await paginate({
+				data: ({ limit: l, offset }) =>
+					db
+						.select({
+							id: materialLocationsTable.id,
+							materialId: materialLocationsTable.materialId,
+							locationId: materialLocationsTable.locationId,
+							materialName: materialsTable.name,
+							materialSku: materialsTable.sku,
+							baseUomId: materialsTable.baseUomId,
+							minStock: materialLocationsTable.minStock,
+							maxStock: materialLocationsTable.maxStock,
+							reorderPoint: materialLocationsTable.reorderPoint,
+							currentQty: materialLocationsTable.currentQty,
+							currentAvgCost: materialLocationsTable.currentAvgCost,
+							currentValue: materialLocationsTable.currentValue,
+							uom: uomsTable,
+						})
+						.from(materialLocationsTable)
+						.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+						.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+						.where(where)
+						.orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
+						.limit(l)
+						.offset(offset),
+				pq: { page, limit },
+				countQuery: db
+					.select({ count: count() })
+					.from(materialLocationsTable)
+					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+					.where(where),
 			})
+
+			const data = result.data.map((stock) => ({
+				...stock,
+				minStock: stock.minStock,
+				maxStock: stock.maxStock ? stock.maxStock : null,
+				reorderPoint: stock.reorderPoint,
+				currentQty: stock.currentQty,
+				currentAvgCost: stock.currentAvgCost,
+				currentValue: stock.currentValue,
+			}))
+
+			return { data, meta: result.meta }
 		})
 	}
 

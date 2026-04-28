@@ -33,6 +33,7 @@ export const uomApi = {
 		url: endpoint.material.uom.create,
 		body: UomMutationDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.uom.list],
 	}),
 
 	update: apiFactory({
@@ -40,6 +41,7 @@ export const uomApi = {
 		url: endpoint.material.uom.update,
 		body: z.object({ id: zId, ...UomMutationDto.shape }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.uom.list, endpoint.material.uom.detail],
 	}),
 
 	remove: apiFactory({
@@ -47,5 +49,6 @@ export const uomApi = {
 		url: endpoint.material.uom.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.uom.list],
 	}),
 }

@@ -30,17 +30,20 @@ export const locationApi = {
 		url: endpoint.location.create,
 		body: LocationCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.location.list],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.location.update,
 		body: LocationUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.location.list, endpoint.location.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.location.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
+		invalidates: [endpoint.location.list],
 	}),
 }

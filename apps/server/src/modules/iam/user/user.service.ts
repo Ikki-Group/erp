@@ -15,7 +15,7 @@ import { UserErrors } from '../errors'
 import type { RoleDto } from '../role/role.dto'
 import type { RoleService } from '../role/role.service'
 import * as dto from './user.dto'
-import { UserRepo } from './user.repo'
+import type { UserRepo } from './user.repo'
 
 const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	{
@@ -32,15 +32,16 @@ const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	},
 ]
 
-export class UserService {
-	private r = new UserRepo()
+interface ServiceDeps {
+	role: RoleService
+	assignment: UserAssignmentService
+	location: LocationServiceModule
+}
 
+export class UserService {
 	constructor(
-		private svc: {
-			role: RoleService
-			assignment: UserAssignmentService
-			location: LocationServiceModule
-		},
+		private readonly s: ServiceDeps,
+		private readonly r: UserRepo,
 	) {}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -55,18 +56,18 @@ export class UserService {
 
 		if (isRoot) {
 			const [superadmin, locations] = await Promise.all([
-				this.svc.role.getSuperadmin(),
-				this.svc.location.master.getList(),
+				this.s.role.getSuperadmin(),
+				this.s.location.master.getList(),
 			])
-			const defaultAssignment = this.svc.assignment.getDefaultAssignmentForSuperadmin()
+			const defaultAssignment = this.s.assignment.getDefaultAssignmentForSuperadmin()
 			for (const location of locations) {
 				assignments.push({ ...defaultAssignment, isDefault: false, role: superadmin, location })
 			}
 		} else {
 			const [rawAssignments, roleMap, locationMap] = await Promise.all([
-				this.svc.assignment.findByUserId(userId),
-				roleMapper ?? this.svc.role.getRelationMap(),
-				locationMapper ?? this.svc.location.master.getRelationMap(),
+				this.s.assignment.findByUserId(userId),
+				roleMapper ?? this.s.role.getRelationMap(),
+				locationMapper ?? this.s.location.master.getRelationMap(),
 			])
 
 			assignments.push(
@@ -136,8 +137,8 @@ export class UserService {
 			const p = await this.r.getListPaginated(filter)
 
 			const [roleMap, locationMap] = await Promise.all([
-				this.svc.role.getRelationMap(),
-				this.svc.location.master.getRelationMap(),
+				this.s.role.getRelationMap(),
+				this.s.location.master.getRelationMap(),
 			])
 
 			const data = await Promise.all(
@@ -176,7 +177,7 @@ export class UserService {
 			if (!insertedId) throw UserErrors.createFailed()
 
 			if (assignments && assignments.length > 0 && !isRoot) {
-				await this.svc.assignment.handleReplaceBulkByUserId(
+				await this.s.assignment.handleReplaceBulkByUserId(
 					insertedId,
 					assignments.map((a) => ({
 						userId: insertedId,
@@ -214,7 +215,7 @@ export class UserService {
 			await this.r.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
 
 			if (assignments && assignments.length >= 0 && !isRoot) {
-				await this.svc.assignment.handleReplaceBulkByUserId(
+				await this.s.assignment.handleReplaceBulkByUserId(
 					id,
 					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
 					actorId,

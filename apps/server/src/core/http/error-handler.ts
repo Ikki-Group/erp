@@ -1,7 +1,12 @@
 import Elysia from 'elysia'
 import { treeifyError, ZodError } from 'zod'
 
+import { logger } from '@/core/logger'
+
 import { HttpError } from './errors'
+import { env } from '@/config/env'
+
+const isDev = env.NODE_ENV === 'development'
 
 function buildErrorResponse(code: string, message: string, details?: unknown, stack?: string) {
 	return {
@@ -9,13 +14,13 @@ function buildErrorResponse(code: string, message: string, details?: unknown, st
 		code,
 		message,
 		...(details !== undefined && { details }),
-		...(stack && { stack }),
+		...(isDev && stack && { stack }),
 	}
 }
 
 export const errorHandler = new Elysia({ name: 'error-handler' })
 	.onError(({ error, code, set, path }) => {
-		console.error(error)
+		logger.error({ err: error, path, code }, 'Request error')
 		if (error instanceof ZodError) {
 			set.status = 422
 			return buildErrorResponse(

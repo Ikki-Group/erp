@@ -35,17 +35,20 @@ export const supplierApi = {
 		url: endpoint.supplier.create,
 		body: SupplierCreateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.supplier.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.supplier.update,
 		body: SupplierUpdateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.supplier.list, endpoint.supplier.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.supplier.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.supplier.list],
 	}),
 }

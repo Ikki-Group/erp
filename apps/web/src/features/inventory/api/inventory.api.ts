@@ -52,6 +52,7 @@ export const stockSummaryApi = {
 		url: endpoint.inventory.summary.generate,
 		body: GenerateSummaryDto,
 		result: createSuccessResponseSchema(z.object({ count: z.number() })),
+		invalidates: [endpoint.inventory.summary.byLocation, endpoint.inventory.summary.ledger],
 	}),
 }
 
@@ -73,54 +74,95 @@ export const stockTransactionApi = {
 		url: endpoint.inventory.transaction.purchase,
 		body: PurchaseTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	transfer: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.transfer,
 		body: TransferTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	adjustment: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.adjustment,
 		body: AdjustmentTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	opname: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.opname,
 		body: StockOpnameDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	usage: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.usage,
 		body: UsageTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	sell: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.sell,
 		body: SellTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	productionIn: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.productionIn,
 		body: ProductionInTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	productionOut: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.productionOut,
 		body: ProductionOutTransactionDto,
 		result: createSuccessResponseSchema(TransactionResultDto),
+		invalidates: [
+			endpoint.inventory.transaction.list,
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	remove: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.inventory.transaction.list, endpoint.inventory.summary.byLocation],
 	}),
 }
 

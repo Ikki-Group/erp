@@ -3,6 +3,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { HTTPError } from 'ky'
 import { treeifyError } from 'zod'
 
+import { queryClient } from '@/lib/tanstack-query'
+
 import { apiClient } from './api-client'
 import { ApiError } from './api-error'
 import type { KyInstance } from 'ky'
@@ -25,6 +27,7 @@ interface ApiFactoryConfig<
 	method: HttpMethod
 	url: string
 	keys?: ReadonlyArray<string>
+	invalidates?: ReadonlyArray<string>
 	params?: TParams
 	body?: TBody
 	result: TResult
@@ -128,7 +131,16 @@ export function apiFactory<
 
 		// Parse & validate response body
 		const json: unknown = await response.json()
-		return validateOrThrow(config.result, json, 'Response', url) as Result
+		const result = validateOrThrow(config.result, json, 'Response', url) as Result
+
+		// Auto-invalidate declared query keys on successful mutation
+		if (config.invalidates?.length && method !== 'get') {
+			for (const invalidateUrl of config.invalidates) {
+				queryClient.invalidateQueries({ queryKey: [invalidateUrl] })
+			}
+		}
+
+		return result
 	}
 
 	// React Query helpers
