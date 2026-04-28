@@ -48,3 +48,5 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 		.use(initStockAlertRoute(s.alert))
 		.use(initStockDashboardRoute(s.dashboard))
 }
+
+export type { StockTransactionService } from './stock-transaction/stock-transaction.service'
