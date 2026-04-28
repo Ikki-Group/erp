@@ -7,7 +7,7 @@ import {
 
 import * as JSURL2 from 'jsurl2'
 
-import { queryClient } from './query-client'
+import { queryClient } from './tanstack-query'
 import { routeTree } from '@/routeTree.gen'
 
 export interface RouteContext {
