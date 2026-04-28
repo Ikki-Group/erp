@@ -234,7 +234,7 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 					title: 'Katalog Produk',
 					href: '/product',
 					icon: PackageIcon,
-					isActive: pathname.startsWith('/product'),
+					isActive: pathname === '/product',
 				},
 				{
 					title: 'Bahan Baku',
