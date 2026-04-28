@@ -12,7 +12,7 @@ import { initMaterialMasterRoute } from '@/modules/material/material-master/mate
 import { MaterialService } from '@/modules/material/material-master/material.service'
 import { UomService } from '@/modules/material/uom/uom.service'
 
-import { setupIntegrationTests, Factory } from '@/tests/helpers'
+import { setupIntegrationTests, Factory, getTestDatabase, createTestCache } from '@/tests/helpers'
 import { createMockAuthPlugin } from '@/tests/helpers/auth'
 import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 import { describe, expect, it } from 'bun:test'
@@ -22,10 +22,13 @@ setupIntegrationTests()
 
 // Create test app with real services - manual construction to avoid Elysia type issues
 function createMaterialTestApp() {
+	const db = getTestDatabase()
+	const cache = createTestCache()
+
 	// Dependencies
 	const categoryService = new MaterialCategoryService()
 	const uomService = new UomService()
-	const locationModule = new LocationServiceModule()
+	const locationModule = new LocationServiceModule(db, cache)
 
 	// Repos
 	const materialRepo = new MaterialRepo()

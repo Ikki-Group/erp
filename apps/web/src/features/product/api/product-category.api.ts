@@ -33,6 +33,7 @@ export const productCategoryApi = {
 		url: endpoint.product.category.create,
 		body: ProductCategoryMutationDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.category.list],
 	}),
 
 	update: apiFactory({
@@ -40,6 +41,7 @@ export const productCategoryApi = {
 		url: endpoint.product.category.update,
 		body: z.object({ id: zId, ...ProductCategoryMutationDto.shape }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.category.list, endpoint.product.category.detail],
 	}),
 
 	remove: apiFactory({
@@ -47,5 +49,6 @@ export const productCategoryApi = {
 		url: endpoint.product.category.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.product.category.list],
 	}),
 }

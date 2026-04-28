@@ -6,13 +6,23 @@ import { requestIdPlugin } from '@/core/http/request-id'
 
 import { initAuthRoute } from '@/modules/auth/login/login.route'
 import { LoginService } from '@/modules/auth/login/login.service'
+import { SessionRepo } from '@/modules/auth/session/session.repo'
 import { SessionService } from '@/modules/auth/session/session.service'
 import { UserAssignmentService } from '@/modules/iam/assignment/assignment.service'
+import { RoleRepo } from '@/modules/iam/role/role.repo'
 import { RoleService } from '@/modules/iam/role/role.service'
+import { UserRepo } from '@/modules/iam/user/user.repo'
 import { UserService } from '@/modules/iam/user/user.service'
 import { LocationServiceModule } from '@/modules/location'
 
-import { setupIntegrationTests, Factory, IamFixtures, AuthFixtures } from '@/tests/helpers'
+import {
+	setupIntegrationTests,
+	Factory,
+	IamFixtures,
+	AuthFixtures,
+	getTestDatabase,
+	createTestCache,
+} from '@/tests/helpers'
 import { createMockAuthPlugin } from '@/tests/helpers/auth'
 import { expectSuccessResponse } from '@/tests/helpers/response'
 import { describe, expect, it, beforeAll } from 'bun:test'
@@ -21,7 +31,7 @@ import { describe, expect, it, beforeAll } from 'bun:test'
 setupIntegrationTests()
 
 // Shared test context
-let app: Elysia
+let app: Elysia<any, any, any, any, any, any, any>
 let loginService: LoginService
 
 // HTTP request helpers
@@ -44,18 +54,27 @@ async function expectOK<T>(res: Response): Promise<T> {
 
 // Initialize shared app once
 beforeAll(async () => {
+	const db = getTestDatabase()
+	const cache = createTestCache()
+
 	// Setup IAM dependencies
-	const locationModule = new LocationServiceModule()
-	const roleService = new RoleService()
+	const locationModule = new LocationServiceModule(db, cache)
+	const roleRepo = new RoleRepo(db, cache)
+	const roleService = new RoleService(roleRepo)
 	const assignmentService = new UserAssignmentService()
-	const userService = new UserService({
-		role: roleService,
-		assignment: assignmentService,
-		location: locationModule,
-	})
+	const userRepo = new UserRepo(db, cache)
+	const userService = new UserService(
+		{
+			role: roleService,
+			assignment: assignmentService,
+			location: locationModule,
+		},
+		userRepo,
+	)
 
 	// Setup Auth dependencies
-	const sessionService = new SessionService()
+	const sessionRepo = new SessionRepo(db, cache)
+	const sessionService = new SessionService(sessionRepo, cache)
 	loginService = new LoginService({
 		user: userService,
 		session: sessionService,

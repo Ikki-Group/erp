@@ -33,6 +33,7 @@ export const recipeApi = {
 		url: endpoint.recipe.create,
 		body: RecipeMutationDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.recipe.list],
 	}),
 
 	update: apiFactory({
@@ -40,6 +41,7 @@ export const recipeApi = {
 		url: endpoint.recipe.update,
 		body: z.object({ id: zId, ...RecipeMutationDto.shape }),
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.recipe.list, endpoint.recipe.detail],
 	}),
 
 	remove: apiFactory({
@@ -47,5 +49,6 @@ export const recipeApi = {
 		url: endpoint.recipe.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.recipe.list],
 	}),
 }

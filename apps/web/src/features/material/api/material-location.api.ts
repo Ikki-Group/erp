@@ -34,6 +34,7 @@ export const materialLocationApi = {
 		url: endpoint.material.location.assign,
 		body: MaterialLocationAssignDto,
 		result: createSuccessResponseSchema(z.object({ assignedCount: z.number() })),
+		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
 	}),
 
 	/** Unassign a material from a location */
@@ -42,6 +43,7 @@ export const materialLocationApi = {
 		url: endpoint.material.location.unassign,
 		params: MaterialLocationUnassignDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
 	}),
 
 	/** List locations assigned to a material */
@@ -58,5 +60,6 @@ export const materialLocationApi = {
 		url: endpoint.material.location.config,
 		body: MaterialLocationConfigDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
 	}),
 }

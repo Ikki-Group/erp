@@ -40,18 +40,21 @@ export const purchaseOrderApi = {
 		url: endpoint.purchasing.order.create,
 		body: PurchaseOrderCreateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.purchasing.order.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.purchasing.order.update,
 		body: PurchaseOrderUpdateDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.purchasing.order.list, endpoint.purchasing.order.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.purchasing.order.remove,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [endpoint.purchasing.order.list],
 	}),
 }
 
@@ -68,16 +71,15 @@ export const goodsReceiptApi = {
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(GoodsReceiptNoteDto),
 	}),
-	create: apiFactory({
-		method: 'post',
-		url: endpoint.purchasing.goodsReceipt.create,
-		body: GoodsReceiptNoteCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
-	}),
 	complete: apiFactory({
 		method: 'post',
 		url: endpoint.purchasing.goodsReceipt.complete,
 		params: zRecordIdDto,
 		result: createSuccessResponseSchema(zRecordIdDto),
+		invalidates: [
+			endpoint.purchasing.goodsReceipt.list,
+			endpoint.purchasing.goodsReceipt.detail,
+			endpoint.inventory.summary.byLocation,
+		],
 	}),
 }

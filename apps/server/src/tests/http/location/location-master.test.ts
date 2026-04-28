@@ -17,7 +17,7 @@ import { describe, expect, it, beforeAll } from 'bun:test'
 setupIntegrationTests()
 
 // Shared test context
-let app: Elysia
+let app: Elysia<any, any, any, any, any, any, any>
 let service: LocationMasterService
 
 // HTTP request helpers
