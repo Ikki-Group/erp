@@ -1,16 +1,6 @@
 import z from 'zod'
 
-import {
-	zDecimal,
-	zId,
-	zMetadataDto,
-	zQueryId,
-	zQueryIds,
-	zQuerySearch,
-	zRecordIdDto,
-	zStr,
-	zStrNullable,
-} from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 import { LocationDto } from '@/features/location'
 import { RecipeDto } from '@/features/recipe'
@@ -26,8 +16,8 @@ export type MaterialTypeDto = z.infer<typeof MaterialTypeDto>
 /* --------------------------------- NESTED --------------------------------- */
 
 export const MaterialConversionDto = z.object({
-	toBaseFactor: zDecimal,
-	uomId: zId,
+	toBaseFactor: zp.decimal,
+	uomId: zp.id,
 	uom: UomDto.optional(),
 })
 
@@ -36,17 +26,17 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialDto = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
-	description: zStrNullable,
-	sku: zStr,
+	...zc.RecordId.shape,
+	name: zp.str,
+	description: zp.strNullable,
+	sku: zp.str,
 	type: MaterialTypeDto,
-	categoryId: zId.nullable(),
-	baseUomId: zId,
+	categoryId: zp.id.nullable(),
+	baseUomId: zp.id,
 
-	locationIds: zId.array(),
+	locationIds: zp.id.array(),
 	conversions: MaterialConversionDto.array(),
-	...zMetadataDto.shape,
+	...zc.AuditFull.shape,
 })
 
 export type MaterialDto = z.infer<typeof MaterialDto>
@@ -54,11 +44,11 @@ export type MaterialDto = z.infer<typeof MaterialDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const MaterialFilterDto = z.object({
-	q: zQuerySearch,
+	q: zq.search,
 	type: MaterialTypeDto.optional(),
-	categoryId: zQueryId.optional(),
-	locationIds: zQueryIds.optional(),
-	excludeLocationIds: zQueryIds.optional(),
+	categoryId: zq.id.optional(),
+	locationIds: zq.ids.optional(),
+	excludeLocationIds: zq.ids.optional(),
 })
 
 export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>

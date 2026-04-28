@@ -1,3 +1,5 @@
+import { eq } from 'drizzle-orm'
+
 import { getTestDatabase } from '../db'
 
 // Simple ID generator for test data
@@ -20,6 +22,7 @@ export async function createUser(
 		passwordHash: string
 		fullname: string
 		isActive: boolean
+		isRoot: boolean
 	}> = {},
 ) {
 	const db = getTestDatabase()
@@ -31,6 +34,7 @@ export async function createUser(
 		passwordHash: overrides.passwordHash ?? 'hashed-password-placeholder',
 		fullname: overrides.fullname ?? 'Test User',
 		isActive: overrides.isActive ?? true,
+		isRoot: overrides.isRoot ?? false,
 		createdBy: SYSTEM_USER_ID,
 		updatedBy: SYSTEM_USER_ID,
 	}
@@ -38,6 +42,34 @@ export async function createUser(
 	const result = await db.insert(usersTable).values(data).returning({ id: usersTable.id })
 	if (!result[0]) throw new Error('Failed to create user')
 	return { id: result[0].id, ...data }
+}
+
+export async function createSuperadminRole() {
+	const db = getTestDatabase()
+	const { rolesTable } = await import('@/db/schema/iam')
+
+	const data = {
+		id: 1, // Superadmin role ID
+		code: 'SUPERADMIN',
+		name: 'Superadmin',
+		description: 'System superadmin with full access',
+		permissions: ['*'], // All permissions
+		isSystem: true,
+		createdBy: SYSTEM_USER_ID,
+		updatedBy: SYSTEM_USER_ID,
+	}
+
+	try {
+		const result = await db.insert(rolesTable).values(data).returning()
+		if (!result[0]) throw new Error('Failed to create superadmin role')
+		return result[0]
+	} catch (error) {
+		// Role might already exist, try to fetch it
+		const { eq } = await import('drizzle-orm')
+		const existing = await db.select().from(rolesTable).where(eq(rolesTable.id, 1)).limit(1)
+		if (existing.length > 0) return existing[0]
+		throw error
+	}
 }
 
 export async function createRole(

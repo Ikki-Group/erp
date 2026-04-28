@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zDecimal, zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 export const WorkOrderStatusDto = z.enum(['draft', 'in_progress', 'completed', 'cancelled'])
 export type WorkOrderStatusDto = z.infer<typeof WorkOrderStatusDto>
@@ -8,21 +8,21 @@ export type WorkOrderStatusDto = z.infer<typeof WorkOrderStatusDto>
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const WorkOrderDto = z.object({
-	...zRecordIdDto.shape,
-	recipeId: zId,
-	locationId: zId,
+	...zc.RecordId.shape,
+	recipeId: zp.id,
+	locationId: zp.id,
 	status: WorkOrderStatusDto,
 
-	expectedQty: zDecimal,
-	actualQty: zDecimal,
+	expectedQty: zp.decimal,
+	actualQty: zp.decimal,
 
 	note: z.string().nullable(),
-	totalCost: zDecimal,
+	totalCost: zp.decimal,
 
 	startedAt: z.coerce.date().nullable(),
 	completedAt: z.coerce.date().nullable(),
 
-	...zMetadataDto.shape,
+	...zc.AuditFull.shape,
 })
 
 export type WorkOrderDto = z.infer<typeof WorkOrderDto>
@@ -38,8 +38,8 @@ export const WorkOrderSelectDto = WorkOrderDto.extend({
 export type WorkOrderSelectDto = z.infer<typeof WorkOrderSelectDto>
 
 export const WorkOrderFilterDto = z.object({
-	q: zQuerySearch,
-	locationId: zId.optional(),
+	q: zq.search,
+	locationId: zp.id.optional(),
 	status: WorkOrderStatusDto.optional(),
 })
 
@@ -48,27 +48,27 @@ export type WorkOrderFilterDto = z.infer<typeof WorkOrderFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const WorkOrderCreateDto = z.object({
-	recipeId: zId,
-	locationId: zId,
-	expectedQty: zDecimal,
-	note: zStr.optional(),
+	recipeId: zp.id,
+	locationId: zp.id,
+	expectedQty: zp.decimal,
+	note: zp.str.optional(),
 })
 
 export type WorkOrderCreateDto = z.infer<typeof WorkOrderCreateDto>
 
 export const WorkOrderUpdateDto = z.object({
-	id: zId,
-	expectedQty: zDecimal.optional(),
+	id: zp.id,
+	expectedQty: zp.decimal.optional(),
 	status: WorkOrderStatusDto.optional(),
-	note: zStr.optional(),
+	note: zp.str.optional(),
 })
 
 export type WorkOrderUpdateDto = z.infer<typeof WorkOrderUpdateDto>
 
 export const WorkOrderCompleteDto = z.object({
-	id: zId,
-	actualQty: zDecimal,
-	note: zStr.optional(),
+	id: zp.id,
+	actualQty: zp.decimal,
+	note: zp.str.optional(),
 })
 
 export type WorkOrderCompleteDto = z.infer<typeof WorkOrderCompleteDto>

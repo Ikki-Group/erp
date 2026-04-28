@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 export const AttendanceStatusDto = z.enum(['present', 'absent', 'late', 'on_leave'])
 export type AttendanceStatusDto = z.infer<typeof AttendanceStatusDto>
@@ -8,25 +8,25 @@ export type AttendanceStatusDto = z.infer<typeof AttendanceStatusDto>
 /* --------------------------------- SHIFT --------------------------------- */
 
 export const ShiftDto = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
+	...zc.RecordId.shape,
+	name: zp.str,
 	startTime: z.string(), // 'HH:mm:ss'
 	endTime: z.string(), // 'HH:mm:ss'
 	note: z.string().nullable(),
-	...zMetadataDto.shape,
+	...zc.AuditFull.shape,
 })
 
 export type ShiftDto = z.infer<typeof ShiftDto>
 
 export const ShiftCreateDto = z.object({
-	name: zStr,
+	name: zp.str,
 	startTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
 	endTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
-	note: zStr.optional(),
+	note: zp.str.optional(),
 })
 
 export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
@@ -34,10 +34,10 @@ export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
 /* ------------------------------- ATTENDANCE ------------------------------- */
 
 export const AttendanceDto = z.object({
-	...zRecordIdDto.shape,
-	employeeId: zId,
-	locationId: zId,
-	shiftId: zId.nullable(),
+	...zc.RecordId.shape,
+	employeeId: zp.id,
+	locationId: zp.id,
+	shiftId: zp.id.nullable(),
 
 	date: z.coerce.date(),
 	clockIn: z.coerce.date().nullable(),
@@ -45,7 +45,7 @@ export const AttendanceDto = z.object({
 
 	status: AttendanceStatusDto,
 	note: z.string().nullable(),
-	...zMetadataDto.shape,
+	...zc.AuditFull.shape,
 })
 
 export type AttendanceDto = z.infer<typeof AttendanceDto>
@@ -60,9 +60,9 @@ export const AttendanceSelectDto = AttendanceDto.extend({
 export type AttendanceSelectDto = z.infer<typeof AttendanceSelectDto>
 
 export const AttendanceFilterDto = z.object({
-	q: zQuerySearch,
-	employeeId: zId.optional(),
-	locationId: zId.optional(),
+	q: zq.search,
+	employeeId: zp.id.optional(),
+	locationId: zp.id.optional(),
 	status: AttendanceStatusDto.optional(),
 	dateFrom: z.coerce.date().optional(),
 	dateTo: z.coerce.date().optional(),
@@ -73,17 +73,17 @@ export type AttendanceFilterDto = z.infer<typeof AttendanceFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const ClockInDto = z.object({
-	employeeId: zId,
-	locationId: zId,
-	shiftId: zId.optional(),
-	note: zStr.optional(),
+	employeeId: zp.id,
+	locationId: zp.id,
+	shiftId: zp.id.optional(),
+	note: zp.str.optional(),
 })
 
 export type ClockInDto = z.infer<typeof ClockInDto>
 
 export const ClockOutDto = z.object({
-	id: zId, // attendance record id
-	note: zStr.optional(),
+	id: zp.id, // attendance record id
+	note: zp.str.optional(),
 })
 
 export type ClockOutDto = z.infer<typeof ClockOutDto>

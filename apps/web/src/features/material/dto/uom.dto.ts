@@ -1,16 +1,16 @@
 import z from 'zod'
 
-import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const UomDto = z.object({ ...zRecordIdDto.shape, code: zStr, ...zMetadataDto.shape })
+export const UomDto = z.object({ ...zc.RecordId.shape, code: zp.str, ...zc.AuditFull.shape })
 
 export type UomDto = z.infer<typeof UomDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const UomFilterDto = z.object({ q: zQuerySearch })
+export const UomFilterDto = z.object({ q: zq.search })
 
 export type UomFilterDto = z.infer<typeof UomFilterDto>
 

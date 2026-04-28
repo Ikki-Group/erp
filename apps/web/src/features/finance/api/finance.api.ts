@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/lib/validation'
+import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	AccountCreateDto,
@@ -22,28 +22,28 @@ export const accountApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.finance.account.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(AccountDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.finance.account.create,
 		body: AccountCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.finance.account.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.finance.account.update,
 		body: AccountUpdateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.finance.account.list, endpoint.finance.account.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.finance.account.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.finance.account.list],
 	}),
 }

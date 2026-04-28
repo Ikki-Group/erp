@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { zId } from '@/lib/validation'
+import { zp } from '@/lib/validation'
 
-export const dashboardKpiFilterSchema = z.object({ locationId: zId.optional() })
+export const dashboardKpiFilterSchema = z.object({ locationId: zp.id.optional() })
 
 export type DashboardKpiFilterDto = z.infer<typeof dashboardKpiFilterSchema>
 

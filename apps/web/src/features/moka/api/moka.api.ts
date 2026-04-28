@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zRecordIdDto } from '@/lib/validation'
+import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import { MokaConfigurationDto } from '../dto/moka-configuration.dto'
 import { MokaScrapHistoryDto } from '../dto/moka-scrap-history.dto'
@@ -18,7 +18,7 @@ export const mokaApi = {
 	detailConfiguration: apiFactory({
 		method: 'get',
 		url: endpoint.moka.configuration.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(MokaConfigurationDto),
 	}),
 	createConfiguration: apiFactory({
@@ -30,21 +30,21 @@ export const mokaApi = {
 			updatedAt: true,
 			deletedAt: true,
 		}),
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.moka.configuration.list],
 	}),
 	updateConfiguration: apiFactory({
 		method: 'patch',
 		url: endpoint.moka.configuration.update,
 		body: MokaConfigurationDto.omit({ createdAt: true, updatedAt: true, deletedAt: true }),
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.moka.configuration.list, endpoint.moka.configuration.detail],
 	}),
 	removeConfiguration: apiFactory({
 		method: 'delete',
 		url: endpoint.moka.configuration.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.moka.configuration.list],
 	}),
 	scrapHistory: apiFactory({

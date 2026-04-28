@@ -1,22 +1,22 @@
 import z from 'zod'
 
-import { zId, zMetadataDto, zQuerySearch, zRecordIdDto, zStr, zStrNullable } from '@/lib/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const ProductCategoryDto = z.object({
-	...zRecordIdDto.shape,
-	name: zStr,
-	description: zStrNullable,
-	parentId: zId.nullable(),
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	name: zp.str,
+	description: zp.strNullable,
+	parentId: zp.id.nullable(),
+	...zc.AuditFull.shape,
 })
 
 export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const ProductCategoryFilterDto = z.object({ q: zQuerySearch, parentId: zId.optional() })
+export const ProductCategoryFilterDto = z.object({ q: zq.search, parentId: zp.id.optional() })
 
 export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 

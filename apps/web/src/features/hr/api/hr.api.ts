@@ -3,11 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-} from '@/lib/validation'
+import { zq, createPaginatedResponseSchema, createSuccessResponseSchema,  } from '@/lib/validation'
 
 import {
 	AttendanceDto,
@@ -29,7 +25,7 @@ export const hrApi = {
 	shifts: apiFactory({
 		method: 'get',
 		url: endpoint.hr.shifts.list,
-		params: zPaginationDto,
+		params: zq.pagination,
 		result: createPaginatedResponseSchema(ShiftDto),
 	}),
 	createShift: apiFactory({
@@ -42,7 +38,7 @@ export const hrApi = {
 	attendances: apiFactory({
 		method: 'get',
 		url: endpoint.hr.attendances.list,
-		params: z.object({ ...AttendanceFilterDto.shape, ...zPaginationDto.shape }),
+		params: z.object({ ...AttendanceFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(AttendanceSelectDto),
 	}),
 	clockIn: apiFactory({

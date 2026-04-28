@@ -1,4 +1,4 @@
-import { createUser, createSession } from './factories/iam'
+import { createSession, createSuperadminRole, createUser } from './factories/iam'
 import { generateTestToken } from './jwt'
 
 /**
@@ -27,13 +27,17 @@ export class TestSessionManager {
 	async setup(): Promise<void> {
 		if (this.token) return // Already setup
 
+		// Create superadmin role in database
+		await createSuperadminRole()
+
 		// Use unique email to avoid conflicts
 		const uniqueEmail = `test-auth-${Date.now()}@example.com`
 
-		// Create a test user
+		// Create a test user with superadmin/root privileges
 		const user = await createUser({
 			email: uniqueEmail,
 			username: `testauthuser-${Date.now()}`,
+			isRoot: true, // Superadmin access
 		})
 		this.userId = user.id
 
@@ -55,9 +59,7 @@ export class TestSessionManager {
 	 */
 	getToken(): string {
 		if (!this.token) {
-			throw new Error(
-				'Test session not setup. Call TestSessionManager.getInstance().setup() in a beforeAll hook.',
-			)
+			throw new Error('Session not setup. Call setup() first.')
 		}
 		return this.token
 	}

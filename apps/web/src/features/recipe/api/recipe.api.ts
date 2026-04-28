@@ -3,13 +3,7 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	zId,
-	zPaginationDto,
-	zRecordIdDto,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
+import { zp, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema,  } from '@/lib/validation'
 
 import { RecipeFilterDto, RecipeMutationDto, RecipeSelectDto } from '../dto'
 
@@ -17,14 +11,14 @@ export const recipeApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.recipe.list,
-		params: z.object({ ...zPaginationDto.shape, ...RecipeFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...RecipeFilterDto.shape }),
 		result: createPaginatedResponseSchema(RecipeSelectDto),
 	}),
 
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.recipe.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(RecipeSelectDto),
 	}),
 
@@ -32,23 +26,23 @@ export const recipeApi = {
 		method: 'post',
 		url: endpoint.recipe.create,
 		body: RecipeMutationDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.recipe.list],
 	}),
 
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.recipe.update,
-		body: z.object({ id: zId, ...RecipeMutationDto.shape }),
-		result: createSuccessResponseSchema(zRecordIdDto),
+		body: z.object({ id: zp.id, ...RecipeMutationDto.shape }),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.recipe.list, endpoint.recipe.detail],
 	}),
 
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.recipe.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.recipe.list],
 	}),
 }

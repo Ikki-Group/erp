@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
-import { zDate, zEmail, zId, zMetadataDto, zRecordIdDto } from '@/lib/validation'
+import { zp, zc } from '@/lib/validation'
 
 export const MokaConfigurationDto = z.object({
-	...zRecordIdDto.shape,
-	locationId: zId,
-	email: zEmail,
+	...zc.RecordId.shape,
+	locationId: zp.id,
+	email: zc.email,
 	password: z.string(),
 	businessId: z.string().nullable(),
 	outletId: z.string().nullable(),
 	accessToken: z.string().nullable(),
-	lastSyncedAt: zDate.nullable(),
-	...zMetadataDto.shape,
+	lastSyncedAt: zp.date.nullable(),
+	...zc.AuditFull.shape,
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
 
@@ -19,14 +19,14 @@ export const MokaConfigurationSelectDto = MokaConfigurationDto.omit({ password: 
 export type MokaConfigurationSelectDto = z.infer<typeof MokaConfigurationSelectDto>
 
 export const MokaConfigurationCreateDto = z.object({
-	locationId: zId,
-	email: zEmail,
+	locationId: zp.id,
+	email: zc.email,
 	password: z.string().min(6),
 })
 export type MokaConfigurationCreateDto = z.infer<typeof MokaConfigurationCreateDto>
 
 export const MokaConfigurationUpdateDto = z.object({
 	...MokaConfigurationCreateDto.partial().shape,
-	locationId: zId.optional(),
+	locationId: zp.id.optional(),
 })
 export type MokaConfigurationUpdateDto = z.infer<typeof MokaConfigurationUpdateDto>
