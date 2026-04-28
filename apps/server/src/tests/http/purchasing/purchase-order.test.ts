@@ -1,7 +1,6 @@
-import { describe, expect, it } from 'bun/test'
-
 import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
+import { describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
