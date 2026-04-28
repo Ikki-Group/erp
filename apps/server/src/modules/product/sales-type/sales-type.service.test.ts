@@ -11,13 +11,13 @@ describe('SalesTypeService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getAll: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			delete: vi.fn(),
-			seed: vi.fn(),
+			getById: spyOn(),
+			getAll: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			delete: spyOn(),
+			seed: spyOn(),
 		} as any
 
 		service = new SalesTypeService(fakeRepo)
@@ -33,7 +33,7 @@ describe('SalesTypeService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockSalesType)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockSalesType)
 
 			const result = await service.getById(1)
 
@@ -42,7 +42,7 @@ describe('SalesTypeService', () => {
 		})
 
 		it('should throw NotFoundError when sales type not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('Sales type with ID 999 not found', 'SALES_TYPE_NOT_FOUND')
@@ -69,7 +69,7 @@ describe('SalesTypeService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getAll').mockResolvedValue(mockSalesTypes)
+			spyOn(fakeRepo, 'getAll').mockResolvedValue(mockSalesTypes)
 
 			const result = await service.find()
 
@@ -94,7 +94,7 @@ describe('SalesTypeService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -113,7 +113,7 @@ describe('SalesTypeService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockSalesType)
+			spyOn(service, 'getById').mockResolvedValue(mockSalesType)
 
 			const result = await service.handleDetail(1)
 
@@ -132,7 +132,7 @@ describe('SalesTypeService', () => {
 			const actorId = 1
 			const newSalesTypeId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newSalesTypeId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newSalesTypeId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -151,7 +151,7 @@ describe('SalesTypeService', () => {
 			const actorId = 1
 			const salesTypeId = 1
 
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(salesTypeId)
+			spyOn(fakeRepo, 'update').mockResolvedValue(salesTypeId)
 
 			const result = await service.handleUpdate(salesTypeId, updateData, actorId)
 
@@ -164,7 +164,7 @@ describe('SalesTypeService', () => {
 		it('should delete sales type', async () => {
 			const salesTypeId = 1
 
-			vi.spyOn(fakeRepo, 'delete').mockResolvedValue(salesTypeId)
+			spyOn(fakeRepo, 'delete').mockResolvedValue(salesTypeId)
 
 			const result = await service.handleRemove(salesTypeId)
 

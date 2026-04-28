@@ -12,16 +12,16 @@ describe('SettingsService', () => {
 	beforeEach(() => {
 		fakeIamService = {
 			user: {
-				count: vi.fn(),
+				count: spyOn(),
 			},
 			role: {
-				count: vi.fn(),
+				count: spyOn(),
 			},
 		} as any
 
 		fakeLocationService = {
 			master: {
-				count: vi.fn(),
+				count: spyOn(),
 			},
 		} as any
 
@@ -34,9 +34,9 @@ describe('SettingsService', () => {
 			const mockRoles = 10
 			const mockLocations = 5
 
-			vi.spyOn(fakeIamService.user, 'count').mockResolvedValue(mockUsers)
-			vi.spyOn(fakeIamService.role, 'count').mockResolvedValue(mockRoles)
-			vi.spyOn(fakeLocationService.master, 'count').mockResolvedValue(mockLocations)
+			spyOn(fakeIamService.user, 'count').mockResolvedValue(mockUsers)
+			spyOn(fakeIamService.role, 'count').mockResolvedValue(mockRoles)
+			spyOn(fakeLocationService.master, 'count').mockResolvedValue(mockLocations)
 
 			const result = await service.getSettingsSummary()
 
@@ -52,9 +52,9 @@ describe('SettingsService', () => {
 		})
 
 		it('should handle zero counts', async () => {
-			vi.spyOn(fakeIamService.user, 'count').mockResolvedValue(0)
-			vi.spyOn(fakeIamService.role, 'count').mockResolvedValue(0)
-			vi.spyOn(fakeLocationService.master, 'count').mockResolvedValue(0)
+			spyOn(fakeIamService.user, 'count').mockResolvedValue(0)
+			spyOn(fakeIamService.role, 'count').mockResolvedValue(0)
+			spyOn(fakeLocationService.master, 'count').mockResolvedValue(0)
 
 			const result = await service.getSettingsSummary()
 
@@ -70,9 +70,9 @@ describe('SettingsService', () => {
 			const mockRoles = 100
 			const mockLocations = 50
 
-			vi.spyOn(fakeIamService.user, 'count').mockResolvedValue(mockUsers)
-			vi.spyOn(fakeIamService.role, 'count').mockResolvedValue(mockRoles)
-			vi.spyOn(fakeLocationService.master, 'count').mockResolvedValue(mockLocations)
+			spyOn(fakeIamService.user, 'count').mockResolvedValue(mockUsers)
+			spyOn(fakeIamService.role, 'count').mockResolvedValue(mockRoles)
+			spyOn(fakeLocationService.master, 'count').mockResolvedValue(mockLocations)
 
 			const result = await service.getSettingsSummary()
 
@@ -92,9 +92,9 @@ describe('SettingsService', () => {
 			const roleCountPromise = Promise.resolve(mockRoles)
 			const locationCountPromise = Promise.resolve(mockLocations)
 
-			vi.spyOn(fakeIamService.user, 'count').mockReturnValue(userCountPromise)
-			vi.spyOn(fakeIamService.role, 'count').mockReturnValue(roleCountPromise)
-			vi.spyOn(fakeLocationService.master, 'count').mockReturnValue(locationCountPromise)
+			spyOn(fakeIamService.user, 'count').mockReturnValue(userCountPromise)
+			spyOn(fakeIamService.role, 'count').mockReturnValue(roleCountPromise)
+			spyOn(fakeLocationService.master, 'count').mockReturnValue(locationCountPromise)
 
 			const result = await service.getSettingsSummary()
 

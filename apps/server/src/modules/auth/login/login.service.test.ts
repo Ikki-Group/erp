@@ -9,7 +9,7 @@ import type { SessionService } from '../session/session.service'
 
 // Mock the password module
 vi.mock('@/core/password', () => ({
-	verifyPassword: vi.fn(),
+	verifyPassword: spyOn(),
 }))
 
 describe('LoginService', () => {
@@ -19,13 +19,13 @@ describe('LoginService', () => {
 
 	beforeEach(() => {
 		fakeUserService = {
-			getByIdentifier: vi.fn(),
-			getDetailById: vi.fn(),
+			getByIdentifier: spyOn(),
+			getDetailById: spyOn(),
 		} as any
 
 		fakeSessionService = {
-			createSession: vi.fn(),
-			verifySession: vi.fn(),
+			createSession: spyOn(),
+			verifySession: spyOn(),
 		} as any
 
 		service = new LoginService({
@@ -68,10 +68,10 @@ describe('LoginService', () => {
 				expiresAt: new Date(),
 			}
 
-			vi.spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
+			spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
 			; (verifyPassword as any).mockResolvedValue(true)
-			vi.spyOn(fakeSessionService, 'createSession').mockResolvedValue(mockSession)
-			vi.spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUserDetail)
+			spyOn(fakeSessionService, 'createSession').mockResolvedValue(mockSession)
+			spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUserDetail)
 
 			const result = await service.login(loginData)
 
@@ -91,7 +91,7 @@ describe('LoginService', () => {
 				password: 'password123',
 			}
 
-			vi.spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(undefined)
+			spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(undefined)
 
 			await expect(service.login(loginData)).rejects.toThrow(
 				new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND')
@@ -114,7 +114,7 @@ describe('LoginService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
+			spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
 
 			await expect(service.login(loginData)).rejects.toThrow(
 				new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND')
@@ -137,7 +137,7 @@ describe('LoginService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
+			spyOn(fakeUserService, 'getByIdentifier').mockResolvedValue(mockUser)
 			; (verifyPassword as any).mockResolvedValue(false)
 
 			await expect(service.login(loginData)).rejects.toThrow(
@@ -166,8 +166,8 @@ describe('LoginService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeSessionService, 'verifySession').mockResolvedValue(mockSession)
-			vi.spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUser)
+			spyOn(fakeSessionService, 'verifySession').mockResolvedValue(mockSession)
+			spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUser)
 
 			const result = await service.verifyToken(token)
 
@@ -179,7 +179,7 @@ describe('LoginService', () => {
 		it('should throw error when token is invalid', async () => {
 			const token = 'invalid-jwt-token'
 
-			vi.spyOn(fakeSessionService, 'verifySession').mockResolvedValue(undefined)
+			spyOn(fakeSessionService, 'verifySession').mockResolvedValue(undefined)
 
 			await expect(service.verifyToken(token)).rejects.toThrow(
 				new UnauthorizedError('Invalid credentials', 'AUTH_INVALID_CREDENTIALS')
@@ -201,7 +201,7 @@ describe('LoginService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUser)
+			spyOn(fakeUserService, 'getDetailById').mockResolvedValue(mockUser)
 
 			const result = await service.getById(userId)
 

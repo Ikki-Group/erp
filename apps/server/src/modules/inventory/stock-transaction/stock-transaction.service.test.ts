@@ -19,24 +19,24 @@ describe('StockTransactionService', () => {
 
 		// Mock the sub-services
 		mockHistoryService = {
-			handleList: vi.fn(),
-			handleDetail: vi.fn(),
-			handleRemove: vi.fn(),
-			handleHardRemove: vi.fn(),
+			handleList: spyOn(),
+			handleDetail: spyOn(),
+			handleRemove: spyOn(),
+			handleHardRemove: spyOn(),
 		} as any
 
 		mockExternalService = {
-			handlePurchase: vi.fn(),
-			handleProductionIn: vi.fn(),
-			handleUsage: vi.fn(),
-			handleSell: vi.fn(),
-			handleProductionOut: vi.fn(),
+			handlePurchase: spyOn(),
+			handleProductionIn: spyOn(),
+			handleUsage: spyOn(),
+			handleSell: spyOn(),
+			handleProductionOut: spyOn(),
 		} as any
 
 		mockInternalService = {
-			handleTransfer: vi.fn(),
-			handleAdjustment: vi.fn(),
-			handleOpname: vi.fn(),
+			handleTransfer: spyOn(),
+			handleAdjustment: spyOn(),
+			handleOpname: spyOn(),
 		} as any
 
 		service = new StockTransactionService(fakeMaterialLocationService)
@@ -64,7 +64,7 @@ describe('StockTransactionService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(mockHistoryService, 'handleList').mockResolvedValue(mockResult)
+			spyOn(mockHistoryService, 'handleList').mockResolvedValue(mockResult)
 
 			const result = await service.handleList(filter)
 
@@ -87,7 +87,7 @@ describe('StockTransactionService', () => {
 				note: 'Test purchase',
 			}
 
-			vi.spyOn(mockHistoryService, 'handleDetail').mockResolvedValue(mockTransaction)
+			spyOn(mockHistoryService, 'handleDetail').mockResolvedValue(mockTransaction)
 
 			const result = await service.handleDetail(transactionId)
 
@@ -102,7 +102,7 @@ describe('StockTransactionService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(mockHistoryService, 'handleRemove').mockResolvedValue(mockResult)
+			spyOn(mockHistoryService, 'handleRemove').mockResolvedValue(mockResult)
 
 			const result = await service.handleRemove(transactionId, actorId)
 
@@ -116,7 +116,7 @@ describe('StockTransactionService', () => {
 			const transactionId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(mockHistoryService, 'handleHardRemove').mockResolvedValue(mockResult)
+			spyOn(mockHistoryService, 'handleHardRemove').mockResolvedValue(mockResult)
 
 			const result = await service.handleHardRemove(transactionId)
 
@@ -144,7 +144,7 @@ describe('StockTransactionService', () => {
 				message: 'Purchase recorded successfully',
 			}
 
-			vi.spyOn(mockExternalService, 'handlePurchase').mockResolvedValue(mockResult)
+			spyOn(mockExternalService, 'handlePurchase').mockResolvedValue(mockResult)
 
 			const result = await service.handlePurchase(purchaseData, actorId)
 
@@ -171,7 +171,7 @@ describe('StockTransactionService', () => {
 				message: 'Production input recorded successfully',
 			}
 
-			vi.spyOn(mockExternalService, 'handleProductionIn').mockResolvedValue(mockResult)
+			spyOn(mockExternalService, 'handleProductionIn').mockResolvedValue(mockResult)
 
 			const result = await service.handleProductionIn(productionInData, actorId)
 
@@ -198,7 +198,7 @@ describe('StockTransactionService', () => {
 				message: 'Usage recorded successfully',
 			}
 
-			vi.spyOn(mockExternalService, 'handleUsage').mockResolvedValue(mockResult)
+			spyOn(mockExternalService, 'handleUsage').mockResolvedValue(mockResult)
 
 			const result = await service.handleUsage(usageData, actorId)
 
@@ -226,7 +226,7 @@ describe('StockTransactionService', () => {
 				message: 'Sale recorded successfully',
 			}
 
-			vi.spyOn(mockExternalService, 'handleSell').mockResolvedValue(mockResult)
+			spyOn(mockExternalService, 'handleSell').mockResolvedValue(mockResult)
 
 			const result = await service.handleSell(sellData, actorId)
 
@@ -253,7 +253,7 @@ describe('StockTransactionService', () => {
 				message: 'Production output recorded successfully',
 			}
 
-			vi.spyOn(mockExternalService, 'handleProductionOut').mockResolvedValue(mockResult)
+			spyOn(mockExternalService, 'handleProductionOut').mockResolvedValue(mockResult)
 
 			const result = await service.handleProductionOut(productionOutData, actorId)
 
@@ -281,7 +281,7 @@ describe('StockTransactionService', () => {
 				message: 'Transfer recorded successfully',
 			}
 
-			vi.spyOn(mockInternalService, 'handleTransfer').mockResolvedValue(mockResult)
+			spyOn(mockInternalService, 'handleTransfer').mockResolvedValue(mockResult)
 
 			const result = await service.handleTransfer(transferData, actorId)
 
@@ -309,7 +309,7 @@ describe('StockTransactionService', () => {
 				message: 'Adjustment recorded successfully',
 			}
 
-			vi.spyOn(mockInternalService, 'handleAdjustment').mockResolvedValue(mockResult)
+			spyOn(mockInternalService, 'handleAdjustment').mockResolvedValue(mockResult)
 
 			const result = await service.handleAdjustment(adjustmentData, actorId)
 
@@ -338,7 +338,7 @@ describe('StockTransactionService', () => {
 				message: 'Stock opname recorded successfully',
 			}
 
-			vi.spyOn(mockInternalService, 'handleOpname').mockResolvedValue(mockResult)
+			spyOn(mockInternalService, 'handleOpname').mockResolvedValue(mockResult)
 
 			const result = await service.handleOpname(opnameData, actorId)
 

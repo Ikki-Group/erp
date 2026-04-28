@@ -13,18 +13,18 @@ describe('ProductService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getListPaginated: vi.fn(),
-			checkScopedConflict: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			softDelete: vi.fn(),
-			hardDelete: vi.fn(),
+			getById: spyOn(),
+			getListPaginated: spyOn(),
+			checkScopedConflict: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			softDelete: spyOn(),
+			hardDelete: spyOn(),
 		} as any
 
 		fakeCategoryService = {
-			handleList: vi.fn(),
-			getById: vi.fn(),
+			handleList: spyOn(),
+			getById: spyOn(),
 		}
 
 		service = new ProductService(fakeCategoryService, fakeRepo)
@@ -46,7 +46,7 @@ describe('ProductService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockProduct)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockProduct)
 
 			const result = await service.getById(1)
 
@@ -55,7 +55,7 @@ describe('ProductService', () => {
 		})
 
 		it('should throw NotFoundError when product not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('Product with ID 999 not found', 'PRODUCT_NOT_FOUND')
@@ -91,8 +91,8 @@ describe('ProductService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
-			vi.spyOn(fakeCategoryService, 'handleList').mockResolvedValue({
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeCategoryService, 'handleList').mockResolvedValue({
 				data: mockCategories,
 				meta: { page: 1, limit: 1000, total: 1, totalPages: 1 },
 			})
@@ -134,8 +134,8 @@ describe('ProductService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockProduct)
-			vi.spyOn(fakeCategoryService, 'getById').mockResolvedValue(mockCategory)
+			spyOn(service, 'getById').mockResolvedValue(mockProduct)
+			spyOn(fakeCategoryService, 'getById').mockResolvedValue(mockCategory)
 
 			const result = await service.handleDetail(1)
 
@@ -160,8 +160,8 @@ describe('ProductService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockProduct)
-			vi.spyOn(fakeCategoryService, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(mockProduct)
+			spyOn(fakeCategoryService, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.handleDetail(1)
 
@@ -186,8 +186,8 @@ describe('ProductService', () => {
 			const actorId = 1
 			const newProductId = 123
 
-			vi.spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newProductId)
+			spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newProductId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -217,8 +217,8 @@ describe('ProductService', () => {
 			const actorId = 1
 			const newProductId = 124
 
-			vi.spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newProductId)
+			spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newProductId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -242,7 +242,7 @@ describe('ProductService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
 
 			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
 				new ConflictError('Only one variant can be set as default', 'MULTIPLE_DEFAULT_VARIANTS')
@@ -279,9 +279,9 @@ describe('ProductService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingProduct)
-			vi.spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingProduct)
+			spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
 			const result = await service.handleUpdate(1, updateData, actorId)
 
@@ -315,9 +315,9 @@ describe('ProductService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingProduct)
-			vi.spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingProduct)
+			spyOn(fakeRepo, 'checkScopedConflict').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
 			await service.handleUpdate(1, updateData, actorId)
 
@@ -333,7 +333,7 @@ describe('ProductService', () => {
 			const productId = 1
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'softDelete').mockResolvedValue(1)
+			spyOn(fakeRepo, 'softDelete').mockResolvedValue(1)
 
 			const result = await service.handleRemove(productId, actorId)
 
@@ -346,7 +346,7 @@ describe('ProductService', () => {
 		it('should hard delete product', async () => {
 			const productId = 1
 
-			vi.spyOn(fakeRepo, 'hardDelete').mockResolvedValue(1)
+			spyOn(fakeRepo, 'hardDelete').mockResolvedValue(1)
 
 			const result = await service.handleHardRemove(productId)
 

@@ -11,12 +11,12 @@ describe('ProductCategoryService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			softDelete: vi.fn(),
-			hardDelete: vi.fn(),
+			getById: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			softDelete: spyOn(),
+			hardDelete: spyOn(),
 		} as any
 
 		service = new ProductCategoryService(fakeRepo)
@@ -32,7 +32,7 @@ describe('ProductCategoryService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockCategory)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockCategory)
 
 			const result = await service.getById(1)
 
@@ -41,7 +41,7 @@ describe('ProductCategoryService', () => {
 		})
 
 		it('should throw NotFoundError when category not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('Product category with ID 999 not found', 'PRODUCT_CATEGORY_NOT_FOUND')
@@ -65,7 +65,7 @@ describe('ProductCategoryService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -84,7 +84,7 @@ describe('ProductCategoryService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockCategory)
+			spyOn(service, 'getById').mockResolvedValue(mockCategory)
 
 			const result = await service.handleDetail(1)
 
@@ -103,7 +103,7 @@ describe('ProductCategoryService', () => {
 			const actorId = 1
 			const newCategoryId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -122,7 +122,7 @@ describe('ProductCategoryService', () => {
 			const actorId = 1
 			const categoryId = 1
 
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(categoryId)
+			spyOn(fakeRepo, 'update').mockResolvedValue(categoryId)
 
 			const result = await service.handleUpdate(categoryId, updateData, actorId)
 
@@ -136,7 +136,7 @@ describe('ProductCategoryService', () => {
 			const categoryId = 1
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'softDelete').mockResolvedValue(categoryId)
+			spyOn(fakeRepo, 'softDelete').mockResolvedValue(categoryId)
 
 			const result = await service.handleRemove(categoryId, actorId)
 
@@ -149,7 +149,7 @@ describe('ProductCategoryService', () => {
 		it('should hard delete category', async () => {
 			const categoryId = 1
 
-			vi.spyOn(fakeRepo, 'hardDelete').mockResolvedValue(categoryId)
+			spyOn(fakeRepo, 'hardDelete').mockResolvedValue(categoryId)
 
 			const result = await service.handleHardRemove(categoryId)
 

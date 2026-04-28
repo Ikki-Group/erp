@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
 
 import { AccountService } from './account.service'
 import { AccountRepo } from './account.repo'
@@ -11,13 +11,13 @@ describe('AccountService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			findByCode: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			softDelete: vi.fn(),
-			hasChildren: vi.fn(),
+			getById: mock(),
+			findByCode: mock(),
+			getListPaginated: mock(),
+			create: mock(),
+			update: mock(),
+			softDelete: mock(),
+			hasChildren: mock(),
 		} as any
 
 		service = new AccountService(fakeRepo)
@@ -36,7 +36,7 @@ describe('AccountService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockAccount)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockAccount)
 
 			const result = await service.getById(1)
 
@@ -45,7 +45,7 @@ describe('AccountService', () => {
 		})
 
 		it('should throw NotFoundError when account not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('Account 999 not found', 'ACCOUNT_NOT_FOUND')
@@ -66,7 +66,7 @@ describe('AccountService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'findByCode').mockResolvedValue(mockAccount)
+			spyOn(fakeRepo, 'findByCode').mockResolvedValue(mockAccount)
 
 			const result = await service.findByCode('1001')
 
@@ -75,7 +75,7 @@ describe('AccountService', () => {
 		})
 
 		it('should return undefined when account not found by code', async () => {
-			vi.spyOn(fakeRepo, 'findByCode').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'findByCode').mockResolvedValue(undefined)
 
 			const result = await service.findByCode('9999')
 
@@ -102,7 +102,7 @@ describe('AccountService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -124,7 +124,7 @@ describe('AccountService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockAccount)
+			spyOn(service, 'getById').mockResolvedValue(mockAccount)
 
 			const result = await service.handleDetail(1)
 
@@ -145,12 +145,12 @@ describe('AccountService', () => {
 			const actorId = 1
 			const newAccountId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newAccountId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newAccountId)
 
 			const result = await service.handleCreate(createData, actorId)
 
 			expect(fakeRepo.create).toHaveBeenCalledWith(createData, actorId)
-			expect(result).toEqual({ id: newAccountId })
+			expect(result).toEqual(newAccountId)
 		})
 	})
 
@@ -164,12 +164,12 @@ describe('AccountService', () => {
 			const accountId = 1
 			const updatedAccountId = 1
 
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(updatedAccountId)
+			spyOn(fakeRepo, 'update').mockResolvedValue(updatedAccountId)
 
 			const result = await service.handleUpdate(accountId, updateData, actorId)
 
 			expect(fakeRepo.update).toHaveBeenCalledWith(accountId, updateData, actorId)
-			expect(result).toEqual({ id: updatedAccountId })
+			expect(result).toEqual(updatedAccountId)
 		})
 	})
 
@@ -178,21 +178,21 @@ describe('AccountService', () => {
 			const accountId = 1
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'hasChildren').mockResolvedValue(false)
-			vi.spyOn(fakeRepo, 'softDelete').mockResolvedValue(accountId)
+			spyOn(fakeRepo, 'hasChildren').mockResolvedValue(false)
+			spyOn(fakeRepo, 'softDelete').mockResolvedValue(accountId)
 
 			const result = await service.handleRemove(accountId, actorId)
 
 			expect(fakeRepo.hasChildren).toHaveBeenCalledWith(accountId)
 			expect(fakeRepo.softDelete).toHaveBeenCalledWith(accountId, actorId)
-			expect(result).toEqual({ id: accountId })
+			expect(result).toEqual(accountId)
 		})
 
 		it('should throw error when account has children', async () => {
 			const accountId = 1
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'hasChildren').mockResolvedValue(true)
+			spyOn(fakeRepo, 'hasChildren').mockResolvedValue(true)
 
 			await expect(service.handleRemove(accountId, actorId)).rejects.toThrow(
 				'Account has children, cannot delete'

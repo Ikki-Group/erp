@@ -9,7 +9,7 @@ import * as dto from './goods-receipt.dto'
 // Mock database transaction
 vi.mock('@/db', () => ({
 	db: {
-		transaction: vi.fn(),
+		transaction: spyOn(),
 	},
 }))
 
@@ -30,16 +30,16 @@ describe('GoodsReceiptService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			updateStatus: vi.fn(),
-			softDelete: vi.fn(),
-			hardDelete: vi.fn(),
+			getById: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			updateStatus: spyOn(),
+			softDelete: spyOn(),
+			hardDelete: spyOn(),
 		} as any
 
 		fakeInventoryService = {
-			handlePurchase: vi.fn(),
+			handlePurchase: spyOn(),
 		} as any
 
 		service = new GoodsReceiptService(fakeInventoryService)
@@ -69,7 +69,7 @@ describe('GoodsReceiptService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockGRN)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockGRN)
 
 			const result = await service.getById(1)
 
@@ -78,7 +78,7 @@ describe('GoodsReceiptService', () => {
 		})
 
 		it('should throw NotFoundError when GRN not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('GRN with ID 999 not found', 'GRN_NOT_FOUND')
@@ -103,7 +103,7 @@ describe('GoodsReceiptService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -126,7 +126,7 @@ describe('GoodsReceiptService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockGRN)
+			spyOn(service, 'getById').mockResolvedValue(mockGRN)
 
 			const result = await service.handleDetail(1)
 
@@ -154,7 +154,7 @@ describe('GoodsReceiptService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockResult)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -198,11 +198,11 @@ describe('GoodsReceiptService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				const mockTx = {
-					select: vi.fn().mockReturnValue({
-						from: vi.fn().mockReturnValue({
-							where: vi.fn().mockResolvedValue(mockPOItems),
+					select: spyOn().mockReturnValue({
+						from: spyOn().mockReturnValue({
+							where: spyOn().mockResolvedValue(mockPOItems),
 						}),
 					}),
 				}
@@ -210,9 +210,9 @@ describe('GoodsReceiptService', () => {
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockGRN)
-			vi.spyOn(fakeInventoryService, 'handlePurchase').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'updateStatus').mockResolvedValue(mockResult)
+			spyOn(service, 'getById').mockResolvedValue(mockGRN)
+			spyOn(fakeInventoryService, 'handlePurchase').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'updateStatus').mockResolvedValue(mockResult)
 
 			const result = await service.handleComplete(1, actorId)
 
@@ -258,7 +258,7 @@ describe('GoodsReceiptService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockGRN)
+			spyOn(service, 'getById').mockResolvedValue(mockGRN)
 
 			await expect(service.handleComplete(1, actorId)).rejects.toThrow(
 				new ConflictError('GRN is already completed', 'GRN_STATUS_CONFLICT')
@@ -291,11 +291,11 @@ describe('GoodsReceiptService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				const mockTx = {
-					select: vi.fn().mockReturnValue({
-						from: vi.fn().mockReturnValue({
-							where: vi.fn().mockResolvedValue([]),
+					select: spyOn().mockReturnValue({
+						from: spyOn().mockReturnValue({
+							where: spyOn().mockResolvedValue([]),
 						}),
 					}),
 				}
@@ -303,9 +303,9 @@ describe('GoodsReceiptService', () => {
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockGRN)
-			vi.spyOn(fakeInventoryService, 'handlePurchase').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'updateStatus').mockResolvedValue(mockResult)
+			spyOn(service, 'getById').mockResolvedValue(mockGRN)
+			spyOn(fakeInventoryService, 'handlePurchase').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'updateStatus').mockResolvedValue(mockResult)
 
 			await service.handleComplete(1, actorId)
 
@@ -335,7 +335,7 @@ describe('GoodsReceiptService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(fakeRepo, 'softDelete').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'softDelete').mockResolvedValue(mockResult)
 
 			const result = await service.handleRemove(grnId, actorId)
 
@@ -349,7 +349,7 @@ describe('GoodsReceiptService', () => {
 			const grnId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(fakeRepo, 'hardDelete').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'hardDelete').mockResolvedValue(mockResult)
 
 			const result = await service.handleHardRemove(grnId)
 

@@ -10,8 +10,8 @@ describe('GeneralLedgerService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			postEntry: vi.fn(),
-			getEntryBySource: vi.fn(),
+			postEntry: spyOn(),
+			getEntryBySource: spyOn(),
 		} as any
 
 		service = new GeneralLedgerService(fakeRepo)
@@ -42,7 +42,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 			const mockResult = { id: 1, ...input }
 
-			vi.spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
 
 			const result = await service.postEntry(input, actorId)
 
@@ -79,7 +79,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 			const mockResult = { id: 2, ...input }
 
-			vi.spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
 
 			const result = await service.postEntry(input, actorId)
 
@@ -171,7 +171,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 			const mockResult = { id: 3, ...input }
 
-			vi.spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
 
 			const result = await service.postEntry(input, actorId)
 
@@ -203,7 +203,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 			const mockResult = { id: 4, ...input }
 
-			vi.spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'postEntry').mockResolvedValue(mockResult)
 
 			const result = await service.postEntry(input, actorId)
 
@@ -226,7 +226,7 @@ describe('GeneralLedgerService', () => {
 				items: [],
 			}
 
-			vi.spyOn(fakeRepo, 'getEntryBySource').mockResolvedValue(mockEntry)
+			spyOn(fakeRepo, 'getEntryBySource').mockResolvedValue(mockEntry)
 
 			const result = await service.getEntryBySource(sourceType, sourceId)
 
@@ -238,7 +238,7 @@ describe('GeneralLedgerService', () => {
 			const sourceType = 'expenditure'
 			const sourceId = 999
 
-			vi.spyOn(fakeRepo, 'getEntryBySource').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getEntryBySource').mockResolvedValue(undefined)
 
 			const result = await service.getEntryBySource(sourceType, sourceId)
 

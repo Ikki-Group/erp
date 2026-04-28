@@ -10,11 +10,11 @@ describe('UserAssignmentService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getList: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			remove: vi.fn(),
+			getList: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			remove: spyOn(),
 		} as any
 
 		service = new UserAssignmentService(fakeRepo)
@@ -48,7 +48,7 @@ describe('UserAssignmentService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getList').mockResolvedValue(mockAssignments)
+			spyOn(fakeRepo, 'getList').mockResolvedValue(mockAssignments)
 
 			const result = await service.findByUserId(123)
 
@@ -71,7 +71,7 @@ describe('UserAssignmentService', () => {
 			]
 
 			const filter = { userId: 123 }
-			vi.spyOn(fakeRepo, 'getList').mockResolvedValue(mockAssignments)
+			spyOn(fakeRepo, 'getList').mockResolvedValue(mockAssignments)
 
 			const result = await service.handleGetList(filter)
 
@@ -102,7 +102,7 @@ describe('UserAssignmentService', () => {
 			}
 
 			const filter = { page: 1, limit: 10 }
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleGetListPaginated(filter)
 

@@ -11,13 +11,13 @@ describe('HRService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getShiftListPaginated: vi.fn(),
-			createShift: vi.fn(),
-			getAttendanceListPaginated: vi.fn(),
-			findOpenAttendance: vi.fn(),
-			clockIn: vi.fn(),
-			getAttendanceById: vi.fn(),
-			clockOut: vi.fn(),
+			getShiftListPaginated: spyOn(),
+			createShift: spyOn(),
+			getAttendanceListPaginated: spyOn(),
+			findOpenAttendance: spyOn(),
+			clockIn: spyOn(),
+			getAttendanceById: spyOn(),
+			clockOut: spyOn(),
 		} as any
 
 		service = new HRService(fakeRepo)
@@ -41,7 +41,7 @@ describe('HRService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getShiftListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getShiftListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleShiftList(pagination)
 
@@ -67,7 +67,7 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'createShift').mockResolvedValue(mockShift)
+			spyOn(fakeRepo, 'createShift').mockResolvedValue(mockShift)
 
 			const result = await service.handleShiftCreate(shiftData, actorId)
 
@@ -101,7 +101,7 @@ describe('HRService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getAttendanceListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getAttendanceListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleAttendanceList(filter)
 
@@ -132,8 +132,8 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'findOpenAttendance').mockResolvedValue(null)
-			vi.spyOn(fakeRepo, 'clockIn').mockResolvedValue(mockAttendance)
+			spyOn(fakeRepo, 'findOpenAttendance').mockResolvedValue(null)
+			spyOn(fakeRepo, 'clockIn').mockResolvedValue(mockAttendance)
 
 			const result = await service.handleClockIn(clockInData, actorId)
 
@@ -162,7 +162,7 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'findOpenAttendance').mockResolvedValue(existingAttendance)
+			spyOn(fakeRepo, 'findOpenAttendance').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockIn(clockInData, actorId)).rejects.toThrow(
 				new ConflictError('Employee with ID 1 is already clocked in', 'ALREADY_CLOCKED_IN')
@@ -199,8 +199,8 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
-			vi.spyOn(fakeRepo, 'clockOut').mockResolvedValue(updatedAttendance)
+			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
+			spyOn(fakeRepo, 'clockOut').mockResolvedValue(updatedAttendance)
 
 			const result = await service.handleClockOut(clockOutData, actorId)
 
@@ -227,8 +227,8 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
-			vi.spyOn(fakeRepo, 'clockOut').mockResolvedValue({
+			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
+			spyOn(fakeRepo, 'clockOut').mockResolvedValue({
 				...existingAttendance,
 				clockOut: new Date(),
 			})
@@ -245,7 +245,7 @@ describe('HRService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(undefined)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
 				new NotFoundError('Attendance with ID 999 not found', 'ATTENDANCE_NOT_FOUND')
@@ -272,7 +272,7 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
+			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
 				new ConflictError('Attendance with ID 1 is not clocked in', 'NOT_CLOCKED_IN')
@@ -299,7 +299,7 @@ describe('HRService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
+			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
 				new ConflictError('Attendance with ID 1 is already clocked out', 'ALREADY_CLOCKED_OUT')

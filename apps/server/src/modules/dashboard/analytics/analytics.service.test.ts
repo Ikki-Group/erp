@@ -6,7 +6,7 @@ import { AnalyticsService, type PnLData, type TopSalesItem } from './analytics.s
 vi.mock('@/core/cache', () => ({
 	bento: {
 		namespace: () => ({
-			getOrSet: vi.fn(),
+			getOrSet: spyOn(),
 		}),
 	},
 }))
@@ -14,13 +14,13 @@ vi.mock('@/core/cache', () => ({
 // Mock database
 vi.mock('@/db', () => ({
 	db: {
-		select: vi.fn().mockReturnValue({
-			from: vi.fn().mockReturnValue({
-				innerJoin: vi.fn().mockReturnValue({
-					where: vi.fn().mockReturnValue({
-						groupBy: vi.fn().mockReturnValue({
-							orderBy: vi.fn().mockReturnValue({
-								limit: vi.fn().mockResolvedValue([]),
+		select: spyOn().mockReturnValue({
+			from: spyOn().mockReturnValue({
+				innerJoin: spyOn().mockReturnValue({
+					where: spyOn().mockReturnValue({
+						groupBy: spyOn().mockReturnValue({
+							orderBy: spyOn().mockReturnValue({
+								limit: spyOn().mockResolvedValue([]),
 							}),
 						}),
 					}),
@@ -40,7 +40,7 @@ describe('AnalyticsService', () => {
 	beforeEach(() => {
 		service = new AnalyticsService()
 		mockCache = {
-			getOrSet: vi.fn().mockImplementation(async ({ factory }) => {
+			getOrSet: spyOn().mockImplementation(async ({ factory }) => {
 				return await factory()
 			}),
 		}
@@ -60,11 +60,11 @@ describe('AnalyticsService', () => {
 				{ accountCode: '5202', debit: '1000', credit: '0' },  // Operating expenses
 			]
 
-			const mockSelect = vi.fn().mockReturnValue({
-				from: vi.fn().mockReturnValue({
-					innerJoin: vi.fn().mockReturnValue({
-						innerJoin: vi.fn().mockReturnValue({
-							where: vi.fn().mockResolvedValue(mockGlItems),
+			const mockSelect = spyOn().mockReturnValue({
+				from: spyOn().mockReturnValue({
+					innerJoin: spyOn().mockReturnValue({
+						innerJoin: spyOn().mockReturnValue({
+							where: spyOn().mockResolvedValue(mockGlItems),
 						}),
 					}),
 				}),
@@ -95,11 +95,11 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = vi.fn().mockReturnValue({
-				from: vi.fn().mockReturnValue({
-					innerJoin: vi.fn().mockReturnValue({
-						innerJoin: vi.fn().mockReturnValue({
-							where: vi.fn().mockResolvedValue([]),
+			const mockSelect = spyOn().mockReturnValue({
+				from: spyOn().mockReturnValue({
+					innerJoin: spyOn().mockReturnValue({
+						innerJoin: spyOn().mockReturnValue({
+							where: spyOn().mockResolvedValue([]),
 						}),
 					}),
 				}),
@@ -167,13 +167,13 @@ describe('AnalyticsService', () => {
 				},
 			]
 
-			const mockSelect = vi.fn().mockReturnValue({
-				from: vi.fn().mockReturnValue({
-					innerJoin: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							groupBy: vi.fn().mockReturnValue({
-								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue(mockSalesData),
+			const mockSelect = spyOn().mockReturnValue({
+				from: spyOn().mockReturnValue({
+					innerJoin: spyOn().mockReturnValue({
+						where: spyOn().mockReturnValue({
+							groupBy: spyOn().mockReturnValue({
+								orderBy: spyOn().mockReturnValue({
+									limit: spyOn().mockResolvedValue(mockSalesData),
 								}),
 							}),
 						}),
@@ -219,13 +219,13 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = vi.fn().mockReturnValue({
-				from: vi.fn().mockReturnValue({
-					innerJoin: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							groupBy: vi.fn().mockReturnValue({
-								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue([]),
+			const mockSelect = spyOn().mockReturnValue({
+				from: spyOn().mockReturnValue({
+					innerJoin: spyOn().mockReturnValue({
+						where: spyOn().mockReturnValue({
+							groupBy: spyOn().mockReturnValue({
+								orderBy: spyOn().mockReturnValue({
+									limit: spyOn().mockResolvedValue([]),
 								}),
 							}),
 						}),
@@ -246,13 +246,13 @@ describe('AnalyticsService', () => {
 			const startDate = new Date('2024-01-01')
 			const endDate = new Date('2024-01-31')
 
-			const mockSelect = vi.fn().mockReturnValue({
-				from: vi.fn().mockReturnValue({
-					innerJoin: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							groupBy: vi.fn().mockReturnValue({
-								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue([]),
+			const mockSelect = spyOn().mockReturnValue({
+				from: spyOn().mockReturnValue({
+					innerJoin: spyOn().mockReturnValue({
+						where: spyOn().mockReturnValue({
+							groupBy: spyOn().mockReturnValue({
+								orderBy: spyOn().mockReturnValue({
+									limit: spyOn().mockResolvedValue([]),
 								}),
 							}),
 						}),

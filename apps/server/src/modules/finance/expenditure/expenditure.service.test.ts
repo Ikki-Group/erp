@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 import { ExpenditureService } from './expenditure.service'
 import { ExpenditureRepo } from './expenditure.repo'
@@ -8,7 +8,7 @@ import * as dto from './expenditure.dto'
 // Mock database transaction
 vi.mock('@/db', () => ({
 	db: {
-		transaction: vi.fn(),
+		transaction: mock(),
 	},
 }))
 
@@ -21,12 +21,12 @@ describe('ExpenditureService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			create: vi.fn(),
-			getListPaginated: vi.fn(),
+			create: mock(),
+			getListPaginated: mock(),
 		} as any
 
 		fakeJournalService = {
-			postEntry: vi.fn(),
+			postEntry: mock(),
 		} as any
 
 		service = new ExpenditureService(fakeJournalService, fakeRepo)
@@ -52,13 +52,13 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = mock().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
-			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
-			vi.spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
+			(db.transaction as any).mockImplementation(mockTransaction)
+			fakeRepo.create.mockResolvedValue(mockExpenditure)
+			fakeJournalService.postEntry.mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -109,13 +109,13 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = mock().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
-			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
-			vi.spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
+			(db.transaction as any).mockImplementation(mockTransaction)
+			fakeRepo.create.mockResolvedValue(mockExpenditure)
+			fakeJournalService.postEntry.mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -165,13 +165,13 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = mock().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
-			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
-			vi.spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
+			(db.transaction as any).mockImplementation(mockTransaction)
+			fakeRepo.create.mockResolvedValue(mockExpenditure)
+			fakeJournalService.postEntry.mockResolvedValue(undefined)
 
 			const result = await service.createExpenditure(input, actorId)
 
@@ -219,13 +219,13 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = mock().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
-			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
-			vi.spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
+			(db.transaction as any).mockImplementation(mockTransaction)
+			fakeRepo.create.mockResolvedValue(mockExpenditure)
+			fakeJournalService.postEntry.mockResolvedValue(undefined)
 
 			await service.createExpenditure(input, actorId)
 
@@ -254,7 +254,7 @@ describe('ExpenditureService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.listExpenditures(filter)
 

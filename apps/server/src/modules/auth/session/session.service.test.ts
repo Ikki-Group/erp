@@ -7,16 +7,16 @@ import type { UserDto } from '@/modules/iam'
 
 // Mock JWT module
 vi.mock('jsonwebtoken', () => ({
-	sign: vi.fn(),
-	verify: vi.fn(),
+	sign: spyOn(),
+	verify: spyOn(),
 }))
 
 // Mock cache module
 vi.mock('@/core/cache', () => ({
 	bento: {
 		namespace: () => ({
-			getOrSet: vi.fn(),
-			deleteMany: vi.fn(),
+			getOrSet: spyOn(),
+			deleteMany: spyOn(),
 		}),
 	},
 	CACHE_KEY_DEFAULT: {
@@ -27,7 +27,7 @@ vi.mock('@/core/cache', () => ({
 // Mock logger
 vi.mock('@/core/logger', () => ({
 	logger: {
-		error: vi.fn(),
+		error: spyOn(),
 	},
 }))
 
@@ -51,15 +51,15 @@ describe('SessionService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			create: vi.fn(),
-			invalidate: vi.fn(),
-			cleanupExpired: vi.fn(),
+			getById: spyOn(),
+			create: spyOn(),
+			invalidate: spyOn(),
+			cleanupExpired: spyOn(),
 		} as any
 
 		mockCache = {
-			getOrSet: vi.fn(),
-			deleteMany: vi.fn(),
+			getOrSet: spyOn(),
+			deleteMany: spyOn(),
 		}
 
 		vi.mocked(bento.namespace).mockReturnValue(mockCache)
@@ -80,7 +80,7 @@ describe('SessionService', () => {
 			vi.mocked(mockCache.getOrSet).mockImplementation(async ({ factory }) => {
 				return await factory()
 			})
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockSession)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockSession)
 
 			const result = await service.getById(sessionId)
 
@@ -97,7 +97,7 @@ describe('SessionService', () => {
 			vi.mocked(mockCache.getOrSet).mockImplementation(async ({ factory }) => {
 				return await factory()
 			})
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.getById(sessionId)
 
@@ -126,7 +126,7 @@ describe('SessionService', () => {
 
 			const mockToken = 'jwt-token'
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockSession)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockSession)
 			vi.mocked(jwt.sign).mockReturnValue(mockToken)
 
 			const result = await service.createSession(mockUser)
@@ -171,7 +171,7 @@ describe('SessionService', () => {
 			}
 
 			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockSession)
+			spyOn(service, 'getById').mockResolvedValue(mockSession)
 
 			const result = await service.verifySession(token)
 
@@ -203,7 +203,7 @@ describe('SessionService', () => {
 			}
 
 			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.verifySession(token)
 
@@ -227,8 +227,8 @@ describe('SessionService', () => {
 			}
 
 			vi.mocked(jwt.verify).mockReturnValue(mockDecoded)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockSession)
-			vi.spyOn(service, 'deleteSession').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(mockSession)
+			spyOn(service, 'deleteSession').mockResolvedValue(undefined)
 
 			const result = await service.verifySession(token)
 
