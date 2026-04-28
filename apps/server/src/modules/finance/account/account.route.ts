@@ -2,7 +2,12 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema, createPaginatedResponseSchema, zc } from '@/core/validation'
+import {
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zc,
+	zq,
+} from '@/core/validation'
 
 import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import type { AccountService } from './account.service'
@@ -28,7 +33,7 @@ export function initAccountRoute(s: AccountService) {
 				const account = await s.handleDetail(query.id)
 				return res.ok(account)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(AccountDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(AccountDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -60,6 +65,6 @@ export function initAccountRoute(s: AccountService) {
 				const result = await s.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

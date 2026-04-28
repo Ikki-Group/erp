@@ -3,12 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	EmployeeCreateDto,
@@ -21,34 +16,34 @@ export const employeeApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.employee.list,
-		params: z.object({ ...EmployeeFilterDto.shape, ...zPaginationDto.shape }),
+		params: z.object({ ...EmployeeFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(EmployeeDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.employee.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(EmployeeDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.employee.create,
 		body: EmployeeCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.employee.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.employee.update,
 		body: EmployeeUpdateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.employee.list, endpoint.employee.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.employee.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.employee.list],
 	}),
 }

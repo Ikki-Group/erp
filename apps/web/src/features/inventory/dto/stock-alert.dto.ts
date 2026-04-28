@@ -1,24 +1,24 @@
 import { z } from 'zod'
 
-import { zId, zStr, zStrNullable } from '@/lib/zod'
+import { zp } from '@/lib/validation'
 
-export const stockAlertFilterSchema = z.object({
-	locationId: zId.optional(),
+export const StockAlertFilterDto = z.object({
+	locationId: zp.id.optional(),
 	type: z.enum(['all', 'below_min', 'below_reorder']).default('all'),
 })
 
-export type StockAlertFilterDto = z.infer<typeof stockAlertFilterSchema>
+export type StockAlertFilterDto = z.infer<typeof StockAlertFilterDto>
 
-export const stockAlertSelectSchema = z.object({
-	materialId: zId,
-	materialName: zStr,
-	materialSku: zStrNullable,
-	locationId: zId,
-	locationName: zStr,
-	uomCode: zStrNullable,
+export const StockAlertSelectDto = z.object({
+	materialId: zp.id,
+	materialName: zp.str,
+	materialSku: zp.strNullable,
+	locationId: zp.id,
+	locationName: zp.str,
+	uomCode: zp.strNullable,
 	currentQty: z.string(),
 	minStock: z.string(),
 	reorderPoint: z.string(),
 })
 
-export type StockAlertSelectDto = z.infer<typeof stockAlertSelectSchema>
+export type StockAlertSelectDto = z.infer<typeof StockAlertSelectDto>

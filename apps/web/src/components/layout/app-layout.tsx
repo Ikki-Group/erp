@@ -31,7 +31,7 @@ import {
 	SidebarTrigger,
 } from '@/components/ui/sidebar'
 
-import { UserSection } from '@/features/iam/components/user-section'
+import { UserSection } from '@/features/auth/components/user-section'
 import { stockAlertApi } from '@/features/inventory/api/inventory.api'
 import { InventoryAlertBanner } from '@/features/inventory/components/inventory-alert-banner'
 import { LocationSwitcher } from '@/features/location/components/location-switcher'

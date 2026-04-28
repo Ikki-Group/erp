@@ -1,44 +1,44 @@
 import { z } from 'zod'
 
-import { zId, zMetadataDto, zPaginationDto, zQuerySearch, zRecordIdDto, zStr } from '@/lib/zod'
+import { zp, zc, zq } from '@/lib/validation'
 
 export const AccountTypeEnum = z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
 export type AccountTypeEnum = z.infer<typeof AccountTypeEnum>
 
 export const AccountDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
 	type: AccountTypeEnum,
 	isGroup: z.boolean(),
-	parentId: zId.nullable(),
-	...zMetadataDto.shape,
+	parentId: zp.id.nullable(),
+	...zc.AuditFull.shape,
 })
 export type AccountDto = z.infer<typeof AccountDto>
 
 export const AccountCreateDto = z.object({
-	code: zStr,
-	name: zStr,
+	code: zp.str,
+	name: zp.str,
 	type: AccountTypeEnum,
 	isGroup: z.boolean().default(false),
-	parentId: zId.optional().nullable(),
+	parentId: zp.id.optional().nullable(),
 })
 export type AccountCreateDto = z.infer<typeof AccountCreateDto>
 
 export const AccountUpdateDto = z.object({
-	...zRecordIdDto.shape,
-	code: zStr,
-	name: zStr,
+	...zc.RecordId.shape,
+	code: zp.str,
+	name: zp.str,
 	type: AccountTypeEnum,
 	isGroup: z.boolean(),
-	parentId: zId.optional().nullable(),
+	parentId: zp.id.optional().nullable(),
 })
 export type AccountUpdateDto = z.infer<typeof AccountUpdateDto>
 
 export const AccountFilterDto = z.object({
-	...zPaginationDto.shape,
-	q: zQuerySearch,
+	...zq.pagination.shape,
+	q: zq.search,
 	type: AccountTypeEnum.optional(),
-	parentId: zId.optional(),
+	parentId: zp.id.optional(),
 })
 export type AccountFilterDto = z.infer<typeof AccountFilterDto>

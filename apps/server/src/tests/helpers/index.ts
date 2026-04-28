@@ -2,9 +2,10 @@
 // Re-export all test utilities from a single entry point
 
 // Database & Setup
-export { getTestDatabase, setupTestDatabase, teardownTestDatabase, withTransaction } from './db'
-
-export { setupIntegrationTests, setupUnitTests } from './setup'
+export * from './app-builder'
+export * from './auth'
+export * from './db'
+export * from './setup'
 
 // Factories (reorganized by module)
 export {
@@ -43,6 +44,7 @@ export {
 	createRouteTestApp,
 	createIntegrationTestApp,
 	jsonRequest,
+	authenticatedJsonRequest,
 } from './app-builder'
 
 // Response Assertions
@@ -56,3 +58,14 @@ export {
 
 // Cache
 export { clearTestCache, createTestCache } from './cache'
+
+// JWT
+export { generateTestToken, generateTestUserToken } from './jwt'
+
+// Session Manager
+export {
+	TestSessionManager,
+	getTestSessionManager,
+	getTestToken,
+	getTestUserId,
+} from './session-manager'

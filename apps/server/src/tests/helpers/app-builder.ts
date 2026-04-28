@@ -2,7 +2,6 @@ import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
-import { requestIdPlugin } from '@/core/http/request-id'
 
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
@@ -64,17 +63,53 @@ export function createIntegrationTestApp() {
 }
 
 /**
+ * Creates an integration test app with mock auth service.
+ * Use for happy path tests without requiring database sessions.
+ */
+export function createIntegrationTestAppWithMockAuth() {
+	const db = getTestDatabase()
+	const modules = initModules(db)
+	const routes = initRoutes(modules)
+
+	// Replace auth and login services with mocks
+	const mockAuthService = new MockAuthService()
+	const mockLoginService = new MockLoginService()
+	;(modules as any).auth = mockAuthService
+	;(modules as any).auth.login = mockLoginService
+
+	const app = createApp(modules)
+	routes.register(app)
+
+	return app
+}
+
+/**
  * Helper to make JSON requests in tests
  */
 export function jsonRequest(
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT',
 	path: string,
 	body?: unknown,
+	headers?: Record<string, string>,
 ): Request {
 	const url = new URL(path, 'http://localhost').toString()
 	return new Request(url, {
 		method,
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', ...headers },
 		body: body ? JSON.stringify(body) : undefined,
+	})
+}
+
+/**
+ * Helper to make authenticated JSON requests in tests
+ */
+export function authenticatedJsonRequest(
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	path: string,
+	token: string,
+	body?: unknown,
+): Request {
+	return jsonRequest(method, path, body, {
+		Authorization: `Bearer ${token}`,
 	})
 }

@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
-import { zDate, zId, zNum, zStr, zStrNullable } from '@/lib/zod'
+import { zp } from '@/lib/validation'
 
 /**
  * Single material count in a stock opname.
  */
 export const StockOpnameItemDto = z.object({
-	materialId: zId,
-	physicalQty: zNum.nonnegative('Physical quantity cannot be negative'),
-	notes: zStrNullable.optional(),
+	materialId: zp.id,
+	physicalQty: zp.num.nonnegative('Physical quantity cannot be negative'),
+	notes: zp.strNullable.optional(),
 })
 
 export type StockOpnameItemDto = z.infer<typeof StockOpnameItemDto>
@@ -17,10 +17,10 @@ export type StockOpnameItemDto = z.infer<typeof StockOpnameItemDto>
  * Stock Opname Header: Recording physical count for multiple materials at one location.
  */
 export const StockOpnameDto = z.object({
-	locationId: zId,
-	date: zDate,
-	referenceNo: zStr,
-	notes: zStrNullable.optional(),
+	locationId: zp.id,
+	date: zp.date,
+	referenceNo: zp.str,
+	notes: zp.strNullable.optional(),
 	items: StockOpnameItemDto.array().min(1, 'At least one item is required'),
 })
 

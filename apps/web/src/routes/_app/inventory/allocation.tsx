@@ -10,8 +10,8 @@ import { toast } from 'sonner'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
-import { arrayToOptions } from '@/lib/options'
 import { toastLabelMessage } from '@/lib/toast-message'
+import { arrayToOptions } from '@/lib/utils'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ComboboxStatic } from '@/components/blocks/combobox-pattern'

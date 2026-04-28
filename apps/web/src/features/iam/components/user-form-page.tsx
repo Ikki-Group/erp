@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { zBool, zEmail, zPassword, zStr, zUsername } from '@/lib/zod'
+import { zBool } from '@/lib/validation'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'
@@ -36,13 +36,16 @@ import { userApi } from '../api'
 import type { UserDetailDto } from '../dto'
 
 const FormDto = z.object({
-	fullname: zStr.min(1, 'Nama lengkap wajib diisi'),
-	username: zUsername,
-	password: zPassword.optional(),
-	email: zEmail,
+	fullname: z.string().min(1, 'Nama lengkap wajib diisi').max(100, 'Nama terlalu panjang'),
+	username: z
+		.string()
+		.min(3, 'Username minimal 3 karakter')
+		.max(32, 'Username maksimal 32 karakter'),
+	password: z.string().min(8, 'Password minimal 8 karakter').optional(),
+	email: z.string().email('Format email tidak valid'),
 	isRoot: zBool,
 	isActive: zBool,
-	pinCode: z.string(),
+	pinCode: z.string().nullable(),
 	defaultLocationId: z.number().nullable(),
 	assignments: z.array(z.object({ roleId: z.number(), locationId: z.number(), isDefault: zBool })),
 })

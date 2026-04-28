@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createSuccessResponseSchema } from '@/lib/zod'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 import { SettingsSummaryDto } from '../dto/settings.dto'
 

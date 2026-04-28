@@ -4,14 +4,14 @@ import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
 import {
+	zc,
+	zq,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import {
-	WorkOrderCompleteDto,
+	WorkOrderCompleteBodyDto,
 	WorkOrderCreateDto,
 	WorkOrderDto,
 	WorkOrderFilterDto,
@@ -22,48 +22,48 @@ export const workOrderApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.production.workOrder.list,
-		params: z.object({ ...WorkOrderFilterDto.shape, ...zPaginationDto.shape }),
+		params: z.object({ ...WorkOrderFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(WorkOrderDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.production.workOrder.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(WorkOrderDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.production.workOrder.create,
 		body: WorkOrderCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.production.workOrder.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.production.workOrder.update,
 		body: WorkOrderUpdateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.production.workOrder.list, endpoint.production.workOrder.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.production.workOrder.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.production.workOrder.list],
 	}),
 	start: apiFactory({
 		method: 'post',
 		url: endpoint.production.workOrder.start,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(WorkOrderDto),
 		invalidates: [endpoint.production.workOrder.list, endpoint.production.workOrder.detail],
 	}),
 	complete: apiFactory({
 		method: 'post',
 		url: endpoint.production.workOrder.complete,
-		params: zRecordIdDto,
-		body: WorkOrderCompleteDto.omit({ id: true }),
+		params: zc.RecordId,
+		body: WorkOrderCompleteBodyDto,
 		result: createSuccessResponseSchema(WorkOrderDto),
 		invalidates: [
 			endpoint.production.workOrder.list,

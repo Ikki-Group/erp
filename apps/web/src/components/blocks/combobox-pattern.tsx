@@ -7,7 +7,7 @@ import { useQuery, type UnusedSkipTokenOptions } from '@tanstack/react-query'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react'
 import { DatabaseIcon, Loader2Icon } from 'lucide-react'
 
-import type { Option, StringOrNumber } from '@/lib/options'
+import type { SelectOption, StringOrNumber } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -24,12 +24,12 @@ import {
 export interface ComboboxBaseProps<
 	TValue extends StringOrNumber,
 	TData = any,
-	TItem = Option<TValue, TData>,
+	TItem = SelectOption<TValue, TData>,
 > {
 	value?: TValue
 	onChange?: (value: TValue | undefined, item?: TItem) => void
 
-	items?: Option<TValue, TData>[]
+	items?: SelectOption<TValue, TData>[]
 	isLoading?: boolean
 	isDisabled?: boolean
 
@@ -44,7 +44,7 @@ export interface ComboboxBaseProps<
 export function ComboboxBase<
 	TValue extends StringOrNumber,
 	TData = any,
-	TItem = Option<TValue, TData>,
+	TItem = SelectOption<TValue, TData>,
 >({
 	value,
 	onChange,
@@ -152,7 +152,7 @@ export interface ComboboxAsyncProps<TValue extends StringOrNumber, TData = any> 
 	ComboboxBaseProps<TValue, TData>,
 	'items'
 > {
-	queryOptions: UnusedSkipTokenOptions<any, any, Option<TValue, TData>[], any>
+	queryOptions: UnusedSkipTokenOptions<any, any, SelectOption<TValue, TData>[], any>
 }
 
 export function ComboboxAsync<TValue extends StringOrNumber, TData = any>({

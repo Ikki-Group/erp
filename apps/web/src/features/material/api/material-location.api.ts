@@ -3,12 +3,7 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	zPaginationDto,
-	zRecordIdDto,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/zod'
+import { zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 import {
 	MaterialLocationAssignDto,
@@ -24,7 +19,7 @@ export const materialLocationApi = {
 	stock: apiFactory({
 		method: 'get',
 		url: endpoint.material.location.stock,
-		params: z.object({ ...zPaginationDto.shape, ...MaterialLocationFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...MaterialLocationFilterDto.shape }),
 		result: createPaginatedResponseSchema(MaterialLocationStockDto),
 	}),
 
@@ -42,7 +37,7 @@ export const materialLocationApi = {
 		method: 'delete',
 		url: endpoint.material.location.unassign,
 		params: MaterialLocationUnassignDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
 	}),
 
@@ -50,7 +45,7 @@ export const materialLocationApi = {
 	byMaterial: apiFactory({
 		method: 'get',
 		url: endpoint.material.location.byMaterial,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(MaterialLocationWithLocationDto.array()),
 	}),
 
@@ -59,7 +54,7 @@ export const materialLocationApi = {
 		method: 'put',
 		url: endpoint.material.location.config,
 		body: MaterialLocationConfigDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
 	}),
 }

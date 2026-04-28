@@ -3,12 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	SupplierCreateDto,
@@ -21,34 +16,34 @@ export const supplierApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.supplier.list,
-		params: z.object({ ...SupplierFilterDto.shape, ...zPaginationDto.shape }),
+		params: z.object({ ...SupplierFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(SupplierDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.supplier.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(SupplierDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.supplier.create,
 		body: SupplierCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.supplier.list],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.supplier.update,
 		body: SupplierUpdateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.supplier.list, endpoint.supplier.detail],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.supplier.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.supplier.list],
 	}),
 }

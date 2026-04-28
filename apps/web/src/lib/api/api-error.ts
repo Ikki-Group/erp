@@ -1,8 +1,10 @@
+import type { TErr } from './api-factory'
+
 export class ApiError extends Error {
 	public status?: number
-	public details?: any
+	public details?: TErr
 
-	constructor(message: string, status?: number, details?: any) {
+	constructor(message: string, status?: number, details?: TErr) {
 		super(message)
 		this.name = 'ApiError'
 		this.status = status

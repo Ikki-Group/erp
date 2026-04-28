@@ -19,9 +19,11 @@ import { roleApi } from '../api'
 import type { RoleDto } from '../dto'
 
 const FormDto = z.object({
-	name: z.string().min(1, 'Nama role wajib diisi'),
-	code: z.string().min(1, 'Kode wajib diisi'),
+	name: z.string().min(2, 'Nama role minimal 2 karakter').max(100, 'Nama terlalu panjang'),
+	code: z.string().min(2, 'Kode minimal 2 karakter').max(32, 'Kode maksimal 32 karakter'),
 	description: z.string().nullable(),
+	permissions: z.array(z.string()).default([]),
+	isSystem: z.boolean().default(false),
 })
 
 type FormDto = z.infer<typeof FormDto>
@@ -29,7 +31,13 @@ type FormDto = z.infer<typeof FormDto>
 const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: RoleDto): FormDto {
-	return { code: v?.code ?? '', name: v?.name ?? '', description: v?.description ?? '' }
+	return {
+		code: v?.code ?? '',
+		name: v?.name ?? '',
+		description: v?.description ?? '',
+		permissions: v?.permissions ?? [],
+		isSystem: v?.isSystem ?? false,
+	}
 }
 
 interface RoleFormDialogProps {
@@ -56,8 +64,6 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
 			const payload = {
 				...value,
 				description: value.description ?? null,
-				permissions: selectedRole.data?.data.permissions ?? [],
-				isSystem: selectedRole.data?.data.isSystem ?? false,
 			}
 
 			const promise = isCreate

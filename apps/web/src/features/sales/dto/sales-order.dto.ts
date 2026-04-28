@@ -1,16 +1,6 @@
 import z from 'zod'
 
-import {
-	zDate,
-	zDecimal,
-	zId,
-	zMetadataDto,
-	zNum,
-	zQuerySearch,
-	zRecordIdDto,
-	zStr,
-	zStrNullable,
-} from '@/lib/zod'
+import { zp, zc, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -20,63 +10,63 @@ export type SalesOrderStatusDto = z.infer<typeof SalesOrderStatusDto>
 /* --------------------------------- NESTED --------------------------------- */
 
 export const SalesOrderBatchDto = z.object({
-	...zRecordIdDto.shape,
-	orderId: zId,
-	batchNumber: zNum,
-	status: zStr,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	batchNumber: zp.num,
+	status: zp.str,
+	...zc.AuditFull.shape,
 })
 export type SalesOrderBatchDto = z.infer<typeof SalesOrderBatchDto>
 
 export const SalesOrderItemDto = z.object({
-	...zRecordIdDto.shape,
-	orderId: zId,
-	batchId: zId.nullable(),
-	productId: zId.nullable(),
-	variantId: zId.nullable(),
-	itemName: zStr,
-	quantity: zDecimal,
-	unitPrice: zDecimal,
-	discountAmount: zDecimal,
-	taxAmount: zDecimal,
-	subtotal: zDecimal,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	batchId: zp.id.nullable(),
+	productId: zp.id.nullable(),
+	variantId: zp.id.nullable(),
+	itemName: zp.str,
+	quantity: zp.decimal,
+	unitPrice: zp.decimal,
+	discountAmount: zp.decimal,
+	taxAmount: zp.decimal,
+	subtotal: zp.decimal,
+	...zc.AuditFull.shape,
 })
 export type SalesOrderItemDto = z.infer<typeof SalesOrderItemDto>
 
 export const SalesVoidDto = z.object({
-	...zRecordIdDto.shape,
-	orderId: zId,
-	itemId: zId.nullable(),
-	reason: zStrNullable,
-	voidedBy: zId,
-	...zMetadataDto.shape,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	itemId: zp.id.nullable(),
+	reason: zp.strNullable,
+	voidedBy: zp.id,
+	...zc.AuditFull.shape,
 })
 export type SalesVoidDto = z.infer<typeof SalesVoidDto>
 
 export const SalesExternalRefDto = z.object({
-	...zRecordIdDto.shape,
-	orderId: zId,
-	externalSource: zStr,
-	externalOrderId: zStr,
+	...zc.RecordId.shape,
+	orderId: zp.id,
+	externalSource: zp.str,
+	externalOrderId: zp.str,
 	rawPayload: z.any().nullable(),
-	...zMetadataDto.shape,
+	...zc.AuditFull.shape,
 })
 export type SalesExternalRefDto = z.infer<typeof SalesExternalRefDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const SalesOrderDto = z.object({
-	...zRecordIdDto.shape,
-	locationId: zId,
-	customerId: zId.nullable(),
-	salesTypeId: zId,
+	...zc.RecordId.shape,
+	locationId: zp.id,
+	customerId: zp.id.nullable(),
+	salesTypeId: zp.id,
 	status: SalesOrderStatusDto,
-	transactionDate: zDate,
-	totalAmount: zDecimal,
-	discountAmount: zDecimal,
-	taxAmount: zDecimal,
-	...zMetadataDto.shape,
+	transactionDate: zp.date,
+	totalAmount: zp.decimal,
+	discountAmount: zp.decimal,
+	taxAmount: zp.decimal,
+	...zc.AuditFull.shape,
 })
 
 export type SalesOrderDto = z.infer<typeof SalesOrderDto>
@@ -84,12 +74,12 @@ export type SalesOrderDto = z.infer<typeof SalesOrderDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const SalesOrderFilterDto = z.object({
-	q: zQuerySearch,
-	locationId: zId.optional(),
+	q: zq.search,
+	locationId: zp.id.optional(),
 	status: SalesOrderStatusDto.optional(),
-	salesTypeId: zId.optional(),
-	startDate: zDate.optional(),
-	endDate: zDate.optional(),
+	salesTypeId: zp.id.optional(),
+	startDate: zp.date.optional(),
+	endDate: zp.date.optional(),
 })
 
 export type SalesOrderFilterDto = z.infer<typeof SalesOrderFilterDto>
@@ -138,14 +128,14 @@ export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>
 
 /* --------------------------------- UPDATE --------------------------------- */
 
-export const SalesOrderUpdateDto = SalesOrderCreateDto.partial().extend({ id: zId })
+export const SalesOrderUpdateDto = SalesOrderCreateDto.partial().extend({ id: zp.id })
 
 export type SalesOrderUpdateDto = z.infer<typeof SalesOrderUpdateDto>
 
 /* --------------------------------- ACTIONS -------------------------------- */
 
 export const SalesOrderAddBatchDto = z.object({
-	batchNumber: zNum,
+	batchNumber: zp.num,
 	items: z.array(
 		SalesOrderItemDto.pick({
 			productId: true,
@@ -161,5 +151,5 @@ export const SalesOrderAddBatchDto = z.object({
 })
 export type SalesOrderAddBatchDto = z.infer<typeof SalesOrderAddBatchDto>
 
-export const SalesOrderVoidDto = z.object({ itemId: zId.optional(), reason: zStr })
+export const SalesOrderVoidDto = z.object({ itemId: zp.id.optional(), reason: zp.str })
 export type SalesOrderVoidDto = z.infer<typeof SalesOrderVoidDto>

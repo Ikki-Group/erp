@@ -2,7 +2,12 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+	zq,
+} from '@/core/validation'
 
 import * as dto from './employee.dto'
 import type { EmployeeService } from './employee.service'
@@ -28,7 +33,7 @@ export function initEmployeeRoute(service: EmployeeService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(dto.EmployeeDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(dto.EmployeeDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -60,6 +65,6 @@ export function initEmployeeRoute(service: EmployeeService) {
 				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

@@ -36,3 +36,5 @@ export function createPaginatedResponseSchema<T extends z.ZodType>(itemSchema: T
 		meta: zc.PaginationMeta,
 	})
 }
+
+export const successNoDataSchema = createSuccessResponseSchema(z.undefined())

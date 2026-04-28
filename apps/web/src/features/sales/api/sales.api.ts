@@ -3,12 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	SalesOrderAddBatchDto,
@@ -22,26 +17,26 @@ export const salesOrderApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.sales.order.list,
-		params: z.object({ ...SalesOrderFilterDto.shape, ...zPaginationDto.shape }),
+		params: z.object({ ...SalesOrderFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(SalesOrderSelectDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.sales.order.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(SalesOrderSelectDto),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.create,
 		body: SalesOrderCreateDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.sales.order.list],
 	}),
 	addBatch: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.addBatch,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		body: SalesOrderAddBatchDto,
 		result: createSuccessResponseSchema(z.object({ batchId: z.number() })),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
@@ -49,16 +44,16 @@ export const salesOrderApi = {
 	close: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.close,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
 	}),
 	void: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.void,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		body: SalesOrderVoidDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
 	}),
 }

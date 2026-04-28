@@ -4,27 +4,26 @@ import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
 import {
-	zId,
-	zPaginationDto,
-	zRecordIdDto,
+	zc,
+	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
-import { ProductFilterDto, ProductMutationDto, ProductSelectDto } from '../dto'
+import { ProductFilterDto, ProductMutationDto, ProductSelectDto, ProductUpdateDto } from '../dto'
 
 export const productApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.product.list,
-		params: z.object({ ...zPaginationDto.shape, ...ProductFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...ProductFilterDto.shape }),
 		result: createPaginatedResponseSchema(ProductSelectDto),
 	}),
 
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.product.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(ProductSelectDto),
 	}),
 
@@ -32,23 +31,23 @@ export const productApi = {
 		method: 'post',
 		url: endpoint.product.create,
 		body: ProductMutationDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.product.list],
 	}),
 
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.product.update,
-		body: z.object({ id: zId, ...ProductMutationDto.shape }),
-		result: createSuccessResponseSchema(zRecordIdDto),
+		body: ProductUpdateDto,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.product.list, endpoint.product.detail],
 	}),
 
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.product.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.product.list],
 	}),
 }

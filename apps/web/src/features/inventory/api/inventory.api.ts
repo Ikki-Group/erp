@@ -4,11 +4,11 @@ import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
 import {
+	zc,
+	zq,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	zPaginationDto,
-	zRecordIdDto,
-} from '@/lib/zod'
+} from '@/lib/validation'
 
 import {
 	AdjustmentTransactionDto,
@@ -28,23 +28,23 @@ import {
 	SellTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-	stockAlertFilterSchema,
-	stockAlertSelectSchema,
-	dashboardKpiFilterSchema,
-	dashboardKpiSelectSchema,
+	StockAlertFilterDto,
+	StockAlertSelectDto,
+	DashboardKpiFilterDto,
+	DashboardKpiSelectDto,
 } from '../dto'
 
 export const stockSummaryApi = {
 	byLocation: apiFactory({
 		method: 'get',
 		url: endpoint.inventory.summary.byLocation,
-		params: z.object({ ...zPaginationDto.shape, ...StockSummaryFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...StockSummaryFilterDto.shape }),
 		result: createPaginatedResponseSchema(StockSummarySelectDto),
 	}),
 	ledger: apiFactory({
 		method: 'get',
 		url: endpoint.inventory.summary.ledger,
-		params: z.object({ ...zPaginationDto.shape, ...StockLedgerFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...StockLedgerFilterDto.shape }),
 		result: createPaginatedResponseSchema(StockLedgerSelectDto),
 	}),
 	generate: apiFactory({
@@ -60,13 +60,13 @@ export const stockTransactionApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.inventory.transaction.list,
-		params: z.object({ ...zPaginationDto.shape, ...StockTransactionFilterDto.shape }),
+		params: z.object({ ...zq.pagination.shape, ...StockTransactionFilterDto.shape }),
 		result: createPaginatedResponseSchema(StockTransactionSelectDto),
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.inventory.transaction.detail,
-		params: zRecordIdDto,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(StockTransactionDto),
 	}),
 	purchase: apiFactory({
@@ -160,8 +160,8 @@ export const stockTransactionApi = {
 	remove: apiFactory({
 		method: 'post',
 		url: endpoint.inventory.transaction.remove,
-		params: zRecordIdDto,
-		result: createSuccessResponseSchema(zRecordIdDto),
+		params: zc.RecordId,
+		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.inventory.transaction.list, endpoint.inventory.summary.byLocation],
 	}),
 }
@@ -170,13 +170,13 @@ export const stockAlertApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryAlert.list,
-		params: z.object({ ...zPaginationDto.shape, ...stockAlertFilterSchema.shape }),
-		result: createPaginatedResponseSchema(stockAlertSelectSchema),
+		params: z.object({ ...zq.pagination.shape, ...StockAlertFilterDto.shape }),
+		result: createPaginatedResponseSchema(StockAlertSelectDto),
 	}),
 	count: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryAlert.count,
-		params: stockAlertFilterSchema,
+		params: StockAlertFilterDto,
 		result: createSuccessResponseSchema(z.object({ count: z.number() })),
 	}),
 }
@@ -185,7 +185,7 @@ export const stockDashboardApi = {
 	kpi: apiFactory({
 		method: 'get',
 		url: endpoint.inventoryDashboard.kpi,
-		params: dashboardKpiFilterSchema,
-		result: createSuccessResponseSchema(dashboardKpiSelectSchema),
+		params: DashboardKpiFilterDto,
+		result: createSuccessResponseSchema(DashboardKpiSelectDto),
 	}),
 }
