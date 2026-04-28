@@ -9,7 +9,6 @@ function crud(base: string) {
 		create: p(base, 'create'),
 		update: p(base, 'update'),
 		remove: p(base, 'remove'),
-		_root: base,
 	}
 }
 
