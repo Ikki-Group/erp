@@ -1,6 +1,7 @@
+import { describe, expect, it } from 'bun/test'
+
 import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
-import { describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
@@ -10,7 +11,7 @@ describe('Auth API', () => {
 			const app = createIntegrationTestApp()
 			const res = await app.handle(
 				jsonRequest('POST', '/auth/login', {
-					email: 'test@example.com',
+					identifier: 'test@example.com',
 					password: '123', // Too short
 				}),
 			)
@@ -21,7 +22,7 @@ describe('Auth API', () => {
 			const app = createIntegrationTestApp()
 			const res = await app.handle(
 				jsonRequest('POST', '/auth/login', {
-					email: 'nonexistent@example.com',
+					identifier: 'nonexistent@example.com',
 					password: 'ValidPassword123!',
 				}),
 			)

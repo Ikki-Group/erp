@@ -70,11 +70,26 @@ export function jsonRequest(
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
 	path: string,
 	body?: unknown,
+	headers?: Record<string, string>,
 ): Request {
 	const url = new URL(path, 'http://localhost').toString()
 	return new Request(url, {
 		method,
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', ...headers },
 		body: body ? JSON.stringify(body) : undefined,
+	})
+}
+
+/**
+ * Helper to make authenticated JSON requests in tests
+ */
+export function authenticatedJsonRequest(
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	path: string,
+	token: string,
+	body?: unknown,
+): Request {
+	return jsonRequest(method, path, body, {
+		Authorization: `Bearer ${token}`,
 	})
 }
