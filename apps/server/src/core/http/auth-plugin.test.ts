@@ -62,8 +62,8 @@ describe('auth-plugin', () => {
 		expect(res.status).toBe(401)
 	})
 
-	it('should respect isAuthenticated macro', async () => {
-		const app = createTestApp().get('/macro-protected', () => 'secret', { isAuthenticated: true })
+	it('should respect auth macro', async () => {
+		const app = createTestApp().get('/macro-protected', () => 'secret', { auth: true })
 
 		const req = new Request('http://localhost/macro-protected')
 		const res = await app.handle(req)

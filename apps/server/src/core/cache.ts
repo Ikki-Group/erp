@@ -73,7 +73,7 @@ export class CacheEventBus {
 					handler(event)
 				} catch (error) {
 					// Silently handle errors to prevent disrupting main flow
-					console.error(`Cache event handler error for ${type}:`, error)
+					logger.error({ error, type }, 'Cache event handler error')
 				}
 			})
 		}

@@ -14,7 +14,7 @@ export class HttpError extends Error {
 }
 
 export class BadRequestError extends HttpError {
-	constructor(message: string, code = 'BAD_REQUEEST', details?: Record<string, unknown>) {
+	constructor(message: string, code = 'BAD_REQUEST', details?: Record<string, unknown>) {
 		super(400, message, code, details)
 		this.name = 'BadRequestError'
 	}
