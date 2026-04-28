@@ -2,21 +2,23 @@ import { SQL } from 'bun'
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/bun-sql'
 
+import type { DbClient } from '@/core/database/types'
+
 import { relations } from '@/db/schema'
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
 
 let testClient: SQL | null = null
-let testDb: ReturnType<typeof drizzle> | null = null
+let testDb: DbClient | null = null
 let migrationsRun = false
 
-export function getTestDatabase() {
+export function getTestDatabase(): DbClient {
 	if (!testDb) {
 		if (!TEST_DATABASE_URL) {
 			throw new Error('TEST_DATABASE_URL or DATABASE_URL must be set')
 		}
 		testClient = new SQL(TEST_DATABASE_URL)
-		testDb = drizzle({ client: testClient, relations })
+		testDb = drizzle({ client: testClient, relations }) as DbClient
 	}
 	return testDb
 }
