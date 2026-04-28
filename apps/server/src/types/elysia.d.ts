@@ -1,6 +1,6 @@
 declare module 'elysia' {
 	interface SingletonBase {
-		derive: { user: null }
+		derive: { auth: null }
 	}
 }
 
