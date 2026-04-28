@@ -96,3 +96,5 @@ export function initModules(db: DbClient): Modules {
 		hr,
 	}
 }
+
+export const createModules = initModules
