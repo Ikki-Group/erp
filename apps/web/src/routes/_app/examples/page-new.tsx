@@ -11,8 +11,8 @@ import {
 import type { CardStatProps } from '@/components/blocks/card/card-stat'
 import { CardStat } from '@/components/blocks/card/card-stat'
 import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'

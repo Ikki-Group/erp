@@ -1,3 +1,6 @@
+/**
+ * @deprecated Use @/components/reui/badge instead. This component will be removed in a future release.
+ */
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva } from 'class-variance-authority'

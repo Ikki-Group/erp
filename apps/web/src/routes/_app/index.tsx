@@ -18,8 +18,8 @@ import {
 	ChartGrid,
 } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
 	ChartContainer,

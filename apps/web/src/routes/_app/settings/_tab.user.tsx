@@ -10,6 +10,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
+import { Badge } from '@/components/reui/badge'
 import {
 	createColumnHelper,
 	dateColumn,
@@ -17,7 +18,6 @@ import {
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
 	Popover,

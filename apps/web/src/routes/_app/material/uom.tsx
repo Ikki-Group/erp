@@ -15,6 +15,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 import {
 	createColumnHelper,
 	dateColumn,
@@ -22,7 +23,6 @@ import {
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,

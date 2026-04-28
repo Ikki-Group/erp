@@ -5,8 +5,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Command, CommandItem, CommandList } from '@/components/ui/command'
 import {

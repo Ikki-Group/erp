@@ -4,8 +4,8 @@ import { PlusIcon, SettingsIcon, UserIcon } from 'lucide-react'
 
 import { Page } from '@/components/layout/page'
 import { Grid, Inline, Section, SectionHeader, Stack } from '@/components/layout/primitives'
+import { Badge } from '@/components/reui/badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 

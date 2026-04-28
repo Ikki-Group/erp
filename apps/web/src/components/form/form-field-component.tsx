@@ -291,14 +291,12 @@ function FieldSelect<TValue extends StringOrNumber = string>({
 	)
 }
 
-interface FieldComboboxProps<TItem>
-	// TODO
-	// @ts-expect-error
-	extends Omit<DataComboboxProps<TItem>, 'value' | 'onValueChange'>, BaseFieldProps {
+interface FieldComboboxProps<TData, TItem>
+	extends Omit<DataComboboxProps<TData, TItem>, 'value' | 'onValueChange'>, BaseFieldProps {
 	orientation?: FieldBaseProps['orientation']
 }
 
-function FieldCombobox<TItem>({
+function FieldCombobox<TData, TItem>({
 	label,
 	description,
 	required,
@@ -306,7 +304,7 @@ function FieldCombobox<TItem>({
 	onItemSelect,
 	orientation,
 	...props
-}: FieldComboboxProps<TItem>) {
+}: FieldComboboxProps<TData, TItem>) {
 	const field = useFieldContext<string | null>()
 
 	return (
@@ -318,9 +316,7 @@ function FieldCombobox<TItem>({
 			className={className}
 		>
 			<FieldControl>
-				{/* TODO */}
-				{/* @ts-expect-error */}
-				<DataCombobox<TItem>
+				<DataCombobox<TData, TItem>
 					value={field.state.value}
 					onValueChange={(val) => {
 						field.handleChange(val)
