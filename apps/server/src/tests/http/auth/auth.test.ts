@@ -35,5 +35,17 @@ describe('Auth API', () => {
 			const res = await app.handle(jsonRequest('GET', '/auth/me'))
 			expect(res.status).toBe(401)
 		})
+
+		it.skip('returns 200 with user data when authenticated', async () => {
+			// Skip until database session setup is resolved
+			// Mock tokens don't work with real session verification
+			const app = createIntegrationTestApp()
+			const res = await app.handle(
+				jsonRequest('GET', '/auth/me', undefined, {
+					Authorization: 'Bearer mock-valid-token',
+				}),
+			)
+			expect(res.status).toBe(200)
+		})
 	})
 })
