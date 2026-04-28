@@ -4,7 +4,12 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { SalesTypeDto, SalesTypeFilterDto, SalesTypeCreateDto, SalesTypeUpdateDto } from './sales-type.dto'
+import {
+	SalesTypeDto,
+	SalesTypeFilterDto,
+	SalesTypeCreateDto,
+	SalesTypeUpdateDto,
+} from './sales-type.dto'
 import type { SalesTypeService } from './sales-type.service'
 
 export function initSalesTypeRoute(s: SalesTypeService) {

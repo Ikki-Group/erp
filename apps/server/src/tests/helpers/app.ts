@@ -1,8 +1,9 @@
-import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
+import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
+
 import { createMockAuthPlugin, mockAuthenticatedUser } from './auth'
 
 /**
@@ -11,7 +12,7 @@ import { createMockAuthPlugin, mockAuthenticatedUser } from './auth'
  */
 export function createTestApp(
 	route: ((app: Elysia) => Elysia) | Elysia,
-	options: { user?: typeof mockAuthenticatedUser } = {}
+	options: { user?: typeof mockAuthenticatedUser } = {},
 ) {
 	const app = new Elysia()
 		.use(errorHandler)

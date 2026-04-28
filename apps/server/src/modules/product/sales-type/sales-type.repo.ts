@@ -17,7 +17,12 @@ import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http
 import { db } from '@/db'
 import { salesTypesTable } from '@/db/schema'
 
-import { SalesTypeCreateDto, SalesTypeDto, SalesTypeFilterDto, SalesTypeUpdateDto } from './sales-type.dto'
+import {
+	SalesTypeCreateDto,
+	SalesTypeDto,
+	SalesTypeFilterDto,
+	SalesTypeUpdateDto,
+} from './sales-type.dto'
 
 const cache = bento.namespace('sales-type')
 

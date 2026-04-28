@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { HRService } from './hr.service'
-import { HRRepo } from './hr.repo'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
+
 import * as dto from './hr.dto'
+import { HRRepo } from './hr.repo'
+import { HRService } from './hr.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('HRService', () => {
 	let service: HRService
@@ -165,7 +165,7 @@ describe('HRService', () => {
 			spyOn(fakeRepo, 'findOpenAttendance').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockIn(clockInData, actorId)).rejects.toThrow(
-				new ConflictError('Employee with ID 1 is already clocked in', 'ALREADY_CLOCKED_IN')
+				new ConflictError('Employee with ID 1 is already clocked in', 'ALREADY_CLOCKED_IN'),
 			)
 
 			expect(fakeRepo.clockIn).not.toHaveBeenCalled()
@@ -248,7 +248,7 @@ describe('HRService', () => {
 			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(undefined)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
-				new NotFoundError('Attendance with ID 999 not found', 'ATTENDANCE_NOT_FOUND')
+				new NotFoundError('Attendance with ID 999 not found', 'ATTENDANCE_NOT_FOUND'),
 			)
 
 			expect(fakeRepo.clockOut).not.toHaveBeenCalled()
@@ -275,7 +275,7 @@ describe('HRService', () => {
 			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
-				new ConflictError('Attendance with ID 1 is not clocked in', 'NOT_CLOCKED_IN')
+				new ConflictError('Attendance with ID 1 is not clocked in', 'NOT_CLOCKED_IN'),
 			)
 
 			expect(fakeRepo.clockOut).not.toHaveBeenCalled()
@@ -302,7 +302,7 @@ describe('HRService', () => {
 			spyOn(fakeRepo, 'getAttendanceById').mockResolvedValue(existingAttendance)
 
 			await expect(service.handleClockOut(clockOutData, actorId)).rejects.toThrow(
-				new ConflictError('Attendance with ID 1 is already clocked out', 'ALREADY_CLOCKED_OUT')
+				new ConflictError('Attendance with ID 1 is already clocked out', 'ALREADY_CLOCKED_OUT'),
 			)
 
 			expect(fakeRepo.clockOut).not.toHaveBeenCalled()

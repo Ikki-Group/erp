@@ -1,6 +1,6 @@
 import { SQL } from 'bun'
-import { drizzle } from 'drizzle-orm/bun-sql'
 import { sql } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/bun-sql'
 
 import { relations } from '@/db/schema'
 
@@ -36,12 +36,12 @@ export async function resetTestDatabase(): Promise<void> {
 	const db = getTestDatabase()
 
 	// Get all table names from the public schema
-	const tables = await db.execute(sql`
+	const tables = (await db.execute(sql`
 		SELECT tablename FROM pg_tables 
 		WHERE schemaname = 'public' 
 		AND tablename NOT LIKE 'pg_%' 
 		AND tablename NOT LIKE '_prisma_%'
-	`) as { tablename: string }[]
+	`)) as { tablename: string }[]
 
 	// Truncate each table
 	for (const row of tables) {

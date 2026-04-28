@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { MaterialCategoryService } from './material-category.service'
-import { MaterialCategoryRepo } from './material-category.repo'
 import { NotFoundError, InternalServerError } from '@/core/http/errors'
+
 import * as dto from './material-category.dto'
+import { MaterialCategoryRepo } from './material-category.repo'
+import { MaterialCategoryService } from './material-category.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('MaterialCategoryService', () => {
 	let service: MaterialCategoryService
@@ -139,7 +139,7 @@ describe('MaterialCategoryService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleDetail(999)).rejects.toThrow(
-				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
+				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND'),
 			)
 		})
 	})
@@ -160,7 +160,7 @@ describe('MaterialCategoryService', () => {
 
 			expect(fakeRepo.create).toHaveBeenCalledWith(
 				{ ...createData, name: 'New Category', createdBy: actorId },
-				actorId
+				actorId,
 			)
 			expect(result).toEqual({ id: newCategoryId })
 		})
@@ -180,7 +180,7 @@ describe('MaterialCategoryService', () => {
 
 			expect(fakeRepo.create).toHaveBeenCalledWith(
 				{ ...createData, name: 'Trimmed Name', createdBy: actorId },
-				actorId
+				actorId,
 			)
 		})
 	})
@@ -211,7 +211,7 @@ describe('MaterialCategoryService', () => {
 			expect(fakeRepo.update).toHaveBeenCalledWith(
 				1,
 				{ ...updateData, name: 'Updated Name', updatedBy: actorId },
-				actorId
+				actorId,
 			)
 			expect(result).toEqual({ id: 1 })
 		})
@@ -226,7 +226,7 @@ describe('MaterialCategoryService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(999, updateData, actorId)).rejects.toThrow(
-				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
+				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND'),
 			)
 		})
 
@@ -253,7 +253,7 @@ describe('MaterialCategoryService', () => {
 			expect(fakeRepo.update).toHaveBeenCalledWith(
 				1,
 				{ ...updateData, name: 'Existing Name', updatedBy: actorId },
-				actorId
+				actorId,
 			)
 		})
 	})
@@ -286,7 +286,7 @@ describe('MaterialCategoryService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(999, actorId)).rejects.toThrow(
-				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
+				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND'),
 			)
 		})
 
@@ -305,7 +305,7 @@ describe('MaterialCategoryService', () => {
 			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(1, actorId)).rejects.toThrow(
-				new NotFoundError('Material category with ID 1 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
+				new NotFoundError('Material category with ID 1 not found', 'MATERIAL_CATEGORY_NOT_FOUND'),
 			)
 		})
 	})
@@ -334,7 +334,7 @@ describe('MaterialCategoryService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleHardRemove(999)).rejects.toThrow(
-				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
+				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND'),
 			)
 		})
 	})

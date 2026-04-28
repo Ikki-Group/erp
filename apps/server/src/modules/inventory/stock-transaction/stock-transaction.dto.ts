@@ -168,7 +168,9 @@ export type TransactionResultDto = z.infer<typeof TransactionResultDto>
 /** Single material count in a stock opname */
 const StockOpnameItemDto = z.object({
 	materialId: zp.id,
-	physicalQty: z.coerce.string().refine((v) => Number(v) >= 0, 'Physical quantity cannot be negative'),
+	physicalQty: z.coerce
+		.string()
+		.refine((v) => Number(v) >= 0, 'Physical quantity cannot be negative'),
 	notes: zc.strTrimNullable.optional(),
 })
 

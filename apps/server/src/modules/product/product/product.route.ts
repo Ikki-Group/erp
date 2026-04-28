@@ -4,7 +4,12 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
-import { ProductFilterDto, ProductCreateDto, ProductUpdateDto, ProductSelectDto } from './product.dto'
+import {
+	ProductFilterDto,
+	ProductCreateDto,
+	ProductUpdateDto,
+	ProductSelectDto,
+} from './product.dto'
 import type { ProductService } from './product.service'
 
 export function initProductRoute(s: ProductService) {

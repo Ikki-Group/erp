@@ -1,16 +1,16 @@
-import { beforeAll, afterAll, afterEach } from 'bun:test'
-import { setupTestDatabase, resetTestDatabase, teardownTestDatabase } from './db'
 import { clearTestCache } from './cache'
+import { setupTestDatabase, resetTestDatabase, teardownTestDatabase } from './db'
+import { beforeAll, afterAll, afterEach } from 'bun:test'
 
 /**
  * Sets up integration test lifecycle hooks.
  * Call this at the top of your integration test file.
- * 
+ *
  * Example:
  * ```typescript
  * import { setupIntegrationTests } from '@/tests/helpers/setup'
  * setupIntegrationTests()
- * 
+ *
  * describe('Material HTTP Endpoints', () => {
  *   // your tests here
  * })

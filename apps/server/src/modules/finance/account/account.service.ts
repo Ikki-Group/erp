@@ -3,12 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
-import {
-	AccountDto,
-	AccountCreateDto,
-	AccountUpdateDto,
-	AccountFilterDto,
-} from './account.dto'
+import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import { AccountRepo } from './account.repo'
 
 export class AccountService {

@@ -13,7 +13,6 @@ import type {
 	StockOpnameDto,
 	TransactionResultDto,
 } from '../stock-transaction.dto'
-
 import { MovementLogic } from './movement-logic'
 
 export class StockInternalMovementService extends MovementLogic {

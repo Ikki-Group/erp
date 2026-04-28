@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { MaterialService } from './material.service'
-import { MaterialRepo } from './material.repo'
-import { MaterialLocationRepo } from '../material-location/material-location.repo'
-import { MaterialCategoryService } from '../material-category/material-category.service'
-import { UomService } from '../uom/uom.service'
 import { LocationMasterService } from '@/modules/location'
+
+import { MaterialCategoryService } from '../material-category/material-category.service'
+import { MaterialLocationRepo } from '../material-location/material-location.repo'
+import { UomService } from '../uom/uom.service'
 import * as dto from './material.dto'
+import { MaterialRepo } from './material.repo'
+import { MaterialService } from './material.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('MaterialService', () => {
 	let service: MaterialService
@@ -51,7 +51,7 @@ describe('MaterialService', () => {
 			fakeUomService,
 			fakeLocationService,
 			fakeRepo,
-			fakeLocationRepo
+			fakeLocationRepo,
 		)
 	})
 
@@ -59,9 +59,9 @@ describe('MaterialService', () => {
 		it('should throw error when material not found', async () => {
 			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
-			await expect(
-				(service as any).getMaterialWithRelations(999)
-			).rejects.toThrow('Material with ID 999 not found')
+			await expect((service as any).getMaterialWithRelations(999)).rejects.toThrow(
+				'Material with ID 999 not found',
+			)
 		})
 	})
 
@@ -98,13 +98,16 @@ describe('MaterialService', () => {
 				meta: { page: 1, limit: 1000, total: 1, totalPages: 1 },
 			})
 			spyOn(fakeLocationService.location, 'handleList').mockResolvedValue({
-				data: [{ id: 1, name: 'Warehouse 1' }, { id: 2, name: 'Warehouse 2' }],
+				data: [
+					{ id: 1, name: 'Warehouse 1' },
+					{ id: 2, name: 'Warehouse 2' },
+				],
 				meta: { page: 1, limit: 1000, total: 2, totalPages: 1 },
 			})
 
 			// Mock the private method
 			spyOn(service as any, 'getMaterialsBatchWithRelations').mockResolvedValue(
-				new Map([[1, { conversions: [], locationIds: [1, 2] }]])
+				new Map([[1, { conversions: [], locationIds: [1, 2] }]]),
 			)
 
 			const result = await service.handleList(filter)
@@ -202,7 +205,7 @@ describe('MaterialService', () => {
 			spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
 			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
-				'Material creation failed'
+				'Material creation failed',
 			)
 		})
 	})

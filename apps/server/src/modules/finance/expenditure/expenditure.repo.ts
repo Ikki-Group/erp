@@ -7,11 +7,7 @@ import { paginate, searchFilter, stampCreate, type WithPaginationResult } from '
 import { db } from '@/db'
 import { expendituresTable } from '@/db/schema/finance'
 
-import type {
-	ExpenditureCreateDto,
-	ExpenditureDto,
-	ExpenditureFilterDto,
-} from './expenditure.dto'
+import type { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from './expenditure.dto'
 
 const cache = bento.namespace('finance.expenditure')
 

@@ -4,6 +4,7 @@ import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import type { ProductCategoryDto } from '../product-category/product-category.dto'
+import type { ProductCategoryService } from '../product-category/product-category.service'
 import type {
 	ProductDto,
 	ProductFilterDto,
@@ -11,7 +12,6 @@ import type {
 	ProductSelectDto,
 } from './product.dto'
 import { ProductRepo } from './product.repo'
-import type { ProductCategoryService } from '../product-category/product-category.service'
 
 export class ProductService {
 	constructor(

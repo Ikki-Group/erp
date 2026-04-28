@@ -15,14 +15,18 @@ interface PaginatedResponse<T> extends SuccessResponse<T[]> {
 	}
 }
 
-export function expectSuccessResponse<T>(response: unknown): asserts response is SuccessResponse<T> {
+export function expectSuccessResponse<T>(
+	response: unknown,
+): asserts response is SuccessResponse<T> {
 	expect(response).toBeObject()
 	expect(response).toHaveProperty('success', true)
 	expect(response).toHaveProperty('code')
 	expect(response).toHaveProperty('data')
 }
 
-export function expectPaginatedResponse<T>(response: unknown): asserts response is PaginatedResponse<T> {
+export function expectPaginatedResponse<T>(
+	response: unknown,
+): asserts response is PaginatedResponse<T> {
 	expectSuccessResponse<T[]>(response)
 	const r = response as PaginatedResponse<T>
 	expect(r).toHaveProperty('meta')

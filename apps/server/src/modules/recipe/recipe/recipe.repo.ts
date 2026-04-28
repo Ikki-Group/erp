@@ -150,7 +150,7 @@ export class RecipeRepo {
 								and(
 									inArray(recipeItemsTable.recipeId, recipeIds),
 									isNull(recipeItemsTable.deletedAt),
-								)
+								),
 							)
 							.orderBy(recipeItemsTable.sortOrder)
 					: []

@@ -2,12 +2,7 @@
 // Re-export all test utilities from a single entry point
 
 // Database & Setup
-export {
-	getTestDatabase,
-	setupTestDatabase,
-	resetTestDatabase,
-	teardownTestDatabase,
-} from './db'
+export { getTestDatabase, setupTestDatabase, resetTestDatabase, teardownTestDatabase } from './db'
 
 export { setupIntegrationTests, setupUnitTests } from './setup'
 

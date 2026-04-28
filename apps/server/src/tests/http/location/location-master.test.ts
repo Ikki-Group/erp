@@ -1,16 +1,17 @@
-import { describe, expect, it, beforeAll } from 'bun:test'
+import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
-import { cors } from '@elysiajs/cors'
-import { createMockAuthPlugin } from '@/tests/helpers/auth'
-import { setupIntegrationTests, Factory } from '@/tests/helpers'
-import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 
+import { LocationMasterRepo } from '@/modules/location/location-master/location-master.repo'
 import { initLocationRoute } from '@/modules/location/location-master/location-master.route'
 import { LocationMasterService } from '@/modules/location/location-master/location-master.service'
-import { LocationMasterRepo } from '@/modules/location/location-master/location-master.repo'
+
+import { setupIntegrationTests, Factory } from '@/tests/helpers'
+import { createMockAuthPlugin } from '@/tests/helpers/auth'
+import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
+import { describe, expect, it, beforeAll } from 'bun:test'
 
 // Setup test lifecycle (DB + cache cleanup)
 setupIntegrationTests()
@@ -21,8 +22,7 @@ let service: LocationMasterService
 
 // HTTP request helpers
 const http = {
-	get: (path: string) =>
-		new Request(`http://localhost${path}`),
+	get: (path: string) => new Request(`http://localhost${path}`),
 
 	post: (path: string, body: unknown) =>
 		new Request(`http://localhost${path}`, {
@@ -71,25 +71,29 @@ beforeAll(() => {
 describe('Location HTTP Endpoints', () => {
 	describe('POST /create', () => {
 		it('creates a new location and returns id', async () => {
-			const res = await app.handle(http.post('/create', {
-				code: 'WH-001',
-				name: 'Main Warehouse',
-				type: 'warehouse',
-				description: 'Primary storage location',
-				address: '123 Main St',
-				phone: '+1234567890',
-			}))
+			const res = await app.handle(
+				http.post('/create', {
+					code: 'WH-001',
+					name: 'Main Warehouse',
+					type: 'warehouse',
+					description: 'Primary storage location',
+					address: '123 Main St',
+					phone: '+1234567890',
+				}),
+			)
 
 			const data = await expectOK<{ id: number }>(res)
 			expect(data.id).toBeGreaterThan(0)
 		})
 
 		it('returns 422 for invalid payload', async () => {
-			const res = await app.handle(http.post('/create', {
-				code: 'AB', // too short
-				name: 'Test',
-				type: 'warehouse',
-			}))
+			const res = await app.handle(
+				http.post('/create', {
+					code: 'AB', // too short
+					name: 'Test',
+					type: 'warehouse',
+				}),
+			)
 
 			expect(res.status).toBe(422)
 		})
@@ -137,13 +141,15 @@ describe('Location HTTP Endpoints', () => {
 				type: 'warehouse',
 			})
 
-			const res = await app.handle(http.put('/update', {
-				id: location.id,
-				code: 'UPDATE-001',
-				name: 'After Update',
-				type: 'warehouse',
-				description: 'Updated description',
-			}))
+			const res = await app.handle(
+				http.put('/update', {
+					id: location.id,
+					code: 'UPDATE-001',
+					name: 'After Update',
+					type: 'warehouse',
+					description: 'Updated description',
+				}),
+			)
 
 			const data = await expectOK<{ id: number }>(res)
 			expect(data.id).toBe(location.id)

@@ -15,13 +15,15 @@ const SYSTEM_USER_ID = 1
 
 // ==================== User / IAM Factories ====================
 
-export async function createUser(overrides: Partial<{
-	email: string
-	username: string
-	passwordHash: string
-	fullname: string
-	isActive: boolean
-}> = {}) {
+export async function createUser(
+	overrides: Partial<{
+		email: string
+		username: string
+		passwordHash: string
+		fullname: string
+		isActive: boolean
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { usersTable } = await import('@/db/schema/iam')
 
@@ -40,12 +42,14 @@ export async function createUser(overrides: Partial<{
 	return { id: result[0].id, ...data }
 }
 
-export async function createRole(overrides: Partial<{
-	name: string
-	code: string
-	description: string
-	isSystem: boolean
-}> = {}) {
+export async function createRole(
+	overrides: Partial<{
+		name: string
+		code: string
+		description: string
+		isSystem: boolean
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { rolesTable } = await import('@/db/schema/iam')
 
@@ -65,15 +69,17 @@ export async function createRole(overrides: Partial<{
 
 // ==================== Location Factories ====================
 
-export async function createLocation(overrides: Partial<{
-	code: string
-	name: string
-	type: 'warehouse' | 'store'
-	description: string
-	address: string
-	phone: string
-	isActive: boolean
-}> = {}) {
+export async function createLocation(
+	overrides: Partial<{
+		code: string
+		name: string
+		type: 'warehouse' | 'store'
+		description: string
+		address: string
+		phone: string
+		isActive: boolean
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { locationsTable } = await import('@/db/schema/location')
 
@@ -96,11 +102,13 @@ export async function createLocation(overrides: Partial<{
 
 // ==================== Material Factories ====================
 
-export async function createMaterialCategory(overrides: Partial<{
-	name: string
-	description: string
-	parentId: number | null
-}> = {}) {
+export async function createMaterialCategory(
+	overrides: Partial<{
+		name: string
+		description: string
+		parentId: number | null
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { materialCategoriesTable } = await import('@/db/schema/material')
 
@@ -112,14 +120,19 @@ export async function createMaterialCategory(overrides: Partial<{
 		updatedBy: SYSTEM_USER_ID,
 	}
 
-	const result = await db.insert(materialCategoriesTable).values(data).returning({ id: materialCategoriesTable.id })
+	const result = await db
+		.insert(materialCategoriesTable)
+		.values(data)
+		.returning({ id: materialCategoriesTable.id })
 	if (!result[0]) throw new Error('Failed to create material category')
 	return { id: result[0].id, ...data }
 }
 
-export async function createUom(overrides: Partial<{
-	code: string
-}> = {}) {
+export async function createUom(
+	overrides: Partial<{
+		code: string
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { uomsTable } = await import('@/db/schema/material')
 
@@ -134,14 +147,16 @@ export async function createUom(overrides: Partial<{
 	return { id: result[0].id, ...data }
 }
 
-export async function createMaterial(overrides: Partial<{
-	sku: string
-	name: string
-	description: string
-	type: 'raw' | 'semi' | 'packaging'
-	baseUomId: number
-	categoryId: number
-}> = {}) {
+export async function createMaterial(
+	overrides: Partial<{
+		sku: string
+		name: string
+		description: string
+		type: 'raw' | 'semi' | 'packaging'
+		baseUomId: number
+		categoryId: number
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { materialsTable } = await import('@/db/schema/material')
 
@@ -176,11 +191,13 @@ export async function createMaterial(overrides: Partial<{
 
 // ==================== Product Factories ====================
 
-export async function createProductCategory(overrides: Partial<{
-	name: string
-	description: string
-	parentId: number | null
-}> = {}) {
+export async function createProductCategory(
+	overrides: Partial<{
+		name: string
+		description: string
+		parentId: number | null
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { productCategoriesTable } = await import('@/db/schema/product')
 
@@ -192,20 +209,25 @@ export async function createProductCategory(overrides: Partial<{
 		updatedBy: SYSTEM_USER_ID,
 	}
 
-	const result = await db.insert(productCategoriesTable).values(data).returning({ id: productCategoriesTable.id })
+	const result = await db
+		.insert(productCategoriesTable)
+		.values(data)
+		.returning({ id: productCategoriesTable.id })
 	if (!result[0]) throw new Error('Failed to create product category')
 	return { id: result[0].id, ...data }
 }
 
-export async function createProduct(overrides: Partial<{
-	sku: string
-	name: string
-	description: string
-	locationId: number
-	categoryId: number
-	basePrice: string
-	isActive: boolean
-}> = {}) {
+export async function createProduct(
+	overrides: Partial<{
+		sku: string
+		name: string
+		description: string
+		locationId: number
+		categoryId: number
+		basePrice: string
+		isActive: boolean
+	}> = {},
+) {
 	const db = getTestDatabase()
 	const { productsTable } = await import('@/db/schema/product')
 

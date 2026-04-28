@@ -14,7 +14,6 @@ import type {
 	ProductionOutTransactionDto,
 	TransactionResultDto,
 } from '../stock-transaction.dto'
-
 import { MovementLogic } from './movement-logic'
 
 export class StockExternalMovementService extends MovementLogic {

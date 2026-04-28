@@ -13,18 +13,16 @@ const GetEntryQuery = z.object({
 })
 
 export function initGeneralLedgerRoute(s: GeneralLedgerService) {
-	return new Elysia({ prefix: '/general-ledger' })
-		.use(authPluginMacro)
-		.get(
-			'/entry',
-			async ({ query }) => {
-				const entry = await s.getEntryBySource(query.sourceType, query.sourceId)
-				return res.ok(entry)
-			},
-			{
-				query: GetEntryQuery,
-				response: createSuccessResponseSchema(z.any()),
-				auth: true,
-			},
-		)
+	return new Elysia({ prefix: '/general-ledger' }).use(authPluginMacro).get(
+		'/entry',
+		async ({ query }) => {
+			const entry = await s.getEntryBySource(query.sourceType, query.sourceId)
+			return res.ok(entry)
+		},
+		{
+			query: GetEntryQuery,
+			response: createSuccessResponseSchema(z.any()),
+			auth: true,
+		},
+	)
 }

@@ -6,20 +6,18 @@ import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
 import { otel } from '@/core/otel'
 
-import { createModules } from '@/modules/_registry'
-import { createRoutes } from '@/modules/_routes'
+import type { Modules } from './modules/_registry'
 
-// Initialize core modules
-const m = createModules()
-const routes = createRoutes(m)
+export function createApp(m: Modules): Elysia {
+	const app = new Elysia({ precompile: true })
 
-export const app = new Elysia({ precompile: true })
-	.use(errorHandler)
-	.use(otel)
-	.use(requestIdPlugin())
-	.use(cors())
-	.use(createAuthPlugin(m.auth))
-	.get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
+	app
+		.use(errorHandler)
+		.use(otel)
+		.use(requestIdPlugin())
+		.use(cors())
+		.use(createAuthPlugin(m.auth))
+		.get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
 
-// Register module routes
-routes.forEach((route) => app.use(route))
+	return app
+}

@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
-
 import { AnalyticsService, type PnLData, type TopSalesItem } from './analytics.service'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 // Mock cache
 vi.mock('@/core/cache', () => ({
@@ -31,6 +30,7 @@ vi.mock('@/db', () => ({
 }))
 
 import { bento } from '@/core/cache'
+
 import { db } from '@/db'
 
 describe('AnalyticsService', () => {
@@ -54,10 +54,10 @@ describe('AnalyticsService', () => {
 
 			const mockGlItems = [
 				{ accountCode: '4001', debit: '0', credit: '10000' }, // Revenue
-				{ accountCode: '4002', debit: '0', credit: '5000' },  // Revenue
-				{ accountCode: '5101', debit: '3000', credit: '0' },  // COGS
-				{ accountCode: '5201', debit: '2000', credit: '0' },  // Operating expenses
-				{ accountCode: '5202', debit: '1000', credit: '0' },  // Operating expenses
+				{ accountCode: '4002', debit: '0', credit: '5000' }, // Revenue
+				{ accountCode: '5101', debit: '3000', credit: '0' }, // COGS
+				{ accountCode: '5201', debit: '2000', credit: '0' }, // Operating expenses
+				{ accountCode: '5202', debit: '1000', credit: '0' }, // Operating expenses
 			]
 
 			const mockSelect = mock().mockReturnValue({
@@ -82,7 +82,7 @@ describe('AnalyticsService', () => {
 
 			const expectedPnL: PnLData = {
 				revenue: 15000, // 10000 + 5000
-				cogs: 3000,     // 3000 - 0
+				cogs: 3000, // 3000 - 0
 				operatingExpenses: 3000, // 2000 + 1000
 				netProfit: 9000, // 15000 - 3000 - 3000
 				period: { start: startDate, end: endDate },
@@ -237,7 +237,13 @@ describe('AnalyticsService', () => {
 
 			await service.getTopSales(startDate, endDate)
 
-			const mockLimit = mockSelect.mockReturnValue({}).from({}).innerJoin({}).where({}).groupBy({}).orderBy({}).limit
+			const mockLimit = mockSelect
+				.mockReturnValue({})
+				.from({})
+				.innerJoin({})
+				.where({})
+				.groupBy({})
+				.orderBy({}).limit
 
 			expect(mockLimit).toHaveBeenCalledWith(5)
 		})

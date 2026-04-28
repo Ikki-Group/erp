@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { WorkOrderService } from './work-order.service'
-import { WorkOrderRepo } from './work-order.repo'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { RecipeService } from '@/modules/recipe'
+
 import type { InventoryServiceModule } from '@/modules/inventory'
+import type { RecipeService } from '@/modules/recipe'
+
 import * as dto from './work-order.dto'
+import { WorkOrderRepo } from './work-order.repo'
+import { WorkOrderService } from './work-order.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 // Mock database transaction
 vi.mock('@/db', () => ({
@@ -76,7 +77,7 @@ describe('WorkOrderService', () => {
 			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
-				new NotFoundError('Work Order with ID 999 not found', 'WORK_ORDER_NOT_FOUND')
+				new NotFoundError('Work Order with ID 999 not found', 'WORK_ORDER_NOT_FOUND'),
 			)
 		})
 	})
@@ -196,7 +197,7 @@ describe('WorkOrderService', () => {
 			expect(fakeRepo.update).toHaveBeenCalledWith(
 				1,
 				{ status: 'in_progress', startedAt: expect.any(Date) },
-				actorId
+				actorId,
 			)
 			expect(result).toEqual(updatedWorkOrder)
 		})
@@ -221,7 +222,7 @@ describe('WorkOrderService', () => {
 			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
 
 			await expect(service.handleStart(1, actorId)).rejects.toThrow(
-				new ConflictError('Only draft Work Orders can be started')
+				new ConflictError('Only draft Work Orders can be started'),
 			)
 
 			expect(fakeRepo.update).not.toHaveBeenCalled()
@@ -314,7 +315,7 @@ describe('WorkOrderService', () => {
 					],
 				},
 				actorId,
-				expect.any(Object)
+				expect.any(Object),
 			)
 			expect(fakeInventoryService.transaction.handleProductionIn).toHaveBeenCalledWith(
 				{
@@ -331,7 +332,7 @@ describe('WorkOrderService', () => {
 					],
 				},
 				actorId,
-				expect.any(Object)
+				expect.any(Object),
 			)
 			expect(result).toEqual({
 				...mockWorkOrder,
@@ -366,7 +367,7 @@ describe('WorkOrderService', () => {
 			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
 
 			await expect(service.handleComplete(1, completeData, actorId)).rejects.toThrow(
-				new ConflictError('Work Order with ID 1 is not in progress', 'WORK_ORDER_STATUS_CONFLICT')
+				new ConflictError('Work Order with ID 1 is not in progress', 'WORK_ORDER_STATUS_CONFLICT'),
 			)
 
 			expect(fakeRecipeService.getById).not.toHaveBeenCalled()

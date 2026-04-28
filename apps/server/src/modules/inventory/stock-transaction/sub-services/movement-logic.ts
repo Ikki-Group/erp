@@ -7,8 +7,9 @@ import { BadRequestError } from '@/core/http/errors'
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
 
-import type { TransactionResultDto } from '../stock-transaction.dto'
 import type { MaterialLocationService } from '@/modules/material'
+
+import type { TransactionResultDto } from '../stock-transaction.dto'
 
 export class MovementLogic {
 	constructor(protected readonly mLocationSvc: MaterialLocationService) {}

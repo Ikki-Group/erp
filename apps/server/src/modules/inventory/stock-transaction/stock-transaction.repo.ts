@@ -64,8 +64,12 @@ export class StockTransactionRepo {
 
 					const where = and(
 						isNull(stockTransactionsTable.deletedAt),
-						locationId === undefined ? undefined : eq(stockTransactionsTable.locationId, locationId),
-						materialId === undefined ? undefined : eq(stockTransactionsTable.materialId, materialId),
+						locationId === undefined
+							? undefined
+							: eq(stockTransactionsTable.locationId, locationId),
+						materialId === undefined
+							? undefined
+							: eq(stockTransactionsTable.materialId, materialId),
 						type === undefined ? undefined : eq(stockTransactionsTable.type, type),
 						dateCondition,
 						searchCondition,
@@ -154,7 +158,11 @@ export class StockTransactionRepo {
 
 			void this.#clearCache()
 			// Emit event for cross-domain invalidation (e.g., stock summary may need update)
-			cacheEventBus.emit('stock-transaction.created', { id: result.id, materialId: result.materialId, locationId: result.locationId })
+			cacheEventBus.emit('stock-transaction.created', {
+				id: result.id,
+				materialId: result.materialId,
+				locationId: result.locationId,
+			})
 
 			return result as unknown as StockTransactionDto
 		})

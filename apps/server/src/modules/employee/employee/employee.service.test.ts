@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { EmployeeService } from './employee.service'
-import { EmployeeRepo } from './employee.repo'
 import { NotFoundError, InternalServerError } from '@/core/http/errors'
+
 import * as dto from './employee.dto'
+import { EmployeeRepo } from './employee.repo'
+import { EmployeeService } from './employee.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('EmployeeService', () => {
 	let service: EmployeeService
@@ -116,7 +116,7 @@ describe('EmployeeService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleDetail(999)).rejects.toThrow(
-				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 			)
 		})
 	})
@@ -164,7 +164,7 @@ describe('EmployeeService', () => {
 			spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
 			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
-				new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED')
+				new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED'),
 			)
 		})
 	})
@@ -217,7 +217,7 @@ describe('EmployeeService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
-				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 			)
 		})
 
@@ -249,7 +249,7 @@ describe('EmployeeService', () => {
 			spyOn(fakeRepo, 'update').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
-				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND')
+				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND'),
 			)
 		})
 	})
@@ -290,7 +290,7 @@ describe('EmployeeService', () => {
 			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(999, actorId)).rejects.toThrow(
-				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 			)
 		})
 
@@ -317,7 +317,7 @@ describe('EmployeeService', () => {
 			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(1, actorId)).rejects.toThrow(
-				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND')
+				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND'),
 			)
 		})
 	})

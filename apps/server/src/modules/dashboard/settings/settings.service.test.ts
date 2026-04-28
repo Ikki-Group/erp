@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { SettingsService } from './settings.service'
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
+
+import { SettingsService } from './settings.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('SettingsService', () => {
 	let service: SettingsService

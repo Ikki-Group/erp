@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { MaterialLocationService } from './material-location.service'
-import { MaterialLocationRepo } from './material-location.repo'
-import { MaterialService } from '../material-master/material.service'
-import { LocationMasterService } from '@/modules/location'
 import { NotFoundError, ConflictError } from '@/core/http/errors'
+
+import { LocationMasterService } from '@/modules/location'
+
+import { MaterialService } from '../material-master/material.service'
 import * as dto from './material-location.dto'
+import { MaterialLocationRepo } from './material-location.repo'
+import { MaterialLocationService } from './material-location.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('MaterialLocationService', () => {
 	let service: MaterialLocationService
@@ -34,11 +35,7 @@ describe('MaterialLocationService', () => {
 			getById: spyOn(),
 		} as any
 
-		service = new MaterialLocationService(
-			fakeMaterialService,
-			fakeLocationService,
-			fakeRepo
-		)
+		service = new MaterialLocationService(fakeMaterialService, fakeLocationService, fakeRepo)
 	})
 
 	describe('findOne', () => {
@@ -71,8 +68,8 @@ describe('MaterialLocationService', () => {
 			await expect(service.findOne(1, 1)).rejects.toThrow(
 				new NotFoundError(
 					'Material 1 is not assigned to location 1',
-					'MATERIAL_NOT_ASSIGNED_TO_LOCATION'
-				)
+					'MATERIAL_NOT_ASSIGNED_TO_LOCATION',
+				),
 			)
 		})
 	})
@@ -184,8 +181,8 @@ describe('MaterialLocationService', () => {
 			await expect(service.handleUnassign(unassignData)).rejects.toThrow(
 				new NotFoundError(
 					'Material 1 is not assigned to location 1',
-					'MATERIAL_NOT_ASSIGNED_TO_LOCATION'
-				)
+					'MATERIAL_NOT_ASSIGNED_TO_LOCATION',
+				),
 			)
 		})
 	})
@@ -291,7 +288,7 @@ describe('MaterialLocationService', () => {
 			expect(fakeRepo.updateConfig).toHaveBeenCalledWith(
 				1,
 				{ minStock: 15, maxStock: 150, reorderPoint: 25 },
-				actorId
+				actorId,
 			)
 			expect(result).toEqual({ id: resultId })
 		})
@@ -311,8 +308,8 @@ describe('MaterialLocationService', () => {
 			await expect(service.handleUpdateConfig(configData, actorId)).rejects.toThrow(
 				new NotFoundError(
 					'Material-Location assignment with ID 999 not found',
-					'MATERIAL_LOCATION_NOT_FOUND'
-				)
+					'MATERIAL_LOCATION_NOT_FOUND',
+				),
 			)
 		})
 	})
@@ -335,7 +332,7 @@ describe('MaterialLocationService', () => {
 				locationId,
 				stockData,
 				actorId,
-				undefined
+				undefined,
 			)
 		})
 
@@ -357,7 +354,7 @@ describe('MaterialLocationService', () => {
 				locationId,
 				stockData,
 				actorId,
-				mockTx
+				mockTx,
 			)
 		})
 	})

@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
-
-import { SessionService } from './session.service'
-import { SessionRepo } from './session.repo'
-import * as dto from './session.dto'
 import type { UserDto } from '@/modules/iam'
+
+import * as dto from './session.dto'
+import { SessionRepo } from './session.repo'
+import { SessionService } from './session.service'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 // Mock JWT module
 vi.mock('jsonwebtoken', () => ({
@@ -40,8 +40,10 @@ vi.mock('@/config/env', () => ({
 }))
 
 import jwt from 'jsonwebtoken'
+
 import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import { logger } from '@/core/logger'
+
 import { env } from '@/config/env'
 
 describe('SessionService', () => {
@@ -79,9 +81,11 @@ describe('SessionService', () => {
 				expiredAt: new Date(),
 			}
 
-			spyOn(mockCache, 'getOrSet').mockImplementation(async ({ factory }: { factory: () => Promise<any> }) => {
-				return await factory()
-			})
+			spyOn(mockCache, 'getOrSet').mockImplementation(
+				async ({ factory }: { factory: () => Promise<any> }) => {
+					return await factory()
+				},
+			)
 			spyOn(fakeRepo, 'getById').mockResolvedValue(mockSession)
 
 			const result = await service.getById(sessionId)
@@ -96,9 +100,11 @@ describe('SessionService', () => {
 		it('should return undefined when session not found', async () => {
 			const sessionId = 999
 
-			spyOn(mockCache, 'getOrSet').mockImplementation(async ({ factory }: { factory: () => Promise<any> }) => {
-				return await factory()
-			})
+			spyOn(mockCache, 'getOrSet').mockImplementation(
+				async ({ factory }: { factory: () => Promise<any> }) => {
+					return await factory()
+				},
+			)
 			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.getById(sessionId)
@@ -146,7 +152,7 @@ describe('SessionService', () => {
 					username: 'testuser',
 				},
 				env.JWT_SECRET,
-				{ expiresIn: env.JWT_EXPIRES_IN }
+				{ expiresIn: env.JWT_EXPIRES_IN },
 			)
 			expect(result).toEqual({
 				session: mockSession,

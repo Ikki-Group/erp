@@ -5,6 +5,8 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { db } from '@/db'
 
+import type { MaterialLocationService } from '@/modules/material'
+
 import type {
 	AdjustmentTransactionDto,
 	PurchaseTransactionDto,
@@ -19,8 +21,6 @@ import type {
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
 } from './stock-transaction.dto'
-import type { MaterialLocationService } from '@/modules/material'
-
 import { StockExternalMovementService } from './sub-services/stock-external-movement.service'
 import { StockHistoryService } from './sub-services/stock-history.service'
 import { StockInternalMovementService } from './sub-services/stock-internal-movement.service'

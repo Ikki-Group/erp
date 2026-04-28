@@ -2,9 +2,12 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { db } from '@/db'
 
+import {
+	GeneralLedgerService,
+	type JournalItemInput,
+} from '../general-ledger/general-ledger.service'
 import type { ExpenditureCreateDto, ExpenditureFilterDto } from './expenditure.dto'
 import { ExpenditureRepo } from './expenditure.repo'
-import { GeneralLedgerService, type JournalItemInput } from '../general-ledger/general-ledger.service'
 
 export class ExpenditureService {
 	constructor(

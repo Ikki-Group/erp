@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
-
-import { ExpenditureService } from './expenditure.service'
-import { ExpenditureRepo } from './expenditure.repo'
 import { GeneralLedgerService } from '../general-ledger/general-ledger.service'
 import * as dto from './expenditure.dto'
+import { ExpenditureRepo } from './expenditure.repo'
+import { ExpenditureService } from './expenditure.service'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 // Mock database transaction
 vi.mock('@/db', () => ({
@@ -52,11 +51,11 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = mock().mockImplementation(async (callback) => {
-				return await callback()
-			})
-
-			(db.transaction as any).mockImplementation(mockTransaction)
+			const mockTransaction = mock()
+				.mockImplementation(async (callback) => {
+					return await callback()
+				})(db.transaction as any)
+				.mockImplementation(mockTransaction)
 			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
 			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
@@ -83,7 +82,7 @@ describe('ExpenditureService', () => {
 						},
 					],
 				},
-				actorId
+				actorId,
 			)
 			expect(result).toEqual(mockExpenditure)
 		})
@@ -109,11 +108,11 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = mock().mockImplementation(async (callback) => {
-				return await callback()
-			})
-
-			(db.transaction as any).mockImplementation(mockTransaction)
+			const mockTransaction = mock()
+				.mockImplementation(async (callback) => {
+					return await callback()
+				})(db.transaction as any)
+				.mockImplementation(mockTransaction)
 			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
 			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
@@ -139,7 +138,7 @@ describe('ExpenditureService', () => {
 						},
 					],
 				},
-				actorId
+				actorId,
 			)
 			expect(result).toEqual(mockExpenditure)
 		})
@@ -165,11 +164,11 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = mock().mockImplementation(async (callback) => {
-				return await callback()
-			})
-
-			(db.transaction as any).mockImplementation(mockTransaction)
+			const mockTransaction = mock()
+				.mockImplementation(async (callback) => {
+					return await callback()
+				})(db.transaction as any)
+				.mockImplementation(mockTransaction)
 			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
 			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
@@ -195,7 +194,7 @@ describe('ExpenditureService', () => {
 						},
 					],
 				},
-				actorId
+				actorId,
 			)
 			expect(result).toEqual(mockExpenditure)
 		})
@@ -219,11 +218,11 @@ describe('ExpenditureService', () => {
 				createdBy: actorId,
 			}
 
-			const mockTransaction = mock().mockImplementation(async (callback) => {
-				return await callback()
-			})
-
-			(db.transaction as any).mockImplementation(mockTransaction)
+			const mockTransaction = mock()
+				.mockImplementation(async (callback) => {
+					return await callback()
+				})(db.transaction as any)
+				.mockImplementation(mockTransaction)
 			spyOn(fakeRepo, 'create').mockResolvedValue(mockExpenditure)
 			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
@@ -233,7 +232,7 @@ describe('ExpenditureService', () => {
 				expect.objectContaining({
 					note: 'Office Supplies',
 				}),
-				actorId
+				actorId,
 			)
 		})
 	})

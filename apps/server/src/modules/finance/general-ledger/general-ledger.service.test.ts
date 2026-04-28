@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-
-import { GeneralLedgerService } from './general-ledger.service'
 import { GeneralLedgerRepo } from './general-ledger.repo'
 import type { JournalEntryInput, JournalItemInput } from './general-ledger.repo'
+import { GeneralLedgerService } from './general-ledger.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 describe('GeneralLedgerService', () => {
 	let service: GeneralLedgerService
@@ -111,7 +110,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 
 			await expect(service.postEntry(input, actorId)).rejects.toThrow(
-				'Journal entry must be balanced. Total Debit: 1500, Total Credit: 1000'
+				'Journal entry must be balanced. Total Debit: 1500, Total Credit: 1000',
 			)
 
 			expect(fakeRepo.postEntry).not.toHaveBeenCalled()
@@ -141,7 +140,7 @@ describe('GeneralLedgerService', () => {
 			const actorId = 1
 
 			await expect(service.postEntry(input, actorId)).rejects.toThrow(
-				'Journal entry must be balanced. Total Debit: 1000, Total Credit: 1500'
+				'Journal entry must be balanced. Total Debit: 1000, Total Credit: 1500',
 			)
 
 			expect(fakeRepo.postEntry).not.toHaveBeenCalled()

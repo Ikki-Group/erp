@@ -1,18 +1,19 @@
-import { describe, expect, it, beforeAll } from 'bun:test'
+import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
-import { cors } from '@elysiajs/cors'
-import { createMockAuthPlugin } from '@/tests/helpers/auth'
-import { setupIntegrationTests, Factory, IamFixtures } from '@/tests/helpers'
-import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 
+import { UserAssignmentService } from '@/modules/iam/assignment/assignment.service'
+import { RoleService } from '@/modules/iam/role/role.service'
 import { initUserRoute } from '@/modules/iam/user/user.route'
 import { UserService } from '@/modules/iam/user/user.service'
-import { RoleService } from '@/modules/iam/role/role.service'
-import { UserAssignmentService } from '@/modules/iam/assignment/assignment.service'
 import { LocationServiceModule } from '@/modules/location'
+
+import { setupIntegrationTests, Factory, IamFixtures } from '@/tests/helpers'
+import { createMockAuthPlugin } from '@/tests/helpers/auth'
+import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
+import { describe, expect, it, beforeAll } from 'bun:test'
 
 // Setup test lifecycle
 setupIntegrationTests()
@@ -23,8 +24,7 @@ let userService: UserService
 
 // HTTP request helpers
 const http = {
-	get: (path: string) =>
-		new Request(`http://localhost${path}`),
+	get: (path: string) => new Request(`http://localhost${path}`),
 
 	post: (path: string, body: unknown) =>
 		new Request(`http://localhost${path}`, {
@@ -83,14 +83,16 @@ describe('IAM / User HTTP Endpoints', () => {
 			// Arrange: Create a role first (for default assignment)
 			const role = await IamFixtures.adminRole()
 
-			const res = await app.handle(http.post('/user/create', {
-				email: 'newuser@test.com',
-				username: 'newuser',
-				password: 'securePassword123',
-				fullname: 'New Test User',
-				defaultLocationId: null,
-				roleIds: [role.id],
-			}))
+			const res = await app.handle(
+				http.post('/user/create', {
+					email: 'newuser@test.com',
+					username: 'newuser',
+					password: 'securePassword123',
+					fullname: 'New Test User',
+					defaultLocationId: null,
+					roleIds: [role.id],
+				}),
+			)
 
 			const data = await expectOK<{ id: number }>(res)
 			expect(data.id).toBeGreaterThan(0)
@@ -101,12 +103,14 @@ describe('IAM / User HTTP Endpoints', () => {
 			const user = await IamFixtures.regularUser()
 
 			// Act: Try to create another user with same email
-			const res = await app.handle(http.post('/user/create', {
-				email: user.email,
-				username: 'different',
-				password: 'password123',
-				fullname: 'Duplicate Email User',
-			}))
+			const res = await app.handle(
+				http.post('/user/create', {
+					email: user.email,
+					username: 'different',
+					password: 'password123',
+					fullname: 'Duplicate Email User',
+				}),
+			)
 
 			// Assert: Should fail with validation error
 			expect(res.status).toBe(422)
@@ -163,13 +167,15 @@ describe('IAM / User HTTP Endpoints', () => {
 			// Arrange: Create a user
 			const user = await IamFixtures.regularUser()
 
-			const res = await app.handle(http.put('/user/update', {
-				id: user.id,
-				email: user.email,
-				username: user.username,
-				fullname: 'Updated Fullname',
-				isActive: user.isActive,
-			}))
+			const res = await app.handle(
+				http.put('/user/update', {
+					id: user.id,
+					email: user.email,
+					username: user.username,
+					fullname: 'Updated Fullname',
+					isActive: user.isActive,
+				}),
+			)
 
 			const data = await expectOK<{ id: number }>(res)
 			expect(data.id).toBe(user.id)

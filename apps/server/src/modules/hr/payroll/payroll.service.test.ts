@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
 
-import { PayrollService } from './payroll.service'
-import { PayrollRepo } from './payroll.repo'
 import { AccountService } from '@/modules/finance/account/account.service'
 import { GeneralLedgerService } from '@/modules/finance/general-ledger/general-ledger.service'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+
 import * as dto from './payroll.dto'
+import { PayrollRepo } from './payroll.repo'
+import { PayrollService } from './payroll.service'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 // Mock database transaction
 vi.mock('@/db', () => ({
@@ -94,7 +95,7 @@ describe('PayrollService', () => {
 			spyOn(fakeRepo, 'findBatchByPeriod').mockResolvedValue(existingBatch)
 
 			await expect(service.handleBatchCreate(batchData, actorId)).rejects.toThrow(
-				new ConflictError('Payroll batch for 1/2024 already exists')
+				new ConflictError('Payroll batch for 1/2024 already exists'),
 			)
 
 			expect(fakeRepo.createBatch).not.toHaveBeenCalled()
@@ -184,7 +185,7 @@ describe('PayrollService', () => {
 						{ accountId: 2001, debit: '0', credit: '50000' },
 					],
 				},
-				actorId
+				actorId,
 			)
 			expect(result).toEqual(finalizedBatch)
 		})
@@ -201,7 +202,7 @@ describe('PayrollService', () => {
 			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(undefined)
 
 			await expect(service.handleFinalizeBatch(batchId, actorId)).rejects.toThrow(
-				new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+				new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND'),
 			)
 
 			expect(fakeRepo.finalizeBatch).not.toHaveBeenCalled()
@@ -232,7 +233,7 @@ describe('PayrollService', () => {
 			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
 
 			await expect(service.handleFinalizeBatch(batchId, actorId)).rejects.toThrow(
-				new ConflictError('Only draft batches can be finalized')
+				new ConflictError('Only draft batches can be finalized'),
 			)
 
 			expect(fakeRepo.finalizeBatch).not.toHaveBeenCalled()
@@ -276,7 +277,9 @@ describe('PayrollService', () => {
 
 			const result = await service.handleFinalizeBatch(batchId, actorId)
 
-			expect(consoleSpy).toHaveBeenCalledWith('Accounting accounts for payroll not found, skipping GL posting')
+			expect(consoleSpy).toHaveBeenCalledWith(
+				'Accounting accounts for payroll not found, skipping GL posting',
+			)
 			expect(fakeJournalService.postEntry).not.toHaveBeenCalled()
 			expect(result).toEqual(finalizedBatch)
 

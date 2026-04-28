@@ -1,20 +1,21 @@
-import { describe, expect, it, beforeAll } from 'bun:test'
+import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
-import { cors } from '@elysiajs/cors'
-import { createMockAuthPlugin } from '@/tests/helpers/auth'
-import { setupIntegrationTests, Factory, IamFixtures, AuthFixtures } from '@/tests/helpers'
-import { expectSuccessResponse } from '@/tests/helpers/response'
 
 import { initAuthRoute } from '@/modules/auth/login/login.route'
 import { LoginService } from '@/modules/auth/login/login.service'
 import { SessionService } from '@/modules/auth/session/session.service'
-import { UserService } from '@/modules/iam/user/user.service'
-import { RoleService } from '@/modules/iam/role/role.service'
 import { UserAssignmentService } from '@/modules/iam/assignment/assignment.service'
+import { RoleService } from '@/modules/iam/role/role.service'
+import { UserService } from '@/modules/iam/user/user.service'
 import { LocationServiceModule } from '@/modules/location'
+
+import { setupIntegrationTests, Factory, IamFixtures, AuthFixtures } from '@/tests/helpers'
+import { createMockAuthPlugin } from '@/tests/helpers/auth'
+import { expectSuccessResponse } from '@/tests/helpers/response'
+import { describe, expect, it, beforeAll } from 'bun:test'
 
 // Setup test lifecycle (DB + cache cleanup + migrations)
 setupIntegrationTests()
@@ -83,23 +84,27 @@ describe('Auth / Login HTTP Endpoints', () => {
 			})
 
 			// Act
-			const res = await app.handle(http.post('/login', {
-				identifier: user.email,
-				password: 'any-password', // Note: This would fail with real hash
-			}))
+			const res = await app.handle(
+				http.post('/login', {
+					identifier: user.email,
+					password: 'any-password', // Note: This would fail with real hash
+				}),
+			)
 
 			// Assert - expect unauthorized due to mock hash
 			expect(res.status).toBe(401)
 		})
 
 		it('returns 401 for non-existent user', async () => {
-			const res = await app.handle(http.post('/login', {
-				identifier: AuthFixtures.invalidCredentials.email,
-				password: AuthFixtures.invalidCredentials.password,
-			}))
+			const res = await app.handle(
+				http.post('/login', {
+					identifier: AuthFixtures.invalidCredentials.email,
+					password: AuthFixtures.invalidCredentials.password,
+				}),
+			)
 
 			expect(res.status).toBe(401)
-			const body = await res.json() as { code: string }
+			const body = (await res.json()) as { code: string }
 			expect(body.code).toBe('AUTH_USER_NOT_FOUND')
 		})
 
@@ -107,13 +112,15 @@ describe('Auth / Login HTTP Endpoints', () => {
 			// Arrange: Create inactive user
 			await IamFixtures.inactiveUser()
 
-			const res = await app.handle(http.post('/login', {
-				identifier: 'inactive@test.com',
-				password: 'password123',
-			}))
+			const res = await app.handle(
+				http.post('/login', {
+					identifier: 'inactive@test.com',
+					password: 'password123',
+				}),
+			)
 
 			expect(res.status).toBe(401)
-			const body = await res.json() as { code: string }
+			const body = (await res.json()) as { code: string }
 			expect(body.code).toBe('AUTH_USER_NOT_FOUND')
 		})
 	})
@@ -129,17 +136,19 @@ describe('Auth / Login HTTP Endpoints', () => {
 			const user = await IamFixtures.adminUser()
 
 			// Create a session directly through the service
-			const session = await loginService.login({
-				identifier: user.email,
-				password: 'password123', // Would need real password hash
-			}).catch(() => null)
+			const session = await loginService
+				.login({
+					identifier: user.email,
+					password: 'password123', // Would need real password hash
+				})
+				.catch(() => null)
 
 			// If session created, test /me endpoint
 			if (session) {
 				const res = await app.handle(
 					new Request('http://localhost/me', {
 						headers: { Authorization: `Bearer ${session.token}` },
-					})
+					}),
 				)
 
 				const data = await expectOK<{ id: number; email: string }>(res)

@@ -42,4 +42,3 @@ export * from './expenditure/expenditure.route'
 export * from './general-ledger/general-ledger.repo'
 export * from './general-ledger/general-ledger.service'
 export * from './general-ledger/general-ledger.route'
-

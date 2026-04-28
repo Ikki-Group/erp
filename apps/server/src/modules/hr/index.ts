@@ -32,4 +32,3 @@ export * from './payroll/payroll.dto'
 export * from './payroll/payroll.repo'
 export * from './payroll/payroll.service'
 export * from './payroll/payroll.route'
-

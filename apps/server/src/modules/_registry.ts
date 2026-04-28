@@ -1,4 +1,4 @@
-// oxlint-disable import/max-dependencies
+import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { AuthServiceModule } from './auth'
@@ -19,13 +19,38 @@ import { SalesServiceModule } from './sales'
 import { SupplierServiceModule } from './supplier'
 import { ToolServiceModule } from './tool'
 
-export function createModules() {
+export interface Modules {
+	location: LocationServiceModule
+	product: ProductServiceModule
+
+	iam: IamServiceModule
+	material: MaterialServiceModule
+	supplier: SupplierServiceModule
+	employee: EmployeeServiceModule
+	finance: FinanceServiceModule
+
+	auth: AuthServiceModule
+
+	inventory: InventoryServiceModule
+	recipe: RecipeServiceModule
+	sales: SalesServiceModule
+	purchasing: PurchasingServiceModule
+
+	moka: MokaServiceModule
+
+	production: ProductionServiceModule
+	hr: HRServiceModule
+	dashboard: DashboardServiceModule
+	tool: ToolServiceModule
+}
+
+export function initModules(db: DbClient): Modules {
 	// Layer 0 — Core
 	const location = new LocationServiceModule()
 	const product = new ProductServiceModule()
 
 	// Layer 1 — Masters
-	const iam = new IamServiceModule(location)
+	const iam = new IamServiceModule(db, { location })
 	const material = new MaterialServiceModule(location.master)
 	const supplier = new SupplierServiceModule()
 	const employee = new EmployeeServiceModule()
@@ -68,5 +93,3 @@ export function createModules() {
 		hr,
 	}
 }
-
-export type Modules = ReturnType<typeof createModules>

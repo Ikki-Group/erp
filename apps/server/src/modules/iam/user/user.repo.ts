@@ -10,10 +10,10 @@ import {
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { db } from '@/db'
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import * as dto from './user.dto'
@@ -21,6 +21,8 @@ import * as dto from './user.dto'
 const cache = bento.namespace('iam:user')
 
 export class UserRepo {
+	constructor(private readonly db: DbClient) {}
+
 	#clearCache(id?: number): Promise<void> {
 		return record('UserRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
@@ -47,7 +49,7 @@ export class UserRepo {
 				filter.locationId === undefined
 					? undefined
 					: exists(
-							db
+							this.db
 								.select()
 								.from(userAssignmentsTable)
 								.where(
@@ -61,7 +63,7 @@ export class UserRepo {
 
 			return paginate({
 				data: ({ limit, offset }) =>
-					db
+					this.db
 						.select()
 						.from(usersTable)
 						.where(where)
@@ -69,7 +71,7 @@ export class UserRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(usersTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(usersTable).where(where),
 			})
 		})
 	}
@@ -78,7 +80,7 @@ export class UserRepo {
 		return record('UserRepo.getList', async () =>
 			cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => db.select().from(usersTable).orderBy(usersTable.id),
+				factory: async () => this.db.select().from(usersTable).orderBy(usersTable.id),
 			}),
 		)
 	}
@@ -88,7 +90,7 @@ export class UserRepo {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
-					const res = await db
+					const res = await this.db
 						.select()
 						.from(usersTable)
 						.where(eq(usersTable.id, id))
@@ -105,7 +107,7 @@ export class UserRepo {
 		identifier: string,
 	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
 		return record('UserRepo.findByIdentifier', async () => {
-			const user = await db
+			const user = await this.db
 				.select()
 				.from(usersTable)
 				.where(or(eq(usersTable.username, identifier), eq(usersTable.email, identifier)))
@@ -119,7 +121,7 @@ export class UserRepo {
 
 	async getPasswordHash(id: number): Promise<string | null> {
 		return record('UserRepo.getPasswordHash', async () => {
-			const res = await db
+			const res = await this.db
 				.select({ passwordHash: usersTable.passwordHash })
 				.from(usersTable)
 				.where(eq(usersTable.id, id))
@@ -134,7 +136,7 @@ export class UserRepo {
 			return cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.count,
 				factory: async () => {
-					return db
+					return this.db
 						.select({ count: count() })
 						.from(usersTable)
 						.then((rows) => rows[0]?.count ?? 0)
@@ -153,7 +155,7 @@ export class UserRepo {
 			// oxlint-disable-next-line no-unused-vars
 			for (const { assignments, ...d } of data) {
 				const metadata = stampCreate(d.createdBy)
-				const [inserted] = await db
+				const [inserted] = await this.db
 					.insert(usersTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
@@ -184,7 +186,7 @@ export class UserRepo {
 		return record('UserRepo.create', async () => {
 			const userData = omit(data, ['assignments'])
 			const metadata = stampCreate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.insert(usersTable)
 				.values({ ...userData, ...metadata })
 				.returning({ id: usersTable.id })
@@ -201,7 +203,7 @@ export class UserRepo {
 		return record('UserRepo.update', async () => {
 			const userData = omit(data, ['assignments'])
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(usersTable)
 				.set({ ...userData, ...metadata })
 				.where(eq(usersTable.id, data.id))
@@ -219,7 +221,7 @@ export class UserRepo {
 	): Promise<number | undefined> {
 		return record('UserRepo.updatePassword', async () => {
 			const metadata = stampUpdate(actorId)
-			const [res] = await db
+			const [res] = await this.db
 				.update(usersTable)
 				.set({ passwordHash, ...metadata })
 				.where(eq(usersTable.id, id))
@@ -232,7 +234,7 @@ export class UserRepo {
 
 	async remove(id: number): Promise<number | undefined> {
 		return record('UserRepo.remove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.delete(usersTable)
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })

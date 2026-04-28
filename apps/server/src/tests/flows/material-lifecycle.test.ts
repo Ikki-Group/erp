@@ -1,20 +1,21 @@
-import { describe, expect, it } from 'bun:test'
-import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
+import { Elysia } from 'elysia'
 
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
-import { createMockAuthPlugin } from '@/tests/helpers/auth'
-import { setupIntegrationTests, Factory } from '@/tests/helpers'
-import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
 
+import { LocationServiceModule } from '@/modules/location'
+import { MaterialCategoryService } from '@/modules/material/material-category/material-category.service'
+import { MaterialLocationRepo } from '@/modules/material/material-location/material-location.repo'
+import { MaterialRepo } from '@/modules/material/material-master/material.repo'
 import { initMaterialMasterRoute } from '@/modules/material/material-master/material.route'
 import { MaterialService } from '@/modules/material/material-master/material.service'
-import { MaterialRepo } from '@/modules/material/material-master/material.repo'
-import { MaterialLocationRepo } from '@/modules/material/material-location/material-location.repo'
-import { MaterialCategoryService } from '@/modules/material/material-category/material-category.service'
 import { UomService } from '@/modules/material/uom/uom.service'
-import { LocationServiceModule } from '@/modules/location'
+
+import { setupIntegrationTests, Factory } from '@/tests/helpers'
+import { createMockAuthPlugin } from '@/tests/helpers/auth'
+import { expectSuccessResponse, expectPaginatedResponse } from '@/tests/helpers/response'
+import { describe, expect, it } from 'bun:test'
 
 // Setup test lifecycle
 setupIntegrationTests()
@@ -36,7 +37,7 @@ function createMaterialTestApp() {
 		uomService,
 		locationModule.master,
 		materialRepo,
-		materialLocationRepo
+		materialLocationRepo,
 	)
 
 	// Manual app construction (same pattern as location-master.test.ts)
@@ -73,7 +74,7 @@ describe('Material Lifecycle Flow', () => {
 					conversions: [],
 					locationIds: [],
 				}),
-			})
+			}),
 		)
 
 		expect(createRes.status).toBe(200)
@@ -82,23 +83,19 @@ describe('Material Lifecycle Flow', () => {
 		const materialId = (createBody.data as { id: number }).id
 
 		// Step 3: Verify material appears in list
-		const listRes = await app.handle(
-			new Request('http://localhost/list?page=1&limit=10')
-		)
+		const listRes = await app.handle(new Request('http://localhost/list?page=1&limit=10'))
 
 		expect(listRes.status).toBe(200)
 		const listBody = await listRes.json()
 		expectPaginatedResponse(listBody)
 		const foundMaterial = (listBody.data as Array<{ id: number; sku: string }>).find(
-			m => m.id === materialId
+			(m) => m.id === materialId,
 		)
 		expect(foundMaterial).toBeDefined()
 		expect(foundMaterial?.sku).toBe('MAT-FLOW-001')
 
 		// Step 4: Get material detail
-		const detailRes = await app.handle(
-			new Request(`http://localhost/detail?id=${materialId}`)
-		)
+		const detailRes = await app.handle(new Request(`http://localhost/detail?id=${materialId}`))
 
 		expect(detailRes.status).toBe(200)
 		const detailBody = await detailRes.json()
@@ -121,7 +118,7 @@ describe('Material Lifecycle Flow', () => {
 					conversions: [],
 					locationIds: [],
 				}),
-			})
+			}),
 		)
 
 		expect(updateRes.status).toBe(200)
@@ -129,9 +126,7 @@ describe('Material Lifecycle Flow', () => {
 		expectSuccessResponse(updateBody)
 
 		// Step 6: Verify changes persisted by fetching detail again
-		const verifyRes = await app.handle(
-			new Request(`http://localhost/detail?id=${materialId}`)
-		)
+		const verifyRes = await app.handle(new Request(`http://localhost/detail?id=${materialId}`))
 
 		expect(verifyRes.status).toBe(200)
 		const verifyBody = await verifyRes.json()

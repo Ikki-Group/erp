@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
-
-import { AccountService } from './account.service'
-import { AccountRepo } from './account.repo'
 import { NotFoundError } from '@/core/http/errors'
+
 import * as dto from './account.dto'
+import { AccountRepo } from './account.repo'
+import { AccountService } from './account.service'
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
 
 describe('AccountService', () => {
 	let service: AccountService
@@ -48,7 +48,7 @@ describe('AccountService', () => {
 			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
-				new NotFoundError('Account 999 not found', 'ACCOUNT_NOT_FOUND')
+				new NotFoundError('Account 999 not found', 'ACCOUNT_NOT_FOUND'),
 			)
 		})
 	})
@@ -195,7 +195,7 @@ describe('AccountService', () => {
 			spyOn(fakeRepo, 'hasChildren').mockResolvedValue(true)
 
 			await expect(service.handleRemove(accountId, actorId)).rejects.toThrow(
-				'Account has children, cannot delete'
+				'Account has children, cannot delete',
 			)
 
 			expect(fakeRepo.hasChildren).toHaveBeenCalledWith(accountId)

@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
-
-import { EmployeeService } from './employee/employee.service'
-import { EmployeeRepo } from './employee/employee.repo'
 import { NotFoundError, InternalServerError } from '@/core/http/errors'
+
 import * as dto from './employee/employee.dto'
+import { EmployeeRepo } from './employee/employee.repo'
+import { EmployeeService } from './employee/employee.service'
+import { beforeEach, describe, expect, it, mock, spyOn, vi } from 'bun:test'
 
 // Mock cache module
 vi.mock('@/core/cache', () => ({
@@ -150,7 +150,7 @@ describe('Employee Domain Tests', () => {
 				spyOn(service, 'getById').mockResolvedValue(undefined)
 
 				await expect(service.handleDetail(999)).rejects.toThrow(
-					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 				)
 			})
 		})
@@ -194,7 +194,7 @@ describe('Employee Domain Tests', () => {
 				spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
 				await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
-					new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED')
+					new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED'),
 				)
 			})
 		})
@@ -250,7 +250,7 @@ describe('Employee Domain Tests', () => {
 				spyOn(service, 'getById').mockResolvedValue(undefined)
 
 				await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
-					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 				)
 			})
 		})
@@ -290,7 +290,7 @@ describe('Employee Domain Tests', () => {
 				spyOn(service, 'getById').mockResolvedValue(undefined)
 
 				await expect(service.handleRemove(999, actorId)).rejects.toThrow(
-					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
+					new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND'),
 				)
 			})
 		})
@@ -465,9 +465,11 @@ describe('Employee Domain Tests', () => {
 				updatedBy: 1,
 			}
 
-			spyOn(mockCache, 'getOrSet').mockImplementation(async ({ factory }: { factory: () => Promise<any> }) => {
-				return await factory()
-			})
+			spyOn(mockCache, 'getOrSet').mockImplementation(
+				async ({ factory }: { factory: () => Promise<any> }) => {
+					return await factory()
+				},
+			)
 			spyOn(fakeRepo, 'getById').mockResolvedValue(mockEmployee)
 
 			const result = await service.getById(1)
