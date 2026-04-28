@@ -23,7 +23,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				query: dto.UserFilterDto,
-				response: createPaginatedResponseSchema(dto.UserDetailDto),
+				response: createPaginatedResponseSchema(dto.UserDto),
 				auth: true,
 			},
 		)
@@ -33,27 +33,31 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{
-				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.UserDetailResolvedDto),
-				auth: true,
-			},
+			{ query: zq.recordId, response: createSuccessResponseSchema(dto.UserDto), auth: true },
 		)
 		.post(
 			'/create',
 			async function create({ body, auth }) {
 				const result = await service.handleCreate(body, auth.userId)
-				return res.ok(result)
+				return res.created(result)
 			},
-			{ body: dto.UserCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{
+				body: dto.UserCreateDto,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
 		)
-		.put(
+		.patch(
 			'/update',
 			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body.id, body, auth.userId)
+				const result = await service.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
-			{ body: dto.UserUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{
+				body: dto.UserUpdateDto,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
 		)
 		.post(
 			'/change-password',

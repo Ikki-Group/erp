@@ -1,10 +1,21 @@
-import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
+import {
+	authenticatedJsonRequest,
+	createIntegrationTestApp,
+	jsonRequest,
+} from '@/tests/helpers/app-builder'
+import { getTestSessionManager, getTestToken } from '@/tests/helpers/session-manager'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
-import { describe, expect, it } from 'bun:test'
+import { beforeAll, describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
 describe('Account API', () => {
+	const sessionManager = getTestSessionManager()
+
+	beforeAll(async () => {
+		await sessionManager.setup()
+	})
+
 	describe('GET /finance/account/list', () => {
 		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
@@ -47,6 +58,17 @@ describe('Account API', () => {
 				}),
 			)
 			expect(res.status).toBe(422)
+		})
+	})
+
+	describe('GET /finance/account/detail', () => {
+		it('returns 404 for non-existent account when authenticated', async () => {
+			const app = createIntegrationTestApp()
+			const token = getTestToken()
+			const res = await app.handle(
+				authenticatedJsonRequest('GET', '/finance/account/detail?id=999999', token),
+			)
+			expect(res.status).toBe(404)
 		})
 	})
 })

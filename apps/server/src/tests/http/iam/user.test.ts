@@ -1,10 +1,21 @@
-import { createIntegrationTestApp, jsonRequest } from '@/tests/helpers/app-builder'
+import {
+	authenticatedJsonRequest,
+	createIntegrationTestApp,
+	jsonRequest,
+} from '@/tests/helpers/app-builder'
+import { getTestSessionManager, getTestToken } from '@/tests/helpers/session-manager'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
-import { describe, expect, it } from 'bun:test'
+import { beforeAll, describe, expect, it } from 'bun:test'
 
 setupIntegrationTests()
 
 describe('User API', () => {
+	const sessionManager = getTestSessionManager()
+
+	beforeAll(async () => {
+		await sessionManager.setup()
+	})
+
 	describe('GET /iam/user/list', () => {
 		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
@@ -30,6 +41,17 @@ describe('User API', () => {
 
 			const res = await app.handle(jsonRequest('POST', '/iam/user/create', createData))
 			expect(res.status).toBe(401)
+		})
+	})
+
+	describe('GET /iam/user/detail', () => {
+		it('returns 404 for non-existent user when authenticated', async () => {
+			const app = createIntegrationTestApp()
+			const token = getTestToken()
+			const res = await app.handle(
+				authenticatedJsonRequest('GET', '/iam/user/detail?id=999999', token),
+			)
+			expect(res.status).toBe(404)
 		})
 	})
 })
