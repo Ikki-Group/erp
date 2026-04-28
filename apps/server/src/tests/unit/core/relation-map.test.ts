@@ -1,4 +1,5 @@
-import { RelationMap } from './relation-map'
+import { RelationMap } from '@/core/utils/relation-map'
+
 import { describe, expect, it } from 'bun:test'
 
 type User = {

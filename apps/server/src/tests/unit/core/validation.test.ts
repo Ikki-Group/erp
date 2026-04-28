@@ -1,9 +1,13 @@
 import { z } from 'zod'
 
-import { zc } from './common'
-import { zp } from './primitive'
-import { zq } from './query'
-import { createSuccessResponseSchema, createPaginatedResponseSchema } from './response'
+import { zc } from '@/core/validation/common'
+import { zp } from '@/core/validation/primitive'
+import { zq } from '@/core/validation/query'
+import {
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/core/validation/response'
+
 import { describe, it, expect } from 'bun:test'
 
 describe('Primitive Validators (zp)', () => {

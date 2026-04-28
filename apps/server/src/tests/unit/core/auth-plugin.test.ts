@@ -1,18 +1,16 @@
 import { Elysia } from 'elysia'
 
+import { authPluginMacro, createAuthPlugin } from '@/core/http/auth-plugin'
 import { HttpError } from '@/core/http/errors'
 
-import { authPluginMacro, createAuthPlugin } from './auth-plugin'
 import { describe, expect, it } from 'bun:test'
 
 describe('auth-plugin', () => {
 	const mockUser = { id: 1, email: 'test@example.com' } as any
-	const mockIam = {
-		auth: {
-			verifyToken: async (token: string) => {
-				if (token === 'valid-token') return mockUser
-				throw new Error('Invalid token')
-			},
+	const mockAuthService = {
+		verifyToken: async (token: string) => {
+			if (token === 'valid-token') return mockUser
+			throw new Error('Invalid token')
 		},
 	} as any
 
@@ -23,9 +21,15 @@ describe('auth-plugin', () => {
 					set.status = error.statusCode
 					return { code: error.code, message: error.message }
 				}
+				if (error instanceof Error) {
+					console.error('Test error:', error.message)
+					set.status = 500
+					return { code: 'INTERNAL_SERVER_ERROR', message: error.message }
+				}
+				set.status = 500
 				return { code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' }
 			})
-			.use(createAuthPlugin(mockIam))
+			.use(createAuthPlugin(mockAuthService))
 			.use(authPluginMacro)
 	}
 
