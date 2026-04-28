@@ -1,3 +1,4 @@
+import { createCache } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
@@ -45,12 +46,14 @@ export interface Modules {
 }
 
 export function initModules(db: DbClient): Modules {
+	const cacheClient = createCache()
+
 	// Layer 0 — Core
 	const location = new LocationServiceModule()
 	const product = new ProductServiceModule()
 
 	// Layer 1 — Masters
-	const iam = new IamServiceModule(db, { location })
+	const iam = new IamServiceModule(db, cacheClient, { location })
 	const material = new MaterialServiceModule(location.master)
 	const supplier = new SupplierServiceModule()
 	const employee = new EmployeeServiceModule()

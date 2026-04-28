@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import type { LocationServiceModule } from '@/modules/location'
@@ -22,7 +23,8 @@ export class IamServiceModule {
 	public readonly user: UserService
 
 	constructor(
-		private db: DbClient,
+		private readonly db: DbClient,
+		private readonly cacheClient: CacheClient,
 		private readonly deps: IamServiceModuleDeps,
 	) {
 		this.role = new RoleService()
@@ -33,7 +35,7 @@ export class IamServiceModule {
 				assignment: this.assignment,
 				role: this.role,
 			},
-			new UserRepo(this.db),
+			new UserRepo(this.db, this.cacheClient),
 		)
 	}
 }

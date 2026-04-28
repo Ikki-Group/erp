@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, or } from 'drizzle-orm'
 import { omit } from 'es-toolkit'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
+import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -13,21 +13,34 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
+import { logger } from '@/core/logger'
 
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import * as dto from './user.dto'
 
-const cache = bento.namespace('iam:user')
+const USER_CACHE_NAMESPACE = 'iam:user'
 
 export class UserRepo {
-	constructor(private readonly db: DbClient) {}
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(USER_CACHE_NAMESPACE)
+	}
 
 	#clearCache(id?: number): Promise<void> {
 		return record('UserRepo.#clearCache', async () => {
 			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+			await this.cache.deleteMany({ keys })
+		})
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'UserRepo cache invalidation failed')
 		})
 	}
 
@@ -78,7 +91,7 @@ export class UserRepo {
 
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserRepo.getList', async () =>
-			cache.getOrSet({
+			this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
 				factory: async () => this.db.select().from(usersTable).orderBy(usersTable.id),
 			}),
@@ -87,7 +100,7 @@ export class UserRepo {
 
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserRepo.getById', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
 				factory: async ({ skip }) => {
 					const res = await this.db
@@ -133,7 +146,7 @@ export class UserRepo {
 
 	async count(): Promise<number> {
 		return record('UserRepo.count', async () => {
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.count,
 				factory: async () => {
 					return this.db
@@ -174,7 +187,7 @@ export class UserRepo {
 				if (inserted) insertedIds.push(inserted.id)
 			}
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return insertedIds
 		})
 	}
@@ -191,7 +204,7 @@ export class UserRepo {
 				.values({ ...userData, ...metadata })
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -209,7 +222,7 @@ export class UserRepo {
 				.where(eq(usersTable.id, data.id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(data.id)
+			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -227,7 +240,7 @@ export class UserRepo {
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -239,7 +252,7 @@ export class UserRepo {
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}

@@ -1,14 +1,32 @@
-import { BentoCache, bentostore } from 'bentocache'
+import { BentoCache, BentoStore, bentostore } from 'bentocache'
 import { memoryDriver } from 'bentocache/drivers/memory'
 
+import { logger } from './logger'
+
+export type CacheClient = BentoCache<{
+	cache: BentoStore
+}>
+
+export type CacheProvider = ReturnType<CacheClient['namespace']>
+
+export function createCache(): CacheClient {
+	return new BentoCache({
+		default: 'cache',
+		ttl: '1d',
+		logger,
+		stores: {
+			cache: bentostore().useL1Layer(memoryDriver({ maxSize: '10mb' })),
+		},
+	})
+}
+
+/**
+ * @deprecated
+ */
 export const bento = new BentoCache({
 	default: 'cache',
 	ttl: '1d',
-	// logger,
-	onFactoryError(error) {
-		// console.log({ error })
-		throw error
-	},
+	logger,
 	stores: {
 		cache: bentostore().useL1Layer(memoryDriver({ maxSize: '10mb' })),
 	},
