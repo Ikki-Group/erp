@@ -23,7 +23,7 @@ export function initUserRoute(service: UserService) {
 			},
 			{
 				query: dto.UserFilterDto,
-				response: createPaginatedResponseSchema(dto.UserDto),
+				response: createPaginatedResponseSchema(dto.UserDetailDto),
 				auth: true,
 			},
 		)
@@ -33,7 +33,7 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.UserDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(dto.UserDetailDto), auth: true },
 		)
 		.post(
 			'/create',
