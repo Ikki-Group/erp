@@ -23,6 +23,25 @@ export const UserAssignmentUpsertDto = z.object({
 })
 export type UserAssignmentUpsertDto = z.infer<typeof UserAssignmentUpsertDto>
 
+export const AssignmentBulkBodyDto = z.object({
+	userIds: z.array(zp.id),
+	locationId: zp.id,
+	roleId: zp.id,
+})
+export type AssignmentBulkBodyDto = z.infer<typeof AssignmentBulkBodyDto>
+
+export const AssignmentRemoveBodyDto = z.object({
+	userId: zp.id,
+	locationId: zp.id,
+})
+export type AssignmentRemoveBodyDto = z.infer<typeof AssignmentRemoveBodyDto>
+
+export const AssignmentRemoveBulkBodyDto = z.object({
+	userIds: z.array(zp.id),
+	locationId: zp.id,
+})
+export type AssignmentRemoveBulkBodyDto = z.infer<typeof AssignmentRemoveBulkBodyDto>
+
 /* ---------------------------------- FILTER ---------------------------------- */
 
 export const UserAssignmentFilterDto = z.object({

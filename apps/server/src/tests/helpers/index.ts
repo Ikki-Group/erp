@@ -61,3 +61,11 @@ export { clearTestCache, createTestCache } from './cache'
 
 // JWT
 export { generateTestToken, generateTestUserToken } from './jwt'
+
+// Session Manager
+export {
+	TestSessionManager,
+	getTestSessionManager,
+	getTestToken,
+	getTestUserId,
+} from './session-manager'
