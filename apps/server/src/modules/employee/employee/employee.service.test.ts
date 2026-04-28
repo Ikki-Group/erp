@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { EmployeeService } from './employee.service'
 import { EmployeeRepo } from './employee.repo'
@@ -11,11 +11,11 @@ describe('EmployeeService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			remove: vi.fn(),
+			getById: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			remove: spyOn(),
 		} as any
 
 		service = new EmployeeService(fakeRepo)
@@ -39,7 +39,7 @@ describe('EmployeeService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockEmployee)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockEmployee)
 
 			const result = await service.getById(1)
 
@@ -48,7 +48,7 @@ describe('EmployeeService', () => {
 		})
 
 		it('should return undefined when employee not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.getById(999)
 
@@ -77,7 +77,7 @@ describe('EmployeeService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -104,7 +104,7 @@ describe('EmployeeService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockEmployee)
+			spyOn(service, 'getById').mockResolvedValue(mockEmployee)
 
 			const result = await service.handleDetail(1)
 
@@ -113,7 +113,7 @@ describe('EmployeeService', () => {
 		})
 
 		it('should throw NotFoundError when employee not found', async () => {
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleDetail(999)).rejects.toThrow(
 				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
@@ -138,7 +138,7 @@ describe('EmployeeService', () => {
 			const actorId = 1
 			const newEmployeeId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newEmployeeId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newEmployeeId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -161,7 +161,7 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
 			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
 				new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED')
@@ -196,8 +196,8 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingEmployee)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingEmployee)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
 			const result = await service.handleUpdate(updateData, actorId)
 
@@ -214,7 +214,7 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
 				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
@@ -245,8 +245,8 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingEmployee)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(existingEmployee)
+			spyOn(fakeRepo, 'update').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(updateData, actorId)).rejects.toThrow(
 				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND')
@@ -274,8 +274,8 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingEmployee)
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingEmployee)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(1)
 
 			const result = await service.handleRemove(1, actorId)
 
@@ -287,7 +287,7 @@ describe('EmployeeService', () => {
 		it('should throw NotFoundError when removing non-existent employee', async () => {
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(999, actorId)).rejects.toThrow(
 				new NotFoundError('Employee with ID 999 not found', 'EMPLOYEE_NOT_FOUND')
@@ -313,8 +313,8 @@ describe('EmployeeService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingEmployee)
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(existingEmployee)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(1, actorId)).rejects.toThrow(
 				new NotFoundError('Employee with ID 1 not found', 'EMPLOYEE_NOT_FOUND')

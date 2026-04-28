@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { MaterialLocationService } from './material-location.service'
 import { MaterialLocationRepo } from './material-location.repo'
@@ -15,23 +15,23 @@ describe('MaterialLocationService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getOne: vi.fn(),
-			getByMaterialId: vi.fn(),
-			getByLocationId: vi.fn(),
-			batchAssign: vi.fn(),
-			unassign: vi.fn(),
-			getLocationsByMaterial: vi.fn(),
-			getStockByLocationPaginated: vi.fn(),
-			updateConfig: vi.fn(),
-			updateCurrentStock: vi.fn(),
+			getOne: spyOn(),
+			getByMaterialId: spyOn(),
+			getByLocationId: spyOn(),
+			batchAssign: spyOn(),
+			unassign: spyOn(),
+			getLocationsByMaterial: spyOn(),
+			getStockByLocationPaginated: spyOn(),
+			updateConfig: spyOn(),
+			updateCurrentStock: spyOn(),
 		} as any
 
 		fakeMaterialService = {
-			getById: vi.fn(),
+			getById: spyOn(),
 		} as any
 
 		fakeLocationService = {
-			getById: vi.fn(),
+			getById: spyOn(),
 		} as any
 
 		service = new MaterialLocationService(
@@ -57,7 +57,7 @@ describe('MaterialLocationService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getOne').mockResolvedValue(mockAssignment)
+			spyOn(fakeRepo, 'getOne').mockResolvedValue(mockAssignment)
 
 			const result = await service.findOne(1, 1)
 
@@ -66,7 +66,7 @@ describe('MaterialLocationService', () => {
 		})
 
 		it('should throw NotFoundError when assignment not found', async () => {
-			vi.spyOn(fakeRepo, 'getOne').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getOne').mockResolvedValue(undefined)
 
 			await expect(service.findOne(1, 1)).rejects.toThrow(
 				new NotFoundError(
@@ -95,7 +95,7 @@ describe('MaterialLocationService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getByMaterialId').mockResolvedValue(mockAssignments)
+			spyOn(fakeRepo, 'getByMaterialId').mockResolvedValue(mockAssignments)
 
 			const result = await service.findByMaterialId(1)
 
@@ -122,7 +122,7 @@ describe('MaterialLocationService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getByLocationId').mockResolvedValue(mockAssignments)
+			spyOn(fakeRepo, 'getByLocationId').mockResolvedValue(mockAssignments)
 
 			const result = await service.findByLocationId(1)
 
@@ -141,9 +141,9 @@ describe('MaterialLocationService', () => {
 			const actorId = 1
 			const assignedCount = 4
 
-			vi.spyOn(fakeLocationService, 'getById').mockResolvedValue({ id: 1 } as any)
-			vi.spyOn(fakeMaterialService, 'getById').mockResolvedValue({ id: 1 } as any)
-			vi.spyOn(fakeRepo, 'batchAssign').mockResolvedValue(assignedCount)
+			spyOn(fakeLocationService, 'getById').mockResolvedValue({ id: 1 } as any)
+			spyOn(fakeMaterialService, 'getById').mockResolvedValue({ id: 1 } as any)
+			spyOn(fakeRepo, 'batchAssign').mockResolvedValue(assignedCount)
 
 			const result = await service.handleAssign(assignData, actorId)
 
@@ -165,7 +165,7 @@ describe('MaterialLocationService', () => {
 
 			const resultId = 1
 
-			vi.spyOn(fakeRepo, 'unassign').mockResolvedValue(resultId)
+			spyOn(fakeRepo, 'unassign').mockResolvedValue(resultId)
 
 			const result = await service.handleUnassign(unassignData)
 
@@ -179,7 +179,7 @@ describe('MaterialLocationService', () => {
 				locationId: 1,
 			}
 
-			vi.spyOn(fakeRepo, 'unassign').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'unassign').mockResolvedValue(undefined)
 
 			await expect(service.handleUnassign(unassignData)).rejects.toThrow(
 				new NotFoundError(
@@ -215,8 +215,8 @@ describe('MaterialLocationService', () => {
 				},
 			]
 
-			vi.spyOn(fakeMaterialService, 'getById').mockResolvedValue({ id: 1 } as any)
-			vi.spyOn(fakeRepo, 'getLocationsByMaterial').mockResolvedValue(mockLocations)
+			spyOn(fakeMaterialService, 'getById').mockResolvedValue({ id: 1 } as any)
+			spyOn(fakeRepo, 'getLocationsByMaterial').mockResolvedValue(mockLocations)
 
 			const result = await service.handleLocationsByMaterial(materialId)
 
@@ -261,8 +261,8 @@ describe('MaterialLocationService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeLocationService, 'getById').mockResolvedValue({ id: 1 } as any)
-			vi.spyOn(fakeRepo, 'getStockByLocationPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeLocationService, 'getById').mockResolvedValue({ id: 1 } as any)
+			spyOn(fakeRepo, 'getStockByLocationPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleStockByLocation(filter)
 
@@ -284,7 +284,7 @@ describe('MaterialLocationService', () => {
 			const actorId = 1
 			const resultId = 1
 
-			vi.spyOn(fakeRepo, 'updateConfig').mockResolvedValue(resultId)
+			spyOn(fakeRepo, 'updateConfig').mockResolvedValue(resultId)
 
 			const result = await service.handleUpdateConfig(configData, actorId)
 
@@ -306,7 +306,7 @@ describe('MaterialLocationService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(fakeRepo, 'updateConfig').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'updateConfig').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdateConfig(configData, actorId)).rejects.toThrow(
 				new NotFoundError(

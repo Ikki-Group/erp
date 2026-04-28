@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { StockSummaryService } from './stock-summary.service'
 import { StockSummaryRepo } from './stock-summary.repo'
@@ -8,8 +8,8 @@ import * as dto from './stock-summary.dto'
 // Mock database
 vi.mock('@/db', () => ({
 	db: {
-		transaction: vi.fn(),
-		execute: vi.fn(),
+		transaction: spyOn(),
+		execute: spyOn(),
 	},
 }))
 
@@ -31,15 +31,15 @@ describe('StockSummaryService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getByLocationPaginated: vi.fn(),
-			getLedgerPaginated: vi.fn(),
-			upsertMany: vi.fn(),
-			softDelete: vi.fn(),
-			hardDelete: vi.fn(),
+			getByLocationPaginated: spyOn(),
+			getLedgerPaginated: spyOn(),
+			upsertMany: spyOn(),
+			softDelete: spyOn(),
+			hardDelete: spyOn(),
 		} as any
 
 		fakeMaterialLocationService = {
-			findByLocationId: vi.fn(),
+			findByLocationId: spyOn(),
 		} as any
 
 		service = new StockSummaryService(fakeMaterialLocationService)
@@ -73,7 +73,7 @@ describe('StockSummaryService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getByLocationPaginated').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'getByLocationPaginated').mockResolvedValue(mockResult)
 
 			const result = await service.handleByLocation(filter)
 
@@ -108,7 +108,7 @@ describe('StockSummaryService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getLedgerPaginated').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'getLedgerPaginated').mockResolvedValue(mockResult)
 
 			const result = await service.handleLedger(filter)
 
@@ -132,7 +132,7 @@ describe('StockSummaryService', () => {
 				{ materialId: 2, locationId: 1 },
 			]
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				// Mock the complex SQL queries and calculations
 				const mockPrevSummaries = [
 					{ materialId: 1, closingQty: '100', closingAvgCost: '10' },
@@ -150,27 +150,27 @@ describe('StockSummaryService', () => {
 				]
 
 				// Mock the database execute calls
-				const mockExecute = vi.fn()
+				const mockExecute = spyOn()
 					.mockResolvedValueOnce(mockPrevSummaries) // prevSummariesQuery
 					.mockResolvedValueOnce(mockMovements) // movements query
 					.mockResolvedValueOnce(mockLastTransactions) // lastTransactionsQuery
 
 				const mockTx = {
 					execute: mockExecute,
-					select: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							groupBy: vi.fn().mockResolvedValue(mockMovements),
+					select: spyOn().mockReturnValue({
+						where: spyOn().mockReturnValue({
+							groupBy: spyOn().mockResolvedValue(mockMovements),
 						}),
 					}),
 				}
 
-				vi.spyOn(fakeRepo, 'upsertMany').mockResolvedValue(generatedCount)
+				spyOn(fakeRepo, 'upsertMany').mockResolvedValue(generatedCount)
 
 				return await callback(mockTx)
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue(mockAssignments as any)
+			spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue(mockAssignments as any)
 
 			const result = await service.handleGenerate(data, actorId)
 
@@ -187,7 +187,7 @@ describe('StockSummaryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue([])
+			spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue([])
 
 			const result = await service.handleGenerate(data, actorId)
 
@@ -203,7 +203,7 @@ describe('StockSummaryService', () => {
 			const actorId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(fakeRepo, 'softDelete').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'softDelete').mockResolvedValue(mockResult)
 
 			const result = await service.handleRemove(summaryId, actorId)
 
@@ -217,7 +217,7 @@ describe('StockSummaryService', () => {
 			const summaryId = 1
 			const mockResult = { id: 1 }
 
-			vi.spyOn(fakeRepo, 'hardDelete').mockResolvedValue(mockResult)
+			spyOn(fakeRepo, 'hardDelete').mockResolvedValue(mockResult)
 
 			const result = await service.handleHardRemove(summaryId)
 
@@ -239,7 +239,7 @@ describe('StockSummaryService', () => {
 				{ materialId: 1, locationId: 1 },
 			]
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				// Mock complex scenario with multiple movement types
 				const mockPrevSummaries = [
 					{ materialId: 1, closingQty: '100', closingAvgCost: '10' },
@@ -260,27 +260,27 @@ describe('StockSummaryService', () => {
 					{ materialId: 1, runningAvgCost: '11' },
 				]
 
-				const mockExecute = vi.fn()
+				const mockExecute = spyOn()
 					.mockResolvedValueOnce(mockPrevSummaries)
 					.mockResolvedValueOnce(mockMovements)
 					.mockResolvedValueOnce(mockLastTransactions)
 
 				const mockTx = {
 					execute: mockExecute,
-					select: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							groupBy: vi.fn().mockResolvedValue(mockMovements),
+					select: spyOn().mockReturnValue({
+						where: spyOn().mockReturnValue({
+							groupBy: spyOn().mockResolvedValue(mockMovements),
 						}),
 					}),
 				}
 
-				vi.spyOn(fakeRepo, 'upsertMany').mockResolvedValue(1)
+				spyOn(fakeRepo, 'upsertMany').mockResolvedValue(1)
 
 				return await callback(mockTx)
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue(mockAssignments as any)
+			spyOn(fakeMaterialLocationService, 'findByLocationId').mockResolvedValue(mockAssignments as any)
 
 			const result = await service.handleGenerate(data, actorId)
 

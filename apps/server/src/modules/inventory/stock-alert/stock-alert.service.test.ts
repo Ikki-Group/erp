@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { StockAlertService } from './stock-alert.service'
 import { StockAlertRepo } from './stock-alert.repo'
@@ -10,8 +10,8 @@ describe('StockAlertService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getAlerts: vi.fn(),
-			getAlertCount: vi.fn(),
+			getAlerts: spyOn(),
+			getAlertCount: spyOn(),
 		} as any
 
 		service = new StockAlertService()
@@ -45,7 +45,7 @@ describe('StockAlertService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
+			spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
 
 			const result = await service.handleAlerts(filter)
 
@@ -75,7 +75,7 @@ describe('StockAlertService', () => {
 				meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
+			spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
 
 			const result = await service.handleAlerts(filter)
 
@@ -124,7 +124,7 @@ describe('StockAlertService', () => {
 				meta: { page: 1, limit: 10, total: 3, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
+			spyOn(fakeRepo, 'getAlerts').mockResolvedValue(mockAlerts)
 
 			const result = await service.handleAlerts(filter)
 
@@ -143,7 +143,7 @@ describe('StockAlertService', () => {
 
 			const mockCount = 5
 
-			vi.spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
+			spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
 
 			const result = await service.handleCount(filter)
 
@@ -156,7 +156,7 @@ describe('StockAlertService', () => {
 
 			const mockCount = 25
 
-			vi.spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
+			spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
 
 			const result = await service.handleCount(filter)
 
@@ -171,7 +171,7 @@ describe('StockAlertService', () => {
 
 			const mockCount = 12
 
-			vi.spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
+			spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
 
 			const result = await service.handleCount(filter)
 
@@ -186,7 +186,7 @@ describe('StockAlertService', () => {
 
 			const mockCount = 8
 
-			vi.spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
+			spyOn(fakeRepo, 'getAlertCount').mockResolvedValue(mockCount)
 
 			const result = await service.handleCount(filter)
 

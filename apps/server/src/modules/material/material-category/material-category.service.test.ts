@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { MaterialCategoryService } from './material-category.service'
 import { MaterialCategoryRepo } from './material-category.repo'
@@ -11,14 +11,14 @@ describe('MaterialCategoryService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getList: vi.fn(),
-			getById: vi.fn(),
-			count: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			remove: vi.fn(),
-			hardRemove: vi.fn(),
+			getList: spyOn(),
+			getById: spyOn(),
+			count: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
+			remove: spyOn(),
+			hardRemove: spyOn(),
 		} as any
 
 		service = new MaterialCategoryService(fakeRepo)
@@ -43,7 +43,7 @@ describe('MaterialCategoryService', () => {
 				},
 			]
 
-			vi.spyOn(fakeRepo, 'getList').mockResolvedValue(mockCategories)
+			spyOn(fakeRepo, 'getList').mockResolvedValue(mockCategories)
 
 			const result = await service.find()
 
@@ -62,7 +62,7 @@ describe('MaterialCategoryService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockCategory)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockCategory)
 
 			const result = await service.getById(1)
 
@@ -71,7 +71,7 @@ describe('MaterialCategoryService', () => {
 		})
 
 		it('should return undefined when not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			const result = await service.getById(999)
 
@@ -83,7 +83,7 @@ describe('MaterialCategoryService', () => {
 		it('should return category count', async () => {
 			const mockCount = 5
 
-			vi.spyOn(fakeRepo, 'count').mockResolvedValue(mockCount)
+			spyOn(fakeRepo, 'count').mockResolvedValue(mockCount)
 
 			const result = await service.count()
 
@@ -108,7 +108,7 @@ describe('MaterialCategoryService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -127,7 +127,7 @@ describe('MaterialCategoryService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockCategory)
+			spyOn(service, 'getById').mockResolvedValue(mockCategory)
 
 			const result = await service.handleDetail(1)
 
@@ -136,7 +136,7 @@ describe('MaterialCategoryService', () => {
 		})
 
 		it('should throw NotFoundError when category not found', async () => {
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleDetail(999)).rejects.toThrow(
 				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
@@ -154,7 +154,7 @@ describe('MaterialCategoryService', () => {
 			const actorId = 1
 			const newCategoryId = 123
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -174,7 +174,7 @@ describe('MaterialCategoryService', () => {
 			const actorId = 1
 			const newCategoryId = 124
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
+			spyOn(fakeRepo, 'create').mockResolvedValue(newCategoryId)
 
 			await service.handleCreate(createData, actorId)
 
@@ -202,8 +202,8 @@ describe('MaterialCategoryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingCategory)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingCategory)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
 			const result = await service.handleUpdate(1, updateData, actorId)
 
@@ -223,7 +223,7 @@ describe('MaterialCategoryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleUpdate(999, updateData, actorId)).rejects.toThrow(
 				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
@@ -245,8 +245,8 @@ describe('MaterialCategoryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingCategory)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingCategory)
+			spyOn(fakeRepo, 'update').mockResolvedValue(1)
 
 			await service.handleUpdate(1, updateData, actorId)
 
@@ -270,8 +270,8 @@ describe('MaterialCategoryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingCategory)
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingCategory)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(1)
 
 			const result = await service.handleRemove(1, actorId)
 
@@ -283,7 +283,7 @@ describe('MaterialCategoryService', () => {
 		it('should throw NotFoundError when removing non-existent category', async () => {
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(999, actorId)).rejects.toThrow(
 				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
@@ -301,8 +301,8 @@ describe('MaterialCategoryService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingCategory)
-			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(existingCategory)
+			spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
 			await expect(service.handleRemove(1, actorId)).rejects.toThrow(
 				new NotFoundError('Material category with ID 1 not found', 'MATERIAL_CATEGORY_NOT_FOUND')
@@ -320,8 +320,8 @@ describe('MaterialCategoryService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(existingCategory)
-			vi.spyOn(fakeRepo, 'hardRemove').mockResolvedValue(1)
+			spyOn(service, 'getById').mockResolvedValue(existingCategory)
+			spyOn(fakeRepo, 'hardRemove').mockResolvedValue(1)
 
 			const result = await service.handleHardRemove(1)
 
@@ -331,7 +331,7 @@ describe('MaterialCategoryService', () => {
 		})
 
 		it('should throw NotFoundError when hard removing non-existent category', async () => {
-			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
+			spyOn(service, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.handleHardRemove(999)).rejects.toThrow(
 				new NotFoundError('Material category with ID 999 not found', 'MATERIAL_CATEGORY_NOT_FOUND')

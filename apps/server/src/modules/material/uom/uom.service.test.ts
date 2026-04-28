@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { UomService } from './uom.service'
-import { UomRepo } from './uom.repo'
 import { NotFoundError, InternalServerError } from '@/core/http/errors'
+
 import * as dto from './uom.dto'
+import { UomRepo } from './uom.repo'
+import { UomService } from './uom.service'
+import { beforeEach, describe, expect, it, vi } from 'bun:test'
 
 describe('UomService', () => {
 	let service: UomService
@@ -74,8 +74,8 @@ describe('UomService', () => {
 		it('should throw NotFoundError when UOM not found', async () => {
 			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
-			await expect(service.getById(999)).rejects.toThrow(
-				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND')
+			expect(service.getById(999)).rejects.toThrow(
+				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND'),
 			)
 		})
 	})
@@ -164,10 +164,7 @@ describe('UomService', () => {
 
 			const result = await service.handleCreate(createData, actorId)
 
-			expect(fakeRepo.create).toHaveBeenCalledWith(
-				{ code: 'TON', createdBy: actorId },
-				actorId
-			)
+			expect(fakeRepo.create).toHaveBeenCalledWith({ code: 'TON', createdBy: actorId }, actorId)
 			expect(result).toEqual({ id: newUomId })
 		})
 
@@ -184,10 +181,7 @@ describe('UomService', () => {
 
 			await service.handleCreate(createData, actorId)
 
-			expect(fakeRepo.create).toHaveBeenCalledWith(
-				{ code: 'KG', createdBy: actorId },
-				actorId
-			)
+			expect(fakeRepo.create).toHaveBeenCalledWith({ code: 'KG', createdBy: actorId }, actorId)
 		})
 
 		it('should throw InternalServerError when create fails', async () => {
@@ -200,8 +194,8 @@ describe('UomService', () => {
 
 			vi.spyOn(fakeRepo, 'create').mockResolvedValue(undefined)
 
-			await expect(service.handleCreate(createData, actorId)).rejects.toThrow(
-				new InternalServerError('UOM creation failed', 'UOM_CREATE_FAILED')
+			expect(service.handleCreate(createData, actorId)).rejects.toThrow(
+				new InternalServerError('UOM creation failed', 'UOM_CREATE_FAILED'),
 			)
 		})
 	})
@@ -229,11 +223,7 @@ describe('UomService', () => {
 			const result = await service.handleUpdate(1, updateData, actorId)
 
 			expect(service.getById).toHaveBeenCalledWith(1)
-			expect(fakeRepo.update).toHaveBeenCalledWith(
-				1,
-				{ code: 'LB', updatedBy: actorId },
-				actorId
-			)
+			expect(fakeRepo.update).toHaveBeenCalledWith(1, { code: 'LB', updatedBy: actorId }, actorId)
 			expect(result).toEqual({ id: 1 })
 		})
 
@@ -257,11 +247,7 @@ describe('UomService', () => {
 
 			await service.handleUpdate(1, updateData, actorId)
 
-			expect(fakeRepo.update).toHaveBeenCalledWith(
-				1,
-				{ code: 'KG', updatedBy: actorId },
-				actorId
-			)
+			expect(fakeRepo.update).toHaveBeenCalledWith(1, { code: 'KG', updatedBy: actorId }, actorId)
 		})
 
 		it('should throw NotFoundError when update returns falsy', async () => {
@@ -282,8 +268,8 @@ describe('UomService', () => {
 			vi.spyOn(service, 'getById').mockResolvedValue(existingUom)
 			vi.spyOn(fakeRepo, 'update').mockResolvedValue(undefined)
 
-			await expect(service.handleUpdate(1, updateData, actorId)).rejects.toThrow(
-				new NotFoundError('UOM with ID 1 not found', 'UOM_NOT_FOUND')
+			expect(service.handleUpdate(1, updateData, actorId)).rejects.toThrow(
+				new NotFoundError('UOM with ID 1 not found', 'UOM_NOT_FOUND'),
 			)
 		})
 	})
@@ -315,8 +301,8 @@ describe('UomService', () => {
 
 			vi.spyOn(service, 'getById').mockResolvedValue(undefined)
 
-			await expect(service.handleRemove(999, actorId)).rejects.toThrow(
-				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND')
+			expect(service.handleRemove(999, actorId)).rejects.toThrow(
+				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND'),
 			)
 		})
 
@@ -334,8 +320,8 @@ describe('UomService', () => {
 			vi.spyOn(service, 'getById').mockResolvedValue(existingUom)
 			vi.spyOn(fakeRepo, 'remove').mockResolvedValue(undefined)
 
-			await expect(service.handleRemove(1, actorId)).rejects.toThrow(
-				new NotFoundError('UOM with ID 1 not found', 'UOM_NOT_FOUND')
+			expect(service.handleRemove(1, actorId)).rejects.toThrow(
+				new NotFoundError('UOM with ID 1 not found', 'UOM_NOT_FOUND'),
 			)
 		})
 	})
@@ -353,8 +339,8 @@ describe('UomService', () => {
 		it('should throw NotFoundError when hard remove returns falsy', async () => {
 			vi.spyOn(fakeRepo, 'hardRemove').mockResolvedValue(undefined)
 
-			await expect(service.handleHardRemove(999)).rejects.toThrow(
-				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND')
+			expect(service.handleHardRemove(999)).rejects.toThrow(
+				new NotFoundError('UOM with ID 999 not found', 'UOM_NOT_FOUND'),
 			)
 		})
 	})

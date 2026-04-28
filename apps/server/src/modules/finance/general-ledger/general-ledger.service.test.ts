@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { GeneralLedgerService } from './general-ledger.service'
 import { GeneralLedgerRepo } from './general-ledger.repo'

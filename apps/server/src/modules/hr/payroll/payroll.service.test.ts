@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { PayrollService } from './payroll.service'
 import { PayrollRepo } from './payroll.repo'
@@ -10,7 +10,7 @@ import * as dto from './payroll.dto'
 // Mock database transaction
 vi.mock('@/db', () => ({
 	db: {
-		transaction: vi.fn(),
+		transaction: spyOn(),
 	},
 }))
 
@@ -24,19 +24,19 @@ describe('PayrollService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			findBatchByPeriod: vi.fn(),
-			createBatch: vi.fn(),
-			addAdjustment: vi.fn(),
-			getBatchById: vi.fn(),
-			finalizeBatch: vi.fn(),
+			findBatchByPeriod: spyOn(),
+			createBatch: spyOn(),
+			addAdjustment: spyOn(),
+			getBatchById: spyOn(),
+			finalizeBatch: spyOn(),
 		} as any
 
 		fakeAccountService = {
-			findByCode: vi.fn(),
+			findByCode: spyOn(),
 		} as any
 
 		fakeJournalService = {
-			postEntry: vi.fn(),
+			postEntry: spyOn(),
 		} as any
 
 		service = new PayrollService(fakeAccountService, fakeJournalService, fakeRepo)
@@ -62,8 +62,8 @@ describe('PayrollService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'findBatchByPeriod').mockResolvedValue(null)
-			vi.spyOn(fakeRepo, 'createBatch').mockResolvedValue(mockBatch)
+			spyOn(fakeRepo, 'findBatchByPeriod').mockResolvedValue(null)
+			spyOn(fakeRepo, 'createBatch').mockResolvedValue(mockBatch)
 
 			const result = await service.handleBatchCreate(batchData, actorId)
 
@@ -91,7 +91,7 @@ describe('PayrollService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'findBatchByPeriod').mockResolvedValue(existingBatch)
+			spyOn(fakeRepo, 'findBatchByPeriod').mockResolvedValue(existingBatch)
 
 			await expect(service.handleBatchCreate(batchData, actorId)).rejects.toThrow(
 				new ConflictError('Payroll batch for 1/2024 already exists')
@@ -119,7 +119,7 @@ describe('PayrollService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'addAdjustment').mockResolvedValue(mockAdjustment)
+			spyOn(fakeRepo, 'addAdjustment').mockResolvedValue(mockAdjustment)
 
 			const result = await service.handleAddAdjustment(adjustmentData, actorId)
 
@@ -154,17 +154,17 @@ describe('PayrollService', () => {
 			const expenseAccount = { id: 1001, code: '5201', name: 'Payroll Expense' }
 			const payableAccount = { id: 2001, code: '2102', name: 'Payroll Payable' }
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
-			vi.spyOn(fakeRepo, 'finalizeBatch').mockResolvedValue(finalizedBatch)
-			vi.spyOn(fakeAccountService, 'findByCode')
+			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
+			spyOn(fakeRepo, 'finalizeBatch').mockResolvedValue(finalizedBatch)
+			spyOn(fakeAccountService, 'findByCode')
 				.mockResolvedValueOnce(expenseAccount as any)
 				.mockResolvedValueOnce(payableAccount as any)
-			vi.spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
+			spyOn(fakeJournalService, 'postEntry').mockResolvedValue(undefined)
 
 			const result = await service.handleFinalizeBatch(batchId, actorId)
 
@@ -193,12 +193,12 @@ describe('PayrollService', () => {
 			const batchId = 999
 			const actorId = 1
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'getBatchById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(undefined)
 
 			await expect(service.handleFinalizeBatch(batchId, actorId)).rejects.toThrow(
 				new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
@@ -224,12 +224,12 @@ describe('PayrollService', () => {
 				updatedAt: new Date(),
 			}
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
+			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
 
 			await expect(service.handleFinalizeBatch(batchId, actorId)).rejects.toThrow(
 				new ConflictError('Only draft batches can be finalized')
@@ -261,16 +261,16 @@ describe('PayrollService', () => {
 				updatedAt: new Date(),
 			}
 
-			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			const consoleSpy = spyOn(console, 'warn').mockImplementation(() => {})
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
-			vi.spyOn(fakeRepo, 'finalizeBatch').mockResolvedValue(finalizedBatch)
-			vi.spyOn(fakeAccountService, 'findByCode')
+			spyOn(fakeRepo, 'getBatchById').mockResolvedValue(mockBatch)
+			spyOn(fakeRepo, 'finalizeBatch').mockResolvedValue(finalizedBatch)
+			spyOn(fakeAccountService, 'findByCode')
 				.mockResolvedValueOnce(null)
 				.mockResolvedValueOnce({ id: 2001, code: '2102' } as any)
 

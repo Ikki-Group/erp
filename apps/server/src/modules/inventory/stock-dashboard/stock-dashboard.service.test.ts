@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { StockDashboardService } from './stock-dashboard.service'
 import { StockDashboardRepo } from './stock-dashboard.repo'
@@ -10,7 +10,7 @@ describe('StockDashboardService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getKpi: vi.fn(),
+			getKpi: spyOn(),
 		} as any
 
 		service = new StockDashboardService()
@@ -35,7 +35,7 @@ describe('StockDashboardService', () => {
 				totalTransactions: 245,
 			}
 
-			vi.spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
+			spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
 
 			const result = await service.handleKpi(filter)
 
@@ -57,7 +57,7 @@ describe('StockDashboardService', () => {
 				totalTransactions: 1250,
 			}
 
-			vi.spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
+			spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
 
 			const result = await service.handleKpi(filter)
 
@@ -77,7 +77,7 @@ describe('StockDashboardService', () => {
 				totalTransactions: 0,
 			}
 
-			vi.spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
+			spyOn(fakeRepo, 'getKpi').mockResolvedValue(mockKpiData)
 
 			const result = await service.handleKpi(filter)
 

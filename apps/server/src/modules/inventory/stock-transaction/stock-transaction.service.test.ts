@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { StockTransactionService } from './stock-transaction.service'
 import { StockHistoryService } from './sub-services/stock-history.service'

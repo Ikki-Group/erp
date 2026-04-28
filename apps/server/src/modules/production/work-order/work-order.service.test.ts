@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { WorkOrderService } from './work-order.service'
 import { WorkOrderRepo } from './work-order.repo'
@@ -10,7 +10,7 @@ import * as dto from './work-order.dto'
 // Mock database transaction
 vi.mock('@/db', () => ({
 	db: {
-		transaction: vi.fn(),
+		transaction: spyOn(),
 	},
 }))
 
@@ -24,21 +24,21 @@ describe('WorkOrderService', () => {
 
 	beforeEach(() => {
 		fakeRepo = {
-			getById: vi.fn(),
-			getListPaginated: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
+			getById: spyOn(),
+			getListPaginated: spyOn(),
+			create: spyOn(),
+			update: spyOn(),
 		} as any
 
 		fakeRecipeService = {
-			getById: vi.fn(),
-			handleCalculateCost: vi.fn(),
+			getById: spyOn(),
+			handleCalculateCost: spyOn(),
 		} as any
 
 		fakeInventoryService = {
 			transaction: {
-				handleProductionOut: vi.fn(),
-				handleProductionIn: vi.fn(),
+				handleProductionOut: spyOn(),
+				handleProductionIn: spyOn(),
 			},
 		} as any
 
@@ -64,7 +64,7 @@ describe('WorkOrderService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(mockWorkOrder)
 
 			const result = await service.getById(1)
 
@@ -73,7 +73,7 @@ describe('WorkOrderService', () => {
 		})
 
 		it('should throw NotFoundError when work order not found', async () => {
-			vi.spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'getById').mockResolvedValue(undefined)
 
 			await expect(service.getById(999)).rejects.toThrow(
 				new NotFoundError('Work Order with ID 999 not found', 'WORK_ORDER_NOT_FOUND')
@@ -99,7 +99,7 @@ describe('WorkOrderService', () => {
 				meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
 			}
 
-			vi.spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
+			spyOn(fakeRepo, 'getListPaginated').mockResolvedValue(mockPaginatedResult)
 
 			const result = await service.handleList(filter)
 
@@ -124,7 +124,7 @@ describe('WorkOrderService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
 
 			const result = await service.handleDetail(1)
 
@@ -155,7 +155,7 @@ describe('WorkOrderService', () => {
 				updatedAt: new Date(),
 			}
 
-			vi.spyOn(fakeRepo, 'create').mockResolvedValue(mockWorkOrder)
+			spyOn(fakeRepo, 'create').mockResolvedValue(mockWorkOrder)
 
 			const result = await service.handleCreate(createData, actorId)
 
@@ -187,8 +187,8 @@ describe('WorkOrderService', () => {
 				startedAt: new Date(),
 			}
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue(updatedWorkOrder)
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(fakeRepo, 'update').mockResolvedValue(updatedWorkOrder)
 
 			const result = await service.handleStart(1, actorId)
 
@@ -218,7 +218,7 @@ describe('WorkOrderService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
 
 			await expect(service.handleStart(1, actorId)).rejects.toThrow(
 				new ConflictError('Only draft Work Orders can be started')
@@ -273,17 +273,17 @@ describe('WorkOrderService', () => {
 
 			const actorId = 1
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
-			vi.spyOn(fakeRecipeService, 'getById').mockResolvedValue(mockRecipe)
-			vi.spyOn(fakeRecipeService, 'handleCalculateCost').mockResolvedValue(mockCostResult)
-			vi.spyOn(fakeInventoryService.transaction, 'handleProductionOut').mockResolvedValue(undefined)
-			vi.spyOn(fakeInventoryService.transaction, 'handleProductionIn').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue({
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(fakeRecipeService, 'getById').mockResolvedValue(mockRecipe)
+			spyOn(fakeRecipeService, 'handleCalculateCost').mockResolvedValue(mockCostResult)
+			spyOn(fakeInventoryService.transaction, 'handleProductionOut').mockResolvedValue(undefined)
+			spyOn(fakeInventoryService.transaction, 'handleProductionIn').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'update').mockResolvedValue({
 				...mockWorkOrder,
 				status: 'completed',
 				actualQty: '95',
@@ -363,7 +363,7 @@ describe('WorkOrderService', () => {
 
 			const actorId = 1
 
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
 
 			await expect(service.handleComplete(1, completeData, actorId)).rejects.toThrow(
 				new ConflictError('Work Order with ID 1 is not in progress', 'WORK_ORDER_STATUS_CONFLICT')
@@ -407,16 +407,16 @@ describe('WorkOrderService', () => {
 
 			const actorId = 1
 
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+			const mockTransaction = spyOn().mockImplementation(async (callback) => {
 				return await callback()
 			})
 
 			vi.mocked(db.transaction).mockImplementation(mockTransaction)
-			vi.spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
-			vi.spyOn(fakeRecipeService, 'getById').mockResolvedValue(mockRecipe)
-			vi.spyOn(fakeRecipeService, 'handleCalculateCost').mockResolvedValue(mockCostResult)
-			vi.spyOn(fakeInventoryService.transaction, 'handleProductionIn').mockResolvedValue(undefined)
-			vi.spyOn(fakeRepo, 'update').mockResolvedValue({
+			spyOn(service, 'getById').mockResolvedValue(mockWorkOrder)
+			spyOn(fakeRecipeService, 'getById').mockResolvedValue(mockRecipe)
+			spyOn(fakeRecipeService, 'handleCalculateCost').mockResolvedValue(mockCostResult)
+			spyOn(fakeInventoryService.transaction, 'handleProductionIn').mockResolvedValue(undefined)
+			spyOn(fakeRepo, 'update').mockResolvedValue({
 				...mockWorkOrder,
 				status: 'completed',
 				actualQty: '95',

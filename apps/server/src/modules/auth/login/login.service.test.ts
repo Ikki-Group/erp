@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
 import { LoginService } from './login.service'
 import { UnauthorizedError } from '@/core/http/errors'
