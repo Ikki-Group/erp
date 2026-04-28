@@ -50,4 +50,32 @@ export class MockAuthService {
 		}
 		return null
 	}
+
+	async getById(id: number): Promise<AuthenticatedUser | null> {
+		// Return mock user for any ID
+		if (id === 1) {
+			return mockAuthenticatedUser
+		}
+		return null
+	}
+}
+
+/**
+ * Mock login service for testing without database sessions.
+ */
+export class MockLoginService {
+	async login(): Promise<{ user: AuthenticatedUser; token: string }> {
+		return {
+			user: mockAuthenticatedUser,
+			token: 'mock-test-token',
+		}
+	}
+
+	async getById(id: number): Promise<AuthenticatedUser | null> {
+		// Return mock user for any ID
+		if (id === 1) {
+			return mockAuthenticatedUser
+		}
+		return null
+	}
 }

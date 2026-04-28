@@ -72,9 +72,11 @@ export function createIntegrationTestAppWithMockAuth() {
 	const modules = initModules(db)
 	const routes = initRoutes(modules)
 
-	// Replace auth service with mock
+	// Replace auth and login services with mocks
 	const mockAuthService = new MockAuthService()
-	modules.auth = mockAuthService as any
+	const mockLoginService = new MockLoginService()
+	;(modules as any).auth = mockAuthService
+	;(modules as any).auth.login = mockLoginService
 
 	const app = createApp(modules)
 	routes.register(app)
