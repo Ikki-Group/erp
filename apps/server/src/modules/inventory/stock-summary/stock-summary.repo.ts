@@ -16,11 +16,16 @@ import {
 	sum,
 } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT, cacheEventBus } from '@/core/cache'
-import { paginate, type WithPaginationResult } from '@/core/database'
+import {
+	CACHE_KEY_DEFAULT,
+	cacheEventBus,
+	type CacheClient,
+	type CacheProvider,
+} from '@/core/cache'
+import { paginate, type WithPaginationResult, type DbClient } from '@/core/database'
+import { logger } from '@/core/logger'
 import { toWibDateKey } from '@/core/utils/date.util'
 
-import { db } from '@/db'
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 
 import type {
@@ -30,15 +35,26 @@ import type {
 	StockSummarySelectDto,
 } from './stock-summary.dto'
 
-const cache = bento.namespace('inventory.summary')
+const STOCK_SUMMARY_CACHE_NAMESPACE = 'inventory.summary'
 
 export class StockSummaryRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(STOCK_SUMMARY_CACHE_NAMESPACE)
+	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
 	async #clearCache() {
-		return record('StockSummaryRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, 'by-location', 'ledger', CACHE_KEY_DEFAULT.count]
-			await cache.deleteMany({ keys })
+		const keys = [CACHE_KEY_DEFAULT.list, 'by-location', 'ledger', CACHE_KEY_DEFAULT.count]
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(): void {
+		void this.#clearCache().catch((error: unknown) => {
+			logger.error(error, 'StockSummaryRepo cache invalidation failed')
 		})
 	}
 
@@ -51,7 +67,7 @@ export class StockSummaryRepo {
 			const { locationId, materialId, dateFrom, dateTo, page, limit } = filter
 
 			const key = `by-location.${JSON.stringify(filter)}`
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const where = and(
@@ -64,7 +80,7 @@ export class StockSummaryRepo {
 
 					const result = await paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select({
 									id: stockSummariesTable.id,
 									materialId: stockSummariesTable.materialId,
@@ -107,7 +123,7 @@ export class StockSummaryRepo {
 								.limit(l)
 								.offset(offset),
 						pq: { page, limit },
-						countQuery: db
+						countQuery: this.db
 							.select({ count: count() })
 							.from(stockSummariesTable)
 							.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
@@ -130,7 +146,7 @@ export class StockSummaryRepo {
 			const { locationId, materialId, dateFrom, dateTo, q, page, limit } = filter
 
 			const key = `ledger.${JSON.stringify(filter)}`
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const startKey = toWibDateKey(dateFrom)
@@ -147,7 +163,7 @@ export class StockSummaryRepo {
 
 					const matResult = await paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select({
 									id: materialsTable.id,
 									name: materialsTable.name,
@@ -161,7 +177,7 @@ export class StockSummaryRepo {
 								.limit(l)
 								.offset(offset),
 						pq: { page, limit },
-						countQuery: db.select({ count: count() }).from(materialsTable).where(matWhere),
+						countQuery: this.db.select({ count: count() }).from(materialsTable).where(matWhere),
 					})
 
 					if (matResult.data.length === 0) {
@@ -183,14 +199,14 @@ export class StockSummaryRepo {
 						) latest
 						GROUP BY "materialId"
 					`
-					const openingRaw = (await db.execute(openingQuery)) as unknown as {
+					const openingRaw = (await this.db.execute(openingQuery)) as unknown as {
 						materialId: number
 						total_qty: string
 					}[]
 					const openingMap = new Map(openingRaw.map((r) => [r.materialId, r.total_qty]))
 
 					// B. Movements
-					const movements = await db
+					const movements = await this.db
 						.select({
 							materialId: stockSummariesTable.materialId,
 							purchaseQty: sum(stockSummariesTable.purchaseQty),
@@ -230,7 +246,7 @@ export class StockSummaryRepo {
 						) latest
 						GROUP BY "materialId"
 					`
-					const closingRaw = (await db.execute(closingQuery)) as unknown as {
+					const closingRaw = (await this.db.execute(closingQuery)) as unknown as {
 						materialId: number
 						total_qty: string
 						total_value: string
@@ -287,7 +303,7 @@ export class StockSummaryRepo {
 
 	async upsertMany(data: (typeof stockSummariesTable.$inferInsert)[]): Promise<number> {
 		return record('StockSummaryRepo.upsertMany', async () => {
-			await db
+			await this.db
 				.insert(stockSummariesTable)
 				.values(data)
 				.onConflictDoUpdate({
@@ -326,7 +342,7 @@ export class StockSummaryRepo {
 						deletedBy: null,
 					},
 				})
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			// Emit event for potential listeners
 			cacheEventBus.emit('stock-summary.updated', { count: data.length })
 			return data.length
@@ -335,7 +351,7 @@ export class StockSummaryRepo {
 
 	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('StockSummaryRepo.softDelete', async () => {
-			await db
+			await this.db
 				.update(stockSummariesTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(stockSummariesTable.id, id))
@@ -346,7 +362,7 @@ export class StockSummaryRepo {
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('StockSummaryRepo.hardDelete', async () => {
-			await db.delete(stockSummariesTable).where(eq(stockSummariesTable.id, id))
+			await this.db.delete(stockSummariesTable).where(eq(stockSummariesTable.id, id))
 			void this.#clearCache()
 			return { id }
 		})

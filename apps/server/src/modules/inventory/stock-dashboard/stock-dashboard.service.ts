@@ -4,7 +4,7 @@ import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
 import { StockDashboardRepo } from './stock-dashboard.repo'
 
 export class StockDashboardService {
-	private readonly repo = new StockDashboardRepo()
+	constructor(private readonly repo: StockDashboardRepo) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

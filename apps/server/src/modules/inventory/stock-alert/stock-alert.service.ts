@@ -4,7 +4,7 @@ import type { StockAlertFilterDto } from './stock-alert.dto'
 import { StockAlertRepo } from './stock-alert.repo'
 
 export class StockAlertService {
-	private readonly repo = new StockAlertRepo()
+	constructor(private readonly repo: StockAlertRepo) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

@@ -21,6 +21,7 @@ import type {
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
 } from './stock-transaction.dto'
+import { StockTransactionRepo } from './stock-transaction.repo'
 import { StockExternalMovementService } from './sub-services/stock-external-movement.service'
 import { StockHistoryService } from './sub-services/stock-history.service'
 import { StockInternalMovementService } from './sub-services/stock-internal-movement.service'
@@ -35,8 +36,11 @@ export class StockTransactionService {
 	private readonly external: StockExternalMovementService
 	private readonly internal: StockInternalMovementService
 
-	constructor(mLocationSvc: MaterialLocationService) {
-		this.history = new StockHistoryService()
+	constructor(
+		mLocationSvc: MaterialLocationService,
+		private readonly repo: StockTransactionRepo,
+	) {
+		this.history = new StockHistoryService(this.repo)
 		this.external = new StockExternalMovementService(mLocationSvc)
 		this.internal = new StockInternalMovementService(mLocationSvc)
 	}

@@ -1,23 +1,27 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
-import { bento, cacheEventBus } from '@/core/cache'
+import { cacheEventBus, type CacheClient, type CacheProvider } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 
-import { db } from '@/db'
 import { locationsTable } from '@/db/schema/location'
 import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
 
 import type { StockAlertFilterDto } from './stock-alert.dto'
 
-const cache = bento.namespace('inventory.alert')
+const STOCK_ALERT_CACHE_NAMESPACE = 'inventory.alert'
 
 export class StockAlertRepo {
-	/* -------------------------------- INTERNAL -------------------------------- */
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
 
-	constructor() {
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(STOCK_ALERT_CACHE_NAMESPACE)
+
 		// Subscribe to external events for cross-domain cache invalidation
 		cacheEventBus.on('material-location.stock-updated', () => {
-			void cache.clear()
+			void this.cache.clear()
 		})
 	}
 
@@ -29,7 +33,7 @@ export class StockAlertRepo {
 			const limit = filter.limit ?? 20
 			const key = `alerts.${JSON.stringify(filter)}`
 
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const offset = (page - 1) * limit
@@ -60,7 +64,7 @@ export class StockAlertRepo {
 					const whereClause = and(...conditions.filter(Boolean))
 
 					const [data, countRes] = await Promise.all([
-						db
+						this.db
 							.select({
 								materialId: materialsTable.id,
 								materialName: materialsTable.name,
@@ -80,7 +84,7 @@ export class StockAlertRepo {
 							.limit(limit)
 							.offset(offset)
 							.orderBy(materialLocationsTable.currentQty),
-						db
+						this.db
 							.select({ count: sql<number>`cast(count(*) as int)` })
 							.from(materialLocationsTable)
 							.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
@@ -98,7 +102,7 @@ export class StockAlertRepo {
 	async getAlertCount(filter: StockAlertFilterDto) {
 		return record('StockAlertRepo.getAlertCount', async () => {
 			const key = `count.${JSON.stringify(filter)}`
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const conditions = [
@@ -126,7 +130,7 @@ export class StockAlertRepo {
 
 					const whereClause = and(...conditions.filter(Boolean))
 
-					const countRes = await db
+					const countRes = await this.db
 						.select({ count: sql<number>`cast(count(*) as int)` })
 						.from(materialLocationsTable)
 						.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))

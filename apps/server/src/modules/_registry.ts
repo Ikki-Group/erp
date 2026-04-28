@@ -63,7 +63,7 @@ export function initModules(db: DbClient): Modules {
 	const auth = new AuthServiceModule(db, cacheClient, iam)
 
 	// Layer 2 — Operations
-	const inventory = new InventoryServiceModule(material)
+	const inventory = new InventoryServiceModule(db, cacheClient, material)
 	const recipe = new RecipeServiceModule()
 	const sales = new SalesServiceModule()
 	const purchasing = new PurchasingServiceModule(inventory)

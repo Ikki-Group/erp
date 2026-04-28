@@ -11,7 +11,7 @@ import type {
 import { StockTransactionRepo } from '../stock-transaction.repo'
 
 export class StockHistoryService {
-	private readonly repo = new StockTransactionRepo()
+	constructor(private readonly repo: StockTransactionRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

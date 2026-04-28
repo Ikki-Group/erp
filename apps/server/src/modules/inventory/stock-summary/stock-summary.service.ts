@@ -20,9 +20,10 @@ import type {
 import { StockSummaryRepo } from './stock-summary.repo'
 
 export class StockSummaryService {
-	private readonly repo = new StockSummaryRepo()
-
-	constructor(private readonly mLocationSvc: MaterialLocationService) {}
+	constructor(
+		private readonly repo: StockSummaryRepo,
+		private readonly mLocationSvc: MaterialLocationService,
+	) {}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 

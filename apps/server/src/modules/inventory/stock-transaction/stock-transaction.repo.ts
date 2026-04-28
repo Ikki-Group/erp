@@ -2,12 +2,16 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { bento, CACHE_KEY_DEFAULT, cacheEventBus } from '@/core/cache'
-import { paginate, takeFirst } from '@/core/database'
+import {
+	CACHE_KEY_DEFAULT,
+	cacheEventBus,
+	type CacheClient,
+	type CacheProvider,
+} from '@/core/cache'
+import { paginate, takeFirst, type DbClient, type WithPaginationResult } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import { logger } from '@/core/logger'
 
-import { db } from '@/db'
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
 import type {
@@ -16,16 +20,27 @@ import type {
 	StockTransactionDto,
 } from './stock-transaction.dto'
 
-const cache = bento.namespace('inventory.transaction')
+const STOCK_TRANSACTION_CACHE_NAMESPACE = 'inventory.transaction'
 
 export class StockTransactionRepo {
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
+
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(STOCK_TRANSACTION_CACHE_NAMESPACE)
+	}
 	/* -------------------------------- INTERNAL -------------------------------- */
 
-	#clearCache(id?: number): Promise<void> {
-		return record('StockTransactionRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
+	async #clearCache(id?: number): Promise<void> {
+		const keys = [CACHE_KEY_DEFAULT.list]
+		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
+		await this.cache.deleteMany({ keys })
+	}
+
+	#clearCacheAsync(id?: number): void {
+		void this.#clearCache(id).catch((error: unknown) => {
+			logger.error(error, 'StockTransactionRepo cache invalidation failed')
 		})
 	}
 
@@ -39,7 +54,7 @@ export class StockTransactionRepo {
 
 			const key = CACHE_KEY_DEFAULT.list + JSON.stringify(filter)
 
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const searchCondition = search
@@ -77,7 +92,7 @@ export class StockTransactionRepo {
 
 					return paginate({
 						data: ({ limit: l, offset }) =>
-							db
+							this.db
 								.select({
 									id: stockTransactionsTable.id,
 									materialId: stockTransactionsTable.materialId,
@@ -105,7 +120,7 @@ export class StockTransactionRepo {
 								.limit(l)
 								.offset(offset),
 						pq: { page, limit },
-						countQuery: db
+						countQuery: this.db
 							.select({ count: count() })
 							.from(stockTransactionsTable)
 							.leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
@@ -119,10 +134,10 @@ export class StockTransactionRepo {
 	async getById(id: number): Promise<StockTransactionDto | null> {
 		return record('StockTransactionRepo.getById', async () => {
 			const key = CACHE_KEY_DEFAULT.byId(id)
-			const cached = await cache.getOrSet<StockTransactionDto | undefined>({
+			const cached = await this.cache.getOrSet<StockTransactionDto | undefined>({
 				key,
 				factory: async ({ skip }) => {
-					const result = await db
+					const result = await this.db
 						.select()
 						.from(stockTransactionsTable)
 						.where(and(eq(stockTransactionsTable.id, id), isNull(stockTransactionsTable.deletedAt)))
@@ -139,7 +154,7 @@ export class StockTransactionRepo {
 	async getByIds(ids: number[]): Promise<StockTransactionDto[]> {
 		if (ids.length === 0) return []
 		return record('StockTransactionRepo.getByIds', async () => {
-			return db
+			return this.db
 				.select()
 				.from(stockTransactionsTable)
 				.where(
@@ -152,11 +167,11 @@ export class StockTransactionRepo {
 
 	async create(data: typeof stockTransactionsTable.$inferInsert): Promise<StockTransactionDto> {
 		return record('StockTransactionRepo.create', async () => {
-			const [result] = await db.insert(stockTransactionsTable).values(data).returning()
+			const [result] = await this.db.insert(stockTransactionsTable).values(data).returning()
 
 			if (!result) throw new Error('Failed to create stock transaction')
 
-			void this.#clearCache()
+			this.#clearCacheAsync()
 			// Emit event for cross-domain invalidation (e.g., stock summary may need update)
 			cacheEventBus.emit('stock-transaction.created', {
 				id: result.id,
@@ -171,19 +186,19 @@ export class StockTransactionRepo {
 	async softDelete(id: number, deletedBy: number): Promise<{ id: number }> {
 		return record('StockTransactionRepo.softDelete', async () => {
 			const timestamp = new Date()
-			await db
+			await this.db
 				.update(stockTransactionsTable)
 				.set({ deletedAt: timestamp, deletedBy })
 				.where(eq(stockTransactionsTable.id, id))
 
-			void this.#clearCache(id)
+			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('StockTransactionRepo.hardDelete', async () => {
-			const result = await db
+			const result = await this.db
 				.delete(stockTransactionsTable)
 				.where(eq(stockTransactionsTable.id, id))
 				.returning({ id: stockTransactionsTable.id })

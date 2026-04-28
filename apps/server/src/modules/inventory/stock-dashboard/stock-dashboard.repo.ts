@@ -1,22 +1,26 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
-import { bento, cacheEventBus } from '@/core/cache'
+import { cacheEventBus, type CacheClient, type CacheProvider } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 
-import { db } from '@/db'
 import { materialLocationsTable, materialsTable } from '@/db/schema/material'
 
 import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
 
-const cache = bento.namespace('inventory.dashboard')
+const STOCK_DASHBOARD_CACHE_NAMESPACE = 'inventory.dashboard'
 
 export class StockDashboardRepo {
-	/* -------------------------------- INTERNAL -------------------------------- */
+	private readonly db: DbClient
+	private readonly cache: CacheProvider
 
-	constructor() {
+	constructor(db: DbClient, cacheClient: CacheClient) {
+		this.db = db
+		this.cache = cacheClient.namespace(STOCK_DASHBOARD_CACHE_NAMESPACE)
+
 		// Subscribe to external events for cross-domain cache invalidation
 		cacheEventBus.on('material-location.stock-updated', () => {
-			void cache.clear()
+			void this.cache.clear()
 		})
 	}
 
@@ -25,7 +29,7 @@ export class StockDashboardRepo {
 	async getKpi(filter: DashboardKpiFilterDto) {
 		return record('StockDashboardRepo.getKpi', async () => {
 			const key = `kpi.${JSON.stringify(filter)}`
-			return cache.getOrSet({
+			return this.cache.getOrSet({
 				key,
 				factory: async () => {
 					const conditions = [
@@ -38,7 +42,7 @@ export class StockDashboardRepo {
 
 					const whereClause = and(...conditions.filter(Boolean))
 
-					const res = await db
+					const res = await this.db
 						.select({
 							totalStockValue: sql<number>`COALESCE(SUM(CAST(${materialLocationsTable.currentValue} AS FLOAT)), 0)`,
 							totalActiveSku: sql<number>`COUNT(DISTINCT ${materialLocationsTable.materialId})`,
