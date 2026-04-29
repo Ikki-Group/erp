@@ -483,6 +483,30 @@ export class MokaTransformationService {
 
 			// 12. Automated GL Posting
 			await this.postSalesToGL(order.id, sale, actorId)
+
+			// 13. Refund GL Reversal (if refund exists)
+			if (orderRefund > 0) {
+				await this.postRefundToGL(order.id, sale, orderRefund, actorId)
+			}
+
+			// 14. Record refund details for audit trail
+			if (sale.order_refunds?.length) {
+				for (const refund of sale.order_refunds) {
+					await tx.insert(salesRefundsTable).values({
+						orderId: order.id,
+						itemId: null, // order-level refund
+						amount: String(refund.amount ?? 0),
+						reason: refund.reason ?? 'Moka refund',
+						refundedBy: actorId,
+						refundedAt: new Date(sale.created_at),
+						metadata: {
+							moka_refunded_by: refund.refunded_by,
+							created_at: refund.created_at,
+						},
+						...stampCreate(actorId),
+					})
+				}
+			}
 		})
 	}
 
@@ -558,6 +582,65 @@ export class MokaTransformationService {
 			},
 			actorId,
 		)
+	}
+
+	private async postRefundToGL(
+		orderId: number,
+		sale: MokaSalesDetailRaw,
+		refundAmount: number,
+		actorId: number,
+	) {
+		const cashAcc = await this.accountSvc.findByCode('1101')
+		const salesAcc = await this.accountSvc.findByCode('4101')
+		const taxAcc = await this.accountSvc.findByCode('2104')
+
+		if (!cashAcc || !salesAcc || !taxAcc) {
+			console.warn('Accounting accounts not initialized, skipping GL refund posting')
+			return
+		}
+
+		// Compute proportional refund amounts
+		const orderDiscount = (sale.order_discounts ?? []).reduce((sum, d) => sum + (d.amount ?? 0), 0)
+		const orderTax = (sale.order_taxes ?? []).reduce((sum, t) => sum + (t.amount ?? 0), 0)
+		const orderGratuity = (sale.order_gratuities ?? []).reduce((sum, g) => sum + (g.amount ?? 0), 0)
+
+		const netSales = Math.max(0, sale.subtotal - orderDiscount)
+		const totalCollected = sale.total_collected_amount
+
+		// Calculate refund proportions
+		const refundRatio = refundAmount / totalCollected
+		const refundSales = Math.round(netSales * refundRatio)
+		const refundTax = Math.round((orderTax + orderGratuity) * refundRatio)
+		const refundCash = refundAmount
+
+		const refundNarration = this.buildRefundNarration(sale, refundAmount)
+
+		await this.journalSvc.postEntry(
+			{
+				date: new Date(sale.created_at),
+				reference: `MOKA-REFUND-${sale.payment_no}`,
+				sourceType: 'sales',
+				sourceId: orderId,
+				note: refundNarration,
+				items: [
+					{ accountId: salesAcc.id, debit: String(refundSales), credit: '0' },
+					{ accountId: taxAcc.id, debit: String(refundTax), credit: '0' },
+					{ accountId: cashAcc.id, debit: '0', credit: String(refundCash) },
+				],
+			},
+			actorId,
+		)
+	}
+
+	private buildRefundNarration(sale: MokaSalesDetailRaw, refundAmount: number): string {
+		const parts = [`Moka Refund #${sale.payment_no}`, `Amount: ${refundAmount}`]
+
+		if (sale.order_refunds?.length) {
+			const reasons = sale.order_refunds.map((r) => r.reason ?? 'No reason').join(', ')
+			parts.push(`Reason(s): ${reasons}`)
+		}
+
+		return parts.join(' | ')
 	}
 
 	/* ─── Helpers ───────────────────────────────────────────────────────────── */

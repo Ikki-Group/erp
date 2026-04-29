@@ -13,6 +13,7 @@ import { auditColumns, pk } from '@/core/database/schema'
 
 import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
 import { customersTable } from './customer'
+import { usersTable } from './iam'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
 
@@ -184,13 +185,36 @@ export const salesVoidsTable = pgTable(
 		// If itemId is null, it means the whole order is voided
 		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
 		reason: text(),
-		voidedBy: integer().notNull(),
-		// Raw void data from third-party (Moka item_name, void_by, uuid, etc.)
+		voidedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
 		metadata: jsonb(),
-
 		...auditColumns,
 	},
 	(t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
+)
+
+// ─── Sales Refunds ────────────────────────────────────────────────────────────
+
+export const salesRefundsTable = pgTable(
+	'sales_refunds',
+	{
+		...pk,
+		orderId: integer()
+			.notNull()
+			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+		// If itemId is null, it's an order-level refund
+		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
+		amount: numeric({ precision: 18, scale: 2 }).notNull(),
+		reason: text(),
+		refundedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
+		refundedAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
+		metadata: jsonb(),
+		...auditColumns,
+	},
+	(t) => [
+		index('sales_refunds_order_idx').on(t.orderId),
+		index('sales_refunds_item_idx').on(t.itemId),
+		index('sales_refunds_date_idx').on(t.refundedAt),
+	],
 )
 
 // ─── Sales External Refs ──────────────────────────────────────────────────────

@@ -62,6 +62,7 @@ export {
 	salesOrderItemsTable,
 	salesOrdersTable,
 	salesVoidsTable,
+	salesRefundsTable,
 	salesInvoicesTable,
 	salesInvoiceItemsTable,
 } from './sales'
