@@ -41,7 +41,7 @@ function RouteComponent() {
 	const { data, isLoading } = useQuery(
 		stockTransactionApi.list.query({
 			...ds.pagination,
-			q: ds.search || undefined,
+			search: ds.search || undefined,
 			locationId: undefined,
 		}),
 	)

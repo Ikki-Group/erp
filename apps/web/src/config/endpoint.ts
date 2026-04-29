@@ -59,6 +59,7 @@ const inventory = {
 		byLocation: 'inventory/summary/by-location',
 		ledger: 'inventory/summary/ledger',
 		generate: 'inventory/summary/generate',
+		remove: 'inventory/summary/remove',
 	},
 	transaction: {
 		...crud('inventory/transaction'),
