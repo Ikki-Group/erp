@@ -1,54 +1,65 @@
 import { z } from 'zod'
 
+import { zp, zc, zq } from '@/lib/validation'
+
+/* ---------------------------------- ENUM ---------------------------------- */
+
 export const ExpenditureTypeEnum = z.enum(['BILLS', 'ASSET', 'PURCHASES'])
 export type ExpenditureTypeEnum = z.infer<typeof ExpenditureTypeEnum>
 
 export const ExpenditureStatusEnum = z.enum(['PENDING', 'PAID', 'VOID', 'REFUNDED'])
 export type ExpenditureStatusEnum = z.infer<typeof ExpenditureStatusEnum>
 
+/* ---------------------------------- ENTITY ---------------------------------- */
+
 export const ExpenditureDto = z.object({
-	id: z.number(),
+	...zc.RecordId.shape,
 	type: ExpenditureTypeEnum,
 	status: ExpenditureStatusEnum,
-	title: z.string(),
-	description: z.string().nullable(),
-	date: z.string().or(z.date()),
-	amount: z.string().or(z.number()),
-	sourceAccountId: z.number(),
-	targetAccountId: z.number(),
-	liabilityAccountId: z.number().nullable(),
-	supplierId: z.number().nullable(),
-	locationId: z.number(),
-	isInstallment: z.boolean(),
-	createdAt: z.string().or(z.date()),
-	updatedAt: z.string().or(z.date()),
-	createdBy: z.number(),
-	updatedBy: z.number().nullable(),
+	title: zp.str,
+	description: zp.strNullable,
+	date: zp.date,
+	amount: zp.decimal,
+	sourceAccountId: zp.id,
+	targetAccountId: zp.id,
+	liabilityAccountId: zp.id.nullable(),
+	supplierId: zp.id.nullable(),
+	locationId: zp.id,
+	isInstallment: zp.bool,
+	...zc.AuditBasic.shape,
 })
 export type ExpenditureDto = z.infer<typeof ExpenditureDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
 
 export const ExpenditureCreateDto = z.object({
 	type: ExpenditureTypeEnum,
 	status: ExpenditureStatusEnum.default('PAID'),
-	title: z.string().min(1, 'Judul wajib diisi'),
-	description: z.string().optional().nullable(),
-	date: z.date().default(() => new Date()),
-	amount: z.number().min(1, 'Nominal wajib diisi'),
-	sourceAccountId: z.number().min(1, 'Pilih asal dana'),
-	targetAccountId: z.number().min(1, 'Pilih kategori biaya/aset'),
-	liabilityAccountId: z.number().optional().nullable(),
-	supplierId: z.number().optional().nullable(),
-	locationId: z.number().min(1, 'Lokasi wajib diisi'),
-	isInstallment: z.boolean().default(false),
+	title: zc.strTrim.min(3).max(100),
+	description: zc.strTrimNullable,
+	date: zp.date.default(() => new Date()),
+	amount: zp.decimal,
+	sourceAccountId: zp.id,
+	targetAccountId: zp.id,
+	liabilityAccountId: zp.id.optional().nullable(),
+	supplierId: zp.id.optional().nullable(),
+	locationId: zp.id,
+	isInstallment: zp.bool.default(false),
 })
 export type ExpenditureCreateDto = z.infer<typeof ExpenditureCreateDto>
 
+export const ExpenditureUpdateDto = ExpenditureCreateDto.extend({
+	...zc.RecordId.shape,
+})
+export type ExpenditureUpdateDto = z.infer<typeof ExpenditureUpdateDto>
+
+/* --------------------------------- FILTER --------------------------------- */
+
 export const ExpenditureFilterDto = z.object({
-	page: z.number().optional(),
-	limit: z.number().optional(),
-	search: z.string().optional(),
+	...zq.pagination.shape,
+	q: zq.search,
 	type: ExpenditureTypeEnum.optional(),
 	status: ExpenditureStatusEnum.optional(),
-	locationId: z.number().optional(),
+	locationId: zq.id.optional(),
 })
 export type ExpenditureFilterDto = z.infer<typeof ExpenditureFilterDto>

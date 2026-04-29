@@ -11,7 +11,7 @@ import {
 	AccountFilterDto,
 	AccountUpdateDto,
 } from '../dto/account.dto'
-import { JournalEntryFilterDto, JournalEntryWithItemsDto } from '../dto/journal.dto'
+import { JournalEntryWithItemsDto } from '../dto/journal.dto'
 
 export const accountApi = {
 	list: apiFactory({
@@ -50,16 +50,10 @@ export const accountApi = {
 }
 
 export const generalLedgerApi = {
-	entries: apiFactory({
+	entry: apiFactory({
 		method: 'get',
-		url: endpoint.finance.journal.entries,
-		params: JournalEntryFilterDto,
-		result: createSuccessResponseSchema(z.array(JournalEntryWithItemsDto)),
-	}),
-	detail: apiFactory({
-		method: 'get',
-		url: endpoint.finance.journal.detail,
-		params: zc.RecordId,
+		url: endpoint.finance.journal.entry,
+		params: z.object({ sourceType: z.string(), sourceId: z.coerce.number() }),
 		result: createSuccessResponseSchema(JournalEntryWithItemsDto),
 	}),
 }

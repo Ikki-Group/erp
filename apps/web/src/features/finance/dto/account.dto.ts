@@ -10,28 +10,25 @@ export const AccountDto = z.object({
 	code: zp.str,
 	name: zp.str,
 	type: AccountTypeEnum,
-	isGroup: z.boolean(),
+	isGroup: zp.bool,
 	parentId: zp.id.nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type AccountDto = z.infer<typeof AccountDto>
 
-export const AccountCreateDto = z.object({
-	code: zp.str,
-	name: zp.str,
+const AccountMutationDto = z.object({
+	code: zc.strTrim.min(1).max(20),
+	name: zc.strTrim.min(1).max(100),
 	type: AccountTypeEnum,
-	isGroup: z.boolean().default(false),
+	isGroup: zp.bool.default(false),
 	parentId: zp.id.optional().nullable(),
 })
+
+export const AccountCreateDto = AccountMutationDto
 export type AccountCreateDto = z.infer<typeof AccountCreateDto>
 
-export const AccountUpdateDto = z.object({
+export const AccountUpdateDto = AccountMutationDto.extend({
 	...zc.RecordId.shape,
-	code: zp.str,
-	name: zp.str,
-	type: AccountTypeEnum,
-	isGroup: z.boolean(),
-	parentId: zp.id.optional().nullable(),
 })
 export type AccountUpdateDto = z.infer<typeof AccountUpdateDto>
 
@@ -39,6 +36,6 @@ export const AccountFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	type: AccountTypeEnum.optional(),
-	parentId: zp.id.optional(),
+	parentId: zq.id.optional(),
 })
 export type AccountFilterDto = z.infer<typeof AccountFilterDto>

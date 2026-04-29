@@ -86,7 +86,7 @@ const employee = crud('employee')
 
 const finance = {
 	account: crud('finance/account'),
-	journal: { entries: 'finance/entries', detail: 'finance/entries/detail' },
+	journal: { entry: 'finance/general-ledger/entry' },
 	expenditure: crud('finance/expenditure'),
 }
 

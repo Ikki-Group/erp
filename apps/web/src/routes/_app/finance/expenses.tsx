@@ -78,7 +78,7 @@ const columns = [
 function FinanceExpensesPage() {
 	const [search, setSearch] = useState('')
 
-	const { data: response, isLoading } = useQuery(expenditureApi.list.query({ search }))
+	const { data: response, isLoading } = useQuery(expenditureApi.list.query({ q: search }))
 	const expenditures = response?.data ?? []
 
 	const table = useDataTable({
