@@ -210,19 +210,13 @@ export class MokaTransformationService {
 				continue
 			}
 
-			// Multiple variants — upsert each
-			const existing = await this.db
-				.select()
-				.from(productVariantsTable)
-				.where(
-					and(
-						eq(productVariantsTable.productId, productId),
-						eq(productVariantsTable.name, v.name ?? 'Default'),
-					),
-				)
-			const existingVariant = takeFirst(existing)
+			// Multiple variants — lookup by external mapping first, fallback to name
+			const variantMapping = await this.findVariantMapping(String(v.id))
+			let existingVariantId: number | null = null
 
-			if (existingVariant) {
+			if (variantMapping) {
+				existingVariantId = variantMapping.variantId
+				if (!existingVariantId) continue
 				await this.db
 					.update(productVariantsTable)
 					.set({
@@ -231,27 +225,63 @@ export class MokaTransformationService {
 						basePrice: String(v.price ?? 0),
 						...stampCreate(actorId),
 					})
-					.where(eq(productVariantsTable.id, existingVariant.id))
+					.where(eq(productVariantsTable.id, existingVariantId))
 
-				await this.ensureVariantMapping(productId, existingVariant.id, v.id, actorId)
-				await this.syncSalesTypePrices(productId, existingVariant.id, v, actorId)
+				// Update mapping sync data
+				await this.db
+					.update(productExternalMappingsTable)
+					.set({ lastSyncedAt: new Date() })
+					.where(eq(productExternalMappingsTable.id, variantMapping.id))
 			} else {
-				const [newVar] = await this.db
-					.insert(productVariantsTable)
-					.values({
-						productId,
-						name: v.name ?? 'Default',
-						sku: v.sku ?? null,
-						basePrice: String(v.price ?? 0),
-						isDefault: v.position === undefined || v.position === 0,
-						...stampCreate(actorId),
-					})
-					.returning({ id: productVariantsTable.id })
+				// Fallback: lookup by name for previously synced variants without mapping
+				const existing = await this.db
+					.select()
+					.from(productVariantsTable)
+					.where(
+						and(
+							eq(productVariantsTable.productId, productId),
+							eq(productVariantsTable.name, v.name ?? 'Default'),
+						),
+					)
+				const existingVariant = takeFirst(existing)
 
-				if (newVar) {
-					await this.ensureVariantMapping(productId, newVar.id, v.id, actorId)
-					await this.syncSalesTypePrices(productId, newVar.id, v, actorId)
+				if (existingVariant) {
+					existingVariantId = existingVariant.id
+					await this.db
+						.update(productVariantsTable)
+						.set({
+							name: v.name ?? 'Default',
+							sku: v.sku ?? null,
+							basePrice: String(v.price ?? 0),
+							...stampCreate(actorId),
+						})
+						.where(eq(productVariantsTable.id, existingVariant.id))
+
+					// Create mapping for existing variant
+					await this.ensureVariantMapping(productId, existingVariant.id, v.id, actorId)
+				} else {
+					// Truly new variant
+					const [newVar] = await this.db
+						.insert(productVariantsTable)
+						.values({
+							productId,
+							name: v.name ?? 'Default',
+							sku: v.sku ?? null,
+							basePrice: String(v.price ?? 0),
+							isDefault: v.position === undefined || v.position === 0,
+							...stampCreate(actorId),
+						})
+						.returning({ id: productVariantsTable.id })
+
+					if (newVar) {
+						existingVariantId = newVar.id
+						await this.ensureVariantMapping(productId, newVar.id, v.id, actorId)
+					}
 				}
+			}
+
+			if (existingVariantId) {
+				await this.syncSalesTypePrices(productId, existingVariantId, v, actorId)
 			}
 		}
 	}
@@ -370,8 +400,10 @@ export class MokaTransformationService {
 			// 4. Skip empty orders (all items voided)
 			if (activeItems.length === 0 && (sale.items ?? []).length > 0) return
 
-			// 5. Determine sales type from payment_type_label
-			const salesTypeName = sale.payment_type_label ?? 'Moka'
+			// 5. Determine sales type from first active item's sales_type_name (Dine In / Take Away)
+			//    Payment method (Cash/Card) is NOT a sales type — it goes in metadata
+			const firstItem = activeItems[0]
+			const salesTypeName = firstItem?.sales_type_name ?? 'Default'
 			const salesType = await this.ensureSalesTypeTx(tx, salesTypeName, actorId)
 			if (!salesType) throw new Error('Failed to ensure sales type')
 
@@ -423,6 +455,13 @@ export class MokaTransformationService {
 						itemId: null, // voided before ERP item creation
 						reason: voidItem.void_reason ?? 'Moka void',
 						voidedBy: actorId,
+						metadata: {
+							moka_uuid: voidItem.uuid,
+							item_name: voidItem.item_name,
+							void_by: voidItem.void_by,
+							quantity: voidItem.quantity,
+							price: voidItem.price,
+						},
 						...stampCreate(actorId),
 					})
 				}
@@ -517,6 +556,19 @@ export class MokaTransformationService {
 					eq(productExternalMappingsTable.provider, 'moka'),
 					eq(productExternalMappingsTable.externalId, externalId),
 					isNull(productExternalMappingsTable.variantId),
+				),
+			)
+		return takeFirst(result)
+	}
+
+	private async findVariantMapping(externalId: string) {
+		const result = await this.db
+			.select()
+			.from(productExternalMappingsTable)
+			.where(
+				and(
+					eq(productExternalMappingsTable.provider, 'moka'),
+					eq(productExternalMappingsTable.externalId, externalId),
 				),
 			)
 		return takeFirst(result)

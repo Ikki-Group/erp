@@ -183,6 +183,8 @@ export const salesVoidsTable = pgTable(
 		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
 		reason: text(),
 		voidedBy: integer().notNull(),
+		// Raw void data from third-party (Moka item_name, void_by, uuid, etc.)
+		metadata: jsonb(),
 
 		...auditColumns,
 	},
