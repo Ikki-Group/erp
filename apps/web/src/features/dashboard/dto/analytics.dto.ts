@@ -11,7 +11,7 @@ export type PnLRequestDto = z.infer<typeof PnLRequestDto>
 export const TopSalesRequestDto = z.object({
 	startDate: zp.date,
 	endDate: zp.date,
-	limit: z.number().int().positive().optional().default(5),
+	limit: zp.num.int().positive().optional().default(5),
 })
 
 export type TopSalesRequestDto = z.infer<typeof TopSalesRequestDto>
