@@ -124,6 +124,41 @@ function DocsLayout() {
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Search</span>
 							</Link>
+							<Link
+								to="/complex-form"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Complex Form</span>
+							</Link>
+							<Link
+								to="/charts"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Charts</span>
+							</Link>
+							<Link
+								to="/detail"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Detail</span>
+							</Link>
+							<Link
+								to="/details"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Details</span>
+							</Link>
+							<Link
+								to="/page-new"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Page New</span>
+							</Link>
 						</div>
 					</div>
 				</nav>
