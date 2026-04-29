@@ -112,6 +112,22 @@ export const blocksPreviews: Record<string, ComponentRegistryEntry['preview']> =
 		</div>
 	),
 
+	ConfirmDialog: () => (
+		<div className="p-4 border rounded-lg bg-muted/50">
+			<p className="text-sm text-muted-foreground">
+				ConfirmDialog is an imperative dialog component. See usage documentation for examples.
+			</p>
+		</div>
+	),
+
+	'ErrorPages (NotFoundPage, ForbiddenPage, etc.)': () => (
+		<div className="p-4 border rounded-lg bg-muted/50">
+			<p className="text-sm text-muted-foreground">
+				Error pages are full-page components used as route error handlers.
+			</p>
+		</div>
+	),
+
 	IkkiLogo: () => (
 		<div className="flex items-center gap-3 p-4 rounded-lg border bg-card">
 			<IkkiLogo />
