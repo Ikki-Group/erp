@@ -11,30 +11,25 @@ export const EmployeeDto = z.object({
 	jobTitle: zp.strNullable,
 	department: zp.strNullable,
 	userId: zp.id.nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type EmployeeDto = z.infer<typeof EmployeeDto>
 
-export const EmployeeCreateDto = z.object({
-	code: zp.str,
-	name: zp.str,
-	email: zp.str.optional().nullable(),
-	phone: zp.str.optional().nullable(),
-	jobTitle: zp.str.optional().nullable(),
-	department: zp.str.optional().nullable(),
+const EmployeeMutationDto = z.object({
+	code: zc.strTrim.uppercase().min(1).max(20),
+	name: zc.fullname,
+	email: zc.email.optional().nullable(),
+	phone: zc.strTrim.min(5).max(20).optional().nullable(),
+	jobTitle: zc.strTrimNullable,
+	department: zc.strTrimNullable,
 	userId: zp.id.optional().nullable(),
 })
+
+export const EmployeeCreateDto = EmployeeMutationDto
 export type EmployeeCreateDto = z.infer<typeof EmployeeCreateDto>
 
-export const EmployeeUpdateDto = z.object({
+export const EmployeeUpdateDto = EmployeeMutationDto.extend({
 	...zc.RecordId.shape,
-	code: zp.str,
-	name: zp.str,
-	email: zp.str.optional().nullable(),
-	phone: zp.str.optional().nullable(),
-	jobTitle: zp.str.optional().nullable(),
-	department: zp.str.optional().nullable(),
-	userId: zp.id.optional().nullable(),
 })
 export type EmployeeUpdateDto = z.infer<typeof EmployeeUpdateDto>
 
