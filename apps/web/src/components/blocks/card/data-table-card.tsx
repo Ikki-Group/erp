@@ -38,12 +38,12 @@ export function DataTableCard<TData extends object>({
 			tableLayout={{ cellBorder: false, columnsPinnable: true }}
 			onRowClick={onRowClick}
 		>
-			<Card className="w-full shadow-sm" size="sm">
-				<CardHeader className="flex items-center justify-between px-4 py-3 border-b border-border">
+			<Card className="gap-0!" size="sm">
+				<CardHeader className="flex items-center justify-between px-4 pb-3 border-b border-border">
 					<CardTitle className="text-base">{title}</CardTitle>
 					{action && <CardAction>{action}</CardAction>}
 				</CardHeader>
-				{toolbar && <div className="px-4 py-3 border-b border-border bg-muted/30">{toolbar}</div>}
+				{toolbar && <div className="px-3 py-3 border-b border-border bg-muted/30">{toolbar}</div>}
 				<div className="w-full">
 					<ScrollArea>
 						<DataGridTable />

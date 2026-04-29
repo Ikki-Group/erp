@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { PencilIcon, Trash2Icon } from 'lucide-react'
+import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -21,6 +21,12 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import { roleApi } from '@/features/iam'
 import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
@@ -75,25 +81,29 @@ function RolesTable() {
 				cell: ({ row }) => {
 					if (row.original.isSystem) return null
 					return (
-						<div className="flex items-center justify-end gap-1 px-2">
-							<Button
-								variant="ghost"
-								size="icon-sm"
-								onClick={() => {
-									void RoleFormDialog.call({ id: row.original.id })
-								}}
-								className="size-8 text-muted-foreground hover:text-foreground"
-							>
-								<PencilIcon className="size-4" />
-							</Button>
-							<Button
-								variant="ghost"
-								size="icon-sm"
-								onClick={() => handleRemove(row.original)}
-								className="size-8 text-muted-foreground hover:text-destructive"
-							>
-								<Trash2Icon className="size-4" />
-							</Button>
+						<div className="flex items-center justify-end px-2">
+							<DropdownMenu>
+								<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+									<MoreHorizontalIcon />
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-36">
+									<DropdownMenuItem
+										onClick={() => {
+											void RoleFormDialog.call({ id: row.original.id })
+										}}
+									>
+										<PencilIcon className="mr-2" />
+										Edit
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										variant="destructive"
+										onClick={() => handleRemove(row.original)}
+									>
+										<Trash2Icon className="mr-2" />
+										Hapus
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 					)
 				},
