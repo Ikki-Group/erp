@@ -6,6 +6,12 @@ import { MokaSyncCursorRepo } from './scrap-sync-cursor.repo'
 export class MokaSyncCursorService {
 	constructor(private readonly repo: MokaSyncCursorRepo) {}
 
+	async getCursor(mokaConfigurationId: number, type: MokaScrapType) {
+		return record('MokaSyncCursorService.getCursor', async () => {
+			return this.repo.getCursor(mokaConfigurationId, type)
+		})
+	}
+
 	async upsertCursor(
 		data: {
 			mokaConfigurationId: number

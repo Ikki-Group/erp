@@ -12,13 +12,17 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 		auth: MokaAuthEngine,
 		logger: Logger,
 		private readonly dateRange: { from: Date; to: Date },
+		private readonly cursorDate?: Date | null,
 	) {
 		super(auth, logger)
 	}
 
 	async fetch(): Promise<MokaSalesDetailRaw[]> {
 		await this.auth.ensureAuthenticated()
-		const days = expandDates(this.dateRange.from, this.dateRange.to)
+
+		// Use cursor date for incremental sync if available
+		const fromDate = this.cursorDate ?? this.dateRange.from
+		const days = expandDates(fromDate, this.dateRange.to)
 		this.logger.info({ days }, 'Moka Sales Engine: Starting fetch')
 
 		const tokens = new Set<string>()
@@ -82,7 +86,6 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 		const response = await api.get<unknown>(`/order-reporting/backoffice/v1/orders/${token}`, {
 			headers: this.getHeaders('OUTLET'),
 		})
-		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 		return MokaSalesDetailRawDto.parse(response.data) as unknown as MokaSalesDetailRaw
 	}
 }

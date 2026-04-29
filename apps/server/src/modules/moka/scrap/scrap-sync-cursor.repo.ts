@@ -15,6 +15,19 @@ export class MokaSyncCursorRepo {
 		this.db = db
 	}
 
+	async getCursor(mokaConfigurationId: number, type: MokaScrapType) {
+		const result = await this.db
+			.select()
+			.from(mokaSyncCursorsTable)
+			.where(
+				and(
+					eq(mokaSyncCursorsTable.mokaConfigurationId, mokaConfigurationId),
+					eq(mokaSyncCursorsTable.type, type),
+				),
+			)
+		return takeFirst(result)
+	}
+
 	async upsertCursor(
 		data: {
 			mokaConfigurationId: number

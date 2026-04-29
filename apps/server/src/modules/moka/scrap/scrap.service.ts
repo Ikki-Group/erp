@@ -87,10 +87,14 @@ export class MokaScrapService {
 					metadata: { count: products.length },
 				})
 			} else if (input.type === 'sales') {
-				const engine = new MokaSalesEngine(auth, this.logger, {
-					from: input.dateFrom ?? new Date(),
-					to: input.dateTo ?? new Date(),
-				})
+				// Use cursor date for incremental sync if available
+				const cursor = await this.cursorSvc.getCursor(config.id, input.type)
+				const engine = new MokaSalesEngine(
+					auth,
+					this.logger,
+					{ from: input.dateFrom ?? new Date(), to: input.dateTo ?? new Date() },
+					cursor?.cursorDate ?? null,
+				)
 				const sales = await engine.fetch()
 				await this.transformSvc.transformSales(config.locationId, sales, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
@@ -110,9 +114,10 @@ export class MokaScrapService {
 				},
 				actorId,
 			)
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const msg = error instanceof Error ? error.message : String(error)
 			await this.historySvc.updateStatus(historyId, 'failed', {
-				errorMessage: error instanceof Error ? error.message : String(error),
+				errorMessage: msg,
 			})
 			throw error
 		}
