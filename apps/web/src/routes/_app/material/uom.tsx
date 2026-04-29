@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import type { CellContext, ColumnDef } from '@tanstack/react-table'
 
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,9 +16,9 @@ import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
 import {
+	actionColumn,
 	createColumnHelper,
 	dateColumn,
-	statusColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
@@ -54,50 +53,42 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(handleDelete: (uom: UomDto) => Promise<void>): ColumnDef<UomDto, any>[] {
+function getColumns(handleDelete: (uom: UomDto) => Promise<void>) {
 	return [
-		ch.accessor(
-			'code',
-			statusColumn({
-				header: 'Kode Satuan',
-				render: (value) => (
-					<div className="flex items-center py-1">
-						<Badge
-							variant="outline"
-							className="h-6 rounded-full px-3 text-[11px] font-bold uppercase tracking-wider text-foreground bg-muted/30 border-muted-foreground/30"
-						>
-							{value}
-						</Badge>
-					</div>
-				),
-				size: 200,
-				enableSorting: false,
-			}),
-		),
+		ch.accessor('code', {
+			header: 'Kode Satuan',
+			size: 200,
+			cell: ({ getValue }) => (
+				<Badge variant="outline" size="sm" className="font-bold uppercase tracking-wider">
+					{getValue()}
+				</Badge>
+			),
+		}),
 		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 200 })),
-		ch.display({
+		actionColumn<UomDto>({
 			id: 'action',
-			cell: ({ row }: CellContext<UomDto, any>) => {
+			size: 60,
+			cell: ({ row }) => {
 				return (
 					<div className="flex items-center justify-end px-2">
 						<DropdownMenu>
 							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon className="size-4" />
+								<MoreHorizontalIcon />
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
+							<DropdownMenuContent align="end" className="w-36">
 								<DropdownMenuItem
 									onClick={() => {
 										void UomFormDialog.upsert({ id: row.original.id })
 									}}
 								>
-									<PencilIcon className="mr-2 size-4" />
+									<PencilIcon className="mr-2" />
 									Edit
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									variant="destructive"
 									onClick={() => void handleDelete(row.original)}
 								>
-									<Trash2Icon className="mr-2 size-4" />
+									<Trash2Icon className="mr-2" />
 									Hapus
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -105,10 +96,6 @@ function getColumns(handleDelete: (uom: UomDto) => Promise<void>): ColumnDef<Uom
 					</div>
 				)
 			},
-			size: 100,
-			enableSorting: false,
-			enableHiding: false,
-			enablePinning: true,
 		}),
 	]
 }
@@ -136,7 +123,7 @@ function UomTable() {
 	}
 
 	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-	const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
+	const columns = useMemo(() => getColumns(handleDelete), [])
 
 	const table = useDataTable({
 		columns: columns,
