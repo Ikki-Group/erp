@@ -515,13 +515,15 @@ export class MokaTransformationService {
 		const taxAmount = Math.max(0, sale.total_collected_amount - sale.subtotal)
 		const totalCollected = sale.total_collected_amount
 
+		const paymentNarration = this.buildPaymentNarration(sale)
+
 		await this.journalSvc.postEntry(
 			{
 				date: new Date(sale.created_at),
 				reference: `MOKA-SALE-${sale.payment_no}`,
 				sourceType: 'sales',
 				sourceId: orderId,
-				note: `Automated posting from Moka Sales Sync (Payment ID: ${sale.payment_no})`,
+				note: paymentNarration,
 				items: [
 					{ accountId: cashAcc.id, debit: String(totalCollected), credit: '0' },
 					{ accountId: salesAcc.id, debit: '0', credit: String(netSales) },
@@ -667,5 +669,24 @@ export class MokaTransformationService {
 		}
 
 		return metadata
+	}
+
+	private buildPaymentNarration(sale: MokaSalesDetailRaw): string {
+		const parts = [`Moka Sales #${sale.payment_no}`]
+
+		if (sale.split_payment_details?.length) {
+			const breakdown = sale.split_payment_details
+				.map((d) => `${d.payment_type_label}: ${d.collected_amount}`)
+				.join(', ')
+			parts.push(`Split payment [${breakdown}]`)
+		} else {
+			parts.push(`Payment: ${sale.payment_type_label ?? sale.payment_type ?? 'unknown'}`)
+		}
+
+		if (sale.order_refunds?.length) {
+			parts.push(`Refunded: yes`)
+		}
+
+		return parts.join(' | ')
 	}
 }

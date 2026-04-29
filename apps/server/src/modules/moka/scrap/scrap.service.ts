@@ -68,23 +68,32 @@ export class MokaScrapService {
 			if (input.type === 'category') {
 				const engine = new MokaCategoryEngine(auth, this.logger)
 				const categories = await engine.fetch()
-				await this.transformSvc.transformCategories(
-					config.locationId,
-					categories,
-					actorId,
-					outletId,
-				)
+				const outletNum = outletId ? Number(outletId) : null
+				const filtered = outletNum
+					? categories.filter((c) => c.outlet_id === outletNum)
+					: categories
+				await this.transformSvc.transformCategories(config.locationId, filtered, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
-					recordsCount: categories.length,
-					metadata: { count: categories.length },
+					recordsCount: filtered.length,
+					metadata: {
+						fetched: categories.length,
+						synced: filtered.length,
+						filteredByOutlet: outletNum ? categories.length - filtered.length : 0,
+					},
 				})
 			} else if (input.type === 'product') {
 				const engine = new MokaProductEngine(auth, this.logger)
 				const products = await engine.fetch()
-				await this.transformSvc.transformProducts(config.locationId, products, actorId, outletId)
+				const outletNum = outletId ? Number(outletId) : null
+				const filtered = outletNum ? products.filter((p) => p.outlet_id === outletNum) : products
+				await this.transformSvc.transformProducts(config.locationId, filtered, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
-					recordsCount: products.length,
-					metadata: { count: products.length },
+					recordsCount: filtered.length,
+					metadata: {
+						fetched: products.length,
+						synced: filtered.length,
+						filteredByOutlet: outletNum ? products.length - filtered.length : 0,
+					},
 				})
 			} else if (input.type === 'sales') {
 				// Use cursor date for incremental sync if available
@@ -96,10 +105,26 @@ export class MokaScrapService {
 					cursor?.cursorDate ?? null,
 				)
 				const sales = await engine.fetch()
-				await this.transformSvc.transformSales(config.locationId, sales, actorId, outletId)
+				const outletNum = outletId ? Number(outletId) : null
+				const filtered = outletNum ? sales.filter((s) => s.outlet_id === outletNum) : sales
+
+				// Pre-sync stats for audit metadata
+				const splitPaymentOrders = filtered.filter((s) => s.split_payment_details?.length).length
+				const voidItemCount = filtered.reduce((sum, s) => sum + (s.void_items?.length ?? 0), 0)
+				const totalItems = filtered.reduce((sum, s) => sum + (s.items?.length ?? 0), 0)
+
+				await this.transformSvc.transformSales(config.locationId, filtered, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
-					recordsCount: sales.length,
-					metadata: { count: sales.length },
+					recordsCount: filtered.length,
+					metadata: {
+						fetched: sales.length,
+						synced: filtered.length,
+						filteredByOutlet: outletNum ? sales.length - filtered.length : 0,
+						totalItems,
+						voidItems: voidItemCount,
+						splitPaymentOrders,
+						dateRange: { from: input.dateFrom, to: input.dateTo },
+					},
 				})
 			}
 
