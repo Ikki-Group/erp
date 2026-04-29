@@ -14,30 +14,62 @@ import type { VariantProps } from 'class-variance-authority'
 /* -------------------------------------------------------------------------- */
 
 const formLayoutVariants = cva('flex flex-1 flex-col animate-enter', {
-	variants: { gap: { sm: 'gap-6', md: 'gap-8', lg: 'gap-10' } },
-	defaultVariants: { gap: 'md' },
+	variants: {
+		gap: {
+			sm: 'gap-4',
+			md: 'gap-6',
+			lg: 'gap-8',
+			xl: 'gap-10',
+		},
+		padding: {
+			none: 'p-0',
+			sm: 'p-4',
+			md: 'p-6',
+			lg: 'p-8',
+		},
+	},
+	defaultVariants: { gap: 'md', padding: 'none' },
 })
 
-type FormLayoutProps = useRender.ComponentProps<'div'> &
-	React.ComponentProps<'div'> &
-	VariantProps<typeof formLayoutVariants>
+export interface FormLayoutProps
+	extends
+		useRender.ComponentProps<'div'>,
+		React.ComponentProps<'div'>,
+		VariantProps<typeof formLayoutVariants> {}
 
-function FormLayout({ gap, render, className, ...props }: FormLayoutProps) {
+function FormLayout({ gap, padding, render, className, ...props }: FormLayoutProps) {
 	return useRender({
 		defaultTagName: 'div',
-		props: mergeProps<'div'>({ className: cn(formLayoutVariants({ gap }), className) }, props),
+		props: mergeProps<'div'>(
+			{ className: cn(formLayoutVariants({ gap, padding }), className) },
+			props,
+		),
 		render,
 	})
 }
 
-function FormContent({
-	className,
-	render,
-	...props
-}: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
+const formContentVariants = cva('flex flex-col', {
+	variants: {
+		gap: {
+			sm: 'gap-4',
+			md: 'gap-6',
+			lg: 'gap-8',
+			xl: 'gap-10',
+		},
+	},
+	defaultVariants: { gap: 'lg' },
+})
+
+export interface FormContentProps
+	extends
+		useRender.ComponentProps<'div'>,
+		React.ComponentProps<'div'>,
+		VariantProps<typeof formContentVariants> {}
+
+function FormContent({ gap, render, className, ...props }: FormContentProps) {
 	return useRender({
 		defaultTagName: 'div',
-		props: mergeProps<'div'>({ className: cn('flex flex-col gap-8', className) }, props),
+		props: mergeProps<'div'>({ className: cn(formContentVariants({ gap }), className) }, props),
 		render,
 	})
 }
@@ -46,25 +78,43 @@ function FormContent({
 /*  FormGrid                                                                  */
 /* -------------------------------------------------------------------------- */
 
-const formGridVariants = cva('grid gap-y-8 items-start', {
+const formGridVariants = cva('grid items-start', {
 	variants: {
 		columns: {
 			1: 'grid-cols-1',
-			2: 'grid-cols-1 lg:grid-cols-2 gap-x-10',
-			3: 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-x-12',
+			2: 'grid-cols-1 lg:grid-cols-2',
+			3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+			4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+		},
+		gapX: {
+			sm: 'gap-x-4',
+			md: 'gap-x-6',
+			lg: 'gap-x-8',
+			xl: 'gap-x-12',
+		},
+		gapY: {
+			sm: 'gap-y-4',
+			md: 'gap-y-6',
+			lg: 'gap-y-8',
+			xl: 'gap-y-10',
 		},
 	},
-	defaultVariants: { columns: 2 },
+	defaultVariants: { columns: 2, gapX: 'lg', gapY: 'lg' },
 })
 
-type FormGridProps = useRender.ComponentProps<'div'> &
-	React.ComponentProps<'div'> &
-	VariantProps<typeof formGridVariants>
+export interface FormGridProps
+	extends
+		useRender.ComponentProps<'div'>,
+		React.ComponentProps<'div'>,
+		VariantProps<typeof formGridVariants> {}
 
-function FormGrid({ columns, render, className, ...props }: FormGridProps) {
+function FormGrid({ columns, gapX, gapY, render, className, ...props }: FormGridProps) {
 	return useRender({
 		defaultTagName: 'div',
-		props: mergeProps<'div'>({ className: cn(formGridVariants({ columns }), className) }, props),
+		props: mergeProps<'div'>(
+			{ className: cn(formGridVariants({ columns, gapX, gapY }), className) },
+			props,
+		),
 		render,
 	})
 }
@@ -73,23 +123,61 @@ function FormGrid({ columns, render, className, ...props }: FormGridProps) {
 /*  FormSection                                                               */
 /* -------------------------------------------------------------------------- */
 
-type FormSectionProps = useRender.ComponentProps<'div'> &
-	React.ComponentProps<'div'> & { title?: string; description?: string }
+const formSectionVariants = cva('flex flex-col animate-enter', {
+	variants: {
+		gap: {
+			sm: 'gap-4',
+			md: 'gap-6',
+			lg: 'gap-8',
+		},
+		padding: {
+			none: 'p-0',
+			sm: 'px-1',
+			md: 'px-2',
+			lg: 'px-4',
+		},
+	},
+	defaultVariants: { gap: 'md', padding: 'sm' },
+})
+
+export interface FormSectionProps
+	extends
+		useRender.ComponentProps<'div'>,
+		React.ComponentProps<'div'>,
+		VariantProps<typeof formSectionVariants> {
+	title?: string
+	description?: string
+	titleSize?: 'sm' | 'md' | 'lg'
+}
 
 function FormSection({
 	title,
 	description,
+	titleSize = 'md',
+	gap,
+	padding,
 	className,
 	children,
 	render,
 	...props
 }: FormSectionProps) {
+	const titleSizeClasses = {
+		sm: 'text-lg',
+		md: 'text-xl',
+		lg: 'text-2xl',
+	}
+
 	const content = (
-		<div className={cn('flex flex-col gap-6 animate-enter', className)} {...props}>
+		<div className={cn(formSectionVariants({ gap, padding }), className)} {...props}>
 			{(title ?? description) && (
-				<div className="space-y-2 px-1">
+				<div className="space-y-2">
 					{title && (
-						<h3 className="text-xl font-bold tracking-tight lg:tracking-[-0.5px] text-foreground/90">
+						<h3
+							className={cn(
+								'font-bold tracking-tight lg:tracking-[-0.5px] text-foreground/90',
+								titleSizeClasses[titleSize],
+							)}
+						>
 							{title}
 						</h3>
 					)}
@@ -111,19 +199,41 @@ function FormSection({
 /*  FormActions                                                               */
 /* -------------------------------------------------------------------------- */
 
-function FormActions({
-	className,
-	render,
-	...props
-}: useRender.ComponentProps<'div'> & React.ComponentProps<'div'>) {
+const formActionsVariants = cva('flex items-center', {
+	variants: {
+		align: {
+			start: 'justify-start',
+			center: 'justify-center',
+			end: 'justify-end',
+		},
+		sticky: {
+			none: '',
+			only: 'sticky bottom-0 bg-background/80 backdrop-blur-xl z-10',
+			withBorder:
+				'sticky bottom-0 bg-background/80 backdrop-blur-xl z-10 border-t border-border/60',
+		},
+		padding: {
+			none: '',
+			sm: 'p-2',
+			md: 'p-6',
+			lg: 'p-8',
+		},
+	},
+	defaultVariants: { align: 'end', sticky: 'withBorder', padding: 'md' },
+})
+
+export interface FormActionsProps
+	extends
+		useRender.ComponentProps<'div'>,
+		React.ComponentProps<'div'>,
+		VariantProps<typeof formActionsVariants> {}
+
+function FormActions({ align, sticky, padding, className, render, ...props }: FormActionsProps) {
 	return useRender({
 		defaultTagName: 'div',
 		props: mergeProps<'div'>(
 			{
-				className: cn(
-					'flex items-center justify-end gap-3 pt-6 border-t border-border/60 mt-4 sticky bottom-0 bg-background/80 backdrop-blur-xl pb-6 -mx-6 px-12 z-10',
-					className,
-				),
+				className: cn(formActionsVariants({ align, sticky, padding }), 'gap-3 pt-4', className),
 			},
 			props,
 		),

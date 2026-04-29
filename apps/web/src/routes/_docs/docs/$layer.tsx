@@ -6,6 +6,7 @@ import { CheckIcon, CopyIcon, EyeIcon, TagIcon } from 'lucide-react'
 
 import { blocksPreviews } from '@/components/blocks/_previews'
 import { formPreviews } from '@/components/form/previews'
+import { layoutPreviews } from '@/components/layout/_previews'
 import { componentRegistry } from '@/components/registry'
 import type { ComponentRegistryEntry } from '@/components/registry'
 
@@ -15,6 +16,7 @@ export const Route = createFileRoute('/_docs/docs/$layer')({ component: LayerPag
 const previewMaps: Record<string, Record<string, ComponentRegistryEntry['preview']>> = {
 	blocks: blocksPreviews,
 	form: formPreviews,
+	layout: layoutPreviews,
 }
 
 function LayerPage() {
@@ -97,12 +99,14 @@ function ComponentCard({
 			</div>
 			{/* Preview */}
 			{preview && (
-				<div className="px-5 py-4 border-b">
+				<div className="px-5 py-4 border-b bg-muted/10">
 					<div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
 						<EyeIcon className="size-3.5" />
 						Preview
 					</div>
-					<div className="rounded-lg border border-dashed bg-background p-4">{preview()}</div>
+					<div className="rounded-lg border border-border/60 bg-background shadow-sm overflow-hidden">
+						<div className="p-6">{preview()}</div>
+					</div>
 				</div>
 			)}
 			{/* Card Body */}
