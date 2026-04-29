@@ -1,9 +1,12 @@
-import { z } from 'zod'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@/lib/validation'
 
 import {
 	AttendanceDto,
@@ -38,7 +41,7 @@ export const hrApi = {
 	attendances: apiFactory({
 		method: 'get',
 		url: endpoint.hr.attendances.list,
-		params: z.object({ ...AttendanceFilterDto.shape, ...zq.pagination.shape }),
+		params: AttendanceFilterDto,
 		result: createPaginatedResponseSchema(AttendanceSelectDto),
 	}),
 	clockIn: apiFactory({
@@ -69,5 +72,11 @@ export const payrollApi = {
 		url: endpoint.hr.payroll.adjustments.create,
 		body: PayrollAdjustmentCreateDto,
 		result: createSuccessResponseSchema(PayrollAdjustmentDto),
+	}),
+	finalizeBatch: apiFactory({
+		method: 'post',
+		url: endpoint.hr.payroll.batches.finalize,
+		body: zc.RecordId,
+		result: createSuccessResponseSchema(PayrollBatchDto),
 	}),
 }
