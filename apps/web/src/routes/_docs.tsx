@@ -43,24 +43,53 @@ function DocsLayout() {
 					</div>
 					<p className="text-xs text-muted-foreground mt-1">Registry & Usage Guide</p>
 				</div>
-				<nav className="flex-1 p-3 space-y-1">
-					{componentRegistry.map((layer) => {
-						const Icon = layerIcons[layer.layer] ?? ComponentIcon
-						return (
+				<nav className="flex-1 p-3 space-y-4">
+					<div>
+						<p className="px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
+							Component Layers
+						</p>
+						<div className="space-y-1">
+							{componentRegistry.map((layer) => {
+								const Icon = layerIcons[layer.layer] ?? ComponentIcon
+								return (
+									<Link
+										key={layer.layer}
+										to="/docs/$layer"
+										params={{ layer: layer.layer }}
+										className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+									>
+										<Icon className="size-4 shrink-0" />
+										<span>{layer.title}</span>
+										<span className="ml-auto text-xs text-muted-foreground">
+											{layer.components.length}
+										</span>
+									</Link>
+								)
+							})}
+						</div>
+					</div>
+
+					<div>
+						<p className="px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
+							Examples
+						</p>
+						<div className="space-y-1">
 							<Link
-								key={layer.layer}
-								to="/docs/$layer"
-								params={{ layer: layer.layer }}
+								to="/page-layouts"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
-								<Icon className="size-4 shrink-0" />
-								<span>{layer.title}</span>
-								<span className="ml-auto text-xs text-muted-foreground">
-									{layer.components.length}
-								</span>
+								<LayoutDashboardIcon className="size-4 shrink-0" />
+								<span>Page Layouts</span>
 							</Link>
-						)
-					})}
+							<Link
+								to="/data-table"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<TableIcon className="size-4 shrink-0" />
+								<span>Data Table</span>
+							</Link>
+						</div>
+					</div>
 				</nav>
 				<div className="p-4 border-t">
 					<p className="text-[11px] text-muted-foreground leading-relaxed">
