@@ -28,7 +28,7 @@ const FormDto = z.object({
 
 type FormDto = z.infer<typeof FormDto>
 
-const fopts = formOptions({ validators: { onSubmit: FormDto } })
+const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
 function getDefaultValues(v?: RoleDto): FormDto {
 	return {
@@ -121,7 +121,7 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
 											<Button
 												type="button"
 												variant="outline"
-												size="icon"
+												size="icon-sm"
 												className="shrink-0"
 												onClick={() => {
 													field.handleChange(toCodeCase(name || ''))

@@ -49,25 +49,23 @@ export const UserPasswordDialog = createCallable<UserPasswordDialogProps>((props
 		<form.AppForm>
 			<FormDialog
 				open={!call.ended}
-				onOpenChange={() => call.end()}
+				onOpenChange={(open) => !open && call.end()}
 				title={`Ubah Password @${username}`}
 				description={`Masukkan password baru untuk pengguna @${username}.`}
 				className="sm:max-w-md"
 				onSubmit={() => form.handleSubmit()}
 				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
 			>
-				<div className="py-2">
-					<form.AppField name="password">
-						{(field) => (
-							<field.InputPassword
-								label="Password Baru"
-								required
-								placeholder="Masukkan password baru"
-								disabled={disabled}
-							/>
-						)}
-					</form.AppField>
-				</div>
+				<form.AppField name="password">
+					{(field) => (
+						<field.InputPassword
+							label="Password Baru"
+							required
+							placeholder="Masukkan password baru"
+							disabled={disabled}
+						/>
+					)}
+				</form.AppField>
 			</FormDialog>
 		</form.AppForm>
 	)
