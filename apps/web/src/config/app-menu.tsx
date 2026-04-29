@@ -49,9 +49,19 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 					icon: BarChart3Icon,
 					children: [
 						{
+							title: 'Laporan Penjualan',
+							href: '/analytics/sales',
+							isActive: pathname === '/analytics/sales',
+						},
+						{
 							title: 'Laporan Produksi',
 							href: '/analytics/production',
 							isActive: pathname === '/analytics/production',
+						},
+						{
+							title: 'Laporan Keuangan',
+							href: '/analytics/finance',
+							isActive: pathname === '/analytics/finance',
 						},
 					],
 				},
@@ -71,6 +81,11 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							isActive: pathname.startsWith('/sales/orders'),
 						},
 						{
+							title: 'Invoice & Surat Jalan',
+							href: '/sales/invoices',
+							isActive: pathname.startsWith('/sales/invoices'),
+						},
+						{
 							title: 'Daftar Pelanggan',
 							href: '/sales/customers',
 							isActive: pathname.startsWith('/sales/customers'),
@@ -86,6 +101,11 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 							title: 'Monitoring Moka',
 							href: '/moka/monitoring',
 							isActive: pathname.startsWith('/moka/monitoring'),
+						},
+						{
+							title: 'Sinkronisasi Produk',
+							href: '/moka/sync',
+							isActive: pathname.startsWith('/moka/sync'),
 						},
 					],
 				},
