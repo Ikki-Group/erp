@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
 
-import { useMutation, useQuery, } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@uidotdev/usehooks'
 import { Loader2Icon, MapPinIcon, SearchIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
 import { toast } from 'sonner'
+
+import { Badge } from '@/components/reui/badge'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -48,8 +50,7 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 
 		// 2. Fetch already assigned locations for this material (only if single material)
 		const { data: assignedLocations, isLoading: isLoadingAssigned } = useQuery({
-			...materialLocationApi.byMaterial.query({ id: materialIds[0] }),
-
+			...materialLocationApi.byMaterial.query({ id: materialIds[0]! }),
 			enabled: materialIds.length === 1,
 		})
 
@@ -62,20 +63,11 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 			mutationFn: materialLocationApi.assign.mutationFn,
 		})
 
-		/**
-		 * Toggle a location's selection state unless that location is already assigned.
-		 * If the given location ID is not in the current selection it will be added; if it is present it will be removed. If the location is already assigned, the selection is left unchanged.
-		 */
 		function toggleSelected(id: number) {
 			if (assignedIds.has(id)) return // Already assigned
 			setSelected((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
 		}
 
-		/**
-		 * Assigns the currently selected locations to the provided materials, shows toast feedback, and closes the dialog.
-		 *
-		 * Performs the assignment mutation for the selected location IDs and material IDs, displays a toast promise reflecting loading, success, and error states, and then ends the modal call.
-		 */
 		async function handleAssign() {
 			if (selected.length === 0) return
 
@@ -96,10 +88,10 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 		const isLoading = isLoadingLocations || isLoadingAssigned
 
 		return (
-			<Dialog open={!call.ended} onOpenChange={() => call.end()}>
+			<Dialog open={!call.ended} onOpenChange={(open) => !open && call.end()}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader className="border-b pb-4">
-						<DialogTitle>Assign ke Lokasi</DialogTitle>
+						<DialogTitle>Tugaskan ke Lokasi</DialogTitle>
 						<DialogDescription>
 							Pilih lokasi untuk menyimpan bahan baku{' '}
 							<span className="font-medium text-foreground">{materialName}</span>
@@ -108,7 +100,7 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 
 					{/* Search */}
 					<div className="relative">
-						<SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+						<SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							placeholder="Cari lokasi..."
 							value={search}
@@ -121,12 +113,12 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 					<ScrollArea className="h-64 border rounded-md">
 						{isLoading ? (
 							<div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
-								<Loader2Icon className="size-5 animate-spin" />
+								<Loader2Icon className="animate-spin" />
 								<span className="text-sm">Memuat data...</span>
 							</div>
 						) : locations.length === 0 ? (
 							<div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground p-6">
-								<MapPinIcon className="size-8 opacity-30" />
+								<MapPinIcon className="opacity-30" />
 								<span className="text-sm">Tidak ada lokasi ditemukan</span>
 							</div>
 						) : (
@@ -149,9 +141,9 @@ export const MaterialAssignToLocationDialog = createCallable<MaterialAssignToLoc
 											<div className="flex flex-col text-left">
 												<span className="text-sm font-medium">{l.name}</span>
 												<div className="flex items-center gap-2">
-													<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted border text-muted-foreground font-mono">
+													<Badge variant="outline" size="sm" className="font-mono">
 														{l.code}
-													</span>
+													</Badge>
 													{isAssigned && (
 														<span className="text-[10px] text-primary font-semibold uppercase">
 															Terhubung

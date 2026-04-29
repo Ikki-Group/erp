@@ -3,7 +3,9 @@
 // import 'geist/style.css'
 
 // import './styles/main.css'
-import './styles/backup.css'
+// import './styles/backup.css'
+// import './styles/new-styles.css'
+import './styles/new-styles-02.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 

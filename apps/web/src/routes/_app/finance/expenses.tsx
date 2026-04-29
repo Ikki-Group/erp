@@ -78,15 +78,12 @@ const columns = [
 function FinanceExpensesPage() {
 	const [search, setSearch] = useState('')
 
-	const { data: expenditures = [], isLoading } = useQuery({
-		queryKey: ['finance', 'expenditure', 'list', search],
-		queryFn: () => expenditureApi.list({ search }),
-		select: (res) => res.data,
-	})
+	const { data: response, isLoading } = useQuery(expenditureApi.list.query({ search }))
+	const expenditures = response?.data ?? []
 
 	const table = useDataTable({
 		columns,
-		data: expenditures,
+		data: expenditures as any,
 		pageCount: 1,
 		rowCount: expenditures.length,
 		ds: { pagination: { limit: 50, page: 1 }, search, filters: {} } as any,

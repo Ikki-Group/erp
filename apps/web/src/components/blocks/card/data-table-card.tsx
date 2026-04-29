@@ -32,28 +32,26 @@ export function DataTableCard<TData extends object>({
 		<DataGrid
 			table={table}
 			recordCount={recordCount}
-			tableClassNames={{ edgeCell: 'px-5' }}
+			tableClassNames={{ edgeCell: 'px-4' }}
 			isLoading={isLoading}
 			loadingMode="spinner"
 			tableLayout={{ cellBorder: false, columnsPinnable: true }}
 			onRowClick={onRowClick}
 		>
-			<Card className="w-full gap-0! py-3.5 shadow-card" size="sm">
-				<CardHeader className="flex items-center justify-between px-3.5 border-b border-border/60 bg-muted/10">
-					<CardTitle>{title}</CardTitle>
+			<Card className="gap-0!" size="sm">
+				<CardHeader className="flex items-center justify-between px-4 pb-3 border-b border-border">
+					<CardTitle className="text-base">{title}</CardTitle>
 					{action && <CardAction>{action}</CardAction>}
 				</CardHeader>
-				{toolbar && (
-					<div className="px-3.5 py-4 border-b border-border/60 bg-muted/30">{toolbar}</div>
-				)}
+				{toolbar && <div className="px-3 py-3 border-b border-border bg-muted/30">{toolbar}</div>}
 				<div className="w-full">
 					<ScrollArea>
 						<DataGridTable />
 						<ScrollBar orientation="horizontal" />
 					</ScrollArea>
 				</div>
-				<CardFooter className="px-3.5 border-t border-border/60 bg-muted/10 pt-3">
-					<DataGridPagination className="py-0" />
+				<CardFooter className="px-4 py-3 border-t border-border bg-muted/10">
+					<DataGridPagination />
 				</CardFooter>
 			</Card>
 		</DataGrid>

@@ -15,7 +15,7 @@ import {
 /*  FormDialog                                                                */
 /* -------------------------------------------------------------------------- */
 
-interface FormDialogProps {
+export interface FormDialogProps {
 	/** Controls dialog visibility */
 	open: boolean
 	/** Called when the dialog is dismissed (overlay click, escape key) */
@@ -34,7 +34,7 @@ interface FormDialogProps {
 	 * Called when the form is submitted (enter key or submit button).
 	 * Wire this to `form.handleSubmit()` from your form instance.
 	 */
-	onSubmit?: React.FormEventHandler<HTMLFormElement>
+	onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
 /**

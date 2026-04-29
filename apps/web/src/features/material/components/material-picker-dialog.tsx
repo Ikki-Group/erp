@@ -2,22 +2,25 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 
-import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
+import { Loader2Icon, PlusIcon, SearchIcon } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/reui/badge'
+
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 
-import type { MaterialSelectDto } from '..'
-import { materialApi } from '..'
+import { materialApi } from '../api'
+import type { MaterialSelectDto } from '../dto'
 
 interface MaterialPickerDialogProps {
 	onConfirm: (materials: Array<MaterialSelectDto>) => void
@@ -47,7 +50,7 @@ export function MaterialPickerDialog({
 	}, [open])
 
 	const { data: results, isLoading } = useQuery({
-		...materialApi.list.query({ q: query, limit: 50 }),
+		...materialApi.list.query({ search: query, limit: 50 }),
 		enabled: open,
 	})
 
@@ -75,20 +78,20 @@ export function MaterialPickerDialog({
 			<DialogTrigger>
 				{trigger ?? (
 					<Button variant="outline" size="sm">
-						<PlusIcon className="mr-2 h-4 w-4" />
+						<PlusIcon />
 						Pilih Bahan
 					</Button>
 				)}
 			</DialogTrigger>
 			<DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-150 h-150 flex flex-col">
-				<div className="p-4 border-b flex flex-col gap-1 bg-muted/10">
+				<DialogHeader className="border-b p-4">
 					<DialogTitle>{title}</DialogTitle>
 					<DialogDescription>{description}</DialogDescription>
-				</div>
+				</DialogHeader>
 
 				<div className="flex-1 flex flex-col overflow-hidden">
 					<div className="flex items-center border-b px-3 py-2">
-						<SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+						<SearchIcon className="mr-2 shrink-0 opacity-50" />
 						<Input
 							className="flex h-10 w-full rounded-md bg-transparent text-sm outline-none border-0 focus-visible:ring-0 px-0"
 							placeholder="Cari SKU atau nama bahan..."
@@ -101,7 +104,7 @@ export function MaterialPickerDialog({
 					<div className="flex-1 overflow-y-auto p-1 relative">
 						{isLoading && (
 							<div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 text-muted-foreground text-sm">
-								<Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> Memuat...
+								<Loader2Icon className="mr-2 animate-spin" /> Memuat...
 							</div>
 						)}
 						{!isLoading && results?.data?.length === 0 && (
@@ -128,7 +131,7 @@ export function MaterialPickerDialog({
 											<div className="flex items-center gap-2">
 												<span className="font-medium text-sm">{item.name}</span>
 												{isAlreadyInRecipe && (
-													<Badge variant="outline" className="text-[10px] h-4 px-1">
+													<Badge variant="outline" size="xs">
 														Terpilih
 													</Badge>
 												)}
@@ -137,13 +140,7 @@ export function MaterialPickerDialog({
 												{item.sku} • {item.category?.name ?? 'No Category'}
 											</span>
 										</div>
-										{!isAlreadyInRecipe && (
-											<div
-												className={`h-5 w-5 rounded-full border flex items-center justify-center ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/30'}`}
-											>
-												{isSelected && <CheckIcon className="h-3 w-3" />}
-											</div>
-										)}
+										{!isAlreadyInRecipe && <Checkbox checked={isSelected} />}
 									</div>
 								)
 							})}
@@ -154,10 +151,10 @@ export function MaterialPickerDialog({
 				<DialogFooter className="p-4 border-t bg-muted/10 items-center sm:justify-between">
 					<span className="text-sm text-muted-foreground">{tempSelected.size} dipilih</span>
 					<div className="flex gap-2">
-						<Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+						<Button variant="outline" onClick={() => setOpen(false)}>
 							Batal
 						</Button>
-						<Button size="sm" onClick={handleConfirm} disabled={tempSelected.size === 0}>
+						<Button onClick={handleConfirm} disabled={tempSelected.size === 0}>
 							Tambahkan Bahan
 						</Button>
 					</div>

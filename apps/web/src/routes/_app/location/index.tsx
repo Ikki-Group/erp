@@ -1,14 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
-import {
-	Building2Icon,
-	InfoIcon,
-	MapPinIcon,
-	PencilIcon,
-	StoreIcon,
-	WarehouseIcon,
-} from 'lucide-react'
+import { EyeIcon, MoreHorizontalIcon, PencilIcon, StoreIcon, WarehouseIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -25,6 +18,12 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
@@ -55,11 +54,11 @@ const columns = [
 			const { name, code, type, address, phone } = row.original
 			return (
 				<div className="flex gap-3 items-start py-0.5">
-					<div className="mt-0.5 size-9 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/50">
+					<div className="mt-0.5 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/50">
 						{type === 'store' ? (
-							<StoreIcon className="size-4.5 text-info" />
+							<StoreIcon className="text-info size-4" />
 						) : (
-							<WarehouseIcon className="size-4.5 text-warning-foreground" />
+							<WarehouseIcon className="text-warning-foreground size-4" />
 						)}
 					</div>
 					<div className="flex flex-col gap-0.5 min-w-0">
@@ -89,14 +88,12 @@ const columns = [
 			if (val === 'store') {
 				return (
 					<Badge variant="info-outline" size="sm" className="font-medium">
-						<MapPinIcon className="mr-1 size-3" />
 						Store
 					</Badge>
 				)
 			}
 			return (
 				<Badge variant="warning-outline" size="sm" className="font-medium">
-					<Building2Icon className="mr-1 size-3" />
 					Warehouse
 				</Badge>
 			)
@@ -112,27 +109,31 @@ const columns = [
 	ch.accessor('createdAt', dateColumn({ header: 'Pendaftaran', size: 160 })),
 	actionColumn<LocationDto>({
 		id: 'action',
+		size: 60,
 		cell: ({ row }) => {
 			return (
-				<div className="flex items-center justify-end px-2 gap-2">
-					<Button
-						variant="outline"
-						size="icon-sm"
-						className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-xs"
-						nativeButton={false}
-						render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
-					>
-						<InfoIcon className="size-3.5" />
-					</Button>
-					<Button
-						variant="outline"
-						size="icon-sm"
-						className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-xs"
-						nativeButton={false}
-						render={<Link to="/location/$id/edit" params={{ id: String(row.original.id) }} />}
-					>
-						<PencilIcon className="size-3.5" />
-					</Button>
+				<div className="flex items-center justify-end px-2">
+					<DropdownMenu>
+						<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+							<MoreHorizontalIcon />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-36">
+							<DropdownMenuItem
+								nativeButton={false}
+								render={<Link to="/location/$id" params={{ id: String(row.original.id) }} />}
+							>
+								<EyeIcon className="mr-2" />
+								Detail
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								nativeButton={false}
+								render={<Link to="/location/$id/edit" params={{ id: String(row.original.id) }} />}
+							>
+								<PencilIcon className="mr-2" />
+								Edit
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			)
 		},

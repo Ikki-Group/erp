@@ -20,11 +20,11 @@ export function useActiveLocation() {
 	// Deduplicate locations from assignments (a user can have multiple roles at the same location)
 	const locationsMap = new Map<number, { id: number; name: string; code: string }>()
 	for (const a of assignments ?? []) {
-		if (a.locationId && !locationsMap.has(a.locationId)) {
-			locationsMap.set(a.locationId, {
-				id: a.locationId,
-				name: a.locationName,
-				code: a.locationCode ?? '',
+		if (a.location && !locationsMap.has(a.location.id)) {
+			locationsMap.set(a.location.id, {
+				id: a.location.id,
+				name: a.location.name,
+				code: a.location.code ?? '',
 			})
 		}
 	}

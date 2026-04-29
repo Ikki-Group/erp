@@ -13,7 +13,7 @@ export function createCache(): CacheClient {
 	return new BentoCache({
 		default: 'cache',
 		ttl: '1d',
-		logger,
+		// logger,
 		stores: {
 			cache: bentostore().useL1Layer(memoryDriver({ maxSize: '10mb' })),
 		},

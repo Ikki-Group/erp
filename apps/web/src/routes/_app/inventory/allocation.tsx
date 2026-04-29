@@ -16,8 +16,8 @@ import { arrayToOptions } from '@/lib/utils'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ComboboxStatic } from '@/components/blocks/combobox-pattern'
 import { Page } from '@/components/layout/page'
+import { Badge } from '@/components/reui/badge'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,

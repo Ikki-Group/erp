@@ -7,6 +7,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { Badge } from '@/components/reui/badge'
 import {
 	actionColumn,
 	createColumnHelper,
@@ -17,7 +18,6 @@ import {
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 import { locationApi } from '@/features/location'
@@ -116,7 +116,6 @@ export function ProductTable() {
 	const { data: locations } = useQuery(locationApi.list.query({ limit: 100 }))
 
 	const { data, isLoading } = useQuery(
-		// @ts-expect-error
 		productApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
 	)
 

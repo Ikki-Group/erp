@@ -8,20 +8,6 @@
 //   getFacetedMinMaxValues,
 //   type TableOptions,
 //   type RowData,
-//   useReactTable,
-//   type OnChangeFn,
-//   type PaginationState,
-//   type SortingState,
-//   type ColumnFiltersState,
-//   type VisibilityState,
-//   type RowSelectionState,
-// } from '@tanstack/react-table'
-// import { useMemo, useState } from 'react'
-// import type {
-//   DataTableState,
-//   UseDataTableReturn,
-//   DataTableFeatures,
-//   DataTableCallbacks,
 //   DataTableServerConfig,
 // } from './data-table-types'
 

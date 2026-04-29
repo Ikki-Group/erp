@@ -9,6 +9,8 @@ import {
 	ServerCrashIcon,
 } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 import { Inline, Stack } from '@/components/layout/primitives'
 
 import { Button } from '@/components/ui/button'
@@ -24,6 +26,12 @@ interface ErrorPageProps {
 	showRefreshButton?: boolean
 }
 
+// Base icon size for error pages
+const ICON_SIZE = 'h-16 w-16'
+
+// Base icon stroke width
+const ICON_STROKE = 'stroke-[1.5]'
+
 function ErrorPageLayout({
 	title,
 	description,
@@ -34,52 +42,50 @@ function ErrorPageLayout({
 	showRefreshButton = false,
 }: ErrorPageProps) {
 	return (
-		<div className="flex items-center justify-center p-4 bg-linear-to-br from-background via-muted/20 to-background flex-1">
-			<Card className="max-w-lg w-full shadow-xl border-2">
-				<CardContent className="pt-12 pb-8">
-					<Stack gap="lg" align="center">
-						{/* Icon */}
-						<div className="relative">
-							<div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
-							<div className="relative bg-linear-to-br from-primary/20 to-primary/5 p-6 rounded-2xl border-2 border-primary/20">
-								{icon}
-							</div>
+		<div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
+			<Card className="w-full max-w-md shadow-lg border">
+				<CardContent className="space-y-6 p-8">
+					{/* Icon */}
+					<div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+						<div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full" />
+						<div className="relative bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl border border-primary/20 p-4">
+							{icon}
 						</div>
+					</div>
 
-						{/* Content */}
-						<Stack gap="sm" align="center" className="text-center">
-							<h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-							<p className="text-muted-foreground text-lg max-w-md">{description}</p>
-						</Stack>
-
-						{/* Actions */}
-						<div className="w-full mt-4">
-							{actions ?? (
-								<Inline gap="sm" justify="center" className="flex-wrap">
-									{showBackButton && (
-										<Button variant="outline" size="lg" onClick={() => window.history.back()}>
-											<ArrowLeftIcon className="h-4 w-4" />
-											Kembali
-										</Button>
-									)}
-									{showHomeButton && (
-										<Link to="/">
-											<Button size="lg">
-												<HomeIcon className="h-4 w-4" />
-												Ke Beranda
-											</Button>
-										</Link>
-									)}
-									{showRefreshButton && (
-										<Button variant="outline" size="lg" onClick={() => window.location.reload()}>
-											<RefreshCwIcon className="h-4 w-4" />
-											Muat Ulang
-										</Button>
-									)}
-								</Inline>
-							)}
-						</div>
+					{/* Content */}
+					<Stack gap="sm" align="center" className="text-center">
+						<h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+						<p className="text-sm text-muted-foreground leading-relaxed max-w-sm">{description}</p>
 					</Stack>
+
+					{/* Actions */}
+					<div className="w-full">
+						{actions ?? (
+							<Inline gap="sm" justify="center" className="flex-wrap">
+								{showBackButton && (
+									<Button variant="outline" size="default" onClick={() => window.history.back()}>
+										<ArrowLeftIcon />
+										Kembali
+									</Button>
+								)}
+								{showHomeButton && (
+									<Link to="/">
+										<Button size="default">
+											<HomeIcon />
+											Ke Beranda
+										</Button>
+									</Link>
+								)}
+								{showRefreshButton && (
+									<Button variant="outline" size="default" onClick={() => window.location.reload()}>
+										<RefreshCwIcon />
+										Muat Ulang
+									</Button>
+								)}
+							</Inline>
+						)}
+					</div>
 				</CardContent>
 			</Card>
 		</div>
@@ -92,7 +98,7 @@ export function NotFoundPage() {
 		<ErrorPageLayout
 			title="Halaman Tidak Ditemukan"
 			description="Maaf, halaman yang Anda cari tidak dapat ditemukan. Mungkin halaman telah dipindahkan atau dihapus."
-			icon={<FileQuestionIcon className="h-16 w-16 text-primary stroke-[1.5]" />}
+			icon={<FileQuestionIcon className={cn(ICON_SIZE, 'text-primary', ICON_STROKE)} />}
 			showBackButton
 			showHomeButton
 		/>
@@ -105,7 +111,7 @@ export function ServerErrorPage() {
 		<ErrorPageLayout
 			title="Terjadi Kesalahan Server"
 			description="Maaf, terjadi kesalahan pada server kami. Tim kami telah diberitahu dan sedang memperbaikinya. Silakan coba lagi nanti."
-			icon={<ServerCrashIcon className="h-16 w-16 text-destructive stroke-[1.5]" />}
+			icon={<ServerCrashIcon className={cn(ICON_SIZE, 'text-destructive', ICON_STROKE)} />}
 			showHomeButton
 			showRefreshButton
 			showBackButton={false}
@@ -121,18 +127,18 @@ export function GenericErrorPage({ error, reset }: { error?: Error; reset?: () =
 			description={
 				error?.message ?? 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.'
 			}
-			icon={<AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />}
+			icon={<AlertTriangleIcon className={cn(ICON_SIZE, 'text-orange-500', ICON_STROKE)} />}
 			actions={
 				<Inline gap="sm" justify="center" className="flex-wrap">
 					{reset && (
-						<Button size="lg" onClick={reset}>
-							<RefreshCwIcon className="h-4 w-4" />
+						<Button size="default" onClick={reset}>
+							<RefreshCwIcon />
 							Coba Lagi
 						</Button>
 					)}
 					<Link to="/">
-						<Button variant="outline" size="lg">
-							<HomeIcon className="h-4 w-4" />
+						<Button variant="outline" size="default">
+							<HomeIcon />
 							Ke Beranda
 						</Button>
 					</Link>
@@ -148,7 +154,7 @@ export function MaintenancePage() {
 		<ErrorPageLayout
 			title="Sedang Dalam Pemeliharaan"
 			description="Kami sedang melakukan pemeliharaan sistem untuk meningkatkan layanan. Mohon kembali lagi dalam beberapa saat."
-			icon={<ServerCrashIcon className="h-16 w-16 text-blue-500 stroke-[1.5]" />}
+			icon={<ServerCrashIcon className={cn(ICON_SIZE, 'text-blue-500', ICON_STROKE)} />}
 			showHomeButton={false}
 			showBackButton={false}
 			showRefreshButton
@@ -162,16 +168,16 @@ export function UnauthorizedPage() {
 		<ErrorPageLayout
 			title="Akses Ditolak"
 			description="Anda tidak memiliki izin untuk mengakses halaman ini. Silakan hubungi administrator jika Anda merasa ini adalah kesalahan."
-			icon={<AlertTriangleIcon className="h-16 w-16 text-orange-500 stroke-[1.5]" />}
+			icon={<AlertTriangleIcon className={cn(ICON_SIZE, 'text-orange-500', ICON_STROKE)} />}
 			actions={
 				<Inline gap="sm" justify="center" className="flex-wrap">
-					<Button variant="outline" size="lg" onClick={() => window.history.back()}>
-						<ArrowLeftIcon className="h-4 w-4" />
+					<Button variant="outline" size="default" onClick={() => window.history.back()}>
+						<ArrowLeftIcon />
 						Kembali
 					</Button>
 					<Link to="/">
-						<Button size="lg">
-							<HomeIcon className="h-4 w-4" />
+						<Button size="default">
+							<HomeIcon />
 							Ke Beranda
 						</Button>
 					</Link>

@@ -1,4 +1,5 @@
 import type { ComponentRegistry } from '../registry'
+import { blocksPreviews } from './_previews'
 
 /**
  * Blocks Registry
@@ -116,6 +117,17 @@ export const blocksRegistry: ComponentRegistry = {
 			importPath: '@/components/blocks/feedback/confirm-dialog',
 			tags: ['confirm', 'dialog', 'modal', 'imperative', 'delete', 'destructive'],
 			exports: ['ConfirmDialog'],
+			preview: blocksPreviews.ConfirmDialog,
+		},
+		{
+			name: 'ErrorPages (NotFoundPage, ForbiddenPage, etc.)',
+			file: './feedback/error-pages',
+			description: 'Pre-styled error pages for 404, 403, and generic error states.',
+			usage: 'Use in route error handlers: `errorComponent: () => <NotFoundPage />`.',
+			importPath: '@/components/blocks/feedback/error-pages',
+			tags: ['error', '404', '403', 'not-found', 'forbidden', 'page'],
+			exports: ['NotFoundPage', 'ForbiddenPage', 'ErrorPage'],
+			preview: blocksPreviews['ErrorPages (NotFoundPage, ForbiddenPage, etc.)'],
 		},
 		{
 			name: 'LoadingPage',
@@ -135,15 +147,6 @@ export const blocksRegistry: ComponentRegistry = {
 			importPath: '@/components/blocks/feedback/ErrorBoundary',
 			tags: ['error', 'boundary', 'catch', 'fallback'],
 			exports: ['ErrorBoundary'],
-		},
-		{
-			name: 'ErrorPages (NotFoundPage, ForbiddenPage, etc.)',
-			file: './feedback/error-pages',
-			description: 'Pre-styled error pages for 404, 403, and generic error states.',
-			usage: 'Use in route error handlers: `errorComponent: () => <NotFoundPage />`.',
-			importPath: '@/components/blocks/feedback/error-pages',
-			tags: ['error', '404', '403', 'not-found', 'forbidden', 'page'],
-			exports: ['NotFoundPage', 'ForbiddenPage', 'ErrorPage'],
 		},
 
 		// ── card ────────────────────────────────────────────────────────────

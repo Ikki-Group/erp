@@ -55,15 +55,6 @@ export const { useAppForm, withFieldGroup, withForm, useTypedAppFormContext } = 
 		Select: FieldSelect,
 		Textarea: FieldTextarea,
 		Combobox: FieldCombobox,
-
-		// Templates
-		FieldBase: FieldBase,
-		FieldInput: FieldInput,
-		FieldSelect: FieldSelect,
-		FieldCheckbox: FieldCheckbox,
-		FieldSwitch: FieldSwitch,
-		FieldDatePicker: FieldDatePicker,
-		FieldDateRangePicker: FieldDateRangePicker,
 	},
 	formComponents: {
 		Form: Form,

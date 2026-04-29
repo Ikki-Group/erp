@@ -22,15 +22,15 @@ export function CardSection({
 }: CardSectionProps) {
 	return (
 		<Card size="sm" {...props}>
-			<Card.Header className="border-b">
+			<Card.Header className="border-b px-4 pb-3">
 				<Card.Title className="flex items-center gap-2">
 					{icon}
-					<span>{title}</span>
+					{title}
 				</Card.Title>
 				{description && <Card.Description>{description}</Card.Description>}
 				{action && <Card.Action>{action}</Card.Action>}
 			</Card.Header>
-			<Card.Content className="space-y-4 pt-1">{children}</Card.Content>
+			<Card.Content className="space-y-4 px-4 py-2">{children}</Card.Content>
 		</Card>
 	)
 }

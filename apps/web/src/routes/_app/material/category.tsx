@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import type { CellContext, ColumnDef } from '@tanstack/react-table'
 
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -16,6 +15,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
 import {
+	actionColumn,
 	createColumnHelper,
 	dateColumn,
 	linkColumn,
@@ -53,21 +53,17 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(
-	handleDelete: (item: MaterialCategoryDto) => Promise<void>,
-): ColumnDef<MaterialCategoryDto, any>[] {
+function getColumns(handleDelete: (item: MaterialCategoryDto) => Promise<void>) {
 	return [
 		ch.accessor(
 			'name',
 			linkColumn({
 				header: 'Kategori',
 				render: (value, row) => (
-					<div className="flex flex-col gap-1 py-1">
-						<span className="font-semibold text-sm tracking-tight">{value}</span>
+					<div className="flex flex-col gap-0.5">
+						<span className="font-medium">{value}</span>
 						{row.description && (
-							<span className="text-xs text-muted-foreground/80 line-clamp-1 max-w-[400px]">
-								{row.description}
-							</span>
+							<span className="text-sm text-muted-foreground line-clamp-1">{row.description}</span>
 						)}
 					</div>
 				),
@@ -76,29 +72,30 @@ function getColumns(
 			}),
 		),
 		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 180 })),
-		ch.display({
+		actionColumn<MaterialCategoryDto>({
 			id: 'action',
-			cell: ({ row }: CellContext<MaterialCategoryDto, any>) => {
+			size: 60,
+			cell: ({ row }) => {
 				return (
 					<div className="flex items-center justify-end px-2">
 						<DropdownMenu>
 							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon className="size-4" />
+								<MoreHorizontalIcon />
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
+							<DropdownMenuContent align="end" className="w-36">
 								<DropdownMenuItem
 									onClick={() => {
 										void MaterialCategoryFormDialog.upsert({ id: row.original.id })
 									}}
 								>
-									<PencilIcon className="mr-2 size-4" />
+									<PencilIcon className="mr-2" />
 									Edit
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									variant="destructive"
 									onClick={() => void handleDelete(row.original)}
 								>
-									<Trash2Icon className="mr-2 size-4" />
+									<Trash2Icon className="mr-2" />
 									Hapus
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -106,10 +103,6 @@ function getColumns(
 					</div>
 				)
 			},
-			size: 100,
-			enableSorting: false,
-			enableHiding: false,
-			enablePinning: true,
 		}),
 	]
 }

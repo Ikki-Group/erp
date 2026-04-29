@@ -3,23 +3,26 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
+import { SparklesIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import z from 'zod'
 
+import { toCodeCase } from '@/lib/formatter'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm } from '@/components/form'
 import { Page } from '@/components/layout/page'
 
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 import { locationApi } from '../api'
 import type { LocationDto } from '../dto'
 
 const FormDto = z.object({
 	name: z.string().min(1),
-	code: z.string().min(1),
+	code: z.string().min(3),
 	type: z.enum(['store', 'warehouse']),
 	address: z.string().optional().nullable(),
 	phone: z.string().optional().nullable(),
@@ -90,58 +93,82 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 					<Page.BlockHeader title={isCreate ? 'Tambah Lokasi' : 'Edit Lokasi'} back={backTo} />
 					<form.Form>
 						<Page.Content className="space-y-6">
-							<CardSection title="Informasi Lokasi">
+							<CardSection
+								title="Informasi Lokasi"
+								description="Detail identitas dan alamat lokasi."
+							>
 								<form.AppField name="name">
 									{(field) => (
-										<field.Base label="Nama Lokasi" required>
-											<field.Input placeholder="Nama Lokasi" />
-										</field.Base>
+										<field.Input label="Nama Lokasi" required placeholder="Nama Lokasi" />
 									)}
 								</form.AppField>
 								<form.AppField name="code">
 									{(field) => (
 										<field.Base label="Kode Lokasi" required>
-											<field.Input placeholder="Kode Lokasi" />
+											<div className="flex gap-2">
+												<field.Control>
+													<Input
+														placeholder="Kode Lokasi"
+														value={field.state.value}
+														onChange={(e) => field.handleChange(e.target.value)}
+														onBlur={field.handleBlur}
+														className="uppercase"
+													/>
+												</field.Control>
+												<form.Subscribe selector={(s) => s.values.name}>
+													{(name) => {
+														const canGenerate = (name?.length ?? 0) > 3
+														return (
+															<Button
+																type="button"
+																variant="outline"
+																size="icon-sm"
+																className="shrink-0"
+																onClick={() => {
+																	field.handleChange(toCodeCase(name || ''))
+																}}
+																disabled={!canGenerate}
+																title="Generate kode dari nama"
+															>
+																<SparklesIcon />
+															</Button>
+														)
+													}}
+												</form.Subscribe>
+											</div>
 										</field.Base>
 									)}
 								</form.AppField>
 								<form.AppField name="type">
 									{(field) => (
-										<field.Base label="Tipe Lokasi" required>
-											<field.Select
-												placeholder="Pilih tipe lokasi..."
-												options={[
-													{ label: 'Toko', value: 'store' },
-													{ label: 'Warehouse', value: 'warehouse' },
-												]}
-											/>
-										</field.Base>
+										<field.Select
+											label="Tipe Lokasi"
+											required
+											placeholder="Pilih tipe lokasi..."
+											options={[
+												{ label: 'Toko', value: 'store' },
+												{ label: 'Warehouse', value: 'warehouse' },
+											]}
+										/>
 									)}
 								</form.AppField>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<form.AppField name="address">
-										{(field) => (
-											<field.Base label="Alamat">
-												<field.Input placeholder="Alamat lengkap..." />
-											</field.Base>
-										)}
+										{(field) => <field.Input label="Alamat" placeholder="Alamat lengkap..." />}
 									</form.AppField>
 									<form.AppField name="phone">
 										{(field) => (
-											<field.Base label="Nomor Telepon">
-												<field.Input placeholder="Contoh: 08123456789" />
-											</field.Base>
+											<field.Input label="Nomor Telepon" placeholder="Contoh: 08123456789" />
 										)}
 									</form.AppField>
 								</div>
 								<form.AppField name="description">
 									{(field) => (
-										<field.Base label="Deskripsi">
-											<field.Textarea placeholder="Deskripsi Lokasi..." />
-										</field.Base>
+										<field.Textarea label="Deskripsi" placeholder="Deskripsi Lokasi..." />
 									)}
 								</form.AppField>
-								<Separator />
+							</CardSection>
+							<CardSection title="Status">
 								<form.AppField name="isActive">
 									{(field) => (
 										<field.Switch

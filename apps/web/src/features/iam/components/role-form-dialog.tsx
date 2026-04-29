@@ -22,8 +22,8 @@ const FormDto = z.object({
 	name: z.string().min(2, 'Nama role minimal 2 karakter').max(100, 'Nama terlalu panjang'),
 	code: z.string().min(2, 'Kode minimal 2 karakter').max(32, 'Kode maksimal 32 karakter'),
 	description: z.string().nullable(),
-	permissions: z.array(z.string()).default([]),
-	isSystem: z.boolean().default(false),
+	permissions: z.array(z.string()),
+	isSystem: z.boolean(),
 })
 
 type FormDto = z.infer<typeof FormDto>
@@ -121,7 +121,7 @@ export const RoleFormDialog = createCallable<RoleFormDialogProps>((props) => {
 											<Button
 												type="button"
 												variant="outline"
-												size="icon"
+												size="icon-sm"
 												className="shrink-0"
 												onClick={() => {
 													field.handleChange(toCodeCase(name || ''))

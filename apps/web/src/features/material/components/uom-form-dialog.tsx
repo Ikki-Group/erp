@@ -8,14 +8,7 @@ import z from 'zod'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { useAppForm } from '@/components/form'
-
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/layout/form-dialog'
 
 import { uomApi } from '../api'
 import type { UomDto } from '../dto'
@@ -57,34 +50,26 @@ export const UomFormDialog = createCallable<UomFormDialogProps>((props) => {
 				: update.mutateAsync({ body: { id: id, ...value } })
 
 			await toast
-				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'satuan unit'))
+				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'satuan'))
 				.unwrap()
 
 			call.end()
 		},
 	})
 
-	const disabled = selectedUom.isLoading
-
 	return (
 		<form.AppForm>
-			<Dialog open={!call.ended} onOpenChange={() => call.end()}>
-				<DialogContent>
-					<DialogHeader className="border-b pb-4">
-						<DialogTitle>Kategori Bahan Baku</DialogTitle>
-					</DialogHeader>
-					<form.AppField name="code">
-						{(field) => (
-							<field.Base label="Satuan" required>
-								<field.Input placeholder="Masukkan satuan" disabled={disabled} required />
-							</field.Base>
-						)}
-					</form.AppField>
-					<DialogFooter>
-						<form.DialogActions onCancel={call.end} />
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<FormDialog
+				open={!call.ended}
+				onOpenChange={(open) => !open && call.end()}
+				title={isCreate ? 'Tambah Satuan' : 'Edit Satuan'}
+				onSubmit={() => form.handleSubmit()}
+				footer={<form.DialogActions onCancel={call.end} />}
+			>
+				<form.AppField name="code">
+					{(field) => <field.Input label="Satuan" required placeholder="Masukkan satuan" />}
+				</form.AppField>
+			</FormDialog>
 		</form.AppForm>
 	)
 }, 200)

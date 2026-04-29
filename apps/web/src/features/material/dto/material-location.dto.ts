@@ -9,30 +9,28 @@ import { UomDto } from './uom.dto'
 /* --------------------------------- ENTITY --------------------------------- */
 
 export const MaterialLocationDto = z.object({
-	id: zp.id,
+	...zc.RecordId.shape,
 	materialId: zp.id,
 	locationId: zp.id,
 
 	// Per-location configuration
-	minStock: z.coerce.number().default(0),
-	maxStock: z.coerce.number().nullable().default(null),
-	reorderPoint: z.coerce.number().default(0),
+	minStock: zp.decimal,
+	maxStock: zp.decimal.nullable(),
+	reorderPoint: zp.decimal,
 
-	// Current stock snapshot (maintained by inventory module)
-	currentQty: z.coerce.number().default(0),
-	currentAvgCost: z.coerce.number().default(0),
-	currentValue: z.coerce.number().default(0),
-
-	...zc.AuditFull.shape,
+	// Current stock snapshot
+	currentQty: zp.decimal,
+	currentAvgCost: zp.decimal,
+	currentValue: zp.decimal,
+	...zc.AuditBasic.shape,
 })
 
 export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
 /* --------------------------------- OUTPUT --------------------------------- */
 
-/** Enriched view with location details — used in "locations assigned to material" */
-export const MaterialLocationWithLocationDto = z.object({
-	...MaterialLocationDto.shape,
+/** Enriched view with location details */
+export const MaterialLocationWithLocationDto = MaterialLocationDto.extend({
 	location: LocationDto,
 })
 
@@ -47,19 +45,23 @@ export const MaterialLocationStockDto = z.object({
 	materialSku: zp.str,
 	baseUomId: zp.id,
 	uom: UomDto.nullable(),
-	minStock: zp.num,
-	maxStock: zp.num.nullable(),
-	reorderPoint: zp.num,
-	currentQty: zp.num,
-	currentAvgCost: zp.num,
-	currentValue: zp.num,
+	minStock: zp.decimal,
+	maxStock: zp.decimal.nullable(),
+	reorderPoint: zp.decimal,
+	currentQty: zp.decimal,
+	currentAvgCost: zp.decimal,
+	currentValue: zp.decimal,
 })
 
 export type MaterialLocationStockDto = z.infer<typeof MaterialLocationStockDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialLocationFilterDto = z.object({ locationId: zq.id, q: zq.search })
+export const MaterialLocationFilterDto = z.object({
+	...zq.pagination.shape,
+	locationId: zq.id,
+	q: zq.search,
+})
 
 export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto>
 
@@ -67,23 +69,29 @@ export type MaterialLocationFilterDto = z.infer<typeof MaterialLocationFilterDto
 
 /** Assign materials to locations (batch) */
 export const MaterialLocationAssignDto = z.object({
-	locationIds: zp.id.array().min(1),
-	materialIds: zp.id.array().min(1),
+	locationIds: z.array(zp.id).min(1),
+	materialIds: z.array(zp.id).min(1),
 })
 
 export type MaterialLocationAssignDto = z.infer<typeof MaterialLocationAssignDto>
 
 /** Unassign a material from a location */
-export const MaterialLocationUnassignDto = z.object({ materialId: zp.id, locationId: zp.id })
+export const MaterialLocationUnassignDto = z.object({
+	materialId: zq.id,
+	locationId: zq.id,
+})
 
 export type MaterialLocationUnassignDto = z.infer<typeof MaterialLocationUnassignDto>
 
 /** Update per-location config (min/max stock, reorder point) */
 export const MaterialLocationConfigDto = z.object({
-	id: zp.id,
-	minStock: zp.num.min(0).optional(),
-	maxStock: zp.num.min(0).nullable().optional(),
-	reorderPoint: zp.num.min(0).optional(),
+	...zc.RecordId.shape,
+	minStock: zp.decimal.refine((v) => Number(v) >= 0, 'Must be at least 0').optional(),
+	maxStock: zp.decimal
+		.refine((v) => Number(v) >= 0, 'Must be at least 0')
+		.nullable()
+		.optional(),
+	reorderPoint: zp.decimal.refine((v) => Number(v) >= 0, 'Must be at least 0').optional(),
 })
 
 export type MaterialLocationConfigDto = z.infer<typeof MaterialLocationConfigDto>

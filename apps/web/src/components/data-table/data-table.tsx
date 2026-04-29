@@ -1,3 +1,6 @@
+/**
+ * @deprecated Use @/components/reui/data-grid instead. This component will be removed in a future release.
+ */
 import type { PropsWithChildren } from 'react'
 
 import { cn } from '@/lib/utils'

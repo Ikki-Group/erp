@@ -7,8 +7,9 @@ import { CheckIcon, TrendingDownIcon, TrendingUpIcon, XIcon } from 'lucide-react
 import { toCurrency, toDate, toDateTimeStamp, toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
 
+import { Badge } from '@/components/reui/badge'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 

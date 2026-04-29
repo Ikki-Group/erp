@@ -4,16 +4,15 @@
 > If a component already exists here, USE IT. Do not duplicate.
 > When adding a new component, update BOTH this file AND the corresponding `registry.ts`.
 
-## Layer: layout (6 components)
+## Layer: layout (5 components)
 
 | Component     | Import                            | Usage                                                                                                        |
 | ------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `AppLayout`   | `@/components/layout/app-layout`  | Root shell with sidebar. Used once in `/_app` route only.                                                    |
-| `Page`        | `@/components/layout/page`        | Page container. Wrap every route page. Use `Page.BlockHeader` for headers.                                   |
+| `Page`        | `@/components/layout/page`        | Page container. Wrap every route page. Use `Page.BlockHeader` for headers (supports breadcrumbs).           |
 | `FormLayout`  | `@/components/layout/form-layout` | Form page layouts. Use `FormLayout.Grid` for columns, `FormLayout.CardSection` for grouped fields.           |
 | `FormDialog`  | `@/components/layout/form-dialog` | Dialog form layout. Use with `createCallable`. Pass `form.DialogActions` as footer, children as form fields. |
 | `Breadcrumbs` | `@/components/layout/breadcrumbs` | Auto-generated breadcrumbs. Already in AppLayout.                                                            |
-| `PageHeader`  | `@/components/layout/page-header` | Standalone header for modals/panels.                                                                         |
 | `Primitives`  | `@/components/layout/primitives`  | Low-level: `Section`, `SectionHeader`, `SectionContent`.                                                     |
 
 ## Layer: form (6 components)

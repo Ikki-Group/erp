@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 
 import { useMutation, useQuery, useSuspenseQueries } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import type { ColumnDef } from '@tanstack/react-table'
 
 import {
 	ChefHatIcon,
@@ -19,14 +18,18 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { cn } from '@/lib/utils'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
-import { createColumnHelper, dateColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
+import { Badge } from '@/components/reui/badge'
+import {
+	actionColumn,
+	createColumnHelper,
+	dateColumn,
+} from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -46,9 +49,7 @@ import { MaterialAssignToLocationDialog } from './material-assign-to-location-di
 
 const ch = createColumnHelper<MaterialSelectDto>()
 
-function getColumns(
-	handleDelete: (id: number) => Promise<void>,
-): ColumnDef<MaterialSelectDto, any>[] {
+function getColumns(handleDelete: (id: number) => Promise<void>) {
 	return [
 		ch.display({
 			id: 'select',
@@ -77,21 +78,21 @@ function getColumns(
 			cell: ({ row }) => {
 				const material = row.original
 				return (
-					<div className="flex flex-col justify-center min-h-10 py-1">
+					<div className="flex flex-col gap-0.5 py-1">
 						<div className="flex items-center gap-2">
 							<Link
 								to="/material/$id"
 								params={{ id: String(material.id) }}
-								className="font-semibold text-sm tracking-tight hover:text-primary hover:underline"
+								className="font-medium hover:text-primary hover:underline"
 							>
 								{material.name}
 							</Link>
-							<span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 font-medium">
+							<Badge variant="outline" size="sm" className="font-mono">
 								{material.sku}
-							</span>
+							</Badge>
 						</div>
 						{material.description && (
-							<span className="text-[11px] text-muted-foreground/60 line-clamp-1 max-w-75 h-4 leading-relaxed">
+							<span className="text-sm text-muted-foreground line-clamp-1">
 								{material.description}
 							</span>
 						)}
@@ -105,25 +106,16 @@ function getColumns(
 			size: 140,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex items-center min-h-10">
-					<Badge
-						variant="secondary"
-						className="bg-secondary/40 text-secondary-foreground rounded-md px-2 py-0 border-none font-medium text-[11px]"
-					>
-						{row.original.category?.name ?? 'Tanpa Kategori'}
-					</Badge>
-				</div>
+				<Badge variant="secondary" size="sm">
+					{row.original.category?.name ?? 'Tanpa Kategori'}
+				</Badge>
 			),
 		}),
 		ch.accessor('type', {
 			header: 'Jenis',
 			size: 160,
 			enableSorting: false,
-			cell: ({ row }) => (
-				<div className="flex items-center min-h-10">
-					<BadgeDot {...MaterialBadgeProps[row.original.type]} />
-				</div>
-			),
+			cell: ({ row }) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
 		}),
 		ch.accessor((row) => row.uom?.code, {
 			id: 'uom',
@@ -131,14 +123,9 @@ function getColumns(
 			size: 90,
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex items-center min-h-10">
-					<Badge
-						variant="outline"
-						className="h-5 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 border-muted-foreground/20"
-					>
-						{row.original.uom?.code ?? '-'}
-					</Badge>
-				</div>
+				<Badge variant="outline" size="sm" className="font-bold uppercase tracking-wider">
+					{row.original.uom?.code ?? '-'}
+				</Badge>
 			),
 		}),
 		ch.accessor('locationIds', {
@@ -148,62 +135,49 @@ function getColumns(
 			cell: ({ row }) => {
 				const count = row.original.locationIds.length
 				return (
-					<div className="flex items-center min-h-10">
-						<Button
-							variant="ghost"
-							size="sm"
-							className="gap-2 -ml-2 h-8"
-							onClick={() => {
-								void MaterialAssignToLocationDialog.call({
-									materialIds: [row.original.id],
-									materialName: row.original.name,
-								})
-							}}
-						>
-							<MapPinIcon className="size-3.5 text-muted-foreground" />
-							<span
-								className={cn(
-									'text-nowrap',
-									count > 0 ? 'text-sm' : 'text-sm text-muted-foreground',
-								)}
-							>
-								{count} Lokasi
-							</span>
-							<PlusIcon className="size-3 text-muted-foreground/50" />
-						</Button>
-					</div>
+					<Button
+						variant="ghost"
+						onClick={() => {
+							void MaterialAssignToLocationDialog.call({
+								materialIds: [row.original.id],
+								materialName: row.original.name,
+							})
+						}}
+					>
+						<MapPinIcon />
+						<span className={count === 0 ? 'text-muted-foreground' : ''}>{count} Lokasi</span>
+						<PlusIcon />
+					</Button>
 				)
 			},
 		}),
 		ch.accessor('updatedAt', dateColumn({ header: 'Diperbarui', size: 140 })),
-		ch.display({
+		actionColumn<MaterialSelectDto>({
 			id: 'action',
-			size: 140,
+			size: 80,
 			cell: ({ row }) => {
 				const material = row.original
 				return (
-					<div className="flex items-center justify-end gap-1 px-2 min-h-10">
+					<div className="flex items-center justify-end gap-1 px-2">
 						<Button
 							variant="ghost"
-							size="icon-sm"
-							className="size-8 text-muted-foreground hover:text-foreground"
 							title="Lihat Detail"
 							nativeButton={false}
 							render={<Link to="/material/$id" params={{ id: String(material.id) }} />}
 						>
-							<EyeIcon className="size-4" />
+							<EyeIcon />
 						</Button>
 						<DropdownMenu>
 							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon className="size-4" />
+								<MoreHorizontalIcon />
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
+							<DropdownMenuContent align="end" className="w-40">
 								{material.type === 'semi' && (
 									<DropdownMenuItem
 										nativeButton={false}
 										render={<Link to="/material/$id/recipe" params={{ id: String(material.id) }} />}
 									>
-										<ChefHatIcon className="mr-2 size-4" />
+										<ChefHatIcon className="mr-2" />
 										Kelola Resep
 									</DropdownMenuItem>
 								)}
@@ -211,14 +185,14 @@ function getColumns(
 									nativeButton={false}
 									render={<Link to="/material/$id/update" params={{ id: String(material.id) }} />}
 								>
-									<PencilIcon className="mr-2 size-4" />
+									<PencilIcon className="mr-2" />
 									Edit Bahan
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									variant="destructive"
 									onClick={() => void handleDelete(material.id)}
 								>
-									<Trash2Icon className="mr-2 size-4" />
+									<Trash2Icon className="mr-2" />
 									Hapus
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -226,7 +200,6 @@ function getColumns(
 					</div>
 				)
 			},
-			enablePinning: true,
 		}),
 	]
 }
@@ -248,19 +221,23 @@ export function MaterialTable() {
 	})
 
 	const { data, isLoading } = useQuery(
-		materialApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
+		materialApi.list.query({ ...ds.pagination, ...ds.filters, search: ds.search }),
 	)
 
-	const deleteMutation = useMutation({
-		mutationFn: materialApi.remove.mutationFn,
-		onSuccess: () => {
-			// Optional: Invalidate queries if needed, though toast usually handles feedback
-		},
-	})
+	const deleteMutation = useMutation({ mutationFn: materialApi.remove.mutationFn })
 
 	const handleDelete = async (id: number) => {
-		const promise = deleteMutation.mutateAsync({ body: { id } })
-		await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
+		await ConfirmDialog.call({
+			title: 'Hapus Bahan Baku',
+			description:
+				'Apakah Anda yakin ingin menghapus bahan baku ini? Data yang telah digunakan dalam transaksi mungkin tidak dapat dihapus.',
+			variant: 'destructive',
+			confirmLabel: 'Hapus',
+			onConfirm: async () => {
+				const promise = deleteMutation.mutateAsync({ body: { id } })
+				await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
+			},
+		})
 	}
 
 	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
@@ -321,7 +298,6 @@ export function MaterialTable() {
 					{selectedIds.length > 0 && (
 						<Button
 							variant="outline"
-							size="sm"
 							onClick={() => {
 								void MaterialAssignToLocationDialog.call({
 									materialIds: selectedIds,
@@ -329,11 +305,11 @@ export function MaterialTable() {
 								})
 							}}
 						>
-							<MapPinIcon className="size-3.5" />
-							Assign {selectedIds.length} Lokasi
+							<MapPinIcon />
+							Tugaskan {selectedIds.length} Lokasi
 						</Button>
 					)}
-					<Button size="sm" nativeButton={false} render={<Link to="/material/create" />}>
+					<Button nativeButton={false} render={<Link to="/material/create" />}>
 						Tambah Bahan Baku
 					</Button>
 				</div>

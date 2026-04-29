@@ -63,17 +63,6 @@ export const layoutRegistry: ComponentRegistry = {
 			exports: ['Breadcrumbs'],
 		},
 		{
-			name: 'PageHeader',
-			file: './page-header',
-			description:
-				'Standalone PageHeader with support for breadcrumbs, titles, and actions. Uses Base UI pattern.',
-			usage:
-				'Used for standalone headers or inside nested containers. Supports `render` prop for custom wrappers.',
-			importPath: '@/components/layout/page-header',
-			tags: ['header', 'title', 'standalone'],
-			exports: ['PageHeader'],
-		},
-		{
 			name: 'Primitives',
 			file: './primitives',
 			description:
