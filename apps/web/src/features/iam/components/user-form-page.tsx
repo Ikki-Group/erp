@@ -18,8 +18,8 @@ import { Page } from '@/components/layout/page'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
 import {
 	Table,
 	TableBody,
@@ -42,7 +42,7 @@ const FormDto = z.object({
 		.min(3, 'Username minimal 3 karakter')
 		.max(32, 'Username maksimal 32 karakter'),
 	password: z.string().min(8, 'Password minimal 8 karakter').optional(),
-	email: z.string().email('Format email tidak valid'),
+	email: z.email('Format email tidak valid'),
 	isRoot: zBool,
 	isActive: zBool,
 	pinCode: z.string().nullable(),
@@ -183,6 +183,8 @@ function AccessControlCard() {
 function AssignmentsCard() {
 	const form = useTypedAppFormContext({ ...fopts })
 	const isRoot = useStore(form.store, (s) => s.values.isRoot)
+	const assignments = useStore(form.store, (s) => s.values.assignments)
+	const defaultIndex = assignments.findIndex((a) => a.isDefault)
 
 	const roles = useQuery({ ...roleApi.list.query({ limit: 100 }) })
 	const locations = useQuery({ ...locationApi.list.query({ limit: 100 }) })
@@ -190,10 +192,16 @@ function AssignmentsCard() {
 	const roleOptions = roles.data?.data.map((r) => ({ label: r.name, value: r.id })) ?? []
 	const locationOptions = locations.data?.data.map((l) => ({ label: l.name, value: l.id })) ?? []
 
+	function setDefaultAssignment(selectedIdx: number) {
+		assignments.forEach((_, idx) => {
+			form.setFieldValue(`assignments[${idx}].isDefault`, idx === selectedIdx)
+		})
+	}
+
 	return (
 		<CardSection
-			title="Role & Lokasi"
-			description="Konfigurasi penugasan role dan lokasi pengguna."
+			title="Penugasan"
+			description="Atur role dan lokasi yang dapat diakses pengguna."
 			action={
 				!isRoot && (
 					<Button
@@ -209,113 +217,92 @@ function AssignmentsCard() {
 						}}
 					>
 						<PlusIcon />
-						Tambah Penugasan
+						Tambah
 					</Button>
 				)
 			}
 		>
 			{isRoot ? (
 				<Alert variant="destructive" className="border-dashed">
-					<ShieldAlertIcon className="size-4" />
-					<Alert.Title>Akses Tanpa Batas</Alert.Title>
+					<ShieldAlertIcon />
+					<Alert.Title>Akses Penuh</Alert.Title>
 					<Alert.Description>
-						Super Admin memiliki bypass akses ke seluruh role dan seluruh cabang secara penuh.
+						Super Admin memiliki akses ke seluruh fitur dan lokasi tanpa batasan.
 					</Alert.Description>
 				</Alert>
+			) : assignments.length === 0 ? (
+				<Empty className="border-dashed">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<ShieldAlertIcon />
+						</EmptyMedia>
+						<EmptyTitle>Belum ada penugasan</EmptyTitle>
+						<EmptyDescription>
+							Pengguna tanpa penugasan tidak dapat mengakses fitur aplikasi.
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			) : (
-				<form.AppField name="assignments">
-					{(field) => {
-						if (field.state.value.length === 0) {
-							return (
-								<Empty className="border-dashed">
-									<EmptyHeader>
-										<EmptyMedia variant="icon">
-											<ShieldAlertIcon />
-										</EmptyMedia>
-										<EmptyTitle>Belum ada role yang ditambahkan</EmptyTitle>
-										<EmptyDescription>
-											Pengguna ini berpotensi gagal login karena tidak memiliki hak akses role dan
-											lokasi pada aplikasi.
-										</EmptyDescription>
-									</EmptyHeader>
-								</Empty>
-							)
-						}
-
-						return (
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead className="w-[35%]">Lokasi Gudang/Cabang</TableHead>
-										<TableHead className="w-[35%]">Role Sistem</TableHead>
-										<TableHead className="w-[15%] text-left">Default</TableHead>
-										<TableHead className="w-[15%] text-right">Aksi</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{field.state.value.map((_, i) => (
+				<RadioGroup
+					value={defaultIndex >= 0 ? String(defaultIndex) : ''}
+					onValueChange={(val) => setDefaultAssignment(Number(val))}
+				>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead className="w-[40%]">Lokasi</TableHead>
+								<TableHead className="w-[40%]">Role</TableHead>
+								<TableHead className="w-[10%]">Default</TableHead>
+								<TableHead className="w-[10%] text-right">Aksi</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							<form.AppField name="assignments" mode="array">
+								{(arrayField) =>
+									arrayField.state.value.map((_, i) => (
 										<TableRow key={i}>
 											<TableCell>
 												<form.AppField name={`assignments[${i}].locationId`}>
 													{(subField) => (
-														<div className="w-full">
-															<subField.Select
-																placeholder="Pilih Lokasi"
-																options={locationOptions}
-																disabled={locations.isLoading}
-															/>
-														</div>
+														<subField.Select
+															placeholder="Pilih Lokasi"
+															options={locationOptions}
+															disabled={locations.isLoading}
+														/>
 													)}
 												</form.AppField>
 											</TableCell>
 											<TableCell>
 												<form.AppField name={`assignments[${i}].roleId`}>
 													{(subField) => (
-														<div className="w-full">
-															<subField.Select
-																placeholder="Pilih Role"
-																options={roleOptions}
-																disabled={roles.isLoading}
-															/>
-														</div>
+														<subField.Select
+															placeholder="Pilih Role"
+															options={roleOptions}
+															disabled={roles.isLoading}
+														/>
 													)}
 												</form.AppField>
 											</TableCell>
-											<TableCell>
-												<form.AppField name={`assignments[${i}].isDefault`}>
-													{(subField) => (
-														<subField.Field>
-															<subField.Control>
-																<Switch
-																	onCheckedChange={(checked: boolean) => {
-																		subField.handleChange(checked)
-																	}}
-																	checked={subField.state.value}
-																	onBlur={subField.handleBlur}
-																	name={subField.name}
-																/>
-															</subField.Control>
-														</subField.Field>
-													)}
-												</form.AppField>
+											<TableCell className="text-center">
+												<RadioGroupItem value={String(i)} />
 											</TableCell>
 											<TableCell className="text-right">
 												<Button
 													variant="destructive"
 													size="icon-sm"
 													type="button"
-													onClick={() => field.removeValue(i)}
+													onClick={() => arrayField.removeValue(i)}
 												>
 													<Trash2Icon />
 												</Button>
 											</TableCell>
 										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						)
-					}}
-				</form.AppField>
+									))
+								}
+							</form.AppField>
+						</TableBody>
+					</Table>
+				</RadioGroup>
 			)}
 		</CardSection>
 	)
