@@ -103,6 +103,27 @@ function DocsLayout() {
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Dialog Form</span>
 							</Link>
+							<Link
+								to="/dashboard"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<LayoutDashboardIcon className="size-4 shrink-0" />
+								<span>Dashboard</span>
+							</Link>
+							<Link
+								to="/layouts"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<LayoutDashboardIcon className="size-4 shrink-0" />
+								<span>Layouts</span>
+							</Link>
+							<Link
+								to="/search"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Search</span>
+							</Link>
 						</div>
 					</div>
 				</nav>
