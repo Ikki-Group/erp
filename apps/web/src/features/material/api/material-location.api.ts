@@ -3,7 +3,12 @@ import z from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
 
 import {
 	MaterialLocationAssignDto,
@@ -29,7 +34,12 @@ export const materialLocationApi = {
 		url: endpoint.material.location.assign,
 		body: MaterialLocationAssignDto,
 		result: createSuccessResponseSchema(z.object({ assignedCount: z.number() })),
-		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
+		invalidates: [
+			endpoint.material.list,
+			endpoint.material.detail,
+			endpoint.material.location.stock,
+			endpoint.material.location.byMaterial,
+		],
 	}),
 
 	/** Unassign a material from a location */
@@ -38,7 +48,12 @@ export const materialLocationApi = {
 		url: endpoint.material.location.unassign,
 		params: MaterialLocationUnassignDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
+		invalidates: [
+			endpoint.material.list,
+			endpoint.material.detail,
+			endpoint.material.location.stock,
+			endpoint.material.location.byMaterial,
+		],
 	}),
 
 	/** List locations assigned to a material */
@@ -55,6 +70,11 @@ export const materialLocationApi = {
 		url: endpoint.material.location.config,
 		body: MaterialLocationConfigDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.material.location.stock, endpoint.material.location.byMaterial],
+		invalidates: [
+			endpoint.material.list,
+			endpoint.material.detail,
+			endpoint.material.location.stock,
+			endpoint.material.location.byMaterial,
+		],
 	}),
 }

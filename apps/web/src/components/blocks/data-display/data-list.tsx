@@ -40,10 +40,8 @@ function DataListItem({ label, value, children, className, span = 1 }: DataListI
 
 	return (
 		<div className={cn('flex flex-col gap-1', colSpan, className)}>
-			<span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-				{label}
-			</span>
-			<div className="text-sm font-medium">{value ?? children}</div>
+			<span className="text-xs font-medium text-muted-foreground tracking-wider">{label}</span>
+			<div className="font-medium">{value ?? children}</div>
 		</div>
 	)
 }

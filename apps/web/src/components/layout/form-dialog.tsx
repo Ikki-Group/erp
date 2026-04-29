@@ -34,7 +34,7 @@ export interface FormDialogProps {
 	 * Called when the form is submitted (enter key or submit button).
 	 * Wire this to `form.handleSubmit()` from your form instance.
 	 */
-	onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void
+	onSubmit?: (e: React.SubmitEvent<HTMLFormElement>) => void
 }
 
 /**
