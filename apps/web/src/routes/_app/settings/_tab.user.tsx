@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
-import { KeyRoundIcon, PencilIcon, ZoomInIcon } from 'lucide-react'
+import { KeyRoundIcon, MoreHorizontalIcon, PencilIcon, ZoomInIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -19,6 +19,12 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
 	Popover,
 	PopoverContent,
@@ -52,11 +58,11 @@ const columnDefs = [
 			header: 'Nama',
 			render: (value, row) => (
 				<Link to="/settings/user/$id" params={{ id: String(row.id) }}>
-					<div className="flex flex-col gap-1 py-0.5">
-						<span className="font-semibold text-sm tracking-tight hover:text-primary hover:underline">
+					<div className="flex flex-col gap-1 py-0.5 min-w-0">
+						<span className="font-semibold text-sm tracking-tight hover:text-primary hover:underline truncate">
 							{value}
 						</span>
-						<span className="text-muted-foreground italic text-xs">{row.email}</span>
+						<span className="text-muted-foreground italic text-xs truncate">{row.email}</span>
 					</div>
 				</Link>
 			),
@@ -129,31 +135,35 @@ const columnDefs = [
 		cell: ({ row }) => {
 			const { id, username } = row.original
 			return (
-				<div className="flex items-center justify-end gap-1 px-2">
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						onClick={() => {
-							UserPasswordDialog.call({ id, username })
-						}}
-						title="Ubah Password"
-						className="size-8 text-muted-foreground hover:text-foreground"
-					>
-						<KeyRoundIcon className="size-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						nativeButton={false}
-						render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
-						className="size-8 text-muted-foreground hover:text-foreground"
-					>
-						<PencilIcon className="size-4" />
-					</Button>
+				<div className="flex items-center justify-end px-2">
+					<DropdownMenu>
+						<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+							<MoreHorizontalIcon />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-40">
+							<DropdownMenuItem
+								nativeButton={false}
+								render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
+							>
+								<PencilIcon className="mr-2" />
+								Edit
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() => {
+									UserPasswordDialog.call({ id, username })
+								}}
+								className="text-nowrap"
+							>
+								<KeyRoundIcon className="mr-2" />
+								Ubah Password
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			)
 		},
-		size: 100,
+		size: 60,
 	}),
 ]
 
