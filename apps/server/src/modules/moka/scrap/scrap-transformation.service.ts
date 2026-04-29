@@ -13,6 +13,7 @@ import {
 	salesExternalRefsTable,
 	salesOrderItemsTable,
 	salesOrdersTable,
+	salesRefundsTable,
 	salesTypesTable,
 	salesVoidsTable,
 	variantPricesTable,

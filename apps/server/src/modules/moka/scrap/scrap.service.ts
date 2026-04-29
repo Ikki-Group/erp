@@ -86,7 +86,7 @@ export class MokaScrapService {
 				const engine = new MokaProductEngine(auth, this.logger)
 				const products = await engine.fetch()
 				const outletNum = outletId ? Number(outletId) : null
-				const filtered = outletNum ? products.filter((p) => p.outlet_id === outletId) : products
+				const filtered = outletNum ? products.filter((p) => p.outlet_id === outletNum) : products
 				await this.transformSvc.transformProducts(config.locationId, filtered, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
 					recordsCount: filtered.length,
