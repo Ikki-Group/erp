@@ -2,31 +2,50 @@ import { z } from 'zod'
 
 import { zp, zc } from '@/lib/validation'
 
+/* ---------------------------------- ENTITY ---------------------------------- */
+
 export const MokaConfigurationDto = z.object({
 	...zc.RecordId.shape,
 	locationId: zp.id,
-	email: zc.email,
-	password: z.string(),
-	businessId: z.string().nullable(),
-	outletId: z.string().nullable(),
-	accessToken: z.string().nullable(),
+	provider: z.literal('moka'),
+	email: zp.str,
+	password: zp.str,
+	businessId: zp.strNullable,
+	outletId: zp.strNullable,
+	accessToken: zp.strNullable,
+	isActive: z.boolean(),
+	salesCronEnabled: z.boolean(),
+	salesCronExpression: zp.strNullable,
 	lastSyncedAt: zp.date.nullable(),
-	...zc.AuditFull.shape,
+	lastSalesSyncedAt: zp.date.nullable(),
+	lastProductSyncedAt: zp.date.nullable(),
+	lastCategorySyncedAt: zp.date.nullable(),
+	...zc.AuditBasic.shape,
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
 
-export const MokaConfigurationSelectDto = MokaConfigurationDto.omit({ password: true })
-export type MokaConfigurationSelectDto = z.infer<typeof MokaConfigurationSelectDto>
+/* ---------------------------------- OUTPUT ---------------------------------- */
 
-export const MokaConfigurationCreateDto = z.object({
+export const MokaConfigurationOutputDto = MokaConfigurationDto.omit({ password: true })
+export type MokaConfigurationOutputDto = z.infer<typeof MokaConfigurationOutputDto>
+
+/* -------------------------------- MUTATION -------------------------------- */
+
+const MokaConfigurationMutationDto = z.object({
 	locationId: zp.id,
 	email: zc.email,
-	password: z.string().min(6),
+	password: zc.password,
+	businessId: zc.strTrimNullable,
+	outletId: zc.strTrimNullable,
+	isActive: z.boolean().optional(),
+	salesCronEnabled: z.boolean().optional(),
+	salesCronExpression: zc.strTrimNullable,
 })
+
+export const MokaConfigurationCreateDto = MokaConfigurationMutationDto
 export type MokaConfigurationCreateDto = z.infer<typeof MokaConfigurationCreateDto>
 
-export const MokaConfigurationUpdateDto = z.object({
-	...MokaConfigurationCreateDto.partial().shape,
-	locationId: zp.id.optional(),
+export const MokaConfigurationUpdateDto = MokaConfigurationMutationDto.partial().extend({
+	...zc.RecordId.shape,
 })
 export type MokaConfigurationUpdateDto = z.infer<typeof MokaConfigurationUpdateDto>

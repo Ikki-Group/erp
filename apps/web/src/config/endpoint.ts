@@ -103,7 +103,11 @@ const hr = {
 }
 
 const moka = {
-	configuration: crud('moka/configuration'),
+	configuration: {
+		byLocation: 'moka/config/by-location/:locationId',
+		create: 'moka/config/create',
+		update: 'moka/config/update/:id',
+	},
 	scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
 }
 

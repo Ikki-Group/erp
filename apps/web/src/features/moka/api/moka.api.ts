@@ -3,60 +3,49 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { zc, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	MokaConfigurationCreateDto,
-	MokaConfigurationDto,
+	MokaConfigurationOutputDto,
 	MokaConfigurationUpdateDto,
 } from '../dto/moka-configuration.dto'
-import { MokaScrapHistoryDto, MokaScrapHistoryFilterDto } from '../dto/moka-scrap-history.dto'
-import { MokaTriggerInputDto, MokaTriggerResultDto } from '../dto/moka.dto'
+import { MokaScrapHistoryDto } from '../dto/moka-scrap-history.dto'
+import { MokaTriggerInputDto } from '../dto/moka.dto'
 
 export const mokaApi = {
-	listConfiguration: apiFactory({
+	configurationByLocation: apiFactory({
 		method: 'get',
-		url: endpoint.moka.configuration.list,
-		result: createPaginatedResponseSchema(MokaConfigurationDto),
-	}),
-	detailConfiguration: apiFactory({
-		method: 'get',
-		url: endpoint.moka.configuration.detail,
-		params: zc.RecordId,
-		result: createSuccessResponseSchema(MokaConfigurationDto),
+		url: endpoint.moka.configuration.byLocation,
+		params: z.object({ locationId: z.coerce.number() }),
+		result: createSuccessResponseSchema(MokaConfigurationOutputDto),
 	}),
 	createConfiguration: apiFactory({
 		method: 'post',
 		url: endpoint.moka.configuration.create,
 		body: MokaConfigurationCreateDto,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.moka.configuration.list],
+		result: createSuccessResponseSchema(MokaConfigurationOutputDto),
+		invalidates: [endpoint.moka.configuration.byLocation],
 	}),
 	updateConfiguration: apiFactory({
-		method: 'patch',
+		method: 'put',
 		url: endpoint.moka.configuration.update,
+		params: z.object({ id: z.coerce.number() }),
 		body: MokaConfigurationUpdateDto,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.moka.configuration.list, endpoint.moka.configuration.detail],
-	}),
-	removeConfiguration: apiFactory({
-		method: 'delete',
-		url: endpoint.moka.configuration.remove,
-		params: zc.RecordId,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.moka.configuration.list],
+		result: createSuccessResponseSchema(MokaConfigurationOutputDto),
+		invalidates: [endpoint.moka.configuration.byLocation],
 	}),
 	scrapHistory: apiFactory({
 		method: 'get',
 		url: endpoint.moka.scrap.history,
-		params: MokaScrapHistoryFilterDto,
+		params: z.object({ mokaConfigurationId: z.coerce.number().optional() }),
 		result: createSuccessResponseSchema(z.array(MokaScrapHistoryDto)),
 	}),
 	triggerScrap: apiFactory({
 		method: 'post',
 		url: endpoint.moka.scrap.trigger,
 		body: MokaTriggerInputDto,
-		result: createSuccessResponseSchema(MokaTriggerResultDto),
+		result: createSuccessResponseSchema(z.any()),
 		invalidates: [endpoint.moka.scrap.history],
 	}),
 }
