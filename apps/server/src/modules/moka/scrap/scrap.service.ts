@@ -1,13 +1,13 @@
-import type { MokaConfigurationDto } from '../dto/moka-configuration.dto'
-import type { MokaTriggerInputDto } from '../dto/moka.dto'
-import { MokaAuthEngine } from './engine/moka-auth.service'
-import { MokaCategoryEngine } from './engine/moka-category.service'
-import { MokaProductEngine } from './engine/moka-product.service'
-import { MokaSalesEngine } from './engine/moka-sales.service'
-import type { MokaConfigurationService } from './moka-configuration.service'
-import type { MokaScrapHistoryService } from './moka-scrap-history.service'
-import type { MokaSyncCursorService } from './moka-sync-cursor.service'
-import type { MokaTransformationService } from './moka-transformation.service'
+import type { MokaConfigurationDto } from '../configuration/configuration.dto'
+import type { MokaConfigurationService } from '../configuration/configuration.service'
+import { MokaAuthEngine } from '../engine/moka-auth.service'
+import { MokaCategoryEngine } from '../engine/moka-category.service'
+import { MokaProductEngine } from '../engine/moka-product.service'
+import { MokaSalesEngine } from '../engine/moka-sales.service'
+import type { MokaScrapHistoryService } from './scrap-history.service'
+import type { MokaSyncCursorService } from './scrap-sync-cursor.service'
+import type { MokaTransformationService } from './scrap-transformation.service'
+import type { MokaTriggerInputDto } from './scrap.dto'
 import type { Logger } from 'pino'
 
 export class MokaScrapService {
@@ -58,7 +58,7 @@ export class MokaScrapService {
 			await auth.ensureAuthenticated()
 
 			await this.configSvc.updateAuthData(config.id, {
-				businessId: null, // MokaAuthEngine doesn't provide businessId anymore, or we can get it from outlets[0]
+				businessId: null,
 				outletId: auth.mokaOutletId,
 				accessToken: auth.token,
 			})
@@ -98,7 +98,7 @@ export class MokaScrapService {
 					mokaConfigurationId: config.id,
 					type: input.type,
 					provider: config.provider,
-					cursorDate: dateTo,
+					cursorDate: input.dateTo ?? new Date(),
 					lastHistoryId: historyId,
 				},
 				actorId,

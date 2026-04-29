@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zp } from '@/core/validation'
 
-import { MokaScrapType, MokaSyncTriggerMode } from './moka-scrap-history.dto'
+import { MokaScrapType, MokaSyncTriggerMode } from '../shared.dto'
 
 /* ---------------------------------- RAW ---------------------------------- */
 

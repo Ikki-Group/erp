@@ -147,13 +147,11 @@ export function DateRangePickerV2({
 }: DateRangePickerV2Props) {
 	const [open, setOpen] = useState(false)
 	const [draft, setDraft] = useState<DateRange | undefined>(value)
-	const [month, setMonth] = useState(() => value?.from ?? new Date())
 
 	// Sync draft ← value when popover opens
 	const handleOpenChange = (nextOpen: boolean) => {
 		if (nextOpen) {
 			setDraft(value)
-			setMonth(value?.from ?? new Date())
 		}
 		setOpen(nextOpen)
 	}
@@ -161,7 +159,6 @@ export function DateRangePickerV2({
 	const handlePresetClick = (preset: DatePreset) => {
 		const range = preset.range()
 		setDraft(range)
-		setMonth(range.to ?? range.from ?? new Date())
 	}
 
 	const handleApply = () => {
@@ -260,13 +257,9 @@ export function DateRangePickerV2({
 						<Calendar
 							mode="range"
 							selected={draft}
-							onSelect={(range) => {
-								if (range) {
-									setDraft(range)
-								}
-							}}
-							month={month}
-							onMonthChange={setMonth}
+							onSelect={setDraft}
+							numberOfMonths={2}
+							defaultMonth={draft?.from ?? new Date()}
 							disabled={disableFuture ? [{ after: today }] : undefined}
 							showOutsideDays={false}
 							className="p-3"

@@ -68,7 +68,7 @@ export function initModules(db: DbClient): Modules {
 	const sales = new SalesServiceModule(db, cacheClient)
 	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
 
-	const moka = new MokaServiceModule(logger, finance)
+	const moka = new MokaServiceModule(db, cacheClient, { finance, logger })
 
 	// Layer 3 — Aggregators
 	const production = new ProductionServiceModule(db, cacheClient, recipe.recipe, inventory)

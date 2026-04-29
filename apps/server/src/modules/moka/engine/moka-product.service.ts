@@ -3,8 +3,8 @@
 // oxlint-disable typescript/no-unsafe-return
 // oxlint-disable typescript/no-unsafe-assignment
 
-import type { MokaProductRaw } from '../../dto/moka-raw.types'
-import { MokaProductRawDto } from '../../dto/moka.dto'
+import type { MokaProductRaw } from '../scrap/scrap-raw.types'
+import { MokaProductRawDto } from '../scrap/scrap.dto'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<MokaProductRaw> {

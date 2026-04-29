@@ -5,7 +5,7 @@ import axios, {
 	type RawAxiosRequestHeaders,
 } from 'axios'
 
-import type { MokaLoginResponse } from '../../dto/moka-raw.types'
+import type { MokaLoginResponse } from '../scrap/scrap-raw.types'
 import type { Logger } from 'pino'
 
 const BASE_URL = 'https://backoffice.mokapos.com'

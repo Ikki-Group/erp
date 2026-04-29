@@ -2,11 +2,6 @@ import { z } from 'zod'
 
 import { zc, zp } from '@/core/validation'
 
-import { MokaScrapType as MokaScrapTypeEnum } from './moka-scrap-history.dto'
-
-export type MokaProvider = 'moka'
-export type MokaScrapType = z.infer<typeof MokaScrapTypeEnum>
-
 /* ---------------------------------- ENTITY ---------------------------------- */
 
 export const MokaConfigurationDto = z.object({

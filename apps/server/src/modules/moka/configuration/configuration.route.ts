@@ -8,8 +8,8 @@ import {
 	MokaConfigurationCreateDto,
 	MokaConfigurationOutputDto,
 	MokaConfigurationUpdateDto,
-} from '../dto'
-import type { MokaConfigurationService } from '../service/moka-configuration.service'
+} from './configuration.dto'
+import type { MokaConfigurationService } from './configuration.service'
 
 export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 	return new Elysia({ prefix: '/config' })
