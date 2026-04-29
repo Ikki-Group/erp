@@ -1,14 +1,9 @@
-import type { MokaSalesDetailRaw } from '../scrap/scrap-raw.types'
+import type { MokaSalesDetailRaw, MokaSalesListResponse } from '../scrap/scrap-raw.types'
 import { MokaSalesDetailRawDto } from '../scrap/scrap.dto'
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 import { expandDates } from './moka-utils'
 import type { Logger } from 'pino'
-
-interface MokaSalesListResponse {
-	orders: { order_token: string; [key: string]: unknown }[]
-	next_cursor: string | null
-}
 
 export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaSalesDetailRaw> {
 	private batchSize = 10

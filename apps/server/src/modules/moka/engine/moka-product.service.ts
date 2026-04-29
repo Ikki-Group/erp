@@ -4,7 +4,7 @@
 // oxlint-disable typescript/no-unsafe-assignment
 
 import type { MokaProductRaw } from '../scrap/scrap-raw.types'
-import { MokaProductRawDto } from '../scrap/scrap.dto'
+import { MokaProductListDto } from '../scrap/scrap.dto'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<MokaProductRaw> {
@@ -15,8 +15,8 @@ export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<Mok
 		try {
 			const response = await api.get('/api/v2/items', { headers: this.getHeaders('AUTHENTICATED') })
 
-			const items = response.data.items ?? []
-			return items.map((item: any) => MokaProductRawDto.parse(item))
+			const parsed = MokaProductListDto.parse(response.data)
+			return parsed.products
 		} catch (error: any) {
 			this.logger.error({ err: error.message }, 'Failed to fetch Moka products')
 			throw error

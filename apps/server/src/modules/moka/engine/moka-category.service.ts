@@ -4,7 +4,7 @@
 // oxlint-disable typescript/no-unsafe-member-access
 
 import type { MokaCategoryRaw } from '../scrap/scrap-raw.types'
-import { MokaCategoryRawDto } from '../scrap/scrap.dto'
+import { MokaCategoryListDto } from '../scrap/scrap.dto'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<MokaCategoryRaw> {
@@ -17,8 +17,8 @@ export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<Mo
 				headers: this.getHeaders('AUTHENTICATED'),
 			})
 
-			const categories = response.data.categories ?? []
-			return categories.map((cat: any) => MokaCategoryRawDto.parse(cat))
+			const parsed = MokaCategoryListDto.parse(response.data)
+			return parsed.results
 		} catch (error: any) {
 			this.logger.error({ err: error.message }, 'Failed to fetch Moka categories')
 			throw error
