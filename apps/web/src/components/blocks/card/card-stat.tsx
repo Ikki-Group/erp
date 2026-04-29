@@ -29,7 +29,7 @@ export function CardStat({
 			)}
 		>
 			<div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/8 ring-1 ring-primary/10">
-				<Icon className="size-4.5 text-primary" />
+				<Icon className="text-primary" />
 			</div>
 			<div className="grid gap-1">
 				<p className="text-badge uppercase text-muted-foreground">{title}</p>
