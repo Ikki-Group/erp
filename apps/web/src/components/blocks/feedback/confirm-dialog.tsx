@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 import { useMutation } from '@tanstack/react-query'
 
@@ -34,33 +34,43 @@ interface ConfirmDialogProps {
 }
 
 interface VariantConfig {
-	actionClass?: string
+	actionClass: string
 	icon: React.ReactNode
 	iconClass: string
 }
 
+// Base styles for consistent design
+const baseActionClass = 'transition-colors shadow-sm'
+const baseIconClass = 'rounded-full transition-transform'
+
+// Variant configurations with DRY principles
 const variantConfig: Record<ConfirmVariant, VariantConfig> = {
 	destructive: {
-		actionClass: 'bg-destructive text-white hover:bg-destructive/90 transition-colors shadow-sm',
+		actionClass: cn(baseActionClass, 'bg-destructive text-white hover:bg-destructive/90'),
 		icon: <AlertTriangleIcon className="size-5" />,
-		iconClass: 'text-destructive bg-destructive/10 ring-destructive/20 ring-1',
+		iconClass: cn(baseIconClass, 'text-destructive bg-destructive/10 ring-destructive/20 ring-1'),
 	},
 	warning: {
-		actionClass:
-			'bg-warning text-warning-foreground hover:bg-warning/90 transition-colors shadow-sm',
+		actionClass: cn(baseActionClass, 'bg-warning text-warning-foreground hover:bg-warning/90'),
 		icon: <AlertCircleIcon className="size-5" />,
-		iconClass: 'text-warning bg-warning/10 ring-warning/20 ring-1',
+		iconClass: cn(baseIconClass, 'text-warning bg-warning/10 ring-warning/20 ring-1'),
 	},
 	default: {
-		actionClass: 'bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm',
+		actionClass: cn(baseActionClass, 'bg-primary text-primary-foreground hover:bg-primary/90'),
 		icon: <InfoIcon className="size-5" />,
-		iconClass: 'text-primary bg-primary/10 ring-primary/20 ring-1',
+		iconClass: cn(baseIconClass, 'text-primary bg-primary/10 ring-primary/20 ring-1'),
 	},
 }
 
 /**
  * A reusable confirmation dialog that can be called imperatively.
  * Powered by `react-call` and `shadcn/ui` AlertDialog.
+ *
+ * Features:
+ * - Modern, compact ERP-friendly design
+ * - Keyboard shortcuts (Escape to cancel, Enter to confirm)
+ * - Optional validation input for destructive actions
+ * - Loading states with visual feedback
  */
 export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 	({
@@ -84,41 +94,65 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 			},
 		})
 
-		const isConfirmDisabled =
-			confirmMutation.isPending ||
-			(confirmValidationText !== undefined && validationInput !== confirmValidationText)
+		// Clear validation input when dialog closes
+		useEffect(() => {
+			if (call.ended) {
+				setValidationInput('')
+			}
+		}, [call.ended])
 
-		const handleConfirm = (e: React.MouseEvent | React.KeyboardEvent) => {
-			e.preventDefault()
-			confirmMutation.mutate()
-		}
+		const isConfirmDisabled = useCallback(() => {
+			return (
+				confirmMutation.isPending ||
+				(confirmValidationText !== undefined && validationInput !== confirmValidationText)
+			)
+		}, [confirmMutation.isPending, confirmValidationText, validationInput])
 
-		const handleCancel = () => {
+		const handleConfirm = useCallback(
+			(e: React.MouseEvent | React.KeyboardEvent) => {
+				e.preventDefault()
+				if (!isConfirmDisabled()) {
+					confirmMutation.mutate()
+				}
+			},
+			[confirmMutation, isConfirmDisabled],
+		)
+
+		const handleCancel = useCallback(() => {
 			if (!confirmMutation.isPending) {
 				call.end(false)
 			}
-		}
+		}, [call, confirmMutation.isPending])
+
+		const handleKeyDown = useCallback(
+			(e: React.KeyboardEvent) => {
+				if (e.key === 'Escape') {
+					handleCancel()
+				} else if (e.key === 'Enter' && !isConfirmDisabled()) {
+					handleConfirm(e)
+				}
+			},
+			[handleCancel, handleConfirm, isConfirmDisabled],
+		)
 
 		return (
 			<AlertDialog
 				open={!call.ended}
 				onOpenChange={(open) => {
 					if (!open && !confirmMutation.isPending) {
-						call.end(false)
+						handleCancel()
 					}
 				}}
 			>
-				<AlertDialogContent className="max-w-[400px]">
-					<AlertDialogHeader>
-						<AlertDialogMedia className={cn('rounded-full transition-transform', config.iconClass)}>
-							{config.icon}
-						</AlertDialogMedia>
-						<div className="flex flex-col gap-1">
-							<AlertDialogTitle className="text-lg font-semibold tracking-tight">
+				<AlertDialogContent className="max-w-sm gap-4" onKeyDown={handleKeyDown}>
+					<AlertDialogHeader className="gap-3">
+						<AlertDialogMedia className={config.iconClass}>{config.icon}</AlertDialogMedia>
+						<div className="flex flex-col gap-1.5">
+							<AlertDialogTitle className="text-base font-semibold tracking-tight">
 								{title}
 							</AlertDialogTitle>
 							{description && (
-								<AlertDialogDescription className="text-muted-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">
+								<AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-wrap">
 									{description}
 								</AlertDialogDescription>
 							)}
@@ -129,45 +163,37 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 						<>
 							<Separator />
 							<div className="flex flex-col gap-2">
-								<p className="text-muted-foreground text-[0.8rem] leading-snug">
-									Silakan ketik{' '}
-									<span className="font-bold text-foreground">{confirmValidationText}</span> untuk
-									mengonfirmasi:
+								<p className="text-xs text-muted-foreground leading-snug">
+									Type{' '}
+									<span className="font-semibold text-foreground">{confirmValidationText}</span> to
+									confirm:
 								</p>
 								<Input
 									autoFocus
 									value={validationInput}
 									onChange={(e) => setValidationInput(e.target.value)}
 									placeholder={confirmValidationText}
-									className="h-8 bg-background focus-visible:ring-destructive/30"
-									onKeyDown={(e) => {
-										if (e.key === 'Enter' && !isConfirmDisabled) {
-											handleConfirm(e)
-										}
-									}}
+									className="h-9"
 								/>
 							</div>
 						</>
 					)}
 
-					<AlertDialogFooter className="mt-2">
+					<AlertDialogFooter className="gap-2">
 						<AlertDialogCancel
 							disabled={confirmMutation.isPending}
 							onClick={handleCancel}
-							variant="ghost"
 							className="font-medium"
 						>
 							{cancelLabel}
 						</AlertDialogCancel>
 						<AlertDialogAction
-							className={cn('min-w-[100px] font-semibold', config.actionClass)}
+							className={cn('min-w-[90px] font-semibold', config.actionClass)}
 							onClick={handleConfirm}
-							disabled={isConfirmDisabled}
+							disabled={isConfirmDisabled()}
 						>
-							{confirmMutation.isPending ? (
-								<Loader2Icon className="mr-2 size-4 animate-spin" />
-							) : null}
-							{confirmLabel}
+							{confirmMutation.isPending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+							{confirmMutation.isPending ? 'Processing...' : confirmLabel}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
