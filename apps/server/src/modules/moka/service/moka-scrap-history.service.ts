@@ -7,24 +7,35 @@ import { mokaScrapHistoriesTable } from '@/db/schema'
 
 import {
 	MokaScrapHistoryDto,
+	type MokaProvider,
 	type MokaScrapStatus,
 	type MokaScrapType,
+	type MokaSyncTriggerMode,
 } from '../dto/moka-scrap-history.dto'
 
 export class MokaScrapHistoryService {
 	async create(
 		data: {
 			mokaConfigurationId: number
+			provider?: MokaProvider
 			type: MokaScrapType
+			triggerMode?: MokaSyncTriggerMode
 			dateFrom: Date
 			dateTo: Date
 			status?: MokaScrapStatus
 		},
 		actorId: number,
 	): Promise<{ id: number }> {
+		const now = new Date()
 		const [result] = await db
 			.insert(mokaScrapHistoriesTable)
-			.values({ ...data, ...stampCreate(actorId) })
+			.values({
+				...data,
+				provider: data.provider ?? 'moka',
+				triggerMode: data.triggerMode ?? 'manual',
+				startedAt: data.status === 'processing' ? now : null,
+				...stampCreate(actorId),
+			})
 			.returning({ id: mokaScrapHistoriesTable.id })
 
 		if (!result) throw new Error('Failed to create scrap history')
@@ -34,11 +45,18 @@ export class MokaScrapHistoryService {
 	async updateStatus(
 		id: number,
 		status: MokaScrapStatus,
-		extra?: { rawPath?: string; errorMessage?: string; metadata?: any },
+		extra?: { rawPath?: string; errorMessage?: string; metadata?: any; recordsCount?: number },
 	) {
+		const now = new Date()
+		const terminal = status === 'completed' || status === 'failed'
 		await db
 			.update(mokaScrapHistoriesTable)
-			.set({ status, ...extra, updatedAt: new Date() })
+			.set({
+				status,
+				...extra,
+				finishedAt: terminal ? now : undefined,
+				updatedAt: now,
+			})
 			.where(eq(mokaScrapHistoriesTable.id, id))
 	}
 

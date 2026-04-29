@@ -88,6 +88,13 @@ export const payrollAdjustmentTypeEnum = pgEnum('payroll_adjustment_type', [
 
 export const salesOrderStatusEnum = pgEnum('sales_order_status', ['open', 'closed', 'void'])
 
+export const salesOrderSourceEnum = pgEnum('sales_order_source', [
+	'web',
+	'moka',
+	'upload',
+	'machine_fetch',
+])
+
 export const workOrderStatusEnum = pgEnum('work_order_status', [
 	'draft',
 	'in_progress',
@@ -102,6 +109,15 @@ export const mokaScrapStatusEnum = pgEnum('moka_scrap_status', [
 	'processing',
 	'completed',
 	'failed',
+])
+
+export const integrationProviderEnum = pgEnum('integration_provider', ['moka'])
+
+export const mokaSyncTriggerModeEnum = pgEnum('moka_sync_trigger_mode', [
+	'manual',
+	'cron',
+	'upload',
+	'machine_fetch',
 ])
 
 export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', [

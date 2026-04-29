@@ -70,7 +70,7 @@ const columns = [
 						</div>
 						{(address ?? phone) && (
 							<div className="flex items-center gap-2 text-[11px] text-muted-foreground/80 truncate">
-								{address && <p className="truncate max-w-[280px]">{address}</p>}
+								{address && <p className="truncate max-w-70">{address}</p>}
 								{address && phone && <span className="size-1 rounded-full bg-border shrink-0" />}
 								{phone && <p className="shrink-0">{phone}</p>}
 							</div>

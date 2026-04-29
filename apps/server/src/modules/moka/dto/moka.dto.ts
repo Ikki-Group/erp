@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zp } from '@/core/validation'
 
-import { MokaScrapType } from './moka-scrap-history.dto'
+import { MokaScrapType, MokaSyncTriggerMode } from './moka-scrap-history.dto'
 
 /* ---------------------------------- RAW ---------------------------------- */
 
@@ -87,6 +87,7 @@ export type MokaProductDetailDto = z.infer<typeof MokaProductDetailDto>
 export const MokaTriggerInputDto = z.object({
 	locationId: zp.id,
 	type: MokaScrapType,
+	triggerMode: MokaSyncTriggerMode.optional().default('manual'),
 	dateFrom: zp.date.optional(),
 	dateTo: zp.date.optional(),
 })

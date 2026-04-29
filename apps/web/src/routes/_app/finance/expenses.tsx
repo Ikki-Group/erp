@@ -122,7 +122,7 @@ function FinanceExpensesPage() {
 				<Card className="rounded-2xl shadow-sm border-muted/60">
 					<div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-							<div className="flex flex-col gap-1.5 min-w-[300px]">
+							<div className="flex flex-col gap-1.5 min-w-75">
 								<label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 									Pencarian Biaya
 								</label>

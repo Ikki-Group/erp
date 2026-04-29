@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirst } from '@/core/database'
@@ -11,6 +11,8 @@ import {
 	MokaConfigurationDto,
 	MokaConfigurationOutputDto,
 	type MokaConfigurationCreateDto,
+	type MokaProvider,
+	type MokaScrapType,
 	type MokaConfigurationUpdateDto,
 } from '../dto/moka-configuration.dto'
 
@@ -23,14 +25,22 @@ const err = {
 const cache = bento.namespace('moka.config')
 
 export class MokaConfigurationService {
-	async findByLocationId(locationId: number): Promise<MokaConfigurationDto | null> {
+	async findByLocationId(
+		locationId: number,
+		provider: MokaProvider = 'moka',
+	): Promise<MokaConfigurationDto | null> {
 		return cache.getOrSet({
-			key: `by-location.${locationId}`,
+			key: `by-location.${provider}.${locationId}`,
 			factory: async () => {
 				const result = await db
 					.select()
 					.from(mokaConfigurationsTable)
-					.where(eq(mokaConfigurationsTable.locationId, locationId))
+					.where(
+						and(
+							eq(mokaConfigurationsTable.locationId, locationId),
+							eq(mokaConfigurationsTable.provider, provider),
+						),
+					)
 				const first = takeFirst(result)
 				return first ? MokaConfigurationDto.parse(first) : null
 			},
@@ -53,7 +63,7 @@ export class MokaConfigurationService {
 	}
 
 	async handleCreate(data: MokaConfigurationCreateDto, actorId: number): Promise<{ id: number }> {
-		const existing = await this.findByLocationId(data.locationId)
+		const existing = await this.findByLocationId(data.locationId, 'moka')
 		if (existing) throw err.locationAlreadyHasConfig(data.locationId)
 
 		const [result] = await db
@@ -62,7 +72,7 @@ export class MokaConfigurationService {
 			.returning({ id: mokaConfigurationsTable.id })
 
 		if (!result) throw new Error('Failed to create Moka configuration')
-		await this.clearCache(result.id, data.locationId)
+		await this.clearCache(result.id, data.locationId, 'moka')
 		return result
 	}
 
@@ -74,7 +84,7 @@ export class MokaConfigurationService {
 		const existing = await this.handleDetail(id)
 
 		if (data.locationId && data.locationId !== existing.locationId) {
-			const other = await this.findByLocationId(data.locationId)
+			const other = await this.findByLocationId(data.locationId, existing.provider)
 			if (other) throw err.locationAlreadyHasConfig(data.locationId)
 		}
 
@@ -85,7 +95,7 @@ export class MokaConfigurationService {
 			.returning({ id: mokaConfigurationsTable.id })
 
 		if (!result) throw err.notFound(id)
-		await this.clearCache(id, data.locationId)
+		await this.clearCache(id, data.locationId ?? existing.locationId, existing.provider)
 		return result
 	}
 
@@ -93,17 +103,44 @@ export class MokaConfigurationService {
 		id: number,
 		authData: { businessId?: string | null; outletId?: string | null; accessToken?: string | null },
 	) {
+		const existing = await this.handleDetail(id)
 		await db
 			.update(mokaConfigurationsTable)
 			.set({ ...authData, lastSyncedAt: new Date(), updatedAt: new Date() })
 			.where(eq(mokaConfigurationsTable.id, id))
-		await this.clearCache(id)
+		await this.clearCache(id, existing.locationId, existing.provider)
 	}
 
-	private async clearCache(id?: number, locationId?: number) {
+	async updateSyncCheckpoint(id: number, type: MokaScrapType): Promise<void> {
+		const existing = await this.handleDetail(id)
+		const now = new Date()
+
+		const syncUpdate: {
+			lastSyncedAt: Date
+			lastSalesSyncedAt?: Date
+			lastProductSyncedAt?: Date
+			lastCategorySyncedAt?: Date
+			updatedAt: Date
+		} = {
+			lastSyncedAt: now,
+			updatedAt: now,
+		}
+
+		if (type === 'sales') syncUpdate.lastSalesSyncedAt = now
+		if (type === 'product') syncUpdate.lastProductSyncedAt = now
+		if (type === 'category') syncUpdate.lastCategorySyncedAt = now
+
+		await db
+			.update(mokaConfigurationsTable)
+			.set(syncUpdate)
+			.where(eq(mokaConfigurationsTable.id, id))
+		await this.clearCache(id, existing.locationId, existing.provider)
+	}
+
+	private async clearCache(id?: number, locationId?: number, provider: MokaProvider = 'moka') {
 		const keys = []
 		if (id) keys.push(`detail.${id}`)
-		if (locationId) keys.push(`by-location.${locationId}`)
+		if (locationId) keys.push(`by-location.${provider}.${locationId}`)
 		await cache.deleteMany({ keys })
 	}
 }

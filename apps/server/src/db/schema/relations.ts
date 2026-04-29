@@ -30,7 +30,7 @@ import {
 	materialsTable,
 	uomsTable,
 } from './material'
-import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
+import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 import {
 	productCategoriesTable,
 	productExternalMappingsTable,
@@ -92,6 +92,7 @@ export const relations = defineRelations(
 		recipeItemsTable,
 		mokaConfigurationsTable,
 		mokaScrapHistoriesTable,
+		mokaSyncCursorsTable,
 		salesOrdersTable,
 		salesOrderBatchesTable,
 		salesOrderItemsTable,
@@ -381,12 +382,25 @@ export const relations = defineRelations(
 				to: r.locationsTable.id,
 			}),
 			scrapHistories: r.many.mokaScrapHistoriesTable(),
+			syncCursors: r.many.mokaSyncCursorsTable(),
 		},
 
 		mokaScrapHistoriesTable: {
 			configuration: r.one.mokaConfigurationsTable({
 				from: r.mokaScrapHistoriesTable.mokaConfigurationId,
 				to: r.mokaConfigurationsTable.id,
+			}),
+			lastCursors: r.many.mokaSyncCursorsTable(),
+		},
+
+		mokaSyncCursorsTable: {
+			configuration: r.one.mokaConfigurationsTable({
+				from: r.mokaSyncCursorsTable.mokaConfigurationId,
+				to: r.mokaConfigurationsTable.id,
+			}),
+			lastHistory: r.one.mokaScrapHistoriesTable({
+				from: r.mokaSyncCursorsTable.lastHistoryId,
+				to: r.mokaScrapHistoriesTable.id,
 			}),
 		},
 

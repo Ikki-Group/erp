@@ -147,6 +147,7 @@ export class MokaTransformationService {
 				.values({
 					locationId,
 					salesTypeId: salesType.id,
+					source: 'moka',
 					status: 'closed',
 					transactionDate: new Date(sale.created_at),
 					totalAmount: String(sale.total_collected_amount),

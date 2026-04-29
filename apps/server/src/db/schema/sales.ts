@@ -11,7 +11,7 @@ import {
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { invoiceStatusEnum, salesOrderStatusEnum } from './_helpers'
+import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
 import { customersTable } from './customer'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
@@ -30,6 +30,7 @@ export const salesOrdersTable = pgTable(
 		salesTypeId: integer()
 			.notNull()
 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
+		source: salesOrderSourceEnum().notNull().default('web'),
 		status: salesOrderStatusEnum().notNull().default('open'),
 
 		transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
@@ -43,6 +44,7 @@ export const salesOrdersTable = pgTable(
 	},
 	(t) => [
 		index('sales_orders_location_idx').on(t.locationId),
+		index('sales_orders_source_idx').on(t.source),
 		index('sales_orders_status_idx').on(t.status),
 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
 		index('sales_orders_customer_idx').on(t.customerId),

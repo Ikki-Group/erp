@@ -18,9 +18,12 @@ export {
 	payrollStatusEnum,
 	payrollAdjustmentTypeEnum,
 	salesOrderStatusEnum,
+	salesOrderSourceEnum,
 	workOrderStatusEnum,
 	mokaScrapTypeEnum,
 	mokaScrapStatusEnum,
+	integrationProviderEnum,
+	mokaSyncTriggerModeEnum,
 	purchaseRequestStatusEnum,
 	purchaseOrderStatusEnum,
 	goodsReceiptStatusEnum,
@@ -50,7 +53,7 @@ export {
 	salesTypesTable,
 	variantPricesTable,
 } from './product'
-export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
+export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
 export {
 	salesExternalRefsTable,

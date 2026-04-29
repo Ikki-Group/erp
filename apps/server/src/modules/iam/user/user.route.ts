@@ -33,7 +33,11 @@ export function initUserRoute(service: UserService) {
 				const result = await service.handleDetail(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.UserDetailDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(dto.UserDetailResolvedDto),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',

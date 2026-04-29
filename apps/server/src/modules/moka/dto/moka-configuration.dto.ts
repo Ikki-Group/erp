@@ -2,17 +2,29 @@ import { z } from 'zod'
 
 import { zc, zp } from '@/core/validation'
 
+import { MokaScrapType as MokaScrapTypeEnum } from './moka-scrap-history.dto'
+
+export type MokaProvider = 'moka'
+export type MokaScrapType = z.infer<typeof MokaScrapTypeEnum>
+
 /* ---------------------------------- ENTITY ---------------------------------- */
 
 export const MokaConfigurationDto = z.object({
 	...zc.RecordId.shape,
 	locationId: zp.id,
+	provider: z.literal('moka'),
 	email: zp.str,
 	password: zp.str,
 	businessId: zp.str.nullable(),
 	outletId: zp.str.nullable(),
 	accessToken: zp.str.nullable(),
+	isActive: z.boolean(),
+	salesCronEnabled: z.boolean(),
+	salesCronExpression: zp.str.nullable(),
 	lastSyncedAt: zp.date.nullable(),
+	lastSalesSyncedAt: zp.date.nullable(),
+	lastProductSyncedAt: zp.date.nullable(),
+	lastCategorySyncedAt: zp.date.nullable(),
 	...zc.AuditBasic.shape,
 })
 export type MokaConfigurationDto = z.infer<typeof MokaConfigurationDto>
@@ -30,6 +42,9 @@ const MokaConfigurationMutationDto = z.object({
 	password: zc.password,
 	businessId: zc.strTrimNullable,
 	outletId: zc.strTrimNullable,
+	isActive: z.boolean().optional(),
+	salesCronEnabled: z.boolean().optional(),
+	salesCronExpression: zc.strTrimNullable,
 })
 
 export const MokaConfigurationCreateDto = MokaConfigurationMutationDto

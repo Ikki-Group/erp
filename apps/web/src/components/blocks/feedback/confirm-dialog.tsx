@@ -126,9 +126,14 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 
 		const handleKeyDown = useCallback(
 			(e: React.KeyboardEvent) => {
+				const target = e.target as HTMLElement
 				if (e.key === 'Escape') {
 					handleCancel()
-				} else if (e.key === 'Enter' && !isConfirmDisabled()) {
+				} else if (
+					e.key === 'Enter' &&
+					!target.closest('button, a, [role="button"]') &&
+					!isConfirmDisabled()
+				) {
 					handleConfirm(e)
 				}
 			},
@@ -188,7 +193,7 @@ export const ConfirmDialog = createCallable<ConfirmDialogProps, boolean>(
 							{cancelLabel}
 						</AlertDialogCancel>
 						<AlertDialogAction
-							className={cn('min-w-[90px] font-semibold', config.actionClass)}
+							className={cn('min-w-22.5 font-semibold', config.actionClass)}
 							onClick={handleConfirm}
 							disabled={isConfirmDisabled()}
 						>

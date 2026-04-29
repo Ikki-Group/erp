@@ -196,7 +196,7 @@ function ChartsPage() {
 							/>
 						}
 					>
-						<ChartContainer config={statusConfig} className="mx-auto aspect-square max-h-[300px]">
+						<ChartContainer config={statusConfig} className="mx-auto aspect-square max-h-75">
 							<PieChart>
 								<ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
 								<Pie
