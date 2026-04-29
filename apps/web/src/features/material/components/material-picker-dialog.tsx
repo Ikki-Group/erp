@@ -75,14 +75,14 @@ export function MaterialPickerDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			{trigger ?? (
-				<DialogTrigger>
+			<DialogTrigger>
+				{trigger ?? (
 					<Button variant="outline" size="sm">
 						<PlusIcon />
 						Pilih Bahan
 					</Button>
-				</DialogTrigger>
-			)}
+				)}
+			</DialogTrigger>
 			<DialogContent className="p-0 gap-0 overflow-hidden sm:max-w-150 h-150 flex flex-col">
 				<DialogHeader className="border-b p-4">
 					<DialogTitle>{title}</DialogTitle>

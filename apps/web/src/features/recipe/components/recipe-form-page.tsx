@@ -16,7 +16,6 @@ import { FormConfig, useAppForm, useTypedAppFormContext } from '@/components/for
 import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
-import { Table } from '@/components/ui/table'
 
 import { MaterialPickerDialog, materialApi, uomApi } from '@/features/material'
 
@@ -164,7 +163,7 @@ export function RecipeFormPage({ targetId, targetType, backTo }: RecipeFormPageP
 	return (
 		<form.AppForm>
 			<FormConfig mode={mode} id={existingRecipe?.id} backTo={backTo}>
-				<Page size="lg">
+				<Page size="full">
 					<Page.BlockHeader
 						title={`${mode === 'create' ? 'Tambah' : 'Edit'} Resep: ${targetName}`}
 						back={backTo}
@@ -281,57 +280,45 @@ function RecipeItemsSection() {
 				/>
 			}
 		>
-			<Table>
-				<Table.Header className="bg-muted/50">
-					<Table.Row>
-						<Table.Head className="w-[40%]">Bahan Baku</Table.Head>
-						<Table.Head className="w-[20%]">Jumlah</Table.Head>
-						<Table.Head className="w-[20%] text-center">Wastage (%)</Table.Head>
-						<Table.Head className="w-[20%] text-right pr-4">Aksi</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					<form.AppField name="items" mode="array">
-						{(arrayField) => {
-							if (arrayField.state.value.length === 0) {
-								return (
-									<Table.Row>
-										<Table.Cell colSpan={4} className="h-32 text-center text-muted-foreground">
-											<div className="flex flex-col items-center gap-2">
-												<ChefHatIcon className="opacity-20" />
-												<p>Belum ada bahan baku yang ditambahkan.</p>
-												<MaterialPickerDialog
-													selectedIds={[] as Array<number>}
-													onConfirm={(materials) => {
-														const newItems = materials.map((m, idx) => ({
-															materialId: m.id,
-															qty: '',
-															scrapPercentage: '0',
-															uomId: m.baseUomId,
-															notes: '',
-															sortOrder: idx,
-														}))
-														form.setFieldValue('items', newItems)
-													}}
-													trigger={
-														<Button variant="link" size="sm" type="button">
-															Tambah bahan pertama
-														</Button>
-													}
-												/>
-											</div>
-										</Table.Cell>
-									</Table.Row>
-								)
-							}
+			<form.AppField name="items" mode="array">
+				{(arrayField) => {
+					if (arrayField.state.value.length === 0) {
+						return (
+							<div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+								<ChefHatIcon className="opacity-20" />
+								<p className="text-sm">Belum ada bahan baku yang ditambahkan.</p>
+								<MaterialPickerDialog
+									selectedIds={[] as Array<number>}
+									onConfirm={(materials) => {
+										const newItems = materials.map((m, idx) => ({
+											materialId: m.id,
+											qty: '',
+											scrapPercentage: '0',
+											uomId: m.baseUomId,
+											notes: '',
+											sortOrder: idx,
+										}))
+										form.setFieldValue('items', newItems)
+									}}
+									trigger={
+										<Button variant="link" size="sm" type="button">
+											Tambah bahan pertama
+										</Button>
+									}
+								/>
+							</div>
+						)
+					}
 
-							return arrayField.state.value.map((_, i) => (
+					return (
+						<div className="flex flex-col divide-y">
+							{arrayField.state.value.map((_, i) => (
 								<RecipeItemRow key={`${i}`} index={i} onRemove={() => arrayField.removeValue(i)} />
-							))
-						}}
-					</form.AppField>
-				</Table.Body>
-			</Table>
+							))}
+						</div>
+					)
+				}}
+			</form.AppField>
 		</CardSection>
 	)
 }
@@ -362,10 +349,10 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
 	}, [materialDetail, allUoms])
 
 	return (
-		<Table.Row className="group">
-			<Table.Cell className="align-top pt-4">
-				<div className="flex flex-col gap-0.5 ml-1 pt-0.5">
-					<span className="font-medium text-sm">
+		<div className="group flex flex-col gap-3 py-4 px-1">
+			<div className="flex items-start justify-between gap-3">
+				<div className="flex flex-col gap-0.5 min-w-0 flex-1">
+					<span className="font-medium text-sm truncate">
 						{materialDetail?.data ? (
 							`${materialDetail.data.sku} - ${materialDetail.data.name}`
 						) : (
@@ -374,61 +361,48 @@ function RecipeItemRow({ index, onRemove }: { index: number; onRemove: () => voi
 					</span>
 					<form.AppField name={`items[${index}].notes`}>
 						{(field) => (
-							<textarea
-								className="w-full bg-transparent border-none resize-none text-[11px] text-muted-foreground focus:ring-0 p-0 placeholder:italic"
-								placeholder="Tambahkan catatan (pilihan)..."
-								value={field.state.value ?? ''}
-								onChange={(e) => {
-									field.handleChange(e.target.value)
-									e.target.style.height = 'inherit'
-									e.target.style.height = `${e.target.scrollHeight}px`
-								}}
-								rows={1}
+							<field.Input
+								placeholder="Catatan (pilihan)..."
+								className="text-xs text-muted-foreground"
 							/>
 						)}
 					</form.AppField>
 				</div>
-			</Table.Cell>
-			<Table.Cell className="align-top pt-4">
-				<div className="flex items-center gap-1">
-					<form.AppField name={`items[${index}].qty`}>
-						{(field) => <field.Number placeholder="Qty" decimalScale={4} className="w-full" />}
-					</form.AppField>
-					<div className="w-24">
-						<form.AppField name={`items[${index}].uomId`}>
-							{(field) => (
-								<field.Select
-									placeholder="UOM"
-									options={filteredUomOptions}
-									disabled={!materialId}
-								/>
-							)}
-						</form.AppField>
-					</div>
-				</div>
-			</Table.Cell>
-			<Table.Cell className="align-top pt-4 text-center">
-				<form.AppField name={`items[${index}].scrapPercentage`}>
-					{(field) => (
-						<div className="inline-flex items-center gap-1 max-w-20">
-							<field.Number decimalScale={2} placeholder="0" />
-							<span className="text-xs text-muted-foreground">%</span>
-						</div>
-					)}
-				</form.AppField>
-			</Table.Cell>
-			<Table.Cell className="align-top pt-4 text-right">
 				<Button
 					variant="ghost"
 					size="icon-sm"
 					type="button"
-					className="text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+					className="shrink-0 text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
 					onClick={onRemove}
 				>
 					<Trash2Icon />
 				</Button>
-			</Table.Cell>
-		</Table.Row>
+			</div>
+
+			<div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+				<form.AppField name={`items[${index}].qty`}>
+					{(field) => <field.Number placeholder="Qty" decimalScale={4} />}
+				</form.AppField>
+				<form.AppField name={`items[${index}].uomId`}>
+					{(field) => (
+						<field.Select
+							placeholder="UOM"
+							options={filteredUomOptions}
+							disabled={!materialId}
+							className="w-24"
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name={`items[${index}].scrapPercentage`}>
+					{(field) => (
+						<div className="flex items-center gap-1">
+							<field.Number decimalScale={2} placeholder="0" className="w-20" />
+							<span className="text-xs text-muted-foreground">%</span>
+						</div>
+					)}
+				</form.AppField>
+			</div>
+		</div>
 	)
 }
 
