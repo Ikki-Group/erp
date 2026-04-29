@@ -8,14 +8,7 @@ import z from 'zod'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { useAppForm } from '@/components/form'
-
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/layout/form-dialog'
 
 import { materialCategoryApi } from '../api'
 import type { MaterialCategoryDto } from '../dto'
@@ -67,34 +60,24 @@ export const MaterialCategoryFormDialog = createCallable<MaterialCategoryFormDia
 			},
 		})
 
-		const disabled = selectedCategory.isLoading
-
 		return (
 			<form.AppForm>
-				<Dialog open={!call.ended} onOpenChange={() => call.end()}>
-					<DialogContent>
-						<DialogHeader className="border-b pb-4">
-							<DialogTitle>Kategori Bahan Baku</DialogTitle>
-						</DialogHeader>
-						<form.AppField name="name">
-							{(field) => (
-								<field.Base label="Kategori" required>
-									<field.Input placeholder="Masukkan nama kategori" disabled={disabled} required />
-								</field.Base>
-							)}
-						</form.AppField>
-						<form.AppField name="description">
-							{(field) => (
-								<field.Base label="Deskripsi">
-									<field.Textarea placeholder="Masukkan Deskripsi" disabled={disabled} />
-								</field.Base>
-							)}
-						</form.AppField>
-						<DialogFooter>
-							<form.DialogActions onCancel={call.end} />
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
+				<FormDialog
+					open={!call.ended}
+					onOpenChange={(open) => !open && call.end()}
+					title={isCreate ? 'Tambah Kategori' : 'Edit Kategori'}
+					onSubmit={() => form.handleSubmit()}
+					footer={<form.DialogActions onCancel={call.end} />}
+				>
+					<form.AppField name="name">
+						{(field) => (
+							<field.Input label="Kategori" required placeholder="Masukkan nama kategori" />
+						)}
+					</form.AppField>
+					<form.AppField name="description">
+						{(field) => <field.Textarea label="Deskripsi" placeholder="Masukkan deskripsi" />}
+					</form.AppField>
+				</FormDialog>
 			</form.AppForm>
 		)
 	},
