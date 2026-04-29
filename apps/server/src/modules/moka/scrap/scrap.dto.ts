@@ -102,6 +102,15 @@ const MokaModifierDto = z
 	})
 	.loose()
 
+const MokaItemDiscountDto = z
+	.object({
+		name: z.string().optional(),
+		amount: z.number().optional(),
+		type: z.string().optional(),
+		discount_id: z.number().optional(),
+	})
+	.loose()
+
 const MokaSalesItemRawDto = z.object({
 	id: z.number(),
 	uuid: z.string(),
@@ -120,7 +129,7 @@ const MokaSalesItemRawDto = z.object({
 	void_by: z.string().nullable().optional(),
 	bundle_id: z.number().nullable().optional(),
 	item_type: z.string().optional(),
-	discounts: z.array(z.unknown()).optional(),
+	discounts: z.array(MokaItemDiscountDto).optional(),
 	modifiers: z.array(MokaModifierDto).optional(),
 	bundle_components: z.array(z.unknown()).optional(),
 })
@@ -134,6 +143,40 @@ const MokaSplitPaymentDetailDto = z.object({
 	changes_amount: z.number(),
 	payment_note: z.string().optional(),
 })
+
+const MokaOrderRefundDto = z
+	.object({
+		amount: z.number().optional(),
+		reason: z.string().optional(),
+		refunded_by: z.string().optional(),
+		created_at: z.string().optional(),
+	})
+	.loose()
+
+const MokaOrderDiscountDto = z
+	.object({
+		name: z.string().optional(),
+		amount: z.number().optional(),
+		type: z.string().optional(),
+		discount_id: z.number().optional(),
+	})
+	.loose()
+
+const MokaOrderTaxDto = z
+	.object({
+		name: z.string().optional(),
+		amount: z.number().optional(),
+		rate: z.number().optional(),
+		tax_id: z.number().optional(),
+	})
+	.loose()
+
+const MokaOrderGratuityDto = z
+	.object({
+		name: z.string().optional(),
+		amount: z.number().optional(),
+	})
+	.loose()
 
 export const MokaSalesDetailRawDto = z
 	.object({
@@ -163,10 +206,10 @@ export const MokaSalesDetailRawDto = z
 		guid: z.string().optional(),
 		items: z.array(MokaSalesItemRawDto).optional(),
 		void_items: z.array(MokaSalesItemRawDto).optional(),
-		order_refunds: z.array(z.unknown()).optional(),
-		order_discounts: z.array(z.unknown()).optional(),
-		order_taxes: z.array(z.unknown()).optional(),
-		order_gratuities: z.array(z.unknown()).optional(),
+		order_refunds: z.array(MokaOrderRefundDto).optional(),
+		order_discounts: z.array(MokaOrderDiscountDto).optional(),
+		order_taxes: z.array(MokaOrderTaxDto).optional(),
+		order_gratuities: z.array(MokaOrderGratuityDto).optional(),
 		split_payment_details: z.array(MokaSplitPaymentDetailDto).optional(),
 	})
 	.loose()

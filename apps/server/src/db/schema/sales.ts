@@ -39,6 +39,8 @@ export const salesOrdersTable = pgTable(
 		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		gratuityAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		refundAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
 		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
 		metadata: jsonb(),

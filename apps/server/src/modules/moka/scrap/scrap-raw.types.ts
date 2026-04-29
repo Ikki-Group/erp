@@ -107,9 +107,16 @@ export interface MokaSalesItemRaw {
 	void_by: string | null
 	bundle_id: number | null
 	item_type: string
-	discounts: unknown[]
+	discounts: MokaItemDiscountRaw[]
 	modifiers: MokaModifierRaw[]
 	bundle_components: unknown[]
+}
+
+export interface MokaItemDiscountRaw {
+	name?: string | undefined
+	amount?: number | undefined
+	type?: string | undefined
+	discount_id?: number | undefined
 }
 
 export interface MokaModifierRaw {
@@ -137,6 +144,32 @@ export interface MokaSplitPaymentDetailRaw {
 	position: number
 	changes_amount: number
 	payment_note: string
+}
+
+export interface MokaOrderRefundRaw {
+	amount?: number | undefined
+	reason?: string | undefined
+	refunded_by?: string | undefined
+	created_at?: string | undefined
+}
+
+export interface MokaOrderDiscountRaw {
+	name?: string | undefined
+	amount?: number | undefined
+	type?: string | undefined
+	discount_id?: number | undefined
+}
+
+export interface MokaOrderTaxRaw {
+	name?: string | undefined
+	amount?: number | undefined
+	rate?: number | undefined
+	tax_id?: number | undefined
+}
+
+export interface MokaOrderGratuityRaw {
+	name?: string | undefined
+	amount?: number | undefined
 }
 
 export interface MokaRefundAvailabilityRaw {
@@ -218,10 +251,10 @@ export interface MokaSalesDetailRaw {
 	items: MokaSalesItemRaw[]
 	order_items?: Record<string, MokaSalesItemRaw[]> | undefined
 	void_items: MokaSalesItemRaw[]
-	order_refunds: unknown[]
-	order_discounts: unknown[]
-	order_taxes: unknown[]
-	order_gratuities: unknown[]
+	order_refunds: MokaOrderRefundRaw[]
+	order_discounts: MokaOrderDiscountRaw[]
+	order_taxes: MokaOrderTaxRaw[]
+	order_gratuities: MokaOrderGratuityRaw[]
 	promos: unknown[]
 	refund_availability: MokaRefundAvailabilityRaw[]
 	loyalty: unknown

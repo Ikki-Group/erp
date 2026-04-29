@@ -407,10 +407,21 @@ export class MokaTransformationService {
 			const salesType = await this.ensureSalesTypeTx(tx, salesTypeName, actorId)
 			if (!salesType) throw new Error('Failed to ensure sales type')
 
-			// 6. Calculate amounts — use total_collected vs subtotal diff as tax
+			// 6. Calculate amounts from order-level arrays (fallback to diff when arrays empty)
 			const totalCollected = sale.total_collected_amount
 			const subtotal = sale.subtotal
-			const taxAmount = Math.max(0, totalCollected - subtotal)
+			const orderDiscount = (sale.order_discounts ?? []).reduce(
+				(sum, d) => sum + (d.amount ?? 0),
+				0,
+			)
+			const orderTax = (sale.order_taxes ?? []).reduce((sum, t) => sum + (t.amount ?? 0), 0)
+			const orderGratuity = (sale.order_gratuities ?? []).reduce(
+				(sum, g) => sum + (g.amount ?? 0),
+				0,
+			)
+			const orderRefund =
+				sale.total_refund ?? (sale.order_refunds ?? []).reduce((sum, r) => sum + (r.amount ?? 0), 0)
+			const taxAmount = orderTax > 0 ? orderTax : Math.max(0, totalCollected - subtotal)
 
 			// 7. Build metadata (split payment, payment type, Moka refs)
 			const metadata = this.buildSalesMetadata(sale)
@@ -425,7 +436,10 @@ export class MokaTransformationService {
 					status: 'closed',
 					transactionDate: new Date(sale.created_at),
 					totalAmount: String(totalCollected),
+					discountAmount: String(orderDiscount),
 					taxAmount: String(taxAmount),
+					gratuityAmount: String(orderGratuity),
+					refundAmount: String(orderRefund),
 					metadata,
 					...stampCreate(actorId),
 				})
@@ -489,6 +503,9 @@ export class MokaTransformationService {
 				),
 			)
 
+		const itemDiscount = (item.discounts ?? []).reduce((sum, d) => sum + (d.amount ?? 0), 0)
+		const lineSubtotal = item.price * item.quantity - itemDiscount
+
 		await tx.insert(salesOrderItemsTable).values({
 			orderId,
 			productId: mapping?.productId ?? null,
@@ -496,7 +513,8 @@ export class MokaTransformationService {
 			itemName: item.item_name,
 			quantity: String(item.quantity),
 			unitPrice: String(item.price),
-			subtotal: String(item.price * item.quantity),
+			discountAmount: String(itemDiscount),
+			subtotal: String(Math.max(0, lineSubtotal)),
 			...stampCreate(actorId),
 		})
 	}
@@ -511,9 +529,17 @@ export class MokaTransformationService {
 			return
 		}
 
-		const netSales = sale.subtotal
-		const taxAmount = Math.max(0, sale.total_collected_amount - sale.subtotal)
-		const totalCollected = sale.total_collected_amount
+		// Compute amounts from order-level data (same logic as syncSingleSale)
+		const orderDiscount = (sale.order_discounts ?? []).reduce((sum, d) => sum + (d.amount ?? 0), 0)
+		const orderTax = (sale.order_taxes ?? []).reduce((sum, t) => sum + (t.amount ?? 0), 0)
+		const orderGratuity = (sale.order_gratuities ?? []).reduce((sum, g) => sum + (g.amount ?? 0), 0)
+		const orderRefund =
+			sale.total_refund ?? (sale.order_refunds ?? []).reduce((sum, r) => sum + (r.amount ?? 0), 0)
+
+		const netSales = Math.max(0, sale.subtotal - orderDiscount)
+		const taxAmount =
+			orderTax > 0 ? orderTax : Math.max(0, sale.total_collected_amount - sale.subtotal)
+		const totalCollected = Math.max(0, sale.total_collected_amount - orderRefund)
 
 		const paymentNarration = this.buildPaymentNarration(sale)
 
@@ -527,7 +553,7 @@ export class MokaTransformationService {
 				items: [
 					{ accountId: cashAcc.id, debit: String(totalCollected), credit: '0' },
 					{ accountId: salesAcc.id, debit: '0', credit: String(netSales) },
-					{ accountId: taxAcc.id, debit: '0', credit: String(taxAmount) },
+					{ accountId: taxAcc.id, debit: '0', credit: String(taxAmount + orderGratuity) },
 				],
 			},
 			actorId,
