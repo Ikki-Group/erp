@@ -1,11 +1,11 @@
 import { useSuspenseQueries } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
-import { ChefHatIcon, EditIcon, InfoIcon, MapPinIcon, PlusIcon, ScaleIcon } from 'lucide-react'
+import { ChefHatIcon, EditIcon, PlusIcon } from 'lucide-react'
 
-import { toDateTimeStamp, toNumber } from '@/lib/formatter'
-import { cn } from '@/lib/utils'
+import { toNumber } from '@/lib/formatter'
 
+import { AuditCard } from '@/components/blocks/card/audit-card'
 import { CardSection } from '@/components/blocks/card/card-section'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
 import { DataList } from '@/components/blocks/data-display/data-list'
@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/blocks/feedback/empty-state'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
 
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -66,17 +66,18 @@ export function MaterialDetailPage({ id }: MaterialDetailPageProps) {
 				back={{ to: '/material' }}
 				action={
 					<div className="flex items-center gap-2">
-						<Link
-							to="/material/$id/update"
-							params={{ id: String(id) }}
-							className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={<Link to="/material/$id/update" params={{ id: String(id) }} />}
 						>
-							<EditIcon className="mr-2 size-4" />
+							<EditIcon className="mr-2" />
 							Edit Bahan Baku
-						</Link>
+						</Button>
 						<Button size="sm" onClick={() => openAssignDialog(id, material.name)}>
-							<PlusIcon className="mr-2 size-4" />
-							Assign ke Lokasi
+							<PlusIcon className="mr-2" />
+							Tugaskan ke Lokasi
 						</Button>
 					</div>
 				}
@@ -124,7 +125,7 @@ interface MaterialBasicInfoSectionProps {
 
 function MaterialBasicInfoSection({ material }: MaterialBasicInfoSectionProps) {
 	return (
-		<CardSection title="Informasi Dasar" icon={<InfoIcon className="size-4 text-primary" />}>
+		<CardSection title="Informasi Dasar">
 			<DataList cols={3}>
 				<DataList.Item label="Nama Bahan Baku" value={material.name} />
 				<DataList.Item label="SKU" value={<span className="font-mono">{material.sku}</span>} />
@@ -162,7 +163,7 @@ function MaterialConversionsSection({
 	baseUomId,
 }: MaterialConversionsSectionProps) {
 	return (
-		<CardSection title="Konversi Satuan" icon={<ScaleIcon className="size-4 text-primary" />}>
+		<CardSection title="Konversi Satuan">
 			<div className="border rounded-md overflow-hidden">
 				<Table>
 					<TableHeader className="bg-muted/50">
@@ -208,14 +209,10 @@ function MaterialRecipeSection({ recipe, materialId, baseUomCode }: MaterialReci
 	return (
 		<CardSection
 			title="Detail Resep"
-			icon={<ChefHatIcon className="size-4 text-primary" />}
 			action={
-				<Link
-					{...recipeLink}
-					className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8')}
-				>
+				<Button variant="ghost" size="sm" nativeButton={false} render={<Link {...recipeLink} />}>
 					{recipe ? 'Perbarui Resep' : 'Buat Resep'}
-				</Link>
+				</Button>
 			}
 		>
 			{!recipe ? (
@@ -225,12 +222,14 @@ function MaterialRecipeSection({ recipe, materialId, baseUomCode }: MaterialReci
 					description="Bahan setengah jadi ini memerlukan resep untuk proses produksinya."
 					compact
 					action={
-						<Link
-							{...recipeLink}
-							className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={<Link {...recipeLink} />}
 						>
 							Buat Resep Sekarang
-						</Link>
+						</Button>
 					}
 				/>
 			) : (
@@ -334,16 +333,14 @@ function MaterialLocationsCard({
 	return (
 		<CardSection
 			title="Lokasi Tersimpan"
-			icon={<MapPinIcon className="size-4 text-primary" />}
 			description={`${locations.length} lokasi untuk bahan baku ini`}
 			action={
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-8"
 					onClick={() => openAssignDialog(materialId, materialName)}
 				>
-					<PlusIcon className="mr-2 size-3.5" />
+					<PlusIcon className="mr-2" />
 					Kelola Lokasi
 				</Button>
 			}
@@ -379,17 +376,12 @@ interface LocationItemProps {
 
 function LocationItem({ location: loc }: LocationItemProps) {
 	return (
-		<div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-			<div className="flex items-center gap-3">
-				<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-					{loc.location.name.charAt(0)}
-				</div>
-				<div className="flex flex-col">
-					<span className="text-sm font-semibold">{loc.location.name}</span>
-					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span className="font-mono">{loc.location.code}</span>
-					</div>
-				</div>
+		<div className="flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+			<div className="flex flex-col">
+				<span className="text-sm font-medium">{loc.location.name}</span>
+				<Badge variant="outline" size="sm" className="font-mono w-fit">
+					{loc.location.code}
+				</Badge>
 			</div>
 			<Badge variant="outline" size="xs">
 				{loc.location.type}
@@ -408,31 +400,5 @@ interface MaterialMetadataCardProps {
 }
 
 function MaterialMetadataCard({ updatedAt, recordId }: MaterialMetadataCardProps) {
-	return (
-		<CardSection title="Audit" icon={<InfoIcon className="size-4 text-primary" />}>
-			<div className="space-y-4 pt-2">
-				<div className="flex items-start gap-3">
-					<InfoIcon className="mt-1 size-4 text-muted-foreground shrink-0" />
-					<div className="flex flex-col gap-1">
-						<span className="text-xs font-semibold text-muted-foreground uppercase">
-							Terakhir Diperbarui
-						</span>
-						<span className="text-sm">{toDateTimeStamp(updatedAt)}</span>
-					</div>
-				</div>
-
-				<div className="border-t border-dashed" />
-
-				<div className="flex flex-col gap-1.5 p-3 rounded-md bg-muted/30 border border-dashed">
-					<span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-						System Identifiers
-					</span>
-					<div className="flex justify-between items-center text-xs">
-						<span className="text-muted-foreground">Record ID</span>
-						<span className="font-mono">#{recordId}</span>
-					</div>
-				</div>
-			</div>
-		</CardSection>
-	)
+	return <AuditCard createdAt={updatedAt} updatedAt={updatedAt} recordId={recordId} />
 }
