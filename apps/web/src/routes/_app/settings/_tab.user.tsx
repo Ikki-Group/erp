@@ -97,12 +97,14 @@ const columnDefs = [
 						<PopoverTrigger render={<Button variant="ghost" size="icon-xs" className="size-6" />}>
 							<ZoomInIcon />
 						</PopoverTrigger>
-						<PopoverContent className="w-64 p-3" side="right">
-							<PopoverHeader className="mb-2">
-								<PopoverTitle>Daftar Penugasan</PopoverTitle>
-								<PopoverDescription>Detail role dan lokasi pengguna</PopoverDescription>
+						<PopoverContent className="w-64 p-0 gap-0" side="right">
+							<PopoverHeader className="px-3 py-2 border-b bg-muted/50">
+								<PopoverTitle className="text-xs font-semibold">Daftar Penugasan</PopoverTitle>
+								<PopoverDescription className="text-[11px]">
+									Detail role dan lokasi pengguna
+								</PopoverDescription>
 							</PopoverHeader>
-							<div className="space-y-2 max-h-60 overflow-auto pr-1">
+							<div className="space-y-2 max-h-60 overflow-auto p-3">
 								{assignments.map((a, i) => (
 									<div
 										key={i}
