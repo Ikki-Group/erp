@@ -40,6 +40,9 @@ export const salesOrdersTable = pgTable(
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
+		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
+		metadata: jsonb(),
+
 		...auditColumns,
 	},
 	(t) => [

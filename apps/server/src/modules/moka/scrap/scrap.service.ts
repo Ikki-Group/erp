@@ -63,10 +63,17 @@ export class MokaScrapService {
 				accessToken: auth.token,
 			})
 
+			const outletId = config.outletId
+
 			if (input.type === 'category') {
 				const engine = new MokaCategoryEngine(auth, this.logger)
 				const categories = await engine.fetch()
-				await this.transformSvc.transformCategories(config.locationId, categories, actorId)
+				await this.transformSvc.transformCategories(
+					config.locationId,
+					categories,
+					actorId,
+					outletId,
+				)
 				await this.historySvc.updateStatus(historyId, 'completed', {
 					recordsCount: categories.length,
 					metadata: { count: categories.length },
@@ -74,7 +81,7 @@ export class MokaScrapService {
 			} else if (input.type === 'product') {
 				const engine = new MokaProductEngine(auth, this.logger)
 				const products = await engine.fetch()
-				await this.transformSvc.transformProducts(config.locationId, products, actorId)
+				await this.transformSvc.transformProducts(config.locationId, products, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
 					recordsCount: products.length,
 					metadata: { count: products.length },
@@ -85,7 +92,7 @@ export class MokaScrapService {
 					to: input.dateTo ?? new Date(),
 				})
 				const sales = await engine.fetch()
-				await this.transformSvc.transformSales(config.locationId, sales, actorId)
+				await this.transformSvc.transformSales(config.locationId, sales, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
 					recordsCount: sales.length,
 					metadata: { count: sales.length },

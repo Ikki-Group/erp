@@ -4,6 +4,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { stampCreate, takeFirst, type DbClient, type DbTx } from '@/core/database'
 
 import {
+	categoryExternalMappingsTable,
 	productCategoriesTable,
 	productExternalMappingsTable,
 	productPricesTable,
@@ -13,6 +14,7 @@ import {
 	salesOrderItemsTable,
 	salesOrdersTable,
 	salesTypesTable,
+	salesVoidsTable,
 	variantPricesTable,
 } from '@/db/schema'
 
@@ -25,6 +27,7 @@ import type {
 	MokaProductRaw,
 	MokaSalesDetailRaw,
 	MokaSalesItemRaw,
+	MokaSplitPaymentDetailRaw,
 } from './scrap-raw.types'
 
 export class MokaTransformationService {
@@ -36,35 +39,83 @@ export class MokaTransformationService {
 
 	/* ─── Category Sync ─────────────────────────────────────────────────────── */
 
-	async transformCategories(_locationId: number, categories: MokaCategoryRaw[], actorId: number) {
+	async transformCategories(
+		_locationId: number,
+		categories: MokaCategoryRaw[],
+		actorId: number,
+		outletId?: string | number | null,
+	) {
 		return record('MokaTransformationService.transformCategories', async () => {
-			for (const cat of categories) {
+			const outletNum = outletId ? Number(outletId) : null
+			const filtered = outletNum ? categories.filter((c) => c.outlet_id === outletNum) : categories
+
+			for (const cat of filtered) {
+				const mapping = await this.findCategoryMapping(String(cat.id))
+
 				if (cat.is_deleted) {
-					// Soft-deleted in Moka — skip (no categoryExternalMappingsTable yet)
+					// Soft-deleted in Moka — mark ERP category as inactive if mapped
+					if (mapping) {
+						await this.db
+							.update(productCategoriesTable)
+							.set({ deletedAt: new Date(), ...stampCreate(actorId) })
+							.where(eq(productCategoriesTable.id, mapping.categoryId))
+					}
 					continue
 				}
 
-				// Check by name to avoid duplicates
-				const byName = await this.db
-					.select()
-					.from(productCategoriesTable)
-					.where(
-						and(
-							eq(productCategoriesTable.name, cat.name),
-							isNull(productCategoriesTable.deletedAt),
-						),
-					)
-				const existing = takeFirst(byName)
-
-				if (existing) {
+				if (mapping) {
+					// Existing category — update name/description if changed
 					await this.db
 						.update(productCategoriesTable)
 						.set({ name: cat.name, description: cat.description, ...stampCreate(actorId) })
-						.where(eq(productCategoriesTable.id, existing.id))
-				} else {
+						.where(eq(productCategoriesTable.id, mapping.categoryId))
+
+					// Update mapping sync timestamp
 					await this.db
-						.insert(productCategoriesTable)
-						.values({ name: cat.name, description: cat.description, ...stampCreate(actorId) })
+						.update(categoryExternalMappingsTable)
+						.set({ lastSyncedAt: new Date(), externalData: cat })
+						.where(eq(categoryExternalMappingsTable.id, mapping.id))
+				} else {
+					// New category — check by name first to avoid duplicates
+					const byName = await this.db
+						.select()
+						.from(productCategoriesTable)
+						.where(
+							and(
+								eq(productCategoriesTable.name, cat.name),
+								isNull(productCategoriesTable.deletedAt),
+							),
+						)
+					const existingCat = takeFirst(byName)
+
+					if (existingCat) {
+						// Category exists by name — just create the mapping
+						await this.db.insert(categoryExternalMappingsTable).values({
+							categoryId: existingCat.id,
+							provider: 'moka',
+							externalId: String(cat.id),
+							externalData: cat,
+							lastSyncedAt: new Date(),
+							...stampCreate(actorId),
+						})
+					} else {
+						// Truly new — create category + mapping
+						const [newCat] = await this.db
+							.insert(productCategoriesTable)
+							.values({ name: cat.name, description: cat.description, ...stampCreate(actorId) })
+							.returning({ id: productCategoriesTable.id })
+
+						if (newCat) {
+							await this.db.insert(categoryExternalMappingsTable).values({
+								categoryId: newCat.id,
+								provider: 'moka',
+								externalId: String(cat.id),
+								externalData: cat,
+								lastSyncedAt: new Date(),
+								...stampCreate(actorId),
+							})
+						}
+					}
 				}
 			}
 		})
@@ -72,9 +123,17 @@ export class MokaTransformationService {
 
 	/* ─── Product Sync ───────────────────────────────────────────────────────── */
 
-	async transformProducts(locationId: number, products: MokaProductRaw[], actorId: number) {
+	async transformProducts(
+		locationId: number,
+		products: MokaProductRaw[],
+		actorId: number,
+		outletId?: string | number | null,
+	) {
 		return record('MokaTransformationService.transformProducts', async () => {
-			for (const prod of products) {
+			const outletNum = outletId ? Number(outletId) : null
+			const filtered = outletNum ? products.filter((p) => p.outlet_id === outletNum) : products
+
+			for (const prod of filtered) {
 				await this.syncSingleProduct(locationId, prod, actorId)
 			}
 		})
@@ -94,7 +153,7 @@ export class MokaTransformationService {
 					basePrice: String(basePrice),
 					hasVariants: prod.item_variants.length > 1,
 					hasSalesTypePricing: prod.is_sales_type_price ?? false,
-					categoryId: await this.resolveCategoryId(prod.category?.name),
+					categoryId: await this.resolveCategoryId(prod.category_id, prod.category?.name),
 					...stampCreate(actorId),
 				})
 				.where(eq(productsTable.id, mapping.productId))
@@ -108,7 +167,7 @@ export class MokaTransformationService {
 		} else {
 			const defaultVariant = prod.item_variants[0]
 			const basePrice = this.getDefaultPrice(defaultVariant)
-			const categoryId = await this.resolveCategoryId(prod.category?.name)
+			const categoryId = await this.resolveCategoryId(prod.category_id, prod.category?.name)
 
 			const [newProd] = await this.db
 				.insert(productsTable)
@@ -271,9 +330,17 @@ export class MokaTransformationService {
 
 	/* ─── Sales Sync ────────────────────────────────────────────────────────── */
 
-	async transformSales(locationId: number, sales: MokaSalesDetailRaw[], actorId: number) {
+	async transformSales(
+		locationId: number,
+		sales: MokaSalesDetailRaw[],
+		actorId: number,
+		outletId?: string | number | null,
+	) {
 		return record('MokaTransformationService.transformSales', async () => {
-			for (const sale of sales) {
+			const outletNum = outletId ? Number(outletId) : null
+			const filtered = outletNum ? sales.filter((s) => s.outlet_id === outletNum) : sales
+
+			for (const sale of filtered) {
 				await this.syncSingleSale(locationId, sale, actorId)
 			}
 		})
@@ -313,7 +380,10 @@ export class MokaTransformationService {
 			const subtotal = sale.subtotal
 			const taxAmount = Math.max(0, totalCollected - subtotal)
 
-			// 7. Insert Sales Order
+			// 7. Build metadata (split payment, payment type, Moka refs)
+			const metadata = this.buildSalesMetadata(sale)
+
+			// 8. Insert Sales Order
 			const [order] = await tx
 				.insert(salesOrdersTable)
 				.values({
@@ -324,13 +394,14 @@ export class MokaTransformationService {
 					transactionDate: new Date(sale.created_at),
 					totalAmount: String(totalCollected),
 					taxAmount: String(taxAmount),
+					metadata,
 					...stampCreate(actorId),
 				})
 				.returning()
 
 			if (!order) throw new Error('Failed to create sales order')
 
-			// 8. Link External Ref (with raw payload for audit trail)
+			// 9. Link External Ref (with raw payload for audit trail)
 			await tx.insert(salesExternalRefsTable).values({
 				orderId: order.id,
 				externalSource: 'moka',
@@ -339,12 +410,25 @@ export class MokaTransformationService {
 				...stampCreate(actorId),
 			})
 
-			// 9. Insert active items only (skip voided)
+			// 10. Insert active items only (skip voided)
 			for (const item of activeItems) {
 				await this.insertSalesItem(tx, order.id, item, actorId)
 			}
 
-			// 10. Automated GL Posting
+			// 11. Record voided items for audit trail
+			if (sale.void_items?.length) {
+				for (const voidItem of sale.void_items) {
+					await tx.insert(salesVoidsTable).values({
+						orderId: order.id,
+						itemId: null, // voided before ERP item creation
+						reason: voidItem.void_reason ?? 'Moka void',
+						voidedBy: actorId,
+						...stampCreate(actorId),
+					})
+				}
+			}
+
+			// 12. Automated GL Posting
 			await this.postSalesToGL(order.id, sale, actorId)
 		})
 	}
@@ -411,6 +495,19 @@ export class MokaTransformationService {
 
 	/* ─── Helpers ───────────────────────────────────────────────────────────── */
 
+	private async findCategoryMapping(externalId: string) {
+		const result = await this.db
+			.select()
+			.from(categoryExternalMappingsTable)
+			.where(
+				and(
+					eq(categoryExternalMappingsTable.provider, 'moka'),
+					eq(categoryExternalMappingsTable.externalId, externalId),
+				),
+			)
+		return takeFirst(result)
+	}
+
 	private async findProductMapping(externalId: string) {
 		const result = await this.db
 			.select()
@@ -425,9 +522,18 @@ export class MokaTransformationService {
 		return takeFirst(result)
 	}
 
-	private async resolveCategoryId(categoryName?: string): Promise<number | null> {
-		if (!categoryName) return null
+	private async resolveCategoryId(
+		mokaCategoryId?: number,
+		categoryName?: string,
+	): Promise<number | null> {
+		// 1. Try by Moka category ID via external mapping
+		if (mokaCategoryId) {
+			const mapping = await this.findCategoryMapping(String(mokaCategoryId))
+			if (mapping) return mapping.categoryId
+		}
 
+		// 2. Fallback to name match
+		if (!categoryName) return null
 		const result = await this.db
 			.select()
 			.from(productCategoriesTable)
@@ -485,5 +591,29 @@ export class MokaTransformationService {
 		if (defaultSt) return defaultSt.sales_type_price
 		// Otherwise use variant price directly
 		return variant.price ?? 0
+	}
+
+	private buildSalesMetadata(sale: MokaSalesDetailRaw): Record<string, unknown> {
+		const metadata: Record<string, unknown> = {
+			payment_type: sale.payment_type,
+			payment_type_label: sale.payment_type_label,
+			moka_outlet_id: sale.outlet_id,
+			moka_payment_no: sale.payment_no,
+			moka_order_id: sale.order_id,
+			moka_guid: sale.guid,
+		}
+
+		if (sale.split_payment_details?.length) {
+			metadata.is_split_payment = true
+			metadata.split_payment_details = sale.split_payment_details.map(
+				(d: MokaSplitPaymentDetailRaw) => ({
+					payment_type: d.payment_type,
+					payment_type_label: d.payment_type_label,
+					collected_amount: d.collected_amount,
+				}),
+			)
+		}
+
+		return metadata
 	}
 }

@@ -32,6 +32,7 @@ import {
 } from './material'
 import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 import {
+	categoryExternalMappingsTable,
 	productCategoriesTable,
 	productExternalMappingsTable,
 	productPricesTable,
@@ -88,6 +89,7 @@ export const relations = defineRelations(
 		productVariantsTable,
 		variantPricesTable,
 		productExternalMappingsTable,
+		categoryExternalMappingsTable,
 		recipesTable,
 		recipeItemsTable,
 		mokaConfigurationsTable,
@@ -293,7 +295,10 @@ export const relations = defineRelations(
 			salesOrders: r.many.salesOrdersTable(),
 		},
 
-		productCategoriesTable: { products: r.many.productsTable() },
+		productCategoriesTable: {
+			products: r.many.productsTable(),
+			externalMappings: r.many.categoryExternalMappingsTable(),
+		},
 
 		productsTable: {
 			location: r.one.locationsTable({ from: r.productsTable.locationId, to: r.locationsTable.id }),
@@ -350,6 +355,13 @@ export const relations = defineRelations(
 			variant: r.one.productVariantsTable({
 				from: r.productExternalMappingsTable.variantId,
 				to: r.productVariantsTable.id,
+			}),
+		},
+
+		categoryExternalMappingsTable: {
+			category: r.one.productCategoriesTable({
+				from: r.categoryExternalMappingsTable.categoryId,
+				to: r.productCategoriesTable.id,
 			}),
 		},
 

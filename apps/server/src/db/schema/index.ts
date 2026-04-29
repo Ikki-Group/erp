@@ -45,6 +45,7 @@ export {
 	uomsTable,
 } from './material'
 export {
+	categoryExternalMappingsTable,
 	productCategoriesTable,
 	productExternalMappingsTable,
 	productPricesTable,
