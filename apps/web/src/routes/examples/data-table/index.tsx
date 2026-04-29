@@ -19,7 +19,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export const Route = createFileRoute('/data-table/')({ component: DataTableDocs })
+export const Route = createFileRoute('/examples/data-table/')({ component: DataTableDocs })
 
 function DataTableDocs() {
 	return (

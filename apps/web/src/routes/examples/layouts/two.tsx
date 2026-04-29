@@ -7,7 +7,7 @@ import { Page } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-export const Route = createFileRoute('/layouts/two')({ component: RouteComponent })
+export const Route = createFileRoute('/examples/layouts/two')({ component: RouteComponent })
 
 function RouteComponent() {
 	return (

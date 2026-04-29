@@ -26,7 +26,7 @@ import {
 	TableRow,
 } from '@/components/ui/table'
 
-export const Route = createFileRoute('/complex-form/')({ component: ComplexFormPage })
+export const Route = createFileRoute('/examples/complex-form/')({ component: ComplexFormPage })
 
 type InvoiceItem = {
 	id: string

@@ -35,7 +35,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
-export const Route = createFileRoute('/dialog-form/')({ component: DialogFormPage })
+export const Route = createFileRoute('/examples/dialog-form/')({ component: DialogFormPage })
 
 const taskSchema = z.object({
 	title: z.string().min(3, 'Title must be at least 3 characters'),

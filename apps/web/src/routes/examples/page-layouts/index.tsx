@@ -8,7 +8,7 @@ import { Grid, Stack } from '@/components/layout/primitives'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const Route = createFileRoute('/page-layouts/')({
+export const Route = createFileRoute('/examples/page-layouts/')({
 	component: PageLayoutsExample,
 })
 

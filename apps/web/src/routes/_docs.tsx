@@ -76,84 +76,84 @@ function DocsLayout() {
 						</p>
 						<div className="space-y-1">
 							<Link
-								to="/page-layouts"
+								to="/examples/page-layouts"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<LayoutDashboardIcon className="size-4 shrink-0" />
 								<span>Page Layouts</span>
 							</Link>
 							<Link
-								to="/data-table"
+								to="/examples/data-table"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<TableIcon className="size-4 shrink-0" />
 								<span>Data Table</span>
 							</Link>
 							<Link
-								to="/form"
+								to="/examples/form"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Form</span>
 							</Link>
 							<Link
-								to="/dialog-form"
+								to="/examples/dialog-form"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Dialog Form</span>
 							</Link>
 							<Link
-								to="/dashboard"
+								to="/examples/dashboard"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<LayoutDashboardIcon className="size-4 shrink-0" />
 								<span>Dashboard</span>
 							</Link>
 							<Link
-								to="/layouts"
+								to="/examples/layouts"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<LayoutDashboardIcon className="size-4 shrink-0" />
 								<span>Layouts</span>
 							</Link>
 							<Link
-								to="/search"
+								to="/examples/search"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Search</span>
 							</Link>
 							<Link
-								to="/complex-form"
+								to="/examples/complex-form"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Complex Form</span>
 							</Link>
 							<Link
-								to="/charts"
+								to="/examples/charts"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Charts</span>
 							</Link>
 							<Link
-								to="/detail"
+								to="/examples/detail"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Detail</span>
 							</Link>
 							<Link
-								to="/details"
+								to="/examples/details"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />
 								<span>Details</span>
 							</Link>
 							<Link
-								to="/page-new"
+								to="/examples/page-new"
 								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
 							>
 								<FileTextIcon className="size-4 shrink-0" />

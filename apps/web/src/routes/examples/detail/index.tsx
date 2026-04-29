@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
-export const Route = createFileRoute('/detail/')({ component: DetailPage })
+export const Route = createFileRoute('/examples/detail/')({ component: DetailPage })
 
 function DetailPage() {
 	return (

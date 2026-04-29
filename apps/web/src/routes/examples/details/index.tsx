@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const Route = createFileRoute('/details/')({ component: DetailsPage })
+export const Route = createFileRoute('/examples/details/')({ component: DetailsPage })
 
 function DetailsPage() {
 	const accountInfo: Array<DescriptionItem> = [

@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator'
 import { Table } from '@/components/ui/table'
 import { Tabs } from '@/components/ui/tabs'
 
-export const Route = createFileRoute('/page-new')({ component: RouteComponent })
+export const Route = createFileRoute('/examples/page-new')({ component: RouteComponent })
 
 function RouteComponent() {
 	return (

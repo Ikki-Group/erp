@@ -50,7 +50,7 @@ const searchIngredients = async (query: string): Promise<Array<Ingredient>> => {
 	).slice(0, 20) // Limit results
 }
 
-export const Route = createFileRoute('/search/')({ component: SearchDialogPage })
+export const Route = createFileRoute('/examples/search/')({ component: SearchDialogPage })
 
 function SearchDialogPage() {
 	const [selectedSingle, setSelectedSingle] = useState<Ingredient | null>(null)

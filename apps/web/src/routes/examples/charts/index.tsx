@@ -39,7 +39,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
-export const Route = createFileRoute('/charts/')({ component: ChartsPage })
+export const Route = createFileRoute('/examples/charts/')({ component: ChartsPage })
 
 // --- 1. Revenue Config (Area Chart with Filter) ---
 const revenueDataFull = [
