@@ -139,7 +139,7 @@ function Dashboard() {
 							/>
 						}
 					>
-						<ChartContainer config={revenueConfig} className="aspect-auto h-[350px] w-full">
+						<ChartContainer config={revenueConfig} className="aspect-auto h-87.5 w-full">
 							<AreaChart data={revenueData} margin={{ left: 10, right: 10, top: 10, bottom: 0 }}>
 								<defs>
 									<linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
@@ -172,7 +172,7 @@ function Dashboard() {
 					</ChartCard>
 
 					<ChartCard title="Produk Terlaris" description="Berdasarkan volume penjualan">
-						<ChartContainer config={productConfig} className="aspect-auto h-[350px] w-full">
+						<ChartContainer config={productConfig} className="aspect-auto h-87.5 w-full">
 							<BarChart data={topProductsData} layout="vertical" margin={{ left: -20 }}>
 								<XAxis type="number" hide />
 								<YAxis

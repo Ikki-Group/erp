@@ -48,7 +48,7 @@ function BrandingSection() {
 
 			{/* Decorative Gradients */}
 			<div className="absolute inset-0 overflow-hidden">
-				<div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-blue-500/20 blur-[120px] mix-blend-screen animate-pulse" />
+				<div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/20 blur-[120px] mix-blend-screen animate-pulse" />
 				<div className="absolute bottom-[20%] right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] mix-blend-screen" />
 				<div
 					className="absolute inset-0 opacity-15"
@@ -122,7 +122,7 @@ function LoginForm() {
 	})
 
 	return (
-		<div className="mx-auto flex w-full max-w-[400px] flex-col justify-center space-y-8 p-4 sm:p-0">
+		<div className="mx-auto flex w-full max-w-100 flex-col justify-center space-y-8 p-4 sm:p-0">
 			<div className="flex flex-col space-y-2.5 text-center sm:text-left">
 				<h1 className="text-3xl font-bold tracking-[-0.75px]">Selamat Datang</h1>
 				<p className="text-muted-foreground">Masukkan kredensial Anda untuk mengakses dashboard.</p>
