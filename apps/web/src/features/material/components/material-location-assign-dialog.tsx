@@ -83,10 +83,10 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
 			materials.length > 0 && materials.every((m) => selected.includes(m.id))
 
 		return (
-			<Dialog open={!call.ended} onOpenChange={() => call.end()}>
+			<Dialog open={!call.ended} onOpenChange={(open) => !open && call.end()}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader className="border-b pb-4">
-						<DialogTitle>Assign Bahan Baku</DialogTitle>
+						<DialogTitle>Tugaskan Bahan Baku</DialogTitle>
 						<DialogDescription>
 							Pilih bahan baku yang ingin di-assign ke{' '}
 							<span className="font-medium text-foreground">{locationName}</span>
@@ -95,7 +95,7 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
 
 					{/* Search */}
 					<div className="relative">
-						<SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+						<SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							placeholder="Cari bahan baku..."
 							value={search}
@@ -108,12 +108,12 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
 					<ScrollArea className="h-64 border rounded-md">
 						{isLoading ? (
 							<div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
-								<Loader2Icon className="size-5 animate-spin" />
+								<Loader2Icon className="animate-spin" />
 								<span className="text-sm">Memuat data...</span>
 							</div>
 						) : materials.length === 0 ? (
 							<div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground p-6">
-								<PackageIcon className="size-8 opacity-30" />
+								<PackageIcon className="opacity-30" />
 								<span className="text-sm">Tidak ada bahan baku ditemukan</span>
 							</div>
 						) : (
@@ -154,7 +154,7 @@ export const MaterialLocationAssignDialog = createCallable<MaterialLocationAssig
 							onClick={handleAssign}
 							disabled={selected.length === 0 || assignMutation.isPending}
 						>
-							{assignMutation.isPending ? 'Menyimpan...' : `Assign (${selected.length})`}
+							{assignMutation.isPending ? 'Menyimpan...' : `Tugaskan (${selected.length})`}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
