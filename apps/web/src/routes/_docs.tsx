@@ -4,10 +4,11 @@ import {
 	ArrowLeftIcon,
 	BookOpenIcon,
 	ComponentIcon,
+	FileTextIcon,
 	LayersIcon,
 	LayoutDashboardIcon,
-	TableIcon,
 	PaletteIcon,
+	TableIcon,
 } from 'lucide-react'
 
 import { componentRegistry } from '@/components/registry'
@@ -87,6 +88,20 @@ function DocsLayout() {
 							>
 								<TableIcon className="size-4 shrink-0" />
 								<span>Data Table</span>
+							</Link>
+							<Link
+								to="/form"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Form</span>
+							</Link>
+							<Link
+								to="/dialog-form"
+								className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors [&.active]:bg-accent [&.active]:text-accent-foreground [&.active]:font-medium"
+							>
+								<FileTextIcon className="size-4 shrink-0" />
+								<span>Dialog Form</span>
 							</Link>
 						</div>
 					</div>
