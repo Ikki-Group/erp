@@ -9,10 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PageNewRouteImport } from './routes/page-new'
 import { Route as DocsRouteImport } from './routes/_docs'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as SearchIndexRouteImport } from './routes/search/index'
+import { Route as PageLayoutsIndexRouteImport } from './routes/page-layouts/index'
+import { Route as LayoutsIndexRouteImport } from './routes/layouts/index'
+import { Route as FormIndexRouteImport } from './routes/form/index'
+import { Route as DialogFormIndexRouteImport } from './routes/dialog-form/index'
+import { Route as DetailsIndexRouteImport } from './routes/details/index'
+import { Route as DetailIndexRouteImport } from './routes/detail/index'
+import { Route as DataTableIndexRouteImport } from './routes/data-table/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as ComplexFormIndexRouteImport } from './routes/complex-form/index'
+import { Route as ChartsIndexRouteImport } from './routes/charts/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as LayoutsTwoRouteImport } from './routes/layouts/two'
+import { Route as LayoutsOneRouteImport } from './routes/layouts/one'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSplatRouteImport } from './routes/_app/$'
 import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
@@ -52,24 +66,12 @@ import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledg
 import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
 import { Route as AppFinanceCashFlowRouteImport } from './routes/_app/finance/cash-flow'
 import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/accounts'
-import { Route as AppExamplesPageNewRouteImport } from './routes/_app/examples/page-new'
-import { Route as AppExamplesDataTableRouteImport } from './routes/_app/examples/data-table'
 import { Route as AppAnalyticsSalesRouteImport } from './routes/_app/analytics/sales'
 import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
 import { Route as AppAnalyticsFinanceRouteImport } from './routes/_app/analytics/finance'
 import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
 import { Route as AppLocationIdIndexRouteImport } from './routes/_app/location/$id/index'
 import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
-import { Route as AppExamplesSearchIndexRouteImport } from './routes/_app/examples/search/index'
-import { Route as AppExamplesPageLayoutsIndexRouteImport } from './routes/_app/examples/page-layouts/index'
-import { Route as AppExamplesLayoutsIndexRouteImport } from './routes/_app/examples/layouts/index'
-import { Route as AppExamplesFormIndexRouteImport } from './routes/_app/examples/form/index'
-import { Route as AppExamplesDialogFormIndexRouteImport } from './routes/_app/examples/dialog-form/index'
-import { Route as AppExamplesDetailsIndexRouteImport } from './routes/_app/examples/details/index'
-import { Route as AppExamplesDetailIndexRouteImport } from './routes/_app/examples/detail/index'
-import { Route as AppExamplesDashboardIndexRouteImport } from './routes/_app/examples/dashboard/index'
-import { Route as AppExamplesComplexFormIndexRouteImport } from './routes/_app/examples/complex-form/index'
-import { Route as AppExamplesChartsIndexRouteImport } from './routes/_app/examples/charts/index'
 import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
 import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
@@ -83,9 +85,12 @@ import { Route as AppInventoryTransactionsPurchaseRouteImport } from './routes/_
 import { Route as AppInventoryTransactionsOpnameRouteImport } from './routes/_app/inventory/transactions/opname'
 import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
 import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
-import { Route as AppExamplesLayoutsTwoRouteImport } from './routes/_app/examples/layouts/two'
-import { Route as AppExamplesLayoutsOneRouteImport } from './routes/_app/examples/layouts/one'
 
+const PageNewRoute = PageNewRouteImport.update({
+  id: '/page-new',
+  path: '/page-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/_docs',
   getParentRoute: () => rootRouteImport,
@@ -98,10 +103,75 @@ const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchIndexRoute = SearchIndexRouteImport.update({
+  id: '/search/',
+  path: '/search/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PageLayoutsIndexRoute = PageLayoutsIndexRouteImport.update({
+  id: '/page-layouts/',
+  path: '/page-layouts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutsIndexRoute = LayoutsIndexRouteImport.update({
+  id: '/layouts/',
+  path: '/layouts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormIndexRoute = FormIndexRouteImport.update({
+  id: '/form/',
+  path: '/form/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DialogFormIndexRoute = DialogFormIndexRouteImport.update({
+  id: '/dialog-form/',
+  path: '/dialog-form/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DetailsIndexRoute = DetailsIndexRouteImport.update({
+  id: '/details/',
+  path: '/details/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DetailIndexRoute = DetailIndexRouteImport.update({
+  id: '/detail/',
+  path: '/detail/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataTableIndexRoute = DataTableIndexRouteImport.update({
+  id: '/data-table/',
+  path: '/data-table/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComplexFormIndexRoute = ComplexFormIndexRouteImport.update({
+  id: '/complex-form/',
+  path: '/complex-form/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChartsIndexRoute = ChartsIndexRouteImport.update({
+  id: '/charts/',
+  path: '/charts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const LayoutsTwoRoute = LayoutsTwoRouteImport.update({
+  id: '/layouts/two',
+  path: '/layouts/two',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutsOneRoute = LayoutsOneRouteImport.update({
+  id: '/layouts/one',
+  path: '/layouts/one',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
@@ -298,16 +368,6 @@ const AppFinanceAccountsRoute = AppFinanceAccountsRouteImport.update({
   path: '/finance/accounts',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppExamplesPageNewRoute = AppExamplesPageNewRouteImport.update({
-  id: '/examples/page-new',
-  path: '/examples/page-new',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesDataTableRoute = AppExamplesDataTableRouteImport.update({
-  id: '/examples/data-table',
-  path: '/examples/data-table',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppAnalyticsSalesRoute = AppAnalyticsSalesRouteImport.update({
   id: '/analytics/sales',
   path: '/analytics/sales',
@@ -339,60 +399,6 @@ const AppInventoryTransactionsIndexRoute =
     path: '/inventory/transactions/',
     getParentRoute: () => AppRouteRoute,
   } as any)
-const AppExamplesSearchIndexRoute = AppExamplesSearchIndexRouteImport.update({
-  id: '/examples/search/',
-  path: '/examples/search/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesPageLayoutsIndexRoute =
-  AppExamplesPageLayoutsIndexRouteImport.update({
-    id: '/examples/page-layouts/',
-    path: '/examples/page-layouts/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppExamplesLayoutsIndexRoute = AppExamplesLayoutsIndexRouteImport.update({
-  id: '/examples/layouts/',
-  path: '/examples/layouts/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesFormIndexRoute = AppExamplesFormIndexRouteImport.update({
-  id: '/examples/form/',
-  path: '/examples/form/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesDialogFormIndexRoute =
-  AppExamplesDialogFormIndexRouteImport.update({
-    id: '/examples/dialog-form/',
-    path: '/examples/dialog-form/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppExamplesDetailsIndexRoute = AppExamplesDetailsIndexRouteImport.update({
-  id: '/examples/details/',
-  path: '/examples/details/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesDetailIndexRoute = AppExamplesDetailIndexRouteImport.update({
-  id: '/examples/detail/',
-  path: '/examples/detail/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesDashboardIndexRoute =
-  AppExamplesDashboardIndexRouteImport.update({
-    id: '/examples/dashboard/',
-    path: '/examples/dashboard/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppExamplesComplexFormIndexRoute =
-  AppExamplesComplexFormIndexRouteImport.update({
-    id: '/examples/complex-form/',
-    path: '/examples/complex-form/',
-    getParentRoute: () => AppRouteRoute,
-  } as any)
-const AppExamplesChartsIndexRoute = AppExamplesChartsIndexRouteImport.update({
-  id: '/examples/charts/',
-  path: '/examples/charts/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppSettingsUserCreateRoute = AppSettingsUserCreateRouteImport.update({
   id: '/settings/user/create',
   path: '/settings/user/create',
@@ -464,26 +470,28 @@ const AppInventoryTransactionsIdRoute =
     path: '/inventory/transactions/$id',
     getParentRoute: () => AppRouteRoute,
   } as any)
-const AppExamplesLayoutsTwoRoute = AppExamplesLayoutsTwoRouteImport.update({
-  id: '/examples/layouts/two',
-  path: '/examples/layouts/two',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppExamplesLayoutsOneRoute = AppExamplesLayoutsOneRouteImport.update({
-  id: '/examples/layouts/one',
-  path: '/examples/layouts/one',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/page-new': typeof PageNewRoute
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
+  '/layouts/one': typeof LayoutsOneRoute
+  '/layouts/two': typeof LayoutsTwoRoute
+  '/charts/': typeof ChartsIndexRoute
+  '/complex-form/': typeof ComplexFormIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/data-table/': typeof DataTableIndexRoute
+  '/detail/': typeof DetailIndexRoute
+  '/details/': typeof DetailsIndexRoute
+  '/dialog-form/': typeof DialogFormIndexRoute
+  '/form/': typeof FormIndexRoute
+  '/layouts/': typeof LayoutsIndexRoute
+  '/page-layouts/': typeof PageLayoutsIndexRoute
+  '/search/': typeof SearchIndexRoute
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/analytics/sales': typeof AppAnalyticsSalesRoute
-  '/examples/data-table': typeof AppExamplesDataTableRoute
-  '/examples/page-new': typeof AppExamplesPageNewRoute
   '/finance/accounts': typeof AppFinanceAccountsRoute
   '/finance/cash-flow': typeof AppFinanceCashFlowRoute
   '/finance/expenses': typeof AppFinanceExpensesRoute
@@ -521,8 +529,6 @@ export interface FileRoutesByFullPath {
   '/material/': typeof AppMaterialIndexRoute
   '/product/': typeof AppProductIndexRoute
   '/docs/': typeof DocsDocsIndexRoute
-  '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
-  '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
@@ -536,29 +542,31 @@ export interface FileRoutesByFullPath {
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
-  '/examples/charts/': typeof AppExamplesChartsIndexRoute
-  '/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
-  '/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
-  '/examples/detail/': typeof AppExamplesDetailIndexRoute
-  '/examples/details/': typeof AppExamplesDetailsIndexRoute
-  '/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
-  '/examples/form/': typeof AppExamplesFormIndexRoute
-  '/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
-  '/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
-  '/examples/search/': typeof AppExamplesSearchIndexRoute
   '/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
   '/location/$id/': typeof AppLocationIdIndexRoute
   '/material/$id/': typeof AppMaterialIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/page-new': typeof PageNewRoute
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
+  '/layouts/one': typeof LayoutsOneRoute
+  '/layouts/two': typeof LayoutsTwoRoute
+  '/charts': typeof ChartsIndexRoute
+  '/complex-form': typeof ComplexFormIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/data-table': typeof DataTableIndexRoute
+  '/detail': typeof DetailIndexRoute
+  '/details': typeof DetailsIndexRoute
+  '/dialog-form': typeof DialogFormIndexRoute
+  '/form': typeof FormIndexRoute
+  '/layouts': typeof LayoutsIndexRoute
+  '/page-layouts': typeof PageLayoutsIndexRoute
+  '/search': typeof SearchIndexRoute
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/analytics/sales': typeof AppAnalyticsSalesRoute
-  '/examples/data-table': typeof AppExamplesDataTableRoute
-  '/examples/page-new': typeof AppExamplesPageNewRoute
   '/finance/accounts': typeof AppFinanceAccountsRoute
   '/finance/cash-flow': typeof AppFinanceCashFlowRoute
   '/finance/expenses': typeof AppFinanceExpensesRoute
@@ -596,8 +604,6 @@ export interface FileRoutesByTo {
   '/material': typeof AppMaterialIndexRoute
   '/product': typeof AppProductIndexRoute
   '/docs': typeof DocsDocsIndexRoute
-  '/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
-  '/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
@@ -611,16 +617,6 @@ export interface FileRoutesByTo {
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
   '/settings/user/create': typeof AppSettingsUserCreateRoute
-  '/examples/charts': typeof AppExamplesChartsIndexRoute
-  '/examples/complex-form': typeof AppExamplesComplexFormIndexRoute
-  '/examples/dashboard': typeof AppExamplesDashboardIndexRoute
-  '/examples/detail': typeof AppExamplesDetailIndexRoute
-  '/examples/details': typeof AppExamplesDetailsIndexRoute
-  '/examples/dialog-form': typeof AppExamplesDialogFormIndexRoute
-  '/examples/form': typeof AppExamplesFormIndexRoute
-  '/examples/layouts': typeof AppExamplesLayoutsIndexRoute
-  '/examples/page-layouts': typeof AppExamplesPageLayoutsIndexRoute
-  '/examples/search': typeof AppExamplesSearchIndexRoute
   '/inventory/transactions': typeof AppInventoryTransactionsIndexRoute
   '/location/$id': typeof AppLocationIdIndexRoute
   '/material/$id': typeof AppMaterialIdIndexRoute
@@ -630,14 +626,26 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_docs': typeof DocsRouteWithChildren
+  '/page-new': typeof PageNewRoute
   '/_app/$': typeof AppSplatRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/layouts/one': typeof LayoutsOneRoute
+  '/layouts/two': typeof LayoutsTwoRoute
   '/_app/': typeof AppIndexRoute
+  '/charts/': typeof ChartsIndexRoute
+  '/complex-form/': typeof ComplexFormIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/data-table/': typeof DataTableIndexRoute
+  '/detail/': typeof DetailIndexRoute
+  '/details/': typeof DetailsIndexRoute
+  '/dialog-form/': typeof DialogFormIndexRoute
+  '/form/': typeof FormIndexRoute
+  '/layouts/': typeof LayoutsIndexRoute
+  '/page-layouts/': typeof PageLayoutsIndexRoute
+  '/search/': typeof SearchIndexRoute
   '/_app/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/_app/analytics/production': typeof AppAnalyticsProductionRoute
   '/_app/analytics/sales': typeof AppAnalyticsSalesRoute
-  '/_app/examples/data-table': typeof AppExamplesDataTableRoute
-  '/_app/examples/page-new': typeof AppExamplesPageNewRoute
   '/_app/finance/accounts': typeof AppFinanceAccountsRoute
   '/_app/finance/cash-flow': typeof AppFinanceCashFlowRoute
   '/_app/finance/expenses': typeof AppFinanceExpensesRoute
@@ -675,8 +683,6 @@ export interface FileRoutesById {
   '/_app/material/': typeof AppMaterialIndexRoute
   '/_app/product/': typeof AppProductIndexRoute
   '/_docs/docs/': typeof DocsDocsIndexRoute
-  '/_app/examples/layouts/one': typeof AppExamplesLayoutsOneRoute
-  '/_app/examples/layouts/two': typeof AppExamplesLayoutsTwoRoute
   '/_app/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
   '/_app/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
   '/_app/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
@@ -690,16 +696,6 @@ export interface FileRoutesById {
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
   '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
   '/_app/settings/user/create': typeof AppSettingsUserCreateRoute
-  '/_app/examples/charts/': typeof AppExamplesChartsIndexRoute
-  '/_app/examples/complex-form/': typeof AppExamplesComplexFormIndexRoute
-  '/_app/examples/dashboard/': typeof AppExamplesDashboardIndexRoute
-  '/_app/examples/detail/': typeof AppExamplesDetailIndexRoute
-  '/_app/examples/details/': typeof AppExamplesDetailsIndexRoute
-  '/_app/examples/dialog-form/': typeof AppExamplesDialogFormIndexRoute
-  '/_app/examples/form/': typeof AppExamplesFormIndexRoute
-  '/_app/examples/layouts/': typeof AppExamplesLayoutsIndexRoute
-  '/_app/examples/page-layouts/': typeof AppExamplesPageLayoutsIndexRoute
-  '/_app/examples/search/': typeof AppExamplesSearchIndexRoute
   '/_app/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
   '/_app/location/$id/': typeof AppLocationIdIndexRoute
   '/_app/material/$id/': typeof AppMaterialIdIndexRoute
@@ -708,13 +704,25 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/page-new'
     | '/$'
     | '/login'
+    | '/layouts/one'
+    | '/layouts/two'
+    | '/charts/'
+    | '/complex-form/'
+    | '/dashboard/'
+    | '/data-table/'
+    | '/detail/'
+    | '/details/'
+    | '/dialog-form/'
+    | '/form/'
+    | '/layouts/'
+    | '/page-layouts/'
+    | '/search/'
     | '/analytics/finance'
     | '/analytics/production'
     | '/analytics/sales'
-    | '/examples/data-table'
-    | '/examples/page-new'
     | '/finance/accounts'
     | '/finance/cash-flow'
     | '/finance/expenses'
@@ -752,8 +760,6 @@ export interface FileRouteTypes {
     | '/material/'
     | '/product/'
     | '/docs/'
-    | '/examples/layouts/one'
-    | '/examples/layouts/two'
     | '/inventory/transactions/$id'
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/opname'
@@ -767,29 +773,31 @@ export interface FileRouteTypes {
     | '/settings/user'
     | '/settings/user/$id'
     | '/settings/user/create'
-    | '/examples/charts/'
-    | '/examples/complex-form/'
-    | '/examples/dashboard/'
-    | '/examples/detail/'
-    | '/examples/details/'
-    | '/examples/dialog-form/'
-    | '/examples/form/'
-    | '/examples/layouts/'
-    | '/examples/page-layouts/'
-    | '/examples/search/'
     | '/inventory/transactions/'
     | '/location/$id/'
     | '/material/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/page-new'
     | '/$'
     | '/login'
+    | '/layouts/one'
+    | '/layouts/two'
+    | '/charts'
+    | '/complex-form'
+    | '/dashboard'
+    | '/data-table'
+    | '/detail'
+    | '/details'
+    | '/dialog-form'
+    | '/form'
+    | '/layouts'
+    | '/page-layouts'
+    | '/search'
     | '/analytics/finance'
     | '/analytics/production'
     | '/analytics/sales'
-    | '/examples/data-table'
-    | '/examples/page-new'
     | '/finance/accounts'
     | '/finance/cash-flow'
     | '/finance/expenses'
@@ -827,8 +835,6 @@ export interface FileRouteTypes {
     | '/material'
     | '/product'
     | '/docs'
-    | '/examples/layouts/one'
-    | '/examples/layouts/two'
     | '/inventory/transactions/$id'
     | '/inventory/transactions/adjustment'
     | '/inventory/transactions/opname'
@@ -842,16 +848,6 @@ export interface FileRouteTypes {
     | '/settings/user'
     | '/settings/user/$id'
     | '/settings/user/create'
-    | '/examples/charts'
-    | '/examples/complex-form'
-    | '/examples/dashboard'
-    | '/examples/detail'
-    | '/examples/details'
-    | '/examples/dialog-form'
-    | '/examples/form'
-    | '/examples/layouts'
-    | '/examples/page-layouts'
-    | '/examples/search'
     | '/inventory/transactions'
     | '/location/$id'
     | '/material/$id'
@@ -860,14 +856,26 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_docs'
+    | '/page-new'
     | '/_app/$'
     | '/_auth/login'
+    | '/layouts/one'
+    | '/layouts/two'
     | '/_app/'
+    | '/charts/'
+    | '/complex-form/'
+    | '/dashboard/'
+    | '/data-table/'
+    | '/detail/'
+    | '/details/'
+    | '/dialog-form/'
+    | '/form/'
+    | '/layouts/'
+    | '/page-layouts/'
+    | '/search/'
     | '/_app/analytics/finance'
     | '/_app/analytics/production'
     | '/_app/analytics/sales'
-    | '/_app/examples/data-table'
-    | '/_app/examples/page-new'
     | '/_app/finance/accounts'
     | '/_app/finance/cash-flow'
     | '/_app/finance/expenses'
@@ -905,8 +913,6 @@ export interface FileRouteTypes {
     | '/_app/material/'
     | '/_app/product/'
     | '/_docs/docs/'
-    | '/_app/examples/layouts/one'
-    | '/_app/examples/layouts/two'
     | '/_app/inventory/transactions/$id'
     | '/_app/inventory/transactions/adjustment'
     | '/_app/inventory/transactions/opname'
@@ -920,16 +926,6 @@ export interface FileRouteTypes {
     | '/_app/settings/_tab/user'
     | '/_app/settings/user/$id'
     | '/_app/settings/user/create'
-    | '/_app/examples/charts/'
-    | '/_app/examples/complex-form/'
-    | '/_app/examples/dashboard/'
-    | '/_app/examples/detail/'
-    | '/_app/examples/details/'
-    | '/_app/examples/dialog-form/'
-    | '/_app/examples/form/'
-    | '/_app/examples/layouts/'
-    | '/_app/examples/page-layouts/'
-    | '/_app/examples/search/'
     | '/_app/inventory/transactions/'
     | '/_app/location/$id/'
     | '/_app/material/$id/'
@@ -939,10 +935,31 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   DocsRoute: typeof DocsRouteWithChildren
+  PageNewRoute: typeof PageNewRoute
+  LayoutsOneRoute: typeof LayoutsOneRoute
+  LayoutsTwoRoute: typeof LayoutsTwoRoute
+  ChartsIndexRoute: typeof ChartsIndexRoute
+  ComplexFormIndexRoute: typeof ComplexFormIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DataTableIndexRoute: typeof DataTableIndexRoute
+  DetailIndexRoute: typeof DetailIndexRoute
+  DetailsIndexRoute: typeof DetailsIndexRoute
+  DialogFormIndexRoute: typeof DialogFormIndexRoute
+  FormIndexRoute: typeof FormIndexRoute
+  LayoutsIndexRoute: typeof LayoutsIndexRoute
+  PageLayoutsIndexRoute: typeof PageLayoutsIndexRoute
+  SearchIndexRoute: typeof SearchIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/page-new': {
+      id: '/page-new'
+      path: '/page-new'
+      fullPath: '/page-new'
+      preLoaderRoute: typeof PageNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_docs': {
       id: '/_docs'
       path: ''
@@ -964,12 +981,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search/': {
+      id: '/search/'
+      path: '/search'
+      fullPath: '/search/'
+      preLoaderRoute: typeof SearchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/page-layouts/': {
+      id: '/page-layouts/'
+      path: '/page-layouts'
+      fullPath: '/page-layouts/'
+      preLoaderRoute: typeof PageLayoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/layouts/': {
+      id: '/layouts/'
+      path: '/layouts'
+      fullPath: '/layouts/'
+      preLoaderRoute: typeof LayoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/form/': {
+      id: '/form/'
+      path: '/form'
+      fullPath: '/form/'
+      preLoaderRoute: typeof FormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dialog-form/': {
+      id: '/dialog-form/'
+      path: '/dialog-form'
+      fullPath: '/dialog-form/'
+      preLoaderRoute: typeof DialogFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/details/': {
+      id: '/details/'
+      path: '/details'
+      fullPath: '/details/'
+      preLoaderRoute: typeof DetailsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/detail/': {
+      id: '/detail/'
+      path: '/detail'
+      fullPath: '/detail/'
+      preLoaderRoute: typeof DetailIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-table/': {
+      id: '/data-table/'
+      path: '/data-table'
+      fullPath: '/data-table/'
+      preLoaderRoute: typeof DataTableIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/complex-form/': {
+      id: '/complex-form/'
+      path: '/complex-form'
+      fullPath: '/complex-form/'
+      preLoaderRoute: typeof ComplexFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/charts/': {
+      id: '/charts/'
+      path: '/charts'
+      fullPath: '/charts/'
+      preLoaderRoute: typeof ChartsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/': {
       id: '/_app/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/layouts/two': {
+      id: '/layouts/two'
+      path: '/layouts/two'
+      fullPath: '/layouts/two'
+      preLoaderRoute: typeof LayoutsTwoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/layouts/one': {
+      id: '/layouts/one'
+      path: '/layouts/one'
+      fullPath: '/layouts/one'
+      preLoaderRoute: typeof LayoutsOneRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_auth/login': {
       id: '/_auth/login'
@@ -1244,20 +1352,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFinanceAccountsRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/examples/page-new': {
-      id: '/_app/examples/page-new'
-      path: '/examples/page-new'
-      fullPath: '/examples/page-new'
-      preLoaderRoute: typeof AppExamplesPageNewRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/data-table': {
-      id: '/_app/examples/data-table'
-      path: '/examples/data-table'
-      fullPath: '/examples/data-table'
-      preLoaderRoute: typeof AppExamplesDataTableRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/analytics/sales': {
       id: '/_app/analytics/sales'
       path: '/analytics/sales'
@@ -1298,76 +1392,6 @@ declare module '@tanstack/react-router' {
       path: '/inventory/transactions'
       fullPath: '/inventory/transactions/'
       preLoaderRoute: typeof AppInventoryTransactionsIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/search/': {
-      id: '/_app/examples/search/'
-      path: '/examples/search'
-      fullPath: '/examples/search/'
-      preLoaderRoute: typeof AppExamplesSearchIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/page-layouts/': {
-      id: '/_app/examples/page-layouts/'
-      path: '/examples/page-layouts'
-      fullPath: '/examples/page-layouts/'
-      preLoaderRoute: typeof AppExamplesPageLayoutsIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/layouts/': {
-      id: '/_app/examples/layouts/'
-      path: '/examples/layouts'
-      fullPath: '/examples/layouts/'
-      preLoaderRoute: typeof AppExamplesLayoutsIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/form/': {
-      id: '/_app/examples/form/'
-      path: '/examples/form'
-      fullPath: '/examples/form/'
-      preLoaderRoute: typeof AppExamplesFormIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/dialog-form/': {
-      id: '/_app/examples/dialog-form/'
-      path: '/examples/dialog-form'
-      fullPath: '/examples/dialog-form/'
-      preLoaderRoute: typeof AppExamplesDialogFormIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/details/': {
-      id: '/_app/examples/details/'
-      path: '/examples/details'
-      fullPath: '/examples/details/'
-      preLoaderRoute: typeof AppExamplesDetailsIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/detail/': {
-      id: '/_app/examples/detail/'
-      path: '/examples/detail'
-      fullPath: '/examples/detail/'
-      preLoaderRoute: typeof AppExamplesDetailIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/dashboard/': {
-      id: '/_app/examples/dashboard/'
-      path: '/examples/dashboard'
-      fullPath: '/examples/dashboard/'
-      preLoaderRoute: typeof AppExamplesDashboardIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/complex-form/': {
-      id: '/_app/examples/complex-form/'
-      path: '/examples/complex-form'
-      fullPath: '/examples/complex-form/'
-      preLoaderRoute: typeof AppExamplesComplexFormIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/charts/': {
-      id: '/_app/examples/charts/'
-      path: '/examples/charts'
-      fullPath: '/examples/charts/'
-      preLoaderRoute: typeof AppExamplesChartsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/settings/user/create': {
@@ -1461,20 +1485,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryTransactionsIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/examples/layouts/two': {
-      id: '/_app/examples/layouts/two'
-      path: '/examples/layouts/two'
-      fullPath: '/examples/layouts/two'
-      preLoaderRoute: typeof AppExamplesLayoutsTwoRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/examples/layouts/one': {
-      id: '/_app/examples/layouts/one'
-      path: '/examples/layouts/one'
-      fullPath: '/examples/layouts/one'
-      preLoaderRoute: typeof AppExamplesLayoutsOneRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
   }
 }
 
@@ -1498,8 +1508,6 @@ interface AppRouteRouteChildren {
   AppAnalyticsFinanceRoute: typeof AppAnalyticsFinanceRoute
   AppAnalyticsProductionRoute: typeof AppAnalyticsProductionRoute
   AppAnalyticsSalesRoute: typeof AppAnalyticsSalesRoute
-  AppExamplesDataTableRoute: typeof AppExamplesDataTableRoute
-  AppExamplesPageNewRoute: typeof AppExamplesPageNewRoute
   AppFinanceAccountsRoute: typeof AppFinanceAccountsRoute
   AppFinanceCashFlowRoute: typeof AppFinanceCashFlowRoute
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
@@ -1535,8 +1543,6 @@ interface AppRouteRouteChildren {
   AppLocationIndexRoute: typeof AppLocationIndexRoute
   AppMaterialIndexRoute: typeof AppMaterialIndexRoute
   AppProductIndexRoute: typeof AppProductIndexRoute
-  AppExamplesLayoutsOneRoute: typeof AppExamplesLayoutsOneRoute
-  AppExamplesLayoutsTwoRoute: typeof AppExamplesLayoutsTwoRoute
   AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
   AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
   AppInventoryTransactionsOpnameRoute: typeof AppInventoryTransactionsOpnameRoute
@@ -1548,16 +1554,6 @@ interface AppRouteRouteChildren {
   AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
-  AppExamplesChartsIndexRoute: typeof AppExamplesChartsIndexRoute
-  AppExamplesComplexFormIndexRoute: typeof AppExamplesComplexFormIndexRoute
-  AppExamplesDashboardIndexRoute: typeof AppExamplesDashboardIndexRoute
-  AppExamplesDetailIndexRoute: typeof AppExamplesDetailIndexRoute
-  AppExamplesDetailsIndexRoute: typeof AppExamplesDetailsIndexRoute
-  AppExamplesDialogFormIndexRoute: typeof AppExamplesDialogFormIndexRoute
-  AppExamplesFormIndexRoute: typeof AppExamplesFormIndexRoute
-  AppExamplesLayoutsIndexRoute: typeof AppExamplesLayoutsIndexRoute
-  AppExamplesPageLayoutsIndexRoute: typeof AppExamplesPageLayoutsIndexRoute
-  AppExamplesSearchIndexRoute: typeof AppExamplesSearchIndexRoute
   AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
   AppLocationIdIndexRoute: typeof AppLocationIdIndexRoute
   AppMaterialIdIndexRoute: typeof AppMaterialIdIndexRoute
@@ -1569,8 +1565,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAnalyticsFinanceRoute: AppAnalyticsFinanceRoute,
   AppAnalyticsProductionRoute: AppAnalyticsProductionRoute,
   AppAnalyticsSalesRoute: AppAnalyticsSalesRoute,
-  AppExamplesDataTableRoute: AppExamplesDataTableRoute,
-  AppExamplesPageNewRoute: AppExamplesPageNewRoute,
   AppFinanceAccountsRoute: AppFinanceAccountsRoute,
   AppFinanceCashFlowRoute: AppFinanceCashFlowRoute,
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,
@@ -1606,8 +1600,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLocationIndexRoute: AppLocationIndexRoute,
   AppMaterialIndexRoute: AppMaterialIndexRoute,
   AppProductIndexRoute: AppProductIndexRoute,
-  AppExamplesLayoutsOneRoute: AppExamplesLayoutsOneRoute,
-  AppExamplesLayoutsTwoRoute: AppExamplesLayoutsTwoRoute,
   AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
   AppInventoryTransactionsAdjustmentRoute:
     AppInventoryTransactionsAdjustmentRoute,
@@ -1620,16 +1612,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
-  AppExamplesChartsIndexRoute: AppExamplesChartsIndexRoute,
-  AppExamplesComplexFormIndexRoute: AppExamplesComplexFormIndexRoute,
-  AppExamplesDashboardIndexRoute: AppExamplesDashboardIndexRoute,
-  AppExamplesDetailIndexRoute: AppExamplesDetailIndexRoute,
-  AppExamplesDetailsIndexRoute: AppExamplesDetailsIndexRoute,
-  AppExamplesDialogFormIndexRoute: AppExamplesDialogFormIndexRoute,
-  AppExamplesFormIndexRoute: AppExamplesFormIndexRoute,
-  AppExamplesLayoutsIndexRoute: AppExamplesLayoutsIndexRoute,
-  AppExamplesPageLayoutsIndexRoute: AppExamplesPageLayoutsIndexRoute,
-  AppExamplesSearchIndexRoute: AppExamplesSearchIndexRoute,
   AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,
   AppLocationIdIndexRoute: AppLocationIdIndexRoute,
   AppMaterialIdIndexRoute: AppMaterialIdIndexRoute,
@@ -1667,6 +1649,20 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   DocsRoute: DocsRouteWithChildren,
+  PageNewRoute: PageNewRoute,
+  LayoutsOneRoute: LayoutsOneRoute,
+  LayoutsTwoRoute: LayoutsTwoRoute,
+  ChartsIndexRoute: ChartsIndexRoute,
+  ComplexFormIndexRoute: ComplexFormIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DataTableIndexRoute: DataTableIndexRoute,
+  DetailIndexRoute: DetailIndexRoute,
+  DetailsIndexRoute: DetailsIndexRoute,
+  DialogFormIndexRoute: DialogFormIndexRoute,
+  FormIndexRoute: FormIndexRoute,
+  LayoutsIndexRoute: LayoutsIndexRoute,
+  PageLayoutsIndexRoute: PageLayoutsIndexRoute,
+  SearchIndexRoute: SearchIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
