@@ -52,7 +52,7 @@ function PageLayoutsExample() {
 												<CardContent>
 													<Stack gap="sm">
 														<code className="text-xs font-mono bg-muted px-2 py-1 rounded">
-															size="{item.size}"
+															size=&quot;{item.size}&quot;
 														</code>
 														<div className="text-xs">
 															<div className="font-medium">{item.width}</div>
@@ -94,7 +94,7 @@ function PageLayoutsExample() {
 												key={item.variant}
 												className="flex items-center justify-between p-3 bg-muted/50 rounded"
 											>
-												<code className="text-xs">border="{item.variant}"</code>
+												<code className="text-xs">border=&quot;{item.variant}&quot;</code>
 												<span className="text-xs text-muted-foreground">{item.desc}</span>
 											</div>
 										))}
@@ -113,7 +113,7 @@ function PageLayoutsExample() {
 												key={item.size}
 												className="flex items-center justify-between p-3 bg-muted/50 rounded"
 											>
-												<code className="text-xs">size="{item.size}"</code>
+												<code className="text-xs">size=&quot;{item.size}&quot;</code>
 												<span className="text-xs text-muted-foreground">{item.desc}</span>
 											</div>
 										))}
@@ -141,7 +141,7 @@ function PageLayoutsExample() {
 										<CardContent>
 											<Stack gap="sm" align="center">
 												<code className="text-xs font-mono bg-muted px-2 py-1 rounded">
-													padding="{item.padding}"
+													padding=&quot;{item.padding}&quot;
 												</code>
 												<span className="text-xs text-muted-foreground text-center">
 													{item.desc}

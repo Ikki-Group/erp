@@ -74,7 +74,7 @@ function DialogFormPage() {
 							<DialogHeader>
 								<DialogTitle>Create Task</DialogTitle>
 								<DialogDescription>
-									Add a new task to your project. Click save when you're done.
+									Add a new task to your project. Click save when you&apos;re done.
 								</DialogDescription>
 							</DialogHeader>
 							<TaskForm onSuccess={() => setOpen(false)} />
@@ -99,7 +99,9 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
 		validators: { onChange: taskSchema },
 		onSubmit: async ({ value }) => {
 			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 1000))
+			await new Promise((resolve) => {
+				setTimeout(resolve, 1000)
+			})
 			console.log('Submitted:', value)
 			toast.success('Task created successfully')
 			onSuccess()

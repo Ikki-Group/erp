@@ -41,7 +41,9 @@ const MOCK_DB = generateMockData(500) // Large dataset simulation
 
 // --- Mock Server Action ---
 const searchIngredients = async (query: string): Promise<Array<Ingredient>> => {
-	await new Promise((resolve) => setTimeout(resolve, 500)) // Network latency
+	await new Promise((resolve) => {
+		setTimeout(resolve, 500) // Network latency
+	})
 	if (!query) return MOCK_DB.slice(0, 20)
 	return MOCK_DB.filter(
 		(item) =>
