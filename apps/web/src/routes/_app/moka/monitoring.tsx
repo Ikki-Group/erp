@@ -144,7 +144,7 @@ function MokaMonitoringPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Monitoring Moka"
 				description="Pantau status integrasi, sinkronisasi data pipeline, dan log transaksi real-time dari Moka POS."
