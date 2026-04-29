@@ -79,13 +79,14 @@ export class MokaScrapService {
 						fetched: categories.length,
 						synced: filtered.length,
 						filteredByOutlet: outletNum ? categories.length - filtered.length : 0,
+						rawData: categories, // Store raw API response for audit/re-processing
 					},
 				})
 			} else if (input.type === 'product') {
 				const engine = new MokaProductEngine(auth, this.logger)
 				const products = await engine.fetch()
 				const outletNum = outletId ? Number(outletId) : null
-				const filtered = outletNum ? products.filter((p) => p.outlet_id === outletNum) : products
+				const filtered = outletNum ? products.filter((p) => p.outlet_id === outletId) : products
 				await this.transformSvc.transformProducts(config.locationId, filtered, actorId, outletId)
 				await this.historySvc.updateStatus(historyId, 'completed', {
 					recordsCount: filtered.length,
@@ -93,6 +94,7 @@ export class MokaScrapService {
 						fetched: products.length,
 						synced: filtered.length,
 						filteredByOutlet: outletNum ? products.length - filtered.length : 0,
+						rawData: products, // Store raw API response for audit/re-processing
 					},
 				})
 			} else if (input.type === 'sales') {
