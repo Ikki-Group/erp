@@ -100,7 +100,7 @@ function SalesCustomersPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Data Pelanggan"
 				description="Basis data pelanggan dari seluruh channel penjualan."

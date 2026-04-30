@@ -95,7 +95,7 @@ function GoodsReceiptPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Penerimaan Barang (GRN)"
 				description="Pantau dan verifikasi barang yang diterima dari Supplier sebelum masuk ke stok gudang."

@@ -124,7 +124,7 @@ function FinanceAccountsPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Daftar Akun (Chart of Accounts)"
 				description="Kelola hierarki akun Kas, Bank, Aset, hingga Biaya Operasional untuk pembukuan."

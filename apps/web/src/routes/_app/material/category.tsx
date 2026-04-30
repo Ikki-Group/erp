@@ -40,7 +40,7 @@ export const Route = createFileRoute('/_app/material/category')({ component: Rou
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Kategori Bahan Baku"
 				description="Pengaturan kategori bahan baku untuk pengorganisasian inventaris dan klasifikasi produk yang lebih baik."

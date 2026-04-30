@@ -33,7 +33,7 @@ export const Route = createFileRoute('/_app/location/')({ component: RouteCompon
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Lokasi & Gudang"
 				description="Kelola data lokasi dan gudang untuk penyimpanan inventory."

@@ -65,7 +65,7 @@ function RouteComponent() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Dashboard Inventori"
 				description="Monitor pergerakan stok, nilai aset, dan peringatan stok bahan baku."

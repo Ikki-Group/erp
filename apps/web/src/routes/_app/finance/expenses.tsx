@@ -94,7 +94,7 @@ function FinanceExpensesPage() {
 		.reduce((acc, curr) => acc + Number(curr.amount), 0)
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Pengeluaran (Expenses)"
 				description="Pencatatan biaya operasional perusahaan seperti utilitas, transportasi, hingga pemasaran."

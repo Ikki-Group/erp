@@ -116,7 +116,7 @@ function RouteComponent() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Riwayat Mutasi & Transaksi"
 				description="Pantau seluruh pergerakan barang (masuk, keluar, transfer, dan opname/penyesuaian)."

@@ -27,7 +27,7 @@ export const Route = createFileRoute('/_app/product/sales-type')({ component: Ro
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Jenis Penjualan"
 				description="Pengaturan jenis penjualan untuk mengklasifikasikan transaksi dan pelaporan pendapatan."

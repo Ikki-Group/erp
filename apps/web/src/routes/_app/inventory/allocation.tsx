@@ -52,7 +52,7 @@ function RouteComponent() {
 	const numericLocationId = locationId ? Number(locationId) : null
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Alokasi Gudang"
 				description="Kelola penugasan bahan baku per lokasi gudang"

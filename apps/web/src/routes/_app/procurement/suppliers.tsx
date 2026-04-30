@@ -122,7 +122,7 @@ function SuppliersPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Data Supplier"
 				description="Direktori kelola vendor bahan baku dan layanan operasional Anda."

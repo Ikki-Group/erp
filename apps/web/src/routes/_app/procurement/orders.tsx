@@ -68,7 +68,7 @@ function ProcurementOrderPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Pesanan Pembelian (PO)"
 				description="Pantau status pemesanan ke Supplier dan kelola dokumen Purchase Order."

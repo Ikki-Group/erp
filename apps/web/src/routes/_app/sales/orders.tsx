@@ -90,7 +90,7 @@ function SalesOrderPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Pesanan Penjualan"
 				description="Kelola seluruh pesanan pelanggan Anda di sini."

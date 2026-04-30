@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_app/product/')({ component: RouteCompone
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader title="Daftar Produk" />
 			<Page.Content>
 				<ProductTable />

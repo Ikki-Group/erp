@@ -26,7 +26,7 @@ export const Route = createFileRoute('/_app/product/category')({ component: Rout
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Kategori Produk"
 				description="Kelola kategori produk untuk memudahkan pengorganisasian dan pencarian item menu."

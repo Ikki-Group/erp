@@ -40,7 +40,7 @@ export const Route = createFileRoute('/_app/material/uom')({ component: RouteCom
 
 function RouteComponent() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Satuan Bahan Baku"
 				description="Kelola Satuan (UOM) untuk bahan baku. Satuan ini akan digunakan dalam inventaris, resep, dan transaksi stok."

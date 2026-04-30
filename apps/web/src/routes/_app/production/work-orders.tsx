@@ -154,7 +154,7 @@ function WorkOrdersPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Perintah Kerja (Work Orders)"
 				description="Manajemen jadwal produksi dan eksekusi batch untuk barang setengah jadi dan jadi."
