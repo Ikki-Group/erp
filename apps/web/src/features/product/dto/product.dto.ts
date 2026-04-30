@@ -26,7 +26,7 @@ export const ProductPriceDto = z.object({
 	productId: zp.id,
 	salesTypeId: zp.id,
 	price: zp.decimal,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type ProductPriceDto = z.infer<typeof ProductPriceDto>
@@ -39,7 +39,7 @@ export const ProductVariantDto = z.object({
 	isDefault: zp.bool,
 	basePrice: zp.decimal,
 	prices: VariantPriceDto.array(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type ProductVariantDto = z.infer<typeof ProductVariantDto>
@@ -51,7 +51,7 @@ export const ProductExternalMappingDto = z.object({
 	provider: zp.str,
 	externalId: zp.str,
 	lastSyncedAt: z.date().nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type ProductExternalMappingDto = z.infer<typeof ProductExternalMappingDto>
@@ -72,7 +72,7 @@ export const ProductDto = z.object({
 	variants: ProductVariantDto.array(),
 	prices: ProductPriceDto.array(),
 	externalMappings: ProductExternalMappingDto.array(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type ProductDto = z.infer<typeof ProductDto>

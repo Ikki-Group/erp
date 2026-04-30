@@ -1,9 +1,5 @@
 /**
  * Generate a SKU in the form PREFIX-MNEMONIC-YYMMDD-RANDOM.
- *
- * @param prefix - Leading SKU segment; converted to uppercase and stripped of non-alphanumeric characters.
- * @param reference - Optional value used to derive a mnemonic: uppercased, non-alphanumeric removed, then truncated to up to 4 characters. When omitted, the mnemonic segment is excluded.
- * @returns The constructed SKU string composed of hyphen-separated segments.
  */
 export function generateSku(prefix: string, reference?: string): string {
 	const now = new Date()
