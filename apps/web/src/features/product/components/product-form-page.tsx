@@ -58,19 +58,6 @@ type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({ validators: { onSubmit: FormDto }, defaultValues: {} as FormDto })
 
-/**
- * Build a FormDto populated from an optional ProductSelectDto or with sensible defaults.
- *
- * @param v - Optional source product whose fields are used to seed the form
- * @returns A FormDto where:
- * - `name`, `description`, `sku`, and `status` are taken from `v` or set to empty/defaults.
- * - `basePrice` is a numeric value (0 when absent).
- * - `locationId` is taken from `v` or defaults to `1`.
- * - `categoryId` is a string when present in `v`, or `null` when absent.
- * - `hasVariants` and `hasSalesTypePricing` reflect the source flags or default to `false`.
- * - `prices` is an array of `{ salesTypeId, price }` with `price` as numbers.
- * - `variants` is an array of variant objects with `_id` as a string, numeric `basePrice`, `isDefault`, optional `sku`, and `prices` converted to numeric values.
- */
 function getDefaultValues(v?: ProductSelectDto): FormDto {
 	return {
 		name: v?.name ?? '',
@@ -104,11 +91,6 @@ interface ProductFormPageProps {
 
 /**
  * Render the product create/edit form page that manages basic product data, pricing, and variants.
- *
- * @param mode - Form mode, either create or update, which determines labels and submission behavior
- * @param id - Optional product identifier; when provided the form is populated with the product's data
- * @param backTo - Optional navigation target to go to after a successful submit; falls back to the products list if omitted
- * @returns The React element for the product form page
  */
 export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
 	const navigate = useNavigate()
@@ -177,14 +159,6 @@ export function ProductFormPage({ mode, id, backTo }: ProductFormPageProps) {
 	)
 }
 
-/**
- * Render the "Informasi Dasar" card with form controls for basic product fields.
- *
- * Renders inputs for product name, SKU (includes a button to auto-generate an SKU from the product name),
- * category (populated from fetched product categories), status, and description.
- *
- * @returns A JSX element containing the product information form section with labeled inputs and the SKU generator button.
- */
 function ProductInfoCard() {
 	const form = useTypedAppContext()
 	const { data: categories } = useSuspenseQuery({
@@ -264,17 +238,6 @@ function ProductInfoCard() {
 	)
 }
 
-/**
- * Renders the "Harga & Varian" section of the product form, providing controls to
- * toggle variant mode and per-sales-type pricing and conditionally displaying the
- * base price input, a per-sales-type pricing table, or the variants table.
- *
- * The component also initializes a default variant when variant mode is enabled and
- * no variants exist.
- *
- * @returns A React element containing controls and UI for configuring base price,
- * per-sales-type prices, and product variants.
- */
 function PricingAndVariantsSection() {
 	const form = useTypedAppContext()
 	const hasVariants = useStore(form.store, (s) => s.values.hasVariants)
@@ -396,14 +359,6 @@ function PricingAndVariantsSection() {
 	)
 }
 
-/**
- * Render the per-sales-type price control for a specific sales type.
- *
- * Renders a "+ Atur Harga" button that appends a new price entry when no price exists for the given sales type, or a currency input with a delete button for editing/removing the existing price entry.
- *
- * @param salesTypeId - The sales type identifier whose price entry this control manages.
- * @returns A React element that provides add/edit/remove UI for the sales type's price.
- */
 function ProductPriceInput({ salesTypeId }: { salesTypeId: number }) {
 	const form = useTypedAppContext()
 	const prices = useStore(form.store, (s) => s.values.prices)
@@ -447,15 +402,6 @@ function ProductPriceInput({ salesTypeId }: { salesTypeId: number }) {
 	)
 }
 
-/**
- * Render the variants table allowing editing of SKU, name, base price, per-sales-type prices, and default selection.
- *
- * Shows an empty-state when no variants exist, lets the user add or remove variants, and highlights the default variant.
- *
- * @param salesTypes - Array of sales type descriptors ({ id, name }) used to render per-sales-type price columns.
- * @param hasSalesTypePricing - If `true`, include a price column and inputs for each sales type for every variant.
- * @returns The JSX element for the variants table component.
- */
 function VariantsTable({
 	salesTypes,
 	hasSalesTypePricing,

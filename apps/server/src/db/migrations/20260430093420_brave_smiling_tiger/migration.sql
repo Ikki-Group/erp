@@ -3,6 +3,7 @@ CREATE TYPE "attendance_status" AS ENUM('present', 'absent', 'late', 'on_leave')
 CREATE TYPE "expenditure_status" AS ENUM('PENDING', 'PAID', 'VOID', 'REFUNDED');--> statement-breakpoint
 CREATE TYPE "expenditure_type" AS ENUM('BILLS', 'ASSET', 'PURCHASES');--> statement-breakpoint
 CREATE TYPE "goods_receipt_status" AS ENUM('open', 'completed', 'void');--> statement-breakpoint
+CREATE TYPE "integration_provider" AS ENUM('moka');--> statement-breakpoint
 CREATE TYPE "invoice_status" AS ENUM('draft', 'open', 'paid', 'void');--> statement-breakpoint
 CREATE TYPE "leave_status" AS ENUM('pending', 'approved', 'rejected', 'cancelled');--> statement-breakpoint
 CREATE TYPE "leave_type" AS ENUM('annual', 'sick', 'unpaid', 'other');--> statement-breakpoint
@@ -10,6 +11,7 @@ CREATE TYPE "location_type" AS ENUM('store', 'warehouse');--> statement-breakpoi
 CREATE TYPE "material_type" AS ENUM('raw', 'semi', 'packaging');--> statement-breakpoint
 CREATE TYPE "moka_scrap_status" AS ENUM('pending', 'processing', 'completed', 'failed');--> statement-breakpoint
 CREATE TYPE "moka_scrap_type" AS ENUM('sales', 'product', 'category');--> statement-breakpoint
+CREATE TYPE "moka_sync_trigger_mode" AS ENUM('manual', 'cron', 'upload', 'machine_fetch');--> statement-breakpoint
 CREATE TYPE "payment_method" AS ENUM('cash', 'bank_transfer', 'credit_card', 'debit_card', 'e_wallet');--> statement-breakpoint
 CREATE TYPE "payment_type" AS ENUM('payable', 'receivable');--> statement-breakpoint
 CREATE TYPE "payroll_adjustment_type" AS ENUM('addition', 'deduction');--> statement-breakpoint
@@ -17,6 +19,7 @@ CREATE TYPE "payroll_status" AS ENUM('draft', 'approved', 'paid', 'cancelled');-
 CREATE TYPE "product_status" AS ENUM('active', 'inactive', 'archived');--> statement-breakpoint
 CREATE TYPE "purchase_order_status" AS ENUM('open', 'closed', 'void');--> statement-breakpoint
 CREATE TYPE "purchase_request_status" AS ENUM('open', 'approved', 'rejected', 'void');--> statement-breakpoint
+CREATE TYPE "sales_order_source" AS ENUM('web', 'moka', 'upload', 'machine_fetch');--> statement-breakpoint
 CREATE TYPE "sales_order_status" AS ENUM('open', 'closed', 'void');--> statement-breakpoint
 CREATE TYPE "stock_adjustment_type" AS ENUM('opname', 'found', 'waste', 'correction');--> statement-breakpoint
 CREATE TYPE "transaction_type" AS ENUM('purchase', 'transfer_in', 'transfer_out', 'adjustment', 'sell', 'usage', 'production_in', 'production_out');--> statement-breakpoint
@@ -47,6 +50,22 @@ CREATE TABLE "attendances" (
 	"clock_out" timestamp,
 	"status" "attendance_status" DEFAULT 'present'::"attendance_status" NOT NULL,
 	"note" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "category_external_mappings" (
+	"id" serial PRIMARY KEY,
+	"categoryId" integer NOT NULL,
+	"provider" text NOT NULL,
+	"externalId" text NOT NULL,
+	"externalData" jsonb,
+	"lastSyncedAt" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -268,12 +287,19 @@ CREATE TABLE "materials" (
 CREATE TABLE "moka_configurations" (
 	"id" serial PRIMARY KEY,
 	"locationId" integer NOT NULL,
+	"provider" "integration_provider" DEFAULT 'moka'::"integration_provider" NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
 	"businessId" text,
 	"outletId" text,
 	"accessToken" text,
+	"isActive" boolean DEFAULT true NOT NULL,
+	"salesCronEnabled" boolean DEFAULT false NOT NULL,
+	"salesCronExpression" text,
 	"lastSyncedAt" timestamp with time zone,
+	"lastSalesSyncedAt" timestamp with time zone,
+	"lastProductSyncedAt" timestamp with time zone,
+	"lastCategorySyncedAt" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -286,13 +312,35 @@ CREATE TABLE "moka_configurations" (
 CREATE TABLE "moka_scrap_histories" (
 	"id" serial PRIMARY KEY,
 	"mokaConfigurationId" integer NOT NULL,
+	"provider" "integration_provider" DEFAULT 'moka'::"integration_provider" NOT NULL,
 	"type" "moka_scrap_type" NOT NULL,
+	"triggerMode" "moka_sync_trigger_mode" DEFAULT 'manual'::"moka_sync_trigger_mode" NOT NULL,
 	"status" "moka_scrap_status" DEFAULT 'pending'::"moka_scrap_status" NOT NULL,
 	"dateFrom" timestamp with time zone NOT NULL,
 	"dateTo" timestamp with time zone NOT NULL,
+	"startedAt" timestamp with time zone,
+	"finishedAt" timestamp with time zone,
+	"recordsCount" integer DEFAULT 0 NOT NULL,
 	"rawPath" text,
 	"errorMessage" text,
 	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "moka_sync_cursors" (
+	"id" serial PRIMARY KEY,
+	"mokaConfigurationId" integer NOT NULL,
+	"type" "moka_scrap_type" NOT NULL,
+	"provider" "integration_provider" DEFAULT 'moka'::"integration_provider" NOT NULL,
+	"cursorDate" timestamp with time zone,
+	"cursorToken" text,
+	"lastHistoryId" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -731,11 +779,33 @@ CREATE TABLE "sales_orders" (
 	"locationId" integer NOT NULL,
 	"customerId" integer,
 	"salesTypeId" integer NOT NULL,
+	"source" "sales_order_source" DEFAULT 'web'::"sales_order_source" NOT NULL,
 	"status" "sales_order_status" DEFAULT 'open'::"sales_order_status" NOT NULL,
 	"transactionDate" timestamp with time zone DEFAULT now() NOT NULL,
 	"totalAmount" numeric(18,2) DEFAULT '0' NOT NULL,
 	"discountAmount" numeric(18,2) DEFAULT '0' NOT NULL,
 	"taxAmount" numeric(18,2) DEFAULT '0' NOT NULL,
+	"gratuityAmount" numeric(18,2) DEFAULT '0' NOT NULL,
+	"refundAmount" numeric(18,2) DEFAULT '0' NOT NULL,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "sales_refunds" (
+	"id" serial PRIMARY KEY,
+	"orderId" integer NOT NULL,
+	"itemId" integer,
+	"amount" numeric(18,2) NOT NULL,
+	"reason" text,
+	"refundedBy" integer,
+	"refundedAt" timestamp with time zone NOT NULL,
+	"metadata" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -764,7 +834,8 @@ CREATE TABLE "sales_voids" (
 	"orderId" integer NOT NULL,
 	"itemId" integer,
 	"reason" text,
-	"voidedBy" integer NOT NULL,
+	"voidedBy" integer,
+	"metadata" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -1013,6 +1084,10 @@ CREATE TABLE "work_orders" (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX "accounts_code_idx" ON "accounts" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
+CREATE UNIQUE INDEX "category_ext_map_provider_ext_id_idx" ON "category_external_mappings" ("provider","externalId");--> statement-breakpoint
+CREATE UNIQUE INDEX "category_ext_map_provider_category_idx" ON "category_external_mappings" ("provider","categoryId");--> statement-breakpoint
+CREATE INDEX "category_ext_map_category_idx" ON "category_external_mappings" ("categoryId");--> statement-breakpoint
+CREATE INDEX "category_ext_map_provider_idx" ON "category_external_mappings" ("provider");--> statement-breakpoint
 CREATE UNIQUE INDEX "customers_code_idx" ON "customers" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "customers_name_idx" ON "customers" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "employees_code_idx" ON "employees" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
@@ -1039,6 +1114,18 @@ CREATE UNIQUE INDEX "materials_sku_idx" ON "materials" ("sku") WHERE ("deleted_a
 CREATE INDEX "materials_category_idx" ON "materials" ("categoryId");--> statement-breakpoint
 CREATE INDEX "materials_base_uom_idx" ON "materials" ("baseUomId");--> statement-breakpoint
 CREATE INDEX "materials_tax_idx" ON "materials" ("tax_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "moka_config_provider_location_idx" ON "moka_configurations" ("provider","locationId");--> statement-breakpoint
+CREATE INDEX "moka_config_location_idx" ON "moka_configurations" ("locationId");--> statement-breakpoint
+CREATE INDEX "moka_config_provider_idx" ON "moka_configurations" ("provider");--> statement-breakpoint
+CREATE INDEX "moka_config_active_idx" ON "moka_configurations" ("isActive");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_config_idx" ON "moka_scrap_histories" ("mokaConfigurationId");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_provider_idx" ON "moka_scrap_histories" ("provider");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_type_idx" ON "moka_scrap_histories" ("type");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_status_idx" ON "moka_scrap_histories" ("status");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_trigger_mode_idx" ON "moka_scrap_histories" ("triggerMode");--> statement-breakpoint
+CREATE INDEX "moka_scrap_history_created_at_idx" ON "moka_scrap_histories" ("created_at");--> statement-breakpoint
+CREATE UNIQUE INDEX "moka_sync_cursor_config_type_idx" ON "moka_sync_cursors" ("mokaConfigurationId","type");--> statement-breakpoint
+CREATE INDEX "moka_sync_cursor_history_idx" ON "moka_sync_cursors" ("lastHistoryId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_payment_idx" ON "payment_invoices" ("paymentId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_sales_inv_idx" ON "payment_invoices" ("salesInvoiceId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_purchase_inv_idx" ON "payment_invoices" ("purchaseInvoiceId");--> statement-breakpoint
@@ -1096,9 +1183,13 @@ CREATE INDEX "sales_order_items_product_idx" ON "sales_order_items" ("productId"
 CREATE INDEX "sales_order_items_variant_idx" ON "sales_order_items" ("variantId");--> statement-breakpoint
 CREATE INDEX "sales_order_items_batch_idx" ON "sales_order_items" ("batchId");--> statement-breakpoint
 CREATE INDEX "sales_orders_location_idx" ON "sales_orders" ("locationId");--> statement-breakpoint
+CREATE INDEX "sales_orders_source_idx" ON "sales_orders" ("source");--> statement-breakpoint
 CREATE INDEX "sales_orders_status_idx" ON "sales_orders" ("status");--> statement-breakpoint
 CREATE INDEX "sales_orders_transaction_date_idx" ON "sales_orders" ("transactionDate");--> statement-breakpoint
 CREATE INDEX "sales_orders_customer_idx" ON "sales_orders" ("customerId");--> statement-breakpoint
+CREATE INDEX "sales_refunds_order_idx" ON "sales_refunds" ("orderId");--> statement-breakpoint
+CREATE INDEX "sales_refunds_item_idx" ON "sales_refunds" ("itemId");--> statement-breakpoint
+CREATE INDEX "sales_refunds_date_idx" ON "sales_refunds" ("refundedAt");--> statement-breakpoint
 CREATE UNIQUE INDEX "sales_types_code_idx" ON "sales_types" ("code");--> statement-breakpoint
 CREATE INDEX "sales_voids_order_idx" ON "sales_voids" ("orderId");--> statement-breakpoint
 CREATE INDEX "sales_voids_item_idx" ON "sales_voids" ("itemId");--> statement-breakpoint
@@ -1137,6 +1228,7 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_parent_id_accounts_id_fkey" FORE
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_employee_id_employees_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees"("id");--> statement-breakpoint
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_location_id_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id");--> statement-breakpoint
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_shift_id_shifts_id_fkey" FOREIGN KEY ("shift_id") REFERENCES "shifts"("id");--> statement-breakpoint
+ALTER TABLE "category_external_mappings" ADD CONSTRAINT "category_external_mappings_WP3yaHxOBCsT_fkey" FOREIGN KEY ("categoryId") REFERENCES "product_categories"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "employees" ADD CONSTRAINT "employees_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "goods_receipt_note_items" ADD CONSTRAINT "goods_receipt_note_items_grnId_goods_receipt_notes_id_fkey" FOREIGN KEY ("grnId") REFERENCES "goods_receipt_notes"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "goods_receipt_note_items" ADD CONSTRAINT "goods_receipt_note_items_zPAVPiuWwf9Z_fkey" FOREIGN KEY ("purchaseOrderItemId") REFERENCES "purchase_order_items"("id") ON DELETE RESTRICT;--> statement-breakpoint
@@ -1155,6 +1247,10 @@ ALTER TABLE "material_locations" ADD CONSTRAINT "material_locations_locationId_l
 ALTER TABLE "materials" ADD CONSTRAINT "materials_categoryId_material_categories_id_fkey" FOREIGN KEY ("categoryId") REFERENCES "material_categories"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "materials" ADD CONSTRAINT "materials_baseUomId_uoms_id_fkey" FOREIGN KEY ("baseUomId") REFERENCES "uoms"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "materials" ADD CONSTRAINT "materials_tax_id_taxes_id_fkey" FOREIGN KEY ("tax_id") REFERENCES "taxes"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "moka_configurations" ADD CONSTRAINT "moka_configurations_locationId_locations_id_fkey" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "moka_scrap_histories" ADD CONSTRAINT "moka_scrap_histories_5ucxgJtxqdLC_fkey" FOREIGN KEY ("mokaConfigurationId") REFERENCES "moka_configurations"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "moka_sync_cursors" ADD CONSTRAINT "moka_sync_cursors_sOj66NS3b5B5_fkey" FOREIGN KEY ("mokaConfigurationId") REFERENCES "moka_configurations"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "moka_sync_cursors" ADD CONSTRAINT "moka_sync_cursors_lastHistoryId_moka_scrap_histories_id_fkey" FOREIGN KEY ("lastHistoryId") REFERENCES "moka_scrap_histories"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_paymentId_payments_id_fkey" FOREIGN KEY ("paymentId") REFERENCES "payments"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_salesInvoiceId_sales_invoices_id_fkey" FOREIGN KEY ("salesInvoiceId") REFERENCES "sales_invoices"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_purchaseInvoiceId_purchase_invoices_id_fkey" FOREIGN KEY ("purchaseInvoiceId") REFERENCES "purchase_invoices"("id") ON DELETE CASCADE;--> statement-breakpoint
@@ -1208,8 +1304,12 @@ ALTER TABLE "sales_order_items" ADD CONSTRAINT "sales_order_items_variantId_prod
 ALTER TABLE "sales_orders" ADD CONSTRAINT "sales_orders_locationId_locations_id_fkey" FOREIGN KEY ("locationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "sales_orders" ADD CONSTRAINT "sales_orders_customerId_customers_id_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "sales_orders" ADD CONSTRAINT "sales_orders_salesTypeId_sales_types_id_fkey" FOREIGN KEY ("salesTypeId") REFERENCES "sales_types"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "sales_refunds" ADD CONSTRAINT "sales_refunds_orderId_sales_orders_id_fkey" FOREIGN KEY ("orderId") REFERENCES "sales_orders"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "sales_refunds" ADD CONSTRAINT "sales_refunds_itemId_sales_order_items_id_fkey" FOREIGN KEY ("itemId") REFERENCES "sales_order_items"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "sales_refunds" ADD CONSTRAINT "sales_refunds_refundedBy_users_id_fkey" FOREIGN KEY ("refundedBy") REFERENCES "users"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "sales_voids" ADD CONSTRAINT "sales_voids_orderId_sales_orders_id_fkey" FOREIGN KEY ("orderId") REFERENCES "sales_orders"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "sales_voids" ADD CONSTRAINT "sales_voids_itemId_sales_order_items_id_fkey" FOREIGN KEY ("itemId") REFERENCES "sales_order_items"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "sales_voids" ADD CONSTRAINT "sales_voids_voidedBy_users_id_fkey" FOREIGN KEY ("voidedBy") REFERENCES "users"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "stock_adjustment_items" ADD CONSTRAINT "stock_adjustment_items_adjustmentId_stock_adjustments_id_fkey" FOREIGN KEY ("adjustmentId") REFERENCES "stock_adjustments"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "stock_adjustment_items" ADD CONSTRAINT "stock_adjustment_items_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE RESTRICT;--> statement-breakpoint

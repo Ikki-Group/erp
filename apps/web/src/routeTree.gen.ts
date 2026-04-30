@@ -51,6 +51,7 @@ import { Route as AppProcurementReceiptsRouteImport } from './routes/_app/procur
 import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
 import { Route as AppMokaSyncRouteImport } from './routes/_app/moka/sync'
 import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
+import { Route as AppMokaConfigurationRouteImport } from './routes/_app/moka/configuration'
 import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
 import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
 import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
@@ -295,6 +296,11 @@ const AppMokaMonitoringRoute = AppMokaMonitoringRouteImport.update({
   path: '/moka/monitoring',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppMokaConfigurationRoute = AppMokaConfigurationRouteImport.update({
+  id: '/moka/configuration',
+  path: '/moka/configuration',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMaterialUomRoute = AppMaterialUomRouteImport.update({
   id: '/material/uom',
   path: '/material/uom',
@@ -496,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
   '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/moka/sync': typeof AppMokaSyncRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -571,6 +578,7 @@ export interface FileRoutesByTo {
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
   '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/moka/sync': typeof AppMokaSyncRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -650,6 +658,7 @@ export interface FileRoutesById {
   '/_app/material/category': typeof AppMaterialCategoryRoute
   '/_app/material/create': typeof AppMaterialCreateRoute
   '/_app/material/uom': typeof AppMaterialUomRoute
+  '/_app/moka/configuration': typeof AppMokaConfigurationRoute
   '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
   '/_app/moka/sync': typeof AppMokaSyncRoute
   '/_app/procurement/orders': typeof AppProcurementOrdersRoute
@@ -727,6 +736,7 @@ export interface FileRouteTypes {
     | '/material/category'
     | '/material/create'
     | '/material/uom'
+    | '/moka/configuration'
     | '/moka/monitoring'
     | '/moka/sync'
     | '/procurement/orders'
@@ -802,6 +812,7 @@ export interface FileRouteTypes {
     | '/material/category'
     | '/material/create'
     | '/material/uom'
+    | '/moka/configuration'
     | '/moka/monitoring'
     | '/moka/sync'
     | '/procurement/orders'
@@ -880,6 +891,7 @@ export interface FileRouteTypes {
     | '/_app/material/category'
     | '/_app/material/create'
     | '/_app/material/uom'
+    | '/_app/moka/configuration'
     | '/_app/moka/monitoring'
     | '/_app/moka/sync'
     | '/_app/procurement/orders'
@@ -1249,6 +1261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMokaMonitoringRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/moka/configuration': {
+      id: '/_app/moka/configuration'
+      path: '/moka/configuration'
+      fullPath: '/moka/configuration'
+      preLoaderRoute: typeof AppMokaConfigurationRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/material/uom': {
       id: '/_app/material/uom'
       path: '/material/uom'
@@ -1525,6 +1544,7 @@ interface AppRouteRouteChildren {
   AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
   AppMaterialCreateRoute: typeof AppMaterialCreateRoute
   AppMaterialUomRoute: typeof AppMaterialUomRoute
+  AppMokaConfigurationRoute: typeof AppMokaConfigurationRoute
   AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
   AppMokaSyncRoute: typeof AppMokaSyncRoute
   AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
@@ -1582,6 +1602,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialCategoryRoute: AppMaterialCategoryRoute,
   AppMaterialCreateRoute: AppMaterialCreateRoute,
   AppMaterialUomRoute: AppMaterialUomRoute,
+  AppMokaConfigurationRoute: AppMokaConfigurationRoute,
   AppMokaMonitoringRoute: AppMokaMonitoringRoute,
   AppMokaSyncRoute: AppMokaSyncRoute,
   AppProcurementOrdersRoute: AppProcurementOrdersRoute,

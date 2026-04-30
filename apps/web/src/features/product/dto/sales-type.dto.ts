@@ -9,7 +9,7 @@ export const SalesTypeDto = z.object({
 	code: zp.str,
 	name: zp.str,
 	isSystem: zp.bool,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type SalesTypeDto = z.infer<typeof SalesTypeDto>
