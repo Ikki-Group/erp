@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
@@ -60,8 +60,8 @@ function SalesOrderPage() {
 		salesOrderApi.list.query({ page: 1, limit: 100 }),
 	)
 
-	const orders = ordersData?.data?.data ?? []
-	const rowCount = ordersData?.data?.total ?? 0
+	const orders = ordersData?.data ?? []
+	const rowCount = ordersData?.meta?.total ?? 0
 
 	const table = useDataTable({
 		columns,
@@ -84,11 +84,11 @@ function SalesOrderPage() {
 					isLoading={isLoading}
 					recordCount={rowCount}
 					action={
-						<Button size="sm" asChild>
-							<a href="/sales/pos">
+						<Link to="/sales/pos">
+							<Button size="sm">
 								<PlusIcon className="mr-2 h-4 w-4" /> Buat Pesanan
-							</a>
-						</Button>
+							</Button>
+						</Link>
 					}
 				/>
 			</Page.Content>
