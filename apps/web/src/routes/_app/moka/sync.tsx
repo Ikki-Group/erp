@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { DownloadIcon, PackageIcon, ShoppingCartIcon, TagIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Page } from '@/components/layout/page'
 
@@ -15,46 +16,34 @@ export const Route = createFileRoute('/_app/moka/sync')({
 })
 
 function MokaSync() {
-	const locationId = useLocationId()
-	const { toast } = useToast()
+	// TODO: Get locationId from context or route params
+	const locationId = 1
 
 	const categoryMutation = useMutation({
 		mutationFn: () =>
-			mokaApi.triggerScrap({
-				body: { locationId, type: 'category', triggerMode: 'manual' },
-			}),
+			mokaApi.triggerScrap.fetch({ body: { locationId, type: 'category', triggerMode: 'manual' } }),
 		onSuccess: () => {
-			toast({ title: 'Sinkronisasi kategori berhasil' })
+			toast.success('Sinkronisasi kategori berhasil')
 		},
-		onError: (err) => {
-			toast({
-				title: 'Gagal sinkronisasi kategori',
-				description: err instanceof Error ? err.message : 'Unknown error',
-				variant: 'destructive',
-			})
+		onError: () => {
+			toast.error('Gagal sinkronisasi kategori')
 		},
 	})
 
 	const productMutation = useMutation({
 		mutationFn: () =>
-			mokaApi.triggerScrap({
-				body: { locationId, type: 'product', triggerMode: 'manual' },
-			}),
+			mokaApi.triggerScrap.fetch({ body: { locationId, type: 'product', triggerMode: 'manual' } }),
 		onSuccess: () => {
-			toast({ title: 'Sinkronisasi produk berhasil' })
+			toast.success('Sinkronisasi produk berhasil')
 		},
-		onError: (err) => {
-			toast({
-				title: 'Gagal sinkronisasi produk',
-				description: err instanceof Error ? err.message : 'Unknown error',
-				variant: 'destructive',
-			})
+		onError: () => {
+			toast.error('Gagal sinkronisasi produk')
 		},
 	})
 
 	const salesMutation = useMutation({
 		mutationFn: () =>
-			mokaApi.triggerScrap({
+			mokaApi.triggerScrap.fetch({
 				body: {
 					locationId,
 					type: 'sales',
@@ -64,14 +53,10 @@ function MokaSync() {
 				},
 			}),
 		onSuccess: () => {
-			toast({ title: 'Sinkronisasi sales berhasil' })
+			toast.success('Sinkronisasi sales berhasil')
 		},
-		onError: (err) => {
-			toast({
-				title: 'Gagal sinkronisasi sales',
-				description: err instanceof Error ? err.message : 'Unknown error',
-				variant: 'destructive',
-			})
+		onError: () => {
+			toast.error('Gagal sinkronisasi sales')
 		},
 	})
 

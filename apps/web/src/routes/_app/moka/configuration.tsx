@@ -1,10 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { KeyRoundIcon, SaveIcon } from 'lucide-react'
-
-import { useLocationId } from '@/hooks/use-location-id'
-import { useToast } from '@/hooks/use-toast'
+import { SaveIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Page } from '@/components/layout/page'
 
@@ -20,40 +18,30 @@ export const Route = createFileRoute('/_app/moka/configuration')({
 })
 
 function MokaConfigurationPage() {
-	const locationId = useLocationId()
-	const { toast } = useToast()
+	// TODO: Get locationId from context or route params
+	const locationId = 1
 
-	const { data: config, isLoading } = useQuery({
-		queryKey: ['moka-config', locationId],
-		queryFn: () => mokaApi.configurationByLocation({ params: { locationId } }),
-		enabled: !!locationId,
-	})
+	const { data: config, isLoading } = useQuery(
+		mokaApi.configurationByLocation.query({ locationId }),
+	)
 
 	const createMutation = useMutation({
-		mutationFn: mokaApi.createConfiguration,
+		mutationFn: mokaApi.createConfiguration.mutationFn,
 		onSuccess: () => {
-			toast({ title: 'Konfigurasi berhasil disimpan' })
+			toast.success('Konfigurasi berhasil disimpan')
 		},
 		onError: (err) => {
-			toast({
-				title: 'Gagal menyimpan konfigurasi',
-				description: err instanceof Error ? err.message : 'Unknown error',
-				variant: 'destructive',
-			})
+			toast.error('Gagal menyimpan konfigurasi')
 		},
 	})
 
 	const updateMutation = useMutation({
-		mutationFn: mokaApi.updateConfiguration,
+		mutationFn: mokaApi.updateConfiguration.mutationFn,
 		onSuccess: () => {
-			toast({ title: 'Konfigurasi berhasil diperbarui' })
+			toast.success('Konfigurasi berhasil diperbarui')
 		},
 		onError: (err) => {
-			toast({
-				title: 'Gagal memperbarui konfigurasi',
-				description: err instanceof Error ? err.message : 'Unknown error',
-				variant: 'destructive',
-			})
+			toast.error('Gagal memperbarui konfigurasi')
 		},
 	})
 
@@ -65,14 +53,17 @@ function MokaConfigurationPage() {
 			locationId,
 			email: formData.get('email') as string,
 			password: formData.get('password') as string,
+			businessId: config?.data?.businessId ?? null,
+			outletId: config?.data?.outletId ?? null,
+			salesCronExpression: config?.data?.salesCronExpression ?? null,
 			isActive: formData.get('isActive') === 'on',
 			salesCronEnabled: formData.get('salesCronEnabled') === 'on',
 		}
 
-		if (config?.data) {
+		if (config?.data?.id) {
 			updateMutation.mutate({
 				params: { id: config.data.id },
-				body: data,
+				body: { id: config.data.id, ...data },
 			})
 		} else {
 			createMutation.mutate({ body: data })
@@ -96,7 +87,6 @@ function MokaConfigurationPage() {
 			<Page.BlockHeader
 				title="Konfigurasi Moka"
 				description="Setup integrasi Moka POS untuk sinkronisasi data otomatis"
-				icon={KeyRoundIcon}
 			/>
 
 			<Page.Content className="mt-2">
@@ -122,11 +112,10 @@ function MokaConfigurationPage() {
 								name="password"
 								type="password"
 								placeholder="••••••••"
-								defaultValue={config?.data?.password ? '••••••••' : ''}
-								required={!config?.data?.password}
+								required={!config?.data}
 							/>
 							<p className="text-xs text-muted-foreground">
-								{config?.data?.password
+								{config?.data
 									? 'Biarkan kosong untuk tidak mengubah password'
 									: 'Password akun Moka POS Anda'}
 							</p>
