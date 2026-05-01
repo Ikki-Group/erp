@@ -13,7 +13,7 @@ import {
 import type { SalesTypeService } from './sales-type.service'
 
 export function initSalesTypeRoute(s: SalesTypeService) {
-	return new Elysia({ prefix: '/sales-type' })
+	return new Elysia()
 		.use(authPluginMacro)
 		.get(
 			'/list',
