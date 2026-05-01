@@ -92,7 +92,7 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 				<Page size="sm">
 					<Page.BlockHeader title={isCreate ? 'Tambah Lokasi' : 'Edit Lokasi'} back={backTo} />
 					<form.Form>
-						<Page.Content className="space-y-6">
+						<Page.Content>
 							<CardSection
 								title="Informasi Lokasi"
 								description="Detail identitas dan alamat lokasi."

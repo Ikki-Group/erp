@@ -77,6 +77,7 @@ import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/setting
 import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
+import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
 import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
 import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
 import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
@@ -427,6 +428,11 @@ const AppSettingsTabRoleRoute = AppSettingsTabRoleRouteImport.update({
   path: '/role',
   getParentRoute: () => AppSettingsTabRoute,
 } as any)
+const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => AppSettingsTabRoute,
+} as any)
 const AppMaterialIdUpdateRoute = AppMaterialIdUpdateRouteImport.update({
   id: '/material/$id/update',
   path: '/material/$id/update',
@@ -547,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -623,6 +630,7 @@ export interface FileRoutesByTo {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -703,6 +711,7 @@ export interface FileRoutesById {
   '/_app/location/$id/edit': typeof AppLocationIdEditRoute
   '/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
   '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -781,6 +790,7 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/settings/location'
     | '/settings/role'
     | '/settings/user'
     | '/settings/user/$id'
@@ -857,6 +867,7 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/settings/location'
     | '/settings/role'
     | '/settings/user'
     | '/settings/user/$id'
@@ -936,6 +947,7 @@ export interface FileRouteTypes {
     | '/_app/location/$id/edit'
     | '/_app/material/$id/recipe'
     | '/_app/material/$id/update'
+    | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
     | '/_app/settings/user/$id'
@@ -1443,6 +1455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabRoleRouteImport
       parentRoute: typeof AppSettingsTabRoute
     }
+    '/_app/settings/_tab/location': {
+      id: '/_app/settings/_tab/location'
+      path: '/location'
+      fullPath: '/settings/location'
+      preLoaderRoute: typeof AppSettingsTabLocationRouteImport
+      parentRoute: typeof AppSettingsTabRoute
+    }
     '/_app/material/$id/update': {
       id: '/_app/material/$id/update'
       path: '/material/$id/update'
@@ -1510,11 +1529,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppSettingsTabRouteChildren {
+  AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
   AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
   AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
 }
 
 const AppSettingsTabRouteChildren: AppSettingsTabRouteChildren = {
+  AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
   AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
   AppSettingsTabUserRoute: AppSettingsTabUserRoute,
 }
