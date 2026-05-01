@@ -10,30 +10,29 @@ import { toCodeCase } from '@/lib/formatter'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { useAppForm } from '@/components/form'
+import { FormDialog } from '@/components/layout/form-dialog'
 
 import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 import { salesTypeApi } from '../api'
 import type { SalesTypeDto } from '../dto'
 
-const FormDto = z.object({ code: z.string().min(1), name: z.string().min(1) })
+const FormDto = z.object({
+	code: z.string().min(1),
+	name: z.string().min(1),
+	isSystem: z.boolean(),
+})
 
 type FormDto = z.infer<typeof FormDto>
 
 const fopts = formOptions({
-	validators: { onSubmit: FormDto as any },
+	validators: { onSubmit: FormDto },
 	defaultValues: {} as FormDto,
 })
 
 function getDefaultValues(v?: SalesTypeDto): FormDto {
-	return { code: v?.code ?? '', name: v?.name ?? '' }
+	return { code: v?.code ?? '', name: v?.name ?? '', isSystem: v?.isSystem ?? false }
 }
 
 interface SalesTypeFormDialogProps {
@@ -58,8 +57,8 @@ export const SalesTypeFormDialog = createCallable<SalesTypeFormDialogProps>((pro
 		defaultValues: getDefaultValues(selected.data?.data),
 		onSubmit: async ({ value }) => {
 			const promise = isCreate
-				? create.mutateAsync({ body: value as any })
-				: update.mutateAsync({ body: { id, ...value } as any })
+				? create.mutateAsync({ body: value })
+				: update.mutateAsync({ body: { id, ...value } })
 
 			await toast
 				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'tipe penjualan'))
@@ -73,53 +72,62 @@ export const SalesTypeFormDialog = createCallable<SalesTypeFormDialogProps>((pro
 
 	return (
 		<form.AppForm>
-			<Dialog open={!call.ended} onOpenChange={() => call.end()}>
-				<DialogContent>
-					<DialogHeader className="border-b pb-4">
-						<DialogTitle>Tipe Penjualan</DialogTitle>
-					</DialogHeader>
-					<form.AppField name="code">
-						{(field) => (
-							<field.Base label="Kode Tipe" required>
-								<div className="flex items-center gap-2">
-									<field.Input
+			<FormDialog
+				open={!call.ended}
+				onOpenChange={(open) => !open && call.end()}
+				title={isCreate ? 'Tambah Tipe Penjualan' : 'Edit Tipe Penjualan'}
+				onSubmit={() => form.handleSubmit()}
+				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
+			>
+				<form.AppField name="code">
+					{(field) => (
+						<field.Base label="Kode Tipe" required>
+							<div className="flex items-center gap-2">
+								<field.Control>
+									<Input
 										placeholder="Masukkan kode tipe penjualan"
 										disabled={disabled}
-										required
+										value={field.state.value}
+										onChange={(e) => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+										className="uppercase"
 									/>
-									<Button
-										type="button"
-										variant="outline"
-										size="icon-sm"
-										className="size-8 shrink-0"
-										disabled={disabled}
-										onClick={() => {
-											const name = form.getFieldValue('name')
-											field.handleChange(toCodeCase(name))
-										}}
-									>
-										<Wand2Icon className="size-4" />
-									</Button>
-								</div>
-							</field.Base>
-						)}
-					</form.AppField>
-					<form.AppField name="name">
-						{(field) => (
-							<field.Base label="Nama Tipe" required>
-								<field.Input
-									placeholder="Masukkan nama tipe penjualan"
-									disabled={disabled}
-									required
-								/>
-							</field.Base>
-						)}
-					</form.AppField>
-					<DialogFooter>
-						<form.DialogActions onCancel={call.end} />
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+								</field.Control>
+								<form.Subscribe selector={(s) => s.values.name}>
+									{(name) => {
+										const canGenerate = (name?.length ?? 0) > 3
+										return (
+											<Button
+												type="button"
+												variant="outline"
+												size="icon-sm"
+												className="shrink-0"
+												onClick={() => {
+													field.handleChange(toCodeCase(name || ''))
+												}}
+												disabled={!canGenerate || disabled}
+												title="Generate kode dari nama"
+											>
+												<Wand2Icon />
+											</Button>
+										)
+									}}
+								</form.Subscribe>
+							</div>
+						</field.Base>
+					)}
+				</form.AppField>
+				<form.AppField name="name">
+					{(field) => (
+						<field.Input
+							label="Nama Tipe"
+							required
+							placeholder="Masukkan nama tipe penjualan"
+							disabled={disabled}
+						/>
+					)}
+				</form.AppField>
+			</FormDialog>
 		</form.AppForm>
 	)
 }, 200)
