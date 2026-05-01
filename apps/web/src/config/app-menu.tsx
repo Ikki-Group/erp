@@ -218,23 +218,18 @@ export function getAppMenu(
 					children: [
 						{
 							title: 'Ringkasan Stok',
-							href: '/inventory',
-							isActive: pathname === '/inventory',
+							href: '/inventory/summary',
+							isActive: pathname === '/inventory/summary',
 						},
 						{
-							title: 'Pergerakan Stok',
-							href: '/inventory/movements',
-							isActive: pathname === '/inventory/movements',
+							title: 'Alokasi Stok',
+							href: '/inventory/allocation',
+							isActive: pathname === '/inventory/allocation',
 						},
 						{
-							title: 'Stock Opname',
-							href: '/inventory/opname',
-							isActive: pathname === '/inventory/opname',
-						},
-						{
-							title: 'Penyesuaian Stok',
-							href: '/inventory/adjustments',
-							isActive: pathname === '/inventory/adjustments',
+							title: 'Transaksi',
+							href: '/inventory/transactions',
+							isActive: pathname.startsWith('/inventory/transactions'),
 						},
 					],
 				},
@@ -242,17 +237,22 @@ export function getAppMenu(
 					title: 'Produk',
 					href: '/product',
 					icon: UtensilsCrossedIcon,
-					isActive: pathname.startsWith('/products'),
+					isActive: pathname.startsWith('/product'),
 					children: [
 						{
 							title: 'Daftar Produk',
 							href: '/product',
-							isActive: pathname === '/products',
+							isActive: pathname === '/product',
 						},
 						{
 							title: 'Kategori Produk',
-							href: '/product/categories',
-							isActive: pathname === '/products/categories',
+							href: '/product/category',
+							isActive: pathname === '/product/category',
+						},
+						{
+							title: 'Tipe Penjualan',
+							href: '/product/sales-type',
+							isActive: pathname === '/product/sales-type',
 						},
 					],
 				},
@@ -260,17 +260,22 @@ export function getAppMenu(
 					title: 'Bahan Baku',
 					href: '/material',
 					icon: BeakerIcon,
-					isActive: pathname.startsWith('/materials'),
+					isActive: pathname.startsWith('/material'),
 					children: [
 						{
 							title: 'Daftar Bahan',
 							href: '/material',
-							isActive: pathname === '/materials',
+							isActive: pathname === '/material',
 						},
 						{
-							title: 'Assignment Lokasi',
-							href: '/material/assignments',
-							isActive: pathname === '/materials/assignments',
+							title: 'Kategori Bahan',
+							href: '/material/category',
+							isActive: pathname === '/material/category',
+						},
+						{
+							title: 'Satuan (UOM)',
+							href: '/material/uom',
+							isActive: pathname === '/material/uom',
 						},
 					],
 				},
@@ -286,14 +291,14 @@ export function getAppMenu(
 					isActive: pathname.startsWith('/procurement'),
 					children: [
 						{
-							title: 'Pembelian',
-							href: '/procurement/purchases',
-							isActive: pathname === '/procurement/purchases',
+							title: 'Pesanan Pembelian',
+							href: '/procurement/orders',
+							isActive: pathname === '/procurement/orders',
 						},
 						{
-							title: 'Transfer Antar Lokasi',
-							href: '/procurement/transfers',
-							isActive: pathname === '/procurement/transfers',
+							title: 'Penerimaan Barang',
+							href: '/procurement/receipts',
+							isActive: pathname === '/procurement/receipts',
 						},
 						{
 							title: 'Supplier',
@@ -310,13 +315,13 @@ export function getAppMenu(
 					children: [
 						{
 							title: 'Resep (BOM)',
-							href: '/production/bom',
-							isActive: pathname === '/production/bom',
+							href: '/production/recipes',
+							isActive: pathname === '/production/recipes',
 						},
 						{
-							title: 'Proses Produksi',
-							href: '/production/orders',
-							isActive: pathname === '/production/orders',
+							title: 'Work Order',
+							href: '/production/work-orders',
+							isActive: pathname === '/production/work-orders',
 						},
 					],
 				},
@@ -332,14 +337,14 @@ export function getAppMenu(
 					isActive: pathname.startsWith('/sales'),
 					children: [
 						{
-							title: 'Transaksi',
+							title: 'Pesanan',
 							href: '/sales/orders',
 							isActive: pathname === '/sales/orders',
 						},
 						{
-							title: 'POS',
-							href: '/sales/pos',
-							isActive: pathname === '/sales/pos',
+							title: 'Invoice',
+							href: '/sales/invoices',
+							isActive: pathname === '/sales/invoices',
 						},
 						{
 							title: 'Pelanggan',
@@ -355,19 +360,34 @@ export function getAppMenu(
 					isActive: pathname.startsWith('/finance'),
 					children: [
 						{
+							title: 'Akun',
+							href: '/finance/accounts',
+							isActive: pathname === '/finance/accounts',
+						},
+						{
+							title: 'Arus Kas',
+							href: '/finance/cash-flow',
+							isActive: pathname === '/finance/cash-flow',
+						},
+						{
 							title: 'Pengeluaran',
 							href: '/finance/expenses',
 							isActive: pathname === '/finance/expenses',
 						},
 						{
-							title: 'Tagihan',
-							href: '/finance/bills',
-							isActive: pathname === '/finance/bills',
+							title: 'Buku Besar',
+							href: '/finance/ledger',
+							isActive: pathname === '/finance/ledger',
 						},
 						{
-							title: 'Pembayaran',
-							href: '/finance/payments',
-							isActive: pathname === '/finance/payments',
+							title: 'Piutang & Hutang',
+							href: '/finance/ledger-ar-ap',
+							isActive: pathname === '/finance/ledger-ar-ap',
+						},
+						{
+							title: 'Laba Rugi',
+							href: '/finance/profit-loss',
+							isActive: pathname === '/finance/profit-loss',
 						},
 					],
 				},
@@ -383,9 +403,9 @@ export function getAppMenu(
 					isActive: pathname.startsWith('/hr'),
 					children: [
 						{
-							title: 'Shift Kerja',
-							href: '/hr/shifts',
-							isActive: pathname === '/hr/shifts',
+							title: 'Daftar Karyawan',
+							href: '/hr/employees',
+							isActive: pathname === '/hr/employees',
 						},
 						{
 							title: 'Absensi',
