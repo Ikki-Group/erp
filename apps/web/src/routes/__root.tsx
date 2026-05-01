@@ -1,6 +1,4 @@
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 // import { ErrorBoundary } from '@sentry/react'
 import { ThemeProvider } from 'next-themes'
@@ -46,8 +44,8 @@ function RootComponent() {
 			<TooltipProvider>
 				<Outlet />
 				<ConfirmDialog.Root />
-				<ReactQueryDevtools buttonPosition="bottom-left" />
-				<TanStackRouterDevtools position="bottom-right" />
+				{/* <ReactQueryDevtools buttonPosition="bottom-left" />
+				<TanStackRouterDevtools position="bottom-right" /> */}
 				<Toaster position="top-right" />
 			</TooltipProvider>
 			{/* </ErrorBoundary> */}

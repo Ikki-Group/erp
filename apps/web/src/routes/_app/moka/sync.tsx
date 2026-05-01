@@ -3,9 +3,6 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { DownloadIcon, PackageIcon, ShoppingCartIcon, TagIcon } from 'lucide-react'
 
-import { useLocationId } from '@/hooks/use-location-id'
-import { useToast } from '@/hooks/use-toast'
-
 import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
