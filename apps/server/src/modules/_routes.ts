@@ -14,6 +14,7 @@ import { initProductionRouteModule } from './production'
 import { initPurchasingRouteModule } from './purchasing'
 import { initRecipeRouteModule } from './recipe'
 import { initSalesRouteModule } from './sales'
+import { initSalesTypeRouteModule } from './sales-type'
 import { initSupplierRouteModule } from './supplier'
 import { initToolRouteModule } from './tool'
 import type Elysia from 'elysia'
@@ -31,6 +32,7 @@ export function initRoutes(m: Modules) {
 		initToolRouteModule(m.tool),
 		initMokaRouteModule(m.moka),
 		initSalesRouteModule(m.sales),
+		initSalesTypeRouteModule(m.salesType),
 		initEmployeeRouteModule(m.employee),
 		initSupplierRouteModule(m.supplier),
 		initFinanceRouteModule(m.finance),

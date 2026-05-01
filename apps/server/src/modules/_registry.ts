@@ -17,12 +17,14 @@ import { ProductionServiceModule } from './production'
 import { PurchasingServiceModule } from './purchasing'
 import { RecipeServiceModule } from './recipe'
 import { SalesServiceModule } from './sales'
+import { SalesTypeServiceModule } from './sales-type'
 import { SupplierServiceModule } from './supplier'
 import { ToolServiceModule } from './tool'
 
 export interface Modules {
 	location: LocationServiceModule
 	product: ProductServiceModule
+	salesType: SalesTypeServiceModule
 
 	iam: IamServiceModule
 	material: MaterialServiceModule
@@ -51,6 +53,7 @@ export function initModules(db: DbClient): Modules {
 	// Layer 0 — Core
 	const location = new LocationServiceModule(db, cacheClient)
 	const product = new ProductServiceModule(db, cacheClient)
+	const salesType = new SalesTypeServiceModule(db, cacheClient)
 
 	// Layer 1 — Masters
 	const iam = new IamServiceModule(db, cacheClient, { location })
@@ -79,6 +82,7 @@ export function initModules(db: DbClient): Modules {
 	return {
 		location,
 		product,
+		salesType,
 		iam,
 		material,
 		auth,
