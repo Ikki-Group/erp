@@ -10,6 +10,9 @@ import {
 	MinusIcon,
 	Trash2Icon,
 	SaveIcon,
+	CreditCardIcon,
+	BanknoteIcon,
+	SmartphoneIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -37,11 +40,17 @@ interface CartItem {
 	subtotal: number
 }
 
+type PaymentMethod = 'cash' | 'card' | 'transfer'
+
 function POSPage() {
 	const [cart, setCart] = React.useState<CartItem[]>([])
 	const [selectedCustomer, setSelectedCustomer] = React.useState<number | null>(null)
 	const [selectedSalesType, setSelectedSalesType] = React.useState<number | null>(null)
 	const [searchQuery, setSearchQuery] = React.useState('')
+	const [showPayment, setShowPayment] = React.useState(false)
+	const [selectedPaymentMethod, setSelectedPaymentMethod] = React.useState<PaymentMethod>('cash')
+	const [paymentAmount, setPaymentAmount] = React.useState('')
+	const [createdOrderId, setCreatedOrderId] = React.useState<number | null>(null)
 
 	// Fetch products
 	const { data: products, isLoading: productsLoading } = useQuery(
@@ -56,14 +65,32 @@ function POSPage() {
 	// Create order mutation
 	const createOrderMutation = useMutation({
 		mutationFn: salesOrderApi.create.mutationFn,
-		onSuccess: () => {
+		onSuccess: (data) => {
+			const orderId = data.data.id
+			setCreatedOrderId(orderId)
+			setShowPayment(true)
 			toast.success('Pesanan berhasil dibuat')
-			setCart([])
-			setSelectedCustomer(null)
-			setSelectedSalesType(null)
 		},
 		onError: (error) => {
 			toast.error('Gagal membuat pesanan')
+			console.error(error)
+		},
+	})
+
+	// Close order mutation
+	const closeOrderMutation = useMutation({
+		mutationFn: salesOrderApi.close.mutationFn,
+		onSuccess: () => {
+			toast.success('Pembayaran berhasil')
+			setCart([])
+			setSelectedCustomer(null)
+			setSelectedSalesType(null)
+			setShowPayment(false)
+			setCreatedOrderId(null)
+			setPaymentAmount('')
+		},
+		onError: (error) => {
+			toast.error('Gagal memproses pembayaran')
 			console.error(error)
 		},
 	})
@@ -143,6 +170,26 @@ function POSPage() {
 				})),
 			},
 		})
+	}
+
+	const handlePayment = () => {
+		if (!createdOrderId) return
+
+		const amount = Number(paymentAmount)
+		if (isNaN(amount) || amount < cartTotal) {
+			toast.error('Jumlah pembayaran tidak cukup')
+			return
+		}
+
+		closeOrderMutation.mutate({
+			params: { id: createdOrderId },
+		})
+	}
+
+	const handleCancelPayment = () => {
+		setShowPayment(false)
+		setCreatedOrderId(null)
+		setPaymentAmount('')
 	}
 
 	const filteredProducts =
@@ -322,12 +369,102 @@ function POSPage() {
 									}
 								>
 									<SaveIcon className="mr-2 h-5 w-5" />
-									Buat Pesanan
+									Proses ke Pembayaran
 								</Button>
 							</CardContent>
 						</Card>
 					</div>
 				</div>
+
+				{/* Payment Dialog */}
+				{showPayment && (
+					<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+						<Card className="w-full max-w-md">
+							<CardHeader>
+								<CardTitle>Pembayaran</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-2">
+									<label className="text-sm font-medium">Total Tagihan</label>
+									<div className="text-2xl font-bold">Rp {cartTotal.toLocaleString('id-ID')}</div>
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium">Metode Pembayaran</label>
+									<div className="grid grid-cols-3 gap-2">
+										<Button
+											variant={selectedPaymentMethod === 'cash' ? 'default' : 'outline'}
+											onClick={() => setSelectedPaymentMethod('cash')}
+											className="flex flex-col gap-1 h-auto py-3"
+										>
+											<BanknoteIcon className="h-5 w-5" />
+											<span className="text-xs">Tunai</span>
+										</Button>
+										<Button
+											variant={selectedPaymentMethod === 'card' ? 'default' : 'outline'}
+											onClick={() => setSelectedPaymentMethod('card')}
+											className="flex flex-col gap-1 h-auto py-3"
+										>
+											<CreditCardIcon className="h-5 w-5" />
+											<span className="text-xs">Kartu</span>
+										</Button>
+										<Button
+											variant={selectedPaymentMethod === 'transfer' ? 'default' : 'outline'}
+											onClick={() => setSelectedPaymentMethod('transfer')}
+											className="flex flex-col gap-1 h-auto py-3"
+										>
+											<SmartphoneIcon className="h-5 w-5" />
+											<span className="text-xs">Transfer</span>
+										</Button>
+									</div>
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium">Jumlah Bayar</label>
+									<Input
+										type="number"
+										placeholder="Masukkan jumlah bayar"
+										value={paymentAmount}
+										onChange={(e) => setPaymentAmount(e.target.value)}
+									/>
+									{paymentAmount && Number(paymentAmount) < cartTotal && (
+										<p className="text-xs text-destructive">
+											Jumlah bayar kurang Rp{' '}
+											{(cartTotal - Number(paymentAmount)).toLocaleString('id-ID')}
+										</p>
+									)}
+									{paymentAmount && Number(paymentAmount) >= cartTotal && (
+										<p className="text-xs text-green-600">
+											Kembalian: Rp {(Number(paymentAmount) - cartTotal).toLocaleString('id-ID')}
+										</p>
+									)}
+								</div>
+
+								<div className="flex gap-2">
+									<Button
+										variant="outline"
+										className="flex-1"
+										onClick={handleCancelPayment}
+										disabled={closeOrderMutation.isPending}
+									>
+										Batal
+									</Button>
+									<Button
+										className="flex-1"
+										onClick={handlePayment}
+										disabled={
+											!paymentAmount ||
+											Number(paymentAmount) < cartTotal ||
+											closeOrderMutation.isPending
+										}
+									>
+										{closeOrderMutation.isPending ? 'Memproses...' : 'Bayar'}
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				)}
 			</Page.Content>
 		</Page>
 	)
