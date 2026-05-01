@@ -249,12 +249,13 @@ export function getAppMenu(
 							href: '/product/category',
 							isActive: pathname === '/product/category',
 						},
-						{
-							title: 'Tipe Penjualan',
-							href: '/product/sales-type',
-							isActive: pathname === '/product/sales-type',
-						},
 					],
+				},
+				{
+					title: 'Tipe Penjualan',
+					href: '/sales-type',
+					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/sales-type'),
 				},
 				{
 					title: 'Bahan Baku',

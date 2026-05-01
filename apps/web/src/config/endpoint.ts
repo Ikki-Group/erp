@@ -49,8 +49,9 @@ const material = {
 const product = {
 	...crud('product'),
 	category: crud('product/category'),
-	salesType: crud('product/sales-type'),
 }
+
+const salesType = crud('sales-type')
 
 const recipe = crud('recipe')
 
@@ -156,5 +157,6 @@ export const endpoint = {
 	production,
 	purchasing,
 	sales,
+	salesType,
 	supplier,
 } as const

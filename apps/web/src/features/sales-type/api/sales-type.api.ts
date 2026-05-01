@@ -10,44 +10,49 @@ import {
 	createPaginatedResponseSchema,
 } from '@/lib/validation'
 
-import { SalesTypeDto, SalesTypeFilterDto, SalesTypeMutationDto, SalesTypeUpdateDto } from '../dto'
+import {
+	SalesTypeDto,
+	SalesTypeFilterDto,
+	SalesTypeMutationDto,
+	SalesTypeUpdateDto,
+} from '../dto/sales-type.dto'
 
 export const salesTypeApi = {
 	list: apiFactory({
 		method: 'get',
-		url: endpoint.product.salesType.list,
+		url: endpoint.salesType.list,
 		params: z.object({ ...zq.pagination.shape, ...SalesTypeFilterDto.shape }),
 		result: createPaginatedResponseSchema(SalesTypeDto),
 	}),
 
 	detail: apiFactory({
 		method: 'get',
-		url: endpoint.product.salesType.detail,
+		url: endpoint.salesType.detail,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(SalesTypeDto),
 	}),
 
 	create: apiFactory({
 		method: 'post',
-		url: endpoint.product.salesType.create,
+		url: endpoint.salesType.create,
 		body: SalesTypeMutationDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.salesType.list],
+		invalidates: [endpoint.salesType.list],
 	}),
 
 	update: apiFactory({
 		method: 'put',
-		url: endpoint.product.salesType.update,
+		url: endpoint.salesType.update,
 		body: SalesTypeUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.salesType.list, endpoint.product.salesType.detail],
+		invalidates: [endpoint.salesType.list, endpoint.salesType.detail],
 	}),
 
 	remove: apiFactory({
 		method: 'delete',
-		url: endpoint.product.salesType.remove,
+		url: endpoint.salesType.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.salesType.list],
+		invalidates: [endpoint.salesType.list],
 	}),
 }

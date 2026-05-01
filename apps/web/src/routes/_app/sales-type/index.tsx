@@ -19,11 +19,11 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 
-import type { SalesTypeDto } from '@/features/product'
-import { salesTypeApi } from '@/features/product'
-import { SalesTypeFormDialog } from '@/features/product/components/sales-type-form-dialog'
+import type { SalesTypeDto } from '@/features/sales-type'
+import { salesTypeApi } from '@/features/sales-type'
+import { SalesTypeFormDialog } from '@/features/sales-type'
 
-export const Route = createFileRoute('/_app/product/sales-type')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/sales-type/')({ component: RouteComponent })
 
 function RouteComponent() {
 	return (

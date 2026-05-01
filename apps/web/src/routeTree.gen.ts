@@ -28,6 +28,7 @@ import { Route as ExamplesDashboardIndexRouteImport } from './routes/examples/da
 import { Route as ExamplesComplexFormIndexRouteImport } from './routes/examples/complex-form/index'
 import { Route as ExamplesChartsIndexRouteImport } from './routes/examples/charts/index'
 import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
+import { Route as AppSalesTypeIndexRouteImport } from './routes/_app/sales-type/index'
 import { Route as AppProductIndexRouteImport } from './routes/_app/product/index'
 import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/index'
 import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
@@ -42,7 +43,6 @@ import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoic
 import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
 import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
 import { Route as AppProductionRecipesRouteImport } from './routes/_app/production/recipes'
-import { Route as AppProductSalesTypeRouteImport } from './routes/_app/product/sales-type'
 import { Route as AppProductCreateRouteImport } from './routes/_app/product/create'
 import { Route as AppProductCategoryRouteImport } from './routes/_app/product/category'
 import { Route as AppProductIdRouteImport } from './routes/_app/product/$id'
@@ -182,6 +182,11 @@ const DocsDocsIndexRoute = DocsDocsIndexRouteImport.update({
   path: '/docs/',
   getParentRoute: () => DocsRoute,
 } as any)
+const AppSalesTypeIndexRoute = AppSalesTypeIndexRouteImport.update({
+  id: '/sales-type/',
+  path: '/sales-type/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductIndexRoute = AppProductIndexRouteImport.update({
   id: '/product/',
   path: '/product/',
@@ -250,11 +255,6 @@ const AppProductionWorkOrdersRoute = AppProductionWorkOrdersRouteImport.update({
 const AppProductionRecipesRoute = AppProductionRecipesRouteImport.update({
   id: '/production/recipes',
   path: '/production/recipes',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppProductSalesTypeRoute = AppProductSalesTypeRouteImport.update({
-  id: '/product/sales-type',
-  path: '/product/sales-type',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductCreateRoute = AppProductCreateRouteImport.update({
@@ -517,7 +517,6 @@ export interface FileRoutesByFullPath {
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
   '/product/create': typeof AppProductCreateRoute
-  '/product/sales-type': typeof AppProductSalesTypeRoute
   '/production/recipes': typeof AppProductionRecipesRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
@@ -532,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/location/': typeof AppLocationIndexRoute
   '/material/': typeof AppMaterialIndexRoute
   '/product/': typeof AppProductIndexRoute
+  '/sales-type/': typeof AppSalesTypeIndexRoute
   '/docs/': typeof DocsDocsIndexRoute
   '/examples/charts/': typeof ExamplesChartsIndexRoute
   '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
@@ -594,7 +594,6 @@ export interface FileRoutesByTo {
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
   '/product/create': typeof AppProductCreateRoute
-  '/product/sales-type': typeof AppProductSalesTypeRoute
   '/production/recipes': typeof AppProductionRecipesRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
@@ -609,6 +608,7 @@ export interface FileRoutesByTo {
   '/location': typeof AppLocationIndexRoute
   '/material': typeof AppMaterialIndexRoute
   '/product': typeof AppProductIndexRoute
+  '/sales-type': typeof AppSalesTypeIndexRoute
   '/docs': typeof DocsDocsIndexRoute
   '/examples/charts': typeof ExamplesChartsIndexRoute
   '/examples/complex-form': typeof ExamplesComplexFormIndexRoute
@@ -675,7 +675,6 @@ export interface FileRoutesById {
   '/_app/product/$id': typeof AppProductIdRoute
   '/_app/product/category': typeof AppProductCategoryRoute
   '/_app/product/create': typeof AppProductCreateRoute
-  '/_app/product/sales-type': typeof AppProductSalesTypeRoute
   '/_app/production/recipes': typeof AppProductionRecipesRoute
   '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/_app/sales/customers': typeof AppSalesCustomersRoute
@@ -690,6 +689,7 @@ export interface FileRoutesById {
   '/_app/location/': typeof AppLocationIndexRoute
   '/_app/material/': typeof AppMaterialIndexRoute
   '/_app/product/': typeof AppProductIndexRoute
+  '/_app/sales-type/': typeof AppSalesTypeIndexRoute
   '/_docs/docs/': typeof DocsDocsIndexRoute
   '/examples/charts/': typeof ExamplesChartsIndexRoute
   '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
@@ -754,7 +754,6 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/product/category'
     | '/product/create'
-    | '/product/sales-type'
     | '/production/recipes'
     | '/production/work-orders'
     | '/sales/customers'
@@ -769,6 +768,7 @@ export interface FileRouteTypes {
     | '/location/'
     | '/material/'
     | '/product/'
+    | '/sales-type/'
     | '/docs/'
     | '/examples/charts/'
     | '/examples/complex-form/'
@@ -831,7 +831,6 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/product/category'
     | '/product/create'
-    | '/product/sales-type'
     | '/production/recipes'
     | '/production/work-orders'
     | '/sales/customers'
@@ -846,6 +845,7 @@ export interface FileRouteTypes {
     | '/location'
     | '/material'
     | '/product'
+    | '/sales-type'
     | '/docs'
     | '/examples/charts'
     | '/examples/complex-form'
@@ -911,7 +911,6 @@ export interface FileRouteTypes {
     | '/_app/product/$id'
     | '/_app/product/category'
     | '/_app/product/create'
-    | '/_app/product/sales-type'
     | '/_app/production/recipes'
     | '/_app/production/work-orders'
     | '/_app/sales/customers'
@@ -926,6 +925,7 @@ export interface FileRouteTypes {
     | '/_app/location/'
     | '/_app/material/'
     | '/_app/product/'
+    | '/_app/sales-type/'
     | '/_docs/docs/'
     | '/examples/charts/'
     | '/examples/complex-form/'
@@ -1112,6 +1112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsDocsIndexRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/_app/sales-type/': {
+      id: '/_app/sales-type/'
+      path: '/sales-type'
+      fullPath: '/sales-type/'
+      preLoaderRoute: typeof AppSalesTypeIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/product/': {
       id: '/_app/product/'
       path: '/product'
@@ -1208,13 +1215,6 @@ declare module '@tanstack/react-router' {
       path: '/production/recipes'
       fullPath: '/production/recipes'
       preLoaderRoute: typeof AppProductionRecipesRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/product/sales-type': {
-      id: '/_app/product/sales-type'
-      path: '/product/sales-type'
-      fullPath: '/product/sales-type'
-      preLoaderRoute: typeof AppProductSalesTypeRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/product/create': {
@@ -1574,7 +1574,6 @@ interface AppRouteRouteChildren {
   AppProductIdRoute: typeof AppProductIdRoute
   AppProductCategoryRoute: typeof AppProductCategoryRoute
   AppProductCreateRoute: typeof AppProductCreateRoute
-  AppProductSalesTypeRoute: typeof AppProductSalesTypeRoute
   AppProductionRecipesRoute: typeof AppProductionRecipesRoute
   AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
   AppSalesCustomersRoute: typeof AppSalesCustomersRoute
@@ -1586,6 +1585,7 @@ interface AppRouteRouteChildren {
   AppLocationIndexRoute: typeof AppLocationIndexRoute
   AppMaterialIndexRoute: typeof AppMaterialIndexRoute
   AppProductIndexRoute: typeof AppProductIndexRoute
+  AppSalesTypeIndexRoute: typeof AppSalesTypeIndexRoute
   AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
   AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
   AppInventoryTransactionsOpnameRoute: typeof AppInventoryTransactionsOpnameRoute
@@ -1632,7 +1632,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductIdRoute: AppProductIdRoute,
   AppProductCategoryRoute: AppProductCategoryRoute,
   AppProductCreateRoute: AppProductCreateRoute,
-  AppProductSalesTypeRoute: AppProductSalesTypeRoute,
   AppProductionRecipesRoute: AppProductionRecipesRoute,
   AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
   AppSalesCustomersRoute: AppSalesCustomersRoute,
@@ -1644,6 +1643,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLocationIndexRoute: AppLocationIndexRoute,
   AppMaterialIndexRoute: AppMaterialIndexRoute,
   AppProductIndexRoute: AppProductIndexRoute,
+  AppSalesTypeIndexRoute: AppSalesTypeIndexRoute,
   AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
   AppInventoryTransactionsAdjustmentRoute:
     AppInventoryTransactionsAdjustmentRoute,
