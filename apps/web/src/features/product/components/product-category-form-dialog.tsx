@@ -8,14 +8,7 @@ import z from 'zod'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { useAppForm } from '@/components/form'
-
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/layout/form-dialog'
 
 import { productCategoryApi } from '../api'
 import type { ProductCategoryDto } from '../dto'
@@ -52,11 +45,8 @@ export const ProductCategoryFormDialog = createCallable<ProductCategoryFormDialo
 		defaultValues: getDefaultValues(selectedCategory.data?.data),
 		onSubmit: async ({ value }) => {
 			const promise = isCreate
-				? // TODO
-					// @ts-expect-error
-					create.mutateAsync({ body: { ...value } })
-				: // @ts-expect-error
-					update.mutateAsync({ body: { id, ...value } })
+				? create.mutateAsync({ body: { ...value, parentId: null } })
+				: update.mutateAsync({ body: { id, ...value, parentId: null } })
 
 			await toast
 				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'kategori produk'))
@@ -70,30 +60,33 @@ export const ProductCategoryFormDialog = createCallable<ProductCategoryFormDialo
 
 	return (
 		<form.AppForm>
-			<Dialog open={!call.ended} onOpenChange={() => call.end()}>
-				<DialogContent>
-					<DialogHeader className="border-b pb-4">
-						<DialogTitle>Kategori Produk</DialogTitle>
-					</DialogHeader>
-					<form.AppField name="name">
-						{(field) => (
-							<field.Base label="Kategori" required>
-								<field.Input placeholder="Masukkan nama kategori" disabled={disabled} required />
-							</field.Base>
-						)}
-					</form.AppField>
-					<form.AppField name="description">
-						{(field) => (
-							<field.Base label="Deskripsi">
-								<field.Textarea placeholder="Masukkan Deskripsi" disabled={disabled} />
-							</field.Base>
-						)}
-					</form.AppField>
-					<DialogFooter>
-						<form.DialogActions onCancel={call.end} />
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<FormDialog
+				open={!call.ended}
+				onOpenChange={(open) => !open && call.end()}
+				title={isCreate ? 'Tambah Kategori' : 'Edit Kategori'}
+				onSubmit={() => form.handleSubmit()}
+				footer={<form.DialogActions onCancel={call.end} disabled={disabled} />}
+			>
+				<form.AppField name="name">
+					{(field) => (
+						<field.Input
+							label="Kategori"
+							required
+							placeholder="Masukkan nama kategori"
+							disabled={disabled}
+						/>
+					)}
+				</form.AppField>
+				<form.AppField name="description">
+					{(field) => (
+						<field.Textarea
+							label="Deskripsi"
+							placeholder="Masukkan deskripsi"
+							disabled={disabled}
+						/>
+					)}
+				</form.AppField>
+			</FormDialog>
 		</form.AppForm>
 	)
 }, 200)
