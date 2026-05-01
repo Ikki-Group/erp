@@ -12,6 +12,7 @@ import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
 import { MaterialServiceModule } from './material'
 import { MokaServiceModule } from './moka'
+import { PaymentServiceModule } from './payment'
 import { ProductServiceModule } from './product'
 import { ProductionServiceModule } from './production'
 import { PurchasingServiceModule } from './purchasing'
@@ -45,6 +46,7 @@ export interface Modules {
 	hr: HRServiceModule
 	dashboard: DashboardServiceModule
 	tool: ToolServiceModule
+	payment: PaymentServiceModule
 }
 
 export function initModules(db: DbClient): Modules {
@@ -78,6 +80,7 @@ export function initModules(db: DbClient): Modules {
 	const hr = new HRServiceModule(db, cacheClient, finance)
 	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
 	const tool = new ToolServiceModule(db, iam, location, product, material)
+	const payment = new PaymentServiceModule(db, cacheClient)
 
 	return {
 		location,
@@ -98,6 +101,7 @@ export function initModules(db: DbClient): Modules {
 		purchasing,
 		production,
 		hr,
+		payment,
 	}
 }
 

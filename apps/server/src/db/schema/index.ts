@@ -71,6 +71,7 @@ export { customersTable } from './customer'
 export { employeesTable } from './employee'
 export { taxesTable } from './tax'
 export { paymentsTable, paymentInvoicesTable } from './finance_payment'
+export { paymentMethodConfigsTable } from './payment_method_config'
 export { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
 export {
 	attendancesTable,

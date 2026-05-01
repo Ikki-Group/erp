@@ -9,6 +9,7 @@ import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
 import { initMaterialRouteModule } from './material'
 import { initMokaRouteModule } from './moka'
+import { initPaymentRouteModule } from './payment'
 import { initProductRouteModule } from './product'
 import { initProductionRouteModule } from './production'
 import { initPurchasingRouteModule } from './purchasing'
@@ -39,6 +40,7 @@ export function initRoutes(m: Modules) {
 		initPurchasingRouteModule(m.purchasing),
 		initProductionRouteModule(m.production),
 		initHRRouteModule(m.hr),
+		initPaymentRouteModule(m.payment),
 	]
 
 	return {

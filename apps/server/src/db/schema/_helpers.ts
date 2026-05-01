@@ -130,3 +130,5 @@ export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', [
 export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', ['open', 'closed', 'void'])
 
 export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
+
+export const paymentMethodCategoryEnum = pgEnum('payment_method_category', ['cash', 'cashless'])
