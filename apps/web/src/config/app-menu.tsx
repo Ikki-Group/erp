@@ -338,6 +338,11 @@ export function getAppMenu(
 					isActive: pathname.startsWith('/sales'),
 					children: [
 						{
+							title: 'POS',
+							href: '/sales/pos',
+							isActive: pathname === '/sales/pos',
+						},
+						{
 							title: 'Pesanan',
 							href: '/sales/orders',
 							isActive: pathname === '/sales/orders',
