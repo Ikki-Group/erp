@@ -371,6 +371,11 @@ export function getAppMenu(
 							isActive: pathname === '/finance/accounts',
 						},
 						{
+							title: 'Pembayaran',
+							href: '/finance/payments',
+							isActive: pathname === '/finance/payments',
+						},
+						{
 							title: 'Arus Kas',
 							href: '/finance/cash-flow',
 							isActive: pathname === '/finance/cash-flow',

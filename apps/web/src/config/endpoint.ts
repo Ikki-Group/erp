@@ -139,6 +139,11 @@ const sales = {
 
 const supplier = crud('supplier')
 
+const payment = {
+	...crud('payment'),
+	invoices: 'payment/invoices',
+}
+
 export const endpoint = {
 	auth,
 	iam,
@@ -159,4 +164,5 @@ export const endpoint = {
 	sales,
 	salesType,
 	supplier,
+	payment,
 } as const
