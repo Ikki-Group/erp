@@ -9,7 +9,7 @@ export const ProductCategoryDto = z.object({
 	name: zp.str,
 	description: zp.strNullable,
 	parentId: zp.id.nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
@@ -29,6 +29,9 @@ export const ProductCategoryMutationDto = ProductCategoryDto.pick({
 })
 
 export type ProductCategoryMutationDto = z.infer<typeof ProductCategoryMutationDto>
-export const ProductCategoryUpdateDto = z.object({ ...zc.RecordId.shape, ...ProductCategoryMutationDto.shape })
+export const ProductCategoryUpdateDto = z.object({
+	...zc.RecordId.shape,
+	...ProductCategoryMutationDto.shape,
+})
 
 export type ProductCategoryUpdateDto = z.infer<typeof ProductCategoryUpdateDto>
