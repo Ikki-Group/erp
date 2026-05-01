@@ -208,7 +208,7 @@ export function getAppMenu(
 			],
 		},
 		{
-			label: 'Operasional',
+			label: 'Inventory & Produk',
 			items: [
 				{
 					title: 'Inventory',
@@ -238,7 +238,47 @@ export function getAppMenu(
 						},
 					],
 				},
-
+				{
+					title: 'Produk',
+					href: '/product',
+					icon: UtensilsCrossedIcon,
+					isActive: pathname.startsWith('/products'),
+					children: [
+						{
+							title: 'Daftar Produk',
+							href: '/product',
+							isActive: pathname === '/products',
+						},
+						{
+							title: 'Kategori Produk',
+							href: '/product/categories',
+							isActive: pathname === '/products/categories',
+						},
+					],
+				},
+				{
+					title: 'Bahan Baku',
+					href: '/material',
+					icon: BeakerIcon,
+					isActive: pathname.startsWith('/materials'),
+					children: [
+						{
+							title: 'Daftar Bahan',
+							href: '/material',
+							isActive: pathname === '/materials',
+						},
+						{
+							title: 'Assignment Lokasi',
+							href: '/material/assignments',
+							isActive: pathname === '/materials/assignments',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Supply Chain',
+			items: [
 				{
 					title: 'Pengadaan',
 					href: '/procurement',
@@ -262,7 +302,6 @@ export function getAppMenu(
 						},
 					],
 				},
-
 				{
 					title: 'Produksi',
 					href: '/production',
@@ -281,7 +320,11 @@ export function getAppMenu(
 						},
 					],
 				},
-
+			],
+		},
+		{
+			label: 'Sales & Finance',
+			items: [
 				{
 					title: 'Penjualan',
 					href: '/sales',
@@ -302,44 +345,6 @@ export function getAppMenu(
 							title: 'Pelanggan',
 							href: '/sales/customers',
 							isActive: pathname === '/sales/customers',
-						},
-					],
-				},
-
-				{
-					title: 'Produk',
-					href: '/products',
-					icon: UtensilsCrossedIcon,
-					isActive: pathname.startsWith('/products'),
-					children: [
-						{
-							title: 'Daftar Produk',
-							href: '/products',
-							isActive: pathname === '/products',
-						},
-						{
-							title: 'Kategori Produk',
-							href: '/products/categories',
-							isActive: pathname === '/products/categories',
-						},
-					],
-				},
-
-				{
-					title: 'Bahan Baku',
-					href: '/materials',
-					icon: BeakerIcon,
-					isActive: pathname.startsWith('/materials'),
-					children: [
-						{
-							title: 'Daftar Bahan',
-							href: '/materials',
-							isActive: pathname === '/materials',
-						},
-						{
-							title: 'Assignment Lokasi',
-							href: '/materials/assignments',
-							isActive: pathname === '/materials/assignments',
 						},
 					],
 				},
