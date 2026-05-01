@@ -342,13 +342,8 @@ export function getAppMenu(
 						},
 					],
 				},
-			],
-		},
-		{
-			label: 'Keuangan',
-			items: [
 				{
-					title: 'Overview',
+					title: 'Keuangan',
 					href: '/finance',
 					icon: BanknoteIcon,
 					isActive: pathname.startsWith('/finance'),
