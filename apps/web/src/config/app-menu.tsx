@@ -6,6 +6,7 @@ import {
 	BookOpenIcon,
 	CogIcon,
 	LayoutDashboardIcon,
+	LogsIcon,
 	PackageIcon,
 	Settings2Icon,
 	ShoppingBagIcon,
@@ -402,24 +403,14 @@ export function getAppMenu(
 					title: 'Pengaturan',
 					href: '/settings',
 					icon: Settings2Icon,
-					isActive: pathname.startsWith('/settings'),
-					children: [
-						{
-							title: 'Lokasi & Outlet',
-							href: '/location',
-							isActive: pathname.startsWith('/location'),
-						},
-						{
-							title: 'Manajemen User & Role',
-							href: '/settings',
-							isActive: pathname === '/settings',
-						},
-						{
-							title: 'Audit Trail',
-							href: '/settings/audit-trail',
-							isActive: pathname.startsWith('/settings/audit-trail'),
-						},
-					],
+					isActive:
+						pathname.startsWith('/settings') && !pathname.startsWith('/settings/audit-trail'),
+				},
+				{
+					title: 'Audit Trail',
+					href: '/settings/audit-trail',
+					icon: LogsIcon,
+					isActive: pathname.startsWith('/settings/audit-trail'),
 				},
 				{
 					title: 'Bantuan',
