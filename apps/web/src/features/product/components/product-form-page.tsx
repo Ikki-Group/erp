@@ -30,7 +30,9 @@ import {
 	TableRow,
 } from '@/components/ui/table'
 
-import { productApi, productCategoryApi, salesTypeApi } from '../api'
+import { salesTypeApi } from '@/features/sales-type'
+
+import { productApi, productCategoryApi } from '../api'
 import type { ProductSelectDto } from '../dto'
 import {
 	ProductVariantManagementDialog,
