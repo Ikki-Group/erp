@@ -14,7 +14,7 @@ export const SalesOrderBatchDto = z.object({
 	orderId: zp.id,
 	batchNumber: zp.num,
 	status: zp.str,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type SalesOrderBatchDto = z.infer<typeof SalesOrderBatchDto>
 
@@ -30,7 +30,7 @@ export const SalesOrderItemDto = z.object({
 	discountAmount: zp.decimal,
 	taxAmount: zp.decimal,
 	subtotal: zp.decimal,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type SalesOrderItemDto = z.infer<typeof SalesOrderItemDto>
 
@@ -40,7 +40,7 @@ export const SalesVoidDto = z.object({
 	itemId: zp.id.nullable(),
 	reason: zp.strNullable,
 	voidedBy: zp.id,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type SalesVoidDto = z.infer<typeof SalesVoidDto>
 
@@ -50,7 +50,7 @@ export const SalesExternalRefDto = z.object({
 	externalSource: zp.str,
 	externalOrderId: zp.str,
 	rawPayload: z.any().nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type SalesExternalRefDto = z.infer<typeof SalesExternalRefDto>
 
@@ -66,7 +66,7 @@ export const SalesOrderDto = z.object({
 	totalAmount: zp.decimal,
 	discountAmount: zp.decimal,
 	taxAmount: zp.decimal,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type SalesOrderDto = z.infer<typeof SalesOrderDto>

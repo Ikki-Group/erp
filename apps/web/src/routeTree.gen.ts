@@ -38,6 +38,7 @@ import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
 import { Route as AppSettingsAuditTrailRouteImport } from './routes/_app/settings/audit-trail'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppSettingsSplatRouteImport } from './routes/_app/settings/$'
+import { Route as AppSalesPosRouteImport } from './routes/_app/sales/pos'
 import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
 import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoices'
 import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
@@ -62,6 +63,7 @@ import { Route as AppHrPayrollRouteImport } from './routes/_app/hr/payroll'
 import { Route as AppHrEmployeesRouteImport } from './routes/_app/hr/employees'
 import { Route as AppHrAttendanceRouteImport } from './routes/_app/hr/attendance'
 import { Route as AppFinanceProfitLossRouteImport } from './routes/_app/finance/profit-loss'
+import { Route as AppFinancePaymentsRouteImport } from './routes/_app/finance/payments'
 import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
 import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
 import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
@@ -232,6 +234,11 @@ const AppSettingsSplatRoute = AppSettingsSplatRouteImport.update({
   path: '/settings/$',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSalesPosRoute = AppSalesPosRouteImport.update({
+  id: '/sales/pos',
+  path: '/sales/pos',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSalesOrdersRoute = AppSalesOrdersRouteImport.update({
   id: '/sales/orders',
   path: '/sales/orders',
@@ -350,6 +357,11 @@ const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
 const AppFinanceProfitLossRoute = AppFinanceProfitLossRouteImport.update({
   id: '/finance/profit-loss',
   path: '/finance/profit-loss',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFinancePaymentsRoute = AppFinancePaymentsRouteImport.update({
+  id: '/finance/payments',
+  path: '/finance/payments',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceLedgerArApRoute = AppFinanceLedgerArApRouteImport.update({
@@ -498,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
   '/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/hr/attendance': typeof AppHrAttendanceRoute
   '/hr/employees': typeof AppHrEmployeesRoute
@@ -522,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
   '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -575,6 +589,7 @@ export interface FileRoutesByTo {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
   '/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/hr/attendance': typeof AppHrAttendanceRoute
   '/hr/employees': typeof AppHrEmployeesRoute
@@ -599,6 +614,7 @@ export interface FileRoutesByTo {
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
   '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -656,6 +672,7 @@ export interface FileRoutesById {
   '/_app/finance/expenses': typeof AppFinanceExpensesRoute
   '/_app/finance/ledger': typeof AppFinanceLedgerRoute
   '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/_app/finance/payments': typeof AppFinancePaymentsRoute
   '/_app/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/_app/hr/attendance': typeof AppHrAttendanceRoute
   '/_app/hr/employees': typeof AppHrEmployeesRoute
@@ -680,6 +697,7 @@ export interface FileRoutesById {
   '/_app/sales/customers': typeof AppSalesCustomersRoute
   '/_app/sales/invoices': typeof AppSalesInvoicesRoute
   '/_app/sales/orders': typeof AppSalesOrdersRoute
+  '/_app/sales/pos': typeof AppSalesPosRoute
   '/_app/settings/$': typeof AppSettingsSplatRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -735,6 +753,7 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/finance/payments'
     | '/finance/profit-loss'
     | '/hr/attendance'
     | '/hr/employees'
@@ -759,6 +778,7 @@ export interface FileRouteTypes {
     | '/sales/customers'
     | '/sales/invoices'
     | '/sales/orders'
+    | '/sales/pos'
     | '/settings/$'
     | '/settings'
     | '/settings/audit-trail'
@@ -812,6 +832,7 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/finance/payments'
     | '/finance/profit-loss'
     | '/hr/attendance'
     | '/hr/employees'
@@ -836,6 +857,7 @@ export interface FileRouteTypes {
     | '/sales/customers'
     | '/sales/invoices'
     | '/sales/orders'
+    | '/sales/pos'
     | '/settings/$'
     | '/settings'
     | '/settings/audit-trail'
@@ -892,6 +914,7 @@ export interface FileRouteTypes {
     | '/_app/finance/expenses'
     | '/_app/finance/ledger'
     | '/_app/finance/ledger-ar-ap'
+    | '/_app/finance/payments'
     | '/_app/finance/profit-loss'
     | '/_app/hr/attendance'
     | '/_app/hr/employees'
@@ -916,6 +939,7 @@ export interface FileRouteTypes {
     | '/_app/sales/customers'
     | '/_app/sales/invoices'
     | '/_app/sales/orders'
+    | '/_app/sales/pos'
     | '/_app/settings/$'
     | '/_app/settings/_tab'
     | '/_app/settings/audit-trail'
@@ -1182,6 +1206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsSplatRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/sales/pos': {
+      id: '/_app/sales/pos'
+      path: '/sales/pos'
+      fullPath: '/sales/pos'
+      preLoaderRoute: typeof AppSalesPosRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/sales/orders': {
       id: '/_app/sales/orders'
       path: '/sales/orders'
@@ -1348,6 +1379,13 @@ declare module '@tanstack/react-router' {
       path: '/finance/profit-loss'
       fullPath: '/finance/profit-loss'
       preLoaderRoute: typeof AppFinanceProfitLossRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/payments': {
+      id: '/_app/finance/payments'
+      path: '/finance/payments'
+      fullPath: '/finance/payments'
+      preLoaderRoute: typeof AppFinancePaymentsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/finance/ledger-ar-ap': {
@@ -1555,6 +1593,7 @@ interface AppRouteRouteChildren {
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
   AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
   AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
+  AppFinancePaymentsRoute: typeof AppFinancePaymentsRoute
   AppFinanceProfitLossRoute: typeof AppFinanceProfitLossRoute
   AppHrAttendanceRoute: typeof AppHrAttendanceRoute
   AppHrEmployeesRoute: typeof AppHrEmployeesRoute
@@ -1579,6 +1618,7 @@ interface AppRouteRouteChildren {
   AppSalesCustomersRoute: typeof AppSalesCustomersRoute
   AppSalesInvoicesRoute: typeof AppSalesInvoicesRoute
   AppSalesOrdersRoute: typeof AppSalesOrdersRoute
+  AppSalesPosRoute: typeof AppSalesPosRoute
   AppSettingsSplatRoute: typeof AppSettingsSplatRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppSettingsAuditTrailRoute: typeof AppSettingsAuditTrailRoute
@@ -1613,6 +1653,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,
   AppFinanceLedgerRoute: AppFinanceLedgerRoute,
   AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
+  AppFinancePaymentsRoute: AppFinancePaymentsRoute,
   AppFinanceProfitLossRoute: AppFinanceProfitLossRoute,
   AppHrAttendanceRoute: AppHrAttendanceRoute,
   AppHrEmployeesRoute: AppHrEmployeesRoute,
@@ -1637,6 +1678,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSalesCustomersRoute: AppSalesCustomersRoute,
   AppSalesInvoicesRoute: AppSalesInvoicesRoute,
   AppSalesOrdersRoute: AppSalesOrdersRoute,
+  AppSalesPosRoute: AppSalesPosRoute,
   AppSettingsSplatRoute: AppSettingsSplatRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppSettingsAuditTrailRoute: AppSettingsAuditTrailRoute,
