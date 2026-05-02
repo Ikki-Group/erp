@@ -30,7 +30,7 @@ function MokaConfigurationPage() {
 		onSuccess: () => {
 			toast.success('Konfigurasi berhasil disimpan')
 		},
-		onError: (err) => {
+		onError: () => {
 			toast.error('Gagal menyimpan konfigurasi')
 		},
 	})
@@ -40,7 +40,7 @@ function MokaConfigurationPage() {
 		onSuccess: () => {
 			toast.success('Konfigurasi berhasil diperbarui')
 		},
-		onError: (err) => {
+		onError: () => {
 			toast.error('Gagal memperbarui konfigurasi')
 		},
 	})

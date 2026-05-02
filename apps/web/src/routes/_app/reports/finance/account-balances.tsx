@@ -46,7 +46,6 @@ function FinanceAccountBalancesReport() {
 	)
 
 	const accounts: AccountBalanceDto[] = data?.data?.data ?? []
-	const summary = data?.data?.summary
 
 	const table = useDataTable({
 		columns,
@@ -58,10 +57,7 @@ function FinanceAccountBalancesReport() {
 
 	return (
 		<Page>
-			<Page.BlockHeader
-				title="Saldo Akun"
-				description="Daftar saldo seluruh akun buku besar."
-			/>
+			<Page.BlockHeader title="Saldo Akun" description="Daftar saldo seluruh akun buku besar." />
 			<Page.Content className="space-y-6">
 				<Card>
 					<Card.Content className="pt-6">

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, createSuccessResponseSchema } from '@/lib/validation'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	MokaConfigurationCreateDto,

@@ -73,7 +73,6 @@ function InventoryStockReport() {
 	)
 
 	const stockLevels: StockLevelDto[] = data?.data?.data ?? []
-	const summary = data?.data?.summary
 
 	const table = useDataTable({
 		columns,

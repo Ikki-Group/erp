@@ -6,17 +6,13 @@ import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 
 import { useDataTable } from '@/hooks/use-data-table'
 
-import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 import { textColumn, statusColumn } from '@/components/reui/data-grid/data-grid-columns'
 
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from '@/components/ui/chart'
 import { Card } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 import { salesReportApi } from '@/features/reporting'
 import type { SalesReportRequestDto, TopProductDto } from '@/features/reporting'
@@ -62,7 +58,6 @@ function SalesProductsReport() {
 	)
 
 	const topProducts: TopProductDto[] = data?.data?.data ?? []
-	const summary = data?.data?.summary
 
 	const table = useDataTable({
 		columns,

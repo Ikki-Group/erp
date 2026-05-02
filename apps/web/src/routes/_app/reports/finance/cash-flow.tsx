@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { ArrowDownIcon, ArrowUpIcon, DollarSignIcon } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
 import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 
+import { Card } from '@/components/ui/card'
 import {
 	ChartContainer,
 	ChartLegend,
@@ -14,13 +16,10 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-import { Card } from '@/components/ui/card'
 
 import { financeReportApi } from '@/features/reporting'
 import type { FinanceReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
-
-import { ArrowDownIcon, ArrowUpIcon, DollarSignIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/reports/finance/cash-flow')({
 	component: FinanceCashFlowReport,
@@ -35,9 +34,7 @@ const chartConfig = {
 function FinanceCashFlowReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data, isLoading } = useQuery(
-		financeReportApi.cashFlow.query(filter as FinanceReportRequestDto),
-	)
+	const { data } = useQuery(financeReportApi.cashFlow.query(filter as FinanceReportRequestDto))
 
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
@@ -86,13 +83,34 @@ function FinanceCashFlowReport() {
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={(v) => new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+								tickFormatter={(v) =>
+									new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+								}
 							/>
 							<YAxis hide />
 							<ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-							<Area dataKey="inflow" type="monotone" stroke="oklch(var(--chart-2))" fill="transparent" strokeWidth={2} />
-							<Area dataKey="outflow" type="monotone" stroke="oklch(var(--chart-1))" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
-							<Area dataKey="net" type="monotone" stroke="oklch(var(--primary))" fill="transparent" strokeWidth={2} />
+							<Area
+								dataKey="inflow"
+								type="monotone"
+								stroke="oklch(var(--chart-2))"
+								fill="transparent"
+								strokeWidth={2}
+							/>
+							<Area
+								dataKey="outflow"
+								type="monotone"
+								stroke="oklch(var(--chart-1))"
+								fill="transparent"
+								strokeWidth={2}
+								strokeDasharray="5 5"
+							/>
+							<Area
+								dataKey="net"
+								type="monotone"
+								stroke="oklch(var(--primary))"
+								fill="transparent"
+								strokeWidth={2}
+							/>
 							<ChartLegend content={<ChartLegendContent />} />
 						</AreaChart>
 					</ChartContainer>

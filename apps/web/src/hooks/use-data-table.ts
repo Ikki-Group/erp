@@ -19,9 +19,8 @@ export type UseDataTableProps<TData, TFilter extends DataTableFilters = {}> = Om
 /**
  * Creates and configures a TanStack React Table instance connected to the provided data and DataTableState.
  *
- * @param ds - DataTableState that controls pagination, global search, and exposes setters (for example `setPagination` and `setSearch`).
- * @param state - Additional table state to merge with the derived pagination and global filter state.
- * @returns The configured Table instance with core row model, pagination state, and global filtering wired to the provided `ds`.
+ * @param {UseDataTableProps<TData, TFilter>} props - Table options, columns, data, and a `ds` DataTableState that drive external pagination, filtering, and sorting state
+ * @returns {Table<TData>} A `Table<TData>` instance wired for manual pagination, filtering, and sorting
  */
 function useBaseDataTable<TData, TFilter extends DataTableFilters = {}>({
 	data,
@@ -71,8 +70,8 @@ function useBaseDataTable<TData, TFilter extends DataTableFilters = {}>({
 /**
  * Creates a TanStack table instance configured for manual pagination, filtering, and sorting.
  *
- * @param props - Table options, columns, data, and a `ds` DataTableState that drive external pagination, filtering, and sorting state
- * @returns A `Table<TData>` instance wired for manual pagination, filtering, and sorting
+ * @param {UseDataTableProps<TData, TFilter>} props - Table options, columns, data, and a `ds` DataTableState that drive external pagination, filtering, and sorting state
+ * @returns {Table<TData>} A `Table<TData>` instance wired for manual pagination, filtering, and sorting
  */
 export function useDataTable<TData, TFilter extends DataTableFilters = {}>(
 	props: UseDataTableProps<TData, TFilter>,
@@ -88,8 +87,8 @@ export function useDataTable<TData, TFilter extends DataTableFilters = {}>(
 /**
  * Creates a data table configured with automatic pagination and filtering.
  *
- * @param props - Configuration and state for the table; forwarded to the base hook. Pagination and filtering are enabled automatically by this hook.
- * @returns A `Table<TData>` instance configured for automatic pagination and filtered row modeling.
+ * @param {UseDataTableProps<TData, TFilter>} props - Configuration and state for the table; forwarded to the base hook. Pagination and filtering are enabled automatically by this hook.
+ * @returns {Table<TData>} A `Table<TData>` instance configured for automatic pagination and filtered row modeling.
  */
 export function useDataTableAuto<TData, TFilter extends DataTableFilters = {}>(
 	props: UseDataTableProps<TData, TFilter>,

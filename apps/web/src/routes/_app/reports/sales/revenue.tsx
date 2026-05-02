@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { TrendingUpIcon, DollarSignIcon, ShoppingCartIcon } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
-import { ChartCard, ChartGrid } from '@/components/blocks/data-display/chart-card'
+import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 
+import { Card } from '@/components/ui/card'
 import {
 	ChartContainer,
 	ChartLegend,
@@ -14,13 +16,10 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-import { Card } from '@/components/ui/card'
 
 import { salesReportApi } from '@/features/reporting'
 import type { SalesReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
-
-import { TrendingUpIcon, DollarSignIcon, ShoppingCartIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/reports/sales/revenue')({
 	component: SalesRevenueReport,
@@ -34,9 +33,7 @@ const chartConfig = {
 function SalesRevenueReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data, isLoading } = useQuery(
-		salesReportApi.revenue.query(filter as SalesReportRequestDto),
-	)
+	const { data } = useQuery(salesReportApi.revenue.query(filter as SalesReportRequestDto))
 
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
@@ -69,11 +66,7 @@ function SalesRevenueReport() {
 						value={`Rp ${avgRevenue.toLocaleString('id-ID')}`}
 						icon={TrendingUpIcon}
 					/>
-					<CardStat
-						title="Total Order"
-						value={String(totalOrders)}
-						icon={ShoppingCartIcon}
-					/>
+					<CardStat title="Total Order" value={String(totalOrders)} icon={ShoppingCartIcon} />
 				</div>
 
 				<ChartCard title="Tren Pendapatan" description="Grafik pendapatan dan jumlah order">
@@ -91,7 +84,9 @@ function SalesRevenueReport() {
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={(v) => new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+								tickFormatter={(v) =>
+									new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+								}
 							/>
 							<YAxis hide />
 							<ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />

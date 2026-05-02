@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { useDebounce } from '@uidotdev/usehooks'
 // oxlint-disable typescript/ban-ts-comment
 import { SearchIcon, XIcon } from 'lucide-react'
 
