@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'

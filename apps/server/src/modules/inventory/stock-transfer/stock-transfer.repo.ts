@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
@@ -82,7 +83,8 @@ export class StockTransferRepo {
 		filter: StockTransferFilterDto,
 	): Promise<WithPaginationResult<StockTransferSelectDto>> {
 		return record('StockTransferRepo.getListPaginated', async () => {
-			const { q, page, limit, sourceLocationId, destinationLocationId, status, dateFrom, dateTo } = filter
+			const { q, page, limit, sourceLocationId, destinationLocationId, status, dateFrom, dateTo } =
+				filter
 			const where = and(
 				isNull(stockTransfersTable.deletedAt),
 				q === undefined ? undefined : or(searchFilter(stockTransfersTable.referenceNo, q)),
@@ -168,9 +170,7 @@ export class StockTransferRepo {
 					.where(eq(stockTransfersTable.id, id))
 
 				if (items) {
-					await tx
-						.delete(stockTransferItemsTable)
-						.where(eq(stockTransferItemsTable.transferId, id))
+					await tx.delete(stockTransferItemsTable).where(eq(stockTransferItemsTable.transferId, id))
 					if (items.length > 0) {
 						const itemValues = items.map((item) => ({
 							transferId: id,
@@ -251,7 +251,11 @@ export class StockTransferRepo {
 		})
 	}
 
-	async updateReceivedDate(id: number, receivedDate: Date, actorId: number): Promise<{ id: number }> {
+	async updateReceivedDate(
+		id: number,
+		receivedDate: Date,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('StockTransferRepo.updateReceivedDate', async () => {
 			const updateMeta = stampUpdate(actorId)
 			const [result] = await this.db

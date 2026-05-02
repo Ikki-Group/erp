@@ -20,7 +20,9 @@ export class CrmReportingService {
 			const where = and(
 				gte(customersTable.createdAt, dateFrom),
 				lte(customersTable.createdAt, dateTo),
-				tierId ? eq(customersTable.tier, tierId as any) : undefined,
+				tierId
+					? eq(customersTable.tier, tierId as any as 'bronze' | 'gold' | 'platinum' | 'silver')
+					: undefined,
 			)
 
 			let dateTrunc

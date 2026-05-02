@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
