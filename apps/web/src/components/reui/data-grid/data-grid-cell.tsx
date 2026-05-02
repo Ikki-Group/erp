@@ -29,33 +29,35 @@ function renderFallback(value: React.ReactNode, fallback = '-'): React.ReactNode
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 
-interface BaseProps {
+interface CellBaseProps {
 	className?: string
 }
 
-interface DataGridCellLabelAndDescProps extends BaseProps {
-	label: React.ReactNode
-	desc?: React.ReactNode
-}
-
-interface DataGridCellTextProps extends BaseProps {
+export interface CellTextProps extends CellBaseProps {
 	value: React.ReactNode | string | number | null | undefined
 }
 
-interface DataGridCellDateProps extends BaseProps {
+export interface CellDateProps extends CellBaseProps {
 	value: Date | string | number | null | undefined
 	variant?: 'date' | 'datetime'
 }
 
-interface DataGridCellNumberProps extends BaseProps {
+export interface CellNumberProps extends CellBaseProps {
 	value: number | string | null | undefined
 }
 
-interface DataGridCellCurrencyProps extends BaseProps {
+export interface CellCurrencyProps extends CellBaseProps {
 	value: number | string | null | undefined
 }
 
-interface DataGridCellAvatarProps extends BaseProps {
+export interface CellLabelDescProps extends CellBaseProps {
+	label: React.ReactNode
+	desc?: React.ReactNode
+}
+
+export interface CellLinkProps extends CellBaseProps, Omit<LinkProps, 'className'> {}
+
+export interface CellAvatarProps extends CellBaseProps {
 	src?: string
 	fallback?: string
 	label?: React.ReactNode
@@ -63,45 +65,53 @@ interface DataGridCellAvatarProps extends BaseProps {
 	size?: 'default' | 'sm' | 'lg'
 }
 
-interface DataGridCellBooleanProps extends BaseProps {
+export interface CellBooleanProps extends CellBaseProps {
 	value: boolean | null | undefined
 }
 
-interface DataGridCellBadgeGroupProps extends BaseProps {
+export interface CellBadgeGroupProps extends CellBaseProps {
 	values: string[]
 	max?: number
 }
 
-interface DataGridCellProgressProps {
+export interface CellProgressProps extends CellBaseProps {
 	value: number
 	label?: React.ReactNode
-	className?: string
 }
 
-interface DataGridCellTrendProps {
+export interface CellTrendProps extends CellBaseProps {
 	value: number | string
 	trend?: 'up' | 'down' | 'neutral'
-	className?: string
 	reverse?: boolean
 }
 
-type DataGridCellActionProps = {
+export interface CellActionProps extends CellBaseProps {
 	label?: string
 	icon?: React.ReactNode
 	variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive' | 'link'
 	size?: 'default' | 'xs' | 'sm' | 'lg' | 'icon' | 'icon-xs' | 'icon-sm' | 'icon-lg'
-	className?: string
 	disabled?: boolean
-} & (
-	| { type: 'button'; onClick?: React.MouseEventHandler<HTMLButtonElement> }
-	| ({ type: 'link' } & LinkProps)
-)
+	onClick?: React.MouseEventHandler<HTMLButtonElement>
+}
 
-/**
- * Renders a primary label and an optional secondary description in a stacked layout.
- * Best for ID columns or main entity names.
- */
-function DataGridCellLabelAndDesc({ label, desc, className }: DataGridCellLabelAndDescProps) {
+export interface CellActionLinkProps extends CellBaseProps {
+	label?: string
+	icon?: React.ReactNode
+	variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive' | 'link'
+	size?: 'default' | 'xs' | 'sm' | 'lg' | 'icon' | 'icon-xs' | 'icon-sm' | 'icon-lg'
+	disabled?: boolean
+}
+
+export interface CellActionsProps extends CellBaseProps {
+	children: React.ReactNode
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               CELL COMPONENTS                              */
+/* -------------------------------------------------------------------------- */
+
+/** Primary label + optional secondary description. Best for ID/name columns. */
+export function CellLabelDesc({ label, desc, className }: CellLabelDescProps) {
 	return (
 		<div className={cn('flex flex-col gap-0.5 min-w-0 py-1', className)}>
 			<div className="font-medium text-foreground truncate">{label}</div>
@@ -110,72 +120,58 @@ function DataGridCellLabelAndDesc({ label, desc, className }: DataGridCellLabelA
 	)
 }
 
-/**
- * Standard text cell with truncation and fallback.
- */
-function DataGridCellText({ value, className }: DataGridCellTextProps) {
+/** Standard text cell with truncation and fallback. */
+export function CellText({ value, className }: CellTextProps) {
 	return <span className={cn('truncate block text-sm', className)}>{renderFallback(value)}</span>
 }
 
-/**
- * Date cell with ERP standard formatting. Default is datetime.
- */
-function DataGridCellDate({ value, variant = 'datetime', className }: DataGridCellDateProps) {
-	if (!value) return <span className="text-muted-foreground">-</span>
-
+/** Date cell with ERP standard formatting. Default is datetime. */
+export function CellDate({ value, variant = 'datetime', className }: CellDateProps) {
+	if (!hasValue(value)) return <span className="text-muted-foreground">-</span>
 	const formatted = variant === 'datetime' ? toDateTimeStamp(value) : toDate(value)
-
 	return <span className={cn('text-nowrap tabular-nums text-sm', className)}>{formatted}</span>
 }
 
-/**
- * Numeric cell with localized formatting and right alignment.
- */
-function DataGridCellNumber({ value, className }: DataGridCellNumberProps) {
+/** Numeric cell with localized formatting and right alignment. */
+export function CellNumber({ value, className }: CellNumberProps) {
 	return (
 		<div className={cn('text-right tabular-nums w-full text-sm', className)}>
-			{value === null || value === undefined || value === '' ? '-' : toNumber(value)}
+			{hasValue(value) ? toNumber(value) : <span className="text-muted-foreground">-</span>}
 		</div>
 	)
 }
 
-/**
- * Currency cell (IDR) with localized formatting, semi-bold font, and right alignment.
- */
-function DataGridCellCurrency({ value, className }: DataGridCellCurrencyProps) {
+/** Currency cell (IDR) with localized formatting, semi-bold font, and right alignment. */
+export function CellCurrency({ value, className }: CellCurrencyProps) {
 	return (
 		<div className={cn('text-right tabular-nums w-full font-medium text-sm', className)}>
-			{value === null || value === undefined || value === '' ? '-' : toCurrency(value)}
+			{hasValue(value) ? toCurrency(value) : <span className="text-muted-foreground">-</span>}
 		</div>
 	)
 }
 
-/**
- * Composable Link cell using TanStack Router.
- */
-function DataGridCellLink(props: React.ComponentProps<typeof Link>) {
+/** Composable Link cell using TanStack Router. */
+export function CellLink({ className, ...props }: CellLinkProps) {
 	return (
 		<Link
 			{...props}
 			className={cn(
 				'font-medium text-primary hover:underline transition-all cursor-pointer inline-block text-sm',
-				props.className,
+				className,
 			)}
 		/>
 	)
 }
 
-/**
- * Renders an avatar followed by a label/description.
- */
-function DataGridCellAvatar({
+/** Avatar followed by a label/description. */
+export function CellAvatar({
 	src,
 	fallback,
 	label,
 	desc,
 	className,
 	size = 'sm',
-}: DataGridCellAvatarProps) {
+}: CellAvatarProps) {
 	return (
 		<div className={cn('flex items-center gap-2.5 py-1', className)}>
 			<Avatar size={size}>
@@ -192,12 +188,9 @@ function DataGridCellAvatar({
 	)
 }
 
-/**
- * Renders a Boolean indicator (Check or X).
- */
-function DataGridCellBoolean({ value, className }: DataGridCellBooleanProps) {
+/** Boolean indicator (Check or X). */
+export function CellBoolean({ value, className }: CellBooleanProps) {
 	if (value === null || value === undefined) return <span className="text-muted-foreground">-</span>
-
 	return (
 		<div className={cn('flex items-center justify-center w-fit', className)}>
 			{value ? (
@@ -209,67 +202,61 @@ function DataGridCellBoolean({ value, className }: DataGridCellBooleanProps) {
 	)
 }
 
-/**
- * Individual action component (Button or Link).
- * Follows Base UI asChild pattern and TanStack Router Link conventions.
- */
-function DataGridCellAction(props: DataGridCellActionProps) {
-	const { label, icon, variant = 'ghost', size = 'icon-sm', className, disabled } = props
-
-	const content = (
-		<>
-			{icon ?? null}
-			{label && <span>{label}</span>}
-		</>
-	)
-
-	if (props.type === 'link') {
-		const { type: _type, label: _label, icon: _icon, ...linkProps } = props
-		return (
-			<Button variant={variant} size={size} className={className} disabled={disabled}>
-				<Link {...(linkProps as any)} aria-label={label ?? undefined}>
-					{content}
-				</Link>
-			</Button>
-		)
-	}
-
+/** Action button cell. */
+export function CellAction({
+	label,
+	icon,
+	variant = 'ghost',
+	size = 'icon-sm',
+	className,
+	disabled,
+	onClick,
+}: CellActionProps) {
 	return (
 		<Button
 			variant={variant}
 			size={size}
 			className={className}
-			onClick={props.onClick}
 			disabled={disabled}
-			aria-label={label ?? undefined}
+			onClick={onClick}
+			aria-label={label}
 		>
-			{content}
+			{icon ?? null}
+			{label && <span>{label}</span>}
 		</Button>
 	)
 }
 
-/**
- * Container for multiple actions.
- */
-function DataGridCellActions({
-	children,
+/** Action link cell using TanStack Router. */
+export function CellActionLink({
+	label,
+	icon,
+	variant = 'ghost',
+	size = 'icon-sm',
 	className,
-}: {
-	children: React.ReactNode
-	className?: string
-}) {
+	disabled,
+	...linkProps
+}: CellActionLinkProps & Omit<LinkProps, 'className'>) {
+	return (
+		<Button variant={variant} size={size} className={className} disabled={disabled}>
+			<Link {...(linkProps as any)} aria-label={label}>
+				{icon ?? null}
+				{label && <span>{label}</span>}
+			</Link>
+		</Button>
+	)
+}
+
+/** Container for multiple actions. */
+export function CellActions({ children, className }: CellActionsProps) {
 	return <div className={cn('flex items-center gap-1', className)}>{children}</div>
 }
 
-/**
- * Renders a group of badges, optionally capping the display and showing a count.
- */
-function DataGridCellBadgeGroup({ values, max = 3, className }: DataGridCellBadgeGroupProps) {
+/** Badge group with overflow count. */
+export function CellBadgeGroup({ values, max = 3, className }: CellBadgeGroupProps) {
 	if (!values || values.length === 0) return <span className="text-muted-foreground">-</span>
-
 	const displayed = values.slice(0, max)
 	const remaining = values.length - max
-
 	return (
 		<div className={cn('flex flex-wrap gap-1', className)}>
 			{displayed.map((v, i) => (
@@ -282,10 +269,8 @@ function DataGridCellBadgeGroup({ values, max = 3, className }: DataGridCellBadg
 	)
 }
 
-/**
- * Renders a progress bar within a cell.
- */
-function DataGridCellProgress({ value, label, className }: DataGridCellProgressProps) {
+/** Progress bar cell. */
+export function CellProgress({ value, label, className }: CellProgressProps) {
 	return (
 		<div className={cn('flex flex-col gap-1 w-full max-w-30', className)}>
 			{label && (
@@ -297,19 +282,15 @@ function DataGridCellProgress({ value, label, className }: DataGridCellProgressP
 	)
 }
 
-/**
- * Renders a trend indicator (arrow up/down) with color coding.
- */
-function DataGridCellTrend({ value, trend, className, reverse = false }: DataGridCellTrendProps) {
-	const isPositive = trend === 'up'
-	const isNegative = trend === 'down'
-
+/** Trend indicator with arrow and color coding. */
+export function CellTrend({ value, trend, className, reverse = false }: CellTrendProps) {
+	const isUp = trend === 'up'
+	const isDown = trend === 'down'
 	const colorClass = cn(
 		!trend && 'text-foreground',
-		isPositive && (reverse ? 'text-destructive' : 'text-emerald-500'),
-		isNegative && (reverse ? 'text-emerald-500' : 'text-destructive'),
+		isUp && (reverse ? 'text-destructive' : 'text-emerald-500'),
+		isDown && (reverse ? 'text-emerald-500' : 'text-destructive'),
 	)
-
 	return (
 		<div
 			className={cn(
@@ -318,116 +299,9 @@ function DataGridCellTrend({ value, trend, className, reverse = false }: DataGri
 				className,
 			)}
 		>
-			{isPositive && <TrendingUpIcon className="size-3.5" />}
-			{isNegative && <TrendingDownIcon className="size-3.5" />}
+			{isUp && <TrendingUpIcon className="size-3.5" />}
+			{isDown && <TrendingDownIcon className="size-3.5" />}
 			{value}
 		</div>
 	)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                            CELL REGISTRY (SCALABLE)                        */
-/* -------------------------------------------------------------------------- */
-
-/** Map of cell type keys to React components. */
-export type CellRegistryMap = Record<string, React.ComponentType<any>>
-
-const CellRegistryContext = React.createContext<CellRegistryMap>({})
-
-/**
- * Provider that lets features register custom cell types at runtime.
- * Wrap your DataTable or page with this to make custom cells available
- * to DataGridCellRenderer declaratively.
- */
-export function CellRegistryProvider({
-	registry,
-	children,
-}: {
-	registry: CellRegistryMap
-	children: React.ReactNode
-}) {
-	return <CellRegistryContext.Provider value={registry}>{children}</CellRegistryContext.Provider>
-}
-
-/** Hook to read the current cell registry. */
-export function useCellRegistry(): CellRegistryMap {
-	return React.useContext(CellRegistryContext)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                          DECLARATIVE RENDERER                                */
-/* -------------------------------------------------------------------------- */
-
-/** Discriminated union for every built-in cell type. */
-export type DataGridCellSpec =
-	| { type: 'text'; props: DataGridCellTextProps }
-	| { type: 'date'; props: DataGridCellDateProps }
-	| { type: 'number'; props: DataGridCellNumberProps }
-	| { type: 'currency'; props: DataGridCellCurrencyProps }
-	| { type: 'label-desc'; props: DataGridCellLabelAndDescProps }
-	| { type: 'link'; props: React.ComponentProps<typeof Link> }
-	| { type: 'avatar'; props: DataGridCellAvatarProps }
-	| { type: 'boolean'; props: DataGridCellBooleanProps }
-	| { type: 'badge-group'; props: DataGridCellBadgeGroupProps }
-	| { type: 'progress'; props: DataGridCellProgressProps }
-	| { type: 'trend'; props: DataGridCellTrendProps }
-	| { type: 'action'; props: DataGridCellActionProps }
-	| { type: 'actions'; props: React.ComponentProps<'div'> & { children: React.ReactNode } }
-	| { type: string; props: Record<string, unknown> }
-
-const BUILT_IN_MAP: Record<string, React.ComponentType<any>> = {
-	text: DataGridCellText,
-	date: DataGridCellDate,
-	number: DataGridCellNumber,
-	currency: DataGridCellCurrency,
-	'label-desc': DataGridCellLabelAndDesc,
-	link: DataGridCellLink,
-	avatar: DataGridCellAvatar,
-	boolean: DataGridCellBoolean,
-	'badge-group': DataGridCellBadgeGroup,
-	progress: DataGridCellProgress,
-	trend: DataGridCellTrend,
-	action: DataGridCellAction,
-	actions: DataGridCellActions,
-}
-
-/**
- * Declarative cell renderer. Accepts a discriminated union `cell` prop and
- * automatically maps to the correct component. Supports custom types
- * registered via CellRegistryProvider.
- *
- * @example
- * <DataGridCellRenderer cell={{ type: 'currency', props: { value: 150000 } }} />
- * <DataGridCellRenderer cell={{ type: 'myCustom', props: { foo: 'bar' } }} />
- */
-export function DataGridCellRenderer({ cell }: { cell: DataGridCellSpec }) {
-	const registry = useCellRegistry()
-	const Component = registry[cell.type] ?? BUILT_IN_MAP[cell.type]
-
-	if (!Component) {
-		console.warn(`[DataGridCellRenderer] Unknown cell type "${cell.type}"`)
-		return <span className="text-muted-foreground">-</span>
-	}
-
-	return <Component {...cell.props} />
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                EXPORTS                                     */
-/* -------------------------------------------------------------------------- */
-
-export const DataGridCell = {
-	LabelAndDesc: DataGridCellLabelAndDesc,
-	Text: DataGridCellText,
-	Date: DataGridCellDate,
-	Number: DataGridCellNumber,
-	Currency: DataGridCellCurrency,
-	Link: DataGridCellLink,
-	Avatar: DataGridCellAvatar,
-	Boolean: DataGridCellBoolean,
-	Action: DataGridCellAction,
-	Actions: DataGridCellActions,
-	BadgeGroup: DataGridCellBadgeGroup,
-	Progress: DataGridCellProgress,
-	Trend: DataGridCellTrend,
 }

@@ -16,14 +16,29 @@ export const reuiRegistry: ComponentRegistry = {
 	readonly: true, // Mark as readonly since it is the core system
 	components: [
 		{
-			name: 'DataGridCell',
+			name: 'Cell*',
 			file: './data-grid/data-grid-cell',
 			description:
 				'Consistent cell components for data tables with predefined formatting and layout.',
-			usage: 'Use inside TanStack Table column definitions for standardized data presentation.',
+			usage: 'Import individual cells: CellText, CellDate, CellCurrency, CellAction, etc.',
 			importPath: '@/components/reui/data-grid/data-grid-cell',
 			tags: ['table', 'cell', 'render', 'formatting', 'actions'],
-			exports: ['DataGridCell'],
+			exports: [
+				'CellText',
+				'CellDate',
+				'CellNumber',
+				'CellCurrency',
+				'CellLabelDesc',
+				'CellLink',
+				'CellAvatar',
+				'CellBoolean',
+				'CellAction',
+				'CellActionLink',
+				'CellActions',
+				'CellBadgeGroup',
+				'CellProgress',
+				'CellTrend',
+			],
 			preview: () => React.createElement(DataGridCellPreview),
 		},
 	],

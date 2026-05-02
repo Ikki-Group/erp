@@ -29,7 +29,7 @@ export type ColumnOptions<_TData> = {
 	meta?: { className?: string; label?: string; headerTitle?: string }
 }
 
-import { DataGridCell } from './data-grid-cell'
+import { CellText, CellDate, CellNumber, CellCurrency } from './data-grid-cell'
 
 /* -------------------------------------------------------------------------- */
 /*  Helper Functions                                                          */
@@ -44,7 +44,7 @@ export function textColumn<TData, TValue extends React.ReactNode = any>(
 	return {
 		header: opts.header,
 		cell: ({ getValue }: CellContext<TData, TValue>) => (
-			<DataGridCell.Text value={getValue()} className={opts.meta?.className} />
+			<CellText value={getValue()} className={opts.meta?.className} />
 		),
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
@@ -78,7 +78,7 @@ export function dateColumn<TData>(
 		header: opts.header ?? 'Tanggal',
 		cell: ({ getValue }: CellContext<TData, any>) => (
 			// oxlint-disable-next-line typescript/no-unsafe-assignment
-			<DataGridCell.Date value={getValue()} className={opts.meta?.className} />
+			<CellDate value={getValue()} className={opts.meta?.className} />
 		),
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
@@ -136,7 +136,7 @@ export function numberColumn<TData, TValue extends number | string | null | unde
 		cell: ({ getValue, row }: CellContext<TData, TValue>) => {
 			const value = getValue()
 			if (opts.render) return opts.render(value, row.original)
-			return <DataGridCell.Number value={value} className={opts.meta?.className} />
+			return <CellNumber value={value} className={opts.meta?.className} />
 		},
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
@@ -158,7 +158,7 @@ export function currencyColumn<TData, TValue extends number | string | null | un
 		cell: ({ getValue, row }: CellContext<TData, TValue>) => {
 			const value = getValue()
 			if (opts.render) return opts.render(value, row.original)
-			return <DataGridCell.Currency value={value} className={opts.meta?.className} />
+			return <CellCurrency value={value} className={opts.meta?.className} />
 		},
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
