@@ -77,7 +77,7 @@ export function initCustomerRoute(service: CustomerService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
+			async function remove({ query }) {
 				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
