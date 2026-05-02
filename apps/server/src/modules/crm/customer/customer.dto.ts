@@ -18,12 +18,12 @@ export const CustomerDto = z.object({
 	phone: zp.strNullable,
 	address: zp.strNullable,
 	taxId: zp.strNullable,
-	dateOfBirth: zp.dateNullable,
+	dateOfBirth: zp.date.nullable(),
 	tier: CustomerTierDto,
 	pointsBalance: zp.id,
 	totalPointsEarned: zp.id,
 	registeredAt: zp.date,
-	lastVisitAt: zp.dateNullable,
+	lastVisitAt: zp.date.nullable(),
 	...zc.AuditBasic.shape,
 })
 export type CustomerDto = z.infer<typeof CustomerDto>

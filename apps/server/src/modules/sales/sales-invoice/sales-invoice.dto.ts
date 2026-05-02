@@ -15,7 +15,7 @@ export const SalesInvoiceDto = z.object({
 	locationId: zp.id,
 	status: SalesInvoiceStatusDto,
 	invoiceDate: zp.date,
-	dueDate: zp.dateNullable,
+	dueDate: zp.date.nullable(),
 	totalAmount: zc.numberCurrency,
 	taxAmount: zc.numberCurrency,
 	discountAmount: zc.numberCurrency,
