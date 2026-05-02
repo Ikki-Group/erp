@@ -66,7 +66,8 @@ export class CustomerRepo {
 						.where(where)
 						.orderBy(customersTable.name)
 						.limit(limit)
-						.offset(offset),
+						.offset(offset)
+						.then((rows) => rows.map((r) => dto.CustomerDto.parse(r))),
 				pq: { page, limit },
 				countQuery: this.db.select({ count: count() }).from(customersTable).where(where),
 			})
@@ -85,7 +86,7 @@ export class CustomerRepo {
 						.limit(1)
 						.then(takeFirst)
 
-					return res ?? skip()
+					return res ? dto.CustomerDto.parse(res) : skip()
 				},
 			})
 		})
@@ -100,7 +101,7 @@ export class CustomerRepo {
 				.limit(1)
 				.then(takeFirst)
 
-			return res
+			return res ? dto.CustomerDto.parse(res) : undefined
 		})
 	}
 
@@ -155,10 +156,7 @@ export class CustomerRepo {
 		})
 	}
 
-	async addPoints(
-		data: dto.CustomerAddPointsDto,
-		actorId: number,
-	): Promise<number | undefined> {
+	async addPoints(data: dto.CustomerAddPointsDto, actorId: number): Promise<number | undefined> {
 		return record('CustomerRepo.addPoints', async () => {
 			// Get current customer
 			const customer = await this.getById(data.customerId)
