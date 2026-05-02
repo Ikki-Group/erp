@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 

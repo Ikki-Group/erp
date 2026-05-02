@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 
 import { ConflictError, NotFoundError } from '@/core/http/errors'

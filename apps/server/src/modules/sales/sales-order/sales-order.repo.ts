@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
