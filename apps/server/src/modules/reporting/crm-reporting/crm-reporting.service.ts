@@ -4,7 +4,7 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { customersTable, customerLoyaltyTransactionsTable, customerTiersTable, salesOrdersTable } from '@/db/schema'
+import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } from '@/db/schema'
 
 import * as dto from './crm-reporting.dto'
 
@@ -14,7 +14,9 @@ export class CrmReportingService {
 		private readonly cacheClient: CacheClient,
 	) {}
 
-	async getCustomerGrowth(query: dto.CrmReportRequestDto): Promise<dto.CustomerGrowthChartResponseDto> {
+	async getCustomerGrowth(
+		query: dto.CrmReportRequestDto,
+	): Promise<dto.CustomerGrowthChartResponseDto> {
 		return record('CrmReportingService.getCustomerGrowth', async () => {
 			const { dateFrom, dateTo, locationId, tierId, groupBy = 'day' } = query
 
@@ -168,7 +170,9 @@ export class CrmReportingService {
 		})
 	}
 
-	async getLoyaltyPointsSummary(query: dto.CrmReportRequestDto): Promise<dto.LoyaltyPointsResponseDto> {
+	async getLoyaltyPointsSummary(
+		query: dto.CrmReportRequestDto,
+	): Promise<dto.LoyaltyPointsResponseDto> {
 		return record('CrmReportingService.getLoyaltyPointsSummary', async () => {
 			const { dateFrom, dateTo, locationId } = query
 
