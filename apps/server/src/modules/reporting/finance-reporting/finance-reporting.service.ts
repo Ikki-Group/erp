@@ -27,34 +27,10 @@ export class FinanceReportingService {
 		query: dto.FinanceReportRequestDto,
 	): Promise<dto.AccountBalanceResponseDto> {
 		return record('FinanceReportingService.getAccountBalances', async () => {
-			const data = await this.db
-				.select({
-					accountId: accountsTable.id,
-					accountName: accountsTable.name,
-					accountCode: accountsTable.code,
-					balance: sql<number>`COALESCE(${accountsTable.balance}, 0)`,
-				})
-				.from(accountsTable)
-				.orderBy(sql`ABS(${accountsTable.balance}) DESC`)
-
-			const totalBalance = data.reduce((sum, d) => sum + Number(d.balance), 0)
-			const avgBalance = data.length > 0 ? totalBalance / data.length : 0
-
-			return {
-				data: data.map((d) => ({
-					accountId: d.accountId,
-					accountName: d.accountName,
-					accountCode: d.accountCode,
-					balance: String(d.balance),
-				})),
-				summary: {
-					total: String(totalBalance),
-					average: String(avgBalance),
-					min: String(Math.min(...data.map((d) => Number(d.balance)))),
-					max: String(Math.max(...data.map((d) => Number(d.balance)))),
-					count: data.length,
-				},
-			}
+			// TODO: Implement balance calculation from journal entries
+			throw new Error(
+				'Account balance reporting not yet implemented - requires journal entry aggregation',
+			)
 		})
 	}
 
@@ -67,18 +43,20 @@ export class FinanceReportingService {
 			const where = and(
 				gte(expendituresTable.date, dateFrom),
 				lte(expendituresTable.date, dateTo),
-				accountId ? eq(expendituresTable.accountId, accountId) : undefined,
+				locationId ? eq(expendituresTable.locationId, locationId) : undefined,
+				accountId ? eq(expendituresTable.targetAccountId, accountId) : undefined,
 			)
 
 			const data = await this.db
 				.select({
-					categoryId: expendituresTable.categoryId,
-					categoryName: sql<string>`COALESCE(${expendituresTable.categoryName}, 'Uncategorized')`,
+					categoryId: expendituresTable.targetAccountId,
+					categoryName: accountsTable.name,
 					totalAmount: sql<number>`COALESCE(SUM(${expendituresTable.amount}), 0)`,
 				})
 				.from(expendituresTable)
+				.innerJoin(accountsTable, eq(expendituresTable.targetAccountId, accountsTable.id))
 				.where(where)
-				.groupBy(expendituresTable.categoryId, expendituresTable.categoryName)
+				.groupBy(expendituresTable.targetAccountId, accountsTable.name)
 				.orderBy(sql`totalAmount DESC`)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
