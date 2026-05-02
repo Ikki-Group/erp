@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } from '@/db/schema'
@@ -9,21 +8,18 @@ import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } fr
 import * as dto from './crm-reporting.dto'
 
 export class CrmReportingService {
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {}
+	constructor(private readonly db: DbClient) {}
 
 	async getCustomerGrowth(
 		query: dto.CrmReportRequestDto,
 	): Promise<dto.CustomerGrowthChartResponseDto> {
 		return record('CrmReportingService.getCustomerGrowth', async () => {
-			const { dateFrom, dateTo, locationId, tierId, groupBy = 'day' } = query
+			const { dateFrom, dateTo, tierId, groupBy = 'day' } = query
 
 			const where = and(
 				gte(customersTable.createdAt, dateFrom),
 				lte(customersTable.createdAt, dateTo),
-				tierId ? eq(customersTable.tierId, tierId) : undefined,
+				tierId ? eq(customersTable.tier, tierId) : undefined,
 			)
 
 			let dateTrunc: string
