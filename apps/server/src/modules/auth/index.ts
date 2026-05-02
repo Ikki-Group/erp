@@ -40,8 +40,7 @@ export function initAuthRouteModule(s: AuthServiceModule) {
 }
 
 export * from './login/login.dto'
-export * from './login/login.service'
+export type { LoginService } from './login/login.service'
 
 export * from './session/session.dto'
-export * from './session/session.repo'
-export * from './session/session.service'
+export type { SessionService } from './session/session.service'

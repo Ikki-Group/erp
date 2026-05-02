@@ -2,10 +2,15 @@ import { Elysia } from 'elysia'
 
 import type { DbClient } from '@/core/database'
 
+import { initCrmReportingRoute } from './crm-reporting/crm-reporting.route'
 import { CrmReportingService } from './crm-reporting/crm-reporting.service'
+import { initFinanceReportingRoute } from './finance-reporting/finance-reporting.route'
 import { FinanceReportingService } from './finance-reporting/finance-reporting.service'
+import { initInventoryReportingRoute } from './inventory-reporting/inventory-reporting.route'
 import { InventoryReportingService } from './inventory-reporting/inventory-reporting.service'
+import { initPaymentReportingRoute } from './payment-reporting/payment-reporting.route'
 import { PaymentReportingService } from './payment-reporting/payment-reporting.service'
+import { initSalesReportingRoute } from './sales-reporting/sales-reporting.route'
 import { SalesReportingService } from './sales-reporting/sales-reporting.service'
 
 export class ReportingServiceModule {
@@ -26,9 +31,11 @@ export class ReportingServiceModule {
 
 export function initReportingRouteModule(s: ReportingServiceModule) {
 	return new Elysia({ prefix: '/reporting' })
-		.use(s.sales.routes)
-		.use(s.finance.routes)
-		.use(s.inventory.routes)
-		.use(s.crm.routes)
-		.use(s.payment.routes)
+		.use(initSalesReportingRoute(s.sales))
+		.use(initFinanceReportingRoute(s.finance))
+		.use(initInventoryReportingRoute(s.inventory))
+		.use(initCrmReportingRoute(s.crm))
+		.use(initPaymentReportingRoute(s.payment))
 }
+
+export * from './reporting.dto'

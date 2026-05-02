@@ -12,10 +12,10 @@ import { initMaterialUomRoute } from './uom/uom.route'
 import { UomService } from './uom/uom.service'
 
 export class MaterialServiceModule {
-	public category: MaterialCategoryService
-	public uom: UomService
-	public location: MaterialLocationService
-	public master: MaterialService
+	public readonly category: MaterialCategoryService
+	public readonly uom: UomService
+	public readonly location: MaterialLocationService
+	public readonly master: MaterialService
 
 	constructor(locationMaster: LocationMasterService) {
 		this.category = new MaterialCategoryService()

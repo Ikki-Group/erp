@@ -14,9 +14,9 @@ import { initGeneralLedgerRoute } from './general-ledger/general-ledger.route'
 import { GeneralLedgerService } from './general-ledger/general-ledger.service'
 
 export class FinanceServiceModule {
-	public account: AccountService
-	public journal: GeneralLedgerService
-	public expenditure: ExpenditureService
+	public readonly account: AccountService
+	public readonly journal: GeneralLedgerService
+	public readonly expenditure: ExpenditureService
 
 	constructor(
 		private readonly db: DbClient,

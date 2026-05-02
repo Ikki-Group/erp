@@ -3,9 +3,9 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { CompanySettingsRepo } from './company-settings/company-settings.repo'
-import { initCompanySettingsRoute } from './company-settings/company-settings.route'
-import { CompanySettingsService } from './company-settings/company-settings.service'
+import { CompanySettingsRepo } from './settings/company-settings.repo'
+import { initCompanySettingsRoute } from './settings/company-settings.route'
+import { CompanySettingsService } from './settings/company-settings.service'
 
 export class CompanyServiceModule {
 	public readonly settings: CompanySettingsService
@@ -22,5 +22,5 @@ export function initCompanyRouteModule(service: CompanyServiceModule) {
 	return new Elysia({ prefix: '/company' }).use(settingsRouter)
 }
 
-export { CompanySettingsDto } from './company-settings/company-settings.dto'
-export { CompanySettingsService } from './company-settings/company-settings.service'
+export { CompanySettingsDto } from './settings/company-settings.dto'
+export { CompanySettingsService } from './settings/company-settings.service'

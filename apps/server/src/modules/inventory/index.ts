@@ -5,6 +5,10 @@ import type { DbClient } from '@/core/database'
 
 import type { MaterialServiceModule } from '@/modules/material'
 
+interface InventoryServiceModuleDeps {
+	material: MaterialServiceModule
+}
+
 import { StockAlertRepo } from './stock-alert/stock-alert.repo'
 import { initStockAlertRoute } from './stock-alert/stock-alert.route'
 import { StockAlertService } from './stock-alert/stock-alert.service'
@@ -31,7 +35,7 @@ export class InventoryServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		materialServiceModule: MaterialServiceModule,
+		private readonly deps: InventoryServiceModuleDeps,
 	) {
 		const transactionRepo = new StockTransactionRepo(this.db, this.cacheClient)
 		const summaryRepo = new StockSummaryRepo(this.db, this.cacheClient)
@@ -39,8 +43,8 @@ export class InventoryServiceModule {
 		const dashboardRepo = new StockDashboardRepo(this.db, this.cacheClient)
 		const stockTransferRepo = new StockTransferRepo(this.db, this.cacheClient)
 
-		this.transaction = new StockTransactionService(materialServiceModule.location, transactionRepo)
-		this.summary = new StockSummaryService(summaryRepo, materialServiceModule.location)
+		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
+		this.summary = new StockSummaryService(summaryRepo, this.deps.material.location)
 		this.alert = new StockAlertService(alertRepo)
 		this.dashboard = new StockDashboardService(dashboardRepo)
 		this.stockTransfer = new StockTransferService(stockTransferRepo)

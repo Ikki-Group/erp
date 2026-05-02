@@ -76,7 +76,7 @@ export function initModules(db: DbClient): Modules {
 	const auth = new AuthServiceModule(db, cacheClient, iam)
 
 	// Layer 2 — Operations
-	const inventory = new InventoryServiceModule(db, cacheClient, material)
+	const inventory = new InventoryServiceModule(db, cacheClient, { material })
 	const recipe = new RecipeServiceModule(db, cacheClient)
 	const sales = new SalesServiceModule(db, cacheClient)
 	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
@@ -84,10 +84,13 @@ export function initModules(db: DbClient): Modules {
 	const moka = new MokaServiceModule(db, cacheClient, { finance, logger })
 
 	// Layer 3 — Aggregators
-	const production = new ProductionServiceModule(db, cacheClient, recipe.recipe, inventory)
-	const hr = new HRServiceModule(db, cacheClient, finance)
-	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
-	const tool = new ToolServiceModule(db, iam, location, material, sales)
+	const production = new ProductionServiceModule(db, cacheClient, {
+		recipe: recipe.recipe,
+		inventory,
+	})
+	const hr = new HRServiceModule(db, cacheClient, { finance })
+	const dashboard = new DashboardServiceModule(db, cacheClient, { iam, location, finance, sales })
+	const tool = new ToolServiceModule(db, { iam, location, material, sales })
 	const payment = new PaymentServiceModule(db, cacheClient)
 	const reporting = new ReportingServiceModule(db)
 

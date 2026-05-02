@@ -7,6 +7,13 @@ import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
 import type { SalesServiceModule } from '@/modules/sales'
 
+interface ToolServiceModuleDeps {
+	iam: IamServiceModule
+	location: LocationServiceModule
+	material: MaterialServiceModule
+	sales: SalesServiceModule
+}
+
 import { initSeedRoute } from './seed/seed.route'
 import { SeedService } from './seed/seed.service'
 
@@ -15,12 +22,15 @@ export class ToolServiceModule {
 
 	constructor(
 		private readonly db: DbClient,
-		iamSvc: IamServiceModule,
-		locationSvc: LocationServiceModule,
-		materialSvc: MaterialServiceModule,
-		salesSvc: SalesServiceModule,
+		private readonly deps: ToolServiceModuleDeps,
 	) {
-		this.seed = new SeedService(this.db, iamSvc, locationSvc, materialSvc, salesSvc)
+		this.seed = new SeedService(
+			this.db,
+			this.deps.iam,
+			this.deps.location,
+			this.deps.material,
+			this.deps.sales,
+		)
 	}
 }
 
@@ -28,7 +38,5 @@ export function initToolRouteModule(module: ToolServiceModule) {
 	return new Elysia({ prefix: '/tool', detail: { tags: ['Tool'] } }).use(initSeedRoute(module.seed))
 }
 
-// Feature exports
 export * from './seed/seed.dto'
-export * from './seed/seed.service'
-export * from './seed/seed.route'
+export type { SeedService } from './seed/seed.service'

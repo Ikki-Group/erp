@@ -5,6 +5,10 @@ import type { DbClient } from '@/core/database'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 
+interface HRServiceModuleDeps {
+	finance: FinanceServiceModule
+}
+
 import { HRRepo } from './hr/hr.repo'
 import { initHRRoute } from './hr/hr.route'
 import { HRService } from './hr/hr.service'
@@ -23,14 +27,19 @@ export class HRServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		finance: FinanceServiceModule,
+		private readonly deps: HRServiceModuleDeps,
 	) {
 		const hrRepo = new HRRepo(this.db, this.cacheClient)
 		const payrollRepo = new PayrollRepo(this.db, this.cacheClient)
 		const leaveRequestRepo = new LeaveRequestRepo(this.db, this.cacheClient)
 
 		this.hr = new HRService(hrRepo)
-		this.payroll = new PayrollService(finance.account, finance.journal, payrollRepo, this.db)
+		this.payroll = new PayrollService(
+			this.deps.finance.account,
+			this.deps.finance.journal,
+			payrollRepo,
+			this.db,
+		)
 		this.leaveRequest = new LeaveRequestService(leaveRequestRepo)
 	}
 }
