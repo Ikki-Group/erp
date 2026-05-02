@@ -3,7 +3,6 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
