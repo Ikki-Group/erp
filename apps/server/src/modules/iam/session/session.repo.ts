@@ -1,19 +1,19 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, gt, isNull, lt } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
-	searchFilter,
-	sortBy,
-	type WithPaginationResult,
+	stampCreate,
+	takeFirst,
 	type DbClient,
+	type WithPaginationResult,
 } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { sessionsTable, usersTable } from '@/db/schema'
 
-import { SessionDto, SessionFilterDto, SessionSelectDto } from './session.dto'
+import * as dto from './session.dto'
 
 const SESSION_CACHE_NAMESPACE = 'iam.session'
 
@@ -60,14 +60,20 @@ export class SessionRepo {
 		})
 	}
 
-	async getListPaginated(filter: SessionFilterDto): Promise<WithPaginationResult<SessionSelectDto>> {
+	async getListPaginated(
+		filter: SessionFilterDto,
+	): Promise<WithPaginationResult<SessionSelectDto>> {
 		return record('SessionRepo.getListPaginated', async () => {
 			const { page, limit, userId, isActive } = filter
 			const now = new Date()
 
 			const where = and(
 				userId === undefined ? undefined : eq(sessionsTable.userId, userId),
-				isActive === undefined ? undefined : (isActive ? gt(sessionsTable.expiredAt, now) : lt(sessionsTable.expiredAt, now)),
+				isActive === undefined
+					? undefined
+					: isActive
+						? gt(sessionsTable.expiredAt, now)
+						: lt(sessionsTable.expiredAt, now),
 			)
 
 			return paginate({
@@ -164,12 +170,10 @@ export class SessionRepo {
 
 	async deleteMany(ids: number[]): Promise<number> {
 		return record('SessionRepo.deleteMany', async () => {
-			const result = await this.db
-				.delete(sessionsTable)
-				.where(
-					// @ts-ignore - drizzle doesn't support array in where directly, but this works
-					sessionsTable.id.in(ids),
-				)
+			const result = await this.db.delete(sessionsTable).where(
+				// @ts-ignore - drizzle doesn't support array in where directly, but this works
+				sessionsTable.id.in(ids),
+			)
 
 			this.#clearCacheAsync()
 			return result.rowCount ?? 0
@@ -178,9 +182,7 @@ export class SessionRepo {
 
 	async deleteByUserId(userId: number): Promise<number> {
 		return record('SessionRepo.deleteByUserId', async () => {
-			const result = await this.db
-				.delete(sessionsTable)
-				.where(eq(sessionsTable.userId, userId))
+			const result = await this.db.delete(sessionsTable).where(eq(sessionsTable.userId, userId))
 
 			this.#clearCacheAsync()
 			return result.rowCount ?? 0
@@ -201,9 +203,7 @@ export class SessionRepo {
 	async deleteExpired(): Promise<number> {
 		return record('SessionRepo.deleteExpired', async () => {
 			const now = new Date()
-			const result = await this.db
-				.delete(sessionsTable)
-				.where(lt(sessionsTable.expiredAt, now))
+			const result = await this.db.delete(sessionsTable).where(lt(sessionsTable.expiredAt, now))
 
 			this.#clearCacheAsync()
 			return result.rowCount ?? 0
