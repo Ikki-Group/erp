@@ -1,6 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { WithPaginationResult } from '@/core/types'
 import type { RecordId } from '@/core/validation'
 
 import { auditLogsTable } from '@/db/schema'
@@ -11,7 +12,8 @@ import { AuditLogRepo } from './audit-log.repo'
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Audit log with ID ${id} not found`, 'AUDIT_LOG_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Audit log creation failed', 'AUDIT_LOG_CREATE_FAILED'),
+	createFailed: () =>
+		new InternalServerError('Audit log creation failed', 'AUDIT_LOG_CREATE_FAILED'),
 }
 
 export class AuditLogService {
@@ -33,7 +35,7 @@ export class AuditLogService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: dto.AuditLogFilterDto): Promise<dto.WithPaginationResult<dto.AuditLogDto>> {
+	async handleList(filter: dto.AuditLogFilterDto): Promise<WithPaginationResult<dto.AuditLogDto>> {
 		return record('AuditLogService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 			return result
