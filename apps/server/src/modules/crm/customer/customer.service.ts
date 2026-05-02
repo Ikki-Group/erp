@@ -94,7 +94,10 @@ export class CustomerService {
 				table: customersTable,
 				pkColumn: customersTable.id,
 				fields: uniqueFields,
-				input: data,
+				input: { code: data.code, name: data.name, phone: data.phone } as Record<
+					'code' | 'name' | 'phone',
+					unknown
+				>,
 			})
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
@@ -114,8 +117,11 @@ export class CustomerService {
 				table: customersTable,
 				pkColumn: customersTable.id,
 				fields: uniqueFields,
-				input: data,
-				existing,
+				input: { code: data.code, name: data.name, phone: data.phone } as Record<
+					'code' | 'name' | 'phone',
+					unknown
+				>,
+				existing: { id, code: existing.code, name: existing.name, phone: existing.phone },
 			})
 
 			const result = await this.repo.update(data, actorId)
