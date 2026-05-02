@@ -121,7 +121,12 @@ export class CustomerService {
 					'code' | 'name' | 'phone',
 					unknown
 				>,
-				existing: { id, code: existing.code, name: existing.name, phone: existing.phone },
+				existing: {
+					id,
+					code: (existing as dto.CustomerDto).code,
+					name: (existing as dto.CustomerDto).name,
+					phone: (existing as dto.CustomerDto).phone,
+				},
 			})
 
 			const result = await this.repo.update(data, actorId)
