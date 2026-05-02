@@ -1,10 +1,22 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { NotFoundError } from '@/core/http/errors'
+import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
+
+import { purchaseOrdersTable } from '@/db/schema'
 
 import type * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'
+
+const err = {
+	notFound: (id: number) =>
+		new NotFoundError(`Purchase Order with ID ${id} not found`, 'PURCHASE_ORDER_NOT_FOUND'),
+	invalidStatus: (currentStatus: string) =>
+		new InternalServerError(
+			`Cannot approve/reject PO with status ${currentStatus}`,
+			'INVALID_PO_STATUS',
+		),
+}
 
 export class PurchaseOrderService {
 	constructor(private readonly repo: PurchaseOrderRepo) {}
@@ -14,11 +26,7 @@ export class PurchaseOrderService {
 	async getById(id: number): Promise<dto.PurchaseOrderDto> {
 		return record('PurchaseOrderService.getById', async () => {
 			const order = await this.repo.getById(id)
-			if (!order)
-				throw new NotFoundError(
-					`Purchase Order with ID ${id} not found`,
-					'PURCHASE_ORDER_NOT_FOUND',
-				)
+			if (!order) throw err.notFound(id)
 			return order
 		})
 	}
@@ -60,6 +68,54 @@ export class PurchaseOrderService {
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleHardRemove', async () => {
 			return this.repo.hardDelete(id)
+		})
+	}
+
+	async handleSubmitForApproval(
+		data: dto.PurchaseOrderSubmitForApprovalDto,
+		actorId: number,
+	): Promise<{ id: number }> {
+		return record('PurchaseOrderService.handleSubmitForApproval', async () => {
+			const { id } = data
+			const order = await this.repo.getById(id)
+			if (!order) throw err.notFound(id)
+
+			// Can only submit for approval if status is 'open'
+			if (order.status !== 'open') {
+				throw err.invalidStatus(order.status)
+			}
+
+			return this.repo.updateStatus(id, 'pending_approval', actorId)
+		})
+	}
+
+	async handleApprove(data: dto.PurchaseOrderApproveDto, actorId: number): Promise<{ id: number }> {
+		return record('PurchaseOrderService.handleApprove', async () => {
+			const { id } = data
+			const order = await this.repo.getById(id)
+			if (!order) throw err.notFound(id)
+
+			// Can only approve if status is 'pending_approval'
+			if (order.status !== 'pending_approval') {
+				throw err.invalidStatus(order.status)
+			}
+
+			return this.repo.updateStatus(id, 'approved', actorId)
+		})
+	}
+
+	async handleReject(data: dto.PurchaseOrderRejectDto, actorId: number): Promise<{ id: number }> {
+		return record('PurchaseOrderService.handleReject', async () => {
+			const { id } = data
+			const order = await this.repo.getById(id)
+			if (!order) throw err.notFound(id)
+
+			// Can only reject if status is 'pending_approval'
+			if (order.status !== 'pending_approval') {
+				throw err.invalidStatus(order.status)
+			}
+
+			return this.repo.updateStatus(id, 'rejected', actorId)
 		})
 	}
 }

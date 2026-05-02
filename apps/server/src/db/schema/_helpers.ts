@@ -127,7 +127,14 @@ export const purchaseRequestStatusEnum = pgEnum('purchase_request_status', [
 	'void',
 ])
 
-export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', ['open', 'closed', 'void'])
+export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', [
+	'pending_approval',
+	'approved',
+	'rejected',
+	'open',
+	'closed',
+	'void',
+])
 
 export const goodsReceiptStatusEnum = pgEnum('goods_receipt_status', ['open', 'completed', 'void'])
 
