@@ -26,7 +26,10 @@ export const CompanySettingsCreateDto = z.object({
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	email: zc.strTrim.email().optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(50).optional().or(z.literal('')),
-	taxRate: zp.decimal.min(0).max(100).default(0),
+	taxRate: zc.strTrim
+		.optional()
+		.or(z.literal(''))
+		.pipe(z.coerce.number().min(0).max(100).default(0)),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
@@ -43,7 +46,10 @@ export const CompanySettingsUpdateDto = z.object({
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	email: zc.strTrim.email().optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(50).optional().or(z.literal('')),
-	taxRate: zp.decimal.min(0).max(100).optional(),
+	taxRate: zc.strTrim
+		.optional()
+		.or(z.literal(''))
+		.pipe(z.coerce.number().min(0).max(100).optional()),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
