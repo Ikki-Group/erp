@@ -175,11 +175,16 @@ export class PaymentReportingService {
 	}
 
 	get routes() {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 		const { Elysia } = require('elysia')
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { authPluginMacro } = require('@/core/http/auth-macro')
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { res } = require('@/core/http/response')
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		const { createSuccessResponseSchema } = require('@/core/validation')
 
+		// eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
 		return new Elysia({ prefix: '/payment' })
 			.use(authPluginMacro)
 			.get(
