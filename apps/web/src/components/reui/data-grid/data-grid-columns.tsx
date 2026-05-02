@@ -146,7 +146,7 @@ export function menuColumn<TData>(opts: {
 	size?: number
 	label?: string
 	icon?: ReactNode
-}): ColumnDef<TData, unknown> {
+}): ColumnDef<TData> {
 	return {
 		id: opts.id ?? 'action',
 		header: '',
@@ -171,7 +171,7 @@ export function actionColumn<TData>(opts: {
 	cell: (props: CellContext<TData, unknown>) => ReactNode
 	size?: number
 	id?: string
-}): ColumnDef<TData, unknown> {
+}): ColumnDef<TData> {
 	return {
 		id: opts.id ?? 'action',
 		header: '',

@@ -22,8 +22,9 @@ const TABS = [
 
 function RouteComponent() {
 	const { pathname } = useLocation()
+
 	return (
-		<Page>
+		<Page size="full">
 			<Page.BlockHeader
 				title="Pengaturan"
 				description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."

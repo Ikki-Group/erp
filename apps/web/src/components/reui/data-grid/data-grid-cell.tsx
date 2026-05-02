@@ -135,6 +135,7 @@ export interface CellMenuProps extends CellBaseProps {
 	items: CellMenuItem[]
 	label?: string
 	icon?: React.ReactNode
+	contentClassName?: string
 }
 
 /* -------------------------------------------------------------------------- */
@@ -284,29 +285,36 @@ export function CellActions({ children, className }: CellActionsProps) {
 }
 
 /** Dropdown menu cell with items array (button, link, or separator). */
-export function CellMenu({ items, label, icon, className }: CellMenuProps) {
+export function CellMenu({ items, label, icon, className, contentClassName }: CellMenuProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				className={cn('flex items-center justify-center', className)}
 				aria-label={label ?? 'Menu'}
-			>
-				<Button variant="ghost" size="icon-sm">
-					{icon ?? <MoreHorizontalIcon />}
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
+				render={
+					<Button variant="ghost" size="icon-sm">
+						{icon ?? <MoreHorizontalIcon />}
+					</Button>
+				}
+			/>
+
+			<DropdownMenuContent align="end" className={cn('w-52 space-y-1.5', contentClassName)}>
 				{items.map((item, i) => {
 					if (item.type === 'separator') return <DropdownMenuSeparator key={i} />
 
 					if (item.type === 'link') {
 						return (
-							<DropdownMenuItem key={i} disabled={item.disabled}>
-								<Link to={item.to} className="flex items-center gap-2 w-full">
-									{item.icon}
-									<span>{item.label}</span>
-								</Link>
-							</DropdownMenuItem>
+							<DropdownMenuItem
+								key={i}
+								disabled={item.disabled}
+								nativeButton={false}
+								render={
+									<Link to={item.to} className="flex items-center gap-2 w-full">
+										{item.icon}
+										<span>{item.label}</span>
+									</Link>
+								}
+							/>
 						)
 					}
 
@@ -318,7 +326,7 @@ export function CellMenu({ items, label, icon, className }: CellMenuProps) {
 							onClick={item.onClick}
 						>
 							{item.icon}
-							<span>{item.label}</span>
+							<span className="text-nowrap">{item.label}</span>
 						</DropdownMenuItem>
 					)
 				})}

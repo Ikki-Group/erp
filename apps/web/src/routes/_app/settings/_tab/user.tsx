@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { KeyRoundIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon, ZoomInIcon } from 'lucide-react'
+import { KeyRoundIcon, PencilIcon, Trash2Icon, ZoomInIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -16,19 +17,14 @@ import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Badge } from '@/components/reui/badge'
 import {
-	createColumnHelper,
-	dateColumn,
-	customColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+	CellDate,
+	CellLabelDesc,
+	CellMenu,
+	CellText,
+} from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
 	Popover,
 	PopoverContent,
@@ -56,136 +52,6 @@ function RouteComponent() {
 	)
 }
 
-const ch = createColumnHelper<UserDetailDto>()
-
-function getColumns(onRemove: (user: UserDetailDto) => void) {
-	return [
-		ch.accessor(
-			'fullname',
-			customColumn({
-				header: 'Nama',
-				cell: (value, row) => (
-					<Link to="/settings/user/$id" params={{ id: String(row.id) }}>
-						<div className="flex flex-col gap-1 py-0.5 min-w-0">
-							<span className="font-semibold text-sm tracking-tight hover:text-primary hover:underline truncate">
-								{value}
-							</span>
-							<span className="text-muted-foreground italic text-xs truncate">{row.email}</span>
-						</div>
-					</Link>
-				),
-				size: 200,
-				enableSorting: false,
-			}),
-		),
-		ch.accessor('isActive', {
-			header: 'Aktif',
-			cell: ({ row }) => <BadgeDot {...getUserStatusBadge(row.original.isActive)} />,
-		}),
-		ch.accessor('username', {
-			header: 'Username',
-			cell: ({ row }) => <span className="text-muted-foreground">@{row.original.username}</span>,
-			enableSorting: false,
-		}),
-		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
-		ch.accessor('assignments', {
-			header: 'Penugasan',
-			cell: ({ row }) => {
-				const { isRoot, assignments } = row.original
-				if (isRoot) return <Badge variant="secondary">Super Admin</Badge>
-
-				if (!assignments?.length) {
-					return <span className="text-muted-foreground italic text-xs">Belum ada penugasan</span>
-				}
-
-				return (
-					<div className="flex items-center gap-2">
-						<span className="text-xs font-medium">{assignments.length} Penugasan</span>
-						<Popover>
-							<PopoverTrigger render={<Button variant="ghost" size="icon-xs" className="size-6" />}>
-								<ZoomInIcon />
-							</PopoverTrigger>
-							<PopoverContent className="w-64 p-0 gap-0" side="right">
-								<PopoverHeader className="px-3 py-2 border-b bg-muted/50">
-									<PopoverTitle className="text-xs font-semibold">Daftar Penugasan</PopoverTitle>
-									<PopoverDescription className="text-[11px]">
-										Detail role dan lokasi pengguna
-									</PopoverDescription>
-								</PopoverHeader>
-								<div className="space-y-2 max-h-60 overflow-auto p-3">
-									{assignments.map((a, i) => (
-										<div
-											key={i}
-											className="flex flex-col gap-0.5 border-b last:border-0 pb-1.5 last:pb-0"
-										>
-											<div className="flex items-center justify-between gap-2">
-												<span className="font-semibold text-xs truncate">{a.role.name}</span>
-												{a.isDefault && (
-													<Badge variant="outline" className="h-4 px-1 text-[10px]">
-														Default
-													</Badge>
-												)}
-											</div>
-											<span className="text-muted-foreground text-[11px] truncate">
-												{a.location.name}
-											</span>
-										</div>
-									))}
-								</div>
-							</PopoverContent>
-						</Popover>
-					</div>
-				)
-			},
-			size: 150,
-			enableSorting: false,
-		}),
-		ch.display({
-			id: 'action',
-			cell: ({ row }) => {
-				const { id, username } = row.original
-				return (
-					<div className="flex items-center justify-end px-2">
-						<DropdownMenu>
-							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-40">
-								<DropdownMenuItem
-									nativeButton={false}
-									render={<Link to="/settings/user/$id" params={{ id: String(id) }} />}
-								>
-									<PencilIcon className="mr-2" />
-									Edit
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => {
-										UserPasswordDialog.call({ id, username })
-									}}
-									className="text-nowrap"
-								>
-									<KeyRoundIcon className="mr-2" />
-									Ubah Password
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => onRemove(row.original)}
-									className="text-nowrap"
-								>
-									<Trash2Icon className="mr-2" />
-									Hapus
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				)
-			},
-			size: 60,
-		}),
-	]
-}
-
 function UserTable() {
 	const ds = useDataTableState<{ isActive?: boolean }>()
 	const { data, isLoading } = useQuery(
@@ -196,25 +62,30 @@ function UserTable() {
 		mutationFn: userApi.remove.mutationFn,
 	})
 
-	const handleRemove = async (user: UserDetailDto) => {
-		await ConfirmDialog.call({
-			title: 'Hapus Pengguna',
-			description: `Apakah Anda yakin ingin menghapus pengguna "${user.fullname ?? user.username}"? Tindakan ini tidak dapat dibatalkan.`,
-			variant: 'destructive',
-			confirmLabel: 'Hapus Pengguna',
-			confirmValidationText: user.username,
-			onConfirm: async () => {
-				await toast
-					.promise(remove.mutateAsync({ body: { id: user.id } }), {
-						...toastLabelMessage('delete', 'pengguna'),
+	const columns = useMemo(
+		() =>
+			getColumns({
+				onRemove: (user) => {
+					ConfirmDialog.call({
+						title: 'Hapus Pengguna',
+						description: `Apakah Anda yakin ingin menghapus pengguna "${user.fullname ?? user.username}"? Tindakan ini tidak dapat dibatalkan.`,
+						variant: 'destructive',
+						confirmLabel: 'Hapus Pengguna',
+						confirmValidationText: user.username,
+						onConfirm: async () => {
+							await toast
+								.promise(
+									remove.mutateAsync({ body: { id: user.id } }),
+									toastLabelMessage('delete', 'pengguna'),
+								)
+								.unwrap()
+						},
 					})
-					.unwrap()
-			},
-		})
-	}
+				},
+			}),
+		[remove.mutateAsync],
+	)
 
-	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-	const columns = useMemo(() => getColumns((u: UserDetailDto) => handleRemove(u)), [handleRemove])
 	const table = useDataTable({
 		columns,
 		data: data?.data ?? [],
@@ -258,4 +129,120 @@ function UserTable() {
 			}
 		/>
 	)
+}
+
+interface GetColumnsProps {
+	onRemove: (user: UserDetailDto) => void
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<UserDetailDto>[] {
+	return [
+		{
+			accessorKey: 'fullname',
+			header: 'Nama',
+			size: 200,
+			cell: ({ row }) => {
+				const { email, fullname } = row.original
+				return <CellLabelDesc label={fullname} desc={email} />
+			},
+		},
+		{
+			accessorKey: 'isActive',
+			header: 'Aktif',
+			cell: ({ row }) => <BadgeDot {...getUserStatusBadge(row.original.isActive)} />,
+		},
+		{
+			accessorKey: 'username',
+			header: 'Username',
+			cell: ({ row }) => <CellText value={`@${row.original.username}`} />,
+		},
+		{
+			accessorKey: 'assignments',
+			size: 150,
+			enableSorting: false,
+			header: 'Penugasan',
+			cell: ({ row }) => {
+				const { isRoot, assignments } = row.original
+				if (isRoot) return <Badge variant="secondary">Super Admin</Badge>
+				if (!assignments?.length) {
+					return <CellText value="Belum ada penugasan" />
+				}
+				return (
+					<div className="flex items-center gap-2">
+						<CellText value={`${assignments.length} Penugasan`} />
+						<Popover>
+							<PopoverTrigger render={<Button variant="ghost" size="icon-xs" className="size-6" />}>
+								<ZoomInIcon />
+							</PopoverTrigger>
+							<PopoverContent className="w-64 p-0 gap-0" side="right">
+								<PopoverHeader className="px-3 py-2 border-b bg-muted/50">
+									<PopoverTitle className="text-xs font-semibold">Daftar Penugasan</PopoverTitle>
+									<PopoverDescription className="text-[11px]">
+										Detail role dan lokasi pengguna
+									</PopoverDescription>
+								</PopoverHeader>
+								<div className="space-y-2 max-h-60 overflow-auto p-3">
+									{assignments.map((a, i) => (
+										<div
+											key={i}
+											className="flex flex-col gap-0.5 border-b last:border-0 pb-1.5 last:pb-0"
+										>
+											<div className="flex items-center justify-between gap-2">
+												<p className="font-medium">{a.location.name}</p>
+												{a.isDefault && (
+													<Badge variant="outline" className="h-4 px-1 text-[10px]">
+														Default
+													</Badge>
+												)}
+											</div>
+											<p className="text-muted-foreground text-[11px]">{a.role.name}</p>
+										</div>
+									))}
+								</div>
+							</PopoverContent>
+						</Popover>
+					</div>
+				)
+			},
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
+			id: 'action',
+			size: 60,
+			cell: ({ row }) => {
+				const { id, username } = row.original
+				return (
+					<CellMenu
+						items={[
+							{
+								type: 'link',
+								label: 'Edit',
+								icon: <PencilIcon className="mr-2" />,
+								to: `/settings/user/${id}`,
+							},
+							{
+								type: 'button',
+								label: 'Ubah Password',
+								icon: <KeyRoundIcon className="mr-2" />,
+								onClick: () => {
+									UserPasswordDialog.call({ id, username })
+								},
+							},
+							{
+								type: 'button',
+								label: 'Hapus',
+								variant: 'destructive',
+								icon: <Trash2Icon className="mr-2" />,
+								onClick: () => onRemove(row.original),
+							},
+						]}
+					/>
+				)
+			},
+		},
+	]
 }
