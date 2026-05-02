@@ -110,7 +110,7 @@ export class CustomerService {
 		return record('CustomerService.handleUpdate', async () => {
 			const { id } = data
 
-			const existing: dto.CustomerDto = await this.repo.getById(id)
+			const existing = await this.repo.getById(id)
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
