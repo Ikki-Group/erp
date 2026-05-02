@@ -20,7 +20,7 @@ export class FinanceReportingService {
 	}
 
 	async getAccountBalances(
-		query: dto.FinanceReportRequestDto,
+		_query: dto.FinanceReportRequestDto,
 	): Promise<dto.AccountBalanceResponseDto> {
 		return record('FinanceReportingService.getAccountBalances', async () => {
 			// TODO: Implement balance calculation from journal entries
