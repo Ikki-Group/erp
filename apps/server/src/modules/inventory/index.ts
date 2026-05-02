@@ -17,12 +17,16 @@ import { StockSummaryService } from './stock-summary/stock-summary.service'
 import { StockTransactionRepo } from './stock-transaction/stock-transaction.repo'
 import { initStockTransactionRoute } from './stock-transaction/stock-transaction.route'
 import { StockTransactionService } from './stock-transaction/stock-transaction.service'
+import { StockTransferRepo } from './stock-transfer/stock-transfer.repo'
+import { initStockTransferRoute } from './stock-transfer/stock-transfer.route'
+import { StockTransferService } from './stock-transfer/stock-transfer.service'
 
 export class InventoryServiceModule {
 	public readonly transaction: StockTransactionService
 	public readonly summary: StockSummaryService
 	public readonly alert: StockAlertService
 	public readonly dashboard: StockDashboardService
+	public readonly stockTransfer: StockTransferService
 
 	constructor(
 		private readonly db: DbClient,
@@ -33,11 +37,13 @@ export class InventoryServiceModule {
 		const summaryRepo = new StockSummaryRepo(this.db, this.cacheClient)
 		const alertRepo = new StockAlertRepo(this.db, this.cacheClient)
 		const dashboardRepo = new StockDashboardRepo(this.db, this.cacheClient)
+		const stockTransferRepo = new StockTransferRepo(this.db, this.cacheClient)
 
 		this.transaction = new StockTransactionService(materialServiceModule.location, transactionRepo)
 		this.summary = new StockSummaryService(summaryRepo, materialServiceModule.location)
 		this.alert = new StockAlertService(alertRepo)
 		this.dashboard = new StockDashboardService(dashboardRepo)
+		this.stockTransfer = new StockTransferService(stockTransferRepo)
 	}
 }
 
@@ -47,6 +53,7 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 		.use(initStockSummaryRoute(s.summary))
 		.use(initStockAlertRoute(s.alert))
 		.use(initStockDashboardRoute(s.dashboard))
+		.use(initStockTransferRoute(s.stockTransfer))
 }
 
 export type { StockTransactionService } from './stock-transaction/stock-transaction.service'
