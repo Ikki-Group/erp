@@ -22,7 +22,7 @@ export class CrmReportingService {
 				tierId ? eq(customersTable.tier, tierId) : undefined,
 			)
 
-			let dateTrunc: string
+			let dateTrunc
 			switch (groupBy) {
 				case 'day':
 					dateTrunc = sql`DATE(${customersTable.createdAt})`
@@ -63,7 +63,7 @@ export class CrmReportingService {
 			})
 
 			return {
-				chartType: 'line',
+				chartType: 'line' as const,
 				data: dataWithTotal,
 				summary: {
 					total: String(totalNewCustomers),
@@ -209,7 +209,7 @@ export class CrmReportingService {
 			.use(authPluginMacro)
 			.get(
 				'/customer-growth',
-				async ({ query }) => {
+				async ({ query }: { query: dto.CrmReportRequestDto }) => {
 					const result = await this.getCustomerGrowth(query)
 					return res.ok(result)
 				},
@@ -221,7 +221,7 @@ export class CrmReportingService {
 			)
 			.get(
 				'/customers-by-tier',
-				async ({ query }) => {
+				async ({ query }: { query: dto.CrmReportRequestDto }) => {
 					const result = await this.getCustomersByTier(query)
 					return res.ok(result)
 				},
@@ -233,7 +233,7 @@ export class CrmReportingService {
 			)
 			.get(
 				'/top-customers',
-				async ({ query }) => {
+				async ({ query }: { query: dto.CrmReportRequestDto }) => {
 					const result = await this.getTopCustomers(query)
 					return res.ok(result)
 				},
@@ -245,7 +245,7 @@ export class CrmReportingService {
 			)
 			.get(
 				'/loyalty-points',
-				async ({ query }) => {
+				async ({ query }: { query: dto.CrmReportRequestDto }) => {
 					const result = await this.getLoyaltyPointsSummary(query)
 					return res.ok(result)
 				},
