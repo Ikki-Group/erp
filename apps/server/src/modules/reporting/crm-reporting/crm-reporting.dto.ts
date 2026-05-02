@@ -2,7 +2,14 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
 
-import { DateRangeDto, ReportRequestDto, ChartDataPointDto, TimeSeriesDataPointDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
+import {
+	DateRangeDto,
+	ReportRequestDto,
+	ChartDataPointDto,
+	TimeSeriesDataPointDto,
+	ReportSummaryDto,
+	ChartTypeDto,
+} from '../reporting.dto'
 
 /** Customer growth data */
 export const CustomerGrowthDto = z.object({
@@ -32,11 +39,11 @@ export const TopCustomerDto = z.object({
 export type TopCustomerDto = z.infer<typeof TopCustomerDto>
 
 /** Loyalty points summary */
-export const LoyaltyPointsSummaryDto = z.object{
+export const LoyaltyPointsSummaryDto = z.object({
 	totalPointsIssued: zp.decimal,
 	totalPointsRedeemed: zp.decimal,
 	pointsBalance: zp.decimal,
-}
+})
 export type LoyaltyPointsSummaryDto = z.infer<typeof LoyaltyPointsSummaryDto>
 
 /** CRM report request */
