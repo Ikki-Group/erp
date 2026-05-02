@@ -5,7 +5,7 @@ import type { DbClient } from '@/core/database'
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
-import type { ProductServiceModule } from '@/modules/product'
+import type { SalesServiceModule } from '@/modules/sales'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 
@@ -14,8 +14,8 @@ export class SeedService {
 		private readonly db: DbClient,
 		private readonly iamSvc: IamServiceModule,
 		private readonly locationSvc: LocationServiceModule,
-		private readonly productSvc: ProductServiceModule,
 		private readonly materialSvc: MaterialServiceModule,
+		private readonly salesSvc: SalesServiceModule,
 	) {}
 
 	async seed(): Promise<void> {
@@ -77,7 +77,7 @@ export class SeedService {
 				)
 
 				// 4. Seed Sales Types
-				await this.productSvc.salesType.seed(
+				await this.salesSvc.salesType.seed(
 					SEED_CONFIG.SALES_TYPES.map((st) => ({
 						code: st.code,
 						name: st.name,

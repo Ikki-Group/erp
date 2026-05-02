@@ -51,8 +51,6 @@ const product = {
 	category: crud('product/category'),
 }
 
-const salesType = crud('sales-type')
-
 const recipe = crud('recipe')
 
 const inventory = {
@@ -114,9 +112,9 @@ const moka = {
 
 const production = {
 	workOrder: {
-		...crud('production/work-order'),
-		start: 'production/work-order/start',
-		complete: 'production/work-order/complete',
+		...crud('production/work-orders'),
+		start: 'production/work-orders/start',
+		complete: 'production/work-orders/complete',
 	},
 }
 
@@ -141,8 +139,15 @@ const sales = {
 const supplier = crud('supplier')
 
 const payment = {
-	...crud('payment'),
-	invoices: 'payment/invoices',
+	method: {
+		...crud('payment/method'),
+		enabled: 'payment/method/enabled',
+		seed: 'payment/method/seed',
+	},
+	transaction: {
+		...crud('payment/transaction'),
+		invoices: 'payment/transaction/invoices',
+	},
 }
 
 export const endpoint = {

@@ -13,7 +13,7 @@ import * as dto from './payment.dto'
 import type { PaymentService } from './payment.service'
 
 export function initPaymentRoute(service: PaymentService) {
-	return new Elysia()
+	return new Elysia({ prefix: '/transaction' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
@@ -41,7 +41,11 @@ export function initPaymentRoute(service: PaymentService) {
 				const result = await service.getPaymentInvoices(query.id)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.PaymentInvoiceDto.array()), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(dto.PaymentInvoiceDto.array()),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',

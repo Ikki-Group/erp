@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -13,7 +14,7 @@ import * as dto from './payment-method.dto'
 import type { PaymentMethodConfigService } from './payment-method.service'
 
 export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
-	return new Elysia()
+	return new Elysia({ prefix: '/method' })
 		.use(authPluginMacro)
 		.get(
 			'/list',
@@ -85,6 +86,6 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 				await service.seedDefault(auth.userId)
 				return res.ok({ message: 'Payment methods seeded successfully' })
 			},
-			{ response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ response: createSuccessResponseSchema(z.object({ message: z.string() })), auth: true },
 		)
 }

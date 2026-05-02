@@ -76,7 +76,7 @@ export function initModules(db: DbClient): Modules {
 	const production = new ProductionServiceModule(db, cacheClient, recipe.recipe, inventory)
 	const hr = new HRServiceModule(db, cacheClient, finance)
 	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
-	const tool = new ToolServiceModule(db, iam, location, product, material)
+	const tool = new ToolServiceModule(db, iam, location, material, sales)
 	const payment = new PaymentServiceModule(db, cacheClient)
 
 	return {

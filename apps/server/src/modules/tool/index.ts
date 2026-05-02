@@ -5,7 +5,7 @@ import type { DbClient } from '@/core/database'
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { MaterialServiceModule } from '@/modules/material'
-import type { ProductServiceModule } from '@/modules/product'
+import type { SalesServiceModule } from '@/modules/sales'
 
 import { initSeedRoute } from './seed/seed.route'
 import { SeedService } from './seed/seed.service'
@@ -17,10 +17,10 @@ export class ToolServiceModule {
 		private readonly db: DbClient,
 		iamSvc: IamServiceModule,
 		locationSvc: LocationServiceModule,
-		productSvc: ProductServiceModule,
 		materialSvc: MaterialServiceModule,
+		salesSvc: SalesServiceModule,
 	) {
-		this.seed = new SeedService(this.db, iamSvc, locationSvc, productSvc, materialSvc)
+		this.seed = new SeedService(this.db, iamSvc, locationSvc, materialSvc, salesSvc)
 	}
 }
 
