@@ -20,8 +20,8 @@ export const CustomerDto = z.object({
 	taxId: zp.strNullable,
 	dateOfBirth: zp.dateNullable,
 	tier: CustomerTierDto,
-	pointsBalance: zc.numberInt,
-	totalPointsEarned: zc.numberInt,
+	pointsBalance: zp.id,
+	totalPointsEarned: zp.id,
 	registeredAt: zp.date,
 	lastVisitAt: zp.dateNullable,
 	...zc.AuditBasic.shape,
@@ -62,12 +62,12 @@ export type CustomerFilterDto = z.infer<typeof CustomerFilterDto>
 /** Loyalty transaction DTO */
 export const CustomerLoyaltyTransactionDto = z.object({
 	...zc.RecordId.shape,
-	customerId: zc.numberInt,
+	customerId: zp.id,
 	type: LoyaltyTransactionTypeDto,
-	points: zc.numberInt,
-	balanceAfter: zc.numberInt,
+	points: zp.id,
+	balanceAfter: zp.id,
 	referenceType: zp.strNullable,
-	referenceId: zc.numberInt.nullable(),
+	referenceId: zp.id.nullable(),
 	description: zp.strNullable,
 	...zc.AuditBasic.shape,
 })
@@ -75,21 +75,21 @@ export type CustomerLoyaltyTransactionDto = z.infer<typeof CustomerLoyaltyTransa
 
 /** Add points to customer */
 export const CustomerAddPointsDto = z.object({
-	customerId: zc.numberInt,
-	points: zc.numberInt.min(1).max(100000),
+	customerId: zp.id,
+	points: zp.id.min(1).max(100000),
 	description: zc.strTrim.min(5).max(255),
 	referenceType: zp.str.optional(),
-	referenceId: zc.numberInt.optional(),
+	referenceId: zp.id.optional(),
 })
 export type CustomerAddPointsDto = z.infer<typeof CustomerAddPointsDto>
 
 /** Redeem points for discount */
 export const CustomerRedeemPointsDto = z.object({
-	customerId: zc.numberInt,
-	points: zc.numberInt.min(1).max(100000),
+	customerId: zp.id,
+	points: zp.id.min(1).max(100000),
 	description: zc.strTrim.min(5).max(255),
 	referenceType: zp.str.optional(),
-	referenceId: zc.numberInt.optional(),
+	referenceId: zp.id.optional(),
 })
 export type CustomerRedeemPointsDto = z.infer<typeof CustomerRedeemPointsDto>
 

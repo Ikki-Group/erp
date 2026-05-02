@@ -10,9 +10,9 @@ export type SalesInvoiceStatusDto = z.infer<typeof SalesInvoiceStatusDto>
 
 export const SalesInvoiceDto = z.object({
 	...zc.RecordId.shape,
-	orderId: zc.numberInt,
-	customerId: zc.numberInt.nullable(),
-	locationId: zc.numberInt,
+	orderId: zp.id,
+	customerId: zp.id.nullable(),
+	locationId: zp.id,
 	status: SalesInvoiceStatusDto,
 	invoiceDate: zp.date,
 	dueDate: zp.dateNullable,
@@ -26,12 +26,12 @@ export type SalesInvoiceDto = z.infer<typeof SalesInvoiceDto>
 
 export const SalesInvoiceItemDto = z.object({
 	...zc.RecordId.shape,
-	invoiceId: zc.numberInt,
-	salesOrderItemId: zc.numberInt.nullable(),
-	productId: zc.numberInt.nullable(),
-	variantId: zc.numberInt.nullable(),
+	invoiceId: zp.id,
+	salesOrderItemId: zp.id.nullable(),
+	productId: zp.id.nullable(),
+	variantId: zp.id.nullable(),
 	itemName: zp.str,
-	quantity: zc.numberDecimal,
+	quantity: zp.decimal,
 	unitPrice: zc.numberCurrency,
 	taxAmount: zc.numberCurrency,
 	discountAmount: zc.numberCurrency,
@@ -47,8 +47,8 @@ export const SalesInvoiceWithItemsDto = z.object({
 export type SalesInvoiceWithItemsDto = z.infer<typeof SalesInvoiceWithItemsDto>
 
 export const SalesInvoiceCreateDto = z.object({
-	orderId: zc.numberInt,
-	customerId: zc.numberInt.optional(),
+	orderId: zp.id,
+	customerId: zp.id.optional(),
 	dueDate: zp.date.optional(),
 	notes: zc.strTrim.min(5).max(1000).optional().or(z.literal('')),
 })
@@ -65,8 +65,8 @@ export type SalesInvoiceUpdateDto = z.infer<typeof SalesInvoiceUpdateDto>
 export const SalesInvoiceFilterDto = z.object({
 	q: zq.search,
 	status: SalesInvoiceStatusDto.optional(),
-	customerId: zc.numberInt.optional(),
-	locationId: zc.numberInt.optional(),
+	customerId: zp.id.optional(),
+	locationId: zp.id.optional(),
 	fromDate: zp.date.optional(),
 	toDate: zp.date.optional(),
 	...zq.pagination.shape,
@@ -75,8 +75,8 @@ export type SalesInvoiceFilterDto = z.infer<typeof SalesInvoiceFilterDto>
 
 /** Generate invoice from sales order */
 export const SalesInvoiceGenerateDto = z.object({
-	orderId: zc.numberInt,
-	customerId: zc.numberInt.optional(),
+	orderId: zp.id,
+	customerId: zp.id.optional(),
 	dueDate: zp.date.optional(),
 	notes: zc.strTrim.min(5).max(1000).optional().or(z.literal('')),
 })

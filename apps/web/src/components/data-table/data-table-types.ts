@@ -42,7 +42,7 @@ export interface DataTablePagination {
 /** Extra filters provided by consumer */
 export type DataTableFilters = Record<string, unknown>
 
-export interface DataTableState<F extends DataTableFilters = Record<string, never>> {
+export interface DataTableState<F extends DataTableFilters = DataTableFilters> {
 	pagination: DataTablePagination
 	setPagination: OnChangeFn<DataTablePagination>
 
