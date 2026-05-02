@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { WithPaginationResult } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database'
 import { zc, zp, zq } from '@/core/validation'
 
 import { auditActionEnum } from '@/db/schema'
