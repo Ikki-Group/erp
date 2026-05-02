@@ -56,7 +56,7 @@ export class CrmReportingService {
 				cumulative += d.newCustomers
 				runningTotal.push(cumulative)
 				return {
-					date: d.date as string,
+					date: d.date as unknown as Date,
 					newCustomers: d.newCustomers,
 					totalCustomers: cumulative,
 				}
@@ -146,13 +146,15 @@ export class CrmReportingService {
 
 			return {
 				chartType: 'bar' as const,
-				data: data.map((d) => ({
-					customerId: d.customerId,
-					customerName: d.customerName,
-					email: d.email,
-					totalSpent: String(d.totalSpent),
-					orderCount: d.orderCount,
-				})),
+				data: data
+					.filter((d) => d.customerId !== null)
+					.map((d) => ({
+						customerId: d.customerId,
+						customerName: d.customerName,
+						email: d.email,
+						totalSpent: String(d.totalSpent),
+						orderCount: d.orderCount,
+					})),
 				summary: {
 					total: String(totalSpent),
 					average: String(avgSpent),
