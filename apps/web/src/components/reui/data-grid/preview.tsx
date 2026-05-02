@@ -1,4 +1,12 @@
-import { UserIcon, ShoppingCartIcon, SettingsIcon, LogOutIcon } from 'lucide-react'
+import {
+	EyeIcon,
+	PencilIcon,
+	Trash2Icon,
+	UserIcon,
+	ShoppingCartIcon,
+	SettingsIcon,
+	LogOutIcon,
+} from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -14,6 +22,8 @@ import {
 	CellAction,
 	CellActionLink,
 	CellActions,
+	CellMenu,
+	type CellMenuItem,
 } from './data-grid-cell'
 
 export function DataGridCellPreview() {
@@ -117,6 +127,36 @@ export function DataGridCellPreview() {
 					</CellActions>
 					<div className="h-8 w-px bg-border" />
 					<CellActionLink to="/" label="Go Home" variant="link" />
+				</div>
+			</section>
+
+			<section className="space-y-4">
+				<h3 className="text-lg font-bold border-b pb-2">Menu / Dropdown</h3>
+				<div className="flex gap-4 p-4 bg-background rounded-lg border">
+					<CellMenu
+						items={[
+							{
+								type: 'link',
+								label: 'Lihat Detail',
+								icon: <EyeIcon className="size-3.5" />,
+								to: '/',
+							},
+							{
+								type: 'button',
+								label: 'Edit',
+								icon: <PencilIcon className="size-3.5" />,
+								onClick: () => {},
+							},
+							{ type: 'separator' },
+							{
+								type: 'button',
+								label: 'Hapus',
+								icon: <Trash2Icon className="size-3.5" />,
+								variant: 'destructive',
+								onClick: () => {},
+							},
+						]}
+					/>
 				</div>
 			</section>
 		</div>

@@ -35,6 +35,8 @@ export const reuiRegistry: ComponentRegistry = {
 				'CellAction',
 				'CellActionLink',
 				'CellActions',
+				'CellMenu',
+				'CellMenuItem',
 				'CellBadgeGroup',
 				'CellProgress',
 				'CellTrend',

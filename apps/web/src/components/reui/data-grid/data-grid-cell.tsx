@@ -2,7 +2,13 @@ import * as React from 'react'
 
 import { Link, type LinkProps } from '@tanstack/react-router'
 
-import { CheckIcon, TrendingDownIcon, TrendingUpIcon, XIcon } from 'lucide-react'
+import {
+	CheckIcon,
+	MoreHorizontalIcon,
+	TrendingDownIcon,
+	TrendingUpIcon,
+	XIcon,
+} from 'lucide-react'
 
 import { toCurrency, toDate, toDateTimeStamp, toNumber } from '@/lib/formatter'
 import { cn } from '@/lib/utils'
@@ -11,6 +17,13 @@ import { Badge } from '@/components/reui/badge'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Progress } from '@/components/ui/progress'
 
 /* -------------------------------------------------------------------------- */
@@ -104,6 +117,24 @@ export interface CellActionLinkProps extends CellBaseProps {
 
 export interface CellActionsProps extends CellBaseProps {
 	children: React.ReactNode
+}
+
+export type CellMenuItem =
+	| {
+			type: 'button'
+			label: string
+			icon?: React.ReactNode
+			onClick?: () => void
+			disabled?: boolean
+			variant?: 'default' | 'destructive'
+	  }
+	| { type: 'link'; label: string; icon?: React.ReactNode; to: string; disabled?: boolean }
+	| { type: 'separator' }
+
+export interface CellMenuProps extends CellBaseProps {
+	items: CellMenuItem[]
+	label?: string
+	icon?: React.ReactNode
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,6 +281,50 @@ export function CellActionLink({
 /** Container for multiple actions. */
 export function CellActions({ children, className }: CellActionsProps) {
 	return <div className={cn('flex items-center gap-1', className)}>{children}</div>
+}
+
+/** Dropdown menu cell with items array (button, link, or separator). */
+export function CellMenu({ items, label, icon, className }: CellMenuProps) {
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				className={cn('flex items-center justify-center', className)}
+				aria-label={label ?? 'Menu'}
+			>
+				<Button variant="ghost" size="icon-sm">
+					{icon ?? <MoreHorizontalIcon />}
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				{items.map((item, i) => {
+					if (item.type === 'separator') return <DropdownMenuSeparator key={i} />
+
+					if (item.type === 'link') {
+						return (
+							<DropdownMenuItem key={i} disabled={item.disabled}>
+								<Link to={item.to} className="flex items-center gap-2 w-full">
+									{item.icon}
+									<span>{item.label}</span>
+								</Link>
+							</DropdownMenuItem>
+						)
+					}
+
+					return (
+						<DropdownMenuItem
+							key={i}
+							variant={item.variant}
+							disabled={item.disabled}
+							onClick={item.onClick}
+						>
+							{item.icon}
+							<span>{item.label}</span>
+						</DropdownMenuItem>
+					)
+				})}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
 }
 
 /** Badge group with overflow count. */
