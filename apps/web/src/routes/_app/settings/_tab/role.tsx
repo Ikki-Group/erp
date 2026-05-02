@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -13,6 +13,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
+import { CellMenu } from '@/components/reui/data-grid/data-grid-cell'
 import {
 	createColumnHelper,
 	dateColumn,
@@ -21,12 +22,6 @@ import {
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 import { roleApi } from '@/features/iam'
 import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
@@ -80,39 +75,39 @@ function RolesTable() {
 			ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
 			ch.display({
 				id: 'action',
+				header: '',
+				size: 60,
+				enableSorting: false,
+				enableHiding: false,
+				enableResizing: false,
+				enablePinning: true,
 				cell: ({ row }) => {
 					if (row.original.isSystem) return null
 					return (
-						<div className="flex items-center justify-end px-2">
-							<DropdownMenu>
-								<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-									<MoreHorizontalIcon />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-36">
-									<DropdownMenuItem
-										onClick={() => {
-											void RoleFormDialog.call({ id: row.original.id })
-										}}
-									>
-										<PencilIcon className="mr-2" />
-										Edit
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() => handleRemove(row.original)}
-									>
-										<Trash2Icon className="mr-2" />
-										Hapus
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
+						<CellMenu
+							items={[
+								{
+									type: 'button',
+									label: 'Edit',
+									icon: <PencilIcon />,
+									onClick: () => {
+										void RoleFormDialog.call({ id: row.original.id })
+									},
+								},
+								{
+									type: 'button',
+									label: 'Hapus',
+									variant: 'destructive',
+									icon: <Trash2Icon />,
+									onClick: () => handleRemove(row.original),
+								},
+							]}
+						/>
 					)
 				},
 			}),
 		],
-		// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-		[remove],
+		[handleRemove],
 	)
 	const table = useDataTable({
 		columns,
