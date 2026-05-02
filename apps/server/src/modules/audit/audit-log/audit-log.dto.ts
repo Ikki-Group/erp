@@ -38,7 +38,7 @@ export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
 
 export const AuditLogFilterDto = z.object({
 	q: zq.search,
-	action: AuditActionDto.nullish(),
+	action: z.nullish(AuditActionDto),
 	entityType: zp.str.optional(),
 	userId: zp.id.optional(),
 	fromDate: zp.date.optional(),
