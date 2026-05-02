@@ -3,26 +3,21 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
-import { SparklesIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import z from 'zod'
 
-import { toCodeCase } from '@/lib/formatter'
 import { toastLabelMessage } from '@/lib/toast-message'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm } from '@/components/form'
 import { Page } from '@/components/layout/page'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-
 import { locationApi } from '../api'
 import type { LocationDto } from '../dto'
 
 const FormDto = z.object({
 	name: z.string().min(1),
-	code: z.string().min(3),
+	code: z.string().optional().nullable(),
 	type: z.enum(['store', 'warehouse']),
 	address: z.string().optional().nullable(),
 	phone: z.string().optional().nullable(),
@@ -35,7 +30,7 @@ type FormDto = z.infer<typeof FormDto>
 function getDefaultValues(v?: LocationDto): FormDto {
 	return {
 		name: v?.name ?? '',
-		code: v?.code ?? '',
+		code: v?.code ?? null,
 		type: v?.type ?? 'store',
 		address: v?.address ?? '',
 		phone: v?.phone ?? '',
@@ -67,9 +62,9 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 		onSubmit: async ({ value }) => {
 			const payload = {
 				name: value.name,
-				code: value.code,
 				type: value.type,
 				isActive: value.isActive,
+				code: value.code ?? null,
 				address: value.address ?? null,
 				phone: value.phone ?? null,
 				description: value.description ?? null,
@@ -102,43 +97,26 @@ export function LocationFormPage({ mode, id, backTo }: LocationFormPageProps) {
 										<field.Input label="Nama Lokasi" required placeholder="Nama Lokasi" />
 									)}
 								</form.AppField>
-								<form.AppField name="code">
-									{(field) => (
-										<field.Base label="Kode Lokasi" required>
-											<div className="flex gap-2">
-												<field.Control>
-													<Input
-														placeholder="Kode Lokasi"
-														value={field.state.value}
-														onChange={(e) => field.handleChange(e.target.value)}
-														onBlur={field.handleBlur}
-														className="uppercase"
-													/>
-												</field.Control>
-												<form.Subscribe selector={(s) => s.values.name}>
-													{(name) => {
-														const canGenerate = (name?.length ?? 0) > 3
-														return (
-															<Button
-																type="button"
-																variant="outline"
-																size="icon-sm"
-																className="shrink-0"
-																onClick={() => {
-																	field.handleChange(toCodeCase(name || ''))
-																}}
-																disabled={!canGenerate}
-																title="Generate kode dari nama"
-															>
-																<SparklesIcon />
-															</Button>
-														)
-													}}
-												</form.Subscribe>
-											</div>
-										</field.Base>
-									)}
-								</form.AppField>
+								{/* NOTE: code field hidden — now nullable on backend */}
+								{/*
+							<form.AppField name="code">
+								{(field) => (
+									<field.Base label="Kode Lokasi">
+										<div className="flex gap-2">
+											<field.Control>
+												<Input
+													placeholder="Kode Lokasi"
+													value={field.state.value}
+													onChange={(e) => field.handleChange(e.target.value)}
+													onBlur={field.handleBlur}
+													className="uppercase"
+												/>
+											</field.Control>
+										</div>
+									</field.Base>
+								)}
+							</form.AppField>
+							*/}
 								<form.AppField name="type">
 									{(field) => (
 										<field.Select

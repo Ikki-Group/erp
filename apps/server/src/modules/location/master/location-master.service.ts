@@ -10,13 +10,7 @@ import { locationsTable } from '@/db/schema'
 import * as dto from './location-master.dto'
 import { LocationMasterRepo } from './location-master.repo'
 
-const uniqueFields: ConflictField<'code' | 'name'>[] = [
-	{
-		field: 'code',
-		column: locationsTable.code,
-		message: 'Location code already exists',
-		code: 'LOCATION_CODE_ALREADY_EXISTS',
-	},
+const uniqueFields: ConflictField<'name'>[] = [
 	{
 		field: 'name',
 		column: locationsTable.name,
