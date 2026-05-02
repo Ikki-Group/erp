@@ -168,7 +168,7 @@ export class SessionRepo {
 	async deleteMany(ids: number[]): Promise<void> {
 		return record('SessionRepo.deleteMany', async () => {
 			await this.db.delete(sessionsTable).where(
-				// @ts-ignore - drizzle doesn't support array in where directly, but this works
+				// @ts-expect-error - drizzle doesn't support array in where directly, but this works
 				sessionsTable.id.in(ids),
 			)
 

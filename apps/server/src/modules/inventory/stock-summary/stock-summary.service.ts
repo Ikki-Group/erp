@@ -66,7 +66,7 @@ export class StockSummaryService {
 
 			const materialIds = assignments.map((a) => a.materialId)
 
-			return await db.transaction(async (tx) => {
+			return  db.transaction(async (tx) => {
 				const prevSummariesQuery = sql`
 					SELECT DISTINCT ON ("materialId") "materialId", "closingQty", "closingAvgCost"
 					FROM ${stockSummariesTable}

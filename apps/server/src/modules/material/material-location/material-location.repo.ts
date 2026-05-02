@@ -58,7 +58,7 @@ export class MaterialLocationRepo {
 					return {
 						...result,
 						minStock: result.minStock,
-						maxStock: result.maxStock ? result.maxStock : null,
+						maxStock: result.maxStock ?? (null),
 						reorderPoint: result.reorderPoint,
 						currentQty: result.currentQty,
 						currentAvgCost: result.currentAvgCost,
@@ -86,7 +86,7 @@ export class MaterialLocationRepo {
 					return results.map((r) =>
 						Object.assign({}, r, {
 							minStock: r.minStock,
-							maxStock: r.maxStock ? r.maxStock : null,
+							maxStock: r.maxStock ?? (null),
 							reorderPoint: r.reorderPoint,
 							currentQty: r.currentQty,
 							currentAvgCost: r.currentAvgCost,
@@ -115,7 +115,7 @@ export class MaterialLocationRepo {
 					return results.map((r) =>
 						Object.assign({}, r, {
 							minStock: r.minStock,
-							maxStock: r.maxStock ? r.maxStock : null,
+							maxStock: r.maxStock ?? (null),
 							reorderPoint: r.reorderPoint,
 							currentQty: r.currentQty,
 							currentAvgCost: r.currentAvgCost,
@@ -146,7 +146,7 @@ export class MaterialLocationRepo {
 					return assignments.map((row) =>
 						Object.assign({}, row.assignment, {
 							minStock: row.assignment.minStock,
-							maxStock: row.assignment.maxStock ? row.assignment.maxStock : null,
+							maxStock: row.assignment.maxStock ?? (null),
 							reorderPoint: row.assignment.reorderPoint,
 							currentQty: row.assignment.currentQty,
 							currentAvgCost: row.assignment.currentAvgCost,
@@ -211,7 +211,7 @@ export class MaterialLocationRepo {
 			const data = result.data.map((stock) => ({
 				...stock,
 				minStock: stock.minStock,
-				maxStock: stock.maxStock ? stock.maxStock : null,
+				maxStock: stock.maxStock ?? (null),
 				reorderPoint: stock.reorderPoint,
 				currentQty: stock.currentQty,
 				currentAvgCost: stock.currentAvgCost,

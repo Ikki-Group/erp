@@ -5,7 +5,7 @@ import type { DbClient } from '@/core/database'
 import * as dto from './inventory-reporting.dto'
 
 export class InventoryReportingService {
-	constructor(_db: DbClient) {}
+	
 
 	async getStockLevels(_query: dto.InventoryReportRequestDto): Promise<dto.StockLevelResponseDto> {
 		return record('InventoryReportingService.getStockLevels', async () => {

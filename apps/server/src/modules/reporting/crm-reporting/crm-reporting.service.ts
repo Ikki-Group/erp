@@ -56,7 +56,7 @@ export class CrmReportingService {
 				cumulative += d.newCustomers
 				runningTotal.push(cumulative)
 				return {
-					date: d.date as unknown as Date,
+					date: d.date as Date,
 					newCustomers: d.newCustomers,
 					totalCustomers: cumulative,
 				}
@@ -185,8 +185,8 @@ export class CrmReportingService {
 				.from(customerLoyaltyTransactionsTable)
 				.where(where)
 
-			const pointsIssued = data[0]?.pointsIssued || 0
-			const pointsRedeemed = data[0]?.pointsRedeemed || 0
+			const pointsIssued = data[0]?.pointsIssued ?? 0
+			const pointsRedeemed = data[0]?.pointsRedeemed ?? 0
 			const pointsBalance = pointsIssued - pointsRedeemed
 
 			return {

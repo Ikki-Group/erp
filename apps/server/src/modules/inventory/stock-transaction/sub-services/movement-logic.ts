@@ -83,7 +83,7 @@ export class MovementLogic {
 					referenceNo,
 					notes: notes ?? null,
 					qty: qtyDec.toString() as any,
-					// @ts-ignore
+					// @ts-expect-error
 					unitCost: currentAvgCost.toString(),
 					totalCost: totalCost.toString(),
 					counterpartLocationId: counterpartLocationId ?? null,

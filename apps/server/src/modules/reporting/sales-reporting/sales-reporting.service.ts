@@ -58,7 +58,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					date: d.date as string,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount as number,
+					orderCount: d.orderCount,
 				})),
 				summary: {
 					total: String(totalRevenue),
@@ -149,7 +149,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					locationId: d.locationId,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount as number,
+					orderCount: d.orderCount,
 				})),
 				summary: {
 					total: String(totalRevenue),
@@ -190,7 +190,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					salesTypeId: d.salesTypeId,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount as number,
+					orderCount: d.orderCount,
 					percentage: totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
 				})),
 				summary: {
