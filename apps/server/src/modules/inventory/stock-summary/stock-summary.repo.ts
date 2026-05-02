@@ -16,6 +16,7 @@ import {
 	sum,
 } from 'drizzle-orm'
 
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import {
 	CACHE_KEY_DEFAULT,
 	cacheEventBus,
