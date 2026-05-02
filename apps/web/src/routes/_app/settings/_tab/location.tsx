@@ -28,7 +28,9 @@ import type { LocationDto } from '@/features/location'
 import { locationApi } from '@/features/location'
 import type { LocationTypeDto } from '@/features/location/dto'
 
-export const Route = createFileRoute('/_app/settings/_tab/location')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/settings/_tab/location')({
+	component: RouteComponent,
+})
 
 function RouteComponent() {
 	return (

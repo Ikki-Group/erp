@@ -37,8 +37,6 @@ import { Route as ExamplesLayoutsTwoRouteImport } from './routes/examples/layout
 import { Route as ExamplesLayoutsOneRouteImport } from './routes/examples/layouts/one'
 import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
 import { Route as AppSettingsAuditTrailRouteImport } from './routes/_app/settings/audit-trail'
-import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
-import { Route as AppSettingsSplatRouteImport } from './routes/_app/settings/$'
 import { Route as AppSalesPosRouteImport } from './routes/_app/sales/pos'
 import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
 import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoices'
@@ -73,14 +71,15 @@ import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/ac
 import { Route as AppAnalyticsSalesRouteImport } from './routes/_app/analytics/sales'
 import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
 import { Route as AppAnalyticsFinanceRouteImport } from './routes/_app/analytics/finance'
+import { Route as AppSettingsTabRouteRouteImport } from './routes/_app/settings/_tab/route'
 import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
 import { Route as AppLocationIdIndexRouteImport } from './routes/_app/location/$id/index'
 import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
-import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user.create'
-import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
-import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
-import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
-import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
+import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user/create'
+import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user/$id'
+import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab/user'
+import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab/role'
+import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab/location'
 import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
 import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
 import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
@@ -237,16 +236,6 @@ const DocsDocsLayerRoute = DocsDocsLayerRouteImport.update({
 const AppSettingsAuditTrailRoute = AppSettingsAuditTrailRouteImport.update({
   id: '/settings/audit-trail',
   path: '/settings/audit-trail',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppSettingsTabRoute = AppSettingsTabRouteImport.update({
-  id: '/settings/_tab',
-  path: '/settings',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppSettingsSplatRoute = AppSettingsSplatRouteImport.update({
-  id: '/settings/$',
-  path: '/settings/$',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesPosRoute = AppSalesPosRouteImport.update({
@@ -419,6 +408,11 @@ const AppAnalyticsFinanceRoute = AppAnalyticsFinanceRouteImport.update({
   path: '/analytics/finance',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsTabRouteRoute = AppSettingsTabRouteRouteImport.update({
+  id: '/settings/_tab',
+  path: '/settings',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMaterialIdIndexRoute = AppMaterialIdIndexRouteImport.update({
   id: '/material/$id/',
   path: '/material/$id/',
@@ -448,17 +442,17 @@ const AppSettingsUserIdRoute = AppSettingsUserIdRouteImport.update({
 const AppSettingsTabUserRoute = AppSettingsTabUserRouteImport.update({
   id: '/user',
   path: '/user',
-  getParentRoute: () => AppSettingsTabRoute,
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppSettingsTabRoleRoute = AppSettingsTabRoleRouteImport.update({
   id: '/role',
   path: '/role',
-  getParentRoute: () => AppSettingsTabRoute,
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
   id: '/location',
   path: '/location',
-  getParentRoute: () => AppSettingsTabRoute,
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppReportsSalesRevenueRoute = AppReportsSalesRevenueRouteImport.update({
   id: '/reports/sales/revenue',
@@ -568,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
+  '/settings': typeof AppSettingsTabRouteRouteWithChildren
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/analytics/sales': typeof AppAnalyticsSalesRoute
@@ -602,8 +597,6 @@ export interface FileRoutesByFullPath {
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
   '/sales/pos': typeof AppSalesPosRoute
-  '/settings/$': typeof AppSettingsSplatRoute
-  '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
   '/docs/$layer': typeof DocsDocsLayerRoute
   '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
@@ -657,6 +650,7 @@ export interface FileRoutesByTo {
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
+  '/settings': typeof AppSettingsTabRouteRouteWithChildren
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
   '/analytics/sales': typeof AppAnalyticsSalesRoute
@@ -691,8 +685,6 @@ export interface FileRoutesByTo {
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
   '/sales/pos': typeof AppSalesPosRoute
-  '/settings/$': typeof AppSettingsSplatRoute
-  '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
   '/docs/$layer': typeof DocsDocsLayerRoute
   '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
@@ -750,6 +742,7 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/settings/_tab': typeof AppSettingsTabRouteRouteWithChildren
   '/_app/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/_app/analytics/production': typeof AppAnalyticsProductionRoute
   '/_app/analytics/sales': typeof AppAnalyticsSalesRoute
@@ -784,8 +777,6 @@ export interface FileRoutesById {
   '/_app/sales/invoices': typeof AppSalesInvoicesRoute
   '/_app/sales/orders': typeof AppSalesOrdersRoute
   '/_app/sales/pos': typeof AppSalesPosRoute
-  '/_app/settings/$': typeof AppSettingsSplatRoute
-  '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/settings/audit-trail': typeof AppSettingsAuditTrailRoute
   '/_docs/docs/$layer': typeof DocsDocsLayerRoute
   '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
@@ -841,6 +832,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/login'
     | '/examples/page-new'
+    | '/settings'
     | '/analytics/finance'
     | '/analytics/production'
     | '/analytics/sales'
@@ -875,8 +867,6 @@ export interface FileRouteTypes {
     | '/sales/invoices'
     | '/sales/orders'
     | '/sales/pos'
-    | '/settings/$'
-    | '/settings'
     | '/settings/audit-trail'
     | '/docs/$layer'
     | '/examples/layouts/one'
@@ -930,6 +920,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/login'
     | '/examples/page-new'
+    | '/settings'
     | '/analytics/finance'
     | '/analytics/production'
     | '/analytics/sales'
@@ -964,8 +955,6 @@ export interface FileRouteTypes {
     | '/sales/invoices'
     | '/sales/orders'
     | '/sales/pos'
-    | '/settings/$'
-    | '/settings'
     | '/settings/audit-trail'
     | '/docs/$layer'
     | '/examples/layouts/one'
@@ -1022,6 +1011,7 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/examples/page-new'
     | '/_app/'
+    | '/_app/settings/_tab'
     | '/_app/analytics/finance'
     | '/_app/analytics/production'
     | '/_app/analytics/sales'
@@ -1056,8 +1046,6 @@ export interface FileRouteTypes {
     | '/_app/sales/invoices'
     | '/_app/sales/orders'
     | '/_app/sales/pos'
-    | '/_app/settings/$'
-    | '/_app/settings/_tab'
     | '/_app/settings/audit-trail'
     | '/_docs/docs/$layer'
     | '/examples/layouts/one'
@@ -1325,20 +1313,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsAuditTrailRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/settings/_tab': {
-      id: '/_app/settings/_tab'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsTabRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/settings/$': {
-      id: '/_app/settings/$'
-      path: '/settings/$'
-      fullPath: '/settings/$'
-      preLoaderRoute: typeof AppSettingsSplatRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/sales/pos': {
       id: '/_app/sales/pos'
       path: '/sales/pos'
@@ -1577,6 +1551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnalyticsFinanceRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/settings/_tab': {
+      id: '/_app/settings/_tab'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsTabRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/material/$id/': {
       id: '/_app/material/$id/'
       path: '/material/$id'
@@ -1617,21 +1598,21 @@ declare module '@tanstack/react-router' {
       path: '/user'
       fullPath: '/settings/user'
       preLoaderRoute: typeof AppSettingsTabUserRouteImport
-      parentRoute: typeof AppSettingsTabRoute
+      parentRoute: typeof AppSettingsTabRouteRoute
     }
     '/_app/settings/_tab/role': {
       id: '/_app/settings/_tab/role'
       path: '/role'
       fullPath: '/settings/role'
       preLoaderRoute: typeof AppSettingsTabRoleRouteImport
-      parentRoute: typeof AppSettingsTabRoute
+      parentRoute: typeof AppSettingsTabRouteRoute
     }
     '/_app/settings/_tab/location': {
       id: '/_app/settings/_tab/location'
       path: '/location'
       fullPath: '/settings/location'
       preLoaderRoute: typeof AppSettingsTabLocationRouteImport
-      parentRoute: typeof AppSettingsTabRoute
+      parentRoute: typeof AppSettingsTabRouteRoute
     }
     '/_app/reports/sales/revenue': {
       id: '/_app/reports/sales/revenue'
@@ -1762,25 +1743,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppSettingsTabRouteChildren {
+interface AppSettingsTabRouteRouteChildren {
   AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
   AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
   AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
 }
 
-const AppSettingsTabRouteChildren: AppSettingsTabRouteChildren = {
+const AppSettingsTabRouteRouteChildren: AppSettingsTabRouteRouteChildren = {
   AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
   AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
   AppSettingsTabUserRoute: AppSettingsTabUserRoute,
 }
 
-const AppSettingsTabRouteWithChildren = AppSettingsTabRoute._addFileChildren(
-  AppSettingsTabRouteChildren,
-)
+const AppSettingsTabRouteRouteWithChildren =
+  AppSettingsTabRouteRoute._addFileChildren(AppSettingsTabRouteRouteChildren)
 
 interface AppRouteRouteChildren {
   AppSplatRoute: typeof AppSplatRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppSettingsTabRouteRoute: typeof AppSettingsTabRouteRouteWithChildren
   AppAnalyticsFinanceRoute: typeof AppAnalyticsFinanceRoute
   AppAnalyticsProductionRoute: typeof AppAnalyticsProductionRoute
   AppAnalyticsSalesRoute: typeof AppAnalyticsSalesRoute
@@ -1815,8 +1796,6 @@ interface AppRouteRouteChildren {
   AppSalesInvoicesRoute: typeof AppSalesInvoicesRoute
   AppSalesOrdersRoute: typeof AppSalesOrdersRoute
   AppSalesPosRoute: typeof AppSalesPosRoute
-  AppSettingsSplatRoute: typeof AppSettingsSplatRoute
-  AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppSettingsAuditTrailRoute: typeof AppSettingsAuditTrailRoute
   AppLocationIndexRoute: typeof AppLocationIndexRoute
   AppMaterialIndexRoute: typeof AppMaterialIndexRoute
@@ -1851,6 +1830,7 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSplatRoute: AppSplatRoute,
   AppIndexRoute: AppIndexRoute,
+  AppSettingsTabRouteRoute: AppSettingsTabRouteRouteWithChildren,
   AppAnalyticsFinanceRoute: AppAnalyticsFinanceRoute,
   AppAnalyticsProductionRoute: AppAnalyticsProductionRoute,
   AppAnalyticsSalesRoute: AppAnalyticsSalesRoute,
@@ -1885,8 +1865,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSalesInvoicesRoute: AppSalesInvoicesRoute,
   AppSalesOrdersRoute: AppSalesOrdersRoute,
   AppSalesPosRoute: AppSalesPosRoute,
-  AppSettingsSplatRoute: AppSettingsSplatRoute,
-  AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppSettingsAuditTrailRoute: AppSettingsAuditTrailRoute,
   AppLocationIndexRoute: AppLocationIndexRoute,
   AppMaterialIndexRoute: AppMaterialIndexRoute,

@@ -39,7 +39,9 @@ import { userApi } from '@/features/iam'
 import { UserPasswordDialog } from '@/features/iam/components/user-password-dialog'
 import { getUserStatusBadge } from '@/features/iam/utils'
 
-export const Route = createFileRoute('/_app/settings/_tab/user')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/settings/_tab/user')({
+	component: RouteComponent,
+})
 
 function RouteComponent() {
 	return (
