@@ -19,7 +19,7 @@ export class CrmReportingService {
 			const where = and(
 				gte(customersTable.createdAt, dateFrom),
 				lte(customersTable.createdAt, dateTo),
-				tierId ? eq(customersTable.tier, tierId) : undefined,
+				tierId ? eq(customersTable.tier, tierId as any) : undefined,
 			)
 
 			let dateTrunc
@@ -78,7 +78,7 @@ export class CrmReportingService {
 
 	async getCustomersByTier(query: dto.CrmReportRequestDto): Promise<dto.CustomerByTierResponseDto> {
 		return record('CrmReportingService.getCustomersByTier', async () => {
-			const { dateFrom, dateTo, locationId } = query
+			const { dateFrom, dateTo } = query
 
 			const where = and(
 				dateFrom ? gte(customersTable.createdAt, dateFrom) : undefined,
@@ -87,22 +87,21 @@ export class CrmReportingService {
 
 			const data = await this.db
 				.select({
-					tierId: customersTable.tierId,
-					tierName: sql<string>`COALESCE(${customerTiersTable.name}, 'No Tier')`,
+					tier: customersTable.tier,
+					tierName: sql<string>`${customersTable.tier}`,
 					customerCount: sql<number>`COUNT(*)`,
 				})
 				.from(customersTable)
-				.leftJoin(customerTiersTable, eq(customersTable.tierId, customerTiersTable.id))
 				.where(where)
-				.groupBy(customersTable.tierId, customerTiersTable.name)
+				.groupBy(customersTable.tier)
 				.orderBy(sql`customerCount DESC`)
 
 			const totalCustomers = data.reduce((sum, d) => sum + d.customerCount, 0)
 
 			return {
-				chartType: 'pie',
+				chartType: 'pie' as const,
 				data: data.map((d) => ({
-					tierId: d.tierId,
+					tierId: d.tier as any,
 					tierName: d.tierName,
 					customerCount: d.customerCount,
 					percentage: totalCustomers > 0 ? String((d.customerCount / totalCustomers) * 100) : '0',
@@ -120,12 +119,11 @@ export class CrmReportingService {
 
 	async getTopCustomers(query: dto.CrmReportRequestDto): Promise<dto.TopCustomersResponseDto> {
 		return record('CrmReportingService.getTopCustomers', async () => {
-			const { dateFrom, dateTo, locationId, tierId } = query
+			const { dateFrom, dateTo, tierId: _tierId } = query
 
 			const where = and(
-				dateFrom ? gte(salesOrdersTable.date, dateFrom) : undefined,
-				dateTo ? lte(salesOrdersTable.date, dateTo) : undefined,
-				locationId ? eq(salesOrdersTable.locationId, locationId) : undefined,
+				dateFrom ? gte(salesOrdersTable.transactionDate, dateFrom) : undefined,
+				dateTo ? lte(salesOrdersTable.transactionDate, dateTo) : undefined,
 			)
 
 			const data = await this.db
@@ -147,7 +145,7 @@ export class CrmReportingService {
 			const avgSpent = data.length > 0 ? totalSpent / data.length : 0
 
 			return {
-				chartType: 'bar',
+				chartType: 'bar' as const,
 				data: data.map((d) => ({
 					customerId: d.customerId,
 					customerName: d.customerName,
@@ -170,11 +168,11 @@ export class CrmReportingService {
 		query: dto.CrmReportRequestDto,
 	): Promise<dto.LoyaltyPointsResponseDto> {
 		return record('CrmReportingService.getLoyaltyPointsSummary', async () => {
-			const { dateFrom, dateTo, locationId } = query
+			const { dateFrom, dateTo } = query
 
 			const where = and(
-				dateFrom ? gte(customerLoyaltyTransactionsTable.date, dateFrom) : undefined,
-				dateTo ? lte(customerLoyaltyTransactionsTable.date, dateTo) : undefined,
+				dateFrom ? gte(customerLoyaltyTransactionsTable.createdAt, dateFrom) : undefined,
+				dateTo ? lte(customerLoyaltyTransactionsTable.createdAt, dateTo) : undefined,
 			)
 
 			const data = await this.db
