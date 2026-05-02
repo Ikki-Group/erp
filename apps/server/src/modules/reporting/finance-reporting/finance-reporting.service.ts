@@ -4,7 +4,7 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { accountsTable, expendituresTable, generalLedgerTable } from '@/db/schema'
+import { accountsTable, expendituresTable } from '@/db/schema'
 
 import * as dto from './finance-reporting.dto'
 
@@ -16,64 +16,16 @@ export class FinanceReportingService {
 
 	async getCashFlow(query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
 		return record('FinanceReportingService.getCashFlow', async () => {
-			const { dateFrom, dateTo, locationId, accountId, groupBy = 'day' } = query
-
-			const where = and(
-				gte(generalLedgerTable.date, dateFrom),
-				lte(generalLedgerTable.date, dateTo),
-				accountId ? eq(generalLedgerTable.accountId, accountId) : undefined,
+			// TODO: Implement general ledger table and cash flow reporting
+			throw new Error(
+				'Cash flow reporting not yet implemented - generalLedgerTable needs to be created',
 			)
-
-			let dateTrunc: string
-			switch (groupBy) {
-				case 'day':
-					dateTrunc = sql`DATE(${generalLedgerTable.date})`
-					break
-				case 'week':
-					dateTrunc = sql`DATE_TRUNC('week', ${generalLedgerTable.date})`
-					break
-				case 'month':
-					dateTrunc = sql`DATE_TRUNC('month', ${generalLedgerTable.date})`
-					break
-				case 'year':
-					dateTrunc = sql`DATE_TRUNC('year', ${generalLedgerTable.date})`
-					break
-			}
-
-			const data = await this.db
-				.select({
-					date: dateTrunc,
-					inflow: sql<number>`COALESCE(SUM(CASE WHEN ${generalLedgerTable.amount} > 0 THEN ${generalLedgerTable.amount} ELSE 0 END), 0)`,
-					outflow: sql<number>`COALESCE(SUM(CASE WHEN ${generalLedgerTable.amount} < 0 THEN ABS(${generalLedgerTable.amount}) ELSE 0 END), 0)`,
-				})
-				.from(generalLedgerTable)
-				.where(where)
-				.groupBy(dateTrunc)
-				.orderBy(dateTrunc)
-
-			const totalInflow = data.reduce((sum, d) => sum + Number(d.inflow), 0)
-			const totalOutflow = data.reduce((sum, d) => sum + Number(d.outflow), 0)
-
-			return {
-				chartType: 'line',
-				data: data.map((d) => ({
-					date: d.date as string,
-					inflow: String(d.inflow),
-					outflow: String(d.outflow),
-					net: String(Number(d.inflow) - Number(d.outflow)),
-				})),
-				summary: {
-					total: String(totalInflow - totalOutflow),
-					average: String((totalInflow - totalOutflow) / (data.length || 1)),
-					min: String(Math.min(...data.map((d) => Number(d.inflow) - Number(d.outflow)))),
-					max: String(Math.max(...data.map((d) => Number(d.inflow) - Number(d.outflow)))),
-					count: data.length,
-				},
-			}
 		})
 	}
 
-	async getAccountBalances(query: dto.FinanceReportRequestDto): Promise<dto.AccountBalanceResponseDto> {
+	async getAccountBalances(
+		query: dto.FinanceReportRequestDto,
+	): Promise<dto.AccountBalanceResponseDto> {
 		return record('FinanceReportingService.getAccountBalances', async () => {
 			const data = await this.db
 				.select({
@@ -106,7 +58,9 @@ export class FinanceReportingService {
 		})
 	}
 
-	async getExpenditureByCategory(query: dto.FinanceReportRequestDto): Promise<dto.ExpenditureByCategoryResponseDto> {
+	async getExpenditureByCategory(
+		query: dto.FinanceReportRequestDto,
+	): Promise<dto.ExpenditureByCategoryResponseDto> {
 		return record('FinanceReportingService.getExpenditureByCategory', async () => {
 			const { dateFrom, dateTo, locationId, accountId } = query
 
