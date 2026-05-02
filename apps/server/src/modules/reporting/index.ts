@@ -1,6 +1,5 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { CrmReportingService } from './crm-reporting/crm-reporting.service'
@@ -16,15 +15,12 @@ export class ReportingServiceModule {
 	public readonly crm: CrmReportingService
 	public readonly payment: PaymentReportingService
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {
-		this.sales = new SalesReportingService(this.db, this.cacheClient)
-		this.finance = new FinanceReportingService(this.db, this.cacheClient)
-		this.inventory = new InventoryReportingService(this.db, this.cacheClient)
-		this.crm = new CrmReportingService(this.db, this.cacheClient)
-		this.payment = new PaymentReportingService(this.db, this.cacheClient)
+	constructor(private readonly db: DbClient) {
+		this.sales = new SalesReportingService(this.db)
+		this.finance = new FinanceReportingService(this.db)
+		this.inventory = new InventoryReportingService(this.db)
+		this.crm = new CrmReportingService(this.db)
+		this.payment = new PaymentReportingService(this.db)
 	}
 }
 
