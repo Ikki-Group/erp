@@ -25,7 +25,7 @@ export type AuditLogDto = z.infer<typeof AuditLogDto>
 
 export const AuditLogCreateDto = z.object({
 	userId: zp.id,
-	action: AuditActionDto,
+	action: z.nativeEnum(auditActionEnum),
 	entityType: zc.strTrim.min(2).max(100),
 	entityId: zc.strTrim.max(50).optional(),
 	description: zc.strTrim.min(5).max(500),
