@@ -1,14 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, gt, lt, desc, asc } from 'drizzle-orm'
+import { and, count, eq, gt, lt } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
-import {
-	paginate,
-	sortBy,
-	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+import { paginate, sortBy, type DbClient, type WithPaginationResult } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { sessionsTable, usersTable } from '@/db/schema'
