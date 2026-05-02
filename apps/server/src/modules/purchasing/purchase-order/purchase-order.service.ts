@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { RecordId } from '@/core/validation'
 
 import * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'
