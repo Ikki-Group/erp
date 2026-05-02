@@ -16,7 +16,7 @@ const auth = { login: 'auth/login', me: 'auth/me' }
 
 const audit = {
 	log: {
-		...crud('audit/log'),
+		...crud('audit/audit-log'),
 	},
 }
 

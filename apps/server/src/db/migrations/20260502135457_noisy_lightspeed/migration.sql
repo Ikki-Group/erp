@@ -1,5 +1,7 @@
 CREATE TYPE "account_type" AS ENUM('ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE');--> statement-breakpoint
 CREATE TYPE "attendance_status" AS ENUM('present', 'absent', 'late', 'on_leave');--> statement-breakpoint
+CREATE TYPE "audit_action" AS ENUM('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER');--> statement-breakpoint
+CREATE TYPE "customer_tier" AS ENUM('bronze', 'silver', 'gold', 'platinum');--> statement-breakpoint
 CREATE TYPE "expenditure_status" AS ENUM('PENDING', 'PAID', 'VOID', 'REFUNDED');--> statement-breakpoint
 CREATE TYPE "expenditure_type" AS ENUM('BILLS', 'ASSET', 'PURCHASES');--> statement-breakpoint
 CREATE TYPE "goods_receipt_status" AS ENUM('open', 'completed', 'void');--> statement-breakpoint
@@ -8,16 +10,18 @@ CREATE TYPE "invoice_status" AS ENUM('draft', 'open', 'paid', 'void');--> statem
 CREATE TYPE "leave_status" AS ENUM('pending', 'approved', 'rejected', 'cancelled');--> statement-breakpoint
 CREATE TYPE "leave_type" AS ENUM('annual', 'sick', 'unpaid', 'other');--> statement-breakpoint
 CREATE TYPE "location_type" AS ENUM('store', 'warehouse');--> statement-breakpoint
+CREATE TYPE "loyalty_transaction_type" AS ENUM('earned', 'redeemed', 'adjusted', 'expired');--> statement-breakpoint
 CREATE TYPE "material_type" AS ENUM('raw', 'semi', 'packaging');--> statement-breakpoint
 CREATE TYPE "moka_scrap_status" AS ENUM('pending', 'processing', 'completed', 'failed');--> statement-breakpoint
 CREATE TYPE "moka_scrap_type" AS ENUM('sales', 'product', 'category');--> statement-breakpoint
 CREATE TYPE "moka_sync_trigger_mode" AS ENUM('manual', 'cron', 'upload', 'machine_fetch');--> statement-breakpoint
+CREATE TYPE "payment_method_category" AS ENUM('cash', 'cashless');--> statement-breakpoint
 CREATE TYPE "payment_method" AS ENUM('cash', 'bank_transfer', 'credit_card', 'debit_card', 'e_wallet');--> statement-breakpoint
 CREATE TYPE "payment_type" AS ENUM('payable', 'receivable');--> statement-breakpoint
 CREATE TYPE "payroll_adjustment_type" AS ENUM('addition', 'deduction');--> statement-breakpoint
 CREATE TYPE "payroll_status" AS ENUM('draft', 'approved', 'paid', 'cancelled');--> statement-breakpoint
 CREATE TYPE "product_status" AS ENUM('active', 'inactive', 'archived');--> statement-breakpoint
-CREATE TYPE "purchase_order_status" AS ENUM('open', 'closed', 'void');--> statement-breakpoint
+CREATE TYPE "purchase_order_status" AS ENUM('pending_approval', 'approved', 'rejected', 'open', 'closed', 'void');--> statement-breakpoint
 CREATE TYPE "purchase_request_status" AS ENUM('open', 'approved', 'rejected', 'void');--> statement-breakpoint
 CREATE TYPE "sales_order_source" AS ENUM('web', 'moka', 'upload', 'machine_fetch');--> statement-breakpoint
 CREATE TYPE "sales_order_status" AS ENUM('open', 'closed', 'void');--> statement-breakpoint
@@ -59,6 +63,27 @@ CREATE TABLE "attendances" (
 	"sync_at" timestamp with time zone
 );
 --> statement-breakpoint
+CREATE TABLE "audit_logs" (
+	"id" serial PRIMARY KEY,
+	"userId" integer NOT NULL,
+	"action" "audit_action" NOT NULL,
+	"entity_type" text NOT NULL,
+	"entity_id" text,
+	"description" text NOT NULL,
+	"old_value" jsonb,
+	"new_value" jsonb,
+	"ip_address" text,
+	"user_agent" text,
+	"action_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE "category_external_mappings" (
 	"id" serial PRIMARY KEY,
 	"categoryId" integer NOT NULL,
@@ -66,6 +91,47 @@ CREATE TABLE "category_external_mappings" (
 	"externalId" text NOT NULL,
 	"externalData" jsonb,
 	"lastSyncedAt" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "company_settings" (
+	"id" serial PRIMARY KEY,
+	"name" text NOT NULL,
+	"address" text,
+	"phone" text,
+	"email" text,
+	"tax_id" text,
+	"taxRate" numeric(5,2) DEFAULT '0' NOT NULL,
+	"logo_url" text,
+	"invoice_footer" text,
+	"receipt_footer" text,
+	"currency_code" text DEFAULT 'IDR' NOT NULL,
+	"currency_symbol" text DEFAULT 'Rp' NOT NULL,
+	"settings" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "customer_loyalty_transactions" (
+	"id" serial PRIMARY KEY,
+	"customer_id" integer NOT NULL,
+	"type" "loyalty_transaction_type" NOT NULL,
+	"points" integer NOT NULL,
+	"balance_after" integer NOT NULL,
+	"reference_type" text,
+	"reference_id" integer,
+	"description" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -83,6 +149,12 @@ CREATE TABLE "customers" (
 	"phone" text,
 	"address" text,
 	"tax_id" text,
+	"date_of_birth" timestamp,
+	"tier" "customer_tier" DEFAULT 'bronze'::"customer_tier",
+	"points_balance" integer DEFAULT 0 NOT NULL,
+	"total_points_earned" integer DEFAULT 0 NOT NULL,
+	"registered_at" timestamp DEFAULT now(),
+	"last_visit_at" timestamp,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -109,6 +181,29 @@ CREATE TABLE "employees" (
 	"termination_date" timestamp,
 	"emergency_contact" text,
 	"user_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "expenditures" (
+	"id" serial PRIMARY KEY,
+	"type" "expenditure_type" NOT NULL,
+	"status" "expenditure_status" DEFAULT 'PAID'::"expenditure_status" NOT NULL,
+	"title" text NOT NULL,
+	"description" text,
+	"date" timestamp with time zone DEFAULT now() NOT NULL,
+	"amount" numeric(18,2) DEFAULT '0' NOT NULL,
+	"source_account_id" integer NOT NULL,
+	"target_account_id" integer NOT NULL,
+	"liability_account_id" integer,
+	"supplier_id" integer,
+	"location_id" integer NOT NULL,
+	"is_installment" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -356,6 +451,22 @@ CREATE TABLE "payment_invoices" (
 	"salesInvoiceId" integer,
 	"purchaseInvoiceId" integer,
 	"amount" numeric(18,2) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "payment_method_configs" (
+	"id" serial PRIMARY KEY,
+	"type" "payment_method" NOT NULL,
+	"category" "payment_method_category" NOT NULL,
+	"name" text NOT NULL,
+	"is_enabled" boolean DEFAULT true NOT NULL,
+	"is_default" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -978,6 +1089,44 @@ CREATE TABLE "stock_transactions" (
 	"sync_at" timestamp with time zone
 );
 --> statement-breakpoint
+CREATE TABLE "stock_transfer_items" (
+	"id" serial PRIMARY KEY,
+	"transferId" integer NOT NULL,
+	"materialId" integer NOT NULL,
+	"itemName" text NOT NULL,
+	"quantity" numeric(18,4) NOT NULL,
+	"unitCost" numeric(18,2) NOT NULL,
+	"totalCost" numeric(18,2) NOT NULL,
+	"notes" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "stock_transfers" (
+	"id" serial PRIMARY KEY,
+	"sourceLocationId" integer NOT NULL,
+	"destinationLocationId" integer NOT NULL,
+	"status" text DEFAULT 'pending_approval' NOT NULL,
+	"transfer_date" timestamp NOT NULL,
+	"expected_date" timestamp,
+	"received_date" timestamp,
+	"reference_no" text NOT NULL,
+	"notes" text,
+	"rejection_reason" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE "suppliers" (
 	"id" serial PRIMARY KEY,
 	"code" text NOT NULL,
@@ -1091,6 +1240,9 @@ CREATE INDEX "category_ext_map_provider_idx" ON "category_external_mappings" ("p
 CREATE UNIQUE INDEX "customers_code_idx" ON "customers" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "customers_name_idx" ON "customers" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "employees_code_idx" ON "employees" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
+CREATE INDEX "expenditures_date_idx" ON "expenditures" ("date");--> statement-breakpoint
+CREATE INDEX "expenditures_location_idx" ON "expenditures" ("location_id");--> statement-breakpoint
+CREATE INDEX "expenditures_type_idx" ON "expenditures" ("type");--> statement-breakpoint
 CREATE INDEX "goods_receipt_note_items_grn_idx" ON "goods_receipt_note_items" ("grnId");--> statement-breakpoint
 CREATE INDEX "goods_receipt_note_items_po_item_idx" ON "goods_receipt_note_items" ("purchaseOrderItemId");--> statement-breakpoint
 CREATE INDEX "goods_receipt_note_items_material_idx" ON "goods_receipt_note_items" ("materialId");--> statement-breakpoint
@@ -1129,6 +1281,9 @@ CREATE INDEX "moka_sync_cursor_history_idx" ON "moka_sync_cursors" ("lastHistory
 CREATE INDEX "payment_invoices_payment_idx" ON "payment_invoices" ("paymentId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_sales_inv_idx" ON "payment_invoices" ("salesInvoiceId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_purchase_inv_idx" ON "payment_invoices" ("purchaseInvoiceId");--> statement-breakpoint
+CREATE INDEX "payment_method_configs_type_idx" ON "payment_method_configs" ("type");--> statement-breakpoint
+CREATE INDEX "payment_method_configs_category_idx" ON "payment_method_configs" ("category");--> statement-breakpoint
+CREATE INDEX "payment_method_configs_is_enabled_idx" ON "payment_method_configs" ("is_enabled");--> statement-breakpoint
 CREATE INDEX "payments_date_idx" ON "payments" ("date");--> statement-breakpoint
 CREATE INDEX "payments_account_idx" ON "payments" ("account_id");--> statement-breakpoint
 CREATE INDEX "payments_type_idx" ON "payments" ("type");--> statement-breakpoint
@@ -1211,6 +1366,12 @@ CREATE INDEX "stock_txn_type_date_idx" ON "stock_transactions" ("type","date");-
 CREATE INDEX "stock_txn_transfer_idx" ON "stock_transactions" ("transferId");--> statement-breakpoint
 CREATE INDEX "stock_txn_reference_no_idx" ON "stock_transactions" ("referenceNo");--> statement-breakpoint
 CREATE INDEX "stock_txn_batch_idx" ON "stock_transactions" ("batchId");--> statement-breakpoint
+CREATE INDEX "stock_transfer_items_transfer_idx" ON "stock_transfer_items" ("transferId");--> statement-breakpoint
+CREATE INDEX "stock_transfer_items_material_idx" ON "stock_transfer_items" ("materialId");--> statement-breakpoint
+CREATE INDEX "stock_transfers_source_idx" ON "stock_transfers" ("sourceLocationId");--> statement-breakpoint
+CREATE INDEX "stock_transfers_destination_idx" ON "stock_transfers" ("destinationLocationId");--> statement-breakpoint
+CREATE INDEX "stock_transfers_status_idx" ON "stock_transfers" ("status");--> statement-breakpoint
+CREATE INDEX "stock_transfers_date_idx" ON "stock_transfers" ("transfer_date");--> statement-breakpoint
 CREATE UNIQUE INDEX "suppliers_code_idx" ON "suppliers" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "suppliers_name_idx" ON "suppliers" ("name") WHERE ("deleted_at" is null);--> statement-breakpoint
 CREATE UNIQUE INDEX "taxes_code_idx" ON "taxes" ("code") WHERE ("deleted_at" is null);--> statement-breakpoint
@@ -1229,7 +1390,13 @@ ALTER TABLE "attendances" ADD CONSTRAINT "attendances_employee_id_employees_id_f
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_location_id_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id");--> statement-breakpoint
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_shift_id_shifts_id_fkey" FOREIGN KEY ("shift_id") REFERENCES "shifts"("id");--> statement-breakpoint
 ALTER TABLE "category_external_mappings" ADD CONSTRAINT "category_external_mappings_WP3yaHxOBCsT_fkey" FOREIGN KEY ("categoryId") REFERENCES "product_categories"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "customer_loyalty_transactions" ADD CONSTRAINT "customer_loyalty_transactions_customer_id_customers_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "employees" ADD CONSTRAINT "employees_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "expenditures" ADD CONSTRAINT "expenditures_source_account_id_accounts_id_fkey" FOREIGN KEY ("source_account_id") REFERENCES "accounts"("id");--> statement-breakpoint
+ALTER TABLE "expenditures" ADD CONSTRAINT "expenditures_target_account_id_accounts_id_fkey" FOREIGN KEY ("target_account_id") REFERENCES "accounts"("id");--> statement-breakpoint
+ALTER TABLE "expenditures" ADD CONSTRAINT "expenditures_liability_account_id_accounts_id_fkey" FOREIGN KEY ("liability_account_id") REFERENCES "accounts"("id");--> statement-breakpoint
+ALTER TABLE "expenditures" ADD CONSTRAINT "expenditures_supplier_id_suppliers_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id");--> statement-breakpoint
+ALTER TABLE "expenditures" ADD CONSTRAINT "expenditures_location_id_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id");--> statement-breakpoint
 ALTER TABLE "goods_receipt_note_items" ADD CONSTRAINT "goods_receipt_note_items_grnId_goods_receipt_notes_id_fkey" FOREIGN KEY ("grnId") REFERENCES "goods_receipt_notes"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "goods_receipt_note_items" ADD CONSTRAINT "goods_receipt_note_items_zPAVPiuWwf9Z_fkey" FOREIGN KEY ("purchaseOrderItemId") REFERENCES "purchase_order_items"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "goods_receipt_note_items" ADD CONSTRAINT "goods_receipt_note_items_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE SET NULL;--> statement-breakpoint
@@ -1323,6 +1490,10 @@ ALTER TABLE "stock_transactions" ADD CONSTRAINT "stock_transactions_locationId_l
 ALTER TABLE "stock_transactions" ADD CONSTRAINT "stock_transactions_batchId_stock_batches_id_fkey" FOREIGN KEY ("batchId") REFERENCES "stock_batches"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "stock_transactions" ADD CONSTRAINT "stock_transactions_counterpartLocationId_locations_id_fkey" FOREIGN KEY ("counterpartLocationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "stock_transactions" ADD CONSTRAINT "stock_transactions_aDUmNPy8WiJw_fkey" FOREIGN KEY ("adjustmentItemId") REFERENCES "stock_adjustment_items"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "stock_transfer_items" ADD CONSTRAINT "stock_transfer_items_transferId_stock_transfers_id_fkey" FOREIGN KEY ("transferId") REFERENCES "stock_transfers"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "stock_transfer_items" ADD CONSTRAINT "stock_transfer_items_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "stock_transfers" ADD CONSTRAINT "stock_transfers_sourceLocationId_locations_id_fkey" FOREIGN KEY ("sourceLocationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
+ALTER TABLE "stock_transfers" ADD CONSTRAINT "stock_transfers_destinationLocationId_locations_id_fkey" FOREIGN KEY ("destinationLocationId") REFERENCES "locations"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "taxes" ADD CONSTRAINT "taxes_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "accounts"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "user_assignments" ADD CONSTRAINT "user_assignments_role_id_roles_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT;--> statement-breakpoint

@@ -27,6 +27,7 @@ export {
 	purchaseRequestStatusEnum,
 	purchaseOrderStatusEnum,
 	goodsReceiptStatusEnum,
+	paymentMethodCategoryEnum,
 } from './_helpers'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 export {

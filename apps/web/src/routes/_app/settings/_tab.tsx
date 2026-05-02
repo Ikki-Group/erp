@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 
-import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+import { HistoryIcon, MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 import type { CardStatProps } from '@/components/blocks/card/card-stat'
 import { CardStat } from '@/components/blocks/card/card-stat'
@@ -15,6 +15,7 @@ const TABS = [
 	['Lokasi', '/settings/location'],
 	['Pengguna', '/settings/user'],
 	['Role', '/settings/role'],
+	['Audit Trail', '/settings/audit-trail'],
 ] as const
 
 export const Route = createFileRoute('/_app/settings/_tab')({ component: RouteComponent })
