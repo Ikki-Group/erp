@@ -110,24 +110,21 @@ export class CustomerService {
 		return record('CustomerService.handleUpdate', async () => {
 			const { id } = data
 
-			const existing = await this.repo.getById(id)
+			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
 				table: customersTable,
 				pkColumn: customersTable.id,
 				fields: uniqueFields,
-				input: { code: data.code, name: data.name, phone: data.phone } as Record<
-					'code' | 'name' | 'phone',
-					unknown
-				>,
-				existing: { id, code: existing.code, name: existing.name, phone: existing.phone },
+				input: data as Record<'code' | 'name' | 'phone', unknown>,
+				existing: existing as { id: number } & Record<'code' | 'name' | 'phone', unknown>,
 			})
 
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
-			return { id }
+			return { id: result }
 		})
 	}
 
