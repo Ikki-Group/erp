@@ -51,7 +51,7 @@ export function initUserRoute(service: UserService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const result = await service.handleUpdate(body.id, body, auth.userId)
