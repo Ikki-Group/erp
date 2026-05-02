@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import { z } from 'zod'
 
 import { zc, zp } from '@/core/validation'

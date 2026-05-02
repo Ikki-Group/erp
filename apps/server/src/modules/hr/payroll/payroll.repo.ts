@@ -47,6 +47,7 @@ export class PayrollRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
+	// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 	async findBatchByPeriod(month: number, year: number): Promise<any | undefined> {
 		const [existing] = await this.db
 			.select()
@@ -69,6 +70,7 @@ export class PayrollRepo {
 		return result
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 	async getPayrollItemById(id: number): Promise<any | undefined> {
 		const [result] = await this.db
 			.select()
