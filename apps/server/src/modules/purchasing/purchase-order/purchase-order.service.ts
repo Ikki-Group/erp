@@ -1,11 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import type { RecordId } from '@/core/validation'
 
-import { purchaseOrdersTable } from '@/db/schema'
-
-import type * as dto from './purchase-order.dto'
+import * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'
 
 const err = {
