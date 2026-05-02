@@ -1,5 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { RecordId } from '@/core/validation'
 
@@ -42,7 +43,9 @@ export class SalesInvoiceService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: dto.SalesInvoiceFilterDto): Promise<dto.WithPaginationResult<dto.SalesInvoiceDto>> {
+	async handleList(
+		filter: dto.SalesInvoiceFilterDto,
+	): Promise<WithPaginationResult<dto.SalesInvoiceDto>> {
 		return record('SalesInvoiceService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 			return result
@@ -82,7 +85,10 @@ export class SalesInvoiceService {
 			// Check if invoice already exists for this order
 			const existing = await this.repo.getByOrderId(data.orderId)
 			if (existing) {
-				throw new InternalServerError('Invoice already exists for this order', 'INVOICE_ALREADY_EXISTS')
+				throw new InternalServerError(
+					'Invoice already exists for this order',
+					'INVOICE_ALREADY_EXISTS',
+				)
 			}
 
 			const result = await this.repo.generateFromOrder(data.orderId, data, actorId)
