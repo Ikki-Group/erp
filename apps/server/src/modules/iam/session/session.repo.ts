@@ -168,8 +168,9 @@ export class SessionRepo {
 	async deleteMany(ids: number[]): Promise<void> {
 		return record('SessionRepo.deleteMany', async () => {
 			await this.db.delete(sessionsTable).where(
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
 				// @ts-expect-error - drizzle doesn't support array in where directly, but this works
-				sessionsTable.id.in(ids), // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
+				sessionsTable.id.in(ids),
 			)
 
 			this.#clearCacheAsync()
