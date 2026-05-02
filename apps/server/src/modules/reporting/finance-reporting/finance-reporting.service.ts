@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { accountsTable, expendituresTable } from '@/db/schema'
@@ -9,12 +8,9 @@ import { accountsTable, expendituresTable } from '@/db/schema'
 import * as dto from './finance-reporting.dto'
 
 export class FinanceReportingService {
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {}
+	constructor(private readonly db: DbClient) {}
 
-	async getCashFlow(query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
+	async getCashFlow(_query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
 		return record('FinanceReportingService.getCashFlow', async () => {
 			// TODO: Implement general ledger table and cash flow reporting
 			throw new Error(
@@ -62,7 +58,7 @@ export class FinanceReportingService {
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
 
 			return {
-				chartType: 'pie',
+				chartType: 'pie' as const,
 				data: data.map((d) => ({
 					categoryId: d.categoryId,
 					categoryName: d.categoryName,
@@ -90,7 +86,7 @@ export class FinanceReportingService {
 			.use(authPluginMacro)
 			.get(
 				'/cash-flow',
-				async ({ query }) => {
+				async ({ query }: { query: dto.FinanceReportRequestDto }) => {
 					const result = await this.getCashFlow(query)
 					return res.ok(result)
 				},
@@ -102,7 +98,7 @@ export class FinanceReportingService {
 			)
 			.get(
 				'/account-balances',
-				async ({ query }) => {
+				async ({ query }: { query: dto.FinanceReportRequestDto }) => {
 					const result = await this.getAccountBalances(query)
 					return res.ok(result)
 				},
@@ -114,7 +110,7 @@ export class FinanceReportingService {
 			)
 			.get(
 				'/expenditure-by-category',
-				async ({ query }) => {
+				async ({ query }: { query: dto.FinanceReportRequestDto }) => {
 					const result = await this.getExpenditureByCategory(query)
 					return res.ok(result)
 				},
