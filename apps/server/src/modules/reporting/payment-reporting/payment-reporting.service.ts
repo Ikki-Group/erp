@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { accountsTable, paymentsTable } from '@/db/schema'
@@ -9,21 +8,20 @@ import { accountsTable, paymentsTable } from '@/db/schema'
 import * as dto from './payment-reporting.dto'
 
 export class PaymentReportingService {
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {}
+	constructor(private readonly db: DbClient) {}
 
-	async getPaymentsByMethod(query: dto.PaymentReportRequestDto): Promise<dto.PaymentByMethodResponseDto> {
+	async getPaymentsByMethod(
+		query: dto.PaymentReportRequestDto,
+	): Promise<dto.PaymentByMethodResponseDto> {
 		return record('PaymentReportingService.getPaymentsByMethod', async () => {
-			const { dateFrom, dateTo, locationId, accountId, method, type } = query
+			const { dateFrom, dateTo, accountId, method, type } = query
 
 			const where = and(
 				gte(paymentsTable.date, dateFrom),
 				lte(paymentsTable.date, dateTo),
 				accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-				method ? eq(paymentsTable.method, method) : undefined,
-				type ? eq(paymentsTable.type, type) : undefined,
+				method ? eq(paymentsTable.method, method as any) : undefined,
+				type ? eq(paymentsTable.type, type as any) : undefined,
 			)
 
 			const data = await this.db
@@ -40,7 +38,7 @@ export class PaymentReportingService {
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
 
 			return {
-				chartType: 'pie',
+				chartType: 'pie' as const,
 				data: data.map((d) => ({
 					method: d.method,
 					category: d.method === 'cash' ? 'cash' : 'cashless',
@@ -59,19 +57,21 @@ export class PaymentReportingService {
 		})
 	}
 
-	async getPaymentsOverTime(query: dto.PaymentReportRequestDto): Promise<dto.PaymentOverTimeResponseDto> {
+	async getPaymentsOverTime(
+		query: dto.PaymentReportRequestDto,
+	): Promise<dto.PaymentOverTimeResponseDto> {
 		return record('PaymentReportingService.getPaymentsOverTime', async () => {
-			const { dateFrom, dateTo, locationId, accountId, method, type, groupBy = 'day' } = query
+			const { dateFrom, dateTo, accountId, method, type, groupBy = 'day' } = query
 
 			const where = and(
 				gte(paymentsTable.date, dateFrom),
 				lte(paymentsTable.date, dateTo),
 				accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-				method ? eq(paymentsTable.method, method) : undefined,
-				type ? eq(paymentsTable.type, type) : undefined,
+				method ? eq(paymentsTable.method, method as any) : undefined,
+				type ? eq(paymentsTable.type, type as any) : undefined,
 			)
 
-			let dateTrunc: string
+			let dateTrunc
 			switch (groupBy) {
 				case 'day':
 					dateTrunc = sql`DATE(${paymentsTable.date})`
@@ -102,7 +102,7 @@ export class PaymentReportingService {
 			const totalReceivable = data.reduce((sum, d) => sum + Number(d.receivableAmount), 0)
 
 			return {
-				chartType: 'line',
+				chartType: 'line' as const,
 				data: data.map((d) => ({
 					date: d.date as string,
 					payableAmount: String(d.payableAmount),
@@ -112,23 +112,29 @@ export class PaymentReportingService {
 				summary: {
 					total: String(totalPayable + totalReceivable),
 					average: String((totalPayable + totalReceivable) / (data.length || 1)),
-					min: String(Math.min(...data.map((d) => Number(d.payableAmount) + Number(d.receivableAmount)))),
-					max: String(Math.max(...data.map((d) => Number(d.payableAmount) + Number(d.receivableAmount)))),
+					min: String(
+						Math.min(...data.map((d) => Number(d.payableAmount) + Number(d.receivableAmount))),
+					),
+					max: String(
+						Math.max(...data.map((d) => Number(d.payableAmount) + Number(d.receivableAmount))),
+					),
 					count: data.length,
 				},
 			}
 		})
 	}
 
-	async getPaymentsByAccount(query: dto.PaymentReportRequestDto): Promise<dto.PaymentByAccountResponseDto> {
+	async getPaymentsByAccount(
+		query: dto.PaymentReportRequestDto,
+	): Promise<dto.PaymentByAccountResponseDto> {
 		return record('PaymentReportingService.getPaymentsByAccount', async () => {
-			const { dateFrom, dateTo, locationId, method, type } = query
+			const { dateFrom, dateTo, method, type } = query
 
 			const where = and(
 				gte(paymentsTable.date, dateFrom),
 				lte(paymentsTable.date, dateTo),
-				method ? eq(paymentsTable.method, method) : undefined,
-				type ? eq(paymentsTable.type, type) : undefined,
+				method ? eq(paymentsTable.method, method as any) : undefined,
+				type ? eq(paymentsTable.type, type as any) : undefined,
 			)
 
 			const data = await this.db
@@ -149,7 +155,7 @@ export class PaymentReportingService {
 			const avgAmount = data.length > 0 ? totalAmount / data.length : 0
 
 			return {
-				chartType: 'bar',
+				chartType: 'bar' as const,
 				data: data.map((d) => ({
 					accountId: d.accountId,
 					accountName: d.accountName,
@@ -178,7 +184,7 @@ export class PaymentReportingService {
 			.use(authPluginMacro)
 			.get(
 				'/by-method',
-				async ({ query }) => {
+				async ({ query }: { query: dto.PaymentReportRequestDto }) => {
 					const result = await this.getPaymentsByMethod(query)
 					return res.ok(result)
 				},
@@ -190,7 +196,7 @@ export class PaymentReportingService {
 			)
 			.get(
 				'/over-time',
-				async ({ query }) => {
+				async ({ query }: { query: dto.PaymentReportRequestDto }) => {
 					const result = await this.getPaymentsOverTime(query)
 					return res.ok(result)
 				},
@@ -202,7 +208,7 @@ export class PaymentReportingService {
 			)
 			.get(
 				'/by-account',
-				async ({ query }) => {
+				async ({ query }: { query: dto.PaymentReportRequestDto }) => {
 					const result = await this.getPaymentsByAccount(query)
 					return res.ok(result)
 				},
