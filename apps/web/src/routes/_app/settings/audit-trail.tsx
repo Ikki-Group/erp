@@ -3,6 +3,9 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -16,16 +19,26 @@ export const Route = createFileRoute('/_app/settings/audit-trail')({
 	component: SettingsAuditTrail,
 })
 
-const defaultFilter: AuditLogFilterDto = {
-	page: 1,
-	limit: 20,
-}
-
 function SettingsAuditTrail() {
-	const [filter, setFilter] = React.useState<AuditLogFilterDto>(defaultFilter)
+	const ds = useDataTableState()
+	const [filter, setFilter] = React.useState<AuditLogFilterDto>({
+		...ds.pagination,
+		q: ds.search,
+	})
 
 	const { data, isLoading } = useQuery({
 		...auditLogApi.list.query(filter),
+	})
+
+	const auditLogs = data?.data.items || []
+	const rowCount = data?.data.total || 0
+
+	const table = useDataTable({
+		columns: auditLogColumns,
+		data: auditLogs,
+		pageCount: Math.ceil(rowCount / ds.pagination.limit),
+		rowCount,
+		ds,
 	})
 
 	return (
@@ -36,15 +49,11 @@ function SettingsAuditTrail() {
 			/>
 			<Page.Content>
 				<DataTableCard
-					columns={auditLogColumns}
-					data={data?.data.items || []}
-					total={data?.data.total || 0}
-					page={filter.page || 1}
-					limit={filter.limit || 20}
-					onPageChange={(page) => setFilter({ ...filter, page })}
-					onLimitChange={(limit) => setFilter({ ...filter, limit, page: 1 })}
+					title="Audit Logs"
+					table={table as any}
 					isLoading={isLoading}
-					filterSlot={
+					recordCount={rowCount}
+					toolbar={
 						<DataGridFilter>
 							<AuditLogFilters filter={filter} onFilterChange={setFilter} />
 						</DataGridFilter>
