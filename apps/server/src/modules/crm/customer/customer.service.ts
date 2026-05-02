@@ -117,8 +117,11 @@ export class CustomerService {
 				table: customersTable,
 				pkColumn: customersTable.id,
 				fields: uniqueFields,
-				input: data as Record<'code' | 'name' | 'phone', unknown>,
-				existing: existing as { id: number } & Record<'code' | 'name' | 'phone', unknown>,
+				input: data as unknown as Record<'code' | 'name' | 'phone', unknown>,
+				existing: existing as unknown as { id: number } & Record<
+					'code' | 'name' | 'phone',
+					unknown
+				>,
 			})
 
 			const result = await this.repo.update(data, actorId)
