@@ -74,7 +74,7 @@ export class CompanySettingsRepo {
 			const metadata = stampCreate(actorId)
 			const [res] = await this.db
 				.insert(companySettingsTable)
-				.values({ ...data, ...metadata })
+				.values({ ...data, ...metadata } as any)
 				.returning({ id: companySettingsTable.id })
 
 			this.#clearCacheAsync()
@@ -87,7 +87,7 @@ export class CompanySettingsRepo {
 			const metadata = stampUpdate(actorId)
 			const [res] = await this.db
 				.update(companySettingsTable)
-				.set({ ...data, ...metadata })
+				.set({ ...data, ...metadata } as any)
 				.where(eq(companySettingsTable.id, data.id))
 				.returning({ id: companySettingsTable.id })
 

@@ -87,7 +87,15 @@ export class LeaveRequestRepo {
 				data: async ({ limit: l, offset }) => {
 					const rows = await this.db
 						.select({
-							...leaveRequestsTable,
+							id: leaveRequestsTable.id,
+							employeeId: leaveRequestsTable.employeeId,
+							type: leaveRequestsTable.type,
+							status: leaveRequestsTable.status,
+							dateStart: leaveRequestsTable.dateStart,
+							dateEnd: leaveRequestsTable.dateEnd,
+							reason: leaveRequestsTable.reason,
+							createdAt: leaveRequestsTable.createdAt,
+							updatedAt: leaveRequestsTable.updatedAt,
 							employeeName: employeesTable.name,
 							employeeCode: employeesTable.code,
 						})
