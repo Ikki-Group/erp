@@ -54,12 +54,11 @@ export class AuditLogRepo {
 				q === undefined ? undefined : searchFilter(auditLogsTable.description, q),
 				action === undefined
 					? undefined
-					: action
-						? eq(
-								auditLogsTable.action,
-								action as any as 'CREATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'OTHER' | 'UPDATE',
-							)
-						: eq(auditLogsTable.entityType, entityType),
+					: eq(
+							auditLogsTable.action,
+							action as any as 'CREATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'OTHER' | 'UPDATE',
+						),
+				entityType === undefined ? undefined : eq(auditLogsTable.entityType, entityType),
 				userId === undefined ? undefined : eq(auditLogsTable.userId, userId),
 				fromDate === undefined ? undefined : gte(auditLogsTable.actionAt, fromDate),
 				toDate === undefined ? undefined : lte(auditLogsTable.actionAt, toDate),

@@ -3,8 +3,6 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { HistoryIcon } from 'lucide-react'
-
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -35,7 +33,6 @@ function SettingsAuditTrail() {
 			<Page.BlockHeader
 				title="Audit Trail"
 				description="Riwayat aktivitas dan perubahan data dalam sistem."
-				icon={HistoryIcon}
 			/>
 			<Page.Content>
 				<DataTableCard
