@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema'
@@ -9,10 +8,7 @@ import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema'
 import * as dto from './sales-reporting.dto'
 
 export class SalesReportingService {
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {}
+	constructor(private readonly db: DbClient) {}
 
 	async getRevenueOverTime(
 		query: dto.SalesReportRequestDto,
@@ -58,7 +54,7 @@ export class SalesReportingService {
 			const avgRevenue = data.length > 0 ? totalRevenue / data.length : 0
 
 			return {
-				chartType: 'line',
+				chartType: 'line' as const,
 				data: data.map((d) => ({
 					date: d.date as string,
 					revenue: String(d.revenue),
@@ -108,7 +104,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					productId: d.productId,
 					productName: d.itemName,
-					totalQuantity: d.totalQuantity,
+					totalQuantity:  as constd.totalQuantity,
 					totalRevenue: String(d.totalRevenue),
 				})),
 				summary: {
@@ -153,7 +149,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					locationId: d.locationId,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount,
+					orderCount: d.o as constrderCount,
 				})),
 				summary: {
 					total: String(totalRevenue),
@@ -194,7 +190,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					salesTypeId: d.salesTypeId,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount,
+					orderCount: d.ord as consterCount,
 					percentage: totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
 				})),
 				summary: {
