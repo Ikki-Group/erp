@@ -47,6 +47,7 @@ export interface Modules {
 	dashboard: DashboardServiceModule
 	tool: ToolServiceModule
 	payment: PaymentServiceModule
+	reporting: ReportingServiceModule
 }
 
 export function initModules(db: DbClient): Modules {
