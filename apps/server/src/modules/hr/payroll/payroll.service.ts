@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/core/database'

@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
