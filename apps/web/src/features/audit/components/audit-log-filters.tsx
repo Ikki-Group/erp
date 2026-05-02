@@ -1,5 +1,4 @@
 import { CalendarIcon } from 'lucide-react'
-import { z } from 'zod'
 
 import { cn } from '@/lib/utils'
 
@@ -15,8 +14,6 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 
-import type { AuditLogFilterDto } from '../dto'
-
 const auditActionOptions = [
 	{ value: 'create', label: 'Create' },
 	{ value: 'update', label: 'Update' },
@@ -29,8 +26,8 @@ const auditActionOptions = [
 ]
 
 interface AuditLogFiltersProps {
-	filter: z.infer<AuditLogFilterDto>
-	onFilterChange: (filter: z.infer<AuditLogFilterDto>) => void
+	filter: any
+	onFilterChange: (filter: any) => void
 }
 
 export function AuditLogFilters({ filter, onFilterChange }: AuditLogFiltersProps) {
@@ -40,7 +37,7 @@ export function AuditLogFilters({ filter, onFilterChange }: AuditLogFiltersProps
 	}
 
 	const handleActionChange = (value: string) => {
-		const newFilter = { ...filter, action: value === 'all' ? undefined : (value as any) }
+		const newFilter = { ...filter, action: value === 'all' ? undefined : value }
 		onFilterChange(newFilter)
 	}
 
@@ -87,7 +84,7 @@ export function AuditLogFilters({ filter, onFilterChange }: AuditLogFiltersProps
 				className="w-[150px]"
 			/>
 			<Popover>
-				<PopoverTrigger asChild>
+				<PopoverTrigger>
 					<Button
 						variant="outline"
 						className={cn(
@@ -109,7 +106,7 @@ export function AuditLogFilters({ filter, onFilterChange }: AuditLogFiltersProps
 				</PopoverContent>
 			</Popover>
 			<Popover>
-				<PopoverTrigger asChild>
+				<PopoverTrigger>
 					<Button
 						variant="outline"
 						className={cn(

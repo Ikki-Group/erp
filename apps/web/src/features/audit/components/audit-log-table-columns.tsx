@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import type { AuditLogDto } from '../dto'
 
@@ -18,11 +18,14 @@ const actionLabels: Record<string, string> = {
 	other: 'Other',
 }
 
-const actionVariants: Record<string, 'success' | 'warning' | 'destructive' | 'primary' | 'secondary'> = {
+const actionVariants: Record<
+	string,
+	'success' | 'warning' | 'destructive' | 'default' | 'secondary'
+> = {
 	create: 'success',
 	update: 'warning',
 	delete: 'destructive',
-	login: 'primary',
+	login: 'default',
 	logout: 'secondary',
 	export: 'success',
 	import: 'warning',
@@ -47,7 +50,6 @@ export const auditLogColumns = [
 		textColumn({
 			header: 'Waktu',
 			size: 180,
-			render: (value: Date) => new Date(value).toLocaleString('id-ID'),
 		}),
 	),
 	ch.accessor('userId', textColumn({ header: 'User ID', size: 100 })),

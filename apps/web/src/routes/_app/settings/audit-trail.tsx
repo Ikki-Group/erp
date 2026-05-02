@@ -8,10 +8,8 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { auditLogApi } from '@/features/audit'
-import type { AuditLogFilterDto } from '@/features/audit'
 import { AuditLogFilters } from '@/features/audit/components/audit-log-filters'
 import { auditLogColumns } from '@/features/audit/components/audit-log-table-columns'
 
@@ -21,7 +19,7 @@ export const Route = createFileRoute('/_app/settings/audit-trail')({
 
 function SettingsAuditTrail() {
 	const ds = useDataTableState()
-	const [filter, setFilter] = React.useState<AuditLogFilterDto>({
+	const [filter, setFilter] = React.useState<any>({
 		...ds.pagination,
 		q: ds.search,
 	})
@@ -30,8 +28,8 @@ function SettingsAuditTrail() {
 		...auditLogApi.list.query(filter),
 	})
 
-	const auditLogs = data?.data.items || []
-	const rowCount = data?.data.total || 0
+	const auditLogs = (data as any)?.data?.items || []
+	const rowCount = (data as any)?.data?.total || 0
 
 	const table = useDataTable({
 		columns: auditLogColumns,
@@ -53,11 +51,7 @@ function SettingsAuditTrail() {
 					table={table as any}
 					isLoading={isLoading}
 					recordCount={rowCount}
-					toolbar={
-						<DataGridFilter>
-							<AuditLogFilters filter={filter} onFilterChange={setFilter} />
-						</DataGridFilter>
-					}
+					toolbar={<AuditLogFilters filter={filter} onFilterChange={setFilter} />}
 				/>
 			</Page.Content>
 		</Page>

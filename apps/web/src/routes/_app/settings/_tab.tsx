@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 
-import { HistoryIcon, MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 import type { CardStatProps } from '@/components/blocks/card/card-stat'
 import { CardStat } from '@/components/blocks/card/card-stat'
