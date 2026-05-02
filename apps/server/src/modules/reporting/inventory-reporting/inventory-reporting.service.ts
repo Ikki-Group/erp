@@ -3,7 +3,7 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
-import { inventoryBatchesTable, inventoryMovementsTable, productsTable } from '@/db/schema'
+import { inventorynvtetoryBatcheinvenTarye, stockMovementsTable, productsTable } from '@/db/schema'
 
 import * as dto from './inventory-reporting.dto'
 
@@ -15,8 +15,8 @@ export class InventoryReportingService {
 			const { locationId, productId } = query
 
 			const where = and(
-				locationId ? eq(inventoryBatchesTable.locationId, locationId) : undefined,
-				productId ? eq(inventoryBatchesTable.productId, productId) : undefined,
+				locationId ? eq(invennvrytoryBatchesTable.locationId, locationId) : undefined,
+				productId ? eq(invennvrytoryBatchesTable.productId, productId) : undefined,
 			)
 
 			const data = await this.db
@@ -24,17 +24,16 @@ export class InventoryReportingService {
 					productId: productsTable.id,
 					productName: productsTable.name,
 					sku: productsTable.sku,
-					currentStock: sql<number>`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0)`,
+					currentStock: sql<number>`COALESCE(SUM(${invennvrytoryBatchesTable.quantity}), 0)`,
 				})
-				.from(inventoryBatchesTable)
-				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
+				.from(invennvrytoryBatchesTable)
+				.innerJoin(productsTable, eq(invennvrytoryBatchesTable.productId, productsTable.id))
 				.where(where)
 				.groupBy(productsTable.id, productsTable.name, productsTable.sku)
 				.orderBy(sql`currentStock ASC`)
 
 			const totalStock = data.reduce((sum, d) => sum + d.currentStock, 0)
 			const avgStock = data.length > 0 ? totalStock / data.length : 0
-			const lowStockCount = data.filter((d) => d.currentStock <= 0).length
 
 			return {
 				data: data.map((d) => ({
@@ -63,35 +62,35 @@ export class InventoryReportingService {
 			const { dateFrom, dateTo, locationId, productId, groupBy = 'day' } = query
 
 			const where = and(
-				gte(inventoryMovementsTable.date, dateFrom),
-				lte(inventoryMovementsTable.date, dateTo),
-				locationId ? eq(inventoryMovementsTable.locationId, locationId) : undefined,
-				productId ? eq(inventoryMovementsTable.productId, productId) : undefined,
+				gte(stockMovementsTable.date, dateFrom),
+				lte(stockMovementsTable.date, dateTo),
+				locationId ? eq(stockMovementsTable.locationId, locationId) : undefined,
+				productId ? eq(stockMovementsTable.productId, productId) : undefined,
 			)
 
 			let dateTrunc
 			switch (groupBy) {
 				case 'day':
-					dateTrunc = sql`DATE(${inventoryMovementsTable.date})`
+					dateTrunc = sql`DATE(${stockMovementsTable.date})`
 					break
 				case 'week':
-					dateTrunc = sql`DATE_TRUNC('week', ${inventoryMovementsTable.date})`
+					dateTrunc = sql`DATE_TRUNC('week', ${stockMovementsTable.date})`
 					break
 				case 'month':
-					dateTrunc = sql`DATE_TRUNC('month', ${inventoryMovementsTable.date})`
+					dateTrunc = sql`DATE_TRUNC('month', ${stockMovementsTable.date})`
 					break
 				case 'year':
-					dateTrunc = sql`DATE_TRUNC('year', ${inventoryMovementsTable.date})`
+					dateTrunc = sql`DATE_TRUNC('year', ${stockMovementsTable.date})`
 					break
 			}
 
 			const data = await this.db
 				.select({
 					date: dateTrunc,
-					quantityIn: sql<number>`COALESCE(SUM(CASE WHEN ${inventoryMovementsTable.quantity} > 0 THEN ${inventoryMovementsTable.quantity} ELSE 0 END), 0)`,
-					quantityOut: sql<number>`COALESCE(SUM(CASE WHEN ${inventoryMovementsTable.quantity} < 0 THEN ABS(${inventoryMovementsTable.quantity}) ELSE 0 END), 0)`,
+					quantityIn: sql<number>`COALESCE(SUM(CASE WHEN ${stockMovementsTable.quantity} > 0 THEN ${stockMovementsTable.quantity} ELSE 0 END), 0)`,
+					quantityOut: sql<number>`COALESCE(SUM(CASE WHEN ${stockMovementsTable.quantity} < 0 THEN ABS(${stockMovementsTable.quantity}) ELSE 0 END), 0)`,
 				})
-				.from(inventoryMovementsTable)
+				.from(stockMovementsTable)
 				.where(where)
 				.groupBy(dateTrunc)
 				.orderBy(dateTrunc)
@@ -123,8 +122,8 @@ export class InventoryReportingService {
 			const { locationId, productId } = query
 
 			const where = and(
-				locationId ? eq(inventoryBatchesTable.locationId, locationId) : undefined,
-				productId ? eq(inventoryBatchesTable.productId, productId) : undefined,
+				locationId ? eq(invennvrytoryBatchesTable.locationId, locationId) : undefined,
+				productId ? eq(invennvrytoryBatchesTable.productId, productId) : undefined,
 			)
 
 			const data = await this.db
@@ -132,10 +131,10 @@ export class InventoryReportingService {
 					productId: productsTable.id,
 					productName: productsTable.name,
 					sku: productsTable.sku,
-					quantity: sql<number>`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0)`,
+					quantity: sql<number>`COALESCE(SUM(${invennvrytoryBatchesTable.quantity}), 0)`,
 				})
-				.from(inventoryBatchesTable)
-				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
+				.from(invennvrytoryBatchesTable)
+				.innerJoin(productsTable, eq(invennvrytoryBatchesTable.productId, productsTable.id))
 				.where(where)
 				.groupBy(productsTable.id, productsTable.name, productsTable.sku)
 				.orderBy(sql`quantity DESC`)
@@ -171,18 +170,20 @@ export class InventoryReportingService {
 		return record('InventoryReportingService.getLowStockItems', async () => {
 			const { locationId } = query
 
-			const where = and(locationId ? eq(inventoryBatchesTable.locationId, locationId) : undefined)
+			const where = and(
+				locationId ? eq(invennvrytoryBatchesTable.locationId, locationId) : undefined,
+			)
 
 			const data = await this.db
 				.select({
 					productId: productsTable.id,
 					productName: productsTable.name,
 					sku: productsTable.sku,
-					currentStock: sql<number>`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0)`,
+					currentStock: sql<number>`COALESCE(SUM(${invennvrytoryBatchesTable.quantity}), 0)`,
 					reorderLevel: productsTable.reorderLevel,
 				})
-				.from(inventoryBatchesTable)
-				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
+				.from(invennvrytoryBatchesTable)
+				.innerJoin(productsTable, eq(invennvrytoryBatchesTable.productId, productsTable.id))
 				.where(where)
 				.groupBy(
 					productsTable.id,
@@ -191,7 +192,7 @@ export class InventoryReportingService {
 					productsTable.reorderLevel,
 				)
 				.having(
-					sql`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0) <= ${productsTable.reorderLevel}`,
+					sql`COALESCE(SUM(${invennvrytoryBatchesTable.quantity}), 0) <= ${productsTable.reorderLevel}`,
 				)
 				.orderBy(sql`currentStock ASC`)
 
