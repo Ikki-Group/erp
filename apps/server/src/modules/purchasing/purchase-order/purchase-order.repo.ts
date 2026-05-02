@@ -223,7 +223,7 @@ export class PurchaseOrderRepo {
 			const updateMeta = stampUpdate(actorId)
 			const [result] = await this.db
 				.update(purchaseOrdersTable)
-				.set({ status: status as any, ...updateMeta })
+				.set({ status: status as any as 'approved' | 'pending' | 'rejected', ...updateMeta })
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')

@@ -36,6 +36,7 @@ export class InventoryReportingService {
 	async getInventoryMovements(
 		_query: dto.InventoryReportRequestDto,
 	): Promise<dto.InventoryMovementChartResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('InventoryReportingService.getInventoryMovements', async () => {
 			// TODO: Inventory reporting needs proper product stock table structure
 			throw new Error(

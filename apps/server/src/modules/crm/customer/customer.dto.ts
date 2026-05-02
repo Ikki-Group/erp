@@ -31,7 +31,7 @@ export type CustomerDto = z.infer<typeof CustomerDto>
 export const CustomerCreateDto = z.object({
 	code: zc.strTrim.uppercase().min(3).max(20),
 	name: zc.strTrim.min(2).max(100),
-	email: zc.strTrim.email().optional().or(z.literal('')),
+	email: zc.strTrim.email().optional().or(z.literal('')), // eslint-disable-line @typescript-eslint/no-deprecated
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	address: zc.strTrim.min(5).max(255).optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(30).optional().or(z.literal('')),
@@ -42,7 +42,7 @@ export type CustomerCreateDto = z.infer<typeof CustomerCreateDto>
 export const CustomerUpdateDto = z.object({
 	...zc.RecordId.shape,
 	name: zc.strTrim.min(2).max(100).optional(),
-	email: zc.strTrim.email().optional().or(z.literal('')),
+	email: zc.strTrim.email().optional().or(z.literal('')), // eslint-disable-line @typescript-eslint/no-deprecated
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	address: zc.strTrim.min(5).max(255).optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(30).optional().or(z.literal('')),

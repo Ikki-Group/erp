@@ -51,7 +51,12 @@ export class AuditLogRepo {
 			const { q, page, limit, action, entityType, userId, fromDate, toDate } = filter
 			const where = and(
 				q === undefined ? undefined : searchFilter(auditLogsTable.description, q),
-				action === undefined ? undefined : eq(auditLogsTable.action, action as any),
+				action === undefined
+					? undefined
+					: eq(
+							auditLogsTable.action,
+							action as any as 'CREATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'OTHER' | 'UPDATE',
+						),
 				entityType === undefined ? undefined : eq(auditLogsTable.entityType, entityType),
 				userId === undefined ? undefined : eq(auditLogsTable.userId, userId),
 				fromDate === undefined ? undefined : gte(auditLogsTable.actionAt, fromDate),
