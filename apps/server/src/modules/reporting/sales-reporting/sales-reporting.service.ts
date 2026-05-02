@@ -100,11 +100,11 @@ export class SalesReportingService {
 			const avgRevenue = data.length > 0 ? totalRevenue / data.length : 0
 
 			return {
-				chartType: 'bar',
+				chartType: 'bar' as const,
 				data: data.map((d) => ({
 					productId: d.productId,
 					productName: d.itemName,
-					totalQuantity:  as constd.totalQuantity,
+					totalQuantity: d.totalQuantity,
 					totalRevenue: String(d.totalRevenue),
 				})),
 				summary: {
