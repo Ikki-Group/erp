@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, gt, lt } from 'drizzle-orm'
+import { and, count, eq, gt, lt, not } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { paginate, sortBy, type DbClient, type WithPaginationResult } from '@/core/database'
