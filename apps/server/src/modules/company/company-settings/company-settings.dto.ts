@@ -29,7 +29,8 @@ export const CompanySettingsCreateDto = z.object({
 	taxRate: zc.strTrim
 		.optional()
 		.or(z.literal(''))
-		.pipe(z.coerce.number().min(0).max(100).optional()),
+		.transform((v) => (v === '' ? undefined : Number(v)))
+		.pipe(z.number().min(0).max(100).optional()),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
@@ -49,7 +50,8 @@ export const CompanySettingsUpdateDto = z.object({
 	taxRate: zc.strTrim
 		.optional()
 		.or(z.literal(''))
-		.pipe(z.coerce.number().min(0).max(100).optional()),
+		.transform((v) => (v === '' ? undefined : Number(v)))
+		.pipe(z.number().min(0).max(100).optional()),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
