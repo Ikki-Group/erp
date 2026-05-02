@@ -149,7 +149,7 @@ export class CrmReportingService {
 				data: data
 					.filter((d) => d.customerId !== null)
 					.map((d) => ({
-						customerId: d.customerId,
+						customerId: d.customerId as number,
 						customerName: d.customerName,
 						email: d.email,
 						totalSpent: String(d.totalSpent),
