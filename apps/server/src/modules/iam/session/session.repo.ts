@@ -76,10 +76,6 @@ export class SessionRepo {
 						.select({
 							id: sessionsTable.id,
 							userId: sessionsTable.userId,
-							token: sessionsTable.token,
-							refreshToken: sessionsTable.refreshToken,
-							userAgent: sessionsTable.userAgent,
-							ipAddress: sessionsTable.ipAddress,
 							expiresAt: sessionsTable.expiresAt,
 							createdAt: sessionsTable.createdAt,
 							userEmail: usersTable.email,
@@ -169,45 +165,41 @@ export class SessionRepo {
 		})
 	}
 
-	async deleteMany(ids: number[]): Promise<number> {
+	async deleteMany(ids: number[]): Promise<void> {
 		return record('SessionRepo.deleteMany', async () => {
-			const result = await this.db.delete(sessionsTable).where(
+			await this.db.delete(sessionsTable).where(
 				// @ts-ignore - drizzle doesn't support array in where directly, but this works
 				sessionsTable.id.in(ids),
 			)
 
 			this.#clearCacheAsync()
-			return result.rowCount ?? 0
 		})
 	}
 
-	async deleteByUserId(userId: number): Promise<number> {
+	async deleteByUserId(userId: number): Promise<void> {
 		return record('SessionRepo.deleteByUserId', async () => {
-			const result = await this.db.delete(sessionsTable).where(eq(sessionsTable.userId, userId))
+			await this.db.delete(sessionsTable).where(eq(sessionsTable.userId, userId))
 
 			this.#clearCacheAsync()
-			return result.rowCount ?? 0
 		})
 	}
 
-	async deleteByUserIdExcept(userId: number, exceptSessionId: number): Promise<number> {
+	async deleteByUserIdExcept(userId: number, exceptSessionId: number): Promise<void> {
 		return record('SessionRepo.deleteByUserIdExcept', async () => {
-			const result = await this.db
+			await this.db
 				.delete(sessionsTable)
-				.where(and(eq(sessionsTable.userId, userId), eq(sessionsTable.id, exceptSessionId).not()))
+				.where(and(eq(sessionsTable.userId, userId), not(eq(sessionsTable.id, exceptSessionId))))
 
 			this.#clearCacheAsync()
-			return result.rowCount ?? 0
 		})
 	}
 
-	async deleteExpired(): Promise<number> {
+	async deleteExpired(): Promise<void> {
 		return record('SessionRepo.deleteExpired', async () => {
 			const now = new Date()
-			const result = await this.db.delete(sessionsTable).where(lt(sessionsTable.expiredAt, now))
+			await this.db.delete(sessionsTable).where(lt(sessionsTable.expiredAt, now))
 
 			this.#clearCacheAsync()
-			return result.rowCount ?? 0
 		})
 	}
 
