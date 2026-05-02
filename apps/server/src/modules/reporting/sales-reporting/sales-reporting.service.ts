@@ -14,13 +14,15 @@ export class SalesReportingService {
 		private readonly cacheClient: CacheClient,
 	) {}
 
-	async getRevenueOverTime(query: dto.SalesReportRequestDto): Promise<dto.SalesRevenueChartResponseDto> {
+	async getRevenueOverTime(
+		query: dto.SalesReportRequestDto,
+	): Promise<dto.SalesRevenueChartResponseDto> {
 		return record('SalesReportingService.getRevenueOverTime', async () => {
 			const { dateFrom, dateTo, locationId, salesTypeId, groupBy = 'day' } = query
 
 			const where = and(
-				gte(salesOrdersTable.date, dateFrom),
-				lte(salesOrdersTable.date, dateTo),
+				gte(salesOrdersTable.transactionDate, dateFrom),
+				lte(salesOrdersTable.transactionDate, dateTo),
 				locationId ? eq(salesOrdersTable.locationId, locationId) : undefined,
 				salesTypeId ? eq(salesOrdersTable.salesTypeId, salesTypeId) : undefined,
 			)
@@ -28,16 +30,16 @@ export class SalesReportingService {
 			let dateTrunc: string
 			switch (groupBy) {
 				case 'day':
-					dateTrunc = sql`DATE(${salesOrdersTable.date})`
+					dateTrunc = sql`DATE(${salesOrdersTable.transactionDate})`
 					break
 				case 'week':
-					dateTrunc = sql`DATE_TRUNC('week', ${salesOrdersTable.date})`
+					dateTrunc = sql`DATE_TRUNC('week', ${salesOrdersTable.transactionDate})`
 					break
 				case 'month':
-					dateTrunc = sql`DATE_TRUNC('month', ${salesOrdersTable.date})`
+					dateTrunc = sql`DATE_TRUNC('month', ${salesOrdersTable.transactionDate})`
 					break
 				case 'year':
-					dateTrunc = sql`DATE_TRUNC('year', ${salesOrdersTable.date})`
+					dateTrunc = sql`DATE_TRUNC('year', ${salesOrdersTable.transactionDate})`
 					break
 			}
 
@@ -79,8 +81,8 @@ export class SalesReportingService {
 			const { dateFrom, dateTo, locationId, salesTypeId } = query
 
 			const where = and(
-				gte(salesOrdersTable.date, dateFrom),
-				lte(salesOrdersTable.date, dateTo),
+				gte(salesOrdersTable.transactionDate, dateFrom),
+				lte(salesOrdersTable.transactionDate, dateTo),
 				locationId ? eq(salesOrdersTable.locationId, locationId) : undefined,
 				salesTypeId ? eq(salesOrdersTable.salesTypeId, salesTypeId) : undefined,
 			)
@@ -88,15 +90,14 @@ export class SalesReportingService {
 			const data = await this.db
 				.select({
 					productId: salesOrderItemsTable.productId,
-					productName: sql<string>`COALESCE(${salesOrderItemsTable.productName}, 'Unknown')`,
-					sku: sql<string>`COALESCE(${salesOrderItemsTable.sku}, '')`,
+					itemName: sql<string>`COALESCE(${salesOrderItemsTable.itemName}, 'Unknown')`,
 					totalQuantity: sql<number>`COALESCE(SUM(${salesOrderItemsTable.quantity}), 0)`,
 					totalRevenue: sql<number>`COALESCE(SUM(${salesOrderItemsTable.subtotal}), 0)`,
 				})
 				.from(salesOrderItemsTable)
 				.innerJoin(salesOrdersTable, eq(salesOrderItemsTable.orderId, salesOrdersTable.id))
 				.where(where)
-				.groupBy(salesOrderItemsTable.productId, salesOrderItemsTable.productName, salesOrderItemsTable.sku)
+				.groupBy(salesOrderItemsTable.productId, salesOrderItemsTable.itemName)
 				.orderBy(sql`totalRevenue DESC`)
 				.limit(10)
 
@@ -107,8 +108,7 @@ export class SalesReportingService {
 				chartType: 'bar',
 				data: data.map((d) => ({
 					productId: d.productId,
-					productName: d.productName,
-					sku: d.sku,
+					productName: d.itemName,
 					totalQuantity: d.totalQuantity,
 					totalRevenue: String(d.totalRevenue),
 				})),
@@ -123,26 +123,27 @@ export class SalesReportingService {
 		})
 	}
 
-	async getSalesByLocation(query: dto.SalesReportRequestDto): Promise<dto.SalesByLocationChartResponseDto> {
+	async getSalesByLocation(
+		query: dto.SalesReportRequestDto,
+	): Promise<dto.SalesByLocationChartResponseDto> {
 		return record('SalesReportingService.getSalesByLocation', async () => {
 			const { dateFrom, dateTo, salesTypeId } = query
 
 			const where = and(
-				gte(salesOrdersTable.date, dateFrom),
-				lte(salesOrdersTable.date, dateTo),
+				gte(salesOrdersTable.transactionDate, dateFrom),
+				lte(salesOrdersTable.transactionDate, dateTo),
 				salesTypeId ? eq(salesOrdersTable.salesTypeId, salesTypeId) : undefined,
 			)
 
 			const data = await this.db
 				.select({
 					locationId: salesOrdersTable.locationId,
-					locationName: sql<string>`COALESCE(${salesOrdersTable.locationName}, 'Unknown')`,
 					revenue: sql<number>`COALESCE(SUM(${salesOrdersTable.totalAmount}), 0)`,
 					orderCount: count(),
 				})
 				.from(salesOrdersTable)
 				.where(where)
-				.groupBy(salesOrdersTable.locationId, salesOrdersTable.locationName)
+				.groupBy(salesOrdersTable.locationId)
 				.orderBy(sql`revenue DESC`)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
@@ -152,7 +153,6 @@ export class SalesReportingService {
 				chartType: 'pie',
 				data: data.map((d) => ({
 					locationId: d.locationId,
-					locationName: d.locationName,
 					revenue: String(d.revenue),
 					orderCount: d.orderCount,
 				})),
@@ -172,21 +172,20 @@ export class SalesReportingService {
 			const { dateFrom, dateTo, locationId } = query
 
 			const where = and(
-				gte(salesOrdersTable.date, dateFrom),
-				lte(salesOrdersTable.date, dateTo),
+				gte(salesOrdersTable.transactionDate, dateFrom),
+				lte(salesOrdersTable.transactionDate, dateTo),
 				locationId ? eq(salesOrdersTable.locationId, locationId) : undefined,
 			)
 
 			const data = await this.db
 				.select({
 					salesTypeId: salesOrdersTable.salesTypeId,
-					salesTypeName: sql<string>`COALESCE(${salesOrdersTable.salesTypeName}, 'Unknown')`,
 					revenue: sql<number>`COALESCE(SUM(${salesOrdersTable.totalAmount}), 0)`,
 					orderCount: count(),
 				})
 				.from(salesOrdersTable)
 				.where(where)
-				.groupBy(salesOrdersTable.salesTypeId, salesOrdersTable.salesTypeName)
+				.groupBy(salesOrdersTable.salesTypeId)
 				.orderBy(sql`revenue DESC`)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
@@ -195,7 +194,6 @@ export class SalesReportingService {
 				chartType: 'donut',
 				data: data.map((d) => ({
 					salesTypeId: d.salesTypeId,
-					salesTypeName: d.salesTypeName,
 					revenue: String(d.revenue),
 					orderCount: d.orderCount,
 					percentage: totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
@@ -215,7 +213,7 @@ export class SalesReportingService {
 		const { Elysia } = require('elysia')
 		const { authPluginMacro } = require('@/core/http/auth-macro')
 		const { res } = require('@/core/http/response')
-		const { createSuccessResponseSchema, zq } = require('@/core/validation')
+		const { createSuccessResponseSchema } = require('@/core/validation')
 
 		return new Elysia({ prefix: '/sales' })
 			.use(authPluginMacro)
