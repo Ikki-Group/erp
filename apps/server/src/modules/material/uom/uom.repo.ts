@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
