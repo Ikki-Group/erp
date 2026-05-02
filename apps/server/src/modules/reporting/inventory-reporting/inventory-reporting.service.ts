@@ -25,6 +25,7 @@ export class InventoryReportingService {
 	}
 
 	async getLowStockItems(_query: dto.InventoryReportRequestDto): Promise<dto.LowStockResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('InventoryReportingService.getLowStockItems', async () => {
 			// TODO: Inventory reporting needs proper product stock table structure
 			throw new Error(
