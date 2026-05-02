@@ -6,7 +6,7 @@ import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.d
 
 /** Sales revenue over time */
 export const SalesRevenueDto = z.object({
-	date: zp.date,
+	date: z.string(),
 	revenue: zp.decimal,
 	orderCount: zp.num,
 })
@@ -14,7 +14,7 @@ export type SalesRevenueDto = z.infer<typeof SalesRevenueDto>
 
 /** Top selling products */
 export const TopProductDto = z.object({
-	productId: zp.num,
+	productId: zp.num.nullable(),
 	productName: zp.str,
 	sku: zp.str.optional(),
 	totalQuantity: zp.num,

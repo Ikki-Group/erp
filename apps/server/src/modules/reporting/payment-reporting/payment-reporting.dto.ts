@@ -16,7 +16,7 @@ export type PaymentByMethodDto = z.infer<typeof PaymentByMethodDto>
 
 /** Payment over time */
 export const PaymentOverTimeDto = z.object({
-	date: zp.date,
+	date: z.string(),
 	payableAmount: zp.decimal,
 	receivableAmount: zp.decimal,
 	totalAmount: zp.decimal,
