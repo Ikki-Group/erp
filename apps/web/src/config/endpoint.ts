@@ -14,6 +14,21 @@ function crud(base: string) {
 
 const auth = { login: 'auth/login', me: 'auth/me' }
 
+const audit = {
+	log: {
+		...crud('audit/log'),
+	},
+}
+
+const company = {
+	settings: {
+		get: 'company/settings',
+		detail: 'company/settings/detail',
+		create: 'company/settings/create',
+		update: 'company/settings/update',
+	},
+}
+
 const iam = {
 	user: {
 		...crud('iam/user'),
@@ -150,6 +165,31 @@ const payment = {
 	},
 }
 
+const reporting = {
+	sales: {
+		revenue: 'reporting/sales/revenue',
+		topProducts: 'reporting/sales/top-products',
+		byLocation: 'reporting/sales/by-location',
+		byType: 'reporting/sales/by-type',
+	},
+	finance: {
+		cashFlow: 'reporting/finance/cash-flow',
+		accountBalances: 'reporting/finance/account-balances',
+		expenditureByCategory: 'reporting/finance/expenditure-by-category',
+	},
+	inventory: {
+		stockLevels: 'reporting/inventory/stock-levels',
+		movements: 'reporting/inventory/movements',
+		stockValue: 'reporting/inventory/stock-value',
+		lowStock: 'reporting/inventory/low-stock',
+	},
+	payment: {
+		byMethod: 'reporting/payment/by-method',
+		overTime: 'reporting/payment/over-time',
+		byAccount: 'reporting/payment/by-account',
+	},
+}
+
 export const endpoint = {
 	auth,
 	iam,
@@ -170,4 +210,5 @@ export const endpoint = {
 	sales,
 	supplier,
 	payment,
+	reporting,
 } as const

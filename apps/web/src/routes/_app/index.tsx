@@ -1,33 +1,15 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import {
-	AlertCircleIcon,
-	ArrowRightIcon,
-	BoxIcon,
-	CheckCircle2Icon,
-	DollarSignIcon,
-	PackageIcon,
-	TrendingUpIcon,
-} from 'lucide-react'
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { AlertCircleIcon, DollarSignIcon, PackageIcon, TrendingUpIcon } from 'lucide-react'
+import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
-import {
-	ChartCard,
-	ChartFooterContent,
-	ChartGrid,
-} from '@/components/blocks/data-display/chart-card'
+import { ChartCard, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
-import { Badge } from '@/components/reui/badge'
 
 import { Button } from '@/components/ui/button'
-import {
-	ChartContainer,
-	ChartLegend,
-	ChartLegendContent,
-	ChartTooltip,
-	ChartTooltipContent,
-} from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import {
 	Table,
 	TableBody,
@@ -37,58 +19,44 @@ import {
 	TableRow,
 } from '@/components/ui/table'
 
+import { analyticsApi } from '@/features/dashboard'
+import type { PnLDataDto, TopSalesItemDto } from '@/features/dashboard'
+import { stockAlertApi, stockDashboardApi } from '@/features/inventory'
+import type { StockAlertSelectDto } from '@/features/inventory'
+
 export const Route = createFileRoute('/_app/')({ component: Dashboard })
 
-// Mock Data for a "Premium" feel
-const revenueData = [
-	{ day: 'Sen', revenue: 4500000, cost: 2100000 },
-	{ day: 'Sel', revenue: 5200000, cost: 2400000 },
-	{ day: 'Rab', revenue: 4800000, cost: 2200000 },
-	{ day: 'Kam', revenue: 6100000, cost: 2800000 },
-	{ day: 'Jum', revenue: 7500000, cost: 3500000 },
-	{ day: 'Sab', revenue: 9200000, cost: 4200000 },
-	{ day: 'Min', revenue: 8800000, cost: 4000000 },
-]
-
-const revenueConfig = {
-	revenue: { label: 'Pendapatan', color: 'oklch(var(--primary))' },
-	cost: { label: 'COGS (HPP)', color: 'oklch(var(--chart-2))' },
-}
-
-const topProductsData = [
-	{ name: 'Ikki Signature Coffee', sales: 450 },
-	{ name: 'Nasi Goreng Spesial', sales: 380 },
-	{ name: 'Croissant Butter', sales: 320 },
-	{ name: 'Iced Lychee Tea', sales: 290 },
-	{ name: 'Spaghetti Carbonara', sales: 240 },
-]
-
-const productConfig = { sales: { label: 'Terjual', color: 'oklch(var(--primary))' } }
-
-const lowStockData = [
-	{ item: 'Biji Kopi House Blend', location: 'Ikki Coffee Bar', stock: '2.5 kg', min: '5 kg' },
-	{ item: 'Susu Fresh Milk', location: 'Gudang Utama', stock: '12 L', min: '24 L' },
-	{ item: 'Sirup Karamel', location: 'Ikki Resto', stock: '2 btl', min: '5 btl' },
-]
-
-const pendingRequests = [
-	{
-		id: 'REQ-001',
-		from: 'Ikki Coffee',
-		item: 'Paper Cup 8oz',
-		qty: '500 pcs',
-		status: 'Pending Approval',
-	},
-	{
-		id: 'REQ-002',
-		from: 'Ikki Resto',
-		item: 'T-Bone Steak',
-		qty: '10 kg',
-		status: 'Waiting Stock',
-	},
-]
+const productConfig = { totalRevenue: { label: 'Pendapatan', color: 'oklch(var(--primary))' } }
 
 function Dashboard() {
+	const now = new Date()
+	const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+	const { data: pnlData } = useQuery({
+		queryKey: ['dashboard', 'pnl', startOfMonth.toISOString(), now.toISOString()],
+		queryFn: () => analyticsApi.pnl.fetch({ body: { startDate: startOfMonth, endDate: now } }),
+	})
+
+	const { data: topSalesData } = useQuery({
+		queryKey: ['dashboard', 'topSales', startOfMonth.toISOString(), now.toISOString()],
+		queryFn: () =>
+			analyticsApi.topSales.fetch({ body: { startDate: startOfMonth, endDate: now, limit: 5 } }),
+	})
+
+	const { data: kpiData } = useQuery(stockDashboardApi.kpi.query({}))
+
+	const { data: alertData } = useQuery(stockAlertApi.list.query({ page: 1, limit: 5, type: 'all' }))
+
+	const pnl: PnLDataDto | undefined = pnlData?.data
+	const kpi = kpiData?.data
+	const topSales: TopSalesItemDto[] = topSalesData?.data ?? []
+	const alerts: StockAlertSelectDto[] = alertData?.data ?? []
+
+	const revenue = Number(pnl?.revenue ?? 0)
+	const cogs = Number(pnl?.cogs ?? 0)
+	const grossMargin = revenue > 0 ? ((revenue - cogs) / revenue) * 100 : 0
+	const lowStockCount = kpi?.lowStockCount ?? 0
+
 	return (
 		<Page>
 			<Page.BlockHeader
@@ -100,26 +68,26 @@ function Dashboard() {
 				{/* KPI Cards */}
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<CardStat
-						title="Pendapatan (Hari Ini)"
-						value="Rp 8.800.000"
-						description="+15% vs kemarin"
+						title="Pendapatan (Bulan Ini)"
+						value={`Rp ${revenue.toLocaleString('id-ID')}`}
+						description="Total pendapatan bulan berjalan"
 						icon={DollarSignIcon}
 					/>
 					<CardStat
 						title="Total HPP (COGS)"
-						value="Rp 4.000.000"
-						description="45.4% Margin"
+						value={`Rp ${cogs.toLocaleString('id-ID')}`}
+						description={`${grossMargin.toFixed(1)}% Gross Margin`}
 						icon={PackageIcon}
 					/>
 					<CardStat
-						title="Gross Profit Margin"
-						value="54.6%"
-						description="Trend naik 2.1%"
+						title="Laba Bersih"
+						value={`Rp ${Number(pnl?.netProfit ?? 0).toLocaleString('id-ID')}`}
+						description="Laba setelah biaya operasional"
 						icon={TrendingUpIcon}
 					/>
 					<CardStat
 						title="Stok Menipis"
-						value="12 Item"
+						value={`${lowStockCount} Item`}
 						description="Butuh restock"
 						icon={AlertCircleIcon}
 					/>
@@ -129,54 +97,14 @@ function Dashboard() {
 				<ChartGrid className="grid-cols-1 lg:grid-cols-3">
 					<ChartCard
 						className="lg:col-span-2"
-						title="Tren Pendapatan 7 Hari Terakhir"
-						description="Performa akumulasi seluruh outlet"
-						footer={
-							<ChartFooterContent
-								trend="up"
-								trendValue="Naik 18% minggu ini"
-								description="Peak sales pada hari Sabtu & Minggu"
-							/>
-						}
+						title="Produk Terlaris (Bulan Ini)"
+						description="Berdasarkan total pendapatan"
 					>
-						<ChartContainer config={revenueConfig} className="aspect-auto h-87.5 w-full">
-							<AreaChart data={revenueData} margin={{ left: 10, right: 10, top: 10, bottom: 0 }}>
-								<defs>
-									<linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-										<stop offset="5%" stopColor="oklch(var(--primary))" stopOpacity={0.4} />
-										<stop offset="95%" stopColor="oklch(var(--primary))" stopOpacity={0} />
-									</linearGradient>
-								</defs>
-								<CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.1} />
-								<XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
-								<YAxis hide />
-								<ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-								<Area
-									dataKey="revenue"
-									type="monotone"
-									fill="url(#fillRev)"
-									stroke="oklch(var(--primary))"
-									strokeWidth={2}
-								/>
-								<Area
-									dataKey="cost"
-									type="monotone"
-									fill="transparent"
-									stroke="oklch(var(--chart-2))"
-									strokeWidth={2}
-									strokeDasharray="5 5"
-								/>
-								<ChartLegend content={<ChartLegendContent />} />
-							</AreaChart>
-						</ChartContainer>
-					</ChartCard>
-
-					<ChartCard title="Produk Terlaris" description="Berdasarkan volume penjualan">
 						<ChartContainer config={productConfig} className="aspect-auto h-87.5 w-full">
-							<BarChart data={topProductsData} layout="vertical" margin={{ left: -20 }}>
+							<BarChart data={topSales} layout="vertical" margin={{ left: -20 }}>
 								<XAxis type="number" hide />
 								<YAxis
-									dataKey="name"
+									dataKey="itemName"
 									type="category"
 									tickLine={false}
 									axisLine={false}
@@ -184,14 +112,44 @@ function Dashboard() {
 									width={140}
 								/>
 								<ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-								<Bar dataKey="sales" fill="oklch(var(--primary))" radius={4} />
+								<Bar dataKey="totalRevenue" fill="oklch(var(--primary))" radius={4} />
 							</BarChart>
 						</ChartContainer>
 					</ChartCard>
+
+					<ChartCard title="Ringkasan P&L" description="Periode bulan berjalan">
+						<div className="flex flex-col gap-4 p-4">
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">Pendapatan</span>
+								<span className="font-mono font-medium">Rp {revenue.toLocaleString('id-ID')}</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">HPP (COGS)</span>
+								<span className="font-mono font-medium text-rose-600">
+									- Rp {cogs.toLocaleString('id-ID')}
+								</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">Biaya Operasional</span>
+								<span className="font-mono font-medium text-rose-600">
+									- Rp {Number(pnl?.operatingExpenses ?? 0).toLocaleString('id-ID')}
+								</span>
+							</div>
+							<hr className="border-dashed" />
+							<div className="flex items-center justify-between">
+								<span className="text-sm font-semibold">Laba Bersih</span>
+								<span
+									className={`font-mono font-bold ${Number(pnl?.netProfit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+								>
+									Rp {Number(pnl?.netProfit ?? 0).toLocaleString('id-ID')}
+								</span>
+							</div>
+						</div>
+					</ChartCard>
 				</ChartGrid>
 
-				{/* Action Panels */}
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 pb-12">
+				{/* Low Stock Alerts */}
+				{alerts.length > 0 && (
 					<div className="rounded-xl border bg-card text-card-foreground shadow-card">
 						<div className="p-6 pb-3 flex items-center justify-between">
 							<h3 className="font-semibold leading-none tracking-tight">Peringatan Stok Rendah</h3>
@@ -206,18 +164,21 @@ function Dashboard() {
 										<TableHead>Material</TableHead>
 										<TableHead>Lokasi</TableHead>
 										<TableHead className="text-right">Stok</TableHead>
+										<TableHead className="text-right">Minimum</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{lowStockData.map((row) => (
-										<TableRow key={row.item}>
-											<TableCell className="font-medium">{row.item}</TableCell>
+									{alerts.map((row) => (
+										<TableRow key={`${row.materialId}-${row.locationId}`}>
+											<TableCell className="font-medium">{row.materialName}</TableCell>
 											<TableCell className="text-xs text-muted-foreground">
-												{row.location}
+												{row.locationName}
 											</TableCell>
 											<TableCell className="text-right text-destructive font-semibold">
-												{row.stock}{' '}
-												<span className="text-[10px] text-muted-foreground">/ {row.min}</span>
+												{Number(row.currentQty).toLocaleString('id-ID')} {row.uomCode ?? ''}
+											</TableCell>
+											<TableCell className="text-right text-muted-foreground text-xs">
+												{Number(row.minStock).toLocaleString('id-ID')} {row.uomCode ?? ''}
 											</TableCell>
 										</TableRow>
 									))}
@@ -225,40 +186,7 @@ function Dashboard() {
 							</Table>
 						</div>
 					</div>
-
-					<div className="rounded-xl border bg-card text-card-foreground shadow-card">
-						<div className="p-6 pb-3 flex items-center justify-between">
-							<h3 className="font-semibold leading-none tracking-tight">Menunggu Persetujuan</h3>
-							<Badge variant="secondary" className="bg-primary/8 text-primary border-none">
-								{pendingRequests.length} Aktif
-							</Badge>
-						</div>
-						<div className="px-6 pb-6 space-y-4">
-							{pendingRequests.map((req) => (
-								<div
-									key={req.id}
-									className="flex items-center justify-between p-3 rounded-lg border bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
-								>
-									<div className="flex items-center gap-3">
-										<div className="p-2 rounded-full bg-background border shadow-sm">
-											<BoxIcon className="h-4 w-4 text-muted-foreground" />
-										</div>
-										<div className="grid gap-0.5">
-											<p className="text-sm font-medium leading-none">{req.item}</p>
-											<p className="text-xs text-muted-foreground">
-												{req.from} • {req.qty}
-											</p>
-										</div>
-									</div>
-									<ArrowRightIcon className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-								</div>
-							))}
-							<Button variant="outline" className="w-full text-xs gap-2">
-								<CheckCircle2Icon className="h-4 w-4" /> Buka Panel Approval
-							</Button>
-						</div>
-					</div>
-				</div>
+				)}
 			</Page.Content>
 		</Page>
 	)

@@ -101,13 +101,7 @@ function PaymentsPage() {
 					}
 				/>
 			</Page.Content>
-			<PaymentFormDialog
-				open={showPaymentDialog}
-				onOpenChange={setShowPaymentDialog}
-				onSuccess={() => {
-					// Refetch data after successful creation
-				}}
-			/>
+			<PaymentFormDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog} />
 		</Page>
 	)
 }

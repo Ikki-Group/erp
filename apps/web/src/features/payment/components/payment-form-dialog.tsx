@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { DataCombobox } from '@/components/ui/data-combobox'
 import {
 	Dialog,
 	DialogContent,
@@ -24,8 +25,20 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
+import { accountApi } from '@/features/finance/api/finance.api'
+
 import { paymentApi } from '../api'
 import type { PaymentCreateDto, PaymentMethodDto, PaymentTypeDto } from '../dto'
+
+const defaultFormData: PaymentCreateDto = {
+	type: 'receivable',
+	date: new Date(),
+	referenceNo: '',
+	accountId: 0,
+	method: 'cash',
+	amount: 0,
+	notes: '',
+}
 
 interface PaymentFormDialogProps {
 	open: boolean
@@ -34,14 +47,11 @@ interface PaymentFormDialogProps {
 }
 
 export function PaymentFormDialog({ open, onOpenChange, onSuccess }: PaymentFormDialogProps) {
-	const [formData, setFormData] = React.useState<PaymentCreateDto>({
-		type: 'receivable',
-		date: new Date(),
-		referenceNo: '',
-		accountId: 1, // TODO: Get from context
-		method: 'cash',
-		amount: 0,
-		notes: '',
+	const [formData, setFormData] = React.useState<PaymentCreateDto>({ ...defaultFormData })
+
+	const accountOptions = (search: string) => ({
+		queryKey: ['finance', 'accounts', 'list', search],
+		queryFn: () => accountApi.list.query({ q: search }),
 	})
 
 	const createMutation = useMutation({
@@ -49,20 +59,14 @@ export function PaymentFormDialog({ open, onOpenChange, onSuccess }: PaymentForm
 		onSuccess: () => {
 			toast.success('Pembayaran berhasil dibuat')
 			onOpenChange(false)
-			setFormData({
-				type: 'receivable',
-				date: new Date(),
-				referenceNo: '',
-				accountId: 1,
-				method: 'cash',
-				amount: 0,
-				notes: '',
-			})
+			setFormData({ ...defaultFormData, date: new Date() })
 			onSuccess?.()
 		},
 		onError: (error) => {
-			toast.error('Gagal membuat pembayaran')
-			console.error(String(error))
+			toast.error(
+				'Gagal membuat pembayaran: ' +
+					(error instanceof Error ? error.message : 'Terjadi kesalahan'),
+			)
 		},
 	})
 
@@ -117,6 +121,20 @@ export function PaymentFormDialog({ open, onOpenChange, onSuccess }: PaymentForm
 							placeholder="Masukkan nomor referensi"
 							value={formData.referenceNo ?? ''}
 							onChange={(e) => setFormData({ ...formData, referenceNo: e.target.value })}
+						/>
+					</div>
+
+					<div className="space-y-2">
+						<Label>Akun</Label>
+						<DataCombobox
+							value={formData.accountId ? formData.accountId.toString() : null}
+							onValueChange={(val) =>
+								setFormData({ ...formData, accountId: val ? Number(val) : 0 })
+							}
+							queryOptionsFactory={accountOptions}
+							getLabel={(item: any) => `[${item.code}] ${item.name}`}
+							getValue={(item: any) => item.id.toString()}
+							placeholder="Pilih Akun Kas/Bank..."
 						/>
 					</div>
 

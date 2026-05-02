@@ -20,6 +20,7 @@ import { ProductServiceModule } from './product'
 import { ProductionServiceModule } from './production'
 import { PurchasingServiceModule } from './purchasing'
 import { RecipeServiceModule } from './recipe'
+import { ReportingServiceModule } from './reporting'
 import { SalesServiceModule } from './sales'
 import { SupplierServiceModule } from './supplier'
 import { ToolServiceModule } from './tool'
@@ -51,6 +52,7 @@ export interface Modules {
 	dashboard: DashboardServiceModule
 	tool: ToolServiceModule
 	payment: PaymentServiceModule
+	reporting: ReportingServiceModule
 }
 
 export function initModules(db: DbClient): Modules {
@@ -87,6 +89,7 @@ export function initModules(db: DbClient): Modules {
 	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
 	const tool = new ToolServiceModule(db, iam, location, material, sales)
 	const payment = new PaymentServiceModule(db, cacheClient)
+	const reporting = new ReportingServiceModule(db, cacheClient)
 
 	return {
 		location,
@@ -110,6 +113,7 @@ export function initModules(db: DbClient): Modules {
 		production,
 		hr,
 		payment,
+		reporting,
 	}
 }
 
