@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, inArray, isNull, lt, sql, sum } from 'drizzle-orm'
 
@@ -66,7 +67,7 @@ export class StockSummaryService {
 
 			const materialIds = assignments.map((a) => a.materialId)
 
-			return  db.transaction(async (tx) => {
+			return db.transaction(async (tx) => {
 				const prevSummariesQuery = sql`
 					SELECT DISTINCT ON ("materialId") "materialId", "closingQty", "closingAvgCost"
 					FROM ${stockSummariesTable}

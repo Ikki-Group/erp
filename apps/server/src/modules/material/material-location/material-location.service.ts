@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-argument */
 import { record } from '@elysiajs/opentelemetry'
 
 import type { DbTx } from '@/core/database'
