@@ -5,12 +5,13 @@ import { zc, zp, zq } from '@/core/validation'
 import { auditActionEnum } from '@/db/schema'
 
 /** Audit action types */
-export const AuditActionDto = auditActionEnum
+export const AuditActionDto = z.nativeEnum(auditActionEnum)
 export type AuditActionDto = z.infer<typeof AuditActionDto>
 
 export const AuditLogDto = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
+	action: AuditActionDto,
 	entityType: zp.str,
 	entityId: zp.strNullable,
 	description: zp.str,
@@ -25,7 +26,7 @@ export type AuditLogDto = z.infer<typeof AuditLogDto>
 
 export const AuditLogCreateDto = z.object({
 	userId: zp.id,
-	action: z.nativeEnum(auditActionEnum),
+	action: AuditActionDto,
 	entityType: zc.strTrim.min(2).max(100),
 	entityId: zc.strTrim.max(50).optional(),
 	description: zc.strTrim.min(5).max(500),
@@ -38,7 +39,7 @@ export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
 
 export const AuditLogFilterDto = z.object({
 	q: zq.search,
-	action: z.nullish(AuditActionDto),
+	action: z.nativeEnum(auditActionEnum).nullish(),
 	entityType: zp.str.optional(),
 	userId: zp.id.optional(),
 	fromDate: zp.date.optional(),
