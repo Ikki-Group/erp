@@ -42,7 +42,7 @@ export class SessionRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<SessionDto | undefined> {
+	async getById(id: number): Promise<dto.SessionDto | undefined> {
 		return record('SessionRepo.getById', async () => {
 			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.byId(id),
@@ -54,15 +54,15 @@ export class SessionRepo {
 
 					if (!session) return skip()
 
-					return SessionDto.parse(session)
+					return dto.SessionDto.parse(session)
 				},
 			})
 		})
 	}
 
 	async getListPaginated(
-		filter: SessionFilterDto,
-	): Promise<WithPaginationResult<SessionSelectDto>> {
+		filter: dto.SessionFilterDto,
+	): Promise<WithPaginationResult<dto.SessionSelectDto>> {
 		return record('SessionRepo.getListPaginated', async () => {
 			const { page, limit, userId, isActive } = filter
 			const now = new Date()
@@ -91,7 +91,7 @@ export class SessionRepo {
 						.orderBy(sortBy(sessionsTable.createdAt, 'desc'))
 						.limit(l)
 						.offset(offset)
-					return rows.map((r) => SessionSelectDto.parse(r))
+					return rows.map((r) => dto.SessionSelectDto.parse(r))
 				},
 				pq: { page, limit },
 				countQuery: this.db.select({ count: count() }).from(sessionsTable).where(where),
@@ -99,18 +99,18 @@ export class SessionRepo {
 		})
 	}
 
-	async getByUserId(userId: number): Promise<SessionDto[]> {
+	async getByUserId(userId: number): Promise<dto.SessionDto[]> {
 		return record('SessionRepo.getByUserId', async () => {
 			const sessions = await this.db
 				.select()
 				.from(sessionsTable)
 				.where(eq(sessionsTable.userId, userId))
 				.orderBy(sortBy(sessionsTable.createdAt, 'desc'))
-			return sessions.map((s) => SessionDto.parse(s))
+			return sessions.map((s) => dto.SessionDto.parse(s))
 		})
 	}
 
-	async getActiveByUserId(userId: number): Promise<SessionDto[]> {
+	async getActiveByUserId(userId: number): Promise<dto.SessionDto[]> {
 		return record('SessionRepo.getActiveByUserId', async () => {
 			const now = new Date()
 			const sessions = await this.db
@@ -118,11 +118,11 @@ export class SessionRepo {
 				.from(sessionsTable)
 				.where(and(eq(sessionsTable.userId, userId), gt(sessionsTable.expiredAt, now)))
 				.orderBy(sortBy(sessionsTable.createdAt, 'desc'))
-			return sessions.map((s) => SessionDto.parse(s))
+			return sessions.map((s) => dto.SessionDto.parse(s))
 		})
 	}
 
-	async getExpired(): Promise<SessionDto[]> {
+	async getExpired(): Promise<dto.SessionDto[]> {
 		return record('SessionRepo.getExpired', async () => {
 			const now = new Date()
 			const sessions = await this.db
@@ -130,7 +130,7 @@ export class SessionRepo {
 				.from(sessionsTable)
 				.where(lt(sessionsTable.expiredAt, now))
 				.orderBy(sortBy(sessionsTable.expiredAt, 'asc'))
-			return sessions.map((s) => SessionDto.parse(s))
+			return sessions.map((s) => dto.SessionDto.parse(s))
 		})
 	}
 
