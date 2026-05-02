@@ -27,7 +27,7 @@ export class SalesReportingService {
 				salesTypeId ? eq(salesOrdersTable.salesTypeId, salesTypeId) : undefined,
 			)
 
-			let dateTrunc: string
+			let dateTrunc
 			switch (groupBy) {
 				case 'day':
 					dateTrunc = sql`DATE(${salesOrdersTable.transactionDate})`
@@ -55,7 +55,6 @@ export class SalesReportingService {
 				.orderBy(dateTrunc)
 
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
-			const totalOrders = data.reduce((sum, d) => sum + d.orderCount, 0)
 			const avgRevenue = data.length > 0 ? totalRevenue / data.length : 0
 
 			return {
@@ -63,7 +62,7 @@ export class SalesReportingService {
 				data: data.map((d) => ({
 					date: d.date as string,
 					revenue: String(d.revenue),
-					orderCount: d.orderCount,
+					orderCount: d.orderCount as number,
 				})),
 				summary: {
 					total: String(totalRevenue),
@@ -219,7 +218,7 @@ export class SalesReportingService {
 			.use(authPluginMacro)
 			.get(
 				'/revenue',
-				async ({ query }) => {
+				async ({ query }: { query: dto.SalesReportRequestDto }) => {
 					const result = await this.getRevenueOverTime(query)
 					return res.ok(result)
 				},
@@ -231,7 +230,7 @@ export class SalesReportingService {
 			)
 			.get(
 				'/top-products',
-				async ({ query }) => {
+				async ({ query }: { query: dto.SalesReportRequestDto }) => {
 					const result = await this.getTopProducts(query)
 					return res.ok(result)
 				},
@@ -243,7 +242,7 @@ export class SalesReportingService {
 			)
 			.get(
 				'/by-location',
-				async ({ query }) => {
+				async ({ query }: { query: dto.SalesReportRequestDto }) => {
 					const result = await this.getSalesByLocation(query)
 					return res.ok(result)
 				},
@@ -255,7 +254,7 @@ export class SalesReportingService {
 			)
 			.get(
 				'/by-type',
-				async ({ query }) => {
+				async ({ query }: { query: dto.SalesReportRequestDto }) => {
 					const result = await this.getSalesByType(query)
 					return res.ok(result)
 				},

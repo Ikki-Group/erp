@@ -16,7 +16,7 @@ export type SalesRevenueDto = z.infer<typeof SalesRevenueDto>
 export const TopProductDto = z.object({
 	productId: zp.num,
 	productName: zp.str,
-	sku: zp.str,
+	sku: zp.str.optional(),
 	totalQuantity: zp.num,
 	totalRevenue: zp.decimal,
 })
@@ -25,7 +25,7 @@ export type TopProductDto = z.infer<typeof TopProductDto>
 /** Sales by location */
 export const SalesByLocationDto = z.object({
 	locationId: zp.num,
-	locationName: zp.str,
+	locationName: zp.str.optional(),
 	revenue: zp.decimal,
 	orderCount: zp.num,
 })
@@ -34,7 +34,7 @@ export type SalesByLocationDto = z.infer<typeof SalesByLocationDto>
 /** Sales by type (dine-in, take-away, delivery) */
 export const SalesByTypeDto = z.object({
 	salesTypeId: zp.num,
-	salesTypeName: zp.str,
+	salesTypeName: zp.str.optional(),
 	revenue: zp.decimal,
 	orderCount: zp.num,
 	percentage: zp.decimal,
