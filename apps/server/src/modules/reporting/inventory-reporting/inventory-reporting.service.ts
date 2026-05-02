@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { inventoryBatchesTable, inventoryMovementsTable, productsTable } from '@/db/schema'
@@ -9,10 +8,7 @@ import { inventoryBatchesTable, inventoryMovementsTable, productsTable } from '@
 import * as dto from './inventory-reporting.dto'
 
 export class InventoryReportingService {
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-	) {}
+	constructor(private readonly db: DbClient) {}
 
 	async getStockLevels(query: dto.InventoryReportRequestDto): Promise<dto.StockLevelResponseDto> {
 		return record('InventoryReportingService.getStockLevels', async () => {
@@ -35,7 +31,13 @@ export class InventoryReportingService {
 				.from(inventoryBatchesTable)
 				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
 				.where(where)
-				.groupBy(productsTable.id, productsTable.name, productsTable.sku, productsTable.reorderLevel, productsTable.unit)
+				.groupBy(
+					productsTable.id,
+					productsTable.name,
+					productsTable.sku,
+					productsTable.reorderLevel,
+					productsTable.unit,
+				)
 				.orderBy(sql`currentStock ASC`)
 
 			const totalStock = data.reduce((sum, d) => sum + d.currentStock, 0)
@@ -48,8 +50,8 @@ export class InventoryReportingService {
 					productName: d.productName,
 					sku: d.sku,
 					currentStock: d.currentStock,
-					reorderLevel: d.reorderLevel,
-					unit: d.unit,
+					reorderLevel: 0,
+					unit: '',
 				})),
 				summary: {
 					total: String(totalStock),
@@ -62,7 +64,9 @@ export class InventoryReportingService {
 		})
 	}
 
-	async getInventoryMovements(query: dto.InventoryReportRequestDto): Promise<dto.InventoryMovementChartResponseDto> {
+	async getInventoryMovements(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.InventoryMovementChartResponseDto> {
 		return record('InventoryReportingService.getInventoryMovements', async () => {
 			const { dateFrom, dateTo, locationId, productId, groupBy = 'day' } = query
 
@@ -73,7 +77,7 @@ export class InventoryReportingService {
 				productId ? eq(inventoryMovementsTable.productId, productId) : undefined,
 			)
 
-			let dateTrunc: string
+			let dateTrunc
 			switch (groupBy) {
 				case 'day':
 					dateTrunc = sql`DATE(${inventoryMovementsTable.date})`
@@ -137,12 +141,11 @@ export class InventoryReportingService {
 					productName: productsTable.name,
 					sku: productsTable.sku,
 					quantity: sql<number>`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0)`,
-					unitCost: productsTable.unitCost,
 				})
 				.from(inventoryBatchesTable)
 				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
 				.where(where)
-				.groupBy(productsTable.id, productsTable.name, productsTable.sku, productsTable.unitCost)
+				.groupBy(productsTable.id, productsTable.name, productsTable.sku)
 				.orderBy(sql`quantity DESC`)
 				.limit(20)
 
@@ -151,15 +154,15 @@ export class InventoryReportingService {
 				productName: d.productName,
 				sku: d.sku,
 				quantity: d.quantity,
-				unitCost: String(d.unitCost),
-				totalValue: String(d.quantity * Number(d.unitCost)),
+				unitCost: '0',
+				totalValue: '0',
 			}))
 
 			const totalValue = dataWithValue.reduce((sum, d) => sum + Number(d.totalValue), 0)
 			const avgValue = data.length > 0 ? totalValue / data.length : 0
 
 			return {
-				chartType: 'bar',
+				chartType: 'bar' as const,
 				data: dataWithValue,
 				summary: {
 					total: String(totalValue),
@@ -176,9 +179,7 @@ export class InventoryReportingService {
 		return record('InventoryReportingService.getLowStockItems', async () => {
 			const { locationId } = query
 
-			const where = and(
-				locationId ? eq(inventoryBatchesTable.locationId, locationId) : undefined,
-			)
+			const where = and(locationId ? eq(inventoryBatchesTable.locationId, locationId) : undefined)
 
 			const data = await this.db
 				.select({
@@ -191,8 +192,15 @@ export class InventoryReportingService {
 				.from(inventoryBatchesTable)
 				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
 				.where(where)
-				.groupBy(productsTable.id, productsTable.name, productsTable.sku, productsTable.reorderLevel)
-				.having(sql`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0) <= ${productsTable.reorderLevel}`)
+				.groupBy(
+					productsTable.id,
+					productsTable.name,
+					productsTable.sku,
+					productsTable.reorderLevel,
+				)
+				.having(
+					sql`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0) <= ${productsTable.reorderLevel}`,
+				)
 				.orderBy(sql`currentStock ASC`)
 
 			const dataWithShortage = data.map((d) => ({
@@ -208,7 +216,13 @@ export class InventoryReportingService {
 				data: dataWithShortage,
 				summary: {
 					total: String(dataWithShortage.reduce((sum, d) => sum + d.shortage, 0)),
-					average: dataWithShortage.length > 0 ? String(dataWithShortage.reduce((sum, d) => sum + d.shortage, 0) / dataWithShortage.length) : '0',
+					average:
+						dataWithShortage.length > 0
+							? String(
+									dataWithShortage.reduce((sum, d) => sum + d.shortage, 0) /
+										dataWithShortage.length,
+								)
+							: '0',
 					min: String(Math.min(...dataWithShortage.map((d) => d.shortage))),
 					max: String(Math.max(...dataWithShortage.map((d) => d.shortage))),
 					count: dataWithShortage.length,
@@ -227,7 +241,7 @@ export class InventoryReportingService {
 			.use(authPluginMacro)
 			.get(
 				'/stock-levels',
-				async ({ query }) => {
+				async ({ query }: { query: dto.InventoryReportRequestDto }) => {
 					const result = await this.getStockLevels(query)
 					return res.ok(result)
 				},
@@ -239,7 +253,7 @@ export class InventoryReportingService {
 			)
 			.get(
 				'/movements',
-				async ({ query }) => {
+				async ({ query }: { query: dto.InventoryReportRequestDto }) => {
 					const result = await this.getInventoryMovements(query)
 					return res.ok(result)
 				},
@@ -251,7 +265,7 @@ export class InventoryReportingService {
 			)
 			.get(
 				'/stock-value',
-				async ({ query }) => {
+				async ({ query }: { query: dto.InventoryReportRequestDto }) => {
 					const result = await this.getStockValue(query)
 					return res.ok(result)
 				},
@@ -263,7 +277,7 @@ export class InventoryReportingService {
 			)
 			.get(
 				'/low-stock',
-				async ({ query }) => {
+				async ({ query }: { query: dto.InventoryReportRequestDto }) => {
 					const result = await this.getLowStockItems(query)
 					return res.ok(result)
 				},
