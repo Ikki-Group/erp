@@ -41,7 +41,8 @@ export class MokaAuthEngine {
 			async (error: AxiosError) => {
 				const config = error.config as MokaAxiosConfig | undefined
 				if (error.response?.status === 401 && config && !config._retry) {
-					config._retry = true
+					// eslint-disable-line @typescript-eslint/naming-convention
+					config._retry = true // eslint-disable-line @typescript-eslint/naming-convention
 					await this.login()
 					if (config.headers) {
 						config.headers['Authorization'] = `${this.token}`
