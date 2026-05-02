@@ -250,3 +250,67 @@ export const PaymentByAccountResponseDto = z.object({
 	summary: ReportSummaryDto,
 })
 export type PaymentByAccountResponseDto = z.infer<typeof PaymentByAccountResponseDto>
+
+/* ------------------------------- CRM -------------------------------- */
+
+export const CrmReportRequestDto = ReportRequestDto.extend({
+	tierId: zp.num.optional(),
+})
+export type CrmReportRequestDto = z.infer<typeof CrmReportRequestDto>
+
+export const CustomerGrowthDto = z.object({
+	date: zp.date,
+	newCustomers: zp.num,
+	totalCustomers: zp.num,
+})
+export type CustomerGrowthDto = z.infer<typeof CustomerGrowthDto>
+
+export const CustomerGrowthChartResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(CustomerGrowthDto),
+	summary: ReportSummaryDto,
+})
+export type CustomerGrowthChartResponseDto = z.infer<typeof CustomerGrowthChartResponseDto>
+
+export const CustomerByTierDto = z.object({
+	tierId: zp.num.optional(),
+	tierName: zp.str,
+	customerCount: zp.num,
+	percentage: zp.decimal,
+})
+export type CustomerByTierDto = z.infer<typeof CustomerByTierDto>
+
+export const CustomerByTierResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(CustomerByTierDto),
+	summary: ReportSummaryDto,
+})
+export type CustomerByTierResponseDto = z.infer<typeof CustomerByTierResponseDto>
+
+export const TopCustomerDto = z.object({
+	customerId: zp.num,
+	customerName: zp.str,
+	email: zp.str,
+	totalSpent: zp.decimal,
+	orderCount: zp.num,
+})
+export type TopCustomerDto = z.infer<typeof TopCustomerDto>
+
+export const TopCustomersResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(TopCustomerDto),
+	summary: ReportSummaryDto,
+})
+export type TopCustomersResponseDto = z.infer<typeof TopCustomersResponseDto>
+
+export const LoyaltyPointsSummaryDto = z.object({
+	totalPointsIssued: zp.decimal,
+	totalPointsRedeemed: zp.decimal,
+	pointsBalance: zp.decimal,
+})
+export type LoyaltyPointsSummaryDto = z.infer<typeof LoyaltyPointsSummaryDto>
+
+export const LoyaltyPointsResponseDto = z.object({
+	data: LoyaltyPointsSummaryDto,
+})
+export type LoyaltyPointsResponseDto = z.infer<typeof LoyaltyPointsResponseDto>

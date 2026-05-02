@@ -20,6 +20,11 @@ import {
 	InventoryMovementChartResponseDto,
 	StockValueResponseDto,
 	LowStockResponseDto,
+	CrmReportRequestDto,
+	CustomerGrowthChartResponseDto,
+	CustomerByTierResponseDto,
+	TopCustomersResponseDto,
+	LoyaltyPointsResponseDto,
 	PaymentReportRequestDto,
 	PaymentByMethodResponseDto,
 	PaymentOverTimeResponseDto,
@@ -119,5 +124,32 @@ export const paymentReportApi = {
 		url: endpoint.reporting.payment.byAccount,
 		params: PaymentReportRequestDto,
 		result: createSuccessResponseSchema(PaymentByAccountResponseDto),
+	}),
+}
+
+export const crmReportApi = {
+	customerGrowth: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.crm.customerGrowth,
+		params: CrmReportRequestDto,
+		result: createSuccessResponseSchema(CustomerGrowthChartResponseDto),
+	}),
+	customersByTier: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.crm.customersByTier,
+		params: CrmReportRequestDto,
+		result: createSuccessResponseSchema(CustomerByTierResponseDto),
+	}),
+	topCustomers: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.crm.topCustomers,
+		params: CrmReportRequestDto,
+		result: createSuccessResponseSchema(TopCustomersResponseDto),
+	}),
+	loyaltyPoints: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.crm.loyaltyPoints,
+		params: CrmReportRequestDto,
+		result: createSuccessResponseSchema(LoyaltyPointsResponseDto),
 	}),
 }
