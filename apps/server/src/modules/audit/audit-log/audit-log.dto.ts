@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-import type { WithPaginationResult } from '@/core/database'
 import { zc, zp, zq } from '@/core/validation'
 
 import { auditActionEnum } from '@/db/schema'
@@ -12,7 +11,6 @@ export type AuditActionDto = z.infer<typeof AuditActionDto>
 export const AuditLogDto = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
-	action: AuditActionDto,
 	entityType: zp.str,
 	entityId: zp.strNullable,
 	description: zp.str,
@@ -40,7 +38,7 @@ export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
 
 export const AuditLogFilterDto = z.object({
 	q: zq.search,
-	action: AuditActionDto.optional(),
+	action: z.optional(AuditActionDto),
 	entityType: zp.str.optional(),
 	userId: zp.id.optional(),
 	fromDate: zp.date.optional(),
