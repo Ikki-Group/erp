@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -13,12 +14,7 @@ import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
-import { CellMenu } from '@/components/reui/data-grid/data-grid-cell'
-import {
-	createColumnHelper,
-	dateColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate, CellMenu, CellText } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -40,7 +36,64 @@ function RouteComponent() {
 	)
 }
 
-const ch = createColumnHelper<RoleDto>()
+interface GetColumnsProps {
+	onRemove: (role: RoleDto) => Promise<void>
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<RoleDto>[] {
+	return [
+		{
+			accessorKey: 'name',
+			header: 'Role',
+			size: 200,
+			cell: ({ row }) => <CellText value={row.original.name} />,
+		},
+		{
+			accessorKey: 'code',
+			header: 'Kode',
+			size: 200,
+			cell: ({ row }) => <CellText value={row.original.code} />,
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
+			id: 'action',
+			header: '',
+			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
+			cell: ({ row }) => {
+				if (row.original.isSystem) return null
+				return (
+					<CellMenu
+						items={[
+							{
+								type: 'button',
+								label: 'Edit',
+								icon: <PencilIcon />,
+								onClick: () => {
+									void RoleFormDialog.call({ id: row.original.id })
+								},
+							},
+							{
+								type: 'button',
+								label: 'Hapus',
+								variant: 'destructive',
+								icon: <Trash2Icon />,
+								onClick: () => onRemove(row.original),
+							},
+						]}
+					/>
+				)
+			},
+		},
+	]
+}
 
 function RolesTable() {
 	const ds = useDataTableState()
@@ -68,47 +121,7 @@ function RolesTable() {
 		})
 	}
 
-	const columns = useMemo(
-		() => [
-			ch.accessor('name', textColumn({ header: 'Role', size: 200 })),
-			ch.accessor('code', textColumn({ header: 'Kode', size: 200 })),
-			ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
-			ch.display({
-				id: 'action',
-				header: '',
-				size: 60,
-				enableSorting: false,
-				enableHiding: false,
-				enableResizing: false,
-				enablePinning: true,
-				cell: ({ row }) => {
-					if (row.original.isSystem) return null
-					return (
-						<CellMenu
-							items={[
-								{
-									type: 'button',
-									label: 'Edit',
-									icon: <PencilIcon />,
-									onClick: () => {
-										void RoleFormDialog.call({ id: row.original.id })
-									},
-								},
-								{
-									type: 'button',
-									label: 'Hapus',
-									variant: 'destructive',
-									icon: <Trash2Icon />,
-									onClick: () => handleRemove(row.original),
-								},
-							]}
-						/>
-					)
-				},
-			}),
-		],
-		[handleRemove],
-	)
+	const columns = useMemo(() => getColumns({ onRemove: handleRemove }), [handleRemove])
 	const table = useDataTable({
 		columns,
 		data: data?.data ?? [],
