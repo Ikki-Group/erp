@@ -135,6 +135,7 @@ const sales = {
 		close: 'sales/order/close',
 		void: 'sales/order/void',
 	},
+	salesType: crud('sales/sales-type'),
 }
 
 const supplier = crud('supplier')
@@ -162,7 +163,6 @@ export const endpoint = {
 	production,
 	purchasing,
 	sales,
-	salesType,
 	supplier,
 	payment,
 } as const

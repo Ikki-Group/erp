@@ -20,39 +20,39 @@ import {
 export const salesTypeApi = {
 	list: apiFactory({
 		method: 'get',
-		url: endpoint.salesType.list,
+		url: endpoint.sales.salesType.list,
 		params: z.object({ ...zq.pagination.shape, ...SalesTypeFilterDto.shape }),
 		result: createPaginatedResponseSchema(SalesTypeDto),
 	}),
 
 	detail: apiFactory({
 		method: 'get',
-		url: endpoint.salesType.detail,
+		url: endpoint.sales.salesType.detail,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(SalesTypeDto),
 	}),
 
 	create: apiFactory({
 		method: 'post',
-		url: endpoint.salesType.create,
+		url: endpoint.sales.salesType.create,
 		body: SalesTypeMutationDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.salesType.list],
+		invalidates: [endpoint.sales.salesType.list],
 	}),
 
 	update: apiFactory({
 		method: 'put',
-		url: endpoint.salesType.update,
+		url: endpoint.sales.salesType.update,
 		body: SalesTypeUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.salesType.list, endpoint.salesType.detail],
+		invalidates: [endpoint.sales.salesType.list, endpoint.sales.salesType.detail],
 	}),
 
 	remove: apiFactory({
 		method: 'delete',
-		url: endpoint.salesType.remove,
+		url: endpoint.sales.salesType.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.salesType.list],
+		invalidates: [endpoint.sales.salesType.list],
 	}),
 }
