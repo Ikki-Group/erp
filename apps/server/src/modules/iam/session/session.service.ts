@@ -7,7 +7,8 @@ import type * as dto from './session.dto'
 import { SessionRepo } from './session.repo'
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Session with ID ${id} not found`, 'SESSION_NOT_FOUND'),
+	notFound: (id: number) =>
+		new NotFoundError(`Session with ID ${id} not found`, 'SESSION_NOT_FOUND'),
 }
 
 export class SessionService {
@@ -25,7 +26,9 @@ export class SessionService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: dto.SessionFilterDto): Promise<WithPaginationResult<dto.SessionSelectDto>> {
+	async handleList(
+		filter: dto.SessionFilterDto,
+	): Promise<WithPaginationResult<dto.SessionSelectDto>> {
 		return record('SessionService.handleList', async () => {
 			return this.repo.getListPaginated(filter)
 		})
@@ -49,31 +52,28 @@ export class SessionService {
 		})
 	}
 
-	async handleInvalidate(data: dto.SessionInvalidateDto): Promise<{ count: number }> {
+	async handleInvalidate(data: dto.SessionInvalidateDto): Promise<void> {
 		return record('SessionService.handleInvalidate', async () => {
-			const count = await this.repo.deleteMany(data.sessionIds)
-			return { count }
+			await this.repo.deleteMany(data.sessionIds)
 		})
 	}
 
-	async handleInvalidateAll(data: dto.SessionInvalidateAllDto): Promise<{ count: number }> {
+	async handleInvalidateAll(data: dto.SessionInvalidateAllDto): Promise<void> {
 		return record('SessionService.handleInvalidateAll', async () => {
 			const { userId, exceptCurrentSessionId } = data
 
 			if (exceptCurrentSessionId) {
-				const count = await this.repo.deleteByUserIdExcept(userId, exceptCurrentSessionId)
-				return { count }
+				await this.repo.deleteByUserIdExcept(userId, exceptCurrentSessionId)
+				return
 			}
 
-			const count = await this.repo.deleteByUserId(userId)
-			return { count }
+			await this.repo.deleteByUserId(userId)
 		})
 	}
 
-	async handleInvalidateExpired(): Promise<{ count: number }> {
+	async handleInvalidateExpired(): Promise<void> {
 		return record('SessionService.handleInvalidateExpired', async () => {
-			const count = await this.repo.deleteExpired()
-			return { count }
+			await this.repo.deleteExpired()
 		})
 	}
 

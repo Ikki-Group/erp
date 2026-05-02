@@ -76,7 +76,7 @@ export class SessionRepo {
 						.select({
 							id: sessionsTable.id,
 							userId: sessionsTable.userId,
-							expiresAt: sessionsTable.expiresAt,
+							expiredAt: sessionsTable.expiredAt,
 							createdAt: sessionsTable.createdAt,
 							userEmail: usersTable.email,
 							userUsername: usersTable.username,
