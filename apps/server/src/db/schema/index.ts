@@ -67,7 +67,12 @@ export {
 	salesInvoiceItemsTable,
 } from './sales'
 export { suppliersTable } from './supplier'
-export { customersTable } from './customer'
+export {
+	customersTable,
+	customerLoyaltyTransactionsTable,
+	customerTierEnum,
+	loyaltyTransactionTypeEnum,
+} from './customer'
 export { employeesTable } from './employee'
 export { taxesTable } from './tax'
 export { paymentsTable, paymentInvoicesTable } from './finance_payment'

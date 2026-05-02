@@ -3,6 +3,7 @@ import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { AuthServiceModule } from './auth'
+import { CrmServiceModule } from './crm'
 import { DashboardServiceModule } from './dashboard'
 import { EmployeeServiceModule } from './employee'
 import { FinanceServiceModule } from './finance'
@@ -30,6 +31,7 @@ export interface Modules {
 	supplier: SupplierServiceModule
 	employee: EmployeeServiceModule
 	finance: FinanceServiceModule
+	crm: CrmServiceModule
 
 	auth: AuthServiceModule
 
@@ -60,6 +62,7 @@ export function initModules(db: DbClient): Modules {
 	const supplier = new SupplierServiceModule(db, cacheClient)
 	const employee = new EmployeeServiceModule(db, cacheClient)
 	const finance = new FinanceServiceModule(db, cacheClient)
+	const crm = new CrmServiceModule(db, cacheClient)
 
 	// Layer 1.5 — Auth (Depends on Iam)
 	const auth = new AuthServiceModule(db, cacheClient, iam)
@@ -94,6 +97,7 @@ export function initModules(db: DbClient): Modules {
 		supplier,
 		employee,
 		finance,
+		crm,
 		purchasing,
 		production,
 		hr,
