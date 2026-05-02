@@ -67,7 +67,7 @@ export class HRService {
 					'ALREADY_CLOCKED_OUT',
 				)
 
-			return this.repo.clockOut(data.id, data.note ?? (attendance.note as string), actorId)
+			return this.repo.clockOut(data.id, data.note ?? (attendance.note as string), actorId) // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion
 		})
 	}
 }
