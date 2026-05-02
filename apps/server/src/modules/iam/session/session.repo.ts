@@ -74,7 +74,14 @@ export class SessionRepo {
 				data: async ({ limit: l, offset }) => {
 					const rows = await this.db
 						.select({
-							...sessionsTable,
+							id: sessionsTable.id,
+							userId: sessionsTable.userId,
+							token: sessionsTable.token,
+							refreshToken: sessionsTable.refreshToken,
+							userAgent: sessionsTable.userAgent,
+							ipAddress: sessionsTable.ipAddress,
+							expiresAt: sessionsTable.expiresAt,
+							createdAt: sessionsTable.createdAt,
 							userEmail: usersTable.email,
 							userUsername: usersTable.username,
 							userFullname: usersTable.fullname,
