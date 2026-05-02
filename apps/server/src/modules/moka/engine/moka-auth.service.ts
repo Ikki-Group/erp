@@ -42,7 +42,6 @@ export class MokaAuthEngine {
 				const config = error.config as MokaAxiosConfig | undefined
 				if (error.response?.status === 401 && config && !config._retry) {
 					// eslint-disable-line no-underscore-dangle
-					// eslint-disable-next-line no-underscore-dangle
 					config._retry = true
 					await this.login()
 					if (config.headers) {
