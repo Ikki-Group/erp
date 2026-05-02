@@ -16,9 +16,9 @@ export const SalesInvoiceDto = z.object({
 	status: SalesInvoiceStatusDto,
 	invoiceDate: zp.date,
 	dueDate: zp.date.nullable(),
-	totalAmount: zc.numberCurrency,
-	taxAmount: zc.numberCurrency,
-	discountAmount: zc.numberCurrency,
+	totalAmount: zp.decimal,
+	taxAmount: zp.decimal,
+	discountAmount: zp.decimal,
 	notes: zp.strNullable,
 	...zc.AuditBasic.shape,
 })
@@ -32,10 +32,10 @@ export const SalesInvoiceItemDto = z.object({
 	variantId: zp.id.nullable(),
 	itemName: zp.str,
 	quantity: zp.decimal,
-	unitPrice: zc.numberCurrency,
-	taxAmount: zc.numberCurrency,
-	discountAmount: zc.numberCurrency,
-	subtotal: zc.numberCurrency,
+	unitPrice: zp.decimal,
+	taxAmount: zp.decimal,
+	discountAmount: zp.decimal,
+	subtotal: zp.decimal,
 	...zc.AuditBasic.shape,
 })
 export type SalesInvoiceItemDto = z.infer<typeof SalesInvoiceItemDto>
