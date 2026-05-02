@@ -13,51 +13,63 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 
-interface DataGridCellLabelAndDescProps {
+/* -------------------------------------------------------------------------- */
+/*                                 SHARED UTILS                               */
+/* -------------------------------------------------------------------------- */
+
+function hasValue<T>(value: T | null | undefined): value is T {
+	return value !== null && value !== undefined && value !== ''
+}
+
+function renderFallback(value: React.ReactNode, fallback = '-'): React.ReactNode {
+	return hasValue(value) ? value : <span className="text-muted-foreground">{fallback}</span>
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+interface BaseProps {
+	className?: string
+}
+
+interface DataGridCellLabelAndDescProps extends BaseProps {
 	label: React.ReactNode
 	desc?: React.ReactNode
-	className?: string
 }
 
-interface DataGridCellTextProps {
+interface DataGridCellTextProps extends BaseProps {
 	value: React.ReactNode | string | number | null | undefined
-	className?: string
 }
 
-interface DataGridCellDateProps {
+interface DataGridCellDateProps extends BaseProps {
 	value: Date | string | number | null | undefined
 	variant?: 'date' | 'datetime'
-	className?: string
 }
 
-interface DataGridCellNumberProps {
+interface DataGridCellNumberProps extends BaseProps {
 	value: number | string | null | undefined
-	className?: string
 }
 
-interface DataGridCellCurrencyProps {
+interface DataGridCellCurrencyProps extends BaseProps {
 	value: number | string | null | undefined
-	className?: string
 }
 
-interface DataGridCellAvatarProps {
+interface DataGridCellAvatarProps extends BaseProps {
 	src?: string
 	fallback?: string
 	label?: React.ReactNode
 	desc?: React.ReactNode
-	className?: string
 	size?: 'default' | 'sm' | 'lg'
 }
 
-interface DataGridCellBooleanProps {
+interface DataGridCellBooleanProps extends BaseProps {
 	value: boolean | null | undefined
-	className?: string
 }
 
-interface DataGridCellBadgeGroupProps {
+interface DataGridCellBadgeGroupProps extends BaseProps {
 	values: string[]
 	max?: number
-	className?: string
 }
 
 interface DataGridCellProgressProps {
@@ -102,11 +114,7 @@ function DataGridCellLabelAndDesc({ label, desc, className }: DataGridCellLabelA
  * Standard text cell with truncation and fallback.
  */
 function DataGridCellText({ value, className }: DataGridCellTextProps) {
-	return (
-		<span className={cn('truncate block text-sm', className)}>
-			{value !== null && value !== undefined && value !== '' ? value : '-'}
-		</span>
-	)
+	return <span className={cn('truncate block text-sm', className)}>{renderFallback(value)}</span>
 }
 
 /**
@@ -316,6 +324,97 @@ function DataGridCellTrend({ value, trend, className, reverse = false }: DataGri
 		</div>
 	)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                            CELL REGISTRY (SCALABLE)                        */
+/* -------------------------------------------------------------------------- */
+
+/** Map of cell type keys to React components. */
+export type CellRegistryMap = Record<string, React.ComponentType<any>>
+
+const CellRegistryContext = React.createContext<CellRegistryMap>({})
+
+/**
+ * Provider that lets features register custom cell types at runtime.
+ * Wrap your DataTable or page with this to make custom cells available
+ * to DataGridCellRenderer declaratively.
+ */
+export function CellRegistryProvider({
+	registry,
+	children,
+}: {
+	registry: CellRegistryMap
+	children: React.ReactNode
+}) {
+	return <CellRegistryContext.Provider value={registry}>{children}</CellRegistryContext.Provider>
+}
+
+/** Hook to read the current cell registry. */
+export function useCellRegistry(): CellRegistryMap {
+	return React.useContext(CellRegistryContext)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                          DECLARATIVE RENDERER                                */
+/* -------------------------------------------------------------------------- */
+
+/** Discriminated union for every built-in cell type. */
+export type DataGridCellSpec =
+	| { type: 'text'; props: DataGridCellTextProps }
+	| { type: 'date'; props: DataGridCellDateProps }
+	| { type: 'number'; props: DataGridCellNumberProps }
+	| { type: 'currency'; props: DataGridCellCurrencyProps }
+	| { type: 'label-desc'; props: DataGridCellLabelAndDescProps }
+	| { type: 'link'; props: React.ComponentProps<typeof Link> }
+	| { type: 'avatar'; props: DataGridCellAvatarProps }
+	| { type: 'boolean'; props: DataGridCellBooleanProps }
+	| { type: 'badge-group'; props: DataGridCellBadgeGroupProps }
+	| { type: 'progress'; props: DataGridCellProgressProps }
+	| { type: 'trend'; props: DataGridCellTrendProps }
+	| { type: 'action'; props: DataGridCellActionProps }
+	| { type: 'actions'; props: React.ComponentProps<'div'> & { children: React.ReactNode } }
+	| { type: string; props: Record<string, unknown> }
+
+const BUILT_IN_MAP: Record<string, React.ComponentType<any>> = {
+	text: DataGridCellText,
+	date: DataGridCellDate,
+	number: DataGridCellNumber,
+	currency: DataGridCellCurrency,
+	'label-desc': DataGridCellLabelAndDesc,
+	link: DataGridCellLink,
+	avatar: DataGridCellAvatar,
+	boolean: DataGridCellBoolean,
+	'badge-group': DataGridCellBadgeGroup,
+	progress: DataGridCellProgress,
+	trend: DataGridCellTrend,
+	action: DataGridCellAction,
+	actions: DataGridCellActions,
+}
+
+/**
+ * Declarative cell renderer. Accepts a discriminated union `cell` prop and
+ * automatically maps to the correct component. Supports custom types
+ * registered via CellRegistryProvider.
+ *
+ * @example
+ * <DataGridCellRenderer cell={{ type: 'currency', props: { value: 150000 } }} />
+ * <DataGridCellRenderer cell={{ type: 'myCustom', props: { foo: 'bar' } }} />
+ */
+export function DataGridCellRenderer({ cell }: { cell: DataGridCellSpec }) {
+	const registry = useCellRegistry()
+	const Component = registry[cell.type] ?? BUILT_IN_MAP[cell.type]
+
+	if (!Component) {
+		console.warn(`[DataGridCellRenderer] Unknown cell type "${cell.type}"`)
+		return <span className="text-muted-foreground">-</span>
+	}
+
+	return <Component {...cell.props} />
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                EXPORTS                                     */
+/* -------------------------------------------------------------------------- */
 
 export const DataGridCell = {
 	LabelAndDesc: DataGridCellLabelAndDesc,
