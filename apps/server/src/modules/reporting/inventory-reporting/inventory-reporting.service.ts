@@ -7,6 +7,7 @@ import * as dto from './inventory-reporting.dto'
 
 export class InventoryReportingService {
 	async getStockLevels(_query: dto.InventoryReportRequestDto): Promise<dto.StockLevelResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('InventoryReportingService.getStockLevels', async () => {
 			// TODO: Inventory reporting needs proper product stock table structure
 			throw new Error(
@@ -16,6 +17,7 @@ export class InventoryReportingService {
 	}
 
 	async getStockValue(_query: dto.InventoryReportRequestDto): Promise<dto.StockValueResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('InventoryReportingService.getStockValue', async () => {
 			// TODO: Inventory reporting needs proper product stock table structure
 			throw new Error(

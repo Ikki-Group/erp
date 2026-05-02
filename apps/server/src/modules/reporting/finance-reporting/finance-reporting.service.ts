@@ -11,6 +11,7 @@ export class FinanceReportingService {
 	constructor(private readonly db: DbClient) {}
 
 	async getCashFlow(_query: dto.FinanceReportRequestDto): Promise<dto.CashFlowChartResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('FinanceReportingService.getCashFlow', async () => {
 			// TODO: Implement general ledger table and cash flow reporting
 			throw new Error(
@@ -22,6 +23,7 @@ export class FinanceReportingService {
 	async getAccountBalances(
 		_query: dto.FinanceReportRequestDto,
 	): Promise<dto.AccountBalanceResponseDto> {
+		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('FinanceReportingService.getAccountBalances', async () => {
 			// TODO: Implement balance calculation from journal entries
 			throw new Error(
