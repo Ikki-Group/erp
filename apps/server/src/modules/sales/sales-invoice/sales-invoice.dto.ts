@@ -2,8 +2,6 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
 
-import { invoiceStatusEnum } from '@/db/schema/_helpers'
-
 /** Sales invoice status */
 export const SalesInvoiceStatusDto = z.enum(['draft', 'open', 'paid', 'void'])
 export type SalesInvoiceStatusDto = z.infer<typeof SalesInvoiceStatusDto>
@@ -48,6 +46,7 @@ export type SalesInvoiceWithItemsDto = z.infer<typeof SalesInvoiceWithItemsDto>
 
 export const SalesInvoiceCreateDto = z.object({
 	orderId: zp.id,
+	locationId: zp.id,
 	customerId: zp.id.optional(),
 	dueDate: zp.date.optional(),
 	notes: zc.strTrim.min(5).max(1000).optional().or(z.literal('')),
@@ -75,6 +74,7 @@ export type SalesInvoiceFilterDto = z.infer<typeof SalesInvoiceFilterDto>
 
 /** Generate invoice from sales order */
 export const SalesInvoiceGenerateDto = z.object({
+	locationId: zp.id,
 	orderId: zp.id,
 	customerId: zp.id.optional(),
 	dueDate: zp.date.optional(),

@@ -115,7 +115,7 @@ export class SalesInvoiceRepo {
 				.limit(1)
 				.then(takeFirst)
 
-			return res
+			return res ?? undefined
 		})
 	}
 

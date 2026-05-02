@@ -89,7 +89,7 @@ export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
+			async function remove({ query }) {
 				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
