@@ -43,7 +43,143 @@ const data = useMemo(() => fetchedData?.results ?? [], [fetchedData])
 const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
 ```
 
-## Column Definitions
+## Column Definition Patterns
+
+Two patterns are supported for defining table columns:
+
+| Pattern | Best For | Pros | Cons |
+|---------|----------|------|------|
+| **Pattern A: createColumnHelper** | Most tables | Type-safe, helpers available | Requires learning helper API |
+| **Pattern B: Raw ColumnDef** | Complex tables | Full control, no abstraction | More verbose, manual typing |
+
+### Pattern A: createColumnHelper (Recommended for most cases)
+
+Use with helper functions from `@/components/reui/data-grid/data-grid-columns`:
+
+```typescript
+import { createColumnHelper } from '@tanstack/react-table'
+import { textColumn, dateColumn, actionColumn } from '@/components/reui/data-grid/data-grid-columns'
+
+const ch = createColumnHelper<User>()
+
+// Factory function for columns with dependencies
+function getColumns(handleDelete: (user: User) => void) {
+  return [
+    ch.accessor('name', textColumn({ header: 'Nama', size: 200 })),
+    ch.accessor('email', {
+      header: 'Email',
+      cell: ({ row }) => <CellText value={row.original.email} />,
+    }),
+    ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
+    actionColumn<User>({
+      id: 'action',
+      size: 60,
+      cell: ({ row }) => (
+        <CellMenu
+          items={[
+            { type: 'link', label: 'Edit', to: `/user/${row.original.id}` },
+            { type: 'button', label: 'Hapus', variant: 'destructive', onClick: () => handleDelete(row.original) },
+          ]}
+        />
+      ),
+    }),
+  ]
+}
+
+// In component: memoize with stable dependencies
+const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
+```
+
+### Pattern B: Raw ColumnDef (For complex custom columns)
+
+Use when you need full control or complex column types:
+
+```typescript
+import type { ColumnDef } from '@tanstack/react-table'
+
+interface GetColumnsProps {
+  onRemove: (user: UserDetailDto) => void
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<UserDetailDto>[] {
+  return [
+    {
+      accessorKey: 'fullname',
+      header: 'Nama',
+      size: 200,
+      cell: ({ row }) => <CellLabelDesc label={row.original.fullname} desc={row.original.email} />,
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'Aktif',
+      cell: ({ row }) => <BadgeDot {...getStatusBadge(row.original.isActive)} />,
+    },
+    {
+      id: 'action',
+      header: '',
+      size: 60,
+      enableSorting: false,
+      enableHiding: false,
+      enableResizing: false,
+      cell: ({ row }) => (
+        <CellMenu
+          items={[
+            { type: 'link', label: 'Edit', to: `/user/${row.original.id}` },
+            { type: 'button', label: 'Hapus', variant: 'destructive', onClick: () => onRemove(row.original) },
+          ]}
+        />
+      ),
+    },
+  ]
+}
+
+// In component
+const columns = useMemo(() => getColumns({ onRemove }), [onRemove])
+```
+
+### Critical: Stable References
+
+Always wrap columns in `useMemo` and use stable dependencies:
+
+```typescript
+// WRONG - new columns every render
+const columns = getColumns(handleDelete)
+
+// WRONG - mutateAsync is stable but not the mutation object itself
+const columns = useMemo(() => getColumns({ onRemove }), [remove.mutateAsync])
+
+// CORRECT
+const columns = useMemo(() => getColumns({ onRemove }), [remove])
+// Or if handleDelete is wrapped in useCallback:
+const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
+```
+
+### Action Column Standards
+
+Action columns should always disable sorting, hiding, and resizing:
+
+```typescript
+// Using actionColumn helper (recommended)
+actionColumn<User>({
+  id: 'action',
+  size: 60,
+  cell: ({ row }) => <YourActions row={row.original} />,
+})
+
+// Manual ColumnDef
+{
+  id: 'action',
+  header: '',
+  size: 60,
+  enableSorting: false,
+  enableHiding: false,
+  enableResizing: false,
+  enablePinning: true, // Optional: allow pinning
+  cell: ({ row }) => <YourActions row={row.original} />,
+}
+```
+
+## Column Definitions (Legacy Reference)
 
 ### Using createColumnHelper (Recommended)
 

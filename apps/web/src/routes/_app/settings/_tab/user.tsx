@@ -83,7 +83,7 @@ function UserTable() {
 					})
 				},
 			}),
-		[remove.mutateAsync],
+		[remove],
 	)
 
 	const table = useDataTable({
@@ -212,7 +212,12 @@ function getColumns({ onRemove }: GetColumnsProps): ColumnDef<UserDetailDto>[] {
 		},
 		{
 			id: 'action',
+			header: '',
 			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
 			cell: ({ row }) => {
 				const { id, username } = row.original
 				return (
