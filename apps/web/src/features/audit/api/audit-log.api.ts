@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import { AuditLogDto, AuditLogCreateDto, AuditLogFilterDto } from '../dto'
 
@@ -15,7 +15,7 @@ export const auditLogApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.audit.log.detail,
-		params: zc.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(AuditLogDto),
 	}),
 	create: apiFactory({

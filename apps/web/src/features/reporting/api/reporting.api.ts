@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'

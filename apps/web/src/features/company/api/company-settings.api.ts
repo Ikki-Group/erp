@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createSuccessResponseSchema } from '@/lib/validation'
+import { createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import { CompanySettingsDto, CompanySettingsCreateDto, CompanySettingsUpdateDto } from '../dto'
 
@@ -14,7 +14,7 @@ export const companySettingsApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.company.settings.detail,
-		params: zc.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(CompanySettingsDto),
 	}),
 	create: apiFactory({

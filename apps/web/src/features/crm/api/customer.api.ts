@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import {
 	CustomerDto,
@@ -24,7 +24,7 @@ export const customerApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.crm.customer.detail,
-		params: zc.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(CustomerDto),
 	}),
 	byPhone: apiFactory({
@@ -48,7 +48,7 @@ export const customerApi = {
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.crm.customer.remove,
-		params: zc.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 	}),
 	addPoints: apiFactory({
@@ -66,7 +66,7 @@ export const customerApi = {
 	loyaltyHistory: apiFactory({
 		method: 'get',
 		url: endpoint.crm.customer.loyaltyHistory,
-		params: zc.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(CustomerLoyaltyTransactionDto.array()),
 	}),
 }
