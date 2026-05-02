@@ -24,7 +24,7 @@ export type SessionSelectDto = z.infer<typeof SessionSelectDto>
 export const SessionFilterDto = z.object({
 	...zq.pagination.shape,
 	userId: zq.id.optional(),
-	isActive: zq.bool.optional(),
+	isActive: zc.boolean.optional(),
 })
 export type SessionFilterDto = z.infer<typeof SessionFilterDto>
 

@@ -1,8 +1,14 @@
 import Elysia from 'elysia'
+import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+	zp,
+} from '@/core/validation'
 
 import * as dto from './session.dto'
 import type { SessionService } from './session.service'
@@ -64,7 +70,7 @@ export function initSessionRoute(service: SessionService) {
 			},
 			{
 				body: dto.SessionInvalidateDto,
-				response: createSuccessResponseSchema(zc.CountResult),
+				response: createSuccessResponseSchema(z.object({ count: zp.num })),
 				auth: true,
 			},
 		)
@@ -79,9 +85,9 @@ export function initSessionRoute(service: SessionService) {
 			},
 			{
 				body: z.object({
-					exceptCurrentSessionId: zc.id.optional(),
+					exceptCurrentSessionId: zp.id.optional(),
 				}),
-				response: createSuccessResponseSchema(zc.CountResult),
+				response: createSuccessResponseSchema(z.object({ count: zp.num })),
 				auth: true,
 			},
 		)
@@ -92,7 +98,7 @@ export function initSessionRoute(service: SessionService) {
 				return res.ok(result)
 			},
 			{
-				response: createSuccessResponseSchema(zc.CountResult),
+				response: createSuccessResponseSchema(z.object({ count: zp.num })),
 				auth: true,
 			},
 		)
