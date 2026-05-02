@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment */
 import Decimal from 'decimal.js'
 
 import { stampCreate, type DbTx } from '@/core/database'
