@@ -2,6 +2,7 @@ import { createCache } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
+import { AuditServiceModule } from './audit'
 import { AuthServiceModule } from './auth'
 import { CompanyServiceModule } from './company'
 import { CrmServiceModule } from './crm'
@@ -34,6 +35,7 @@ export interface Modules {
 	finance: FinanceServiceModule
 	crm: CrmServiceModule
 	company: CompanyServiceModule
+	audit: AuditServiceModule
 
 	auth: AuthServiceModule
 
@@ -66,6 +68,7 @@ export function initModules(db: DbClient): Modules {
 	const finance = new FinanceServiceModule(db, cacheClient)
 	const crm = new CrmServiceModule(db, cacheClient)
 	const company = new CompanyServiceModule(db, cacheClient)
+	const audit = new AuditServiceModule(db, cacheClient)
 
 	// Layer 1.5 — Auth (Depends on Iam)
 	const auth = new AuthServiceModule(db, cacheClient, iam)
@@ -102,6 +105,7 @@ export function initModules(db: DbClient): Modules {
 		finance,
 		crm,
 		company,
+		audit,
 		purchasing,
 		production,
 		hr,

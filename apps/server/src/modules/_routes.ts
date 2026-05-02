@@ -1,5 +1,7 @@
 import type { Modules } from './_registry'
+import { initAuditRouteModule } from './audit'
 import { initAuthRouteModule } from './auth'
+import { initCompanyRouteModule } from './company'
 import { initDashboardRouteModule } from './dashboard'
 import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
@@ -37,6 +39,7 @@ export function initRoutes(m: Modules) {
 		initFinanceRouteModule(m.finance),
 		initCrmRouteModule(m.crm),
 		initCompanyRouteModule(m.company),
+		initAuditRouteModule(m.audit),
 		initPurchasingRouteModule(m.purchasing),
 		initProductionRouteModule(m.production),
 		initHRRouteModule(m.hr),
