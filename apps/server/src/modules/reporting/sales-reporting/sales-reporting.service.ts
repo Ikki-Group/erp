@@ -145,11 +145,11 @@ export class SalesReportingService {
 			const avgRevenue = data.length > 0 ? totalRevenue / data.length : 0
 
 			return {
-				chartType: 'pie',
+				chartType: 'pie' as const,
 				data: data.map((d) => ({
 					locationId: d.locationId,
 					revenue: String(d.revenue),
-					orderCount: d.o as constrderCount,
+					orderCount: d.orderCount as number,
 				})),
 				summary: {
 					total: String(totalRevenue),
@@ -186,11 +186,11 @@ export class SalesReportingService {
 			const totalRevenue = data.reduce((sum, d) => sum + Number(d.revenue), 0)
 
 			return {
-				chartType: 'donut',
+				chartType: 'donut' as const,
 				data: data.map((d) => ({
 					salesTypeId: d.salesTypeId,
 					revenue: String(d.revenue),
-					orderCount: d.ord as consterCount,
+					orderCount: d.orderCount as number,
 					percentage: totalRevenue > 0 ? String((Number(d.revenue) / totalRevenue) * 100) : '0',
 				})),
 				summary: {
