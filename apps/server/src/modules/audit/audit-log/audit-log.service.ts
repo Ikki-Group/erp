@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import { WithPaginationResult } from '@/core/types'
 import type { RecordId } from '@/core/validation'
 
 import { auditLogsTable } from '@/db/schema'
