@@ -5,7 +5,8 @@ import { zc, zp, zq } from '@/core/validation'
 import { auditActionEnum } from '@/db/schema'
 
 /** Audit action types */
-export const AuditActionDto = z.nativeEnum(auditActionEnum)
+const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const
+export const AuditActionDto = z.enum(auditActionValues)
 export type AuditActionDto = z.infer<typeof AuditActionDto>
 
 export const AuditLogDto = z.object({
@@ -39,7 +40,7 @@ export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
 
 export const AuditLogFilterDto = z.object({
 	q: zq.search,
-	action: z.nativeEnum(auditActionEnum).nullish(),
+	action: z.enum(auditActionValues).nullish(),
 	entityType: zp.str.optional(),
 	userId: zp.id.optional(),
 	fromDate: zp.date.optional(),
