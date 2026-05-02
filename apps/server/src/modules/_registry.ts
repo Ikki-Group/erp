@@ -89,7 +89,7 @@ export function initModules(db: DbClient): Modules {
 	const dashboard = new DashboardServiceModule(db, cacheClient, iam, location, finance, sales)
 	const tool = new ToolServiceModule(db, iam, location, material, sales)
 	const payment = new PaymentServiceModule(db, cacheClient)
-	const reporting = new ReportingServiceModule(db, cacheClient)
+	const reporting = new ReportingServiceModule(db)
 
 	return {
 		location,
