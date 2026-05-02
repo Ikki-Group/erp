@@ -12,7 +12,7 @@ import {
 	actionColumn,
 	createColumnHelper,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -46,9 +46,9 @@ const columns = [
 	ch.accessor('code', textColumn({ header: 'Kode', size: 120 })),
 	ch.accessor(
 		'name',
-		statusColumn({
+		customColumn({
 			header: 'Jenis Penjualan',
-			render: (value, row) => (
+			cell: (value, row) => (
 				<div className="flex flex-col gap-1 py-1">
 					<div className="flex items-center gap-2">
 						<span className="font-semibold text-sm tracking-tight">{value}</span>

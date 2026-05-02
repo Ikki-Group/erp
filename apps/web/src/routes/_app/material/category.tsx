@@ -18,7 +18,7 @@ import {
 	actionColumn,
 	createColumnHelper,
 	dateColumn,
-	linkColumn,
+	customColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
@@ -57,9 +57,9 @@ function getColumns(handleDelete: (item: MaterialCategoryDto) => Promise<void>) 
 	return [
 		ch.accessor(
 			'name',
-			linkColumn({
+			customColumn({
 				header: 'Kategori',
-				render: (value, row) => (
+				cell: (value, row) => (
 					<div className="flex flex-col gap-0.5">
 						<span className="font-medium">{value}</span>
 						{row.description && (

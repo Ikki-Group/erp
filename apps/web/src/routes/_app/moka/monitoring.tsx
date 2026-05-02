@@ -13,7 +13,7 @@ import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
 	dateColumn,
-	statusColumn,
+	customColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
@@ -28,9 +28,9 @@ const columns = [
 	ch.accessor('startedAt', dateColumn({ header: 'Waktu', size: 160 })),
 	ch.accessor(
 		'type',
-		statusColumn({
+		customColumn({
 			header: 'Tipe Sync',
-			render: (value) => (
+			cell: (value) => (
 				<div className="flex items-center gap-2">
 					<DatabaseIcon className="h-3 w-3 text-muted-foreground" />
 					<span className="font-medium capitalize">{value}</span>
@@ -41,17 +41,17 @@ const columns = [
 	),
 	ch.accessor(
 		'triggerMode',
-		statusColumn({
+		customColumn({
 			header: 'Trigger',
-			render: (value) => <span className="capitalize">{value}</span>,
+			cell: (value) => <span className="capitalize">{value}</span>,
 			size: 120,
 		}),
 	),
 	ch.accessor(
 		'recordsCount',
-		statusColumn({
+		customColumn({
 			header: 'Jumlah Record',
-			render: (value) => (
+			cell: (value) => (
 				<span className="tabular-nums font-mono">{Number(value).toLocaleString()}</span>
 			),
 			size: 130,
@@ -59,9 +59,9 @@ const columns = [
 	),
 	ch.accessor(
 		'status',
-		statusColumn({
+		customColumn({
 			header: 'Status',
-			render: (value, row) => {
+			cell: (value, row) => {
 				if (value === 'completed') {
 					return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
 				}

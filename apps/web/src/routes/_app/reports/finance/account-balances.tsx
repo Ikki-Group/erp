@@ -6,7 +6,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Card } from '@/components/ui/card'
 
@@ -24,9 +24,9 @@ const columns = [
 	ch.accessor('accountName', textColumn({ header: 'Nama Akun', size: 250 })),
 	ch.accessor(
 		'balance',
-		statusColumn({
+		customColumn({
 			header: 'Saldo',
-			render: (v) => (
+			cell: (v) => (
 				<span
 					className={`font-mono font-medium tabular-nums ${Number(v) < 0 ? 'text-rose-600' : 'text-foreground'}`}
 				>

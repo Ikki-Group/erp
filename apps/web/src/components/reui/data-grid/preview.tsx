@@ -23,7 +23,6 @@ import {
 	CellActionLink,
 	CellActions,
 	CellMenu,
-	type CellMenuItem,
 } from './data-grid-cell'
 
 export function DataGridCellPreview() {

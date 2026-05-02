@@ -9,7 +9,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -24,9 +24,9 @@ const ch = createColumnHelper<SupplierDto>()
 const columns = [
 	ch.accessor(
 		'name',
-		statusColumn({
+		customColumn({
 			header: 'Nama Pemasok',
-			render: (value, row) => (
+			cell: (value, row) => (
 				<div className="flex flex-col gap-1">
 					<span className="font-semibold text-foreground/90">{value}</span>
 					<p className="text-[11px] text-muted-foreground font-mono tracking-tight">{row.code}</p>

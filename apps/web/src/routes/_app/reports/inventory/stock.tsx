@@ -7,7 +7,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Card } from '@/components/ui/card'
 
@@ -25,9 +25,9 @@ const columns = [
 	ch.accessor('sku', textColumn({ header: 'SKU', size: 120 })),
 	ch.accessor(
 		'currentStock',
-		statusColumn({
+		customColumn({
 			header: 'Stok Saat Ini',
-			render: (v, row) => {
+			cell: (v, row) => {
 				const isLow = row.currentStock <= row.reorderLevel
 				return (
 					<span className={`font-mono font-medium tabular-nums ${isLow ? 'text-rose-600' : ''}`}>
@@ -40,9 +40,9 @@ const columns = [
 	),
 	ch.accessor(
 		'reorderLevel',
-		statusColumn({
+		customColumn({
 			header: 'Reorder Level',
-			render: (v, row) => (
+			cell: (v, row) => (
 				<span className="font-mono tabular-nums text-muted-foreground">
 					{v} {row.unit}
 				</span>
@@ -52,9 +52,9 @@ const columns = [
 	),
 	ch.accessor(
 		'currentStock',
-		statusColumn({
+		customColumn({
 			header: 'Status',
-			render: (_v, row) =>
+			cell: (_v, row) =>
 				row.currentStock <= row.reorderLevel ? (
 					<BadgeDot variant="destructive-outline">Low Stock</BadgeDot>
 				) : (

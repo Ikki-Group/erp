@@ -9,7 +9,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 
@@ -56,9 +56,9 @@ const ch = createColumnHelper<CustomerType>()
 const columns = [
 	ch.accessor(
 		'name',
-		statusColumn({
+		customColumn({
 			header: 'Pelanggan',
-			render: (value, row) => (
+			cell: (value, row) => (
 				<div className="flex items-center gap-3">
 					<Avatar className="h-8 w-8 rounded-lg">
 						<AvatarFallback className="rounded-lg bg-primary/10 text-primary">
@@ -78,9 +78,9 @@ const columns = [
 	ch.accessor('phone', textColumn({ header: 'No. HP', size: 150 })),
 	ch.accessor(
 		'segment',
-		statusColumn({
+		customColumn({
 			header: 'Segmen',
-			render: (value) => (
+			cell: (value) => (
 				<span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{value}</span>
 			),
 			size: 100,

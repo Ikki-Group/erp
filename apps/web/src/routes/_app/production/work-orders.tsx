@@ -23,7 +23,7 @@ import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -82,9 +82,9 @@ function WorkOrdersPage() {
 		ch.accessor('productName', textColumn({ header: 'Produk Jadi', size: 200 })),
 		ch.accessor(
 			'expectedQty',
-			statusColumn({
+			customColumn({
 				header: 'Target Qty',
-				render: (value) => (
+				cell: (value) => (
 					<span className="font-bold tabular-nums text-foreground/80 pr-4">{value}</span>
 				),
 				size: 130,
@@ -93,9 +93,9 @@ function WorkOrdersPage() {
 		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 160 })),
 		ch.accessor(
 			'status',
-			statusColumn({
+			customColumn({
 				header: 'Status',
-				render: (value) => {
+				cell: (value) => {
 					const status = value as string
 					if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
 					if (status === 'in_progress')

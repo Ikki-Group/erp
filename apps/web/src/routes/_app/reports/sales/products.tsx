@@ -9,7 +9,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
-import { textColumn, statusColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { textColumn, customColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Card } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
@@ -30,17 +30,17 @@ const columns = [
 	ch.accessor('sku', textColumn({ header: 'SKU', size: 120 })),
 	ch.accessor(
 		'totalQuantity',
-		statusColumn({
+		customColumn({
 			header: 'Qty Terjual',
-			render: (v) => <span className="font-medium tabular-nums">{v}</span>,
+			cell: (v) => <span className="font-medium tabular-nums">{v}</span>,
 			size: 120,
 		}),
 	),
 	ch.accessor(
 		'totalRevenue',
-		statusColumn({
+		customColumn({
 			header: 'Total Pendapatan',
-			render: (v) => (
+			cell: (v) => (
 				<span className="font-mono font-medium tabular-nums">
 					Rp {Number(v).toLocaleString('id-ID')}
 				</span>

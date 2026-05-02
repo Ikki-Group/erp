@@ -14,7 +14,7 @@ import {
 	createColumnHelper,
 	currencyColumn,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -39,9 +39,9 @@ const columns = [
 	ch.accessor('totalAmount', currencyColumn({ header: 'Total Tagihan', size: 160 })),
 	ch.accessor(
 		'status',
-		statusColumn({
+		customColumn({
 			header: 'Status',
-			render: (value) => {
+			cell: (value) => {
 				const status = value as string
 				if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
 				if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>

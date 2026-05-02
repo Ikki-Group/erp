@@ -9,7 +9,7 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import {
 	ChartContainer,
@@ -34,17 +34,17 @@ const columns = [
 	ch.accessor('sku', textColumn({ header: 'SKU', size: 120 })),
 	ch.accessor(
 		'quantity',
-		statusColumn({
+		customColumn({
 			header: 'Qty',
-			render: (v) => <span className="font-mono tabular-nums">{v}</span>,
+			cell: (v) => <span className="font-mono tabular-nums">{v}</span>,
 			size: 100,
 		}),
 	),
 	ch.accessor(
 		'unitCost',
-		statusColumn({
+		customColumn({
 			header: 'Harga Satuan',
-			render: (v) => (
+			cell: (v) => (
 				<span className="font-mono tabular-nums">Rp {Number(v).toLocaleString('id-ID')}</span>
 			),
 			size: 150,
@@ -52,9 +52,9 @@ const columns = [
 	),
 	ch.accessor(
 		'totalValue',
-		statusColumn({
+		customColumn({
 			header: 'Total Nilai',
-			render: (v) => (
+			cell: (v) => (
 				<span className="font-mono font-medium tabular-nums">
 					Rp {Number(v).toLocaleString('id-ID')}
 				</span>

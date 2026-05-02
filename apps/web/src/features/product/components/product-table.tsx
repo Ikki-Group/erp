@@ -13,7 +13,7 @@ import {
 	createColumnHelper,
 	currencyColumn,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -30,9 +30,9 @@ const columns = [
 	ch.accessor('sku', textColumn({ header: 'SKU', size: 140 })),
 	ch.accessor(
 		'name',
-		statusColumn({
+		customColumn({
 			header: 'Nama Produk',
-			render: (value, row) => (
+			cell: (value, row) => (
 				<div className="flex flex-col gap-0.5">
 					<div className="flex items-center gap-2">
 						<span className="font-medium text-sm">{value}</span>
@@ -56,9 +56,9 @@ const columns = [
 	ch.accessor('basePrice', currencyColumn({ header: 'Harga', size: 120 })),
 	ch.accessor(
 		'status',
-		statusColumn({
+		customColumn({
 			header: 'Status',
-			render: (value) => {
+			cell: (value) => {
 				const status = value as string
 				return (
 					<Badge
@@ -75,9 +75,9 @@ const columns = [
 	),
 	ch.accessor(
 		'variants',
-		statusColumn({
+		customColumn({
 			header: 'Varian',
-			render: (_, row) =>
+			cell: (_, row) =>
 				row.hasVariants ? (
 					<span className="text-sm font-medium">{row.variants.length} Varian</span>
 				) : (

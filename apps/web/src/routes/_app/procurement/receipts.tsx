@@ -14,7 +14,7 @@ import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -50,9 +50,9 @@ function GoodsReceiptPage() {
 		ch.accessor('receiveDate', dateColumn({ header: 'Tanggal Terima', size: 160 })),
 		ch.accessor(
 			'status',
-			statusColumn({
+			customColumn({
 				header: 'Status',
-				render: (value) => {
+				cell: (value) => {
 					const status = value as string
 					if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
 					if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>

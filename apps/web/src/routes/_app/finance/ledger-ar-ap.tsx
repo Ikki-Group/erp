@@ -11,7 +11,7 @@ import {
 	createColumnHelper,
 	currencyColumn,
 	dateColumn,
-	statusColumn,
+	customColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Button } from '@/components/ui/button'
@@ -70,9 +70,9 @@ const ch = createColumnHelper<ArApType>()
 const columns = [
 	ch.accessor(
 		'id',
-		statusColumn({
+		customColumn({
 			header: 'No. Tagihan',
-			render: (value, row) => (
+			cell: (value, row) => (
 				<div className="flex flex-col gap-0.5">
 					<span className="font-semibold text-foreground/90">{value}</span>
 					<span className="text-xs text-muted-foreground font-medium">{row.partner}</span>
@@ -83,9 +83,9 @@ const columns = [
 	),
 	ch.accessor(
 		'type',
-		statusColumn({
+		customColumn({
 			header: 'Jenis Tagihan',
-			render: (value) => {
+			cell: (value) => {
 				if (value === 'AR') return <BadgeDot variant="primary-outline">Piutang (AR)</BadgeDot>
 				return <BadgeDot variant="destructive-outline">Hutang (AP)</BadgeDot>
 			},

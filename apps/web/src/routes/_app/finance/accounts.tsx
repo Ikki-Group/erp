@@ -10,7 +10,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import { statusColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
+import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -27,9 +27,9 @@ const columns = [
 	ch.accessor('name', textColumn({ header: 'Nama Akun', size: 250 })),
 	ch.accessor(
 		'type',
-		statusColumn({
+		customColumn({
 			header: 'Kategori',
-			render: (value: string) => {
+			cell: (value: string) => {
 				if (value === 'ASSET') return <BadgeDot variant="success-outline">Aset</BadgeDot>
 				if (value === 'LIABILITY')
 					return <BadgeDot variant="destructive-outline">Kewajiban</BadgeDot>
@@ -42,9 +42,9 @@ const columns = [
 	),
 	ch.accessor(
 		'isGroup',
-		statusColumn({
+		customColumn({
 			header: 'Tipe',
-			render: (value: boolean) =>
+			cell: (value: boolean) =>
 				value ? (
 					<BadgeDot variant="secondary">Grup</BadgeDot>
 				) : (

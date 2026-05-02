@@ -13,7 +13,7 @@ import {
 	createColumnHelper,
 	currencyColumn,
 	dateColumn,
-	statusColumn,
+	customColumn,
 	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -51,9 +51,9 @@ function RouteComponent() {
 		ch.accessor('referenceNo', textColumn({ header: 'No Referensi', size: 150 })),
 		ch.accessor(
 			'type',
-			statusColumn({
+			customColumn({
 				header: 'Tipe',
-				render: (value) => {
+				cell: (value) => {
 					const typeStr = value as string
 					const color =
 						typeStr.includes('in') || typeStr === 'purchase'
@@ -70,9 +70,9 @@ function RouteComponent() {
 		),
 		ch.accessor(
 			'materialName',
-			statusColumn({
+			customColumn({
 				header: 'Bahan Baku',
-				render: (value, row) => (
+				cell: (value, row) => (
 					<div className="flex flex-col gap-1">
 						<span className="font-semibold text-foreground/90">{value}</span>
 						<span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
@@ -85,9 +85,9 @@ function RouteComponent() {
 		),
 		ch.accessor(
 			'qty',
-			statusColumn({
+			customColumn({
 				header: 'Qty',
-				render: (value, row) => {
+				cell: (value, row) => {
 					const qty = Number(value)
 					const isOut = row.type === 'transfer_out' || row.type === 'sell'
 					const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'

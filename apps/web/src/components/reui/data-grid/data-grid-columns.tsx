@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type { ReactNode } from 'react'
 
 import { createColumnHelper } from '@tanstack/react-table'
@@ -6,45 +5,54 @@ import type { CellContext, ColumnDef } from '@tanstack/react-table'
 
 import { cn } from '@/lib/utils'
 
+import {
+	CellText,
+	CellDate,
+	CellNumber,
+	CellCurrency,
+	CellMenu,
+	type CellMenuItem,
+} from './data-grid-cell'
+
 /* -------------------------------------------------------------------------- */
-/*  Column Helper Utilities                                                   */
+/*  Re-exports                                                                */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Type-safe helper for creating table columns.
- * @example
- * ```ts
- * const ch = createColumnHelper<User>()
- * const columns = [
- *   ch.accessor('id', textColumn({ header: 'ID' })),
- * ]
- * ```
- */
 export { createColumnHelper }
 
-export type ColumnOptions<_TData> = {
+/* -------------------------------------------------------------------------- */
+/*  Column Meta                                                               */
+/* -------------------------------------------------------------------------- */
+
+export interface ColumnMetaDef {
+	className?: string
+	label?: string
+	headerTitle?: string
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Shared Options                                                             */
+/* -------------------------------------------------------------------------- */
+
+export interface ColumnBaseOptions {
 	size?: number
 	enableSorting?: boolean
 	enableHiding?: boolean
-	meta?: { className?: string; label?: string; headerTitle?: string }
+	meta?: ColumnMetaDef
 }
 
-import { CellText, CellDate, CellNumber, CellCurrency } from './data-grid-cell'
-
 /* -------------------------------------------------------------------------- */
-/*  Helper Functions                                                          */
+/*  Column Helpers                                                            */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Text column with optional truncation.
- */
-export function textColumn<TData, TValue extends React.ReactNode = any>(
-	opts: { header: string } & ColumnOptions<TData>,
+/** Text column with truncation and fallback. */
+export function textColumn<TData, TValue>(
+	opts: { header: string } & ColumnBaseOptions,
 ): Partial<ColumnDef<TData, TValue>> {
 	return {
 		header: opts.header,
-		cell: ({ getValue }: CellContext<TData, TValue>) => (
-			<CellText value={getValue()} className={opts.meta?.className} />
+		cell: (ctx: CellContext<TData, TValue>) => (
+			<CellText value={ctx.getValue() as React.ReactNode} className={opts.meta?.className} />
 		),
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
@@ -52,33 +60,14 @@ export function textColumn<TData, TValue extends React.ReactNode = any>(
 	}
 }
 
-/**
- * Specialized column for rendering standard links (e.g. primary identifiers).
- * Renders the primary label and an optional secondary description.
- */
-export function linkColumn<TData, TValue = any>(
-	opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
-): Partial<ColumnDef<TData, TValue>> {
-	return {
-		header: opts.header,
-		cell: ({ getValue, row }: CellContext<TData, TValue>) => opts.render(getValue(), row.original),
-		enableSorting: opts.enableSorting ?? true,
-		size: opts.size ?? 250,
-		meta: opts.meta,
-	}
-}
-
-/**
- * Creates a date column that auto-formats using `toDateTimeStamp`.
- */
+/** Date column with ERP standard formatting. Default: datetime. */
 export function dateColumn<TData>(
-	opts: { header?: string } & ColumnOptions<TData>,
-): Partial<ColumnDef<TData, any>> {
+	opts: { header?: string; variant?: 'date' | 'datetime' } & ColumnBaseOptions,
+): Partial<ColumnDef<TData, Date | string | number | null | undefined>> {
 	return {
 		header: opts.header ?? 'Tanggal',
-		cell: ({ getValue }: CellContext<TData, any>) => (
-			// oxlint-disable-next-line typescript/no-unsafe-assignment
-			<CellDate value={getValue()} className={opts.meta?.className} />
+		cell: (ctx: CellContext<TData, Date | string | number | null | undefined>) => (
+			<CellDate value={ctx.getValue()} variant={opts.variant} className={opts.meta?.className} />
 		),
 		enableSorting: opts.enableSorting ?? false,
 		size: opts.size,
@@ -86,15 +75,103 @@ export function dateColumn<TData>(
 	}
 }
 
+/** Numeric column with localized formatting. Right-aligned. */
+export function numberColumn<TData, TValue extends number | string | null | undefined>(
+	opts: {
+		header: string
+		render?: (value: TValue, row: TData) => ReactNode
+	} & ColumnBaseOptions,
+): Partial<ColumnDef<TData, TValue>> {
+	return {
+		header: opts.header,
+		cell: (ctx: CellContext<TData, TValue>) => {
+			const value = ctx.getValue()
+			if (opts.render) return opts.render(value, ctx.row.original)
+			return <CellNumber value={value} className={opts.meta?.className} />
+		},
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
+	}
+}
+
+/** Currency column (IDR) with localized formatting. Right-aligned. */
+export function currencyColumn<TData, TValue extends number | string | null | undefined>(
+	opts: {
+		header: string
+		render?: (value: TValue, row: TData) => ReactNode
+	} & ColumnBaseOptions,
+): Partial<ColumnDef<TData, TValue>> {
+	return {
+		header: opts.header,
+		cell: (ctx: CellContext<TData, TValue>) => {
+			const value = ctx.getValue()
+			if (opts.render) return opts.render(value, ctx.row.original)
+			return <CellCurrency value={value} className={opts.meta?.className} />
+		},
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
+	}
+}
+
 /**
- * Creates an action column. Hardcoded to disable sort/hide/resize.
- * Typically pinned to the right.
+ * Custom cell column — full control over rendering.
+ * Use this instead of `statusColumn` / `linkColumn`.
+ */
+export function customColumn<TData, TValue = any>(
+	opts: {
+		header: string
+		cell: (value: TValue, row: TData, ctx: CellContext<TData, TValue>) => ReactNode
+		enableSorting?: boolean
+	} & ColumnBaseOptions,
+): Partial<ColumnDef<TData, TValue>> {
+	return {
+		header: opts.header,
+		cell: (ctx: CellContext<TData, TValue>) =>
+			opts.cell(ctx.getValue() as TValue, ctx.row.original, ctx),
+		enableSorting: opts.enableSorting ?? false,
+		size: opts.size,
+		meta: opts.meta,
+	}
+}
+
+/**
+ * Action column powered by CellMenu dropdown.
+ * Pinned right, no sort/hide/resize.
+ */
+export function menuColumn<TData>(opts: {
+	items: (row: TData) => CellMenuItem[]
+	id?: string
+	size?: number
+	label?: string
+	icon?: ReactNode
+}): ColumnDef<TData, unknown> {
+	return {
+		id: opts.id ?? 'action',
+		header: '',
+		cell: ({ row }: CellContext<TData, unknown>) => (
+			<div className="flex items-center justify-end px-2">
+				<CellMenu items={opts.items(row.original)} label={opts.label} icon={opts.icon} />
+			</div>
+		),
+		size: opts.size ?? 60,
+		enableSorting: false,
+		enableHiding: false,
+		enableResizing: false,
+		enablePinning: true,
+	}
+}
+
+/**
+ * Action column with custom cell renderer.
+ * Pinned right, no sort/hide/resize.
  */
 export function actionColumn<TData>(opts: {
-	cell: (props: CellContext<TData, any>) => ReactNode
+	cell: (props: CellContext<TData, unknown>) => ReactNode
 	size?: number
 	id?: string
-}): ColumnDef<TData, any> {
+}): ColumnDef<TData, unknown> {
 	return {
 		id: opts.id ?? 'action',
 		header: '',
@@ -104,64 +181,15 @@ export function actionColumn<TData>(opts: {
 		enableHiding: false,
 		enableResizing: false,
 		enablePinning: true,
-	} as ColumnDef<TData, any>
-}
-
-/**
- * Badge/status column — renders any ReactNode returned by the `render` function.
- */
-export function statusColumn<TData, TValue = any>(
-	opts: { header: string; render: (value: TValue, row: TData) => ReactNode } & ColumnOptions<TData>,
-): Partial<ColumnDef<TData, TValue>> {
-	return {
-		header: opts.header,
-		cell: ({ getValue, row }: CellContext<TData, TValue>) => opts.render(getValue(), row.original),
-		enableSorting: opts.enableSorting ?? false,
-		size: opts.size,
-		meta: opts.meta,
 	}
 }
 
-/**
- * Numeric column formatted with `toNumber`. Right aligns by default.
- */
-export function numberColumn<TData, TValue extends number | string | null | undefined = any>(
-	opts: {
-		header: string
-		render?: (value: TValue, row: TData) => ReactNode
-	} & ColumnOptions<TData>,
-): Partial<ColumnDef<TData, TValue>> {
-	return {
-		header: opts.header,
-		cell: ({ getValue, row }: CellContext<TData, TValue>) => {
-			const value = getValue()
-			if (opts.render) return opts.render(value, row.original)
-			return <CellNumber value={value} className={opts.meta?.className} />
-		},
-		enableSorting: opts.enableSorting ?? false,
-		size: opts.size,
-		meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
-	}
-}
+/* -------------------------------------------------------------------------- */
+/*  Deprecated (kept for migration)                                           */
+/* -------------------------------------------------------------------------- */
 
-/**
- * Currency column formatted with `toCurrency`. Right aligns by default.
- */
-export function currencyColumn<TData, TValue extends number | string | null | undefined = any>(
-	opts: {
-		header: string
-		render?: (value: TValue, row: TData) => ReactNode
-	} & ColumnOptions<TData>,
-): Partial<ColumnDef<TData, TValue>> {
-	return {
-		header: opts.header,
-		cell: ({ getValue, row }: CellContext<TData, TValue>) => {
-			const value = getValue()
-			if (opts.render) return opts.render(value, row.original)
-			return <CellCurrency value={value} className={opts.meta?.className} />
-		},
-		enableSorting: opts.enableSorting ?? false,
-		size: opts.size,
-		meta: { ...opts.meta, className: cn('text-right', opts.meta?.className) },
-	}
-}
+/** @deprecated Use `customColumn` instead. */
+export const statusColumn = customColumn
+
+/** @deprecated Use `customColumn` instead. */
+export const linkColumn = customColumn
