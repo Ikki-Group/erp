@@ -2,12 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { eq } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
-import {
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-} from '@/core/database'
+import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
 
 import { companySettingsTable } from '@/db/schema'
@@ -46,13 +41,9 @@ export class CompanySettingsRepo {
 			return this.cache.getOrSet({
 				key: CACHE_KEY_DEFAULT.list,
 				factory: async () => {
-					const res = await this.db
-						.select()
-						.from(companySettingsTable)
-						.limit(1)
-						.then(takeFirst)
+					const res = await this.db.select().from(companySettingsTable).limit(1).then(takeFirst)
 
-					return res
+					return res ? dto.CompanySettingsDto.parse(res) : undefined
 				},
 			})
 		})
@@ -70,7 +61,7 @@ export class CompanySettingsRepo {
 						.limit(1)
 						.then(takeFirst)
 
-					return res ?? skip()
+					return res ? dto.CompanySettingsDto.parse(res) : skip()
 				},
 			})
 		})
