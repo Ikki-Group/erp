@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, count, eq, gt, lt, desc, asc } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
-	stampCreate,
+	sortBy,
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
