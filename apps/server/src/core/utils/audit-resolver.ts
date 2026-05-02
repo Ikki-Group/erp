@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import { eq } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
