@@ -65,40 +65,40 @@ export function initSessionRoute(service: SessionService) {
 		.post(
 			'/invalidate',
 			async function invalidate({ body }) {
-				const result = await service.handleInvalidate(body)
-				return res.ok(result)
+				await service.handleInvalidate(body)
+				return res.ok({ message: 'Sessions invalidated' })
 			},
 			{
 				body: dto.SessionInvalidateDto,
-				response: createSuccessResponseSchema(z.object({ count: zp.num })),
+				response: createSuccessResponseSchema(z.object({ message: zp.str })),
 				auth: true,
 			},
 		)
 		.post(
 			'/invalidate-all',
 			async function invalidateAll({ body, auth }) {
-				const result = await service.handleInvalidateAll({
+				await service.handleInvalidateAll({
 					userId: auth.userId,
 					exceptCurrentSessionId: body.exceptCurrentSessionId,
 				})
-				return res.ok(result)
+				return res.ok({ message: 'Sessions invalidated' })
 			},
 			{
 				body: z.object({
 					exceptCurrentSessionId: zp.id.optional(),
 				}),
-				response: createSuccessResponseSchema(z.object({ count: zp.num })),
+				response: createSuccessResponseSchema(z.object({ message: zp.str })),
 				auth: true,
 			},
 		)
 		.post(
 			'/invalidate-expired',
 			async function invalidateExpired() {
-				const result = await service.handleInvalidateExpired()
-				return res.ok(result)
+				await service.handleInvalidateExpired()
+				return res.ok({ message: 'Expired sessions invalidated' })
 			},
 			{
-				response: createSuccessResponseSchema(z.object({ count: zp.num })),
+				response: createSuccessResponseSchema(z.object({ message: zp.str })),
 				auth: true,
 			},
 		)
