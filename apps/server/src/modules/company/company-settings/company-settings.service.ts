@@ -3,8 +3,6 @@ import { record } from '@elysiajs/opentelemetry'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { RecordId } from '@/core/validation'
 
-import { companySettingsTable } from '@/db/schema'
-
 import * as dto from './company-settings.dto'
 import { CompanySettingsRepo } from './company-settings.repo'
 
