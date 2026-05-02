@@ -153,6 +153,22 @@ const sales = {
 
 const supplier = crud('supplier')
 
+const crm = {
+	customer: {
+		...crud('crm/customer'),
+		byPhone: 'crm/customer/by-phone',
+		points: {
+			add: 'crm/customer/points/add',
+			redeem: 'crm/customer/points/redeem',
+		},
+		loyaltyHistory: 'crm/customer/loyalty-history',
+	},
+}
+
+const tool = {
+	seed: 'tool/seed',
+}
+
 const payment = {
 	method: {
 		...crud('payment/method'),
@@ -183,6 +199,12 @@ const reporting = {
 		stockValue: 'reporting/inventory/stock-value',
 		lowStock: 'reporting/inventory/low-stock',
 	},
+	crm: {
+		customerGrowth: 'reporting/crm/customer-growth',
+		customersByTier: 'reporting/crm/customers-by-tier',
+		topCustomers: 'reporting/crm/top-customers',
+		loyaltyPoints: 'reporting/crm/loyalty-points',
+	},
 	payment: {
 		byMethod: 'reporting/payment/by-method',
 		overTime: 'reporting/payment/over-time',
@@ -192,6 +214,8 @@ const reporting = {
 
 export const endpoint = {
 	auth,
+	audit,
+	company,
 	iam,
 	location,
 	material,
@@ -209,6 +233,8 @@ export const endpoint = {
 	purchasing,
 	sales,
 	supplier,
+	crm,
+	tool,
 	payment,
 	reporting,
 } as const
