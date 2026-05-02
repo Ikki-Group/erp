@@ -37,7 +37,7 @@ export type PaymentByAccountDto = z.infer<typeof PaymentByAccountDto>
 export const PaymentReportRequestDto = ReportRequestDto.extend({
 	accountId: zp.num.optional(),
 	method: zp.str.optional(),
-	type: zp.enum(['payable', 'receivable']).optional(),
+	type: z.enum(['payable', 'receivable']).optional(),
 })
 export type PaymentReportRequestDto = z.infer<typeof PaymentReportRequestDto>
 
