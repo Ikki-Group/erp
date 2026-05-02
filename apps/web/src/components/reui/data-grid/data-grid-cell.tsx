@@ -279,7 +279,7 @@ function DataGridCellBadgeGroup({ values, max = 3, className }: DataGridCellBadg
  */
 function DataGridCellProgress({ value, label, className }: DataGridCellProgressProps) {
 	return (
-		<div className={cn('flex flex-col gap-1 w-full max-w-[120px]', className)}>
+		<div className={cn('flex flex-col gap-1 w-full max-w-30', className)}>
 			{label && (
 				<div className="text-[10px] text-muted-foreground uppercase font-bold">{label}</div>
 			)}

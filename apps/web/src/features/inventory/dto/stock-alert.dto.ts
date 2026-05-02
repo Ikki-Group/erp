@@ -16,9 +16,9 @@ export const StockAlertSelectDto = z.object({
 	locationId: zp.id,
 	locationName: zp.str,
 	uomCode: zp.strNullable,
-	currentQty: z.string(),
-	minStock: z.string(),
-	reorderPoint: z.string(),
+	currentQty: zp.decimal,
+	minStock: zp.decimal,
+	reorderPoint: zp.decimal,
 })
 
 export type StockAlertSelectDto = z.infer<typeof StockAlertSelectDto>

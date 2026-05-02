@@ -8,6 +8,13 @@ import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 import type { SalesServiceModule } from '@/modules/sales'
 
+interface DashboardServiceModuleDeps {
+	iam: IamServiceModule
+	location: LocationServiceModule
+	finance: FinanceServiceModule
+	sales: SalesServiceModule
+}
+
 import { initAnalyticsRoute } from './analytics/analytics.route'
 import { AnalyticsService } from './analytics/analytics.service'
 import { initSettingsRoute } from './settings/settings.route'
@@ -20,12 +27,9 @@ export class DashboardServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		iamSvc: IamServiceModule,
-		locationSvc: LocationServiceModule,
-		_finance: FinanceServiceModule,
-		_sales: SalesServiceModule,
+		private readonly deps: DashboardServiceModuleDeps,
 	) {
-		this.settings = new SettingsService(iamSvc, locationSvc)
+		this.settings = new SettingsService(this.deps.iam, this.deps.location)
 		this.analytics = new AnalyticsService(this.db, this.cacheClient)
 	}
 }

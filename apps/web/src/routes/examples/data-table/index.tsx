@@ -139,7 +139,7 @@ const advancedColumns = [
 				// oxlint-disable-next-line typescript/no-unnecessary-type-conversion
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
-				className="translate-y-[2px]"
+				className="translate-y-0.5"
 			/>
 		),
 		cell: ({ row }) => (
@@ -148,7 +148,7 @@ const advancedColumns = [
 				// oxlint-disable-next-line typescript/no-unnecessary-type-conversion
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
-				className="translate-y-[2px]"
+				className="translate-y-0.5"
 			/>
 		),
 		enableSorting: false,

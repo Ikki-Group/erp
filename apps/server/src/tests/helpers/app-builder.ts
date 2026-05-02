@@ -80,7 +80,9 @@ export function createIntegrationTestAppWithMockAuth() {
 	// Replace auth and login services with mocks
 	const mockAuthService = new MockAuthService()
 	const mockLoginService = new MockLoginService()
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
 	;(modules as any).auth = mockAuthService
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
 	;(modules as any).auth.login = mockLoginService
 
 	const app = createApp(modules)

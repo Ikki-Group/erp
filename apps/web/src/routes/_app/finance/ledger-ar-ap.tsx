@@ -127,7 +127,7 @@ function FinanceArApPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Buku Piutang & Hutang (AR/AP)"
 				description="Kelola tagihan pelanggan yang belum lunas (AR) dan tagihan vendor yang harus Anda bayar (AP)."

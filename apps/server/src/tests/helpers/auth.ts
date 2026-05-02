@@ -43,7 +43,7 @@ export function authHeaders(token: string = 'test-token') {
  * Verifies test tokens and returns mock user data.
  */
 export class MockAuthService {
-	async verifyToken(token: string): Promise<AuthenticatedUser | null> {
+	verifyToken(token: string): AuthenticatedUser | null {
 		// For testing, accept any token that looks like a JWT
 		if (token && token.length > 10) {
 			return mockAuthenticatedUser
@@ -51,7 +51,7 @@ export class MockAuthService {
 		return null
 	}
 
-	async getById(id: number): Promise<AuthenticatedUser | null> {
+	getById(id: number): AuthenticatedUser | null {
 		// Return mock user for any ID
 		if (id === 1) {
 			return mockAuthenticatedUser
@@ -64,14 +64,14 @@ export class MockAuthService {
  * Mock login service for testing without database sessions.
  */
 export class MockLoginService {
-	async login(): Promise<{ user: AuthenticatedUser; token: string }> {
+	login(): { user: AuthenticatedUser; token: string } {
 		return {
 			user: mockAuthenticatedUser,
 			token: 'mock-test-token',
 		}
 	}
 
-	async getById(id: number): Promise<AuthenticatedUser | null> {
+	getById(id: number): AuthenticatedUser | null {
 		// Return mock user for any ID
 		if (id === 1) {
 			return mockAuthenticatedUser

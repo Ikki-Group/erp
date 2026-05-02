@@ -99,7 +99,7 @@ function SidebarMenus() {
 	const alertCount = alertCountData?.data.count ?? 0
 
 	const groups = useMemo(
-		() => getAppMenu(pathname, { inventoryAlerts: alertCount }),
+		() => getAppMenu(pathname, { inventoryAlerts: alertCount }, {}),
 		[pathname, alertCount],
 	)
 
@@ -107,9 +107,11 @@ function SidebarMenus() {
 		<div className="py-2 flex flex-col gap-1">
 			{groups.map((group) => (
 				<SidebarGroup key={group.label}>
-					<SidebarGroupLabel className="px-3 text-badge uppercase text-muted-foreground/60">
-						{group.label}
-					</SidebarGroupLabel>
+					{group.label && (
+						<SidebarGroupLabel className="px-3 text-badge uppercase text-muted-foreground/60">
+							{group.label}
+						</SidebarGroupLabel>
+					)}
 					<SidebarMenu className="gap-1.5 px-1">
 						{group.items.map((menu) => {
 							if (menu.children?.length) {

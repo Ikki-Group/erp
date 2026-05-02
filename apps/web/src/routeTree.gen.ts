@@ -28,6 +28,8 @@ import { Route as ExamplesDashboardIndexRouteImport } from './routes/examples/da
 import { Route as ExamplesComplexFormIndexRouteImport } from './routes/examples/complex-form/index'
 import { Route as ExamplesChartsIndexRouteImport } from './routes/examples/charts/index'
 import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
+import { Route as AppSalesTypeIndexRouteImport } from './routes/_app/sales-type/index'
+import { Route as AppReportsIndexRouteImport } from './routes/_app/reports/index'
 import { Route as AppProductIndexRouteImport } from './routes/_app/product/index'
 import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/index'
 import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
@@ -37,12 +39,12 @@ import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
 import { Route as AppSettingsAuditTrailRouteImport } from './routes/_app/settings/audit-trail'
 import { Route as AppSettingsTabRouteImport } from './routes/_app/settings/_tab'
 import { Route as AppSettingsSplatRouteImport } from './routes/_app/settings/$'
+import { Route as AppSalesPosRouteImport } from './routes/_app/sales/pos'
 import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
 import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoices'
 import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
 import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
 import { Route as AppProductionRecipesRouteImport } from './routes/_app/production/recipes'
-import { Route as AppProductSalesTypeRouteImport } from './routes/_app/product/sales-type'
 import { Route as AppProductCreateRouteImport } from './routes/_app/product/create'
 import { Route as AppProductCategoryRouteImport } from './routes/_app/product/category'
 import { Route as AppProductIdRouteImport } from './routes/_app/product/$id'
@@ -51,6 +53,7 @@ import { Route as AppProcurementReceiptsRouteImport } from './routes/_app/procur
 import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
 import { Route as AppMokaSyncRouteImport } from './routes/_app/moka/sync'
 import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
+import { Route as AppMokaConfigurationRouteImport } from './routes/_app/moka/configuration'
 import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
 import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
 import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
@@ -61,6 +64,7 @@ import { Route as AppHrPayrollRouteImport } from './routes/_app/hr/payroll'
 import { Route as AppHrEmployeesRouteImport } from './routes/_app/hr/employees'
 import { Route as AppHrAttendanceRouteImport } from './routes/_app/hr/attendance'
 import { Route as AppFinanceProfitLossRouteImport } from './routes/_app/finance/profit-loss'
+import { Route as AppFinancePaymentsRouteImport } from './routes/_app/finance/payments'
 import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
 import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
 import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
@@ -76,6 +80,16 @@ import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/setting
 import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user.$id'
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab.user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab.role'
+import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab.location'
+import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
+import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
+import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
+import { Route as AppReportsInventoryStockValueRouteImport } from './routes/_app/reports/inventory/stock-value'
+import { Route as AppReportsInventoryStockRouteImport } from './routes/_app/reports/inventory/stock'
+import { Route as AppReportsInventoryMovementsRouteImport } from './routes/_app/reports/inventory/movements'
+import { Route as AppReportsFinanceExpensesRouteImport } from './routes/_app/reports/finance/expenses'
+import { Route as AppReportsFinanceCashFlowRouteImport } from './routes/_app/reports/finance/cash-flow'
+import { Route as AppReportsFinanceAccountBalancesRouteImport } from './routes/_app/reports/finance/account-balances'
 import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
 import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
 import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
@@ -180,6 +194,16 @@ const DocsDocsIndexRoute = DocsDocsIndexRouteImport.update({
   path: '/docs/',
   getParentRoute: () => DocsRoute,
 } as any)
+const AppSalesTypeIndexRoute = AppSalesTypeIndexRouteImport.update({
+  id: '/sales-type/',
+  path: '/sales-type/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsIndexRoute = AppReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductIndexRoute = AppProductIndexRouteImport.update({
   id: '/product/',
   path: '/product/',
@@ -225,6 +249,11 @@ const AppSettingsSplatRoute = AppSettingsSplatRouteImport.update({
   path: '/settings/$',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSalesPosRoute = AppSalesPosRouteImport.update({
+  id: '/sales/pos',
+  path: '/sales/pos',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSalesOrdersRoute = AppSalesOrdersRouteImport.update({
   id: '/sales/orders',
   path: '/sales/orders',
@@ -248,11 +277,6 @@ const AppProductionWorkOrdersRoute = AppProductionWorkOrdersRouteImport.update({
 const AppProductionRecipesRoute = AppProductionRecipesRouteImport.update({
   id: '/production/recipes',
   path: '/production/recipes',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppProductSalesTypeRoute = AppProductSalesTypeRouteImport.update({
-  id: '/product/sales-type',
-  path: '/product/sales-type',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductCreateRoute = AppProductCreateRouteImport.update({
@@ -293,6 +317,11 @@ const AppMokaSyncRoute = AppMokaSyncRouteImport.update({
 const AppMokaMonitoringRoute = AppMokaMonitoringRouteImport.update({
   id: '/moka/monitoring',
   path: '/moka/monitoring',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMokaConfigurationRoute = AppMokaConfigurationRouteImport.update({
+  id: '/moka/configuration',
+  path: '/moka/configuration',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialUomRoute = AppMaterialUomRouteImport.update({
@@ -343,6 +372,11 @@ const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
 const AppFinanceProfitLossRoute = AppFinanceProfitLossRouteImport.update({
   id: '/finance/profit-loss',
   path: '/finance/profit-loss',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFinancePaymentsRoute = AppFinancePaymentsRouteImport.update({
+  id: '/finance/payments',
+  path: '/finance/payments',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceLedgerArApRoute = AppFinanceLedgerArApRouteImport.update({
@@ -421,6 +455,62 @@ const AppSettingsTabRoleRoute = AppSettingsTabRoleRouteImport.update({
   path: '/role',
   getParentRoute: () => AppSettingsTabRoute,
 } as any)
+const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => AppSettingsTabRoute,
+} as any)
+const AppReportsSalesRevenueRoute = AppReportsSalesRevenueRouteImport.update({
+  id: '/reports/sales/revenue',
+  path: '/reports/sales/revenue',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsSalesProductsRoute = AppReportsSalesProductsRouteImport.update({
+  id: '/reports/sales/products',
+  path: '/reports/sales/products',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsSalesChannelsRoute = AppReportsSalesChannelsRouteImport.update({
+  id: '/reports/sales/channels',
+  path: '/reports/sales/channels',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppReportsInventoryStockValueRoute =
+  AppReportsInventoryStockValueRouteImport.update({
+    id: '/reports/inventory/stock-value',
+    path: '/reports/inventory/stock-value',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryStockRoute =
+  AppReportsInventoryStockRouteImport.update({
+    id: '/reports/inventory/stock',
+    path: '/reports/inventory/stock',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryMovementsRoute =
+  AppReportsInventoryMovementsRouteImport.update({
+    id: '/reports/inventory/movements',
+    path: '/reports/inventory/movements',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceExpensesRoute =
+  AppReportsFinanceExpensesRouteImport.update({
+    id: '/reports/finance/expenses',
+    path: '/reports/finance/expenses',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceCashFlowRoute =
+  AppReportsFinanceCashFlowRouteImport.update({
+    id: '/reports/finance/cash-flow',
+    path: '/reports/finance/cash-flow',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceAccountBalancesRoute =
+  AppReportsFinanceAccountBalancesRouteImport.update({
+    id: '/reports/finance/account-balances',
+    path: '/reports/finance/account-balances',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppMaterialIdUpdateRoute = AppMaterialIdUpdateRouteImport.update({
   id: '/material/$id/update',
   path: '/material/$id/update',
@@ -486,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
   '/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/hr/attendance': typeof AppHrAttendanceRoute
   '/hr/employees': typeof AppHrEmployeesRoute
@@ -496,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
   '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/moka/sync': typeof AppMokaSyncRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -504,12 +596,12 @@ export interface FileRoutesByFullPath {
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
   '/product/create': typeof AppProductCreateRoute
-  '/product/sales-type': typeof AppProductSalesTypeRoute
   '/production/recipes': typeof AppProductionRecipesRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
   '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -519,6 +611,8 @@ export interface FileRoutesByFullPath {
   '/location/': typeof AppLocationIndexRoute
   '/material/': typeof AppMaterialIndexRoute
   '/product/': typeof AppProductIndexRoute
+  '/reports/': typeof AppReportsIndexRoute
+  '/sales-type/': typeof AppSalesTypeIndexRoute
   '/docs/': typeof DocsDocsIndexRoute
   '/examples/charts/': typeof ExamplesChartsIndexRoute
   '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
@@ -540,6 +634,16 @@ export interface FileRoutesByFullPath {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -561,6 +665,7 @@ export interface FileRoutesByTo {
   '/finance/expenses': typeof AppFinanceExpensesRoute
   '/finance/ledger': typeof AppFinanceLedgerRoute
   '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
   '/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/hr/attendance': typeof AppHrAttendanceRoute
   '/hr/employees': typeof AppHrEmployeesRoute
@@ -571,6 +676,7 @@ export interface FileRoutesByTo {
   '/material/category': typeof AppMaterialCategoryRoute
   '/material/create': typeof AppMaterialCreateRoute
   '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
   '/moka/monitoring': typeof AppMokaMonitoringRoute
   '/moka/sync': typeof AppMokaSyncRoute
   '/procurement/orders': typeof AppProcurementOrdersRoute
@@ -579,12 +685,12 @@ export interface FileRoutesByTo {
   '/product/$id': typeof AppProductIdRoute
   '/product/category': typeof AppProductCategoryRoute
   '/product/create': typeof AppProductCreateRoute
-  '/product/sales-type': typeof AppProductSalesTypeRoute
   '/production/recipes': typeof AppProductionRecipesRoute
   '/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/sales/customers': typeof AppSalesCustomersRoute
   '/sales/invoices': typeof AppSalesInvoicesRoute
   '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
   '/settings/$': typeof AppSettingsSplatRoute
   '/settings': typeof AppSettingsTabRouteWithChildren
   '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -594,6 +700,8 @@ export interface FileRoutesByTo {
   '/location': typeof AppLocationIndexRoute
   '/material': typeof AppMaterialIndexRoute
   '/product': typeof AppProductIndexRoute
+  '/reports': typeof AppReportsIndexRoute
+  '/sales-type': typeof AppSalesTypeIndexRoute
   '/docs': typeof DocsDocsIndexRoute
   '/examples/charts': typeof ExamplesChartsIndexRoute
   '/examples/complex-form': typeof ExamplesComplexFormIndexRoute
@@ -615,6 +723,16 @@ export interface FileRoutesByTo {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
   '/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -640,6 +758,7 @@ export interface FileRoutesById {
   '/_app/finance/expenses': typeof AppFinanceExpensesRoute
   '/_app/finance/ledger': typeof AppFinanceLedgerRoute
   '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/_app/finance/payments': typeof AppFinancePaymentsRoute
   '/_app/finance/profit-loss': typeof AppFinanceProfitLossRoute
   '/_app/hr/attendance': typeof AppHrAttendanceRoute
   '/_app/hr/employees': typeof AppHrEmployeesRoute
@@ -650,6 +769,7 @@ export interface FileRoutesById {
   '/_app/material/category': typeof AppMaterialCategoryRoute
   '/_app/material/create': typeof AppMaterialCreateRoute
   '/_app/material/uom': typeof AppMaterialUomRoute
+  '/_app/moka/configuration': typeof AppMokaConfigurationRoute
   '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
   '/_app/moka/sync': typeof AppMokaSyncRoute
   '/_app/procurement/orders': typeof AppProcurementOrdersRoute
@@ -658,12 +778,12 @@ export interface FileRoutesById {
   '/_app/product/$id': typeof AppProductIdRoute
   '/_app/product/category': typeof AppProductCategoryRoute
   '/_app/product/create': typeof AppProductCreateRoute
-  '/_app/product/sales-type': typeof AppProductSalesTypeRoute
   '/_app/production/recipes': typeof AppProductionRecipesRoute
   '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
   '/_app/sales/customers': typeof AppSalesCustomersRoute
   '/_app/sales/invoices': typeof AppSalesInvoicesRoute
   '/_app/sales/orders': typeof AppSalesOrdersRoute
+  '/_app/sales/pos': typeof AppSalesPosRoute
   '/_app/settings/$': typeof AppSettingsSplatRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteWithChildren
   '/_app/settings/audit-trail': typeof AppSettingsAuditTrailRoute
@@ -673,6 +793,8 @@ export interface FileRoutesById {
   '/_app/location/': typeof AppLocationIndexRoute
   '/_app/material/': typeof AppMaterialIndexRoute
   '/_app/product/': typeof AppProductIndexRoute
+  '/_app/reports/': typeof AppReportsIndexRoute
+  '/_app/sales-type/': typeof AppSalesTypeIndexRoute
   '/_docs/docs/': typeof DocsDocsIndexRoute
   '/examples/charts/': typeof ExamplesChartsIndexRoute
   '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
@@ -694,6 +816,16 @@ export interface FileRoutesById {
   '/_app/location/$id/edit': typeof AppLocationIdEditRoute
   '/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/_app/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/_app/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/_app/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/_app/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/_app/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/_app/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/_app/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/_app/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/_app/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
   '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
@@ -717,6 +849,7 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/finance/payments'
     | '/finance/profit-loss'
     | '/hr/attendance'
     | '/hr/employees'
@@ -727,6 +860,7 @@ export interface FileRouteTypes {
     | '/material/category'
     | '/material/create'
     | '/material/uom'
+    | '/moka/configuration'
     | '/moka/monitoring'
     | '/moka/sync'
     | '/procurement/orders'
@@ -735,12 +869,12 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/product/category'
     | '/product/create'
-    | '/product/sales-type'
     | '/production/recipes'
     | '/production/work-orders'
     | '/sales/customers'
     | '/sales/invoices'
     | '/sales/orders'
+    | '/sales/pos'
     | '/settings/$'
     | '/settings'
     | '/settings/audit-trail'
@@ -750,6 +884,8 @@ export interface FileRouteTypes {
     | '/location/'
     | '/material/'
     | '/product/'
+    | '/reports/'
+    | '/sales-type/'
     | '/docs/'
     | '/examples/charts/'
     | '/examples/complex-form/'
@@ -771,6 +907,16 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/reports/finance/account-balances'
+    | '/reports/finance/cash-flow'
+    | '/reports/finance/expenses'
+    | '/reports/inventory/movements'
+    | '/reports/inventory/stock'
+    | '/reports/inventory/stock-value'
+    | '/reports/sales/channels'
+    | '/reports/sales/products'
+    | '/reports/sales/revenue'
+    | '/settings/location'
     | '/settings/role'
     | '/settings/user'
     | '/settings/user/$id'
@@ -792,6 +938,7 @@ export interface FileRouteTypes {
     | '/finance/expenses'
     | '/finance/ledger'
     | '/finance/ledger-ar-ap'
+    | '/finance/payments'
     | '/finance/profit-loss'
     | '/hr/attendance'
     | '/hr/employees'
@@ -802,6 +949,7 @@ export interface FileRouteTypes {
     | '/material/category'
     | '/material/create'
     | '/material/uom'
+    | '/moka/configuration'
     | '/moka/monitoring'
     | '/moka/sync'
     | '/procurement/orders'
@@ -810,12 +958,12 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/product/category'
     | '/product/create'
-    | '/product/sales-type'
     | '/production/recipes'
     | '/production/work-orders'
     | '/sales/customers'
     | '/sales/invoices'
     | '/sales/orders'
+    | '/sales/pos'
     | '/settings/$'
     | '/settings'
     | '/settings/audit-trail'
@@ -825,6 +973,8 @@ export interface FileRouteTypes {
     | '/location'
     | '/material'
     | '/product'
+    | '/reports'
+    | '/sales-type'
     | '/docs'
     | '/examples/charts'
     | '/examples/complex-form'
@@ -846,6 +996,16 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/reports/finance/account-balances'
+    | '/reports/finance/cash-flow'
+    | '/reports/finance/expenses'
+    | '/reports/inventory/movements'
+    | '/reports/inventory/stock'
+    | '/reports/inventory/stock-value'
+    | '/reports/sales/channels'
+    | '/reports/sales/products'
+    | '/reports/sales/revenue'
+    | '/settings/location'
     | '/settings/role'
     | '/settings/user'
     | '/settings/user/$id'
@@ -870,6 +1030,7 @@ export interface FileRouteTypes {
     | '/_app/finance/expenses'
     | '/_app/finance/ledger'
     | '/_app/finance/ledger-ar-ap'
+    | '/_app/finance/payments'
     | '/_app/finance/profit-loss'
     | '/_app/hr/attendance'
     | '/_app/hr/employees'
@@ -880,6 +1041,7 @@ export interface FileRouteTypes {
     | '/_app/material/category'
     | '/_app/material/create'
     | '/_app/material/uom'
+    | '/_app/moka/configuration'
     | '/_app/moka/monitoring'
     | '/_app/moka/sync'
     | '/_app/procurement/orders'
@@ -888,12 +1050,12 @@ export interface FileRouteTypes {
     | '/_app/product/$id'
     | '/_app/product/category'
     | '/_app/product/create'
-    | '/_app/product/sales-type'
     | '/_app/production/recipes'
     | '/_app/production/work-orders'
     | '/_app/sales/customers'
     | '/_app/sales/invoices'
     | '/_app/sales/orders'
+    | '/_app/sales/pos'
     | '/_app/settings/$'
     | '/_app/settings/_tab'
     | '/_app/settings/audit-trail'
@@ -903,6 +1065,8 @@ export interface FileRouteTypes {
     | '/_app/location/'
     | '/_app/material/'
     | '/_app/product/'
+    | '/_app/reports/'
+    | '/_app/sales-type/'
     | '/_docs/docs/'
     | '/examples/charts/'
     | '/examples/complex-form/'
@@ -924,6 +1088,16 @@ export interface FileRouteTypes {
     | '/_app/location/$id/edit'
     | '/_app/material/$id/recipe'
     | '/_app/material/$id/update'
+    | '/_app/reports/finance/account-balances'
+    | '/_app/reports/finance/cash-flow'
+    | '/_app/reports/finance/expenses'
+    | '/_app/reports/inventory/movements'
+    | '/_app/reports/inventory/stock'
+    | '/_app/reports/inventory/stock-value'
+    | '/_app/reports/sales/channels'
+    | '/_app/reports/sales/products'
+    | '/_app/reports/sales/revenue'
+    | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
     | '/_app/settings/user/$id'
@@ -1088,6 +1262,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsDocsIndexRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/_app/sales-type/': {
+      id: '/_app/sales-type/'
+      path: '/sales-type'
+      fullPath: '/sales-type/'
+      preLoaderRoute: typeof AppSalesTypeIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/': {
+      id: '/_app/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AppReportsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/product/': {
       id: '/_app/product/'
       path: '/product'
@@ -1151,6 +1339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsSplatRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/sales/pos': {
+      id: '/_app/sales/pos'
+      path: '/sales/pos'
+      fullPath: '/sales/pos'
+      preLoaderRoute: typeof AppSalesPosRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/sales/orders': {
       id: '/_app/sales/orders'
       path: '/sales/orders'
@@ -1184,13 +1379,6 @@ declare module '@tanstack/react-router' {
       path: '/production/recipes'
       fullPath: '/production/recipes'
       preLoaderRoute: typeof AppProductionRecipesRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/product/sales-type': {
-      id: '/_app/product/sales-type'
-      path: '/product/sales-type'
-      fullPath: '/product/sales-type'
-      preLoaderRoute: typeof AppProductSalesTypeRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/product/create': {
@@ -1247,6 +1435,13 @@ declare module '@tanstack/react-router' {
       path: '/moka/monitoring'
       fullPath: '/moka/monitoring'
       preLoaderRoute: typeof AppMokaMonitoringRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/moka/configuration': {
+      id: '/_app/moka/configuration'
+      path: '/moka/configuration'
+      fullPath: '/moka/configuration'
+      preLoaderRoute: typeof AppMokaConfigurationRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/material/uom': {
@@ -1317,6 +1512,13 @@ declare module '@tanstack/react-router' {
       path: '/finance/profit-loss'
       fullPath: '/finance/profit-loss'
       preLoaderRoute: typeof AppFinanceProfitLossRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/payments': {
+      id: '/_app/finance/payments'
+      path: '/finance/payments'
+      fullPath: '/finance/payments'
+      preLoaderRoute: typeof AppFinancePaymentsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/finance/ledger-ar-ap': {
@@ -1424,6 +1626,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabRoleRouteImport
       parentRoute: typeof AppSettingsTabRoute
     }
+    '/_app/settings/_tab/location': {
+      id: '/_app/settings/_tab/location'
+      path: '/location'
+      fullPath: '/settings/location'
+      preLoaderRoute: typeof AppSettingsTabLocationRouteImport
+      parentRoute: typeof AppSettingsTabRoute
+    }
+    '/_app/reports/sales/revenue': {
+      id: '/_app/reports/sales/revenue'
+      path: '/reports/sales/revenue'
+      fullPath: '/reports/sales/revenue'
+      preLoaderRoute: typeof AppReportsSalesRevenueRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/sales/products': {
+      id: '/_app/reports/sales/products'
+      path: '/reports/sales/products'
+      fullPath: '/reports/sales/products'
+      preLoaderRoute: typeof AppReportsSalesProductsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/sales/channels': {
+      id: '/_app/reports/sales/channels'
+      path: '/reports/sales/channels'
+      fullPath: '/reports/sales/channels'
+      preLoaderRoute: typeof AppReportsSalesChannelsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/stock-value': {
+      id: '/_app/reports/inventory/stock-value'
+      path: '/reports/inventory/stock-value'
+      fullPath: '/reports/inventory/stock-value'
+      preLoaderRoute: typeof AppReportsInventoryStockValueRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/stock': {
+      id: '/_app/reports/inventory/stock'
+      path: '/reports/inventory/stock'
+      fullPath: '/reports/inventory/stock'
+      preLoaderRoute: typeof AppReportsInventoryStockRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/movements': {
+      id: '/_app/reports/inventory/movements'
+      path: '/reports/inventory/movements'
+      fullPath: '/reports/inventory/movements'
+      preLoaderRoute: typeof AppReportsInventoryMovementsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/expenses': {
+      id: '/_app/reports/finance/expenses'
+      path: '/reports/finance/expenses'
+      fullPath: '/reports/finance/expenses'
+      preLoaderRoute: typeof AppReportsFinanceExpensesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/cash-flow': {
+      id: '/_app/reports/finance/cash-flow'
+      path: '/reports/finance/cash-flow'
+      fullPath: '/reports/finance/cash-flow'
+      preLoaderRoute: typeof AppReportsFinanceCashFlowRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/account-balances': {
+      id: '/_app/reports/finance/account-balances'
+      path: '/reports/finance/account-balances'
+      fullPath: '/reports/finance/account-balances'
+      preLoaderRoute: typeof AppReportsFinanceAccountBalancesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/material/$id/update': {
       id: '/_app/material/$id/update'
       path: '/material/$id/update'
@@ -1491,11 +1763,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppSettingsTabRouteChildren {
+  AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
   AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
   AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
 }
 
 const AppSettingsTabRouteChildren: AppSettingsTabRouteChildren = {
+  AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
   AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
   AppSettingsTabUserRoute: AppSettingsTabUserRoute,
 }
@@ -1515,6 +1789,7 @@ interface AppRouteRouteChildren {
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
   AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
   AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
+  AppFinancePaymentsRoute: typeof AppFinancePaymentsRoute
   AppFinanceProfitLossRoute: typeof AppFinanceProfitLossRoute
   AppHrAttendanceRoute: typeof AppHrAttendanceRoute
   AppHrEmployeesRoute: typeof AppHrEmployeesRoute
@@ -1525,6 +1800,7 @@ interface AppRouteRouteChildren {
   AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
   AppMaterialCreateRoute: typeof AppMaterialCreateRoute
   AppMaterialUomRoute: typeof AppMaterialUomRoute
+  AppMokaConfigurationRoute: typeof AppMokaConfigurationRoute
   AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
   AppMokaSyncRoute: typeof AppMokaSyncRoute
   AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
@@ -1533,18 +1809,20 @@ interface AppRouteRouteChildren {
   AppProductIdRoute: typeof AppProductIdRoute
   AppProductCategoryRoute: typeof AppProductCategoryRoute
   AppProductCreateRoute: typeof AppProductCreateRoute
-  AppProductSalesTypeRoute: typeof AppProductSalesTypeRoute
   AppProductionRecipesRoute: typeof AppProductionRecipesRoute
   AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
   AppSalesCustomersRoute: typeof AppSalesCustomersRoute
   AppSalesInvoicesRoute: typeof AppSalesInvoicesRoute
   AppSalesOrdersRoute: typeof AppSalesOrdersRoute
+  AppSalesPosRoute: typeof AppSalesPosRoute
   AppSettingsSplatRoute: typeof AppSettingsSplatRoute
   AppSettingsTabRoute: typeof AppSettingsTabRouteWithChildren
   AppSettingsAuditTrailRoute: typeof AppSettingsAuditTrailRoute
   AppLocationIndexRoute: typeof AppLocationIndexRoute
   AppMaterialIndexRoute: typeof AppMaterialIndexRoute
   AppProductIndexRoute: typeof AppProductIndexRoute
+  AppReportsIndexRoute: typeof AppReportsIndexRoute
+  AppSalesTypeIndexRoute: typeof AppSalesTypeIndexRoute
   AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
   AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
   AppInventoryTransactionsOpnameRoute: typeof AppInventoryTransactionsOpnameRoute
@@ -1554,6 +1832,15 @@ interface AppRouteRouteChildren {
   AppLocationIdEditRoute: typeof AppLocationIdEditRoute
   AppMaterialIdRecipeRoute: typeof AppMaterialIdRecipeRoute
   AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
+  AppReportsFinanceAccountBalancesRoute: typeof AppReportsFinanceAccountBalancesRoute
+  AppReportsFinanceCashFlowRoute: typeof AppReportsFinanceCashFlowRoute
+  AppReportsFinanceExpensesRoute: typeof AppReportsFinanceExpensesRoute
+  AppReportsInventoryMovementsRoute: typeof AppReportsInventoryMovementsRoute
+  AppReportsInventoryStockRoute: typeof AppReportsInventoryStockRoute
+  AppReportsInventoryStockValueRoute: typeof AppReportsInventoryStockValueRoute
+  AppReportsSalesChannelsRoute: typeof AppReportsSalesChannelsRoute
+  AppReportsSalesProductsRoute: typeof AppReportsSalesProductsRoute
+  AppReportsSalesRevenueRoute: typeof AppReportsSalesRevenueRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
@@ -1572,6 +1859,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,
   AppFinanceLedgerRoute: AppFinanceLedgerRoute,
   AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
+  AppFinancePaymentsRoute: AppFinancePaymentsRoute,
   AppFinanceProfitLossRoute: AppFinanceProfitLossRoute,
   AppHrAttendanceRoute: AppHrAttendanceRoute,
   AppHrEmployeesRoute: AppHrEmployeesRoute,
@@ -1582,6 +1870,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppMaterialCategoryRoute: AppMaterialCategoryRoute,
   AppMaterialCreateRoute: AppMaterialCreateRoute,
   AppMaterialUomRoute: AppMaterialUomRoute,
+  AppMokaConfigurationRoute: AppMokaConfigurationRoute,
   AppMokaMonitoringRoute: AppMokaMonitoringRoute,
   AppMokaSyncRoute: AppMokaSyncRoute,
   AppProcurementOrdersRoute: AppProcurementOrdersRoute,
@@ -1590,18 +1879,20 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProductIdRoute: AppProductIdRoute,
   AppProductCategoryRoute: AppProductCategoryRoute,
   AppProductCreateRoute: AppProductCreateRoute,
-  AppProductSalesTypeRoute: AppProductSalesTypeRoute,
   AppProductionRecipesRoute: AppProductionRecipesRoute,
   AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
   AppSalesCustomersRoute: AppSalesCustomersRoute,
   AppSalesInvoicesRoute: AppSalesInvoicesRoute,
   AppSalesOrdersRoute: AppSalesOrdersRoute,
+  AppSalesPosRoute: AppSalesPosRoute,
   AppSettingsSplatRoute: AppSettingsSplatRoute,
   AppSettingsTabRoute: AppSettingsTabRouteWithChildren,
   AppSettingsAuditTrailRoute: AppSettingsAuditTrailRoute,
   AppLocationIndexRoute: AppLocationIndexRoute,
   AppMaterialIndexRoute: AppMaterialIndexRoute,
   AppProductIndexRoute: AppProductIndexRoute,
+  AppReportsIndexRoute: AppReportsIndexRoute,
+  AppSalesTypeIndexRoute: AppSalesTypeIndexRoute,
   AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
   AppInventoryTransactionsAdjustmentRoute:
     AppInventoryTransactionsAdjustmentRoute,
@@ -1612,6 +1903,15 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLocationIdEditRoute: AppLocationIdEditRoute,
   AppMaterialIdRecipeRoute: AppMaterialIdRecipeRoute,
   AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
+  AppReportsFinanceAccountBalancesRoute: AppReportsFinanceAccountBalancesRoute,
+  AppReportsFinanceCashFlowRoute: AppReportsFinanceCashFlowRoute,
+  AppReportsFinanceExpensesRoute: AppReportsFinanceExpensesRoute,
+  AppReportsInventoryMovementsRoute: AppReportsInventoryMovementsRoute,
+  AppReportsInventoryStockRoute: AppReportsInventoryStockRoute,
+  AppReportsInventoryStockValueRoute: AppReportsInventoryStockValueRoute,
+  AppReportsSalesChannelsRoute: AppReportsSalesChannelsRoute,
+  AppReportsSalesProductsRoute: AppReportsSalesProductsRoute,
+  AppReportsSalesRevenueRoute: AppReportsSalesRevenueRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,

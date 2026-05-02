@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
@@ -13,58 +14,33 @@ import { Page } from '@/components/layout/page'
 
 import { Button } from '@/components/ui/button'
 
+import { salesOrderApi } from '@/features/sales'
+import type { SalesOrderDto } from '@/features/sales'
+
 export const Route = createFileRoute('/_app/sales/orders')({ component: SalesOrderPage })
 
-// Mock Data
-const mockOrders = [
-	{
-		id: 'SO-2603-001',
-		customer: 'PT. Maju Mundur',
-		date: new Date('2026-03-09T10:30:00Z'),
-		total: 12500000,
-		status: 'completed',
-	},
-	{
-		id: 'SO-2603-002',
-		customer: 'Toko Sejahtera',
-		date: new Date('2026-03-09T14:15:00Z'),
-		total: 5400000,
-		status: 'processing',
-	},
-	{
-		id: 'SO-2603-003',
-		customer: 'CV. Karya Abadi',
-		date: new Date('2026-03-10T08:45:00Z'),
-		total: 21000000,
-		status: 'pending',
-	},
-	{
-		id: 'SO-2603-004',
-		customer: 'Bapak Budi',
-		date: new Date('2026-03-10T09:20:00Z'),
-		total: 1500000,
-		status: 'cancelled',
-	},
-]
-
-type OrderType = (typeof mockOrders)[0]
-const ch = createColumnHelper<OrderType>()
+const ch = createColumnHelper<SalesOrderDto>()
 
 const columns = [
 	ch.accessor('id', {
 		header: 'No. Pesanan',
-		cell: ({ row }) => <span className="font-medium">{row.original.id}</span>,
+		cell: ({ row }) => <span className="font-medium">SO-{row.original.id}</span>,
 	}),
-	ch.accessor('customer', { header: 'Pelanggan' }),
-	ch.accessor('date', {
+	ch.accessor('customerId', {
+		header: 'Pelanggan',
+		cell: ({ row }) => (
+			<span>{row.original.customerId ? `Customer #${row.original.customerId}` : '-'}</span>
+		),
+	}),
+	ch.accessor('transactionDate', {
 		header: 'Tanggal',
-		cell: ({ row }) => toDateTimeStamp(row.original.date.toISOString()),
+		cell: ({ row }) => toDateTimeStamp(row.original.transactionDate.toISOString()),
 	}),
-	ch.accessor('total', {
+	ch.accessor('totalAmount', {
 		header: 'Total Pembayaran',
 		cell: ({ row }) => (
 			<span className="font-medium text-right block">
-				Rp {row.original.total.toLocaleString('id-ID')}
+				Rp {row.original.totalAmount.toLocaleString('id-ID')}
 			</span>
 		),
 	}),
@@ -72,25 +48,31 @@ const columns = [
 		header: 'Status',
 		cell: ({ row }) => {
 			const status = row.original.status
-			if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
-			if (status === 'processing') return <BadgeDot variant="warning-outline">Diproses</BadgeDot>
-			if (status === 'pending') return <BadgeDot variant="primary-outline">Menunggu</BadgeDot>
-			return <BadgeDot variant="destructive-outline">Dibatalkan</BadgeDot>
+			if (status === 'closed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
+			if (status === 'open') return <BadgeDot variant="primary-outline">Terbuka</BadgeDot>
+			return <BadgeDot variant="destructive-outline">Batal</BadgeDot>
 		},
 	}),
 ]
 
 function SalesOrderPage() {
+	const { data: ordersData, isLoading } = useQuery(
+		salesOrderApi.list.query({ page: 1, limit: 100 }),
+	)
+
+	const orders = ordersData?.data ?? []
+	const rowCount = ordersData?.meta?.total ?? 0
+
 	const table = useDataTable({
 		columns,
-		data: mockOrders,
-		pageCount: 1,
-		rowCount: mockOrders.length,
-		ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+		data: orders,
+		pageCount: Math.ceil(rowCount / 100),
+		rowCount,
+		ds: { pagination: { limit: 100, page: 1 }, search: '', filters: {} } as any,
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Pesanan Penjualan"
 				description="Kelola seluruh pesanan pelanggan Anda di sini."
@@ -99,12 +81,14 @@ function SalesOrderPage() {
 				<DataTableCard
 					title="Daftar Pesanan"
 					table={table as any}
-					isLoading={false}
-					recordCount={mockOrders.length}
+					isLoading={isLoading}
+					recordCount={rowCount}
 					action={
-						<Button size="sm">
-							<PlusIcon className="mr-2 h-4 w-4" /> Tambah Pesanan
-						</Button>
+						<Link to="/sales/pos">
+							<Button size="sm">
+								<PlusIcon className="mr-2 h-4 w-4" /> Buat Pesanan
+							</Button>
+						</Link>
 					}
 				/>
 			</Page.Content>

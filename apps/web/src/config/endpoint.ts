@@ -14,6 +14,21 @@ function crud(base: string) {
 
 const auth = { login: 'auth/login', me: 'auth/me' }
 
+const audit = {
+	log: {
+		...crud('audit/audit-log'),
+	},
+}
+
+const company = {
+	settings: {
+		get: 'company/settings',
+		detail: 'company/settings/detail',
+		create: 'company/settings/create',
+		update: 'company/settings/update',
+	},
+}
+
 const iam = {
 	user: {
 		...crud('iam/user'),
@@ -49,7 +64,6 @@ const material = {
 const product = {
 	...crud('product'),
 	category: crud('product/category'),
-	salesType: crud('product/sales-type'),
 }
 
 const recipe = crud('recipe')
@@ -59,6 +73,7 @@ const inventory = {
 		byLocation: 'inventory/summary/by-location',
 		ledger: 'inventory/summary/ledger',
 		generate: 'inventory/summary/generate',
+		remove: 'inventory/summary/remove',
 	},
 	transaction: {
 		...crud('inventory/transaction'),
@@ -86,7 +101,7 @@ const employee = crud('employee')
 
 const finance = {
 	account: crud('finance/account'),
-	journal: { entries: 'finance/entries', detail: 'finance/entries/detail' },
+	journal: { entry: 'finance/general-ledger/entry' },
 	expenditure: crud('finance/expenditure'),
 }
 
@@ -96,21 +111,25 @@ const hr = {
 	clockIn: 'hr/clock-in',
 	clockOut: 'hr/clock-out',
 	payroll: {
-		batches: { create: 'hr/payroll/batches' },
+		batches: { create: 'hr/payroll/batches', finalize: 'hr/payroll/batches/finalize' },
 		adjustments: { create: 'hr/payroll/adjustments' },
 	},
 }
 
 const moka = {
-	configuration: crud('moka/configuration'),
+	configuration: {
+		byLocation: 'moka/config/by-location/:locationId',
+		create: 'moka/config/create',
+		update: 'moka/config/update/:id',
+	},
 	scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
 }
 
 const production = {
 	workOrder: {
-		...crud('production/work-order'),
-		start: 'production/work-order/start',
-		complete: 'production/work-order/complete',
+		...crud('production/work-orders'),
+		start: 'production/work-orders/start',
+		complete: 'production/work-orders/complete',
 	},
 }
 
@@ -129,12 +148,74 @@ const sales = {
 		close: 'sales/order/close',
 		void: 'sales/order/void',
 	},
+	salesType: crud('sales/sales-type'),
 }
 
 const supplier = crud('supplier')
 
+const crm = {
+	customer: {
+		...crud('crm/customer'),
+		byPhone: 'crm/customer/by-phone',
+		points: {
+			add: 'crm/customer/points/add',
+			redeem: 'crm/customer/points/redeem',
+		},
+		loyaltyHistory: 'crm/customer/loyalty-history',
+	},
+}
+
+const tool = {
+	seed: 'tool/seed',
+}
+
+const payment = {
+	method: {
+		...crud('payment/method'),
+		enabled: 'payment/method/enabled',
+		seed: 'payment/method/seed',
+	},
+	transaction: {
+		...crud('payment/transaction'),
+		invoices: 'payment/transaction/invoices',
+	},
+}
+
+const reporting = {
+	sales: {
+		revenue: 'reporting/sales/revenue',
+		topProducts: 'reporting/sales/top-products',
+		byLocation: 'reporting/sales/by-location',
+		byType: 'reporting/sales/by-type',
+	},
+	finance: {
+		cashFlow: 'reporting/finance/cash-flow',
+		accountBalances: 'reporting/finance/account-balances',
+		expenditureByCategory: 'reporting/finance/expenditure-by-category',
+	},
+	inventory: {
+		stockLevels: 'reporting/inventory/stock-levels',
+		movements: 'reporting/inventory/movements',
+		stockValue: 'reporting/inventory/stock-value',
+		lowStock: 'reporting/inventory/low-stock',
+	},
+	crm: {
+		customerGrowth: 'reporting/crm/customer-growth',
+		customersByTier: 'reporting/crm/customers-by-tier',
+		topCustomers: 'reporting/crm/top-customers',
+		loyaltyPoints: 'reporting/crm/loyalty-points',
+	},
+	payment: {
+		byMethod: 'reporting/payment/by-method',
+		overTime: 'reporting/payment/over-time',
+		byAccount: 'reporting/payment/by-account',
+	},
+}
+
 export const endpoint = {
 	auth,
+	audit,
+	company,
 	iam,
 	location,
 	material,
@@ -152,4 +233,8 @@ export const endpoint = {
 	purchasing,
 	sales,
 	supplier,
+	crm,
+	tool,
+	payment,
+	reporting,
 } as const

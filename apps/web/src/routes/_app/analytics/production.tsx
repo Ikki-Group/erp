@@ -51,7 +51,7 @@ const rejectConfig = {
 
 function AnalyticsProductionPage() {
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Laporan Produksi"
 				description="Analisis realisasi target, rasio kecacatan, dan efektivitas proses produksi (OEE)."

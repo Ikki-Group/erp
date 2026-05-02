@@ -3,9 +3,9 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { LocationMasterRepo } from './location-master/location-master.repo'
-import { initLocationRoute } from './location-master/location-master.route'
-import { LocationMasterService } from './location-master/location-master.service'
+import { LocationMasterRepo } from './master/location-master.repo'
+import { initLocationRoute } from './master/location-master.route'
+import { LocationMasterService } from './master/location-master.service'
 
 export class LocationServiceModule {
 	public readonly master: LocationMasterService
@@ -22,5 +22,5 @@ export function initLocationRouteModule(service: LocationServiceModule) {
 	return new Elysia({ prefix: '/location' }).use(locationRouter)
 }
 
-export { LocationDto } from './location-master/location-master.dto'
-export { LocationMasterService } from './location-master/location-master.service'
+export { LocationDto } from './master/location-master.dto'
+export { LocationMasterService } from './master/location-master.service'

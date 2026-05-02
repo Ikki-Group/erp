@@ -10,7 +10,7 @@ import type { StockDashboardService } from './stock-dashboard.service'
 export function initStockDashboardRoute(s: StockDashboardService) {
 	return new Elysia({ prefix: '/dashboard' }).use(authPluginMacro).get(
 		'/kpi',
-		// @ts-ignore
+		// @ts-expect-error
 		async function kpi({ query }) {
 			const result = await s.handleKpi(query)
 			return res.ok(result)

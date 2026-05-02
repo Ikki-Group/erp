@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zp } from '@/lib/validation'
 
-import { MokaScrapType } from './moka-scrap-history.dto'
+import { MokaScrapType, MokaSyncTriggerMode } from './moka-scrap-history.dto'
 
 /* ---------------------------------- RAW ---------------------------------- */
 
@@ -71,22 +71,25 @@ export type MokaSalesDetailRawDto = z.infer<typeof MokaSalesDetailRawDto>
 /* ---------------------------------- DTO ---------------------------------- */
 
 export const MokaProductDetailDto = z.object({
-	id: z.number(),
-	name: z.string(),
-	category_name: z.string().nullable(),
+	id: zp.num,
+	name: zp.str,
+	category_name: zp.str.nullable(),
 	item_variants: z.array(
-		z.object({ id: z.number(), name: z.string(), price: z.number(), sku: z.string().nullable() }),
+		z.object({
+			id: zp.num,
+			name: zp.str,
+			price: zp.decimal,
+			sku: zp.str.nullable(),
+		}),
 	),
 })
 export type MokaProductDetailDto = z.infer<typeof MokaProductDetailDto>
 
 export const MokaTriggerInputDto = z.object({
-	locationId: z.number(),
+	locationId: zp.id,
 	type: MokaScrapType,
+	triggerMode: MokaSyncTriggerMode.optional().default('manual'),
 	dateFrom: zp.date.optional(),
 	dateTo: zp.date.optional(),
 })
 export type MokaTriggerInputDto = z.infer<typeof MokaTriggerInputDto>
-
-export const MokaTriggerResultDto = z.object({ historyId: zp.id })
-export type MokaTriggerResultDto = z.infer<typeof MokaTriggerResultDto>

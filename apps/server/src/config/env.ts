@@ -46,7 +46,7 @@ const Env = z.object({
 	SEED_SUPERADMIN_USERNAME: z.string().min(3).optional(),
 })
 
-const _env = Env.safeParse(Bun.env)
+const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle
 
 if (!_env.success) {
 	console.error('Invalid environment variables:', z.treeifyError(_env.error))

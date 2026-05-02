@@ -2,32 +2,34 @@ import { z } from 'zod'
 
 import { zp, zc } from '@/lib/validation'
 
-export const PayrollStatusDto = z.enum(['draft', 'approved', 'paid', 'cancelled'])
-export type PayrollStatusDto = z.infer<typeof PayrollStatusDto>
+/* ---------------------------------- ENUM ---------------------------------- */
 
-export const PayrollAdjustmentTypeDto = z.enum(['addition', 'deduction'])
-export type PayrollAdjustmentTypeDto = z.infer<typeof PayrollAdjustmentTypeDto>
+export const PayrollStatusEnum = z.enum(['draft', 'approved', 'paid', 'cancelled'])
+export type PayrollStatus = z.infer<typeof PayrollStatusEnum>
+
+export const PayrollAdjustmentTypeEnum = z.enum(['addition', 'deduction'])
+export type PayrollAdjustmentType = z.infer<typeof PayrollAdjustmentTypeEnum>
 
 /* --------------------------------- BATCH --------------------------------- */
 
 export const PayrollBatchDto = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
-	periodMonth: z.number().int().min(1).max(12),
-	periodYear: z.number().int().min(2000),
-	status: PayrollStatusDto,
-	totalAmount: z.string(),
-	note: z.string().nullable(),
-	...zc.AuditFull.shape,
+	periodMonth: zp.num.int().min(1).max(12),
+	periodYear: zp.num.int().min(2000),
+	status: PayrollStatusEnum,
+	totalAmount: zp.decimal,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 
 export type PayrollBatchDto = z.infer<typeof PayrollBatchDto>
 
 export const PayrollBatchCreateDto = z.object({
-	name: zp.str,
-	periodMonth: z.number().int().min(1).max(12),
-	periodYear: z.number().int().min(2000),
-	note: zp.str.optional(),
+	name: zc.strTrim.min(1).max(100),
+	periodMonth: zp.num.int().min(1).max(12),
+	periodYear: zp.num.int().min(2000),
+	note: zc.strTrimNullable,
 })
 
 export type PayrollBatchCreateDto = z.infer<typeof PayrollBatchCreateDto>
@@ -38,12 +40,12 @@ export const PayrollItemDto = z.object({
 	...zc.RecordId.shape,
 	batchId: zp.id,
 	employeeId: zp.id,
-	baseSalary: z.string(),
-	adjustmentsAmount: z.string(),
-	serviceChargeAmount: z.string(),
-	totalAmount: z.string(),
-	note: z.string().nullable(),
-	...zc.AuditFull.shape,
+	baseSalary: zp.decimal,
+	adjustmentsAmount: zp.decimal,
+	serviceChargeAmount: zp.decimal,
+	totalAmount: zp.decimal,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 
 export type PayrollItemDto = z.infer<typeof PayrollItemDto>
@@ -53,20 +55,19 @@ export type PayrollItemDto = z.infer<typeof PayrollItemDto>
 export const PayrollAdjustmentDto = z.object({
 	...zc.RecordId.shape,
 	payrollItemId: zp.id,
-	type: PayrollAdjustmentTypeDto,
-	amount: z.string(),
+	type: PayrollAdjustmentTypeEnum,
+	amount: zp.decimal,
 	reason: zp.str,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type PayrollAdjustmentDto = z.infer<typeof PayrollAdjustmentDto>
 
 export const PayrollAdjustmentCreateDto = z.object({
 	payrollItemId: zp.id,
-	type: PayrollAdjustmentTypeDto,
-	// numeric string
-	amount: zp.str,
-	reason: zp.str,
+	type: PayrollAdjustmentTypeEnum,
+	amount: zp.decimal,
+	reason: zc.strTrim.min(1).max(255),
 })
 
 export type PayrollAdjustmentCreateDto = z.infer<typeof PayrollAdjustmentCreateDto>

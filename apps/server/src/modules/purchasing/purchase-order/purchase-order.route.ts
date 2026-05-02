@@ -74,4 +74,40 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
+		.post(
+			'/submit-for-approval',
+			async function submitForApproval({ body, auth }) {
+				const result = await service.handleSubmitForApproval(body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				body: dto.PurchaseOrderSubmitForApprovalDto,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
+		)
+		.post(
+			'/approve',
+			async function approve({ body, auth }) {
+				const result = await service.handleApprove(body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				body: dto.PurchaseOrderApproveDto,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
+		)
+		.post(
+			'/reject',
+			async function reject({ body, auth }) {
+				const result = await service.handleReject(body, auth.userId)
+				return res.ok(result)
+			},
+			{
+				body: dto.PurchaseOrderRejectDto,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
+		)
 }

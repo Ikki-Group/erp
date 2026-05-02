@@ -37,19 +37,21 @@ export const layoutPreviews: Record<string, ComponentRegistryEntry['preview']> =
 	),
 
 	FormLayout: () => (
-		<FormLayout gap="md">
-			<FormLayout.CardSection title="Form Section" description="Form fields container">
-				<div className="space-y-4">
-					<div className="h-10 rounded-md border bg-muted/50" />
-					<div className="h-10 rounded-md border bg-muted/50" />
-				</div>
-			</FormLayout.CardSection>
-			<FormLayout.Actions>
-				<Button variant="outline" size="sm">
-					Cancel
-				</Button>
-				<Button size="sm">Submit</Button>
-			</FormLayout.Actions>
+		<FormLayout>
+			<FormLayout.Content gap="md">
+				<FormLayout.CardSection title="Form Section" description="Form fields container">
+					<div className="space-y-4">
+						<div className="h-10 rounded-md border bg-muted/50" />
+						<div className="h-10 rounded-md border bg-muted/50" />
+					</div>
+				</FormLayout.CardSection>
+				<FormLayout.Actions>
+					<Button variant="outline" size="sm">
+						Cancel
+					</Button>
+					<Button size="sm">Submit</Button>
+				</FormLayout.Actions>
+			</FormLayout.Content>
 		</FormLayout>
 	),
 

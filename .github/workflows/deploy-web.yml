@@ -31,7 +31,9 @@ jobs:
 
       # Build specifically for the web package
       - name: Build web app
-        run: bun --filter @ikki/web run build
+        run: |
+          cd apps/web
+          bun run build
 
       - name: Determine Cloudflare project
         id: cf

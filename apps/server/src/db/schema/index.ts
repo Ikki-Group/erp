@@ -18,12 +18,16 @@ export {
 	payrollStatusEnum,
 	payrollAdjustmentTypeEnum,
 	salesOrderStatusEnum,
+	salesOrderSourceEnum,
 	workOrderStatusEnum,
 	mokaScrapTypeEnum,
 	mokaScrapStatusEnum,
+	integrationProviderEnum,
+	mokaSyncTriggerModeEnum,
 	purchaseRequestStatusEnum,
 	purchaseOrderStatusEnum,
 	goodsReceiptStatusEnum,
+	paymentMethodCategoryEnum,
 } from './_helpers'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 export {
@@ -42,6 +46,7 @@ export {
 	uomsTable,
 } from './material'
 export {
+	categoryExternalMappingsTable,
 	productCategoriesTable,
 	productExternalMappingsTable,
 	productPricesTable,
@@ -50,7 +55,7 @@ export {
 	salesTypesTable,
 	variantPricesTable,
 } from './product'
-export { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
+export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 export { recipeItemsTable, recipesTable } from './recipe'
 export {
 	salesExternalRefsTable,
@@ -58,15 +63,29 @@ export {
 	salesOrderItemsTable,
 	salesOrdersTable,
 	salesVoidsTable,
+	salesRefundsTable,
 	salesInvoicesTable,
 	salesInvoiceItemsTable,
 } from './sales'
 export { suppliersTable } from './supplier'
-export { customersTable } from './customer'
+export {
+	customersTable,
+	customerLoyaltyTransactionsTable,
+	customerTierEnum,
+	loyaltyTransactionTypeEnum,
+} from './customer'
+export { companySettingsTable } from './company'
 export { employeesTable } from './employee'
 export { taxesTable } from './tax'
 export { paymentsTable, paymentInvoicesTable } from './finance_payment'
-export { accountsTable, journalEntriesTable, journalItemsTable } from './finance'
+export { paymentMethodConfigsTable } from './payment_method_config'
+export { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
+export { auditLogsTable, auditActionEnum } from './audit'
+export {
+	stockTransfersTable,
+	stockTransferItemsTable,
+	transferStatusEnum,
+} from './inventory_transfer'
 export {
 	attendancesTable,
 	payrollAdjustmentsTable,

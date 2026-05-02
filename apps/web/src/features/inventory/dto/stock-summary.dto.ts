@@ -1,4 +1,4 @@
-import z from 'zod'
+import { z } from 'zod'
 
 import { zp, zc, zq } from '@/lib/validation'
 
@@ -11,33 +11,33 @@ export const StockSummaryDto = z.object({
 	date: zp.date,
 
 	// Opening balance
-	openingQty: zp.num,
-	openingAvgCost: zp.num,
-	openingValue: zp.num,
+	openingQty: zp.decimal,
+	openingAvgCost: zp.decimal,
+	openingValue: zp.decimal,
 
 	// Movements
-	purchaseQty: zp.num,
-	purchaseValue: zp.num,
-	transferInQty: zp.num,
-	transferInValue: zp.num,
-	transferOutQty: zp.num,
-	transferOutValue: zp.num,
-	adjustmentQty: zp.num,
-	adjustmentValue: zp.num,
-	usageQty: zp.num,
-	usageValue: zp.num,
-	productionInQty: zp.num,
-	productionInValue: zp.num,
-	productionOutQty: zp.num,
-	productionOutValue: zp.num,
-	sellQty: zp.num,
-	sellValue: zp.num,
+	purchaseQty: zp.decimal,
+	purchaseValue: zp.decimal,
+	transferInQty: zp.decimal,
+	transferInValue: zp.decimal,
+	transferOutQty: zp.decimal,
+	transferOutValue: zp.decimal,
+	adjustmentQty: zp.decimal,
+	adjustmentValue: zp.decimal,
+	usageQty: zp.decimal,
+	usageValue: zp.decimal,
+	productionInQty: zp.decimal,
+	productionInValue: zp.decimal,
+	productionOutQty: zp.decimal,
+	productionOutValue: zp.decimal,
+	sellQty: zp.decimal,
+	sellValue: zp.decimal,
 
 	// Closing balance
-	closingQty: zp.num,
-	closingAvgCost: zp.num,
-	closingValue: zp.num,
-	...zc.AuditFull.shape,
+	closingQty: zp.decimal,
+	closingAvgCost: zp.decimal,
+	closingValue: zp.decimal,
+	...zc.AuditBasic.shape,
 })
 
 export type StockSummaryDto = z.infer<typeof StockSummaryDto>
@@ -55,6 +55,7 @@ export type StockSummarySelectDto = z.infer<typeof StockSummarySelectDto>
 /* --------------------------------- FILTER --------------------------------- */
 
 export const StockSummaryFilterDto = z.object({
+	...zq.pagination.shape,
 	locationId: zq.id,
 	materialId: zq.id.optional(),
 	dateFrom: z.coerce.date(),
@@ -64,6 +65,7 @@ export const StockSummaryFilterDto = z.object({
 export type StockSummaryFilterDto = z.infer<typeof StockSummaryFilterDto>
 
 export const StockLedgerFilterDto = z.object({
+	...zq.pagination.shape,
 	locationId: zq.id.optional(),
 	materialId: zq.id.optional(),
 	q: zq.search,
@@ -88,20 +90,20 @@ export const StockLedgerSelectDto = z.object({
 	materialSku: zp.str,
 	baseUomCode: zp.str,
 
-	openingQty: zp.num,
+	openingQty: zp.decimal,
 
-	purchaseQty: zp.num,
-	transferInQty: zp.num,
-	transferOutQty: zp.num,
-	sellQty: zp.num,
-	adjustmentQty: zp.num,
-	usageQty: zp.num,
-	productionInQty: zp.num,
-	productionOutQty: zp.num,
+	purchaseQty: zp.decimal,
+	transferInQty: zp.decimal,
+	transferOutQty: zp.decimal,
+	sellQty: zp.decimal,
+	adjustmentQty: zp.decimal,
+	usageQty: zp.decimal,
+	productionInQty: zp.decimal,
+	productionOutQty: zp.decimal,
 
-	closingQty: zp.num,
-	closingValue: zp.num,
-	closingAvgCost: zp.num,
+	closingQty: zp.decimal,
+	closingValue: zp.decimal,
+	closingAvgCost: zp.decimal,
 })
 
 export type StockLedgerSelectDto = z.infer<typeof StockLedgerSelectDto>

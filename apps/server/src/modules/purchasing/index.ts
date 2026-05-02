@@ -13,8 +13,8 @@ import { initPurchaseOrderRoute } from './purchase-order/purchase-order.route'
 import { PurchaseOrderService } from './purchase-order/purchase-order.service'
 
 export class PurchasingServiceModule {
-	public purchaseOrder: PurchaseOrderService
-	public goodsReceipt: GoodsReceiptService
+	public readonly purchaseOrder: PurchaseOrderService
+	public readonly goodsReceipt: GoodsReceiptService
 
 	constructor(
 		private readonly db: DbClient,

@@ -15,7 +15,7 @@ import { Button } from '../ui/button'
 import { Breadcrumbs } from './breadcrumbs'
 import type { VariantProps } from 'class-variance-authority'
 
-const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col gap-4 animate-enter', {
+const pageVariants = cva('w-full mx-auto flex-1 flex py-8 flex-col animate-enter', {
 	variants: {
 		size: {
 			sm: 'max-w-2xl',
@@ -241,9 +241,9 @@ function BlockHeader({
 	breadcrumbs,
 }: BlockHeaderProps) {
 	const sizeClasses = {
-		sm: 'pb-4 mb-2',
-		md: 'pb-8 mb-4',
-		lg: 'pb-12 mb-6',
+		sm: 'pb-3 mb-2',
+		md: 'pb-5 mb-4',
+		lg: 'pb-8 mb-6',
 	}
 
 	const titleSize = {

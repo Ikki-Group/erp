@@ -37,7 +37,6 @@ export const Route = createFileRoute('/_app/inventory/allocation')({ component: 
 
 function RouteComponent() {
 	const [locationId, setLocationId] = useState<number | undefined>()
-	const [locationName, setLocationName] = useState<string>('')
 
 	const locationQry = useQuery({
 		...locationApi.list.query({}),
@@ -52,7 +51,7 @@ function RouteComponent() {
 	const numericLocationId = locationId ? Number(locationId) : null
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Alokasi Gudang"
 				description="Kelola penugasan bahan baku per lokasi gudang"
@@ -74,7 +73,7 @@ function RouteComponent() {
 				{numericLocationId ? (
 					<>
 						<MaterialLocationAssignDialog.Root />
-						<StockTable locationId={numericLocationId} locationName={locationName} />
+						<StockTable locationId={numericLocationId} locationName="" />
 					</>
 				) : (
 					<div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">

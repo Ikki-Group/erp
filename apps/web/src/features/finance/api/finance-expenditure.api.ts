@@ -1,9 +1,7 @@
-import { z } from 'zod'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, createSuccessResponseSchema } from '@/lib/validation'
+import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from '../dto/expenditure.dto'
 
@@ -12,7 +10,7 @@ export const expenditureApi = {
 		method: 'get',
 		url: endpoint.finance.expenditure.list,
 		params: ExpenditureFilterDto,
-		result: createSuccessResponseSchema(z.array(ExpenditureDto)), // Service returns array currently
+		result: createPaginatedResponseSchema(ExpenditureDto),
 	}),
 	create: apiFactory({
 		method: 'post',

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import z from 'zod'
+import { z } from 'zod'
 
 import { useAppForm } from '@/components/form'
 
@@ -37,7 +37,7 @@ const FormDto = z.object({
 	type: ExpenditureTypeEnum,
 	status: z.enum(['PENDING', 'PAID', 'VOID', 'REFUNDED']),
 	title: z.string().min(1, 'Judul wajib diisi'),
-	description: z.string().optional().nullable(),
+	description: z.string().trim().nullable(),
 	date: z.date(),
 	amount: z.number().min(1, 'Nominal wajib diisi'),
 	sourceAccountId: z.number().min(1, 'Pilih asal dana'),

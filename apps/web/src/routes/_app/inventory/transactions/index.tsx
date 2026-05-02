@@ -41,7 +41,7 @@ function RouteComponent() {
 	const { data, isLoading } = useQuery(
 		stockTransactionApi.list.query({
 			...ds.pagination,
-			q: ds.search || undefined,
+			search: ds.search || undefined,
 			locationId: undefined,
 		}),
 	)
@@ -116,7 +116,7 @@ function RouteComponent() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Riwayat Mutasi & Transaksi"
 				description="Pantau seluruh pergerakan barang (masuk, keluar, transfer, dan opname/penyesuaian)."

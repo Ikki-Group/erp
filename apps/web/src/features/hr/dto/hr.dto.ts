@@ -2,34 +2,41 @@ import { z } from 'zod'
 
 import { zp, zc, zq } from '@/lib/validation'
 
-export const AttendanceStatusDto = z.enum(['present', 'absent', 'late', 'on_leave'])
-export type AttendanceStatusDto = z.infer<typeof AttendanceStatusDto>
+/* ---------------------------------- ENUM ---------------------------------- */
+
+export const AttendanceStatusEnum = z.enum(['present', 'absent', 'late', 'on_leave'])
+export type AttendanceStatus = z.infer<typeof AttendanceStatusEnum>
 
 /* --------------------------------- SHIFT --------------------------------- */
 
 export const ShiftDto = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
-	startTime: z.string(), // 'HH:mm:ss'
-	endTime: z.string(), // 'HH:mm:ss'
-	note: z.string().nullable(),
-	...zc.AuditFull.shape,
+	startTime: zp.str, // 'HH:mm:ss'
+	endTime: zp.str, // 'HH:mm:ss'
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 
 export type ShiftDto = z.infer<typeof ShiftDto>
 
 export const ShiftCreateDto = z.object({
-	name: zp.str,
+	name: zc.strTrim.min(1).max(100),
 	startTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
 	endTime: z
 		.string()
 		.regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Invalid time format (HH:mm:ss)'),
-	note: zp.str.optional(),
+	note: zc.strTrimNullable,
 })
 
 export type ShiftCreateDto = z.infer<typeof ShiftCreateDto>
+
+export const ShiftUpdateDto = ShiftCreateDto.extend({
+	...zc.RecordId.shape,
+})
+export type ShiftUpdateDto = z.infer<typeof ShiftUpdateDto>
 
 /* ------------------------------- ATTENDANCE ------------------------------- */
 
@@ -38,32 +45,31 @@ export const AttendanceDto = z.object({
 	employeeId: zp.id,
 	locationId: zp.id,
 	shiftId: zp.id.nullable(),
-
-	date: z.coerce.date(),
-	clockIn: z.coerce.date().nullable(),
-	clockOut: z.coerce.date().nullable(),
-
-	status: AttendanceStatusDto,
-	note: z.string().nullable(),
-	...zc.AuditFull.shape,
+	date: zp.date,
+	clockIn: zp.date.nullable(),
+	clockOut: zp.date.nullable(),
+	status: AttendanceStatusEnum,
+	note: zp.strNullable,
+	...zc.AuditBasic.shape,
 })
 
 export type AttendanceDto = z.infer<typeof AttendanceDto>
 
 export const AttendanceSelectDto = AttendanceDto.extend({
-	employeeName: z.string().optional(),
-	employeeCode: z.string().optional(),
-	locationName: z.string().optional(),
-	shiftName: z.string().optional(),
+	employeeName: zp.str.optional(),
+	employeeCode: zp.str.optional(),
+	locationName: zp.str.optional(),
+	shiftName: zp.str.optional(),
 })
 
 export type AttendanceSelectDto = z.infer<typeof AttendanceSelectDto>
 
 export const AttendanceFilterDto = z.object({
+	...zq.pagination.shape,
 	q: zq.search,
-	employeeId: zp.id.optional(),
-	locationId: zp.id.optional(),
-	status: AttendanceStatusDto.optional(),
+	employeeId: zq.id.optional(),
+	locationId: zq.id.optional(),
+	status: AttendanceStatusEnum.optional(),
 	dateFrom: z.coerce.date().optional(),
 	dateTo: z.coerce.date().optional(),
 })
@@ -76,14 +82,14 @@ export const ClockInDto = z.object({
 	employeeId: zp.id,
 	locationId: zp.id,
 	shiftId: zp.id.optional(),
-	note: zp.str.optional(),
+	note: zc.strTrimNullable,
 })
 
 export type ClockInDto = z.infer<typeof ClockInDto>
 
 export const ClockOutDto = z.object({
 	id: zp.id, // attendance record id
-	note: zp.str.optional(),
+	note: zc.strTrimNullable,
 })
 
 export type ClockOutDto = z.infer<typeof ClockOutDto>

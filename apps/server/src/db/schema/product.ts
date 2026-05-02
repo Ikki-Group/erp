@@ -184,3 +184,26 @@ export const productExternalMappingsTable = pgTable(
 		index('product_ext_map_provider_idx').on(t.provider),
 	],
 )
+
+// ─── Category External Mappings ────────────────────────────────────────────────
+
+export const categoryExternalMappingsTable = pgTable(
+	'category_external_mappings',
+	{
+		...pk,
+		categoryId: integer()
+			.notNull()
+			.references(() => productCategoriesTable.id, { onDelete: 'cascade' }),
+		provider: text().notNull(),
+		externalId: text().notNull(),
+		externalData: jsonb(),
+		lastSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
+		...auditColumns,
+	},
+	(t) => [
+		uniqueIndex('category_ext_map_provider_ext_id_idx').on(t.provider, t.externalId),
+		uniqueIndex('category_ext_map_provider_category_idx').on(t.provider, t.categoryId),
+		index('category_ext_map_category_idx').on(t.categoryId),
+		index('category_ext_map_provider_idx').on(t.provider),
+	],
+)

@@ -4,3 +4,9 @@ export interface DataTablePagination {
 }
 
 export type DataTableFilters = Record<string, unknown>
+
+export interface DataTableState<F extends DataTableFilters = DataTableFilters> {
+	pagination: DataTablePagination
+	search: string
+	filters: F
+}

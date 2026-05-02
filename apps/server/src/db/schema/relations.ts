@@ -30,8 +30,9 @@ import {
 	materialsTable,
 	uomsTable,
 } from './material'
-import { mokaConfigurationsTable, mokaScrapHistoriesTable } from './moka'
+import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 import {
+	categoryExternalMappingsTable,
 	productCategoriesTable,
 	productExternalMappingsTable,
 	productPricesTable,
@@ -88,10 +89,12 @@ export const relations = defineRelations(
 		productVariantsTable,
 		variantPricesTable,
 		productExternalMappingsTable,
+		categoryExternalMappingsTable,
 		recipesTable,
 		recipeItemsTable,
 		mokaConfigurationsTable,
 		mokaScrapHistoriesTable,
+		mokaSyncCursorsTable,
 		salesOrdersTable,
 		salesOrderBatchesTable,
 		salesOrderItemsTable,
@@ -292,7 +295,10 @@ export const relations = defineRelations(
 			salesOrders: r.many.salesOrdersTable(),
 		},
 
-		productCategoriesTable: { products: r.many.productsTable() },
+		productCategoriesTable: {
+			products: r.many.productsTable(),
+			externalMappings: r.many.categoryExternalMappingsTable(),
+		},
 
 		productsTable: {
 			location: r.one.locationsTable({ from: r.productsTable.locationId, to: r.locationsTable.id }),
@@ -352,6 +358,13 @@ export const relations = defineRelations(
 			}),
 		},
 
+		categoryExternalMappingsTable: {
+			category: r.one.productCategoriesTable({
+				from: r.categoryExternalMappingsTable.categoryId,
+				to: r.productCategoriesTable.id,
+			}),
+		},
+
 		// ─── Recipe ───────────────────────────────────────────────────────
 
 		recipesTable: {
@@ -381,12 +394,25 @@ export const relations = defineRelations(
 				to: r.locationsTable.id,
 			}),
 			scrapHistories: r.many.mokaScrapHistoriesTable(),
+			syncCursors: r.many.mokaSyncCursorsTable(),
 		},
 
 		mokaScrapHistoriesTable: {
 			configuration: r.one.mokaConfigurationsTable({
 				from: r.mokaScrapHistoriesTable.mokaConfigurationId,
 				to: r.mokaConfigurationsTable.id,
+			}),
+			lastCursors: r.many.mokaSyncCursorsTable(),
+		},
+
+		mokaSyncCursorsTable: {
+			configuration: r.one.mokaConfigurationsTable({
+				from: r.mokaSyncCursorsTable.mokaConfigurationId,
+				to: r.mokaConfigurationsTable.id,
+			}),
+			lastHistory: r.one.mokaScrapHistoriesTable({
+				from: r.mokaSyncCursorsTable.lastHistoryId,
+				to: r.mokaScrapHistoriesTable.id,
 			}),
 		},
 

@@ -10,7 +10,7 @@ export const JournalItemDto = z.object({
 	accountId: zp.id,
 	debit: zp.decimal,
 	credit: zp.decimal,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type JournalItemDto = z.infer<typeof JournalItemDto>
@@ -22,7 +22,7 @@ export const JournalEntryDto = z.object({
 	sourceType: zp.str,
 	sourceId: zp.id,
 	note: zp.str.nullable(),
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 
 export type JournalEntryDto = z.infer<typeof JournalEntryDto>

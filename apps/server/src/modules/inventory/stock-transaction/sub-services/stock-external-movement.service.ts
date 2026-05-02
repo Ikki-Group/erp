@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-assignment */
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 

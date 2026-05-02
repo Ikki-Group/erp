@@ -66,6 +66,8 @@ export const SalesOrderDto = z.object({
 	totalAmount: zp.decimal,
 	discountAmount: zp.decimal,
 	taxAmount: zp.decimal,
+	gratuityAmount: zp.decimal,
+	refundAmount: zp.decimal,
 	...zc.AuditBasic.shape,
 })
 export type SalesOrderDto = z.infer<typeof SalesOrderDto>
@@ -116,6 +118,8 @@ export const SalesOrderMutationDto = z.object({
 	totalAmount: zp.decimal,
 	discountAmount: zp.decimal.default('0'),
 	taxAmount: zp.decimal.default('0'),
+	gratuityAmount: zp.decimal.default('0'),
+	refundAmount: zp.decimal.default('0'),
 	items: z.array(SalesOrderItemMutationDto).optional(),
 })
 export type SalesOrderMutationDto = z.infer<typeof SalesOrderMutationDto>

@@ -4,7 +4,14 @@ import { zc, zp, zq } from '@/core/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
-export const PurchaseOrderStatusEnum = z.enum(['open', 'closed', 'void'])
+export const PurchaseOrderStatusEnum = z.enum([
+	'pending_approval',
+	'approved',
+	'rejected',
+	'open',
+	'closed',
+	'void',
+])
 export type PurchaseOrderStatus = z.infer<typeof PurchaseOrderStatusEnum>
 
 /* ---------------------------------- ITEM ---------------------------------- */
@@ -86,3 +93,22 @@ export const PurchaseOrderFilterDto = z.object({
 	supplierId: zq.id.optional(),
 })
 export type PurchaseOrderFilterDto = z.infer<typeof PurchaseOrderFilterDto>
+
+/* -------------------------------- APPROVAL -------------------------------- */
+
+export const PurchaseOrderApproveDto = z.object({
+	id: zp.id,
+	notes: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
+})
+export type PurchaseOrderApproveDto = z.infer<typeof PurchaseOrderApproveDto>
+
+export const PurchaseOrderRejectDto = z.object({
+	id: zp.id,
+	reason: zc.strTrim.min(5).max(500),
+})
+export type PurchaseOrderRejectDto = z.infer<typeof PurchaseOrderRejectDto>
+
+export const PurchaseOrderSubmitForApprovalDto = z.object({
+	id: zp.id,
+})
+export type PurchaseOrderSubmitForApprovalDto = z.infer<typeof PurchaseOrderSubmitForApprovalDto>

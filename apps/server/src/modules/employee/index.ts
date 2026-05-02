@@ -3,9 +3,9 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { EmployeeRepo } from './employee/employee.repo'
-import { initEmployeeRoute } from './employee/employee.route'
-import { EmployeeService } from './employee/employee.service'
+import { EmployeeRepo } from './core/employee.repo'
+import { initEmployeeRoute } from './core/employee.route'
+import { EmployeeService } from './core/employee.service'
 
 export class EmployeeServiceModule {
 	public readonly employee: EmployeeService
@@ -22,3 +22,6 @@ export class EmployeeServiceModule {
 export function initEmployeeRouteModule(service: EmployeeServiceModule) {
 	return new Elysia().use(initEmployeeRoute(service.employee))
 }
+
+export * from './core/employee.dto'
+export type { EmployeeService } from './core/employee.service'

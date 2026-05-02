@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
-import z from 'zod'
+import { z } from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
 
@@ -29,7 +29,7 @@ const FormDto = z.object({
 	destinationLocationId: z.number().min(1, 'Lokasi tujuan wajib dipilih'),
 	date: z.coerce.date(),
 	referenceNo: z.string().min(1, 'No. referensi wajib diisi'),
-	notes: z.string().optional().nullable(),
+	notes: z.string().trim().nullable(),
 	items: z
 		.array(
 			z.object({

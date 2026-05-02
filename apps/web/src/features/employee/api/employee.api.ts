@@ -1,9 +1,7 @@
-import { z } from 'zod'
-
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	EmployeeCreateDto,
@@ -16,7 +14,7 @@ export const employeeApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.employee.list,
-		params: z.object({ ...EmployeeFilterDto.shape, ...zq.pagination.shape }),
+		params: EmployeeFilterDto,
 		result: createPaginatedResponseSchema(EmployeeDto),
 	}),
 	detail: apiFactory({

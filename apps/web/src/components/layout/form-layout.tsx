@@ -15,12 +15,6 @@ import type { VariantProps } from 'class-variance-authority'
 
 const formLayoutVariants = cva('flex flex-1 flex-col animate-enter', {
 	variants: {
-		gap: {
-			sm: 'gap-4',
-			md: 'gap-6',
-			lg: 'gap-8',
-			xl: 'gap-10',
-		},
 		padding: {
 			none: 'p-0',
 			sm: 'p-4',
@@ -28,7 +22,7 @@ const formLayoutVariants = cva('flex flex-1 flex-col animate-enter', {
 			lg: 'p-8',
 		},
 	},
-	defaultVariants: { gap: 'md', padding: 'none' },
+	defaultVariants: { padding: 'none' },
 })
 
 export interface FormLayoutProps
@@ -37,13 +31,10 @@ export interface FormLayoutProps
 		React.ComponentProps<'div'>,
 		VariantProps<typeof formLayoutVariants> {}
 
-function FormLayout({ gap, padding, render, className, ...props }: FormLayoutProps) {
+function FormLayout({ padding, render, className, ...props }: FormLayoutProps) {
 	return useRender({
 		defaultTagName: 'div',
-		props: mergeProps<'div'>(
-			{ className: cn(formLayoutVariants({ gap, padding }), className) },
-			props,
-		),
+		props: mergeProps<'div'>({ className: cn(formLayoutVariants({ padding }), className) }, props),
 		render,
 	})
 }

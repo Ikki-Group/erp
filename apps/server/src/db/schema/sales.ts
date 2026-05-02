@@ -11,8 +11,9 @@ import {
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { invoiceStatusEnum, salesOrderStatusEnum } from './_helpers'
+import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
 import { customersTable } from './customer'
+import { usersTable } from './iam'
 import { locationsTable } from './location'
 import { productsTable, productVariantsTable, salesTypesTable } from './product'
 
@@ -30,6 +31,7 @@ export const salesOrdersTable = pgTable(
 		salesTypeId: integer()
 			.notNull()
 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
+		source: salesOrderSourceEnum().notNull().default('web'),
 		status: salesOrderStatusEnum().notNull().default('open'),
 
 		transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
@@ -38,11 +40,17 @@ export const salesOrdersTable = pgTable(
 		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		gratuityAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+		refundAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+
+		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
+		metadata: jsonb(),
 
 		...auditColumns,
 	},
 	(t) => [
 		index('sales_orders_location_idx').on(t.locationId),
+		index('sales_orders_source_idx').on(t.source),
 		index('sales_orders_status_idx').on(t.status),
 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
 		index('sales_orders_customer_idx').on(t.customerId),
@@ -177,11 +185,36 @@ export const salesVoidsTable = pgTable(
 		// If itemId is null, it means the whole order is voided
 		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
 		reason: text(),
-		voidedBy: integer().notNull(),
-
+		voidedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
+		metadata: jsonb(),
 		...auditColumns,
 	},
 	(t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
+)
+
+// ─── Sales Refunds ────────────────────────────────────────────────────────────
+
+export const salesRefundsTable = pgTable(
+	'sales_refunds',
+	{
+		...pk,
+		orderId: integer()
+			.notNull()
+			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+		// If itemId is null, it's an order-level refund
+		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
+		amount: numeric({ precision: 18, scale: 2 }).notNull(),
+		reason: text(),
+		refundedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
+		refundedAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
+		metadata: jsonb(),
+		...auditColumns,
+	},
+	(t) => [
+		index('sales_refunds_order_idx').on(t.orderId),
+		index('sales_refunds_item_idx').on(t.itemId),
+		index('sales_refunds_date_idx').on(t.refundedAt),
+	],
 )
 
 // ─── Sales External Refs ──────────────────────────────────────────────────────

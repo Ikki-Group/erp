@@ -13,7 +13,7 @@ export function initStockAlertRoute(s: StockAlertService) {
 		.use(authPluginMacro)
 		.get(
 			'/list',
-			// @ts-ignore
+			// @ts-expect-error
 			async function list({ query }) {
 				const result = await s.handleAlerts(query)
 				return res.paginated(result)

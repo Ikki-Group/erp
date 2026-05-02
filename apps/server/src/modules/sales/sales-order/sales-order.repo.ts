@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment */
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
@@ -102,6 +103,8 @@ export class SalesOrderRepo {
 				totalAmount: totalAmount.toString(),
 				discountAmount: discountAmount.toString(),
 				taxAmount: taxAmount.toString(),
+				gratuityAmount: '0',
+				refundAmount: '0',
 				...metadata,
 			})
 			.where(eq(salesOrdersTable.id, orderId))
@@ -216,6 +219,8 @@ export class SalesOrderRepo {
 				totalAmount,
 				discountAmount,
 				taxAmount,
+				gratuityAmount,
+				refundAmount,
 				items,
 			} = data
 
@@ -233,6 +238,8 @@ export class SalesOrderRepo {
 						totalAmount: totalAmount.toString(),
 						discountAmount: discountAmount.toString(),
 						taxAmount: taxAmount.toString(),
+						gratuityAmount: gratuityAmount?.toString() ?? '0',
+						refundAmount: refundAmount?.toString() ?? '0',
 						...metadata,
 					})
 					.returning({ id: salesOrdersTable.id })
@@ -286,6 +293,8 @@ export class SalesOrderRepo {
 						totalAmount: data.totalAmount.toString(),
 						discountAmount: data.discountAmount.toString(),
 						taxAmount: data.taxAmount.toString(),
+						gratuityAmount: data.gratuityAmount?.toString() ?? '0',
+						refundAmount: data.refundAmount?.toString() ?? '0',
 						...metadata,
 					})
 					.returning({ id: salesOrdersTable.id })
@@ -391,6 +400,9 @@ export class SalesOrderRepo {
 					.update(salesOrdersTable)
 					.set({ status: 'closed', ...stampUpdate(actorId) })
 					.where(eq(salesOrdersTable.id, orderId))
+
+				// TODO: Add GL posting for manual sales when Finance module integration is ready
+				// Similar to Moka sync's postSalesToGL method
 			})
 			this.#clearCacheAsync(orderId)
 			return { id: orderId }

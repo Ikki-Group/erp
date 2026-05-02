@@ -9,13 +9,9 @@ import { ProductCategoryService } from './product-category/product-category.serv
 import { ProductRepo } from './product/product.repo'
 import { initProductRoute } from './product/product.route'
 import { ProductService } from './product/product.service'
-import { SalesTypeRepo } from './sales-type/sales-type.repo'
-import { initSalesTypeRoute } from './sales-type/sales-type.route'
-import { SalesTypeService } from './sales-type/sales-type.service'
 
 export class ProductServiceModule {
 	public readonly category: ProductCategoryService
-	public readonly salesType: SalesTypeService
 	public readonly product: ProductService
 
 	constructor(
@@ -25,9 +21,6 @@ export class ProductServiceModule {
 		const productCategoryRepo = new ProductCategoryRepo(this.db, this.cacheClient)
 		this.category = new ProductCategoryService(productCategoryRepo)
 
-		const salesTypeRepo = new SalesTypeRepo(this.db, this.cacheClient)
-		this.salesType = new SalesTypeService(salesTypeRepo)
-
 		const productRepo = new ProductRepo(this.db, this.cacheClient)
 		this.product = new ProductService(this.category, productRepo)
 	}
@@ -36,6 +29,5 @@ export class ProductServiceModule {
 export function initProductRouteModule(s: ProductServiceModule) {
 	return new Elysia({ prefix: '/product' })
 		.use(initProductCategoryRoute(s.category))
-		.use(initSalesTypeRoute(s.salesType))
 		.use(initProductRoute(s.product))
 }

@@ -3,9 +3,9 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { SupplierRepo } from './supplier/supplier.repo'
-import { initSupplierRoute } from './supplier/supplier.route'
-import { SupplierService } from './supplier/supplier.service'
+import { SupplierRepo } from './core/supplier.repo'
+import { initSupplierRoute } from './core/supplier.route'
+import { SupplierService } from './core/supplier.service'
 
 export class SupplierServiceModule {
 	public readonly supplier: SupplierService
@@ -23,8 +23,5 @@ export function initSupplierRouteModule(s: SupplierServiceModule) {
 	return new Elysia({ prefix: '/supplier' }).use(initSupplierRoute(s.supplier))
 }
 
-// Feature exports
-export * from './supplier/supplier.dto'
-export * from './supplier/supplier.repo'
-export * from './supplier/supplier.service'
-export * from './supplier/supplier.route'
+export * from './core/supplier.dto'
+export type { SupplierService } from './core/supplier.service'

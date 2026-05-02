@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 
-import { ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
+import { MapPinIcon, ShieldEllipsisIcon, UsersIcon } from 'lucide-react'
 
 import type { CardStatProps } from '@/components/blocks/card/card-stat'
 import { CardStat } from '@/components/blocks/card/card-stat'
@@ -12,8 +12,10 @@ import { Tabs } from '@/components/ui/tabs'
 import { settingsApi } from '@/features/dashboard/api/settings.api'
 
 const TABS = [
+	['Lokasi', '/settings/location'],
 	['Pengguna', '/settings/user'],
 	['Role', '/settings/role'],
+	['Audit Trail', '/settings/audit-trail'],
 ] as const
 
 export const Route = createFileRoute('/_app/settings/_tab')({ component: RouteComponent })
@@ -27,7 +29,7 @@ function RouteComponent() {
 				description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."
 			/>
 			<SettingsSummarySection />
-			<Page.Content className="mt-4">
+			<Page.Content className="mb-4 mt-6">
 				<Tabs value={pathname}>
 					<div className="border-b w-full">
 						<Tabs.List className="w-full md:w-min" variant="line">
@@ -57,6 +59,7 @@ function SettingsSummarySection() {
 	const { data } = useSuspenseQuery(settingsApi.summary.query({}))
 
 	const stats = [
+		{ title: 'Total Lokasi', value: data.data.locations, icon: MapPinIcon },
 		{ title: 'Total User', value: data.data.users, icon: UsersIcon },
 		{ title: 'Total Role', value: data.data.roles, icon: ShieldEllipsisIcon },
 	] satisfies Array<CardStatProps>

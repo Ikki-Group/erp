@@ -128,7 +128,7 @@ function FinanceLedgerPage() {
 	})
 
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Buku Besar & Jurnal"
 				description="Pencatatan rekam jejak setiap mutasi masuk dan keluar dari semua akun secara kronologis."

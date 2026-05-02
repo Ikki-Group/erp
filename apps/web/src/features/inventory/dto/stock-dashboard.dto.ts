@@ -7,9 +7,9 @@ export const DashboardKpiFilterDto = z.object({ locationId: zp.id.optional() })
 export type DashboardKpiFilterDto = z.infer<typeof DashboardKpiFilterDto>
 
 export const DashboardKpiSelectDto = z.object({
-	totalStockValue: z.number(),
-	totalActiveSku: z.number(),
-	lowStockCount: z.number(),
+	totalStockValue: zp.decimal,
+	totalActiveSku: zp.num,
+	lowStockCount: zp.num,
 })
 
 export type DashboardKpiSelectDto = z.infer<typeof DashboardKpiSelectDto>

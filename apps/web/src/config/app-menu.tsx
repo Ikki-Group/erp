@@ -1,18 +1,21 @@
 import {
+	ArchiveIcon,
 	BanknoteIcon,
 	BarChart3Icon,
+	BeakerIcon,
 	BookOpenIcon,
-	BoxIcon,
-	CirclePileIcon,
-	FactoryIcon,
+	CogIcon,
 	LayoutDashboardIcon,
+	LogsIcon,
 	PackageIcon,
 	Settings2Icon,
 	ShoppingBagIcon,
-	ShoppingBasketIcon,
-	ShoppingCartIcon,
-	UsersIcon,
-	WarehouseIcon,
+	SparklesIcon,
+	TrendingUpIcon,
+	TruckIcon,
+	UserRoundIcon,
+	UtensilsCrossedIcon,
+	WalletIcon,
 } from 'lucide-react'
 
 import type { LucideIcon } from 'lucide-react'
@@ -29,272 +32,403 @@ export interface AppMenu {
 }
 
 export interface AppMenuGroup {
-	label: string
+	label?: string
 	items: Array<AppMenu>
+	isHide?: boolean
 }
 
 export interface AppMenuCounts {
 	inventoryAlerts?: number
 }
 
-export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<AppMenuGroup> {
+export interface AppMenuContext {
+	locationType?: 'store' | 'warehouse'
+}
+
+export function getAppMenu(
+	pathname: string,
+	_counts: AppMenuCounts = {},
+	_context: AppMenuContext = {},
+): Array<AppMenuGroup> {
 	return [
 		{
-			label: 'Ringkasan',
 			items: [
 				{ title: 'Dashboard', href: '/', icon: LayoutDashboardIcon, isActive: pathname === '/' },
+			],
+		},
+		{
+			label: 'Laporan',
+			items: [
 				{
-					title: 'Analitik & Laporan',
-					href: '/analytics',
+					title: 'Overview',
+					href: '/reports',
 					icon: BarChart3Icon,
-					children: [
-						{
-							title: 'Laporan Penjualan',
-							href: '/analytics/sales',
-							isActive: pathname === '/analytics/sales',
-						},
-						{
-							title: 'Laporan Produksi',
-							href: '/analytics/production',
-							isActive: pathname === '/analytics/production',
-						},
-						{
-							title: 'Laporan Keuangan',
-							href: '/analytics/finance',
-							isActive: pathname === '/analytics/finance',
-						},
-					],
+					isActive: pathname.startsWith('/reports'),
 				},
-			],
-		},
-		{
-			label: 'Penjualan',
-			items: [
+
 				{
-					title: 'Penjualan',
-					href: '/sales',
-					icon: ShoppingCartIcon,
+					title: 'Laporan Penjualan',
+					href: '/reports/sales',
+					icon: TrendingUpIcon,
+					isActive: pathname.startsWith('/reports/sales'),
 					children: [
 						{
-							title: 'Transaksi Penjualan',
-							href: '/sales/orders',
-							isActive: pathname.startsWith('/sales/orders'),
+							title: 'Pendapatan',
+							href: '/reports/sales/revenue',
+							isActive: pathname === '/reports/sales/revenue',
 						},
 						{
-							title: 'Invoice & Surat Jalan',
-							href: '/sales/invoices',
-							isActive: pathname.startsWith('/sales/invoices'),
+							title: 'Performa Produk',
+							href: '/reports/sales/products',
+							isActive: pathname === '/reports/sales/products',
 						},
 						{
-							title: 'Daftar Pelanggan',
-							href: '/sales/customers',
-							isActive: pathname.startsWith('/sales/customers'),
+							title: 'Transaksi',
+							href: '/reports/sales/transactions',
+							isActive: pathname === '/reports/sales/transactions',
+						},
+						{
+							title: 'Channel Penjualan',
+							href: '/reports/sales/channels',
+							isActive: pathname === '/reports/sales/channels',
 						},
 					],
 				},
 				{
-					title: 'Integrasi POS',
-					href: '/moka',
-					icon: ShoppingBasketIcon,
+					title: 'Laporan Inventory',
+					href: '/reports/inventory',
+					icon: ArchiveIcon,
+					isActive: pathname.startsWith('/reports/inventory'),
 					children: [
 						{
-							title: 'Monitoring Moka',
-							href: '/moka/monitoring',
-							isActive: pathname.startsWith('/moka/monitoring'),
+							title: 'Ringkasan Stok',
+							href: '/reports/inventory/stock',
+							isActive: pathname === '/reports/inventory/stock',
 						},
 						{
-							title: 'Sinkronisasi Produk',
-							href: '/moka/sync',
-							isActive: pathname.startsWith('/moka/sync'),
+							title: 'Pergerakan Stok',
+							href: '/reports/inventory/movements',
+							isActive: pathname === '/reports/inventory/movements',
+						},
+						{
+							title: 'Konsumsi Bahan',
+							href: '/reports/inventory/consumption',
+							isActive: pathname === '/reports/inventory/consumption',
+						},
+						{
+							title: 'Stock Opname',
+							href: '/reports/inventory/opname',
+							isActive: pathname === '/reports/inventory/opname',
+						},
+						{
+							title: 'Waste / Kerusakan',
+							href: '/reports/inventory/waste',
+							isActive: pathname === '/reports/inventory/waste',
 						},
 					],
 				},
+
 				{
-					title: 'CRM & Loyalty',
-					href: '/crm',
-					icon: UsersIcon,
+					title: 'Laporan Pengadaan',
+					href: '/reports/procurement',
+					icon: TruckIcon,
+					isActive: pathname.startsWith('/reports/procurement'),
+					children: [
+						{
+							title: 'Pembelian',
+							href: '/reports/procurement/purchases',
+							isActive: pathname === '/reports/procurement/purchases',
+						},
+						{
+							title: 'Supplier',
+							href: '/reports/procurement/suppliers',
+							isActive: pathname === '/reports/procurement/suppliers',
+						},
+						{
+							title: 'Transfer',
+							href: '/reports/procurement/transfers',
+							isActive: pathname === '/reports/procurement/transfers',
+						},
+						{
+							title: 'Tren Harga',
+							href: '/reports/procurement/costs',
+							isActive: pathname === '/reports/procurement/costs',
+						},
+					],
+				},
+
+				{
+					title: 'Laporan Keuangan',
+					href: '/reports/finance',
+					icon: WalletIcon,
+					isActive: pathname.startsWith('/reports/finance'),
+					children: [
+						{
+							title: 'Arus Kas',
+							href: '/reports/finance/cash-flow',
+							isActive: pathname === '/reports/finance/cash-flow',
+						},
+						{
+							title: 'Pengeluaran',
+							href: '/reports/finance/expenses',
+							isActive: pathname === '/reports/finance/expenses',
+						},
+						{
+							title: 'Tagihan & Hutang',
+							href: '/reports/finance/bills',
+							isActive: pathname === '/reports/finance/bills',
+						},
+					],
+				},
+
+				{
+					title: 'Insight Bisnis',
+					href: '/reports/insights',
+					icon: SparklesIcon,
 					isComingSoon: true,
-				},
-			],
-		},
-		{
-			label: 'Pembelian & Supplier',
-			items: [
-				{
-					title: 'Pembelian (PO)',
-					href: '/procurement',
-					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/reports/insights'),
 					children: [
 						{
-							title: 'Pesanan Pembelian',
-							href: '/procurement/orders',
-							isActive: pathname.startsWith('/procurement/orders'),
+							title: 'Profitabilitas',
+							href: '/reports/insights/profitability',
+							isActive: pathname === '/reports/insights/profitability',
 						},
 						{
-							title: 'Penerimaan Barang',
-							href: '/procurement/receipts',
-							isActive: pathname.startsWith('/procurement/receipts'),
+							title: 'Performa Lokasi',
+							href: '/reports/insights/location',
+							isActive: pathname === '/reports/insights/location',
 						},
 						{
-							title: 'Daftar Supplier',
-							href: '/procurement/suppliers',
-							isActive: pathname.startsWith('/procurement/suppliers'),
+							title: 'Inventory Turnover',
+							href: '/reports/insights/turnover',
+							isActive: pathname === '/reports/insights/turnover',
 						},
 					],
 				},
 			],
 		},
 		{
-			label: 'Inventori',
+			label: 'Inventory & Produk',
 			items: [
 				{
-					title: 'Inventori',
-					href: '/inventory/summary',
-					icon: BoxIcon,
-					badge: counts.inventoryAlerts ?? undefined,
+					title: 'Inventory',
+					href: '/inventory',
+					icon: PackageIcon,
+					isActive: pathname.startsWith('/inventory'),
 					children: [
 						{
-							title: 'Dashboard Stok',
+							title: 'Ringkasan Stok',
 							href: '/inventory/summary',
 							isActive: pathname === '/inventory/summary',
 						},
 						{
-							title: 'Alokasi Gudang',
+							title: 'Alokasi Stok',
 							href: '/inventory/allocation',
-							isActive: pathname.startsWith('/inventory/allocation'),
+							isActive: pathname === '/inventory/allocation',
 						},
 						{
-							title: 'Mutasi Stok',
+							title: 'Transaksi',
 							href: '/inventory/transactions',
 							isActive: pathname.startsWith('/inventory/transactions'),
 						},
 					],
 				},
-			],
-		},
-		{
-			label: 'Produksi',
-			items: [
 				{
-					title: 'Produksi',
-					href: '/production',
-					icon: FactoryIcon,
-					children: [
-						{
-							title: 'Perintah Kerja (WO)',
-							href: '/production/work-orders',
-							isActive: pathname.startsWith('/production/work-orders'),
-						},
-						{
-							title: 'Resep & BOM',
-							href: '/production/recipes',
-							isActive: pathname.startsWith('/production/recipes'),
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'Keuangan',
-			items: [
-				{
-					title: 'Keuangan',
-					href: '/finance',
-					icon: BanknoteIcon,
-					children: [
-						{
-							title: 'Kas & Bank',
-							href: '/finance/accounts',
-							isActive: pathname.startsWith('/finance/accounts'),
-						},
-						{
-							title: 'Buku Besar & Jurnal',
-							href: '/finance/ledger',
-							isActive: pathname.startsWith('/finance/ledger'),
-						},
-						{
-							title: 'Hutang & Piutang',
-							href: '/finance/ledger-ar-ap',
-							isActive: pathname.startsWith('/finance/ledger-ar-ap'),
-						},
-						{
-							title: 'Pengeluaran (Biaya)',
-							href: '/finance/expenses',
-							isActive: pathname.startsWith('/finance/expenses'),
-						},
-						{
-							title: 'Laporan Laba Rugi',
-							href: '/finance/profit-loss',
-							isActive: pathname.startsWith('/finance/profit-loss'),
-						},
-						{
-							title: 'Arus Kas (Cash Flow)',
-							href: '/finance/cash-flow',
-							isActive: pathname.startsWith('/finance/cash-flow'),
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'SDM & Payroll',
-			items: [
-				{
-					title: 'Karyawan & Payroll',
-					href: '/hr',
-					icon: UsersIcon,
-					children: [
-						{
-							title: 'Daftar Staff',
-							href: '/hr/employees',
-							isActive: pathname.startsWith('/hr/employees'),
-						},
-						{
-							title: 'Absensi & Jadwal',
-							href: '/hr/attendance',
-							isActive: pathname.startsWith('/hr/attendance'),
-						},
-						{
-							title: 'Penggajian (Payroll)',
-							href: '/hr/payroll',
-							isActive: pathname.startsWith('/hr/payroll'),
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'Master Data',
-			items: [
-				{
-					title: 'Katalog Produk',
+					title: 'Produk',
 					href: '/product',
-					icon: PackageIcon,
-					isActive: pathname === '/product',
+					icon: UtensilsCrossedIcon,
+					isActive: pathname.startsWith('/product'),
+					children: [
+						{
+							title: 'Daftar Produk',
+							href: '/product',
+							isActive: pathname === '/product',
+						},
+						{
+							title: 'Kategori Produk',
+							href: '/product/category',
+							isActive: pathname === '/product/category',
+						},
+					],
+				},
+				{
+					title: 'Tipe Penjualan',
+					href: '/sales-type',
+					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/sales-type'),
 				},
 				{
 					title: 'Bahan Baku',
 					href: '/material',
-					icon: CirclePileIcon,
+					icon: BeakerIcon,
+					isActive: pathname.startsWith('/material'),
 					children: [
-						{ title: 'Daftar Bahan', href: '/material', isActive: pathname === '/material' },
 						{
-							title: 'Kategori',
-							href: '/material/category',
-							isActive: pathname.startsWith('/material/category'),
+							title: 'Daftar Bahan',
+							href: '/material',
+							isActive: pathname === '/material',
 						},
 						{
-							title: 'Satuan (UoM)',
+							title: 'Kategori Bahan',
+							href: '/material/category',
+							isActive: pathname === '/material/category',
+						},
+						{
+							title: 'Satuan (UOM)',
 							href: '/material/uom',
-							isActive: pathname.startsWith('/material/uom'),
+							isActive: pathname === '/material/uom',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Supply Chain',
+			items: [
+				{
+					title: 'Pengadaan',
+					href: '/procurement',
+					icon: TruckIcon,
+					isActive: pathname.startsWith('/procurement'),
+					children: [
+						{
+							title: 'Pesanan Pembelian',
+							href: '/procurement/orders',
+							isActive: pathname === '/procurement/orders',
+						},
+						{
+							title: 'Penerimaan Barang',
+							href: '/procurement/receipts',
+							isActive: pathname === '/procurement/receipts',
+						},
+						{
+							title: 'Supplier',
+							href: '/procurement/suppliers',
+							isActive: pathname === '/procurement/suppliers',
 						},
 					],
 				},
 				{
-					title: 'Lokasi & Outlet',
-					href: '/location',
-					icon: WarehouseIcon,
-					isActive: pathname.startsWith('/location'),
+					title: 'Produksi',
+					href: '/production',
+					icon: CogIcon,
+					isActive: pathname.startsWith('/production'),
+					children: [
+						{
+							title: 'Resep (BOM)',
+							href: '/production/recipes',
+							isActive: pathname === '/production/recipes',
+						},
+						{
+							title: 'Work Order',
+							href: '/production/work-orders',
+							isActive: pathname === '/production/work-orders',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Sales & Finance',
+			items: [
+				{
+					title: 'Penjualan',
+					href: '/sales',
+					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/sales'),
+					children: [
+						{
+							title: 'POS',
+							href: '/sales/pos',
+							isActive: pathname === '/sales/pos',
+						},
+						{
+							title: 'Pesanan',
+							href: '/sales/orders',
+							isActive: pathname === '/sales/orders',
+						},
+						{
+							title: 'Invoice',
+							href: '/sales/invoices',
+							isActive: pathname === '/sales/invoices',
+						},
+						{
+							title: 'Pelanggan',
+							href: '/sales/customers',
+							isActive: pathname === '/sales/customers',
+						},
+					],
+				},
+				{
+					title: 'Keuangan',
+					href: '/finance',
+					icon: BanknoteIcon,
+					isActive: pathname.startsWith('/finance'),
+					children: [
+						{
+							title: 'Akun',
+							href: '/finance/accounts',
+							isActive: pathname === '/finance/accounts',
+						},
+						{
+							title: 'Pembayaran',
+							href: '/finance/payments',
+							isActive: pathname === '/finance/payments',
+						},
+						{
+							title: 'Arus Kas',
+							href: '/finance/cash-flow',
+							isActive: pathname === '/finance/cash-flow',
+						},
+						{
+							title: 'Pengeluaran',
+							href: '/finance/expenses',
+							isActive: pathname === '/finance/expenses',
+						},
+						{
+							title: 'Buku Besar',
+							href: '/finance/ledger',
+							isActive: pathname === '/finance/ledger',
+						},
+						{
+							title: 'Piutang & Hutang',
+							href: '/finance/ledger-ar-ap',
+							isActive: pathname === '/finance/ledger-ar-ap',
+						},
+						{
+							title: 'Laba Rugi',
+							href: '/finance/profit-loss',
+							isActive: pathname === '/finance/profit-loss',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'HR',
+			items: [
+				{
+					title: 'Karyawan',
+					href: '/hr/employees',
+					icon: UserRoundIcon,
+					isActive: pathname.startsWith('/hr'),
+					children: [
+						{
+							title: 'Daftar Karyawan',
+							href: '/hr/employees',
+							isActive: pathname === '/hr/employees',
+						},
+						{
+							title: 'Absensi',
+							href: '/hr/attendance',
+							isActive: pathname === '/hr/attendance',
+						},
+						{
+							title: 'Payroll',
+							href: '/hr/payroll',
+							isActive: pathname === '/hr/payroll',
+						},
+					],
 				},
 			],
 		},
@@ -305,20 +439,21 @@ export function getAppMenu(pathname: string, counts: AppMenuCounts = {}): Array<
 					title: 'Pengaturan',
 					href: '/settings',
 					icon: Settings2Icon,
-					children: [
-						{
-							title: 'Manajemen User & Role',
-							href: '/settings/users',
-							isActive: pathname.startsWith('/settings/users'),
-						},
-						{
-							title: 'Audit Trail',
-							href: '/settings/audit-trail',
-							isActive: pathname.startsWith('/settings/audit-trail'),
-						},
-					],
+					isActive:
+						pathname.startsWith('/settings') && !pathname.startsWith('/settings/audit-trail'),
 				},
-				{ title: 'Bantuan', href: '/docs', icon: BookOpenIcon },
+				{
+					title: 'Audit Trail',
+					href: '/settings/audit-trail',
+					icon: LogsIcon,
+					isActive: pathname.startsWith('/settings/audit-trail'),
+				},
+				{
+					title: 'Bantuan',
+					href: '/docs',
+					icon: BookOpenIcon,
+					isActive: pathname.startsWith('/docs'),
+				},
 			],
 		},
 	]

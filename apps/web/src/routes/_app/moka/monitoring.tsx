@@ -1,14 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import {
-	ActivityIcon,
-	CheckCircle2Icon,
-	ClockIcon,
-	DatabaseIcon,
-	RefreshCwIcon,
-	ServerIcon,
-} from 'lucide-react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { ActivityIcon, CheckCircle2Icon, ClockIcon, DatabaseIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
@@ -16,95 +9,46 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 import { CardStat } from '@/components/blocks/card/card-stat'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
-import {
-	ChartCard,
-	ChartFooterContent,
-	ChartGrid,
-} from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 import {
 	createColumnHelper,
 	dateColumn,
 	statusColumn,
-	textColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
-import { Button } from '@/components/ui/button'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { mokaApi } from '@/features/moka/api/moka.api'
+import type { MokaScrapHistoryDto } from '@/features/moka/dto/moka-scrap-history.dto'
 
 export const Route = createFileRoute('/_app/moka/monitoring')({ component: MokaMonitoringPage })
 
-// Mock Data
-const syncActivityData = [
-	{ time: '00:00', count: 120 },
-	{ time: '04:00', count: 80 },
-	{ time: '08:00', count: 450 },
-	{ time: '12:00', count: 980 },
-	{ time: '16:00', count: 560 },
-	{ time: '20:00', count: 320 },
-	{ time: '23:59', count: 180 },
-]
-
-const activityConfig = { count: { label: 'Data Tersinkron', color: 'hsl(var(--primary))' } }
-
-const mockLogs = [
-	{
-		id: 'LOG-10293',
-		entity: 'Transactions',
-		type: 'Incremental Sync',
-		status: 'success',
-		records: 145,
-		timestamp: new Date().toISOString(),
-	},
-	{
-		id: 'LOG-10292',
-		entity: 'Inventory',
-		type: 'Full Sync',
-		status: 'success',
-		records: 2040,
-		timestamp: new Date(Date.now() - 3600000).toISOString(),
-	},
-	{
-		id: 'LOG-10291',
-		entity: 'Products',
-		type: 'Incremental Sync',
-		status: 'failed',
-		records: 0,
-		timestamp: new Date(Date.now() - 7200000).toISOString(),
-		error: 'API rate limit exceeded',
-	},
-	{
-		id: 'LOG-10290',
-		entity: 'Categories',
-		type: 'Incremental Sync',
-		status: 'success',
-		records: 12,
-		timestamp: new Date(Date.now() - 10800000).toISOString(),
-	},
-]
-
-type LogType = (typeof mockLogs)[0]
-const ch = createColumnHelper<LogType>()
+const ch = createColumnHelper<MokaScrapHistoryDto>()
 
 const columns = [
-	ch.accessor('timestamp', dateColumn({ header: 'Waktu', size: 160 })),
+	ch.accessor('startedAt', dateColumn({ header: 'Waktu', size: 160 })),
 	ch.accessor(
-		'entity',
+		'type',
 		statusColumn({
-			header: 'Entitas Data',
+			header: 'Tipe Sync',
 			render: (value) => (
 				<div className="flex items-center gap-2">
 					<DatabaseIcon className="h-3 w-3 text-muted-foreground" />
-					<span className="font-medium">{value}</span>
+					<span className="font-medium capitalize">{value}</span>
 				</div>
 			),
-			size: 180,
+			size: 140,
 		}),
 	),
-	ch.accessor('type', textColumn({ header: 'Jenis Proses', size: 160 })),
 	ch.accessor(
-		'records',
+		'triggerMode',
+		statusColumn({
+			header: 'Trigger',
+			render: (value) => <span className="capitalize">{value}</span>,
+			size: 120,
+		}),
+	),
+	ch.accessor(
+		'recordsCount',
 		statusColumn({
 			header: 'Jumlah Record',
 			render: (value) => (
@@ -118,13 +62,18 @@ const columns = [
 		statusColumn({
 			header: 'Status',
 			render: (value, row) => {
-				if (value === 'success') {
+				if (value === 'completed') {
 					return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
+				}
+				if (value === 'processing' || value === 'pending') {
+					return <BadgeDot variant="default">Sedang Proses</BadgeDot>
 				}
 				return (
 					<div className="flex items-center gap-2">
 						<BadgeDot variant="destructive-outline">Gagal</BadgeDot>
-						<span className="text-[10px] text-destructive truncate max-w-25">{row.error}</span>
+						<span className="text-[10px] text-destructive truncate max-w-25">
+							{row.errorMessage ?? 'Unknown error'}
+						</span>
 					</div>
 				)
 			},
@@ -134,77 +83,62 @@ const columns = [
 ]
 
 function MokaMonitoringPage() {
+	const { data: history, isLoading } = useQuery({
+		queryKey: ['moka-scrap-history'],
+		queryFn: () => mokaApi.scrapHistory.fetch({ params: {} }),
+	})
+
+	const logs = history?.data ?? []
+
 	const ds = useDataTableState()
 	const table = useDataTable({
 		columns,
-		data: mockLogs,
+		data: logs,
 		pageCount: 1,
-		rowCount: mockLogs.length,
+		rowCount: logs.length,
 		ds,
 	})
 
+	const completedCount = logs.filter((l: MokaScrapHistoryDto) => l.status === 'completed').length
+	const lastSync = logs[0]?.finishedAt ?? null
+	const totalRecords = logs.reduce((sum: number, l: MokaScrapHistoryDto) => sum + l.recordsCount, 0)
+
 	return (
-		<Page>
+		<Page size="xl">
 			<Page.BlockHeader
 				title="Monitoring Moka"
 				description="Pantau status integrasi, sinkronisasi data pipeline, dan log transaksi real-time dari Moka POS."
-				action={
-					<Button size="sm">
-						<RefreshCwIcon className="mr-2 h-4 w-4" /> Sinkronkan Sekarang
-					</Button>
-				}
 			/>
 
 			<Page.Content className="mt-2">
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
-					<CardStat title="Pipeline Status" value="Running" icon={ServerIcon} />
-					<CardStat title="Total Data (Hari Ini)" value="2,345 Records" icon={ActivityIcon} />
-					<CardStat title="Sync Berhasil" value="98.5%" icon={CheckCircle2Icon} />
-					<CardStat title="Sync Terakhir" value="2 Menit Lalu" icon={ClockIcon} />
-				</div>
-
-				<ChartGrid className="grid-cols-1 lg:grid-cols-3 mb-4">
-					<ChartCard
-						className="lg:col-span-3"
-						title="Aktivitas Sinkronisasi"
-						description="Volume data yang ditarik dari Moka per jam"
-						footer={
-							<ChartFooterContent
-								trend="up"
-								trendValue="Puncak sinkronisasi pada pukul 12:00"
-								description="Real-time monitoring 24 jam terakhir"
-							/>
+					<CardStat title="Total Sync" value={`${logs.length} Kali`} icon={ActivityIcon} />
+					<CardStat
+						title="Total Data"
+						value={`${totalRecords.toLocaleString()} Records`}
+						icon={DatabaseIcon}
+					/>
+					<CardStat
+						title="Sync Berhasil"
+						value={`${logs.length > 0 ? ((completedCount / logs.length) * 100).toFixed(1) : 0}%`}
+						icon={CheckCircle2Icon}
+					/>
+					<CardStat
+						title="Sync Terakhir"
+						value={
+							lastSync
+								? `${Math.floor((Date.now() - new Date(lastSync).getTime()) / 60000)} Menit Lalu`
+								: '-'
 						}
-					>
-						<ChartContainer config={activityConfig} className="h-62.5 w-full">
-							<AreaChart data={syncActivityData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
-								<defs>
-									<linearGradient id="fillActivity" x1="0" y1="0" x2="0" y2="1">
-										<stop offset="5%" stopColor="var(--color-count)" stopOpacity={0.8} />
-										<stop offset="95%" stopColor="var(--color-count)" stopOpacity={0.1} />
-									</linearGradient>
-								</defs>
-								<CartesianGrid vertical={false} />
-								<XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} />
-								<YAxis tickLine={false} axisLine={false} tickMargin={8} />
-								<ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-								<Area
-									dataKey="count"
-									type="natural"
-									fill="url(#fillActivity)"
-									fillOpacity={0.4}
-									stroke="var(--color-count)"
-								/>
-							</AreaChart>
-						</ChartContainer>
-					</ChartCard>
-				</ChartGrid>
+						icon={ClockIcon}
+					/>
+				</div>
 
 				<DataTableCard
 					title="Sync Logs"
 					table={table}
-					isLoading={false}
-					recordCount={mockLogs.length}
+					isLoading={isLoading}
+					recordCount={logs.length}
 					toolbar={
 						<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari log...' }]} />
 					}

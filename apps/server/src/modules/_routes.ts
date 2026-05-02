@@ -1,5 +1,8 @@
 import type { Modules } from './_registry'
+import { initAuditRouteModule } from './audit'
 import { initAuthRouteModule } from './auth'
+import { initCompanyRouteModule } from './company'
+import { initCrmRouteModule } from './crm'
 import { initDashboardRouteModule } from './dashboard'
 import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
@@ -9,10 +12,12 @@ import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
 import { initMaterialRouteModule } from './material'
 import { initMokaRouteModule } from './moka'
+import { initPaymentRouteModule } from './payment'
 import { initProductRouteModule } from './product'
 import { initProductionRouteModule } from './production'
 import { initPurchasingRouteModule } from './purchasing'
 import { initRecipeRouteModule } from './recipe'
+import { initReportingRouteModule } from './reporting'
 import { initSalesRouteModule } from './sales'
 import { initSupplierRouteModule } from './supplier'
 import { initToolRouteModule } from './tool'
@@ -34,9 +39,14 @@ export function initRoutes(m: Modules) {
 		initEmployeeRouteModule(m.employee),
 		initSupplierRouteModule(m.supplier),
 		initFinanceRouteModule(m.finance),
+		initCrmRouteModule(m.crm),
+		initCompanyRouteModule(m.company),
+		initAuditRouteModule(m.audit),
 		initPurchasingRouteModule(m.purchasing),
 		initProductionRouteModule(m.production),
 		initHRRouteModule(m.hr),
+		initPaymentRouteModule(m.payment),
+		initReportingRouteModule(m.reporting),
 	]
 
 	return {
