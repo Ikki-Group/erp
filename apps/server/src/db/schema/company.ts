@@ -1,4 +1,4 @@
-import { pgTable, text, integer, numeric, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, numeric, jsonb } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
