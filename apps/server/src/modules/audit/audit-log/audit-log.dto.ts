@@ -2,8 +2,6 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/core/validation'
 
-import { auditActionEnum } from '@/db/schema'
-
 /** Audit action types */
 const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const
 export const AuditActionDto = z.enum(auditActionValues)
