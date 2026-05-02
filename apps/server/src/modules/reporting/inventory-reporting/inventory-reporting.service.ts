@@ -25,24 +25,16 @@ export class InventoryReportingService {
 					productName: productsTable.name,
 					sku: productsTable.sku,
 					currentStock: sql<number>`COALESCE(SUM(${inventoryBatchesTable.quantity}), 0)`,
-					reorderLevel: productsTable.reorderLevel,
-					unit: productsTable.unit,
 				})
 				.from(inventoryBatchesTable)
 				.innerJoin(productsTable, eq(inventoryBatchesTable.productId, productsTable.id))
 				.where(where)
-				.groupBy(
-					productsTable.id,
-					productsTable.name,
-					productsTable.sku,
-					productsTable.reorderLevel,
-					productsTable.unit,
-				)
+				.groupBy(productsTable.id, productsTable.name, productsTable.sku)
 				.orderBy(sql`currentStock ASC`)
 
 			const totalStock = data.reduce((sum, d) => sum + d.currentStock, 0)
 			const avgStock = data.length > 0 ? totalStock / data.length : 0
-			const lowStockCount = data.filter((d) => d.currentStock <= d.reorderLevel).length
+			const lowStockCount = data.filter((d) => d.currentStock <= 0).length
 
 			return {
 				data: data.map((d) => ({
