@@ -73,6 +73,7 @@ export {
 	customerTierEnum,
 	loyaltyTransactionTypeEnum,
 } from './customer'
+export { companySettingsTable } from './company'
 export { employeesTable } from './employee'
 export { taxesTable } from './tax'
 export { paymentsTable, paymentInvoicesTable } from './finance_payment'

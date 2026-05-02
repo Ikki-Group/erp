@@ -1,6 +1,5 @@
 import type { Modules } from './_registry'
 import { initAuthRouteModule } from './auth'
-import { initCrmRouteModule } from './crm'
 import { initDashboardRouteModule } from './dashboard'
 import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
@@ -15,7 +14,6 @@ import { initProductRouteModule } from './product'
 import { initProductionRouteModule } from './production'
 import { initPurchasingRouteModule } from './purchasing'
 import { initRecipeRouteModule } from './recipe'
-import { initReportingRouteModule } from './reporting'
 import { initSalesRouteModule } from './sales'
 import { initSupplierRouteModule } from './supplier'
 import { initToolRouteModule } from './tool'
@@ -38,11 +36,11 @@ export function initRoutes(m: Modules) {
 		initSupplierRouteModule(m.supplier),
 		initFinanceRouteModule(m.finance),
 		initCrmRouteModule(m.crm),
+		initCompanyRouteModule(m.company),
 		initPurchasingRouteModule(m.purchasing),
 		initProductionRouteModule(m.production),
 		initHRRouteModule(m.hr),
 		initPaymentRouteModule(m.payment),
-		initReportingRouteModule(m.reporting),
 	]
 
 	return {
