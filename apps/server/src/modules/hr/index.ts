@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 
@@ -29,18 +30,20 @@ export class HRServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: HRServiceModuleDeps,
 	) {
-		const hrRepo = new HRRepo(this.db, this.cacheClient)
-		const payrollRepo = new PayrollRepo(this.db, this.cacheClient)
-		const leaveRequestRepo = new LeaveRequestRepo(this.db, this.cacheClient)
+		const hrRepo = new HRRepo(this.db)
+		this.hr = new HRService(hrRepo, this.cacheClient)
 
-		this.hr = new HRService(hrRepo)
+		const payrollRepo = new PayrollRepo(this.db)
 		this.payroll = new PayrollService(
 			this.deps.finance.account,
 			this.deps.finance.journal,
 			payrollRepo,
 			this.db,
+			this.cacheClient,
 		)
-		this.leaveRequest = new LeaveRequestService(leaveRequestRepo)
+
+		const leaveRequestRepo = new LeaveRequestRepo(this.db)
+		this.leaveRequest = new LeaveRequestService(leaveRequestRepo, this.cacheClient)
 	}
 }
 

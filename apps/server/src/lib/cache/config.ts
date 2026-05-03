@@ -33,3 +33,6 @@ export type ConfigNamespace =
 	| 'moka.scrap-history'
 	| 'moka.sync-cursor'
 	| 'production.work-order'
+	| 'hr'
+	| 'hr.payroll'
+	| 'hr.leave-request'

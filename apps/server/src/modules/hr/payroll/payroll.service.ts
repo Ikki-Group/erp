@@ -4,6 +4,8 @@ import { record } from '@elysiajs/opentelemetry'
 import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { AccountService, GeneralLedgerService } from '@/modules/finance'
 
 import type {
@@ -15,12 +17,17 @@ import type {
 import { PayrollRepo } from './payroll.repo'
 
 export class PayrollService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly accountSvc: AccountService,
 		private readonly journalSvc: GeneralLedgerService,
 		private readonly repo: PayrollRepo,
 		private readonly db: DbClient,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'hr.payroll', client: cacheClient })
+	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
@@ -33,7 +40,9 @@ export class PayrollService {
 				)
 			}
 
-			return this.repo.createBatch(data, actorId)
+			const result = await this.repo.createBatch(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -42,7 +51,9 @@ export class PayrollService {
 		actorId: number,
 	): Promise<PayrollAdjustmentDto> {
 		return record('PayrollService.handleAddAdjustment', async () => {
-			return this.repo.addAdjustment(data, actorId)
+			const result = await this.repo.addAdjustment(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -60,6 +71,7 @@ export class PayrollService {
 
 				await this.postPayrollToGL(finalizedBatch, actorId)
 
+				await this.cache.deleteMany({ keys: ['list', 'count', `byId:${batchId}`] })
 				return finalizedBatch
 			})
 		})

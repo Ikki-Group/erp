@@ -4,6 +4,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { PaginationQuery, WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type {
 	AttendanceDto,
 	AttendanceFilterDto,
@@ -16,19 +18,32 @@ import type {
 import { HRRepo } from './hr.repo'
 
 export class HRService {
-	constructor(private readonly repo: HRRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: HRRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'hr', client: cacheClient })
+	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleShiftList(pq: PaginationQuery): Promise<WithPaginationResult<ShiftDto>> {
 		return record('HRService.handleShiftList', async () => {
-			return this.repo.getShiftListPaginated(pq.page, pq.limit)
+			const key = `shifts.${pq.page}.${pq.limit}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getShiftListPaginated(pq.page, pq.limit),
+			})
 		})
 	}
 
 	async handleShiftCreate(data: ShiftCreateDto, actorId: number): Promise<ShiftDto> {
 		return record('HRService.handleShiftCreate', async () => {
-			return this.repo.createShift(data, actorId)
+			const result = await this.repo.createShift(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -36,7 +51,11 @@ export class HRService {
 		filter: AttendanceFilterDto,
 	): Promise<WithPaginationResult<AttendanceSelectDto>> {
 		return record('HRService.handleAttendanceList', async () => {
-			return this.repo.getAttendanceListPaginated(filter)
+			const key = `attendance.list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getAttendanceListPaginated(filter),
+			})
 		})
 	}
 
@@ -49,7 +68,9 @@ export class HRService {
 					'ALREADY_CLOCKED_IN',
 				)
 
-			return this.repo.clockIn(data, actorId)
+			const result = await this.repo.clockIn(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -67,7 +88,13 @@ export class HRService {
 					'ALREADY_CLOCKED_OUT',
 				)
 
-			return this.repo.clockOut(data.id, data.note ?? (attendance.note as string), actorId) // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion
+			const result = await this.repo.clockOut(
+				data.id,
+				data.note ?? (attendance.note as string),
+				actorId,
+			) // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+			return result
 		})
 	}
 }
