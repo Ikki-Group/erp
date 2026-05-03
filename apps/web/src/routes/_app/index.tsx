@@ -1,7 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { AlertCircleIcon, DollarSignIcon, PackageIcon, TrendingUpIcon } from 'lucide-react'
+import {
+	AlertCircleIcon,
+	DollarSignIcon,
+	PackageIcon,
+	ShoppingBagIcon,
+	TrendingUpIcon,
+} from 'lucide-react'
 import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
@@ -65,6 +71,14 @@ function Dashboard() {
 			/>
 
 			<Page.Content className="mt-2 space-y-8">
+				{/* Quick Actions */}
+				<div className="flex items-center gap-4">
+					<Button onClick={() => window.open('/pos', '_blank')} className="flex items-center gap-2">
+						<ShoppingBagIcon className="size-4" />
+						Open POS
+					</Button>
+				</div>
+
 				{/* KPI Cards */}
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<CardStat
