@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { PencilIcon } from 'lucide-react'
 
@@ -8,12 +9,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import {
-	actionColumn,
-	createColumnHelper,
-	dateColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -39,34 +35,47 @@ function RouteComponent() {
 	)
 }
 
-const ch = createColumnHelper<ProductCategoryDto>()
-
-const columns = [
-	ch.accessor('name', textColumn({ header: 'Kategori', size: 250 })),
-	ch.accessor('description', textColumn({ header: 'Deskripsi', size: 400 })),
-	ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 180 })),
-	ch.display(
-		// @ts-expect-error
-		actionColumn<ProductCategoryDto>({
-			id: 'action',
-			cell: ({ row }) => {
-				return (
-					<div className="flex items-center justify-end px-2">
-						<Button
-							variant="ghost"
-							size="icon-sm"
-							className="size-8 text-muted-foreground hover:text-foreground"
-							onClick={() => {
-								void ProductCategoryFormDialog.upsert({ id: row.original.id })
-							}}
-						>
-							<PencilIcon className="size-4" />
-						</Button>
-					</div>
-				)
-			},
-		}),
-	),
+const columns: ColumnDef<ProductCategoryDto>[] = [
+	{
+		accessorKey: 'name',
+		header: 'Kategori',
+		size: 250,
+	},
+	{
+		accessorKey: 'description',
+		header: 'Deskripsi',
+		size: 400,
+	},
+	{
+		accessorKey: 'createdAt',
+		header: 'Dibuat Pada',
+		size: 180,
+		cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+	},
+	{
+		id: 'action',
+		header: '',
+		size: 60,
+		enableSorting: false,
+		enableHiding: false,
+		enableResizing: false,
+		cell: ({ row }) => {
+			return (
+				<div className="flex items-center justify-end px-2">
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						className="size-8 text-muted-foreground hover:text-foreground"
+						onClick={() => {
+							void ProductCategoryFormDialog.upsert({ id: row.original.id })
+						}}
+					>
+						<PencilIcon className="size-4" />
+					</Button>
+				</div>
+			)
+		},
+	},
 ]
 
 function CategoryTable() {
@@ -76,7 +85,7 @@ function CategoryTable() {
 	)
 
 	const table = useDataTable({
-		columns: columns,
+		columns,
 		data: data?.data ?? [],
 		pageCount: data?.meta.totalPages ?? 0,
 		rowCount: data?.meta.total ?? 0,
