@@ -9,6 +9,7 @@ import { TableNumberInput } from '@/components/blocks/pos/table-number-input'
 
 import type { LocationDto } from '@/features/location'
 import { usePosCart } from '@/features/pos/hooks/use-pos-cart'
+import type { PaymentItem } from '@/features/pos/types/payment'
 import type { SalesTypeDto } from '@/features/sales-type'
 
 export function PosScreen() {
@@ -38,6 +39,16 @@ export function PosScreen() {
 			quantity: 1,
 			price: product.basePrice || 0,
 		})
+	}
+
+	const handlePaymentComplete = (payments: PaymentItem[]) => {
+		// TODO: Save payment to backend
+		console.log('Payment completed:', payments)
+	}
+
+	const handleOpenBill = () => {
+		// TODO: Save open bill to backend
+		console.log('Open bill:', cart)
 	}
 
 	return (
@@ -76,6 +87,8 @@ export function PosScreen() {
 								onUpdateQuantity={updateQuantity}
 								onRemoveItem={removeItem}
 								onClearCart={clearCart}
+								onPaymentComplete={handlePaymentComplete}
+								onOpenBill={handleOpenBill}
 							/>
 						</div>
 					</div>
