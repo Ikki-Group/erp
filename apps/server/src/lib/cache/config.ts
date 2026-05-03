@@ -1,3 +1,12 @@
 export type ConfigNamespace =
 	//
-	'location' | 'iam.user' | 'iam.role' | 'iam.session' | 'product-category' | 'product'
+	| 'location'
+	| 'iam.user'
+	| 'iam.role'
+	| 'iam.session'
+	| 'product-category'
+	| 'product'
+	| 'material-category'
+	| 'material.uom'
+	| 'material'
+	| 'material-location'

@@ -5,6 +5,8 @@ import type { DbTx } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { LocationMasterService } from '@/modules/location'
 
 import { MaterialService } from '../material-master/material.service'
@@ -38,11 +40,16 @@ const err = {
 }
 
 export class MaterialLocationService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly materialSvc: MaterialService,
 		private readonly locationMaster: LocationMasterService,
-		private readonly repo: MaterialLocationRepo = new MaterialLocationRepo(),
-	) {}
+		private readonly repo: MaterialLocationRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'material-location', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
@@ -94,6 +101,17 @@ export class MaterialLocationService {
 
 			// 3. Batch assign via repo
 			const assignedCount = await this.repo.batchAssign(materialIds, locationIds, actorId)
+
+			// Invalidate cache for all affected materials and locations
+			const keys: string[] = []
+			for (const materialId of materialIds) {
+				keys.push(`by-material:${materialId}`, `locations-by-material:${materialId}`)
+			}
+			for (const locationId of locationIds) {
+				keys.push(`by-location:${locationId}`)
+			}
+			await this.cache.deleteMany({ keys })
+
 			return { assignedCount }
 		})
 	}
@@ -107,6 +125,16 @@ export class MaterialLocationService {
 			const resultId = await this.repo.unassign(materialId, locationId)
 
 			if (!resultId) throw err.notAssigned(materialId, locationId)
+
+			await this.cache.deleteMany({
+				keys: [
+					`by-material:${materialId}`,
+					`locations-by-material:${materialId}`,
+					`by-location:${locationId}`,
+					`one:${materialId}:${locationId}`,
+				],
+			})
+
 			return { id: resultId }
 		})
 	}
@@ -147,6 +175,9 @@ export class MaterialLocationService {
 			const resultId = await this.repo.updateConfig(id, update as any, actorId)
 
 			if (!resultId) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['by-material:*', 'by-location:*', 'one:*:*'] })
+
 			return { id: resultId }
 		})
 	}
@@ -165,6 +196,15 @@ export class MaterialLocationService {
 	): Promise<void> {
 		return record('MaterialLocationService.updateCurrentStock', async () => {
 			await this.repo.updateCurrentStock(materialId, locationId, stock, actorId, tx)
+
+			await this.cache.deleteMany({
+				keys: [
+					`by-material:${materialId}`,
+					`locations-by-material:${materialId}`,
+					`by-location:${locationId}`,
+					`one:${materialId}:${locationId}`,
+				],
+			})
 		})
 	}
 }

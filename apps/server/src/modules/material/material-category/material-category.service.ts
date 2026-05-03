@@ -6,6 +6,8 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { materialCategoriesTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type {
 	MaterialCategoryCreateDto,
 	MaterialCategoryDto,
@@ -35,25 +37,41 @@ const uniqueFields: ConflictField<'name'>[] = [
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class MaterialCategoryService {
-	constructor(private repo = new MaterialCategoryRepo()) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: MaterialCategoryRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'material-category', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async find(): Promise<MaterialCategoryDto[]> {
 		return record('MaterialCategoryService.find', async () => {
-			return this.repo.getList()
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 		})
 	}
 
 	async getById(id: number): Promise<MaterialCategoryDto | undefined> {
 		return record('MaterialCategoryService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('MaterialCategoryService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -87,6 +105,9 @@ export class MaterialCategoryService {
 			})
 
 			const result = await this.repo.create({ ...data, name, createdBy: actorId })
+
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return result
 		})
 	}
@@ -111,6 +132,9 @@ export class MaterialCategoryService {
 			})
 
 			const result = await this.repo.update(id, { ...data, name, updatedBy: actorId })
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return result
 		})
 	}
@@ -123,6 +147,8 @@ export class MaterialCategoryService {
 			const result = await this.repo.remove(id, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return result
 		})
 	}
@@ -134,6 +160,8 @@ export class MaterialCategoryService {
 
 			const result = await this.repo.hardRemove(id)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return result
 		})

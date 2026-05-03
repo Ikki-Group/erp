@@ -2,16 +2,15 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
-import { bento, cacheEventBus } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
 	stampCreate,
 	stampUpdate,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { db } from '@/db'
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import type {
@@ -21,142 +20,109 @@ import type {
 	MaterialLocationWithLocationDto,
 } from './material-location.dto'
 
-const cache = bento.namespace('material-location')
-
 export class MaterialLocationRepo {
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(materialId?: number, locationId?: number) {
-		const keys: string[] = []
-		if (materialId) keys.push(`by-material.${materialId}`, `locations-by-material.${materialId}`)
-		if (locationId) keys.push(`by-location.${locationId}`)
-		if (materialId && locationId) keys.push(`one.${materialId}.${locationId}`)
-
-		await cache.deleteMany({ keys })
-		// Emit event for cross-domain cache invalidation (inventory dashboard/alert)
-		cacheEventBus.emit('material-location.stock-updated', { materialId, locationId })
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getOne(materialId: number, locationId: number): Promise<MaterialLocationDto | null> {
 		return record('MaterialLocationRepo.getOne', async () => {
-			return cache.getOrSet({
-				key: `one.${materialId}.${locationId}`,
-				factory: async () => {
-					const [result] = await db
-						.select()
-						.from(materialLocationsTable)
-						.where(
-							and(
-								eq(materialLocationsTable.materialId, materialId),
-								eq(materialLocationsTable.locationId, locationId),
-								isNull(materialLocationsTable.deletedAt),
-							),
-						)
+			const [result] = await this.db
+				.select()
+				.from(materialLocationsTable)
+				.where(
+					and(
+						eq(materialLocationsTable.materialId, materialId),
+						eq(materialLocationsTable.locationId, locationId),
+						isNull(materialLocationsTable.deletedAt),
+					),
+				)
 
-					if (!result) return null
-					return {
-						...result,
-						minStock: result.minStock,
-						maxStock: result.maxStock ?? null,
-						reorderPoint: result.reorderPoint,
-						currentQty: result.currentQty,
-						currentAvgCost: result.currentAvgCost,
-						currentValue: result.currentValue,
-					}
-				},
-			})
+			if (!result) return null
+			return {
+				...result,
+				minStock: result.minStock,
+				maxStock: result.maxStock ?? null,
+				reorderPoint: result.reorderPoint,
+				currentQty: result.currentQty,
+				currentAvgCost: result.currentAvgCost,
+				currentValue: result.currentValue,
+			}
 		})
 	}
 
 	async getByMaterialId(materialId: number): Promise<MaterialLocationDto[]> {
 		return record('MaterialLocationRepo.getByMaterialId', async () => {
-			return cache.getOrSet({
-				key: `by-material.${materialId}`,
-				factory: async () => {
-					const results = await db
-						.select()
-						.from(materialLocationsTable)
-						.where(
-							and(
-								eq(materialLocationsTable.materialId, materialId),
-								isNull(materialLocationsTable.deletedAt),
-							),
-						)
-					return results.map((r) =>
-						Object.assign({}, r, {
-							minStock: r.minStock,
-							maxStock: r.maxStock ?? null,
-							reorderPoint: r.reorderPoint,
-							currentQty: r.currentQty,
-							currentAvgCost: r.currentAvgCost,
-							currentValue: r.currentValue,
-						}),
-					)
-				},
-			})
+			const results = await this.db
+				.select()
+				.from(materialLocationsTable)
+				.where(
+					and(
+						eq(materialLocationsTable.materialId, materialId),
+						isNull(materialLocationsTable.deletedAt),
+					),
+				)
+			return results.map((r) =>
+				Object.assign({}, r, {
+					minStock: r.minStock,
+					maxStock: r.maxStock ?? null,
+					reorderPoint: r.reorderPoint,
+					currentQty: r.currentQty,
+					currentAvgCost: r.currentAvgCost,
+					currentValue: r.currentValue,
+				}),
+			)
 		})
 	}
 
 	async getByLocationId(locationId: number): Promise<MaterialLocationDto[]> {
 		return record('MaterialLocationRepo.getByLocationId', async () => {
-			return cache.getOrSet({
-				key: `by-location.${locationId}`,
-				factory: async () => {
-					const results = await db
-						.select()
-						.from(materialLocationsTable)
-						.where(
-							and(
-								eq(materialLocationsTable.locationId, locationId),
-								isNull(materialLocationsTable.deletedAt),
-							),
-						)
-					return results.map((r) =>
-						Object.assign({}, r, {
-							minStock: r.minStock,
-							maxStock: r.maxStock ?? null,
-							reorderPoint: r.reorderPoint,
-							currentQty: r.currentQty,
-							currentAvgCost: r.currentAvgCost,
-							currentValue: r.currentValue,
-						}),
-					)
-				},
-			})
+			const results = await this.db
+				.select()
+				.from(materialLocationsTable)
+				.where(
+					and(
+						eq(materialLocationsTable.locationId, locationId),
+						isNull(materialLocationsTable.deletedAt),
+					),
+				)
+			return results.map((r) =>
+				Object.assign({}, r, {
+					minStock: r.minStock,
+					maxStock: r.maxStock ?? null,
+					reorderPoint: r.reorderPoint,
+					currentQty: r.currentQty,
+					currentAvgCost: r.currentAvgCost,
+					currentValue: r.currentValue,
+				}),
+			)
 		})
 	}
 
 	async getLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocationDto[]> {
 		return record('MaterialLocationRepo.getLocationsByMaterial', async () => {
-			return cache.getOrSet({
-				key: `locations-by-material.${materialId}`,
-				factory: async () => {
-					const assignments = await db
-						.select({ assignment: materialLocationsTable, location: locationsTable })
-						.from(materialLocationsTable)
-						.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
-						.where(
-							and(
-								eq(materialLocationsTable.materialId, materialId),
-								isNull(materialLocationsTable.deletedAt),
-							),
-						)
+			const assignments = await this.db
+				.select({ assignment: materialLocationsTable, location: locationsTable })
+				.from(materialLocationsTable)
+				.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
+				.where(
+					and(
+						eq(materialLocationsTable.materialId, materialId),
+						isNull(materialLocationsTable.deletedAt),
+					),
+				)
 
-					return assignments.map((row) =>
-						Object.assign({}, row.assignment, {
-							minStock: row.assignment.minStock,
-							maxStock: row.assignment.maxStock ?? null,
-							reorderPoint: row.assignment.reorderPoint,
-							currentQty: row.assignment.currentQty,
-							currentAvgCost: row.assignment.currentAvgCost,
-							currentValue: row.assignment.currentValue,
-							location: row.location,
-						}),
-					)
-				},
-			})
+			return assignments.map((row) =>
+				Object.assign({}, row.assignment, {
+					minStock: row.assignment.minStock,
+					maxStock: row.assignment.maxStock ?? null,
+					reorderPoint: row.assignment.reorderPoint,
+					currentQty: row.assignment.currentQty,
+					currentAvgCost: row.assignment.currentAvgCost,
+					currentValue: row.assignment.currentValue,
+					location: row.location,
+				}),
+			)
 		})
 	}
 
@@ -178,7 +144,7 @@ export class MaterialLocationRepo {
 
 			const result = await paginate({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select({
 							id: materialLocationsTable.id,
 							materialId: materialLocationsTable.materialId,
@@ -202,7 +168,7 @@ export class MaterialLocationRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db
+				countQuery: this.db
 					.select({ count: count() })
 					.from(materialLocationsTable)
 					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
@@ -231,7 +197,7 @@ export class MaterialLocationRepo {
 		actorId: number,
 	): Promise<number> {
 		return record('MaterialLocationRepo.batchAssign', async () => {
-			const existing = await db
+			const existing = await this.db
 				.select({
 					materialId: materialLocationsTable.materialId,
 					locationId: materialLocationsTable.locationId,
@@ -258,16 +224,15 @@ export class MaterialLocationRepo {
 
 			if (docs.length === 0) return 0
 
-			await db.insert(materialLocationsTable).values(docs)
+			await this.db.insert(materialLocationsTable).values(docs)
 
-			void this.#clearCache()
 			return docs.length
 		})
 	}
 
 	async unassign(materialId: number, locationId: number): Promise<number | undefined> {
 		return record('MaterialLocationRepo.unassign', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.delete(materialLocationsTable)
 				.where(
 					and(
@@ -278,7 +243,6 @@ export class MaterialLocationRepo {
 				.returning({ id: materialLocationsTable.id })
 
 			if (result) {
-				void this.#clearCache(materialId, locationId)
 				return result.id
 			}
 			return undefined
@@ -295,7 +259,7 @@ export class MaterialLocationRepo {
 		actorId: number,
 	): Promise<number | undefined> {
 		return record('MaterialLocationRepo.updateConfig', async () => {
-			const [result] = await db
+			const [result] = await this.db
 				.update(materialLocationsTable)
 				.set({
 					minStock: data.minStock?.toString(),
@@ -307,7 +271,6 @@ export class MaterialLocationRepo {
 				.returning({ id: materialLocationsTable.id })
 
 			if (result) {
-				void this.#clearCache()
 				return result.id
 			}
 			return undefined
@@ -319,7 +282,7 @@ export class MaterialLocationRepo {
 		locationId: number,
 		stock: { currentQty: number; currentAvgCost: number; currentValue: number },
 		actorId: number,
-		tx: any = db,
+		tx: any = this.db,
 	): Promise<void> {
 		return record('MaterialLocationRepo.updateCurrentStock', async () => {
 			await tx
@@ -336,7 +299,6 @@ export class MaterialLocationRepo {
 						eq(materialLocationsTable.locationId, locationId),
 					),
 				)
-			void this.#clearCache(materialId, locationId)
 		})
 	}
 }
