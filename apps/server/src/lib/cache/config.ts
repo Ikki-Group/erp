@@ -1,1 +1,3 @@
-export type ConfigNamespace = 'iam.user'
+export type ConfigNamespace =
+	//
+	'location' | 'iam.user'
