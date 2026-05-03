@@ -21,3 +21,5 @@ export type ConfigNamespace =
 	| 'session'
 	| 'inventory.dashboard'
 	| 'inventory.summary'
+	| 'inventory.stock-transfer'
+	| 'inventory.alert'

@@ -2,7 +2,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -12,7 +11,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
 
@@ -24,58 +22,31 @@ import {
 	StockTransferUpdateDto,
 } from './stock-transfer.dto'
 
-const STOCK_TRANSFER_CACHE_NAMESPACE = 'inventory.stock-transfer'
-
 export class StockTransferRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(STOCK_TRANSFER_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'StockTransferRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<StockTransferDto | undefined> {
 		return record('StockTransferRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [transfer] = await this.db
-						.select()
-						.from(stockTransfersTable)
-						.where(and(eq(stockTransfersTable.id, id), isNull(stockTransfersTable.deletedAt)))
+			const [transfer] = await this.db
+				.select()
+				.from(stockTransfersTable)
+				.where(and(eq(stockTransfersTable.id, id), isNull(stockTransfersTable.deletedAt)))
 
-					if (!transfer) return skip()
+			if (!transfer) return undefined
 
-					const items = await this.db
-						.select()
-						.from(stockTransferItemsTable)
-						.where(
-							and(
-								eq(stockTransferItemsTable.transferId, id),
-								isNull(stockTransferItemsTable.deletedAt),
-							),
-						)
+			const items = await this.db
+				.select()
+				.from(stockTransferItemsTable)
+				.where(
+					and(
+						eq(stockTransferItemsTable.transferId, id),
+						isNull(stockTransferItemsTable.deletedAt),
+					),
+				)
 
-					return StockTransferDto.parse({ ...transfer, items })
-				},
-			})
+			return StockTransferDto.parse({ ...transfer, items })
 		})
 	}
 
@@ -149,7 +120,6 @@ export class StockTransferRepo {
 
 				return insertedTransfer
 			})
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -188,7 +158,6 @@ export class StockTransferRepo {
 
 				return { id }
 			})
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -201,7 +170,6 @@ export class StockTransferRepo {
 				.where(eq(stockTransfersTable.id, id))
 				.returning({ id: stockTransfersTable.id })
 			if (!result) throw new Error('Stock transfer not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -213,7 +181,6 @@ export class StockTransferRepo {
 				.where(eq(stockTransfersTable.id, id))
 				.returning({ id: stockTransfersTable.id })
 			if (!result) throw new Error('Stock transfer not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -227,7 +194,6 @@ export class StockTransferRepo {
 				.where(eq(stockTransfersTable.id, id))
 				.returning({ id: stockTransfersTable.id })
 			if (!result) throw new Error('Stock transfer not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -246,7 +212,6 @@ export class StockTransferRepo {
 				.where(eq(stockTransfersTable.id, id))
 				.returning({ id: stockTransfersTable.id })
 			if (!result) throw new Error('Stock transfer not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -264,7 +229,6 @@ export class StockTransferRepo {
 				.where(eq(stockTransfersTable.id, id))
 				.returning({ id: stockTransfersTable.id })
 			if (!result) throw new Error('Stock transfer not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

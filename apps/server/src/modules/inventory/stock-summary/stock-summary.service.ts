@@ -9,6 +9,8 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 import { db } from '@/db'
 import { stockSummariesTable, stockTransactionsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { MaterialLocationService } from '@/modules/material'
 
 import type {
@@ -21,10 +23,15 @@ import type {
 import { StockSummaryRepo } from './stock-summary.repo'
 
 export class StockSummaryService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly repo: StockSummaryRepo,
 		private readonly mLocationSvc: MaterialLocationService,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'inventory.summary', client: cacheClient })
+	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
@@ -35,7 +42,11 @@ export class StockSummaryService {
 		filter: StockSummaryFilterDto,
 	): Promise<WithPaginationResult<StockSummarySelectDto>> {
 		return record('StockSummaryService.handleByLocation', async () => {
-			return this.repo.getByLocationPaginated(filter)
+			const key = `by-location.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getByLocationPaginated(filter),
+			})
 		})
 	}
 
@@ -46,7 +57,11 @@ export class StockSummaryService {
 		filter: StockLedgerFilterDto,
 	): Promise<WithPaginationResult<StockLedgerSelectDto>> {
 		return record('StockSummaryService.handleLedger', async () => {
-			return this.repo.getLedgerPaginated(filter)
+			const key = `ledger.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getLedgerPaginated(filter),
+			})
 		})
 	}
 
@@ -234,6 +249,7 @@ export class StockSummaryService {
 				})
 
 				const generatedCount = await this.repo.upsertMany(upsertData)
+				await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
 				return { generatedCount }
 			})
 		})
@@ -241,13 +257,17 @@ export class StockSummaryService {
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('StockSummaryService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+			return result
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('StockSummaryService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
+			await this.cache.deleteMany({ keys: ['list', 'by-location', 'ledger', 'count'] })
+			return result
 		})
 	}
 }

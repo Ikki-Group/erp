@@ -38,17 +38,21 @@ export class InventoryServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: InventoryServiceModuleDeps,
 	) {
-		const transactionRepo = new StockTransactionRepo(this.db, this.cacheClient)
+		const transactionRepo = new StockTransactionRepo(this.db)
 		const summaryRepo = new StockSummaryRepo(this.db)
-		const alertRepo = new StockAlertRepo(this.db, this.cacheClient)
+		const alertRepo = new StockAlertRepo(this.db)
 		const dashboardRepo = new StockDashboardRepo(this.db)
-		const stockTransferRepo = new StockTransferRepo(this.db, this.cacheClient)
+		const stockTransferRepo = new StockTransferRepo(this.db)
 
 		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
-		this.summary = new StockSummaryService(summaryRepo, this.deps.material.location)
-		this.alert = new StockAlertService(alertRepo)
+		this.summary = new StockSummaryService(
+			summaryRepo,
+			this.deps.material.location,
+			this.cacheClient,
+		)
+		this.alert = new StockAlertService(alertRepo, this.cacheClient)
 		this.dashboard = new StockDashboardService(dashboardRepo, this.cacheClient)
-		this.stockTransfer = new StockTransferService(stockTransferRepo)
+		this.stockTransfer = new StockTransferService(stockTransferRepo, this.cacheClient)
 	}
 }
 
