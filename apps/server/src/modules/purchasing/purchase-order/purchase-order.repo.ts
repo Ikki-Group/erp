@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,7 +10,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 
@@ -23,58 +21,28 @@ import {
 	PurchaseOrderUpdateDto,
 } from './purchase-order.dto'
 
-const PURCHASE_ORDER_CACHE_NAMESPACE = 'purchasing.order'
-
 export class PurchaseOrderRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PURCHASE_ORDER_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'PurchaseOrderRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<PurchaseOrderDto | undefined> {
 		return record('PurchaseOrderRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [order] = await this.db
-						.select()
-						.from(purchaseOrdersTable)
-						.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
+			const [order] = await this.db
+				.select()
+				.from(purchaseOrdersTable)
+				.where(and(eq(purchaseOrdersTable.id, id), isNull(purchaseOrdersTable.deletedAt)))
 
-					if (!order) return skip()
+			if (!order) return undefined
 
-					const items = await this.db
-						.select()
-						.from(purchaseOrderItemsTable)
-						.where(
-							and(
-								eq(purchaseOrderItemsTable.orderId, id),
-								isNull(purchaseOrderItemsTable.deletedAt),
-							),
-						)
+			const items = await this.db
+				.select()
+				.from(purchaseOrderItemsTable)
+				.where(
+					and(eq(purchaseOrderItemsTable.orderId, id), isNull(purchaseOrderItemsTable.deletedAt)),
+				)
 
-					return PurchaseOrderDto.parse({ ...order, items })
-				},
-			})
+			return PurchaseOrderDto.parse({ ...order, items })
 		})
 	}
 
@@ -145,7 +113,6 @@ export class PurchaseOrderRepo {
 
 				return insertedOrder
 			})
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -188,7 +155,6 @@ export class PurchaseOrderRepo {
 
 				return { id }
 			})
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -201,7 +167,6 @@ export class PurchaseOrderRepo {
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -213,7 +178,6 @@ export class PurchaseOrderRepo {
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -227,7 +191,6 @@ export class PurchaseOrderRepo {
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

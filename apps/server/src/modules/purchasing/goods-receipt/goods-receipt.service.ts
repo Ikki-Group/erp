@@ -7,23 +7,34 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { purchaseOrderItemsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { StockTransactionService } from '@/modules/inventory'
 
 import type * as dto from './goods-receipt.dto'
 import { GoodsReceiptRepo } from './goods-receipt.repo'
 
 export class GoodsReceiptService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly repo: GoodsReceiptRepo,
 		private readonly inventorySvc: StockTransactionService,
 		private readonly db: DbClient,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'purchasing.receipt', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.GoodsReceiptNoteDto> {
 		return record('GoodsReceiptService.getById', async () => {
-			const grn = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const grn = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!grn) throw new NotFoundError(`GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
 			return grn
 		})
@@ -35,7 +46,11 @@ export class GoodsReceiptService {
 		filter: dto.GoodsReceiptNoteFilterDto,
 	): Promise<WithPaginationResult<dto.GoodsReceiptNoteSelectDto>> {
 		return record('GoodsReceiptService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -50,7 +65,9 @@ export class GoodsReceiptService {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -87,20 +104,26 @@ export class GoodsReceiptService {
 					tx,
 				)
 
-				return this.repo.updateStatus(id, 'completed', actorId)
+				const result = await this.repo.updateStatus(id, 'completed', actorId)
+				await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
 			})
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('GoodsReceiptService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 }

@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { InventoryServiceModule } from '@/modules/inventory'
 
@@ -21,11 +22,16 @@ export class PurchasingServiceModule {
 		private readonly cacheClient: CacheClient,
 		inventory: InventoryServiceModule,
 	) {
-		const purchaseOrderRepo = new PurchaseOrderRepo(this.db, this.cacheClient)
-		const goodsReceiptRepo = new GoodsReceiptRepo(this.db, this.cacheClient)
+		const purchaseOrderRepo = new PurchaseOrderRepo(this.db)
+		this.purchaseOrder = new PurchaseOrderService(purchaseOrderRepo, this.cacheClient)
 
-		this.purchaseOrder = new PurchaseOrderService(purchaseOrderRepo)
-		this.goodsReceipt = new GoodsReceiptService(goodsReceiptRepo, inventory.transaction, this.db)
+		const goodsReceiptRepo = new GoodsReceiptRepo(this.db)
+		this.goodsReceipt = new GoodsReceiptService(
+			goodsReceiptRepo,
+			inventory.transaction,
+			this.db,
+			this.cacheClient,
+		)
 	}
 }
 

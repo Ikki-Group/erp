@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,7 +10,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
 
@@ -23,58 +21,31 @@ import {
 	type GoodsReceiptStatus,
 } from './goods-receipt.dto'
 
-const GOODS_RECEIPT_CACHE_NAMESPACE = 'purchasing.receipt'
-
 export class GoodsReceiptRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(GOODS_RECEIPT_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'GoodsReceiptRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<GoodsReceiptNoteDto | undefined> {
 		return record('GoodsReceiptRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [grn] = await this.db
-						.select()
-						.from(goodsReceiptNotesTable)
-						.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
+			const [grn] = await this.db
+				.select()
+				.from(goodsReceiptNotesTable)
+				.where(and(eq(goodsReceiptNotesTable.id, id), isNull(goodsReceiptNotesTable.deletedAt)))
 
-					if (!grn) return skip()
+			if (!grn) return undefined
 
-					const items = await this.db
-						.select()
-						.from(goodsReceiptNoteItemsTable)
-						.where(
-							and(
-								eq(goodsReceiptNoteItemsTable.grnId, id),
-								isNull(goodsReceiptNoteItemsTable.deletedAt),
-							),
-						)
+			const items = await this.db
+				.select()
+				.from(goodsReceiptNoteItemsTable)
+				.where(
+					and(
+						eq(goodsReceiptNoteItemsTable.grnId, id),
+						isNull(goodsReceiptNoteItemsTable.deletedAt),
+					),
+				)
 
-					return GoodsReceiptNoteDto.parse({ ...grn, items })
-				},
-			})
+			return GoodsReceiptNoteDto.parse({ ...grn, items })
 		})
 	}
 
@@ -145,7 +116,6 @@ export class GoodsReceiptRepo {
 
 				return insertedGrn
 			})
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -160,7 +130,6 @@ export class GoodsReceiptRepo {
 				.update(goodsReceiptNotesTable)
 				.set({ status, ...stampUpdate(actorId) })
 				.where(eq(goodsReceiptNotesTable.id, id))
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
@@ -173,7 +142,6 @@ export class GoodsReceiptRepo {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -185,7 +153,6 @@ export class GoodsReceiptRepo {
 				.where(eq(goodsReceiptNotesTable.id, id))
 				.returning({ id: goodsReceiptNotesTable.id })
 			if (!result) throw new Error('GRN not found')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

@@ -27,3 +27,5 @@ export type ConfigNamespace =
 	| 'sales-type'
 	| 'sales.order'
 	| 'sales.invoice'
+	| 'purchasing.order'
+	| 'purchasing.receipt'
