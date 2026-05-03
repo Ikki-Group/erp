@@ -1,7 +1,8 @@
 import Elysia from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { UserService } from '../iam'
 import { initAuthRoute } from './login/login.route'
@@ -20,7 +21,7 @@ export class AuthServiceModule {
 			user: UserService
 		},
 	) {
-		const sessionRepo = new SessionRepo(this.db, this.cacheClient)
+		const sessionRepo = new SessionRepo(this.db)
 		this.session = new SessionService(sessionRepo, this.cacheClient)
 		this.login = new LoginService({
 			user: this.svc.user,

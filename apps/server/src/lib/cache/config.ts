@@ -18,3 +18,4 @@ export type ConfigNamespace =
 	| 'customer'
 	| 'company-settings'
 	| 'audit-log'
+	| 'session'
