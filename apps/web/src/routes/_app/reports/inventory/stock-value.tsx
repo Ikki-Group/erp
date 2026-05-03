@@ -1,22 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 
 import { useDataTable } from '@/hooks/use-data-table'
 
-import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
-import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from '@/components/ui/chart'
 import { Card } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 import { inventoryReportApi } from '@/features/reporting'
 import type { InventoryReportRequestDto, StockValueDto } from '@/features/reporting'
@@ -28,40 +23,43 @@ export const Route = createFileRoute('/_app/reports/inventory/stock-value')({
 
 const chartConfig = { totalValue: { label: 'Nilai Stok', color: 'oklch(var(--primary))' } }
 
-const ch = createColumnHelper<StockValueDto>()
-const columns = [
-	ch.accessor('productName', textColumn({ header: 'Produk', size: 250 })),
-	ch.accessor('sku', textColumn({ header: 'SKU', size: 120 })),
-	ch.accessor(
-		'quantity',
-		customColumn({
-			header: 'Qty',
-			cell: (v) => <span className="font-mono tabular-nums">{v}</span>,
-			size: 100,
-		}),
-	),
-	ch.accessor(
-		'unitCost',
-		customColumn({
-			header: 'Harga Satuan',
-			cell: (v) => (
-				<span className="font-mono tabular-nums">Rp {Number(v).toLocaleString('id-ID')}</span>
-			),
-			size: 150,
-		}),
-	),
-	ch.accessor(
-		'totalValue',
-		customColumn({
-			header: 'Total Nilai',
-			cell: (v) => (
-				<span className="font-mono font-medium tabular-nums">
-					Rp {Number(v).toLocaleString('id-ID')}
-				</span>
-			),
-			size: 180,
-		}),
-	),
+const columns: ColumnDef<StockValueDto>[] = [
+	{
+		accessorKey: 'productName',
+		header: 'Produk',
+		size: 250,
+	},
+	{
+		accessorKey: 'sku',
+		header: 'SKU',
+		size: 120,
+	},
+	{
+		accessorKey: 'quantity',
+		header: 'Qty',
+		size: 100,
+		cell: ({ row }) => <span className="font-mono tabular-nums">{row.original.quantity}</span>,
+	},
+	{
+		accessorKey: 'unitCost',
+		header: 'Harga Satuan',
+		size: 150,
+		cell: ({ row }) => (
+			<span className="font-mono tabular-nums">
+				Rp {Number(row.original.unitCost).toLocaleString('id-ID')}
+			</span>
+		),
+	},
+	{
+		accessorKey: 'totalValue',
+		header: 'Total Nilai',
+		size: 180,
+		cell: ({ row }) => (
+			<span className="font-mono font-medium tabular-nums">
+				Rp {Number(row.original.totalValue).toLocaleString('id-ID')}
+			</span>
+		),
+	},
 ]
 
 function InventoryStockValueReport() {
