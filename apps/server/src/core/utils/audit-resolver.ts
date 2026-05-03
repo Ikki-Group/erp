@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { eq } from 'drizzle-orm'
 
-import { bento } from '@/core/cache'
-
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
+import { cacheClient } from '@/lib/cache'
 import type { AuditResolved, UserSnippet } from '@/lib/validation'
 
-const cache = bento.namespace('system.audit')
+const cache = cacheClient.namespace('system.audit')
 
 /**
  * Audit Resolver Utility
