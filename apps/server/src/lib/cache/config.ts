@@ -11,3 +11,4 @@ export type ConfigNamespace =
 	| 'material'
 	| 'material-location'
 	| 'supplier'
+	| 'employee'

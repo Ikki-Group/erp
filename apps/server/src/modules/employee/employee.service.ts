@@ -5,6 +5,8 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { employeesTable } from '@/db/schema/employee'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type {
 	EmployeeCreateDto,
 	EmployeeDto,
@@ -29,13 +31,23 @@ const err = {
 }
 
 export class EmployeeService {
-	constructor(private readonly repo: EmployeeRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: EmployeeRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'employee', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<EmployeeDto | undefined> {
 		return record('EmployeeService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -67,6 +79,8 @@ export class EmployeeService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -89,6 +103,8 @@ export class EmployeeService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -100,6 +116,8 @@ export class EmployeeService {
 
 			const result = await this.repo.remove(id, actorId)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return { id }
 		})
