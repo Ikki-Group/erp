@@ -91,7 +91,9 @@ function WorkOrdersPage() {
 			header: 'Target Qty',
 			size: 130,
 			cell: ({ getValue }) => (
-				<span className="font-bold tabular-nums text-foreground/80 pr-4">{getValue()}</span>
+				<span className="font-bold tabular-nums text-foreground/80 pr-4">
+					{getValue() as string}
+				</span>
 			),
 		},
 		{

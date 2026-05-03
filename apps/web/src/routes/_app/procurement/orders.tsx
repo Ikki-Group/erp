@@ -54,7 +54,7 @@ const columns: ColumnDef<PurchaseOrderDto>[] = [
 		size: 130,
 		cell: ({ row }) => {
 			const status = row.original.status
-			if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
+			if (status === 'closed') return <BadgeDot variant="success">Selesai</BadgeDot>
 			if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
 			if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
 			return <BadgeDot variant="secondary">{status}</BadgeDot>

@@ -50,7 +50,7 @@ function getColumns(onRemove: (uom: UomDto) => Promise<void>): ColumnDef<UomDto>
 			size: 200,
 			cell: ({ getValue }) => (
 				<Badge variant="outline" size="sm" className="font-bold uppercase tracking-wider">
-					{getValue()}
+					{getValue() as string}
 				</Badge>
 			),
 		},
