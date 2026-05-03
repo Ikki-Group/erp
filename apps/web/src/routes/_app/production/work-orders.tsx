@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import {
 	ActivityIcon,
@@ -20,12 +21,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import { Page } from '@/components/layout/page'
-import {
-	createColumnHelper,
-	dateColumn,
-	statusColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -46,8 +42,6 @@ import { workOrderApi } from '@/features/production/api/production.api'
 import { WorkOrderSelectDto } from '@/features/production/dto/work-order.dto'
 
 export const Route = createFileRoute('/_app/production/work-orders')({ component: WorkOrdersPage })
-
-const ch = createColumnHelper<WorkOrderSelectDto>()
 
 function WorkOrdersPage() {
 	const ds = useDataTableState()
@@ -76,39 +70,54 @@ function WorkOrdersPage() {
 		},
 	})
 
-	const columns = [
-		ch.accessor('id', textColumn({ header: 'No. WO', size: 100 })),
-		ch.accessor('recipeName', textColumn({ header: 'Resep/Menu', size: 200 })),
-		ch.accessor('productName', textColumn({ header: 'Produk Jadi', size: 200 })),
-		ch.accessor(
-			'expectedQty',
-			statusColumn({
-				header: 'Target Qty',
-				render: (value) => (
-					<span className="font-bold tabular-nums text-foreground/80 pr-4">{value}</span>
-				),
-				size: 130,
-			}),
-		),
-		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 160 })),
-		ch.accessor(
-			'status',
-			statusColumn({
-				header: 'Status',
-				render: (value) => {
-					const status = value as string
-					if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
-					if (status === 'in_progress')
-						return <BadgeDot variant="warning-outline">Berjalan</BadgeDot>
-					if (status === 'draft') return <BadgeDot variant="primary-outline">Draft</BadgeDot>
-					return <BadgeDot variant="destructive-outline">{status}</BadgeDot>
-				},
-				size: 130,
-			}),
-		),
-		ch.display({
+	const columns: ColumnDef<WorkOrderSelectDto>[] = [
+		{
+			accessorKey: 'id',
+			header: 'No. WO',
+			size: 100,
+		},
+		{
+			accessorKey: 'recipeName',
+			header: 'Resep/Menu',
+			size: 200,
+		},
+		{
+			accessorKey: 'productName',
+			header: 'Produk Jadi',
+			size: 200,
+		},
+		{
+			accessorKey: 'expectedQty',
+			header: 'Target Qty',
+			size: 130,
+			cell: ({ getValue }) => (
+				<span className="font-bold tabular-nums text-foreground/80 pr-4">{getValue()}</span>
+			),
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			size: 160,
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
+			accessorKey: 'status',
+			header: 'Status',
+			size: 130,
+			cell: ({ row }) => {
+				const status = row.original.status
+				if (status === 'completed') return <BadgeDot variant="success-outline">Selesai</BadgeDot>
+				if (status === 'in_progress') return <BadgeDot variant="warning-outline">Berjalan</BadgeDot>
+				if (status === 'draft') return <BadgeDot variant="primary-outline">Draft</BadgeDot>
+				return <BadgeDot variant="destructive-outline">{status}</BadgeDot>
+			},
+		},
+		{
 			id: 'actions',
 			header: 'Aksi',
+			size: 150,
+			enableSorting: false,
+			enableHiding: false,
 			cell: ({ row }) => {
 				const wo = row.original
 				if (wo.status === 'draft') {
@@ -141,8 +150,7 @@ function WorkOrdersPage() {
 				}
 				return null
 			},
-			size: 150,
-		}),
+		},
 	]
 
 	const table = useDataTable({

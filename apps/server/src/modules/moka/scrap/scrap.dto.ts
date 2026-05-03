@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
-import { zp } from '@/core/validation'
-
 import { MokaScrapType, MokaSyncTriggerMode } from '../shared.dto'
+import { zp } from '@/lib/validation'
 
 /* ─── Category Raw DTOs ────────────────────────────────────────────────────── */
 

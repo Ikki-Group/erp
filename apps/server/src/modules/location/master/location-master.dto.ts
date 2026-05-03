@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
+import { zc, zp, zq } from '@/lib/validation'
 
 /** Types of operational locations. */
 export const LocationTypeDto = z.enum([
@@ -13,7 +13,7 @@ export type LocationTypeDto = z.infer<typeof LocationTypeDto>
 
 export const LocationDto = z.object({
 	...zc.RecordId.shape,
-	code: zp.str,
+	code: zp.strNullable,
 	name: zp.str,
 	type: LocationTypeDto,
 	description: zp.strNullable,
@@ -25,7 +25,7 @@ export const LocationDto = z.object({
 export type LocationDto = z.infer<typeof LocationDto>
 
 export const LocationCreateDto = z.object({
-	code: zc.strTrim.uppercase().min(3).max(10),
+	code: zc.strTrimNullable.optional(),
 	name: zc.strTrim.min(3).max(100),
 	type: LocationTypeDto,
 	description: zc.strTrimNullable,

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
+import { zc, zp, zq } from '@/lib/validation'
 
 /** Sales invoice status */
 export const SalesInvoiceStatusDto = z.enum(['draft', 'open', 'paid', 'void'])

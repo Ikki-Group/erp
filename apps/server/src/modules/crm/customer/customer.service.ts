@@ -3,12 +3,12 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { RecordId } from '@/core/validation'
 
 import { customersTable } from '@/db/schema'
 
 import * as dto from './customer.dto'
 import { CustomerRepo } from './customer.repo'
+import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	{

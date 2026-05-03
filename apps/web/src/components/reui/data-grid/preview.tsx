@@ -1,8 +1,29 @@
-import { UserIcon, ShoppingCartIcon, SettingsIcon, LogOutIcon } from 'lucide-react'
+import {
+	EyeIcon,
+	PencilIcon,
+	Trash2Icon,
+	UserIcon,
+	ShoppingCartIcon,
+	SettingsIcon,
+	LogOutIcon,
+} from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import { DataGridCell } from './data-grid-cell'
+import {
+	CellLabelDesc,
+	CellText,
+	CellDate,
+	CellCurrency,
+	CellAvatar,
+	CellBoolean,
+	CellTrend,
+	CellProgress,
+	CellAction,
+	CellActionLink,
+	CellActions,
+	CellMenu,
+} from './data-grid-cell'
 
 export function DataGridCellPreview() {
 	return (
@@ -11,10 +32,10 @@ export function DataGridCellPreview() {
 				<h3 className="text-lg font-bold border-b pb-2">Label & Description</h3>
 				<div className="grid grid-cols-2 gap-4">
 					<div className="p-3 bg-background rounded-lg border">
-						<DataGridCell.LabelAndDesc label="Apple iPhone 15 Pro" desc="SKU: APP-IPH15P-256-GRY" />
+						<CellLabelDesc label="Apple iPhone 15 Pro" desc="SKU: APP-IPH15P-256-GRY" />
 					</div>
 					<div className="p-3 bg-background rounded-lg border">
-						<DataGridCell.LabelAndDesc label="Rizqy Nugroho" desc="rizqy@ikki.group" />
+						<CellLabelDesc label="Rizqy Nugroho" desc="rizqy@ikki.group" />
 					</div>
 				</div>
 			</section>
@@ -24,15 +45,15 @@ export function DataGridCellPreview() {
 				<div className="grid grid-cols-3 gap-4">
 					<div className="p-3 bg-background rounded-lg border space-y-1">
 						<p className="text-[10px] text-muted-foreground uppercase font-bold">Text (Fallback)</p>
-						<DataGridCell.Text value="" />
+						<CellText value="" />
 					</div>
 					<div className="p-3 bg-background rounded-lg border space-y-1">
 						<p className="text-[10px] text-muted-foreground uppercase font-bold">Date</p>
-						<DataGridCell.Date value={new Date()} />
+						<CellDate value={new Date()} />
 					</div>
 					<div className="p-3 bg-background rounded-lg border space-y-1">
 						<p className="text-[10px] text-muted-foreground uppercase font-bold">Currency</p>
-						<DataGridCell.Currency value={12500000} />
+						<CellCurrency value={12500000} />
 					</div>
 				</div>
 			</section>
@@ -40,7 +61,7 @@ export function DataGridCellPreview() {
 			<section className="space-y-4">
 				<h3 className="text-lg font-bold border-b pb-2">Avatars & Booleans</h3>
 				<div className="flex items-center gap-8 bg-background p-4 rounded-lg border">
-					<DataGridCell.Avatar
+					<CellAvatar
 						label="Jaka Sembung"
 						desc="Software Engineer"
 						fallback="JS"
@@ -48,11 +69,11 @@ export function DataGridCellPreview() {
 					/>
 					<div className="flex items-center gap-2">
 						<span className="text-sm">Verified:</span>
-						<DataGridCell.Boolean value={true} />
+						<CellBoolean value={true} />
 					</div>
 					<div className="flex items-center gap-2">
 						<span className="text-sm">Banned:</span>
-						<DataGridCell.Boolean value={false} />
+						<CellBoolean value={false} />
 					</div>
 				</div>
 			</section>
@@ -65,13 +86,13 @@ export function DataGridCellPreview() {
 							<CardTitle className="text-sm font-medium">Monthly Growth</CardTitle>
 						</CardHeader>
 						<CardContent className="px-4 pb-4 flex items-center justify-between">
-							<DataGridCell.Trend value="12.5%" trend="up" />
-							<DataGridCell.Trend value="3.2%" trend="down" />
-							<DataGridCell.Trend value="8.4%" trend="up" reverse />
+							<CellTrend value="12.5%" trend="up" />
+							<CellTrend value="3.2%" trend="down" />
+							<CellTrend value="8.4%" trend="up" reverse />
 						</CardContent>
 					</Card>
 					<div className="p-4 bg-background rounded-lg border flex items-center justify-center">
-						<DataGridCell.Progress value={75} label="Storage" />
+						<CellProgress value={75} label="Storage" />
 					</div>
 				</div>
 			</section>
@@ -79,36 +100,62 @@ export function DataGridCellPreview() {
 			<section className="space-y-4">
 				<h3 className="text-lg font-bold border-b pb-2">Action Cells</h3>
 				<div className="flex gap-4 p-4 bg-background rounded-lg border">
-					<DataGridCell.Actions>
-						<DataGridCell.Action
-							type="button"
+					<CellActions>
+						<CellAction
 							icon={<UserIcon className="size-3.5" />}
 							label="Profile"
 							onClick={() => {}}
 						/>
-						<DataGridCell.Action
-							type="button"
+						<CellAction
 							icon={<ShoppingCartIcon className="size-3.5" />}
 							label="Cart"
 							variant="default"
 							onClick={() => {}}
 						/>
-						<DataGridCell.Action
-							type="button"
+						<CellAction
 							icon={<SettingsIcon className="size-3.5" />}
 							size="icon-sm"
 							onClick={() => {}}
 						/>
-						<DataGridCell.Action
-							type="button"
+						<CellAction
 							icon={<LogOutIcon className="size-3.5" />}
 							variant="destructive"
 							size="icon-sm"
 							onClick={() => {}}
 						/>
-					</DataGridCell.Actions>
+					</CellActions>
 					<div className="h-8 w-px bg-border" />
-					<DataGridCell.Action type="link" to="/" label="Go Home" variant="link" />
+					<CellActionLink to="/" label="Go Home" variant="link" />
+				</div>
+			</section>
+
+			<section className="space-y-4">
+				<h3 className="text-lg font-bold border-b pb-2">Menu / Dropdown</h3>
+				<div className="flex gap-4 p-4 bg-background rounded-lg border">
+					<CellMenu
+						items={[
+							{
+								type: 'link',
+								label: 'Lihat Detail',
+								icon: <EyeIcon className="size-3.5" />,
+								to: '/',
+							},
+							{
+								type: 'button',
+								label: 'Edit',
+								icon: <PencilIcon className="size-3.5" />,
+								onClick: () => {},
+							},
+							{ type: 'separator' },
+							{
+								type: 'button',
+								label: 'Hapus',
+								icon: <Trash2Icon className="size-3.5" />,
+								variant: 'destructive',
+								onClick: () => {},
+							},
+						]}
+					/>
 				</div>
 			</section>
 		</div>

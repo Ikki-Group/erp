@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
-
 import { leaveStatusEnum, leaveTypeEnum } from '@/db/schema'
+
+import { zc, zp, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

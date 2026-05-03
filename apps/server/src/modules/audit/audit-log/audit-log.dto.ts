@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
+import { zc, zp, zq } from '@/lib/validation'
 
 /** Audit action types */
 const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const

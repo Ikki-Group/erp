@@ -2,10 +2,10 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { RecordId } from '@/core/validation'
 
 import * as dto from './audit-log.dto'
 import { AuditLogRepo } from './audit-log.repo'
+import type { RecordId } from '@/lib/validation'
 
 const err = {
 	notFound: (id: number) =>

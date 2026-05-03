@@ -3,15 +3,15 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { RecipeCreateDto, RecipeFilterDto, RecipeSelectDto, RecipeUpdateDto } from './recipe.dto'
+import type { RecipeService } from './recipe.service'
 import {
 	zc,
 	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/core/validation'
-
-import { RecipeCreateDto, RecipeFilterDto, RecipeSelectDto, RecipeUpdateDto } from './recipe.dto'
-import type { RecipeService } from './recipe.service'
+} from '@/lib/validation'
 
 export function initRecipeRoute(service: RecipeService) {
 	return new Elysia()

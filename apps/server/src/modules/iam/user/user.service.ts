@@ -4,7 +4,6 @@ import { merge } from 'es-toolkit'
 import * as core from '@/core/database'
 import { resolveAudit } from '@/core/utils/audit-resolver'
 import type { RelationMap } from '@/core/utils/relation-map'
-import type { AuditResolved } from '@/core/validation'
 
 import { usersTable } from '@/db/schema'
 
@@ -16,6 +15,7 @@ import type { RoleDto } from '../role/role.dto'
 import type { RoleService } from '../role/role.service'
 import * as dto from './user.dto'
 import type { UserRepo } from './user.repo'
+import type { AuditResolved } from '@/lib/validation'
 
 const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	{

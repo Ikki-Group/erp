@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -13,26 +14,18 @@ import { toastLabelMessage } from '@/lib/toast-message'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
-import {
-	createColumnHelper,
-	dateColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate, CellMenu, CellText } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 import { roleApi } from '@/features/iam'
 import { RoleFormDialog } from '@/features/iam/components/role-form-dialog'
 import type { RoleDto } from '@/features/iam/dto'
 
-export const Route = createFileRoute('/_app/settings/_tab/role')({ component: RouteComponent })
+export const Route = createFileRoute('/_app/settings/_tab/role')({
+	component: RouteComponent,
+})
 
 function RouteComponent() {
 	return (
@@ -43,7 +36,64 @@ function RouteComponent() {
 	)
 }
 
-const ch = createColumnHelper<RoleDto>()
+interface GetColumnsProps {
+	onRemove: (role: RoleDto) => Promise<void>
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<RoleDto>[] {
+	return [
+		{
+			accessorKey: 'name',
+			header: 'Role',
+			size: 200,
+			cell: ({ row }) => <CellText value={row.original.name} />,
+		},
+		{
+			accessorKey: 'code',
+			header: 'Kode',
+			size: 200,
+			cell: ({ row }) => <CellText value={row.original.code} />,
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
+			id: 'action',
+			header: '',
+			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
+			cell: ({ row }) => {
+				if (row.original.isSystem) return null
+				return (
+					<CellMenu
+						items={[
+							{
+								type: 'button',
+								label: 'Edit',
+								icon: <PencilIcon />,
+								onClick: () => {
+									void RoleFormDialog.call({ id: row.original.id })
+								},
+							},
+							{
+								type: 'button',
+								label: 'Hapus',
+								variant: 'destructive',
+								icon: <Trash2Icon />,
+								onClick: () => onRemove(row.original),
+							},
+						]}
+					/>
+				)
+			},
+		},
+	]
+}
 
 function RolesTable() {
 	const ds = useDataTableState()
@@ -71,47 +121,7 @@ function RolesTable() {
 		})
 	}
 
-	const columns = useMemo(
-		() => [
-			ch.accessor('name', textColumn({ header: 'Role', size: 200 })),
-			ch.accessor('code', textColumn({ header: 'Kode', size: 200 })),
-			ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada' })),
-			ch.display({
-				id: 'action',
-				cell: ({ row }) => {
-					if (row.original.isSystem) return null
-					return (
-						<div className="flex items-center justify-end px-2">
-							<DropdownMenu>
-								<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-									<MoreHorizontalIcon />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-36">
-									<DropdownMenuItem
-										onClick={() => {
-											void RoleFormDialog.call({ id: row.original.id })
-										}}
-									>
-										<PencilIcon className="mr-2" />
-										Edit
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() => handleRemove(row.original)}
-									>
-										<Trash2Icon className="mr-2" />
-										Hapus
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					)
-				},
-			}),
-		],
-		// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-		[remove],
-	)
+	const columns = useMemo(() => getColumns({ onRemove: handleRemove }), [handleRemove])
 	const table = useDataTable({
 		columns,
 		data: data?.data ?? [],

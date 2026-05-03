@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
-import { zp } from '@/core/validation'
-
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
+import { zp } from '@/lib/validation'
 
 /** Cash flow data point */
 export const CashFlowDataPointDto = z.object({

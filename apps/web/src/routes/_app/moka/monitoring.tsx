@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { ActivityIcon, CheckCircle2Icon, ClockIcon, DatabaseIcon } from 'lucide-react'
 
@@ -10,11 +11,7 @@ import { CardStat } from '@/components/blocks/card/card-stat'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import {
-	createColumnHelper,
-	dateColumn,
-	statusColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { mokaApi } from '@/features/moka/api/moka.api'
@@ -22,64 +19,62 @@ import type { MokaScrapHistoryDto } from '@/features/moka/dto/moka-scrap-history
 
 export const Route = createFileRoute('/_app/moka/monitoring')({ component: MokaMonitoringPage })
 
-const ch = createColumnHelper<MokaScrapHistoryDto>()
-
-const columns = [
-	ch.accessor('startedAt', dateColumn({ header: 'Waktu', size: 160 })),
-	ch.accessor(
-		'type',
-		statusColumn({
-			header: 'Tipe Sync',
-			render: (value) => (
+const columns: ColumnDef<MokaScrapHistoryDto>[] = [
+	{
+		accessorKey: 'startedAt',
+		header: 'Waktu',
+		size: 160,
+		cell: ({ row }) => <CellDate value={row.original.startedAt} />,
+	},
+	{
+		accessorKey: 'type',
+		header: 'Tipe Sync',
+		size: 140,
+		cell: ({ row }) => (
+			<div className="flex items-center gap-2">
+				<DatabaseIcon className="h-3 w-3 text-muted-foreground" />
+				<span className="font-medium capitalize">{row.original.type}</span>
+			</div>
+		),
+	},
+	{
+		accessorKey: 'triggerMode',
+		header: 'Trigger',
+		size: 120,
+		cell: ({ row }) => <span className="capitalize">{row.original.triggerMode}</span>,
+	},
+	{
+		accessorKey: 'recordsCount',
+		header: 'Jumlah Record',
+		size: 130,
+		cell: ({ row }) => (
+			<span className="tabular-nums font-mono">
+				{Number(row.original.recordsCount).toLocaleString()}
+			</span>
+		),
+	},
+	{
+		accessorKey: 'status',
+		header: 'Status',
+		size: 160,
+		cell: ({ row }) => {
+			const value = row.original.status
+			if (value === 'completed') {
+				return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
+			}
+			if (value === 'processing' || value === 'pending') {
+				return <BadgeDot variant="default">Sedang Proses</BadgeDot>
+			}
+			return (
 				<div className="flex items-center gap-2">
-					<DatabaseIcon className="h-3 w-3 text-muted-foreground" />
-					<span className="font-medium capitalize">{value}</span>
+					<BadgeDot variant="destructive-outline">Gagal</BadgeDot>
+					<span className="text-[10px] text-destructive truncate max-w-25">
+						{row.original.errorMessage ?? 'Unknown error'}
+					</span>
 				</div>
-			),
-			size: 140,
-		}),
-	),
-	ch.accessor(
-		'triggerMode',
-		statusColumn({
-			header: 'Trigger',
-			render: (value) => <span className="capitalize">{value}</span>,
-			size: 120,
-		}),
-	),
-	ch.accessor(
-		'recordsCount',
-		statusColumn({
-			header: 'Jumlah Record',
-			render: (value) => (
-				<span className="tabular-nums font-mono">{Number(value).toLocaleString()}</span>
-			),
-			size: 130,
-		}),
-	),
-	ch.accessor(
-		'status',
-		statusColumn({
-			header: 'Status',
-			render: (value, row) => {
-				if (value === 'completed') {
-					return <BadgeDot variant="success-outline">Berhasil</BadgeDot>
-				}
-				if (value === 'processing' || value === 'pending') {
-					return <BadgeDot variant="default">Sedang Proses</BadgeDot>
-				}
-				return (
-					<div className="flex items-center gap-2">
-						<BadgeDot variant="destructive-outline">Gagal</BadgeDot>
-						<span className="text-[10px] text-destructive truncate max-w-25">
-							{row.errorMessage ?? 'Unknown error'}
-						</span>
-					</div>
-				)
-			},
-			size: 160,
-		}),
-	),
+			)
+		},
+	},
 ]
 
 function MokaMonitoringPage() {

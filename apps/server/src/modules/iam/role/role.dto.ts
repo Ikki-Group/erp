@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp, zc, zq } from '@/core/validation'
+import { zp, zc, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

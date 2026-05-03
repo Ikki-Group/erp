@@ -3,15 +3,15 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { UomFilterDto, UomMutationDto, UomDto } from './uom.dto'
+import type { UomService } from './uom.service'
 import {
 	zc,
 	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/core/validation'
-
-import { UomFilterDto, UomMutationDto, UomDto } from './uom.dto'
-import type { UomService } from './uom.service'
+} from '@/lib/validation'
 
 export function initMaterialUomRoute(s: UomService) {
 	return new Elysia({ prefix: '/uom' })

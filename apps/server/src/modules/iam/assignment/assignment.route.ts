@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, successNoDataSchema } from '@/core/validation'
 
 import * as dto from './assignment.dto'
 import type { UserAssignmentService } from './assignment.service'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@/lib/validation'
 
 export function initAssignmentRoute(service: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })

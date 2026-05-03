@@ -2,15 +2,15 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './customer.dto'
+import type { CustomerService } from './customer.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/core/validation'
-
-import * as dto from './customer.dto'
-import type { CustomerService } from './customer.service'
+} from '@/lib/validation'
 
 export function initCustomerRoute(service: CustomerService) {
 	return new Elysia({ prefix: '/customer' })

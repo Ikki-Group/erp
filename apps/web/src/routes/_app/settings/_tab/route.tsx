@@ -10,20 +10,21 @@ import { Page } from '@/components/layout/page'
 import { Tabs } from '@/components/ui/tabs'
 
 import { settingsApi } from '@/features/dashboard/api/settings.api'
+export const Route = createFileRoute('/_app/settings/_tab')({
+	component: RouteComponent,
+})
 
 const TABS = [
 	['Lokasi', '/settings/location'],
 	['Pengguna', '/settings/user'],
 	['Role', '/settings/role'],
-	['Audit Trail', '/settings/audit-trail'],
 ] as const
-
-export const Route = createFileRoute('/_app/settings/_tab')({ component: RouteComponent })
 
 function RouteComponent() {
 	const { pathname } = useLocation()
+
 	return (
-		<Page>
+		<Page size="full">
 			<Page.BlockHeader
 				title="Pengaturan"
 				description="Kelola preferensi, pengguna, dan konfigurasi sistem Anda."

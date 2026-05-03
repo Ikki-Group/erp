@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { CheckCircleIcon, PlusIcon, ReceiptIcon, TimerIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -11,12 +12,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import { Page } from '@/components/layout/page'
-import {
-	createColumnHelper,
-	dateColumn,
-	statusColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -27,8 +23,6 @@ import { goodsReceiptApi } from '@/features/purchasing/api/purchasing.api'
 import { GoodsReceiptNoteDto } from '@/features/purchasing/dto/goods-receipt.dto'
 
 export const Route = createFileRoute('/_app/procurement/receipts')({ component: GoodsReceiptPage })
-
-const ch = createColumnHelper<GoodsReceiptNoteDto>()
 
 function GoodsReceiptPage() {
 	const ds = useDataTableState()
@@ -44,27 +38,41 @@ function GoodsReceiptPage() {
 		},
 	})
 
-	const columns = [
-		ch.accessor('id', textColumn({ header: 'No. Penerimaan', size: 140 })),
-		ch.accessor('referenceNumber', textColumn({ header: 'Ref/Surat Jalan', size: 180 })),
-		ch.accessor('receiveDate', dateColumn({ header: 'Tanggal Terima', size: 160 })),
-		ch.accessor(
-			'status',
-			statusColumn({
-				header: 'Status',
-				render: (value) => {
-					const status = value as string
-					if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
-					if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
-					if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
-					return <BadgeDot variant="secondary">{status}</BadgeDot>
-				},
-				size: 130,
-			}),
-		),
-		ch.display({
+	const columns: ColumnDef<GoodsReceiptNoteDto>[] = [
+		{
+			accessorKey: 'id',
+			header: 'No. Penerimaan',
+			size: 140,
+		},
+		{
+			accessorKey: 'referenceNumber',
+			header: 'Ref/Surat Jalan',
+			size: 180,
+		},
+		{
+			accessorKey: 'receiveDate',
+			header: 'Tanggal Terima',
+			size: 160,
+			cell: ({ row }) => <CellDate value={row.original.receiveDate} />,
+		},
+		{
+			accessorKey: 'status',
+			header: 'Status',
+			size: 130,
+			cell: ({ row }) => {
+				const status = row.original.status
+				if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
+				if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
+				if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
+				return <BadgeDot variant="secondary">{status}</BadgeDot>
+			},
+		},
+		{
 			id: 'actions',
 			header: 'Aksi',
+			size: 150,
+			enableSorting: false,
+			enableHiding: false,
 			cell: ({ row }) => {
 				const grn = row.original
 				if (grn.status === 'open') {
@@ -82,8 +90,7 @@ function GoodsReceiptPage() {
 				}
 				return null
 			},
-			size: 150,
-		}),
+		},
 	]
 
 	const table = useDataTable({

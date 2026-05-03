@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { ClipboardListIcon, ClockIcon, PlusIcon, TruckIcon } from 'lucide-react'
 
@@ -10,13 +11,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { SectionErrorBoundary } from '@/components/blocks/feedback/section-error-boundary'
 import { Page } from '@/components/layout/page'
-import {
-	createColumnHelper,
-	currencyColumn,
-	dateColumn,
-	statusColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellCurrency, CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -30,27 +25,41 @@ export const Route = createFileRoute('/_app/procurement/orders')({
 	component: ProcurementOrderPage,
 })
 
-const ch = createColumnHelper<PurchaseOrderDto>()
-
-const columns = [
-	ch.accessor('id', textColumn({ header: 'No. Pembelian', size: 130 })),
-	ch.accessor('supplierId', textColumn({ header: 'Supplier ID', size: 100 })), // Simplified for now
-	ch.accessor('transactionDate', dateColumn({ header: 'Tanggal Order', size: 160 })),
-	ch.accessor('totalAmount', currencyColumn({ header: 'Total Tagihan', size: 160 })),
-	ch.accessor(
-		'status',
-		statusColumn({
-			header: 'Status',
-			render: (value) => {
-				const status = value as string
-				if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
-				if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
-				if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
-				return <BadgeDot variant="secondary">{status}</BadgeDot>
-			},
-			size: 130,
-		}),
-	),
+const columns: ColumnDef<PurchaseOrderDto>[] = [
+	{
+		accessorKey: 'id',
+		header: 'No. Pembelian',
+		size: 130,
+	},
+	{
+		accessorKey: 'supplierId',
+		header: 'Supplier ID',
+		size: 100,
+	},
+	{
+		accessorKey: 'transactionDate',
+		header: 'Tanggal Order',
+		size: 160,
+		cell: ({ row }) => <CellDate value={row.original.transactionDate} />,
+	},
+	{
+		accessorKey: 'totalAmount',
+		header: 'Total Tagihan',
+		size: 160,
+		cell: ({ row }) => <CellCurrency value={row.original.totalAmount} />,
+	},
+	{
+		accessorKey: 'status',
+		header: 'Status',
+		size: 130,
+		cell: ({ row }) => {
+			const status = row.original.status
+			if (status === 'completed') return <BadgeDot variant="success">Selesai</BadgeDot>
+			if (status === 'open') return <BadgeDot variant="warning">Draf/Proses</BadgeDot>
+			if (status === 'void') return <BadgeDot variant="destructive">Dibatalkan</BadgeDot>
+			return <BadgeDot variant="secondary">{status}</BadgeDot>
+		},
+	},
 ]
 
 function ProcurementOrderPage() {

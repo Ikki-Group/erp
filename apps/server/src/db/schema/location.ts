@@ -14,7 +14,7 @@ export const locationsTable = pgTable(
 	'locations',
 	{
 		...pk,
-		code: text('code').notNull(),
+		code: text('code'),
 		name: text('name').notNull(),
 		type: locationTypeEnum('type').notNull(),
 		description: text('description'),

@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema } from '@/core/validation'
 
 import * as dto from './finance-reporting.dto'
 import type { FinanceReportingService } from './finance-reporting.service'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initFinanceReportingRoute(service: FinanceReportingService) {
 	return new Elysia({ prefix: '/finance' })

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
 
@@ -9,13 +10,7 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
-import {
-	createColumnHelper,
-	currencyColumn,
-	dateColumn,
-	statusColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellCurrency, CellDate } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -33,8 +28,6 @@ import { stockTransactionApi } from '@/features/inventory'
 
 export const Route = createFileRoute('/_app/inventory/transactions/')({ component: RouteComponent })
 
-const ch = createColumnHelper<StockTransactionSelectDto>()
-
 function RouteComponent() {
 	const ds = useDataTableState()
 
@@ -46,65 +39,73 @@ function RouteComponent() {
 		}),
 	)
 
-	const columns = [
-		ch.accessor('date', dateColumn({ header: 'Tanggal', size: 130 })),
-		ch.accessor('referenceNo', textColumn({ header: 'No Referensi', size: 150 })),
-		ch.accessor(
-			'type',
-			statusColumn({
-				header: 'Tipe',
-				render: (value) => {
-					const typeStr = value as string
-					const color =
-						typeStr.includes('in') || typeStr === 'purchase'
-							? 'success'
-							: typeStr.includes('out') || typeStr === 'sell'
-								? 'destructive'
-								: 'secondary'
+	const columns: ColumnDef<StockTransactionSelectDto>[] = [
+		{
+			accessorKey: 'date',
+			header: 'Tanggal',
+			size: 130,
+			cell: ({ row }) => <CellDate value={row.original.date} />,
+		},
+		{
+			accessorKey: 'referenceNo',
+			header: 'No Referensi',
+			size: 150,
+		},
+		{
+			accessorKey: 'type',
+			header: 'Tipe',
+			size: 110,
+			cell: ({ row }) => {
+				const typeStr = row.original.type
+				const color =
+					typeStr.includes('in') || typeStr === 'purchase'
+						? 'success'
+						: typeStr.includes('out') || typeStr === 'sell'
+							? 'destructive'
+							: 'secondary'
 
-					const label = typeStr.replace('_', ' ').toUpperCase()
-					return <Badge variant={color}>{label}</Badge>
-				},
-				size: 110,
-			}),
-		),
-		ch.accessor(
-			'materialName',
-			statusColumn({
-				header: 'Bahan Baku',
-				render: (value, row) => (
-					<div className="flex flex-col gap-1">
-						<span className="font-semibold text-foreground/90">{value}</span>
-						<span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
-							SKU: {row.materialSku}
-						</span>
-					</div>
-				),
-				size: 200,
-			}),
-		),
-		ch.accessor(
-			'qty',
-			statusColumn({
-				header: 'Qty',
-				render: (value, row) => {
-					const qty = Number(value)
-					const isOut = row.type === 'transfer_out' || row.type === 'sell'
-					const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
+				const label = typeStr.replace('_', ' ').toUpperCase()
+				return <Badge variant={color}>{label}</Badge>
+			},
+		},
+		{
+			accessorKey: 'materialName',
+			header: 'Bahan Baku',
+			size: 200,
+			cell: ({ row }) => (
+				<div className="flex flex-col gap-1">
+					<span className="font-semibold text-foreground/90">{row.original.materialName}</span>
+					<span className="text-[11px] font-mono text-muted-foreground/80 tracking-tight">
+						SKU: {row.original.materialSku}
+					</span>
+				</div>
+			),
+		},
+		{
+			accessorKey: 'qty',
+			header: 'Qty',
+			size: 100,
+			cell: ({ row }) => {
+				const qty = row.original.qty
+				const isOut = row.original.type === 'transfer_out' || row.original.type === 'sell'
+				const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
 
-					return (
-						<Badge
-							variant={color}
-							className="font-semibold tabular-nums px-2 shadow-none border-transparent"
-						>
-							{isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
-						</Badge>
-					)
-				},
-				size: 100,
-			}),
-		),
-		ch.accessor('totalCost', currencyColumn({ header: 'Total Nilai', size: 150 })),
+				return (
+					<Badge
+						variant={color}
+						className="font-semibold tabular-nums px-2 shadow-none border-transparent"
+					>
+						{isOut && qty > 0 ? `-${qty}` : qty > 0 ? `+${qty}` : qty}
+					</Badge>
+				)
+			},
+		},
+		{
+			accessorKey: 'totalCost',
+			header: 'Total Nilai',
+			size: 150,
+			cell: ({ row }) => <CellCurrency value={row.original.totalCost} />,
+		},
 	]
 
 	const table = useDataTable({

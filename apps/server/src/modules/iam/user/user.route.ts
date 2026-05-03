@@ -2,15 +2,15 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './user.dto'
+import type { UserService } from './user.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/core/validation'
-
-import * as dto from './user.dto'
-import type { UserService } from './user.service'
+} from '@/lib/validation'
 
 export function initUserRoute(service: UserService) {
 	return new Elysia({ prefix: '/user' })
@@ -51,7 +51,7 @@ export function initUserRoute(service: UserService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const result = await service.handleUpdate(body.id, body, auth.userId)

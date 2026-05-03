@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -14,27 +15,14 @@ import { toastLabelMessage } from '@/lib/toast-message'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
-import {
-	actionColumn,
-	createColumnHelper,
-	dateColumn,
-	linkColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate, CellMenu, type CellMenuItem } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 import type { MaterialCategoryDto } from '@/features/material'
 import { materialCategoryApi } from '@/features/material'
 import { MaterialCategoryFormDialog } from '@/features/material/components/material-category-form-dialog'
-
-const ch = createColumnHelper<MaterialCategoryDto>()
 
 export const Route = createFileRoute('/_app/material/category')({ component: RouteComponent })
 
@@ -53,57 +41,64 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(handleDelete: (item: MaterialCategoryDto) => Promise<void>) {
+function getColumns(
+	onRemove: (item: MaterialCategoryDto) => Promise<void>,
+): ColumnDef<MaterialCategoryDto>[] {
 	return [
-		ch.accessor(
-			'name',
-			linkColumn({
-				header: 'Kategori',
-				render: (value, row) => (
-					<div className="flex flex-col gap-0.5">
-						<span className="font-medium">{value}</span>
-						{row.description && (
-							<span className="text-sm text-muted-foreground line-clamp-1">{row.description}</span>
-						)}
-					</div>
-				),
-				size: 400,
-				enableSorting: false,
-			}),
-		),
-		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 180 })),
-		actionColumn<MaterialCategoryDto>({
+		{
+			accessorKey: 'name',
+			header: 'Kategori',
+			size: 400,
+			enableSorting: false,
+			cell: ({ row }) => (
+				<div className="flex flex-col gap-0.5">
+					<span className="font-medium">{row.original.name}</span>
+					{row.original.description && (
+						<span className="text-sm text-muted-foreground line-clamp-1">
+							{row.original.description}
+						</span>
+					)}
+				</div>
+			),
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			size: 180,
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
 			id: 'action',
+			header: '',
 			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
 			cell: ({ row }) => {
-				return (
-					<div className="flex items-center justify-end px-2">
-						<DropdownMenu>
-							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-36">
-								<DropdownMenuItem
-									onClick={() => {
-										void MaterialCategoryFormDialog.upsert({ id: row.original.id })
-									}}
-								>
-									<PencilIcon className="mr-2" />
-									Edit
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => void handleDelete(row.original)}
-								>
-									<Trash2Icon className="mr-2" />
-									Hapus
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				)
+				const items: CellMenuItem[] = [
+					{
+						type: 'button',
+						label: 'Edit',
+						icon: <PencilIcon />,
+						onClick: () => {
+							void MaterialCategoryFormDialog.upsert({ id: row.original.id })
+						},
+					},
+					{
+						type: 'separator',
+					},
+					{
+						type: 'button',
+						label: 'Hapus',
+						variant: 'destructive',
+						icon: <Trash2Icon />,
+						onClick: () => onRemove(row.original),
+					},
+				]
+				return <CellMenu items={items} />
 			},
-		}),
+		},
 	]
 }
 
@@ -131,7 +126,6 @@ function CategoryTable() {
 		})
 	}
 
-	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
 	const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
 	const table = useDataTable({

@@ -4,10 +4,10 @@ import { userApi } from '@/features/iam'
 import { UserFormPage } from '@/features/iam/components/user-form-page'
 
 export const Route = createFileRoute('/_app/settings/user/$id')({
-	component: RouteComponent,
 	loader: async ({ params, context }) => {
 		await context.qc.ensureQueryData(userApi.detail.query({ id: Number(params.id) }))
 	},
+	component: RouteComponent,
 })
 
 function RouteComponent() {

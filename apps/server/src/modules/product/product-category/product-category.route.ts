@@ -2,7 +2,6 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
 	ProductCategoryFilterDto,
@@ -11,6 +10,7 @@ import {
 	ProductCategoryDto,
 } from './product-category.dto'
 import type { ProductCategoryService } from './product-category.service'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initProductCategoryRoute(s: ProductCategoryService) {
 	return new Elysia({ prefix: '/category' })

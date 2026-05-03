@@ -1,10 +1,9 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
-
 import { LocationDto } from '@/modules/location'
 
 import { UomDto } from '../uom/uom.dto'
+import { zc, zp, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

@@ -1,11 +1,10 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
-
 import { LocationDto } from '@/modules/location'
 
 import { UserAssignmentDto } from '../assignment/assignment.dto'
 import { RoleDto } from '../role/role.dto'
+import { zc, zp, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

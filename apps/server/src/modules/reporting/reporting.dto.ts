@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp } from '@/core/validation'
+import { zp } from '@/lib/validation'
 
 /** Date range filter for reports */
 export const DateRangeDto = z.object({
