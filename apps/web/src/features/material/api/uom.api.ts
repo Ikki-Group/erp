@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 
-import { apiFactory } from '@/lib/api'
+import { apiFactory, createQueryKeys } from '@/lib/api'
 import {
 	zc,
 	zq,
@@ -12,12 +12,15 @@ import {
 
 import { UomDto, UomFilterDto, UomMutationDto, UomUpdateDto } from '../dto'
 
+const uomKeys = createQueryKeys('material', 'uom')
+
 export const uomApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.material.uom.list,
 		params: z.object({ ...zq.pagination.shape, ...UomFilterDto.shape }),
 		result: createPaginatedResponseSchema(UomDto),
+		queryKey: uomKeys.list,
 	}),
 
 	detail: apiFactory({
@@ -25,6 +28,7 @@ export const uomApi = {
 		url: endpoint.material.uom.detail,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(UomDto),
+		queryKey: (params) => uomKeys.detail(params?.id),
 	}),
 
 	create: apiFactory({
@@ -32,7 +36,7 @@ export const uomApi = {
 		url: endpoint.material.uom.create,
 		body: UomMutationDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.material.uom.list],
+		invalidates: [uomKeys.lists()],
 	}),
 
 	update: apiFactory({
@@ -40,7 +44,7 @@ export const uomApi = {
 		url: endpoint.material.uom.update,
 		body: UomUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.material.uom.list, endpoint.material.uom.detail],
+		invalidates: [uomKeys.lists(), ({ body }) => uomKeys.detail(body.id)],
 	}),
 
 	remove: apiFactory({
@@ -48,6 +52,6 @@ export const uomApi = {
 		url: endpoint.material.uom.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.material.uom.list],
+		invalidates: [uomKeys.lists(), ({ params }) => uomKeys.detail(params.id)],
 	}),
 }

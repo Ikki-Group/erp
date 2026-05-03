@@ -2,8 +2,13 @@ import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 
-import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { apiFactory, createQueryKeys } from '@/lib/api'
+import {
+	zc,
+	zq,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@/lib/validation'
 
 import {
 	GoodsReceiptNoteCreateDto,
@@ -17,39 +22,45 @@ import {
 	PurchaseOrderUpdateDto,
 } from '../dto/purchase-order.dto'
 
+const purchaseOrderKeys = createQueryKeys('purchasing', 'purchase-order')
+const goodsReceiptKeys = createQueryKeys('purchasing', 'goods-receipt')
+const inventorySummaryKeys = createQueryKeys('inventory', 'summary')
+
 export const purchaseOrderApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.purchasing.order.list,
 		params: z.object({ ...PurchaseOrderFilterDto.shape, ...zq.pagination.shape }),
 		result: createPaginatedResponseSchema(PurchaseOrderDto),
+		queryKey: purchaseOrderKeys.list,
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.purchasing.order.detail,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(PurchaseOrderDto),
+		queryKey: (params) => purchaseOrderKeys.detail(params?.id),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.purchasing.order.create,
 		body: PurchaseOrderCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.purchasing.order.list],
+		invalidates: [purchaseOrderKeys.lists()],
 	}),
 	update: apiFactory({
 		method: 'patch',
 		url: endpoint.purchasing.order.update,
 		body: PurchaseOrderUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.purchasing.order.list, endpoint.purchasing.order.detail],
+		invalidates: [purchaseOrderKeys.lists(), ({ body }) => purchaseOrderKeys.detail(body.id)],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.purchasing.order.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.purchasing.order.list],
+		invalidates: [purchaseOrderKeys.lists(), ({ params }) => purchaseOrderKeys.detail(params.id)],
 	}),
 }
 
@@ -59,19 +70,21 @@ export const goodsReceiptApi = {
 		url: endpoint.purchasing.goodsReceipt.list,
 		params: GoodsReceiptNoteFilterDto,
 		result: createPaginatedResponseSchema(GoodsReceiptNoteDto),
+		queryKey: goodsReceiptKeys.list,
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.purchasing.goodsReceipt.detail,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(GoodsReceiptNoteDto),
+		queryKey: (params) => goodsReceiptKeys.detail(params?.id),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.purchasing.goodsReceipt.create,
 		body: GoodsReceiptNoteCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.purchasing.goodsReceipt.list, endpoint.inventory.summary.byLocation],
+		invalidates: [goodsReceiptKeys.lists(), inventorySummaryKeys.all()],
 	}),
 	complete: apiFactory({
 		method: 'post',
@@ -79,9 +92,9 @@ export const goodsReceiptApi = {
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [
-			endpoint.purchasing.goodsReceipt.list,
-			endpoint.purchasing.goodsReceipt.detail,
-			endpoint.inventory.summary.byLocation,
+			goodsReceiptKeys.lists(),
+			({ params }) => goodsReceiptKeys.detail(params.id),
+			inventorySummaryKeys.all(),
 		],
 	}),
 }

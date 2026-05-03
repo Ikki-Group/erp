@@ -97,7 +97,7 @@ const dashboard = {
 	settings: { summary: 'dashboard/settings/summary' },
 }
 
-const employee = crud('employee')
+const employee = crud('hr/employee')
 
 const finance = {
 	account: crud('finance/account'),

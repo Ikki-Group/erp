@@ -20,8 +20,6 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@dnd-kit/utilities": "^3.2.2",
 		"@fontsource-variable/inter": "^5.2.8",
-		"@fontsource-variable/roboto": "^5.2.10",
-		"@fontsource/poppins": "^5.2.7",
 		"@sentry/react": "^10.50.0",
 		"@tailwindcss/vite": "^4.2.4",
 		"@tanstack/query-broadcast-client-experimental": "^5.100.1",
@@ -42,7 +40,6 @@
 		"cmdk": "^1.1.1",
 		"date-fns": "^4.1.0",
 		"embla-carousel-react": "^8.6.0",
-		"geist": "^1.7.0",
 		"input-otp": "^1.4.2",
 		"jsurl2": "^2.2.0",
 		"ky": "^1.14.3",
@@ -83,8 +80,6 @@
 		"oxlint-tsgolint": "^0.17.4",
 		"typescript": "^6.0.3",
 		"vite": "^7.3.2",
-		"vitest": "^3.2.4",
-		"web-vitals": "^5.2.0",
-		"wrangler": "^4.84.1"
+		"vitest": "^3.2.4"
 	}
 }
