@@ -2,7 +2,7 @@ import z from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 
-import { apiFactory } from '@/lib/api'
+import { apiFactory, createQueryKeys } from '@/lib/api'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
@@ -12,38 +12,42 @@ import {
 
 import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 
+const locationKeys = createQueryKeys('location', 'master')
+
 export const locationApi = {
 	list: apiFactory({
 		method: 'get',
 		url: endpoint.location.list,
 		params: z.object({ ...zq.pagination.shape, ...LocationFilterDto.shape }),
 		result: createPaginatedResponseSchema(LocationDto),
+		queryKey: locationKeys.list,
 	}),
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.location.detail,
-		params: zq.recordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(LocationDto),
+		queryKey: (params) => locationKeys.detail(params?.id),
 	}),
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.location.create,
 		body: LocationCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.location.list],
+		invalidates: [locationKeys.lists()],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.location.update,
 		body: LocationUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.location.list, endpoint.location.detail],
+		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.location.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.location.list],
+		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
 	}),
 }
