@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
 
 import * as dto from './customer.dto'
 
-const CUSTOMER_CACHE_NAMESPACE = 'customer'
-
 export class CustomerRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(CUSTOMER_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('CustomerRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'CustomerRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -76,19 +51,14 @@ export class CustomerRepo {
 
 	async getById(id: number): Promise<dto.CustomerDto | undefined> {
 		return record('CustomerRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(customersTable)
-						.where(eq(customersTable.id, id))
-						.limit(1)
-						.then(takeFirst)
+			const res = await this.db
+				.select()
+				.from(customersTable)
+				.where(eq(customersTable.id, id))
+				.limit(1)
+				.then(takeFirst)
 
-					return res ? dto.CustomerDto.parse(res) : skip()
-				},
-			})
+			return res ? dto.CustomerDto.parse(res) : undefined
 		})
 	}
 
@@ -125,7 +95,6 @@ export class CustomerRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: customersTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -139,7 +108,6 @@ export class CustomerRepo {
 				.where(eq(customersTable.id, data.id))
 				.returning({ id: customersTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -151,7 +119,6 @@ export class CustomerRepo {
 				.where(eq(customersTable.id, id))
 				.returning({ id: customersTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -193,7 +160,6 @@ export class CustomerRepo {
 				})
 				.returning({ id: customerLoyaltyTransactionsTable.id })
 
-			this.#clearCacheAsync(data.customerId)
 			return res?.id
 		})
 	}
@@ -241,7 +207,6 @@ export class CustomerRepo {
 				})
 				.returning({ id: customerLoyaltyTransactionsTable.id })
 
-			this.#clearCacheAsync(data.customerId)
 			return res?.id
 		})
 	}
@@ -252,8 +217,6 @@ export class CustomerRepo {
 				.update(customersTable)
 				.set({ lastVisitAt: new Date() })
 				.where(eq(customersTable.id, customerId))
-
-			this.#clearCacheAsync(customerId)
 		})
 	}
 }

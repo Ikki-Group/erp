@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import { CustomerRepo } from './customer/customer.repo'
 import { initCustomerRoute } from './customer/customer.route'
@@ -11,8 +12,8 @@ export class CrmServiceModule {
 	public readonly customer: CustomerService
 
 	constructor(db: DbClient, cacheClient: CacheClient) {
-		const repo = new CustomerRepo(db, cacheClient)
-		this.customer = new CustomerService(repo)
+		const repo = new CustomerRepo(db)
+		this.customer = new CustomerService(repo, cacheClient)
 	}
 }
 
