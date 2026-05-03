@@ -23,3 +23,4 @@ export type ConfigNamespace =
 	| 'inventory.summary'
 	| 'inventory.stock-transfer'
 	| 'inventory.alert'
+	| 'recipe'
