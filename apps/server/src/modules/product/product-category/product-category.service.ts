@@ -37,7 +37,7 @@ export class ProductCategoryService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductCategoryDto> {
+	async getById(id: number): Promise<ProductCategoryDto | undefined> {
 		return record('ProductCategoryService.getById', async () => {
 			return this.cache.getOrSetSkipUndefined({
 				key: `byId:${id}`,
@@ -67,7 +67,13 @@ export class ProductCategoryService {
 
 	async handleDetail(id: number): Promise<ProductCategoryDto> {
 		return record('ProductCategoryService.handleDetail', async () => {
-			return this.getById(id)
+			const result = await this.getById(id)
+			if (!result)
+				throw new NotFoundError(
+					`Product category with ID ${id} not found`,
+					'PRODUCT_CATEGORY_NOT_FOUND',
+				)
+			return result
 		})
 	}
 

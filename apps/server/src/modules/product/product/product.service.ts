@@ -37,7 +37,7 @@ export class ProductService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductDto> {
+	async getById(id: number): Promise<ProductDto | undefined> {
 		return record('ProductService.getById', async () => {
 			return this.cache.getOrSetSkipUndefined({
 				key: `byId:${id}`,
@@ -73,8 +73,10 @@ export class ProductService {
 	async handleDetail(id: number): Promise<ProductSelectDto> {
 		return record('ProductService.handleDetail', async () => {
 			const product = await this.getById(id)
+			if (!product) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+
 			const category = product.categoryId
-				? await this.categorySvc.getById(product.categoryId)
+				? ((await this.categorySvc.getById(product.categoryId)) ?? null)
 				: null
 			return { ...product, category }
 		})
@@ -106,6 +108,7 @@ export class ProductService {
 	): Promise<{ id: number }> {
 		return record('ProductService.handleUpdate', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
 
 			const sku = data.sku ? data.sku.trim() : existing.sku
 			const name = data.name ? data.name.trim() : existing.name
