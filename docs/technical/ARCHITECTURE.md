@@ -6,10 +6,10 @@
 
 | Aspect | Standard |
 |--------|----------|
-| Structure | Co-located files (no subfolders) |
-| DI | `private readonly repo` + `private readonly cacheClient` constructor injection |
-| Cache | `CacheClient` injected at module level, `CacheProvider` for namespaced cache |
-| Service Methods | `get*()` for services, `handle*()` for router |
+| Structure | Flat for single submodule, package-by-feature for multiple |
+| DI | `private readonly repo` + `CacheService` constructor injection |
+| Cache | `CacheService` from `@/lib/cache` — namespace isolation in service layer |
+| Service Methods | `get*()` for cross-service reads, `handle*()` for router |
 | Testing | Co-located tests, skip DTO tests, mock via DI |
 | No Usecase | Orchestration in service layer |
 
@@ -36,17 +36,35 @@ Layer 0 (Core): location, product (no dependencies)
 
 ### Module Structure
 
+**Flat Module** (single submodule):
+
 ```
 src/modules/{name}/
-├── dto/{entity}.dto.ts
-├── {entity}.repo.ts
-├── {entity}.service.ts
-├── {entity}.route.ts
-├── {entity}.service.test.ts
-├── {entity}.route.test.ts
+├── index.ts              # ServiceModule + initRouteModule
+├── {name}.dto.ts
+├── {name}.repo.ts
+├── {name}.service.ts
+├── {name}.route.ts
+├── {name}.service.test.ts
+└── {name}.route.test.ts
+```
+
+**Package-by-Feature** (multiple submodules):
+
+```
+src/modules/{name}/
+├── index.ts              # ServiceModule + initRouteModule + re-exports
+├── feature-a/
+│   ├── index.ts
+│   ├── feature-a.dto.ts
+│   ├── feature-a.repo.ts
+│   ├── feature-a.service.ts
+│   └── feature-a.route.ts
+├── feature-b/
+│   ├── index.ts
+│   └── ...
 ├── constants.ts
-├── errors.ts
-└── index.ts (Module class + Services interface only)
+└── errors.ts
 ```
 
 ---
@@ -79,7 +97,7 @@ HTTP Client → Router → Service → Repo → DB
 
 ## Repository Layer
 
-- NO business logic, NO caching
+- NO business logic, NO caching (cache moved to service layer)
 - Every method wrapped with `record('ClassName.methodName', ...)`
 - Batch queries with `inArray()`, not loops
 - Use `paginate()`, `searchFilter()` from `@/core/database`
@@ -88,13 +106,13 @@ HTTP Client → Router → Service → Repo → DB
 
 ## Caching Strategy
 
-- Cache injected via `CacheClient` at module level (initialized via `createCache()` in root registry)
-- `cacheClient.namespace('entity')` per entity (namespace constant defined at module level)
-- Use `CacheProvider` type for namespaced cache
-- Use `CACHE_KEY_DEFAULT` from `@/core/cache` (not hardcoded)
-- `cache.getOrSet({ factory: async ({ skip }) => ... ?? skip() })`
-- Invalidate on every write using `#clearCacheAsync()` with error handling: `deleteMany({ keys: [list, count, byId] })`
-- Fire-and-forget invalidation with `.catch()` + logging to prevent unhandled rejections
+- Cache implemented in **service layer** (not repo)
+- Use `CacheService` from `@/lib/cache` with namespace isolation
+- Initialize: `new CacheService({ ns: 'entity', client: cacheClient })`
+- Read methods use `cache.getOrSet()` or `cache.getOrSetSkipUndefined()`
+- Mutation methods invalidate cache immediately with `cache.deleteMany({ keys: [...] })`
+- Cache keys: simple strings like `'list'`, `'count'`, `` `byId:${id}` ``
+- Invalidate pattern: `['list', 'count']` for create, add `` `byId:${id}` `` for update/delete
 
 ## Error Handling
 
@@ -128,16 +146,24 @@ HTTP Client → Router → Service → Repo → DB
 ### Route Assembly
 
 ```typescript
-// router/index.ts
-export function initEntityRouteModule(m: EntityModule) {
+// modules/entity/index.ts
+export class EntityServiceModule {
+  public readonly entity: EntityService
+
+  constructor(db: DbClient, cacheClient: CacheClient) {
+    const repo = new EntityRepo(db)
+    this.entity = new EntityService(repo, cacheClient)
+  }
+}
+
+export function initEntityRouteModule(service: EntityServiceModule) {
   return new Elysia({ prefix: '/entity' })
-    .use(initEntityRoute(m.service.entity))
-    // tambah sub-routes lain jika ada
+    .use(initEntityRoute(service.entity))
 }
 
 // _routes.ts
-import { initEntityRouteModule } from './entity'
-routes.push(initEntityRouteModule(m.entity))
+import { initEntityRouteModule } from './modules/entity'
+routes.push(initEntityRouteModule(modules.entity))
 ```
 
 ### Response Builders

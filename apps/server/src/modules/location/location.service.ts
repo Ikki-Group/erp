@@ -106,6 +106,8 @@ export class LocationMasterService {
 			const result = await this.r.create(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -128,6 +130,8 @@ export class LocationMasterService {
 			const result = await this.r.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -136,6 +140,9 @@ export class LocationMasterService {
 		return record('LocationMasterService.handleRemove', async () => {
 			const result = await this.r.remove(id)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
