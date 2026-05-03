@@ -3,12 +3,15 @@ import { memoryDriver } from 'bentocache/drivers/memory'
 
 import { logger } from './logger'
 
+/** @deprecated */
 export type CacheClient = BentoCache<{
 	cache: BentoStore
 }>
 
+/** @deprecated */
 export type CacheProvider = ReturnType<CacheClient['namespace']>
 
+/** @deprecated */
 export function createCache(): CacheClient {
 	return new BentoCache({
 		default: 'cache',

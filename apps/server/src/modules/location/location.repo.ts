@@ -15,7 +15,7 @@ import { logger } from '@/core/logger'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
+import * as dto from './location.dto'
 
 const LOCATION_CACHE_NAMESPACE = 'location-master'
 

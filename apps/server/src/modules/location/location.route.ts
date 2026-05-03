@@ -3,8 +3,8 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './location-master.dto'
-import type { LocationMasterService } from './location-master.service'
+import * as dto from './location.dto'
+import type { LocationMasterService } from './location.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,

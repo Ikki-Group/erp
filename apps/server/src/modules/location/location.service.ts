@@ -6,8 +6,8 @@ import { RelationMap } from '@/core/utils/relation-map'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
-import { LocationMasterRepo } from './location-master.repo'
+import * as dto from './location.dto'
+import { LocationMasterRepo } from './location.repo'
 import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'name'>[] = [
