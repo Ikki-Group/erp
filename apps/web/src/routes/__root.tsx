@@ -1,6 +1,5 @@
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 
-// import { ErrorBoundary } from '@sentry/react'
 import { ThemeProvider } from 'next-themes'
 
 import { useAppState } from '@/hooks/use-app-state'
@@ -40,15 +39,11 @@ export const Route = createRootRouteWithContext<RouteContext>()({
 function RootComponent() {
 	return (
 		<ThemeProvider attribute="class">
-			{/* <ErrorBoundary> */}
 			<TooltipProvider>
 				<Outlet />
 				<ConfirmDialog.Root />
-				{/* <ReactQueryDevtools buttonPosition="bottom-left" />
-				<TanStackRouterDevtools position="bottom-right" /> */}
 				<Toaster position="top-right" />
 			</TooltipProvider>
-			{/* </ErrorBoundary> */}
 		</ThemeProvider>
 	)
 }
