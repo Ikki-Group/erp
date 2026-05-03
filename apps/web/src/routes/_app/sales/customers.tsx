@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
 
@@ -7,11 +8,6 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { Page } from '@/components/layout/page'
-import {
-	createColumnHelper,
-	customColumn,
-	textColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -51,41 +47,46 @@ const mockCustomers = [
 ]
 
 type CustomerType = (typeof mockCustomers)[0]
-const ch = createColumnHelper<CustomerType>()
 
-const columns = [
-	ch.accessor(
-		'name',
-		customColumn({
-			header: 'Pelanggan',
-			cell: (value, row) => (
-				<div className="flex items-center gap-3">
-					<Avatar className="h-8 w-8 rounded-lg">
-						<AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-							{(value as string).slice(0, 2).toUpperCase()}
-						</AvatarFallback>
-					</Avatar>
-					<div>
-						<span className="font-medium">{value}</span>
-						<p className="text-muted-foreground text-xs font-mono">{row.id}</p>
-					</div>
+const columns: ColumnDef<CustomerType>[] = [
+	{
+		accessorKey: 'name',
+		header: 'Pelanggan',
+		size: 250,
+		cell: ({ row }) => (
+			<div className="flex items-center gap-3">
+				<Avatar className="h-8 w-8 rounded-lg">
+					<AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+						{row.original.name.slice(0, 2).toUpperCase()}
+					</AvatarFallback>
+				</Avatar>
+				<div>
+					<span className="font-medium">{row.original.name}</span>
+					<p className="text-muted-foreground text-xs font-mono">{row.original.id}</p>
 				</div>
-			),
-			size: 250,
-		}),
-	),
-	ch.accessor('email', textColumn({ header: 'Email', size: 200 })),
-	ch.accessor('phone', textColumn({ header: 'No. HP', size: 150 })),
-	ch.accessor(
-		'segment',
-		customColumn({
-			header: 'Segmen',
-			cell: (value) => (
-				<span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">{value}</span>
-			),
-			size: 100,
-		}),
-	),
+			</div>
+		),
+	},
+	{
+		accessorKey: 'email',
+		header: 'Email',
+		size: 200,
+	},
+	{
+		accessorKey: 'phone',
+		header: 'No. HP',
+		size: 150,
+	},
+	{
+		accessorKey: 'segment',
+		header: 'Segmen',
+		size: 100,
+		cell: ({ row }) => (
+			<span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">
+				{row.original.segment}
+			</span>
+		),
+	},
 ]
 
 function SalesCustomersPage() {
