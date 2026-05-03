@@ -5,6 +5,8 @@ import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { InventoryServiceModule } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
@@ -17,18 +19,27 @@ import type {
 import { WorkOrderRepo } from './work-order.repo'
 
 export class WorkOrderService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly repo: WorkOrderRepo,
 		private readonly db: DbClient,
 		private readonly recipeSvc: RecipeService,
 		private readonly inventorySvc: InventoryServiceModule,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'production.work-order', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<WorkOrderDto> {
 		return record('WorkOrderService.getById', async () => {
-			const wo = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const wo = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!wo) throw new NotFoundError(`Work Order with ID ${id} not found`, 'WORK_ORDER_NOT_FOUND')
 			return wo
 		})
@@ -38,7 +49,11 @@ export class WorkOrderService {
 
 	async handleList(filter: WorkOrderFilterDto): Promise<WithPaginationResult<WorkOrderDto>> {
 		return record('WorkOrderService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -50,7 +65,9 @@ export class WorkOrderService {
 
 	async handleCreate(data: WorkOrderCreateDto, actorId: number): Promise<WorkOrderDto> {
 		return record('WorkOrderService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -59,7 +76,13 @@ export class WorkOrderService {
 			const wo = await this.getById(id)
 			if (wo.status !== 'draft') throw new ConflictError(`Only draft Work Orders can be started`)
 
-			return this.repo.update(id, { status: 'in_progress', startedAt: new Date() }, actorId)
+			const result = await this.repo.update(
+				id,
+				{ status: 'in_progress', startedAt: new Date() },
+				actorId,
+			)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -128,7 +151,7 @@ export class WorkOrderService {
 				}
 
 				// 3. Finalize Work Order
-				return this.repo.update(
+				const result = await this.repo.update(
 					id,
 					{
 						status: 'completed',
@@ -138,6 +161,8 @@ export class WorkOrderService {
 					},
 					actorId,
 				)
+				await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
 			})
 		})
 	}

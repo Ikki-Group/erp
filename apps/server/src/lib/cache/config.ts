@@ -32,3 +32,4 @@ export type ConfigNamespace =
 	| 'moka.config'
 	| 'moka.scrap-history'
 	| 'moka.sync-cursor'
+	| 'production.work-order'
