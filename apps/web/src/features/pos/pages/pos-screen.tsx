@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import { CartPanel } from '@/components/blocks/pos/cart-panel'
 import { CustomerSelector } from '@/components/blocks/pos/customer-selector'
@@ -51,6 +51,43 @@ export function PosScreen() {
 		console.log('Open bill:', cart)
 	}
 
+	// Keyboard shortcuts
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// F2: Focus search (to be implemented)
+			if (e.key === 'F2') {
+				e.preventDefault()
+				console.log('Focus search')
+			}
+			// F4: Clear cart
+			if (e.key === 'F4') {
+				e.preventDefault()
+				clearCart()
+			}
+			// F9: Open payment dialog
+			if (e.key === 'F9') {
+				e.preventDefault()
+				if (cart.items.length > 0) {
+					console.log('Open payment dialog')
+				}
+			}
+			// F12: Open bill
+			if (e.key === 'F12') {
+				e.preventDefault()
+				if (cart.items.length > 0) {
+					handleOpenBill()
+				}
+			}
+			// Escape: Close dialog
+			if (e.key === 'Escape') {
+				setShowOutletDialog(false)
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [cart.items, clearCart, handleOpenBill])
+
 	return (
 		<>
 			<OutletSelectionDialog
@@ -59,8 +96,8 @@ export function PosScreen() {
 				onSelect={handleSelectOutlet}
 			/>
 			{selectedOutlet ? (
-				<div className="flex h-full flex-col gap-4 p-6">
-					<div className="flex items-center gap-4">
+				<div className="flex h-full flex-col gap-4 p-4 md:p-6">
+					<div className="flex flex-wrap items-center gap-4">
 						<div className="flex items-center gap-2">
 							<span className="text-sm text-muted-foreground">Outlet:</span>
 							<span className="font-semibold">{selectedOutlet.name}</span>
@@ -76,11 +113,11 @@ export function PosScreen() {
 						/>
 						<TableNumberInput value={cart.tableNumber} onChange={setTableNumber} />
 					</div>
-					<div className="flex flex-1 gap-4 overflow-hidden">
+					<div className="flex flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
 						<div className="flex-1">
 							<ProductGrid onAddToCart={handleAddToCart} />
 						</div>
-						<div className="w-[400px] flex-none">
+						<div className="w-full lg:w-[400px] flex-none">
 							<CartPanel
 								cart={cart}
 								total={total}
