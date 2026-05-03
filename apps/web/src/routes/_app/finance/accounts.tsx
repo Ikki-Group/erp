@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { PlusIcon } from 'lucide-react'
 
@@ -10,7 +10,6 @@ import { useDataTableState } from '@/hooks/use-data-table-state'
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -20,39 +19,41 @@ import type { AccountDto } from '@/features/finance'
 
 export const Route = createFileRoute('/_app/finance/accounts')({ component: FinanceAccountsPage })
 
-const ch = createColumnHelper<AccountDto>()
-
-const columns = [
-	ch.accessor('code', textColumn({ header: 'Kode Akun', size: 120 })),
-	ch.accessor('name', textColumn({ header: 'Nama Akun', size: 250 })),
-	ch.accessor(
-		'type',
-		customColumn({
-			header: 'Kategori',
-			cell: (value: string) => {
-				if (value === 'ASSET') return <BadgeDot variant="success-outline">Aset</BadgeDot>
-				if (value === 'LIABILITY')
-					return <BadgeDot variant="destructive-outline">Kewajiban</BadgeDot>
-				if (value === 'EQUITY') return <BadgeDot variant="primary-outline">Ekuitas</BadgeDot>
-				if (value === 'REVENUE') return <BadgeDot variant="success">Pendapatan</BadgeDot>
-				return <BadgeDot variant="warning-outline">Beban</BadgeDot>
-			},
-			size: 150,
-		}),
-	),
-	ch.accessor(
-		'isGroup',
-		customColumn({
-			header: 'Tipe',
-			cell: (value: boolean) =>
-				value ? (
-					<BadgeDot variant="secondary">Grup</BadgeDot>
-				) : (
-					<BadgeDot variant="default">Detail</BadgeDot>
-				),
-			size: 100,
-		}),
-	),
+const columns: ColumnDef<AccountDto>[] = [
+	{
+		accessorKey: 'code',
+		header: 'Kode Akun',
+		size: 120,
+	},
+	{
+		accessorKey: 'name',
+		header: 'Nama Akun',
+		size: 250,
+	},
+	{
+		accessorKey: 'type',
+		header: 'Kategori',
+		size: 150,
+		cell: ({ row }) => {
+			const value = row.original.type
+			if (value === 'ASSET') return <BadgeDot variant="success-outline">Aset</BadgeDot>
+			if (value === 'LIABILITY') return <BadgeDot variant="destructive-outline">Kewajiban</BadgeDot>
+			if (value === 'EQUITY') return <BadgeDot variant="primary-outline">Ekuitas</BadgeDot>
+			if (value === 'REVENUE') return <BadgeDot variant="success">Pendapatan</BadgeDot>
+			return <BadgeDot variant="warning-outline">Beban</BadgeDot>
+		},
+	},
+	{
+		accessorKey: 'isGroup',
+		header: 'Tipe',
+		size: 100,
+		cell: ({ row }) =>
+			row.original.isGroup ? (
+				<BadgeDot variant="secondary">Grup</BadgeDot>
+			) : (
+				<BadgeDot variant="default">Detail</BadgeDot>
+			),
+	},
 ]
 
 function FinanceAccountsPage() {
