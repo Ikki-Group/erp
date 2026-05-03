@@ -2,16 +2,9 @@ import { useMemo, useState } from 'react'
 
 import { useMutation, useQuery, useSuspenseQueries } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import {
-	ChefHatIcon,
-	EyeIcon,
-	MapPinIcon,
-	MoreHorizontalIcon,
-	PencilIcon,
-	PlusIcon,
-	Trash2Icon,
-} from 'lucide-react'
+import { ChefHatIcon, EyeIcon, MapPinIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -23,21 +16,11 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Badge } from '@/components/reui/badge'
-import {
-	actionColumn,
-	createColumnHelper,
-	dateColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate, CellMenu, type CellMenuItem } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 import { locationApi } from '@/features/location'
 import { materialCategoryApi } from '@/features/material/api/material-category.api'
@@ -47,11 +30,11 @@ import type { MaterialFilterDto, MaterialSelectDto } from '../dto'
 import { MaterialBadgeProps } from '../utils'
 import { MaterialAssignToLocationDialog } from './material-assign-to-location-dialog'
 
-const ch = createColumnHelper<MaterialSelectDto>()
-
-function getColumns(handleDelete: (id: number) => Promise<void>) {
+function getColumns(
+	onRemove: (material: MaterialSelectDto) => Promise<void>,
+): ColumnDef<MaterialSelectDto>[] {
 	return [
-		ch.display({
+		{
 			id: 'select',
 			header: ({ table }) => (
 				<Checkbox
@@ -70,8 +53,9 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
 			size: 40,
 			enableSorting: false,
 			enableHiding: false,
-		}),
-		ch.accessor('name', {
+		},
+		{
+			accessorKey: 'name',
 			header: 'Bahan Baku',
 			size: 350,
 			enableSorting: true,
@@ -99,9 +83,10 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
 					</div>
 				)
 			},
-		}),
-		ch.accessor((row) => row.category?.name, {
+		},
+		{
 			id: 'category',
+			accessorFn: (row) => row.category?.name,
 			header: 'Kategori',
 			size: 140,
 			enableSorting: false,
@@ -110,15 +95,17 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
 					{row.original.category?.name ?? 'Tanpa Kategori'}
 				</Badge>
 			),
-		}),
-		ch.accessor('type', {
+		},
+		{
+			accessorKey: 'type',
 			header: 'Jenis',
 			size: 160,
 			enableSorting: false,
 			cell: ({ row }) => <BadgeDot {...MaterialBadgeProps[row.original.type]} />,
-		}),
-		ch.accessor((row) => row.uom?.code, {
+		},
+		{
 			id: 'uom',
+			accessorFn: (row) => row.uom?.code,
 			header: 'Satuan',
 			size: 90,
 			enableSorting: false,
@@ -127,8 +114,9 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
 					{row.original.uom?.code ?? '-'}
 				</Badge>
 			),
-		}),
-		ch.accessor('locationIds', {
+		},
+		{
+			accessorKey: 'locationIds',
 			header: 'Lokasi',
 			size: 120,
 			enableSorting: false,
@@ -150,57 +138,60 @@ function getColumns(handleDelete: (id: number) => Promise<void>) {
 					</Button>
 				)
 			},
-		}),
-		ch.accessor('updatedAt', dateColumn({ header: 'Diperbarui', size: 140 })),
-		actionColumn<MaterialSelectDto>({
+		},
+		{
+			accessorKey: 'updatedAt',
+			header: 'Diperbarui',
+			size: 140,
+			cell: ({ row }) => <CellDate value={row.original.updatedAt} />,
+		},
+		{
 			id: 'action',
+			header: '',
 			size: 80,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
 			cell: ({ row }) => {
 				const material = row.original
-				return (
-					<div className="flex items-center justify-end gap-1 px-2">
-						<Button
-							variant="ghost"
-							title="Lihat Detail"
-							nativeButton={false}
-							render={<Link to="/material/$id" params={{ id: String(material.id) }} />}
-						>
-							<EyeIcon />
-						</Button>
-						<DropdownMenu>
-							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-40">
-								{material.type === 'semi' && (
-									<DropdownMenuItem
-										nativeButton={false}
-										render={<Link to="/material/$id/recipe" params={{ id: String(material.id) }} />}
-									>
-										<ChefHatIcon className="mr-2" />
-										Kelola Resep
-									</DropdownMenuItem>
-								)}
-								<DropdownMenuItem
-									nativeButton={false}
-									render={<Link to="/material/$id/update" params={{ id: String(material.id) }} />}
-								>
-									<PencilIcon className="mr-2" />
-									Edit Bahan
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => void handleDelete(material.id)}
-								>
-									<Trash2Icon className="mr-2" />
-									Hapus
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
+				const items: CellMenuItem[] = [
+					{
+						type: 'link',
+						label: 'Lihat Detail',
+						icon: <EyeIcon />,
+						to: `/material/${material.id}`,
+					},
+				]
+				if (material.type === 'semi') {
+					items.push({
+						type: 'link',
+						label: 'Kelola Resep',
+						icon: <ChefHatIcon />,
+						to: `/material/${material.id}/recipe`,
+					})
+				}
+				items.push(
+					{
+						type: 'link',
+						label: 'Edit Bahan',
+						icon: <PencilIcon />,
+						to: `/material/${material.id}/update`,
+					},
+					{
+						type: 'separator',
+					},
+					{
+						type: 'button',
+						label: 'Hapus',
+						variant: 'destructive',
+						icon: <Trash2Icon />,
+						onClick: () => onRemove(material),
+					},
 				)
+				return <CellMenu items={items} />
 			},
-		}),
+		},
 	]
 }
 
@@ -226,7 +217,7 @@ export function MaterialTable() {
 
 	const deleteMutation = useMutation({ mutationFn: materialApi.remove.mutationFn })
 
-	const handleDelete = async (id: number) => {
+	const handleDelete = async (material: MaterialSelectDto) => {
 		await ConfirmDialog.call({
 			title: 'Hapus Bahan Baku',
 			description:
@@ -234,13 +225,12 @@ export function MaterialTable() {
 			variant: 'destructive',
 			confirmLabel: 'Hapus',
 			onConfirm: async () => {
-				const promise = deleteMutation.mutateAsync({ body: { id } })
+				const promise = deleteMutation.mutateAsync({ body: { id: material.id } })
 				await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
 			},
 		})
 	}
 
-	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
 	const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
 	const table = useDataTable({
