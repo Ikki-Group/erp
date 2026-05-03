@@ -7,6 +7,9 @@ import type { RelationMap } from '@/core/utils/relation-map'
 
 import { usersTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { AuditResolved } from '@/lib/validation'
+
 import type { LocationDto, LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
@@ -15,7 +18,6 @@ import type { RoleDto } from '../role/role.dto'
 import type { RoleService } from '../role/role.service'
 import * as dto from './user.dto'
 import type { UserRepo } from './user.repo'
-import type { AuditResolved } from '@/lib/validation'
 
 const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	{
@@ -39,10 +41,15 @@ interface ServiceDeps {
 }
 
 export class UserService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly s: ServiceDeps,
 		private readonly r: UserRepo,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'iam.user', client: cacheClient })
+	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
 
@@ -90,12 +97,20 @@ export class UserService {
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.UserDto[]> {
-		return record('UserService.getList', async () => this.r.getList())
+		return record('UserService.getList', async () => {
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.r.getList(),
+			})
+		})
 	}
 
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserService.getById', async () => {
-			return this.r.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.r.getById(id),
+			})
 		})
 	}
 
@@ -116,7 +131,10 @@ export class UserService {
 
 	async count(): Promise<number> {
 		return record('UserService.count', async () => {
-			return this.r.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.r.count(),
+			})
 		})
 	}
 
@@ -188,6 +206,8 @@ export class UserService {
 				)
 			}
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: insertedId }
 		})
 	}
@@ -222,6 +242,8 @@ export class UserService {
 				)
 			}
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -241,6 +263,8 @@ export class UserService {
 			const newPasswordHash = await Bun.password.hash(data.newPassword)
 			await this.r.updatePassword(id, newPasswordHash, actorId)
 
+			await this.cache.deleteMany({ keys: [`byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -253,6 +277,9 @@ export class UserService {
 			const { id, password } = data
 			const passwordHash = await Bun.password.hash(password)
 			await this.r.updatePassword(id, passwordHash, actorId)
+
+			await this.cache.deleteMany({ keys: [`byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -261,6 +288,9 @@ export class UserService {
 		return record('UserService.handleRemove', async () => {
 			const result = await this.r.remove(id)
 			if (!result) throw UserErrors.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id: result }
 		})
 	}

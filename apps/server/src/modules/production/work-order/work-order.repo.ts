@@ -2,7 +2,6 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	stampCreate,
@@ -10,53 +9,25 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { workOrdersTable } from '@/db/schema/production'
 
 import type { WorkOrderCreateDto, WorkOrderDto, WorkOrderFilterDto } from './work-order.dto'
 
-const WORK_ORDER_CACHE_NAMESPACE = 'production.work-order'
-
 export class WorkOrderRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(WORK_ORDER_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'WorkOrderRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<WorkOrderDto | undefined> {
 		return record('WorkOrderRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [wo] = await this.db
-						.select()
-						.from(workOrdersTable)
-						.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
+			const [wo] = await this.db
+				.select()
+				.from(workOrdersTable)
+				.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 
-					if (!wo) return skip()
-					return wo as unknown as WorkOrderDto
-				},
-			})
+			if (!wo) return undefined
+			return wo as unknown as WorkOrderDto
 		})
 	}
 
@@ -100,7 +71,6 @@ export class WorkOrderRepo {
 				})
 				.returning()
 
-			this.#clearCacheAsync()
 			return result as unknown as WorkOrderDto
 		})
 	}
@@ -128,7 +98,6 @@ export class WorkOrderRepo {
 				.where(and(eq(workOrdersTable.id, id), isNull(workOrdersTable.deletedAt)))
 				.returning()
 
-			this.#clearCacheAsync(id)
 			return result as unknown as WorkOrderDto
 		})
 	}

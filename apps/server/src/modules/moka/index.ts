@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 
@@ -34,14 +35,14 @@ export class MokaServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: MokaServiceModuleDeps,
 	) {
-		const configRepo = new MokaConfigurationRepo(this.db, this.cacheClient)
-		this.configuration = new MokaConfigurationService(configRepo)
+		const configRepo = new MokaConfigurationRepo(this.db)
+		this.configuration = new MokaConfigurationService(configRepo, this.cacheClient)
 
-		const historyRepo = new MokaScrapHistoryRepo(this.db, this.cacheClient)
-		this.history = new MokaScrapHistoryService(historyRepo)
+		const historyRepo = new MokaScrapHistoryRepo(this.db)
+		this.history = new MokaScrapHistoryService(historyRepo, this.cacheClient)
 
-		const cursorRepo = new MokaSyncCursorRepo(this.db, this.cacheClient)
-		this.cursor = new MokaSyncCursorService(cursorRepo)
+		const cursorRepo = new MokaSyncCursorRepo(this.db)
+		this.cursor = new MokaSyncCursorService(cursorRepo, this.cacheClient)
 
 		this.transformation = new MokaTransformationService(
 			this.db,
@@ -78,3 +79,8 @@ export type {
 	MokaSyncTriggerMode,
 	MokaScrapStatus,
 } from './shared.dto'
+
+export type { MokaConfigurationService } from './configuration/configuration.service'
+export type { MokaScrapHistoryService } from './scrap/scrap-history.service'
+export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
+export type { MokaScrapService } from './scrap/scrap.service'

@@ -3,6 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'
 
@@ -17,13 +19,24 @@ const err = {
 }
 
 export class PurchaseOrderService {
-	constructor(private readonly repo: PurchaseOrderRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: PurchaseOrderRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'purchasing.order', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.PurchaseOrderDto> {
 		return record('PurchaseOrderService.getById', async () => {
-			const order = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const order = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!order) throw err.notFound(id)
 			return order
 		})
@@ -35,7 +48,11 @@ export class PurchaseOrderService {
 		filter: dto.PurchaseOrderFilterDto,
 	): Promise<WithPaginationResult<dto.PurchaseOrderSelectDto>> {
 		return record('PurchaseOrderService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -47,25 +64,33 @@ export class PurchaseOrderService {
 
 	async handleCreate(data: dto.PurchaseOrderCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
 	async handleUpdate(data: dto.PurchaseOrderUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleUpdate', async () => {
-			return this.repo.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+			return result
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('PurchaseOrderService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -83,7 +108,9 @@ export class PurchaseOrderService {
 				throw err.invalidStatus(order.status)
 			}
 
-			return this.repo.updateStatus(id, 'pending_approval', actorId)
+			const result = await this.repo.updateStatus(id, 'pending_approval', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -98,7 +125,9 @@ export class PurchaseOrderService {
 				throw err.invalidStatus(order.status)
 			}
 
-			return this.repo.updateStatus(id, 'approved', actorId)
+			const result = await this.repo.updateStatus(id, 'approved', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -113,7 +142,9 @@ export class PurchaseOrderService {
 				throw err.invalidStatus(order.status)
 			}
 
-			return this.repo.updateStatus(id, 'rejected', actorId)
+			const result = await this.repo.updateStatus(id, 'rejected', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 }

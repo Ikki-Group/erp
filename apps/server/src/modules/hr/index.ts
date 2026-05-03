@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 
@@ -9,6 +10,9 @@ interface HRServiceModuleDeps {
 	finance: FinanceServiceModule
 }
 
+import { EmployeeRepo } from './employee/employee.repo'
+import { initEmployeeRoute } from './employee/employee.route'
+import { EmployeeService } from './employee/employee.service'
 import { HRRepo } from './hr/hr.repo'
 import { initHRRoute } from './hr/hr.route'
 import { HRService } from './hr/hr.service'
@@ -20,6 +24,7 @@ import { initPayrollRoute } from './payroll/payroll.route'
 import { PayrollService } from './payroll/payroll.service'
 
 export class HRServiceModule {
+	public readonly employee: EmployeeService
 	public readonly hr: HRService
 	public readonly payroll: PayrollService
 	public readonly leaveRequest: LeaveRequestService
@@ -29,24 +34,62 @@ export class HRServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: HRServiceModuleDeps,
 	) {
-		const hrRepo = new HRRepo(this.db, this.cacheClient)
-		const payrollRepo = new PayrollRepo(this.db, this.cacheClient)
-		const leaveRequestRepo = new LeaveRequestRepo(this.db, this.cacheClient)
+		const employeeRepo = new EmployeeRepo(this.db)
+		this.employee = new EmployeeService(employeeRepo, this.cacheClient)
 
-		this.hr = new HRService(hrRepo)
+		const hrRepo = new HRRepo(this.db)
+		this.hr = new HRService(hrRepo, this.cacheClient)
+
+		const payrollRepo = new PayrollRepo(this.db)
 		this.payroll = new PayrollService(
 			this.deps.finance.account,
 			this.deps.finance.journal,
 			payrollRepo,
 			this.db,
+			this.cacheClient,
 		)
-		this.leaveRequest = new LeaveRequestService(leaveRequestRepo)
+
+		const leaveRequestRepo = new LeaveRequestRepo(this.db)
+		this.leaveRequest = new LeaveRequestService(leaveRequestRepo, this.cacheClient)
 	}
 }
 
 export function initHRRouteModule(s: HRServiceModule) {
 	return new Elysia({ prefix: '/hr' })
+		.use(initEmployeeRoute(s.employee))
 		.use(initHRRoute(s.hr))
 		.use(initPayrollRoute(s.payroll))
 		.use(initLeaveRequestRoute(s.leaveRequest))
 }
+
+export * from './employee/employee.dto'
+export type { EmployeeService } from './employee/employee.service'
+export {
+	ShiftDto,
+	ShiftCreateDto,
+	ShiftUpdateDto,
+	AttendanceDto,
+	AttendanceSelectDto,
+	AttendanceFilterDto,
+	ClockInDto,
+	ClockOutDto,
+	AttendanceStatusEnum,
+	type AttendanceStatus,
+} from './hr/hr.dto'
+export {
+	LeaveRequestDto,
+	LeaveRequestCreateDto,
+	LeaveRequestUpdateDto,
+	LeaveRequestFilterDto,
+} from './leave-request/leave-request.dto'
+export {
+	PayrollBatchDto,
+	PayrollBatchCreateDto,
+	PayrollItemDto,
+	PayrollAdjustmentDto,
+	PayrollAdjustmentCreateDto,
+	PayrollStatusEnum,
+	PayrollAdjustmentTypeEnum,
+	type PayrollStatus,
+	type PayrollAdjustmentType,
+} from './payroll/payroll.dto'

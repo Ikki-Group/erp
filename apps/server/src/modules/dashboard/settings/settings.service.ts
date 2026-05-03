@@ -13,7 +13,7 @@ export class SettingsService {
 		const [users, roles, locations] = await Promise.all([
 			this.iam.user.count(),
 			this.iam.role.count(),
-			this.location.master.count(),
+			this.location.master.getCount(),
 		])
 
 		return { users, roles, locations }

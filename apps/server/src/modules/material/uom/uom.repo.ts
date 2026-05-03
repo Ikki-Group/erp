@@ -2,7 +2,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -10,41 +9,26 @@ import {
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { db } from '@/db'
 import { uomsTable } from '@/db/schema'
 
 import type { UomDto, UomFilterDto } from './uom.dto'
 
-const cache = bento.namespace('uom')
-
 export class UomRepo {
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		return record('UomRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getList(): Promise<UomDto[]> {
 		return record('UomRepo.getList', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => {
-					return db
-						.select()
-						.from(uomsTable)
-						.where(isNull(uomsTable.deletedAt))
-						.orderBy(uomsTable.code)
-				},
-			})
+			return this.db
+				.select()
+				.from(uomsTable)
+				.where(isNull(uomsTable.deletedAt))
+				.orderBy(uomsTable.code)
 		})
 	}
 
@@ -55,7 +39,7 @@ export class UomRepo {
 
 			return paginate<UomDto>({
 				data: ({ limit: l, offset }) =>
-					db
+					this.db
 						.select()
 						.from(uomsTable)
 						.where(where)
@@ -63,39 +47,28 @@ export class UomRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(uomsTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(uomsTable).where(where),
 			})
 		})
 	}
 
 	async getById(id: number): Promise<UomDto | undefined> {
 		return record('UomRepo.getById', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await db
-						.select()
-						.from(uomsTable)
-						.where(and(eq(uomsTable.id, id), isNull(uomsTable.deletedAt)))
-						.then(takeFirst)
-					return res ?? skip()
-				},
-			})
+			return this.db
+				.select()
+				.from(uomsTable)
+				.where(and(eq(uomsTable.id, id), isNull(uomsTable.deletedAt)))
+				.then(takeFirst)
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('UomRepo.count', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return db
-						.select({ count: count() })
-						.from(uomsTable)
-						.where(isNull(uomsTable.deletedAt))
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(uomsTable)
+				.where(isNull(uomsTable.deletedAt))
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -104,12 +77,11 @@ export class UomRepo {
 	async create(data: { code: string } & { createdBy: number }): Promise<number | undefined> {
 		return record('UomRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
-			const [res] = await db
+			const [res] = await this.db
 				.insert(uomsTable)
 				.values({ ...data, ...metadata })
 				.returning({ id: uomsTable.id })
 
-			void this.#clearCache()
 			return res?.id
 		})
 	}
@@ -120,45 +92,42 @@ export class UomRepo {
 	): Promise<number | undefined> {
 		return record('UomRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)
-			const [res] = await db
+			const [res] = await this.db
 				.update(uomsTable)
 				.set({ ...data, ...metadata })
 				.where(eq(uomsTable.id, id))
 				.returning({ id: uomsTable.id })
 
-			void this.#clearCache(res?.id)
 			return res?.id
 		})
 	}
 
 	async remove(id: number, actorId: number): Promise<number | undefined> {
 		return record('UomRepo.remove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.update(uomsTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(uomsTable.id, id))
 				.returning({ id: uomsTable.id })
 
-			void this.#clearCache(id)
 			return res?.id
 		})
 	}
 
 	async hardRemove(id: number): Promise<number | undefined> {
 		return record('UomRepo.hardRemove', async () => {
-			const [res] = await db
+			const [res] = await this.db
 				.delete(uomsTable)
 				.where(eq(uomsTable.id, id))
 				.returning({ id: uomsTable.id })
 
-			void this.#clearCache(id)
 			return res?.id
 		})
 	}
 
 	async seed(data: { code: string; createdBy: number }[]): Promise<void> {
 		return record('UomRepo.seed', async () => {
-			const existing = await db
+			const existing = await this.db
 				.select({ code: uomsTable.code })
 				.from(uomsTable)
 				.where(isNull(uomsTable.deletedAt))
@@ -170,11 +139,9 @@ export class UomRepo {
 
 			if (newUoms.length === 0) return
 
-			await db
+			await this.db
 				.insert(uomsTable)
 				.values(newUoms.map((d) => Object.assign({}, d, stampCreate(d.createdBy))))
-
-			void this.#clearCache()
 		})
 	}
 }

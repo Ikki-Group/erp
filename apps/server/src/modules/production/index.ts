@@ -1,14 +1,15 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import type { InventoryServiceModule } from '@/modules/inventory'
+import type { CacheClient } from '@/lib/cache'
+
+import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
 interface ProductionServiceModuleDeps {
 	recipe: RecipeService
-	inventory: InventoryServiceModule
+	stockTransaction: StockTransactionService
 }
 
 import { WorkOrderRepo } from './work-order/work-order.repo'
@@ -23,12 +24,13 @@ export class ProductionServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: ProductionServiceModuleDeps,
 	) {
-		const workOrderRepo = new WorkOrderRepo(this.db, this.cacheClient)
+		const workOrderRepo = new WorkOrderRepo(this.db)
 		this.workOrder = new WorkOrderService(
 			workOrderRepo,
 			this.db,
 			this.deps.recipe,
-			this.deps.inventory,
+			this.deps.stockTransaction,
+			this.cacheClient,
 		)
 	}
 }

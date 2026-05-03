@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
 
 import { mokaSyncCursorsTable } from '@/db/schema'
@@ -9,11 +8,7 @@ import { mokaSyncCursorsTable } from '@/db/schema'
 import type { MokaProvider, MokaScrapType } from '../shared.dto'
 
 export class MokaSyncCursorRepo {
-	private readonly db: DbClient
-
-	constructor(db: DbClient, _cacheClient: CacheClient) {
-		this.db = db
-	}
+	constructor(private readonly db: DbClient) {}
 
 	async getCursor(mokaConfigurationId: number, type: MokaScrapType) {
 		const result = await this.db

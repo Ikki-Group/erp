@@ -3,6 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { ProductCategoryDto } from '../product-category/product-category.dto'
 import type { ProductCategoryService } from '../product-category/product-category.service'
 import type {
@@ -14,10 +16,15 @@ import type {
 import { ProductRepo } from './product.repo'
 
 export class ProductService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly categorySvc: ProductCategoryService,
 		private readonly repo: ProductRepo,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'product', client: cacheClient })
+	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
 
@@ -30,11 +37,12 @@ export class ProductService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductDto> {
+	async getById(id: number): Promise<ProductDto | undefined> {
 		return record('ProductService.getById', async () => {
-			const product = await this.repo.getById(id)
-			if (!product) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			return product
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -65,8 +73,10 @@ export class ProductService {
 	async handleDetail(id: number): Promise<ProductSelectDto> {
 		return record('ProductService.handleDetail', async () => {
 			const product = await this.getById(id)
+			if (!product) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+
 			const category = product.categoryId
-				? await this.categorySvc.getById(product.categoryId)
+				? ((await this.categorySvc.getById(product.categoryId)) ?? null)
 				: null
 			return { ...product, category }
 		})
@@ -83,7 +93,11 @@ export class ProductService {
 				this.validateDefaultVariant(data.variants)
 			}
 
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
+			return result
 		})
 	}
 
@@ -94,6 +108,7 @@ export class ProductService {
 	): Promise<{ id: number }> {
 		return record('ProductService.handleUpdate', async () => {
 			const existing = await this.getById(id)
+			if (!existing) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
 
 			const sku = data.sku ? data.sku.trim() : existing.sku
 			const name = data.name ? data.name.trim() : existing.name
@@ -104,19 +119,31 @@ export class ProductService {
 				this.validateDefaultVariant(data.variants)
 			}
 
-			return this.repo.update(id, data, actorId)
+			await this.repo.update(id, data, actorId)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
+			return { id }
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('ProductService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
+			return result
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('ProductService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
+			return result
 		})
 	}
 }

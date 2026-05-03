@@ -6,9 +6,11 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './customer.dto'
 import { CustomerRepo } from './customer.repo'
-import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	{
@@ -42,13 +44,23 @@ const err = {
 }
 
 export class CustomerService {
-	constructor(private readonly repo: CustomerRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: CustomerRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'customer', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.CustomerDto | undefined> {
 		return record('CustomerService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -103,6 +115,8 @@ export class CustomerService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -128,6 +142,8 @@ export class CustomerService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id: result }
 		})
 	}
@@ -136,6 +152,9 @@ export class CustomerService {
 		return record('CustomerService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -151,6 +170,8 @@ export class CustomerService {
 			const result = await this.repo.addPoints(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: [`byId:${data.customerId}`] })
+
 			return { id: result }
 		})
 	}
@@ -162,6 +183,8 @@ export class CustomerService {
 
 			const result = await this.repo.redeemPoints(data, actorId)
 			if (!result) throw err.insufficientPoints()
+
+			await this.cache.deleteMany({ keys: [`byId:${data.customerId}`] })
 
 			return { id: result }
 		})

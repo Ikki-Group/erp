@@ -1,36 +1,22 @@
 import { record } from '@elysiajs/opentelemetry'
 import { eq, lte } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { takeFirst, type DbClient } from '@/core/database'
 
 import { sessionsTable } from '@/db/schema'
 
 import type { SessionDto } from './session.dto'
 
-const SESSION_CACHE_NAMESPACE = 'auth:session'
-
 export class SessionRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(SESSION_CACHE_NAMESPACE)
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<SessionDto | undefined> {
-		return record('SessionRepo.getById', async () =>
-			this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const result = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
-					return takeFirst(result) ?? skip()
-				},
-			}),
-		)
+		return record('SessionRepo.getById', async () => {
+			const result = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
+			return takeFirst(result) ?? undefined
+		})
 	}
 
 	async getByUserId(userId: number): Promise<SessionDto[]> {

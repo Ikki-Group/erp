@@ -1,56 +1,22 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gt, lt, not } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { paginate, sortBy, type DbClient, type WithPaginationResult } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { sessionsTable, usersTable } from '@/db/schema'
 
 import * as dto from './session.dto'
 
-const SESSION_CACHE_NAMESPACE = 'iam.session'
-
 export class SessionRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(SESSION_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'SessionRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<dto.SessionDto | undefined> {
 		return record('SessionRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [session] = await this.db
-						.select()
-						.from(sessionsTable)
-						.where(eq(sessionsTable.id, id))
+			const [session] = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
 
-					if (!session) return skip()
-
-					return dto.SessionDto.parse(session)
-				},
-			})
+			return session ? dto.SessionDto.parse(session) : undefined
 		})
 	}
 
@@ -146,7 +112,6 @@ export class SessionRepo {
 
 			if (!result) throw new Error('Session creation failed')
 
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -160,7 +125,6 @@ export class SessionRepo {
 
 			if (!result) throw new Error('Session not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -172,16 +136,12 @@ export class SessionRepo {
 				// @ts-expect-error - drizzle doesn't support array in where directly, but this works
 				sessionsTable.id.in(ids),
 			)
-
-			this.#clearCacheAsync()
 		})
 	}
 
 	async deleteByUserId(userId: number): Promise<void> {
 		return record('SessionRepo.deleteByUserId', async () => {
 			await this.db.delete(sessionsTable).where(eq(sessionsTable.userId, userId))
-
-			this.#clearCacheAsync()
 		})
 	}
 
@@ -190,8 +150,6 @@ export class SessionRepo {
 			await this.db
 				.delete(sessionsTable)
 				.where(and(eq(sessionsTable.userId, userId), not(eq(sessionsTable.id, exceptSessionId))))
-
-			this.#clearCacheAsync()
 		})
 	}
 
@@ -199,8 +157,6 @@ export class SessionRepo {
 		return record('SessionRepo.deleteExpired', async () => {
 			const now = new Date()
 			await this.db.delete(sessionsTable).where(lt(sessionsTable.expiredAt, now))
-
-			this.#clearCacheAsync()
 		})
 	}
 
@@ -214,7 +170,6 @@ export class SessionRepo {
 
 			if (!result) throw new Error('Session not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

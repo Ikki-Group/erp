@@ -2,17 +2,16 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
 
-import { bento, CACHE_KEY_DEFAULT } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
 	stampCreate,
 	stampUpdate,
 	takeFirst,
+	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { db } from '@/db'
 import { materialConversionsTable, materialsTable } from '@/db/schema'
 
 import type {
@@ -22,58 +21,38 @@ import type {
 	MaterialSelectDto,
 } from './material.dto'
 
-const cache = bento.namespace('material')
-
 /* ---------------------------------- QUERY --------------------------------- */
 
 export class MaterialRepo {
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		return record('MaterialRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await cache.deleteMany({ keys })
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getList(): Promise<MaterialDto[]> {
 		return record('MaterialRepo.getList', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () =>
-					db
-						.select()
-						.from(materialsTable)
-						.where(isNull(materialsTable.deletedAt))
-						.orderBy(materialsTable.name) as unknown as MaterialDto[],
-			})
+			return this.db
+				.select()
+				.from(materialsTable)
+				.where(isNull(materialsTable.deletedAt))
+				.orderBy(materialsTable.name) as unknown as MaterialDto[]
 		})
 	}
 
 	async getById(id: number): Promise<MaterialDto | null> {
 		return record('MaterialRepo.getById', async () => {
-			const result = await cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = (await db
-						.select()
-						.from(materialsTable)
-						.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
-						.then(takeFirst)) as unknown as MaterialDto | null
-					return res ?? skip()
-				},
-			})
-			return result ?? null
+			const res = (await this.db
+				.select()
+				.from(materialsTable)
+				.where(and(eq(materialsTable.id, id), isNull(materialsTable.deletedAt)))
+				.then(takeFirst)) as unknown as MaterialDto | null
+			return res ?? null
 		})
 	}
 
 	async getByIds(ids: number[]): Promise<MaterialDto[]> {
 		if (ids.length === 0) return []
 		return record('MaterialRepo.getByIds', async () => {
-			return db
+			return this.db
 				.select()
 				.from(materialsTable)
 				.where(
@@ -84,15 +63,11 @@ export class MaterialRepo {
 
 	async count(): Promise<number> {
 		return record('MaterialRepo.count', async () => {
-			return cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () =>
-					db
-						.select({ count: count() })
-						.from(materialsTable)
-						.where(isNull(materialsTable.deletedAt))
-						.then((rows) => rows[0]?.count ?? 0),
-			})
+			return this.db
+				.select({ count: count() })
+				.from(materialsTable)
+				.where(isNull(materialsTable.deletedAt))
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -115,7 +90,7 @@ export class MaterialRepo {
 
 			const result = await paginate({
 				data: ({ limit, offset }) =>
-					db
+					this.db
 						.select()
 						.from(materialsTable)
 						.where(where)
@@ -123,7 +98,7 @@ export class MaterialRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: filter,
-				countQuery: db.select({ count: count() }).from(materialsTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(materialsTable).where(where),
 			})
 
 			const data: MaterialSelectDto[] = result.data.map((m) => {
@@ -150,7 +125,7 @@ export class MaterialRepo {
 			const metadata = stampCreate(data.createdBy)
 			const { conversions, ...materialData } = data
 
-			const inserted = await db.transaction(async (tx) => {
+			const inserted = await this.db.transaction(async (tx) => {
 				const [material] = await tx
 					.insert(materialsTable)
 					.values({
@@ -178,7 +153,6 @@ export class MaterialRepo {
 
 			if (!inserted) throw new Error('Material creation failed')
 
-			void this.#clearCache()
 			return inserted
 		})
 	}
@@ -192,7 +166,7 @@ export class MaterialRepo {
 			const createMetadata = stampCreate(data.updatedBy)
 			const { conversions, ...updateData } = data
 
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				await tx
 					.update(materialsTable)
 					.set({ ...updateData, ...metadata })
@@ -219,7 +193,6 @@ export class MaterialRepo {
 				}
 			})
 
-			void this.#clearCache(id)
 			return { id }
 		})
 	}
@@ -228,7 +201,7 @@ export class MaterialRepo {
 		return record('MaterialRepo.softDelete', async () => {
 			const timestamp = new Date()
 
-			await db.transaction(async (tx) => {
+			await this.db.transaction(async (tx) => {
 				await Promise.all([
 					tx
 						.update(materialConversionsTable)
@@ -242,21 +215,19 @@ export class MaterialRepo {
 					.where(eq(materialsTable.id, id))
 			})
 
-			void this.#clearCache(id)
 			return { id }
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('MaterialRepo.hardDelete', async () => {
-			const result = await db
+			const result = await this.db
 				.delete(materialsTable)
 				.where(eq(materialsTable.id, id))
 				.returning({ id: materialsTable.id })
 
 			if (result.length === 0) throw new Error(`Material ${id} not found`)
 
-			void this.#clearCache(id)
 			return result[0] as { id: number }
 		})
 	}

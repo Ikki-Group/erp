@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
-
-const LOCATION_CACHE_NAMESPACE = 'location-master'
+import * as dto from './location.dto'
 
 export class LocationMasterRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(LOCATION_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('LocationMasterRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'LocationMasterRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -74,42 +49,27 @@ export class LocationMasterRepo {
 
 	async getList(): Promise<dto.LocationDto[]> {
 		return record('LocationMasterRepo.getList', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.db.select().from(locationsTable),
-			})
+			return this.db.select().from(locationsTable)
 		})
 	}
 
 	async getById(id: number): Promise<dto.LocationDto | undefined> {
 		return record('LocationMasterRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(locationsTable)
-						.where(eq(locationsTable.id, id))
-						.limit(1)
-						.then(takeFirst)
-
-					return res ?? skip()
-				},
-			})
+			return this.db
+				.select()
+				.from(locationsTable)
+				.where(eq(locationsTable.id, id))
+				.limit(1)
+				.then(takeFirst)
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('LocationMasterRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return this.db
-						.select({ count: count() })
-						.from(locationsTable)
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(locationsTable)
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -123,7 +83,6 @@ export class LocationMasterRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: locationsTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -137,7 +96,6 @@ export class LocationMasterRepo {
 				.where(eq(locationsTable.id, data.id))
 				.returning({ id: locationsTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -149,7 +107,6 @@ export class LocationMasterRepo {
 				.where(eq(locationsTable.id, id))
 				.returning({ id: locationsTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -170,8 +127,6 @@ export class LocationMasterRepo {
 							updatedBy: metadata.updatedBy,
 						},
 					})
-
-				this.#clearCacheAsync()
 			}
 		})
 	}

@@ -1,54 +1,25 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { accountsTable } from '@/db/schema/finance'
 
 import type { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.dto'
 
-const ACCOUNT_CACHE_NAMESPACE = 'finance.account'
-
 export class AccountRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(ACCOUNT_CACHE_NAMESPACE)
-	}
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'AccountRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number) {
 		return record('AccountRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [account] = await this.db
-						.select()
-						.from(accountsTable)
-						.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
+			const [account] = await this.db
+				.select()
+				.from(accountsTable)
+				.where(and(eq(accountsTable.id, id), isNull(accountsTable.deletedAt)))
 
-					if (!account) return skip()
-					return account
-				},
-			})
+			return account ?? null
 		})
 	}
 
@@ -83,18 +54,13 @@ export class AccountRepo {
 
 	async findByCode(code: string) {
 		return record('AccountRepo.findByCode', async () => {
-			return this.cache.getOrSet({
-				key: `code.${code}`,
-				factory: async () => {
-					const [result] = await this.db
-						.select()
-						.from(accountsTable)
-						.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
-						.limit(1)
+			const [result] = await this.db
+				.select()
+				.from(accountsTable)
+				.where(and(eq(accountsTable.code, code), isNull(accountsTable.deletedAt)))
+				.limit(1)
 
-					return result ?? null
-				},
-			})
+			return result ?? null
 		})
 	}
 
@@ -118,7 +84,6 @@ export class AccountRepo {
 				.returning({ id: accountsTable.id })
 
 			if (!result) throw new Error('Failed to create account')
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -133,7 +98,6 @@ export class AccountRepo {
 				.returning({ id: accountsTable.id })
 
 			if (!result) throw new Error('Failed to update account')
-			void this.#clearCache(id)
 			return result
 		})
 	}
@@ -147,7 +111,6 @@ export class AccountRepo {
 				.returning({ id: accountsTable.id })
 
 			if (!result) throw new Error('Failed to delete account')
-			void this.#clearCache(id)
 			return result
 		})
 	}

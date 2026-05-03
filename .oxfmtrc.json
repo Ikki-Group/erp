@@ -111,6 +111,12 @@
 							]
 						},
 						{
+							"groupName": "lib",
+							"elementNamePattern": [
+								"@/lib/**"
+							]
+						},
+						{
 							"groupName": "internal-modules",
 							"elementNamePattern": [
 								"@/modules/**"
@@ -121,6 +127,7 @@
 						"value-external",
 						"core",
 						"db",
+						"lib",
 						"internal-modules",
 						"unknown"
 					]

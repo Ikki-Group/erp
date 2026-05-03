@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, inArray, isNull } from 'drizzle-orm'
+import { and, inArray, isNull } from 'drizzle-orm'
 
 import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
@@ -14,10 +14,11 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import { LocationMasterService } from '@/modules/location'
 
 import { MaterialCategoryService } from '../material-category/material-category.service'
-import { MaterialLocationRepo } from '../material-location/material-location.repo'
 import { UomService } from '../uom/uom.service'
 import {
 	MaterialCategoryDto,
@@ -55,57 +56,19 @@ const uniqueFields: ConflictField<'sku' | 'name'>[] = [
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class MaterialService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
-		private readonly repo = new MaterialRepo(),
-		private readonly locationRepo = new MaterialLocationRepo(),
-	) {}
+		private readonly repo: MaterialRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'material', client: cacheClient })
+	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
-
-	/**
-	 * Helper to fetch full material detail including conversions and locationIds
-	 */
-	private async getMaterialWithRelations(id: number): Promise<MaterialDto> {
-		const result = await this.repo.getById(id)
-		if (!result) throw err.notFound(id)
-
-		const [conversions, locations] = await Promise.all([
-			db
-				.select({
-					toBaseFactor: materialConversionsTable.toBaseFactor,
-					uomId: materialConversionsTable.uomId,
-				})
-				.from(materialConversionsTable)
-				.where(
-					and(
-						eq(materialConversionsTable.materialId, id),
-						isNull(materialConversionsTable.deletedAt),
-					),
-				),
-
-			this.locationRepo.getByMaterialId(id),
-		])
-
-		const uomIds = conversions.map((c) => c.uomId)
-		const uoms =
-			uomIds.length > 0
-				? await db.select().from(uomsTable).where(inArray(uomsTable.id, uomIds))
-				: []
-		const uomMap = new Map(uoms.map((u) => [u.id, u]))
-
-		return {
-			...result,
-			conversions: conversions.map((c) => ({
-				toBaseFactor: c.toBaseFactor,
-				uomId: c.uomId,
-				uom: uomMap.get(c.uomId),
-			})),
-			locationIds: locations.map((l) => l.locationId),
-		}
-	}
 
 	/**
 	 * Batch fetch full material details including conversions and locationIds
@@ -180,7 +143,10 @@ export class MaterialService {
 
 	async find(): Promise<MaterialDto[]> {
 		return record('MaterialService.find', async () => {
-			const rawMaterials = await this.repo.getList()
+			const rawMaterials = await this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 			const relationsMap = await this.getMaterialsBatchWithRelations(rawMaterials.map((m) => m.id))
 
 			return rawMaterials.map((m) =>
@@ -194,13 +160,29 @@ export class MaterialService {
 
 	async getById(id: number): Promise<MaterialDto> {
 		return record('MaterialService.getById', async () => {
-			return this.getMaterialWithRelations(id)
+			const cached = await this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: async () => {
+					const result = await this.repo.getById(id)
+					if (!result) return undefined
+					const relationsMap = await this.getMaterialsBatchWithRelations([id])
+					return Object.assign({}, result, {
+						conversions: relationsMap.get(id)!.conversions,
+						locationIds: relationsMap.get(id)!.locationIds,
+					})
+				},
+			})
+			if (!cached) throw err.notFound(id)
+			return cached
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('MaterialService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -281,6 +263,8 @@ export class MaterialService {
 				createdBy: actorId,
 			})
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return created
 		})
 	}
@@ -311,6 +295,8 @@ export class MaterialService {
 				updatedBy: actorId,
 			})
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return updated
 		})
 	}
@@ -321,6 +307,9 @@ export class MaterialService {
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('MaterialService.handleRemove', async () => {
 			const result = await this.repo.softDelete(id, actorId)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return result
 		})
 	}
@@ -332,6 +321,9 @@ export class MaterialService {
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('MaterialService.handleHardRemove', async () => {
 			const result = await this.repo.hardDelete(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return result
 		})
 	}

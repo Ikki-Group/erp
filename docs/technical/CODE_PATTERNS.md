@@ -67,40 +67,21 @@ export const EntityErrors = {
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 import { paginate, searchFilter, stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
-import { logger } from '@/core/logger'
 import { entityTable } from '@/db/schema'
-import * as dto from './dto/entity.dto'
-
-const ENTITY_CACHE_NAMESPACE = 'entity'
+import * as dto from './entity.dto'
 
 export class EntityRepo {
-  private readonly db: DbClient
-  private readonly cache: CacheProvider
-
-  constructor(db: DbClient, cacheClient: CacheClient) {
-    this.db = db
-    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
-  }
+  constructor(private readonly db: DbClient) {}
 
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityRepo.getById', async () => {
-      return this.cache.getOrSet({
-        key: CACHE_KEY_DEFAULT.byId(id),
-        factory: async ({ skip }) => {
-          const res = await this.db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
-          return res ?? skip()
-        },
-      })
+      return this.db.select().from(entityTable).where(eq(entityTable.id, id)).then(takeFirst)
     })
   }
 
   async getList(): Promise<dto.EntityDto[]> {
     return record('EntityRepo.getList', async () => {
-      return this.cache.getOrSet({
-        key: CACHE_KEY_DEFAULT.list,
-        factory: async () => this.db.select().from(entityTable),
-      })
+      return this.db.select().from(entityTable)
     })
   }
 
@@ -117,7 +98,6 @@ export class EntityRepo {
   async create(data: dto.EntityCreateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.create', async () => {
       const [res] = await this.db.insert(entityTable).values({ ...data, ...stampCreate(actorId) }).returning({ id: entityTable.id })
-      this.#clearCacheAsync()
       return res?.id
     })
   }
@@ -125,7 +105,6 @@ export class EntityRepo {
   async update(data: dto.EntityUpdateDto, actorId: number): Promise<number | undefined> {
     return record('EntityRepo.update', async () => {
       const [res] = await this.db.update(entityTable).set({ ...data, ...stampUpdate(actorId) }).where(eq(entityTable.id, data.id)).returning({ id: entityTable.id })
-      this.#clearCacheAsync(data.id)
       return res?.id
     })
   }
@@ -133,22 +112,7 @@ export class EntityRepo {
   async remove(id: number): Promise<number | undefined> {
     return record('EntityRepo.remove', async () => {
       const [res] = await this.db.delete(entityTable).where(eq(entityTable.id, id)).returning({ id: entityTable.id })
-      this.#clearCacheAsync(id)
       return res?.id
-    })
-  }
-
-  #clearCache(id?: number): Promise<void> {
-    return record('EntityRepo.#clearCache', async () => {
-      const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-      if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-      await this.cache.deleteMany({ keys })
-    })
-  }
-
-  #clearCacheAsync(id?: number): void {
-    void this.#clearCache(id).catch((error: unknown) => {
-      logger.error(error, 'EntityRepo cache invalidation failed')
     })
   }
 }
@@ -159,15 +123,12 @@ export class EntityRepo {
 ```typescript
 // src/modules/feature/entity.service.ts (co-located)
 import { record } from '@elysiajs/opentelemetry'
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
-import { logger } from '@/core/logger'
+import { CacheService, type CacheClient } from '@/lib/cache'
 import * as core from '@/core/database'
 import { entityTable } from '@/db/schema'
-import * as dto from './dto/entity.dto'
+import * as dto from './entity.dto'
 import { EntityErrors } from './errors'
 import { EntityRepo } from './entity.repo'
-
-const ENTITY_CACHE_NAMESPACE = 'entity'
 
 const conflictFields: core.ConflictField<'code' | 'name'>[] = [
   { field: 'code', column: entityTable.code, message: 'Code exists', code: 'ENTITY_CODE_EXISTS' },
@@ -175,36 +136,43 @@ const conflictFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 export class EntityService {
-  private readonly cache: CacheProvider
+  private readonly cache: CacheService
 
   constructor(
-    private readonly repo = new EntityRepo(),
+    private readonly repo: EntityRepo,
     cacheClient: CacheClient,
   ) {
-    this.cache = cacheClient.namespace(ENTITY_CACHE_NAMESPACE)
+    this.cache = new CacheService({ ns: 'entity', client: cacheClient })
   }
 
-  private async clearCache(id?: number): Promise<void> {
-    const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-    if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-    await this.cache.deleteMany({ keys })
-  }
-
-  private clearCacheAsync(id?: number): void {
-    void this.clearCache(id).catch((error: unknown) => {
-      logger.error(error, 'EntityService cache invalidation failed')
-    })
-  }
+  /* --------------------------------- PUBLIC --------------------------------- */
 
   async getById(id: number): Promise<dto.EntityDto | undefined> {
     return record('EntityService.getById', async () => {
-      return this.cache.getOrSet({ key: CACHE_KEY_DEFAULT.byId(id), factory: async ({ skip }) => (await this.repo.getById(id)) ?? skip() })
+      return this.cache.getOrSetSkipUndefined({
+        key: `byId:${id}`,
+        factory: () => this.repo.getById(id),
+      })
     })
   }
 
   async getList(): Promise<dto.EntityDto[]> {
-    return record('EntityService.getList', async () => this.cache.getOrSet({ key: CACHE_KEY_DEFAULT.list, factory: () => this.repo.getList() }))
+    return record('EntityService.getList', async () => {
+      return this.cache.getOrSet({
+        key: 'list',
+        factory: () => this.repo.getList(),
+      })
+    })
   }
+
+  async getRelationMap(): Promise<RelationMap<number, dto.EntityDto>> {
+    return record('EntityService.getRelationMap', async () => {
+      const items = await this.getList()
+      return RelationMap.fromArray(items, (i) => i.id)
+    })
+  }
+
+  /* --------------------------------- HANDLER -------------------------------- */
 
   async handleDetail(id: number): Promise<dto.EntityDto> {
     return record('EntityService.handleDetail', async () => {
@@ -214,12 +182,19 @@ export class EntityService {
     })
   }
 
+  async handleList(filter: dto.EntityFilterDto): Promise<WithPaginationResult<dto.EntityDto>> {
+    return record('EntityService.handleList', async () => {
+      return this.repo.getListPaginated(filter)
+    })
+  }
+
   async handleCreate(data: dto.EntityCreateDto, actorId: number): Promise<{ id: number }> {
     return record('EntityService.handleCreate', async () => {
       await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data })
       const id = await this.repo.create(data, actorId)
       if (!id) throw EntityErrors.createFailed()
-      this.clearCacheAsync()
+
+      await this.cache.deleteMany({ keys: ['list', 'count'] })
       return { id }
     })
   }
@@ -230,7 +205,8 @@ export class EntityService {
       if (!existing) throw EntityErrors.notFound(data.id)
       await core.checkConflict({ table: entityTable, pkColumn: entityTable.id, fields: conflictFields, input: data, existing })
       await this.repo.update(data, actorId)
-      this.clearCacheAsync(data.id)
+
+      await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
       return { id: data.id }
     })
   }
@@ -239,7 +215,8 @@ export class EntityService {
     return record('EntityService.handleRemove', async () => {
       const result = await this.repo.remove(id)
       if (!result) throw EntityErrors.notFound(id)
-      this.clearCacheAsync(id)
+
+      await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
       return { id }
     })
   }
@@ -290,36 +267,89 @@ export function initEntityRoute(service: EntityService) {
 
 ### 6️⃣ Module Index
 
+**Flat Module** (single submodule):
+
 ```typescript
 // src/modules/feature/index.ts
-// ⚠️ ONLY export Module class + Services interface
-// NO export * from './dto|service'
-// NO subfolders — co-located
+import { Elysia } from 'elysia'
+import type { DbClient } from '@/core/database'
+import type { CacheClient } from '@/lib/cache'
 
+import { EntityRepo } from './entity.repo'
 import { EntityService } from './entity.service'
+import { initEntityRoute } from './entity.route'
 
-export interface FeatureServices {
-  entity: EntityService
-}
+export class EntityServiceModule {
+  public readonly entity: EntityService
 
-export class FeatureModule {
-  public readonly service: FeatureServices
-
-  constructor() {
-    this.service = { entity: new EntityService() }
+  constructor(db: DbClient, cacheClient: CacheClient) {
+    const repo = new EntityRepo(db)
+    this.entity = new EntityService(repo, cacheClient)
   }
 }
+
+export function initEntityRouteModule(service: EntityServiceModule) {
+  return new Elysia({ prefix: '/entity' }).use(initEntityRoute(service.entity))
+}
+
+// Export public DTOs and services for cross-module use
+export {
+  EntityDto,
+  EntityCreateDto,
+  EntityUpdateDto,
+  EntityFilterDto,
+} from './entity.dto'
+export { EntityService } from './entity.service'
+```
+
+**Package-by-Feature** (multiple submodules):
+
+```typescript
+// src/modules/feature/index.ts
+import { Elysia } from 'elysia'
+import type { DbClient } from '@/core/database'
+import type { CacheClient } from '@/lib/cache'
+
+import { FeatureAService } from './feature-a/feature-a.service'
+import { initFeatureARoute } from './feature-a/feature-a.route'
+import { FeatureBService } from './feature-b/feature-b.service'
+import { initFeatureBRoute } from './feature-b/feature-b.route'
+
+export class FeatureServiceModule {
+  public readonly featureA: FeatureAService
+  public readonly featureB: FeatureBService
+
+  constructor(db: DbClient, cacheClient: CacheClient) {
+    this.featureA = new FeatureAService(db, cacheClient)
+    this.featureB = new FeatureBService(db, cacheClient)
+  }
+}
+
+export function initFeatureRouteModule(service: FeatureServiceModule) {
+  return new Elysia({ prefix: '/feature' })
+    .use(initFeatureARoute(service.featureA))
+    .use(initFeatureBRoute(service.featureB))
+}
+
+export * from './feature-a/feature-a.dto'
+export * from './feature-b/feature-b.dto'
+export type { FeatureAService } from './feature-a/feature-a.service'
+export type { FeatureBService } from './feature-b/feature-b.service'
 ```
 
 ### 7️⃣ Register in Registry & Routes
 
 ```typescript
 // _registry.ts
-const feature = new FeatureModule()
-return { ..., feature }
+import { EntityServiceModule } from './modules/entity'
+
+const entity = new EntityServiceModule(db, cacheClient)
+return { ..., entity }
 
 // _routes.ts
-routes.push(feature.initRoutes())
+import { initEntityRouteModule } from './modules/entity'
+
+routes.push(initEntityRouteModule(modules.entity))
 ```
 
 ---
@@ -330,12 +360,16 @@ routes.push(feature.initRoutes())
 
 ```typescript
 async getById(id: number): Promise<dto.EntityDto | undefined> {
+  return this.cache.getOrSetSkipUndefined({
+    key: `byId:${id}`,
+    factory: () => this.repo.getById(id),
+  })
+}
+
+async getList(): Promise<dto.EntityDto[]> {
   return this.cache.getOrSet({
-    key: CACHE_KEY_DEFAULT.byId(id),
-    factory: async ({ skip }) => {
-      const row = await this.repo.getById(id)
-      return row ?? skip() // skip = don't cache undefined
-    },
+    key: 'list',
+    factory: () => this.repo.getList(),
   })
 }
 ```
@@ -343,16 +377,23 @@ async getById(id: number): Promise<dto.EntityDto | undefined> {
 ### Batch Invalidation
 
 ```typescript
-#clearCache(id?: number): Promise<void> {
-  const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-  if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-  await this.cache.deleteMany({ keys })
+// In mutation handlers — invalidate immediately
+async handleCreate(data, actorId) {
+  const id = await this.repo.create(data, actorId)
+  await this.cache.deleteMany({ keys: ['list', 'count'] })
+  return { id }
 }
 
-#clearCacheAsync(id?: number): void {
-  void this.#clearCache(id).catch((error: unknown) => {
-    logger.error(error, 'EntityRepo cache invalidation failed')
-  })
+async handleUpdate(data, actorId) {
+  await this.repo.update(data, actorId)
+  await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+  return { id: data.id }
+}
+
+async handleRemove(id) {
+  await this.repo.remove(id)
+  await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+  return { id }
 }
 ```
 
@@ -458,19 +499,20 @@ throw new ForbiddenError('message', 'DOMAIN_CODE')
 
 ## Golden Rules
 
-1. **Repo** = Data access only (queries, transactions, no logic)
-2. **Service** = ALL business logic (handle* for router, get* for services)
+1. **Repo** = Data access only (queries, transactions, no logic, NO caching)
+2. **Service** = ALL business logic + caching (handle* for router, get* for services)
 3. **Router** = HTTP only (parse, validate, call `handle*`, format response)
 4. **No usecase layer** — orchestration lives in service
 5. **repo is `private readonly`** — never exposed outside service
-6. **clearCache is always private** — never skippable
-7. **handle* called ONLY from router** — never from another service
+6. **handle* called ONLY from router** — never from another service
+7. **Cache at service layer** — use `CacheService` from `@/lib/cache`
 8. **Cache invalidate on every write** — LIST, COUNT, and DETAIL(id)
-9. **Use `CACHE_KEY_DEFAULT`** — standardized cache keys
+9. **Use namespace cache** — `new CacheService({ ns: 'entity', client })`
 10. **Batch queries over loops** — inArray() + RelationMap
 11. **Every repo method wrapped in record()** for telemetry
 12. **Tests co-located** — skip DTO tests, focus on service + route tests
-13. **No subfolders** — co-located: dto/, entity.repo.ts, entity.service.ts, entity.route.ts, entity.test.ts
+13. **Flat structure for single submodule** — co-located files, no nested folders
+14. **Package-by-feature for multiple submodules** — subfolder per feature with index.ts
 
 ---
 

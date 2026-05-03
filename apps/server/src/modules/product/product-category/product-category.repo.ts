@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, isNull } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	checkConflict,
 	paginate,
@@ -14,7 +13,6 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import { logger } from '@/core/logger'
 
 import { productCategoriesTable } from '@/db/schema'
 
@@ -24,8 +22,6 @@ import {
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 } from './product-category.dto'
-
-const PRODUCT_CATEGORY_CACHE_NAMESPACE = 'product-category'
 
 const uniqueFields: ConflictField<'name'>[] = [
 	{
@@ -37,44 +33,17 @@ const uniqueFields: ConflictField<'name'>[] = [
 ]
 
 export class ProductCategoryRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PRODUCT_CATEGORY_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.count, CACHE_KEY_DEFAULT.list]
-		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'ProductCategoryRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<ProductCategoryDto | undefined> {
 		return record('ProductCategoryRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [result] = await this.db
-						.select()
-						.from(productCategoriesTable)
-						.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
-
-					if (!result) return skip()
-					return ProductCategoryDto.parse(result)
-				},
-			})
+			const [result] = await this.db
+				.select()
+				.from(productCategoriesTable)
+				.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
+			return result ? ProductCategoryDto.parse(result) : undefined
 		})
 	}
 
@@ -109,17 +78,12 @@ export class ProductCategoryRepo {
 
 	async getAll(): Promise<ProductCategoryDto[]> {
 		return record('ProductCategoryRepo.getAll', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => {
-					const rows = await this.db
-						.select()
-						.from(productCategoriesTable)
-						.where(isNull(productCategoriesTable.deletedAt))
-						.orderBy(productCategoriesTable.name)
-					return rows.map((r) => ProductCategoryDto.parse(r))
-				},
-			})
+			const rows = await this.db
+				.select()
+				.from(productCategoriesTable)
+				.where(isNull(productCategoriesTable.deletedAt))
+				.orderBy(productCategoriesTable.name)
+			return rows.map((r) => ProductCategoryDto.parse(r))
 		})
 	}
 
@@ -147,7 +111,6 @@ export class ProductCategoryRepo {
 					'PRODUCT_CATEGORY_CREATE_FAILED',
 				)
 
-			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -158,66 +121,48 @@ export class ProductCategoryRepo {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.update', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(
-					`Product category with ID ${id} not found`,
-					'PRODUCT_CATEGORY_NOT_FOUND',
-				)
-
-			const name = data.name ? data.name.trim() : existing.name
-
-			await checkConflict({
-				table: productCategoriesTable,
-				pkColumn: productCategoriesTable.id,
-				fields: uniqueFields,
-				input: { name },
-				existing,
-			})
+			const name = data.name ? data.name.trim() : undefined
 
 			await this.db
 				.update(productCategoriesTable)
 				.set({ ...data, name, ...stampUpdate(actorId) })
 				.where(eq(productCategoriesTable.id, id))
 
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
 
 	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.softDelete', async () => {
-			const result = await this.db
+			const [result] = await this.db
 				.update(productCategoriesTable)
 				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(productCategoriesTable.id, id))
 				.returning({ id: productCategoriesTable.id })
 
-			if (result.length === 0)
+			if (!result)
 				throw new NotFoundError(
 					`Product category with ID ${id} not found`,
 					'PRODUCT_CATEGORY_NOT_FOUND',
 				)
 
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
 
 	async hardDelete(id: number): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.hardDelete', async () => {
-			const result = await this.db
+			const [result] = await this.db
 				.delete(productCategoriesTable)
 				.where(eq(productCategoriesTable.id, id))
 				.returning({ id: productCategoriesTable.id })
 
-			if (result.length === 0)
+			if (!result)
 				throw new NotFoundError(
 					`Product category with ID ${id} not found`,
 					'PRODUCT_CATEGORY_NOT_FOUND',
 				)
 
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}

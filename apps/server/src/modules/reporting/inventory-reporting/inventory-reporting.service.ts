@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/core/database'
-
 import * as dto from './inventory-reporting.dto'
 
 export class InventoryReportingService {
-	constructor(_db: DbClient) {}
-
 	async getStockLevels(_query: dto.InventoryReportRequestDto): Promise<dto.StockLevelResponseDto> {
 		// eslint-disable-next-line @typescript-eslint/require-await
 		return record('InventoryReportingService.getStockLevels', async () => {

@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import { SalesInvoiceRepo } from './sales-invoice/sales-invoice.repo'
 import { initSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
@@ -22,14 +23,14 @@ export class SalesServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const salesOrderRepo = new SalesOrderRepo(this.db, this.cacheClient)
-		this.order = new SalesOrderService(salesOrderRepo)
+		const salesOrderRepo = new SalesOrderRepo(this.db)
+		this.order = new SalesOrderService(salesOrderRepo, this.cacheClient)
 
-		const salesTypeRepo = new SalesTypeRepo(this.db, this.cacheClient)
-		this.salesType = new SalesTypeService(salesTypeRepo)
+		const salesTypeRepo = new SalesTypeRepo(this.db)
+		this.salesType = new SalesTypeService(salesTypeRepo, this.cacheClient)
 
-		const salesInvoiceRepo = new SalesInvoiceRepo(this.db, this.cacheClient)
-		this.invoice = new SalesInvoiceService(salesInvoiceRepo)
+		const salesInvoiceRepo = new SalesInvoiceRepo(this.db)
+		this.invoice = new SalesInvoiceService(salesInvoiceRepo, this.cacheClient)
 	}
 }
 

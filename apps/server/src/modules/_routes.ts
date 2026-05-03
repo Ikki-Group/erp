@@ -4,7 +4,6 @@ import { initAuthRouteModule } from './auth'
 import { initCompanyRouteModule } from './company'
 import { initCrmRouteModule } from './crm'
 import { initDashboardRouteModule } from './dashboard'
-import { initEmployeeRouteModule } from './employee'
 import { initFinanceRouteModule } from './finance'
 import { initHRRouteModule } from './hr'
 import { initIamRouteModule } from './iam'
@@ -36,7 +35,6 @@ export function initRoutes(m: Modules) {
 		initToolRouteModule(m.tool),
 		initMokaRouteModule(m.moka),
 		initSalesRouteModule(m.sales),
-		initEmployeeRouteModule(m.employee),
 		initSupplierRouteModule(m.supplier),
 		initFinanceRouteModule(m.finance),
 		initCrmRouteModule(m.crm),

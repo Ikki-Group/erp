@@ -2,9 +2,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import {
 	employeesTable,
@@ -20,30 +18,8 @@ import type {
 	PayrollAdjustmentDto,
 } from './payroll.dto'
 
-const PAYROLL_CACHE_NAMESPACE = 'hr.payroll'
-
 export class PayrollRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PAYROLL_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'PayrollRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -189,7 +165,6 @@ export class PayrollRepo {
 
 				return adjustment as unknown as PayrollAdjustmentDto
 			})
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -203,7 +178,6 @@ export class PayrollRepo {
 				.returning()
 
 			if (!result) throw new Error('Failed to finalize batch')
-			this.#clearCacheAsync(batchId)
 			return result as unknown as PayrollBatchDto
 		})
 	}

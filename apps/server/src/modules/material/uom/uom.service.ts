@@ -6,6 +6,8 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { uomsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { UomDto, UomFilterDto, UomMutationDto } from './uom.dto'
 import { UomRepo } from './uom.repo'
 
@@ -28,19 +30,32 @@ const uniqueFields: ConflictField<'code'>[] = [
 /* ----------------------------- IMPLEMENTATION ----------------------------- */
 
 export class UomService {
-	constructor(private repo = new UomRepo()) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: UomRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'material.uom', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async find(): Promise<UomDto[]> {
 		return record('UomService.find', async () => {
-			return this.repo.getList()
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 		})
 	}
 
 	async getById(id: number): Promise<UomDto> {
 		return record('UomService.getById', async () => {
-			const result = await this.repo.getById(id)
+			const result = await this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 			if (!result) throw err.notFound(id)
 			return result
 		})
@@ -48,7 +63,10 @@ export class UomService {
 
 	async count(): Promise<number> {
 		return record('UomService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -86,6 +104,8 @@ export class UomService {
 			const result = await this.repo.create({ code, createdBy: actorId })
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -111,6 +131,8 @@ export class UomService {
 			const result = await this.repo.update(id, { code, updatedBy: actorId })
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -123,6 +145,8 @@ export class UomService {
 			const result = await this.repo.remove(id, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -131,6 +155,8 @@ export class UomService {
 		return record('UomService.handleHardRemove', async () => {
 			const result = await this.repo.hardRemove(id)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return { id }
 		})

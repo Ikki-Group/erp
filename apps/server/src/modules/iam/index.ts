@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { LocationServiceModule } from '@/modules/location'
 
@@ -32,19 +33,21 @@ export class IamServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: IamServiceModuleDeps,
 	) {
-		const roleRepo = new RoleRepo(this.db, this.cacheClient)
-		const sessionRepo = new SessionRepo(this.db, this.cacheClient)
+		const roleRepo = new RoleRepo(this.db)
+		this.role = new RoleService(roleRepo, this.cacheClient)
 
-		this.role = new RoleService(roleRepo)
+		const sessionRepo = new SessionRepo(this.db)
+		this.session = new SessionService(sessionRepo, this.cacheClient)
+
 		this.assignment = new UserAssignmentService()
-		this.session = new SessionService(sessionRepo)
 		this.user = new UserService(
 			{
 				location: this.deps.location,
 				assignment: this.assignment,
 				role: this.role,
 			},
-			new UserRepo(this.db, this.cacheClient),
+			new UserRepo(this.db),
+			this.cacheClient,
 		)
 	}
 }
@@ -59,5 +62,7 @@ export function initIamRouteModule(s: IamServiceModule) {
 
 export { UserDto, UserDetailDto } from './user/user.dto'
 export { SessionDto, SessionSelectDto } from './session/session.dto'
+export { RoleDto, RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.dto'
 export type { UserService } from './user/user.service'
 export type { SessionService } from './session/session.service'
+export type { RoleService } from './role/role.service'

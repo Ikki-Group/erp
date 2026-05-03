@@ -1,12 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 
-import type { CacheClient } from '@/core/cache'
-import { type CacheProvider } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
+
+import { CacheService, type CacheClient } from '@/lib/cache'
 
 export interface PnLData {
 	revenue: number
@@ -23,15 +23,14 @@ export interface TopSalesItem {
 	totalRevenue: number
 }
 
-const ANALYTICS_CACHE_NAMESPACE = 'analytics'
-
 export class AnalyticsService {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
+	private readonly cache: CacheService
 
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(ANALYTICS_CACHE_NAMESPACE)
+	constructor(
+		private readonly db: DbClient,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'analytics', client: cacheClient })
 	}
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
 		return this.cache.getOrSet({

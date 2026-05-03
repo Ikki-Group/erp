@@ -3,9 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './sales-invoice.dto'
 import { SalesInvoiceRepo } from './sales-invoice.repo'
-import type { RecordId } from '@/lib/validation'
 
 const err = {
 	notFound: (id: number) =>
@@ -17,25 +19,44 @@ const err = {
 }
 
 export class SalesInvoiceService {
-	constructor(private readonly repo: SalesInvoiceRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: SalesInvoiceRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'sales.invoice', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.SalesInvoiceDto | undefined> {
 		return record('SalesInvoiceService.getById', async () => {
-			return this.repo.getById(id)
+			const key = `byId:${id}`
+			return this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
 	async getWithItems(id: number): Promise<dto.SalesInvoiceWithItemsDto | undefined> {
 		return record('SalesInvoiceService.getWithItems', async () => {
-			return this.repo.getWithItems(id)
+			const key = `withItems:${id}`
+			return this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getWithItems(id),
+			})
 		})
 	}
 
 	async getByOrderId(orderId: number): Promise<dto.SalesInvoiceDto | undefined> {
 		return record('SalesInvoiceService.getByOrderId', async () => {
-			return this.repo.getByOrderId(orderId)
+			const key = `byOrderId:${orderId}`
+			return this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getByOrderId(orderId),
+			})
 		})
 	}
 
@@ -45,8 +66,11 @@ export class SalesInvoiceService {
 		filter: dto.SalesInvoiceFilterDto,
 	): Promise<WithPaginationResult<dto.SalesInvoiceDto>> {
 		return record('SalesInvoiceService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return result
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -71,6 +95,7 @@ export class SalesInvoiceService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 			return { id: result }
 		})
 	}
@@ -92,6 +117,7 @@ export class SalesInvoiceService {
 			const result = await this.repo.generateFromOrder(data.orderId, data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byOrderId:${data.orderId}`] })
 			return { id: result }
 		})
 	}
@@ -114,6 +140,7 @@ export class SalesInvoiceService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `withItems:${id}`] })
 			return { id }
 		})
 	}
@@ -134,6 +161,7 @@ export class SalesInvoiceService {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `withItems:${id}`] })
 			return { id }
 		})
 	}

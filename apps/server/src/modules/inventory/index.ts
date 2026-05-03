@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { MaterialServiceModule } from '@/modules/material'
 
@@ -37,17 +38,21 @@ export class InventoryServiceModule {
 		private readonly cacheClient: CacheClient,
 		private readonly deps: InventoryServiceModuleDeps,
 	) {
-		const transactionRepo = new StockTransactionRepo(this.db, this.cacheClient)
-		const summaryRepo = new StockSummaryRepo(this.db, this.cacheClient)
-		const alertRepo = new StockAlertRepo(this.db, this.cacheClient)
-		const dashboardRepo = new StockDashboardRepo(this.db, this.cacheClient)
-		const stockTransferRepo = new StockTransferRepo(this.db, this.cacheClient)
+		const transactionRepo = new StockTransactionRepo(this.db)
+		const summaryRepo = new StockSummaryRepo(this.db)
+		const alertRepo = new StockAlertRepo(this.db)
+		const dashboardRepo = new StockDashboardRepo(this.db)
+		const stockTransferRepo = new StockTransferRepo(this.db)
 
 		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
-		this.summary = new StockSummaryService(summaryRepo, this.deps.material.location)
-		this.alert = new StockAlertService(alertRepo)
-		this.dashboard = new StockDashboardService(dashboardRepo)
-		this.stockTransfer = new StockTransferService(stockTransferRepo)
+		this.summary = new StockSummaryService(
+			summaryRepo,
+			this.deps.material.location,
+			this.cacheClient,
+		)
+		this.alert = new StockAlertService(alertRepo, this.cacheClient)
+		this.dashboard = new StockDashboardService(dashboardRepo, this.cacheClient)
+		this.stockTransfer = new StockTransferService(stockTransferRepo, this.cacheClient)
 	}
 }
 
@@ -61,3 +66,29 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 }
 
 export type { StockTransactionService } from './stock-transaction/stock-transaction.service'
+
+export { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert/stock-alert.dto'
+export { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard/stock-dashboard.dto'
+export { StockSummaryDto, StockSummaryFilterDto } from './stock-summary/stock-summary.dto'
+export {
+	StockTransactionDto,
+	StockTransactionFilterDto,
+	StockTransactionSelectDto,
+	TransactionTypeEnum,
+	type TransactionType,
+	PurchaseTransactionDto,
+	TransferTransactionDto,
+	AdjustmentTransactionDto,
+	UsageTransactionDto,
+	SellTransactionDto,
+	ProductionInTransactionDto,
+	ProductionOutTransactionDto,
+	TransactionResultDto,
+	StockOpnameDto,
+} from './stock-transaction/stock-transaction.dto'
+export {
+	StockTransferDto,
+	StockTransferCreateDto,
+	StockTransferUpdateDto,
+	StockTransferFilterDto,
+} from './stock-transfer/stock-transfer.dto'

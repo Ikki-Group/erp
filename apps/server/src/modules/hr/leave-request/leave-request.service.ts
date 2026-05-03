@@ -3,6 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type * as dto from './leave-request.dto'
 import { LeaveRequestRepo } from './leave-request.repo'
 
@@ -17,13 +19,24 @@ const err = {
 }
 
 export class LeaveRequestService {
-	constructor(private readonly repo: LeaveRequestRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: LeaveRequestRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'hr.leave-request', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.LeaveRequestDto> {
 		return record('LeaveRequestService.getById', async () => {
-			const request = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const request = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!request) throw err.notFound(id)
 			return request
 		})
@@ -35,7 +48,11 @@ export class LeaveRequestService {
 		filter: dto.LeaveRequestFilterDto,
 	): Promise<WithPaginationResult<dto.LeaveRequestSelectDto>> {
 		return record('LeaveRequestService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -47,73 +64,73 @@ export class LeaveRequestService {
 
 	async handleCreate(data: dto.LeaveRequestCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
 	async handleUpdate(data: dto.LeaveRequestUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleUpdate', async () => {
-			return this.repo.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+			return result
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
-	async handleApprove(
-		data: dto.LeaveRequestApproveDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleApprove(data: dto.LeaveRequestApproveDto, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleApprove', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
 			if (!request) throw err.notFound(id)
 
-			// Can only approve if status is 'pending'
 			if (request.status !== 'pending') {
 				throw err.invalidStatus(request.status)
 			}
 
-			return this.repo.updateStatus(id, 'approved', actorId)
+			const result = await this.repo.updateStatus(id, 'approved', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
-	async handleReject(
-		data: dto.LeaveRequestRejectDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleReject(data: dto.LeaveRequestRejectDto, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleReject', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
 			if (!request) throw err.notFound(id)
 
-			// Can only reject if status is 'pending'
 			if (request.status !== 'pending') {
 				throw err.invalidStatus(request.status)
 			}
 
-			return this.repo.updateStatus(id, 'rejected', actorId)
+			const result = await this.repo.updateStatus(id, 'rejected', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
-	async handleCancel(
-		data: dto.LeaveRequestCancelDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleCancel(data: dto.LeaveRequestCancelDto, actorId: number): Promise<{ id: number }> {
 		return record('LeaveRequestService.handleCancel', async () => {
 			const { id } = data
 			const request = await this.repo.getById(id)
 			if (!request) throw err.notFound(id)
 
-			// Can only cancel if status is 'pending' or 'approved'
 			if (request.status !== 'pending' && request.status !== 'approved') {
 				throw err.invalidStatus(request.status)
 			}
 
-			return this.repo.updateStatus(id, 'cancelled', actorId)
+			const result = await this.repo.updateStatus(id, 'cancelled', actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 }

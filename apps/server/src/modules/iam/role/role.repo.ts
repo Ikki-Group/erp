@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { rolesTable } from '@/db/schema'
 
 import * as dto from './role.dto'
 
-const ROLE_CACHE_NAMESPACE = 'role'
-
 export class RoleRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(ROLE_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('RoleRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'RoleRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -69,42 +44,22 @@ export class RoleRepo {
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleRepo.getList', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.db.select().from(rolesTable),
-			})
+			return this.db.select().from(rolesTable)
 		})
 	}
 
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(rolesTable)
-						.where(eq(rolesTable.id, id))
-						.limit(1)
-						.then(takeFirst)
-
-					return res ?? skip()
-				},
-			})
+			return this.db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('RoleRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return this.db
-						.select({ count: count() })
-						.from(rolesTable)
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(rolesTable)
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -118,7 +73,6 @@ export class RoleRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: rolesTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -132,7 +86,6 @@ export class RoleRepo {
 				.where(eq(rolesTable.id, data.id))
 				.returning({ id: rolesTable.id })
 
-			this.#clearCacheAsync(res?.id)
 			return res?.id
 		})
 	}
@@ -143,7 +96,6 @@ export class RoleRepo {
 				.delete(rolesTable)
 				.where(eq(rolesTable.id, id))
 				.returning({ id: rolesTable.id })
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -167,8 +119,6 @@ export class RoleRepo {
 						},
 					})
 			}
-
-			this.#clearCacheAsync()
 		})
 	}
 }

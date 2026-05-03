@@ -1,11 +1,12 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { RecipeRepo } from './core/recipe.repo'
-import { initRecipeRoute } from './core/recipe.route'
-import { RecipeService } from './core/recipe.service'
+import type { CacheClient } from '@/lib/cache'
+
+import { RecipeRepo } from './recipe.repo'
+import { initRecipeRoute } from './recipe.route'
+import { RecipeService } from './recipe.service'
 
 export class RecipeServiceModule {
 	public readonly recipe: RecipeService
@@ -14,8 +15,8 @@ export class RecipeServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const recipeRepo = new RecipeRepo(this.db, this.cacheClient)
-		this.recipe = new RecipeService(recipeRepo)
+		const recipeRepo = new RecipeRepo(this.db)
+		this.recipe = new RecipeService(recipeRepo, this.cacheClient)
 	}
 }
 
@@ -23,5 +24,5 @@ export function initRecipeRouteModule(s: RecipeServiceModule) {
 	return new Elysia({ prefix: '/recipe' }).use(initRecipeRoute(s.recipe))
 }
 
-export * from './core/recipe.dto'
-export type { RecipeService } from './core/recipe.service'
+export * from './recipe.dto'
+export type { RecipeService } from './recipe.service'

@@ -5,6 +5,8 @@ import { RelationMap } from '@/core/utils/relation-map'
 
 import { rolesTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import { SYSTEM_ROLES } from '../constants'
 import { RoleErrors } from '../errors'
 import * as dto from './role.dto'
@@ -26,13 +28,23 @@ const roleConflictFields: core.ConflictField<'code' | 'name'>[] = [
 ]
 
 export class RoleService {
-	constructor(private readonly repo: RoleRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: RoleRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'iam.role', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.RoleDto[]> {
 		return record('RoleService.getList', async () => {
-			return this.repo.getList()
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 		})
 	}
 
@@ -45,7 +57,10 @@ export class RoleService {
 
 	async getById(id: number): Promise<dto.RoleDto | undefined> {
 		return record('RoleService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -59,7 +74,10 @@ export class RoleService {
 
 	async count(): Promise<number> {
 		return record('RoleService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -97,6 +115,8 @@ export class RoleService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw RoleErrors.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -120,6 +140,8 @@ export class RoleService {
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw RoleErrors.notFound(id)
 
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}
@@ -132,6 +154,8 @@ export class RoleService {
 
 			const result = await this.repo.remove(id)
 			if (!result) throw RoleErrors.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return { id }
 		})

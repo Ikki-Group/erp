@@ -11,8 +11,8 @@ import { NotFoundError } from '@/core/http/errors'
  * @example
  * const user = takeFirst(await db.select().from(users).where(eq(users.id, id)))
  */
-export function takeFirst<T>(results: T[]): T | null {
-	return results[0] ?? null
+export function takeFirst<T>(results: T[]): T | undefined {
+	return results[0]
 }
 
 /**

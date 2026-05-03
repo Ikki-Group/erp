@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type { JournalEntryInput } from './general-ledger.repo'
 import { GeneralLedgerRepo as GLRepo } from './general-ledger.repo'
 
@@ -13,7 +15,14 @@ export type {
 } from './general-ledger.repo'
 
 export class GeneralLedgerService {
-	constructor(private readonly repo: GLRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: GLRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'finance.gl', client: cacheClient })
+	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
@@ -28,13 +37,18 @@ export class GeneralLedgerService {
 				)
 			}
 
-			return this.repo.postEntry(input, actorId)
+			const result = await this.repo.postEntry(input, actorId)
+			await this.cache.deleteMany({ keys: [`source.${input.sourceType}.${input.sourceId}`] })
+			return result
 		})
 	}
 
 	async getEntryBySource(sourceType: string, sourceId: number) {
 		return record('GeneralLedgerService.getEntryBySource', async () => {
-			return this.repo.getEntryBySource(sourceType, sourceId)
+			return this.cache.getOrSetSkipUndefined({
+				key: `source.${sourceType}.${sourceId}`,
+				factory: () => this.repo.getEntryBySource(sourceType, sourceId),
+			})
 		})
 	}
 }

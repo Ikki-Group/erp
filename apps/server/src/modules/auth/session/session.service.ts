@@ -1,8 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { logger } from '@/core/logger'
+
+import { CacheService, type CacheClient } from '@/lib/cache'
 
 import type { UserDto } from '@/modules/iam'
 
@@ -10,16 +11,14 @@ import { SessionPayloadDto, type SessionDto } from './session.dto'
 import { SessionRepo } from './session.repo'
 import { env } from '@/config/env'
 
-const SESSION_CACHE_NAMESPACE = 'session'
-
 export class SessionService {
-	private readonly cache: CacheProvider
+	private readonly cache: CacheService
 
 	constructor(
 		private readonly repo: SessionRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = cacheClient.namespace(SESSION_CACHE_NAMESPACE)
+		this.cache = new CacheService({ ns: 'session', client: cacheClient })
 	}
 
 	/**
@@ -27,9 +26,9 @@ export class SessionService {
 	 */
 	async getById(id: number): Promise<SessionDto | undefined> {
 		return record('SessionService.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async () => this.repo.getById(id),
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
 			})
 		})
 	}
@@ -93,7 +92,7 @@ export class SessionService {
 	async deleteSession(id: number): Promise<void> {
 		return record('SessionService.deleteSession', async () => {
 			await this.repo.invalidate(id)
-			await this.cache.deleteMany({ keys: [`${id}`] })
+			await this.cache.deleteMany({ keys: [`byId:${id}`] })
 		})
 	}
 

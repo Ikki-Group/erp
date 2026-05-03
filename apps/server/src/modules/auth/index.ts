@@ -1,9 +1,15 @@
 import Elysia from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
+import type { CacheClient } from '@/lib/cache'
+
 import type { UserService } from '../iam'
+
+interface AuthServiceModuleDeps {
+	user: UserService
+}
+
 import { initAuthRoute } from './login/login.route'
 import { LoginService } from './login/login.service'
 import { SessionRepo } from './session/session.repo'
@@ -16,14 +22,12 @@ export class AuthServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		private svc: {
-			user: UserService
-		},
+		private readonly deps: AuthServiceModuleDeps,
 	) {
-		const sessionRepo = new SessionRepo(this.db, this.cacheClient)
+		const sessionRepo = new SessionRepo(this.db)
 		this.session = new SessionService(sessionRepo, this.cacheClient)
 		this.login = new LoginService({
-			user: this.svc.user,
+			user: this.deps.user,
 			session: this.session,
 		})
 	}
@@ -31,7 +35,7 @@ export class AuthServiceModule {
 	async verifyToken(token: string) {
 		const session = await this.session.verifySession(token)
 		if (!session) return null
-		return this.svc.user.getDetailById(session.userId)
+		return this.deps.user.getDetailById(session.userId)
 	}
 }
 

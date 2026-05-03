@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { paymentMethodConfigsTable } from '@/db/schema'
 
 import * as dto from './payment-method.dto'
 
-const PAYMENT_METHOD_CONFIG_CACHE_NAMESPACE = 'payment-method-config'
-
 export class PaymentMethodConfigRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PAYMENT_METHOD_CONFIG_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('PaymentMethodConfigRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'PaymentMethodConfigRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -78,10 +53,7 @@ export class PaymentMethodConfigRepo {
 
 	async getList(): Promise<dto.PaymentMethodConfigDto[]> {
 		return record('PaymentMethodConfigRepo.getList', async () => {
-			const data = await this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.db.select().from(paymentMethodConfigsTable),
-			})
+			const data = await this.db.select().from(paymentMethodConfigsTable)
 			return data.map((item) => ({ ...item }))
 		})
 	}
@@ -98,34 +70,22 @@ export class PaymentMethodConfigRepo {
 
 	async getById(id: number): Promise<dto.PaymentMethodConfigDto | undefined> {
 		return record('PaymentMethodConfigRepo.getById', async () => {
-			const res = await this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const data = await this.db
-						.select()
-						.from(paymentMethodConfigsTable)
-						.where(eq(paymentMethodConfigsTable.id, id))
-						.limit(1)
-						.then(takeFirst)
-
-					return data ?? skip()
-				},
-			})
-			return res
+			const data = await this.db
+				.select()
+				.from(paymentMethodConfigsTable)
+				.where(eq(paymentMethodConfigsTable.id, id))
+				.limit(1)
+				.then(takeFirst)
+			return data
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('PaymentMethodConfigRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return this.db
-						.select({ count: count() })
-						.from(paymentMethodConfigsTable)
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(paymentMethodConfigsTable)
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -142,7 +102,6 @@ export class PaymentMethodConfigRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: paymentMethodConfigsTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -159,7 +118,6 @@ export class PaymentMethodConfigRepo {
 				.where(eq(paymentMethodConfigsTable.id, data.id))
 				.returning({ id: paymentMethodConfigsTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -171,7 +129,6 @@ export class PaymentMethodConfigRepo {
 				.where(eq(paymentMethodConfigsTable.id, id))
 				.returning({ id: paymentMethodConfigsTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -194,8 +151,6 @@ export class PaymentMethodConfigRepo {
 							updatedBy: metadata.updatedBy,
 						},
 					})
-
-				this.#clearCacheAsync()
 			}
 		})
 	}

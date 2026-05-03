@@ -2,7 +2,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -12,7 +11,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { employeesTable, leaveRequestsTable } from '@/db/schema'
 
@@ -24,48 +22,21 @@ import {
 	LeaveRequestUpdateDto,
 } from './leave-request.dto'
 
-const LEAVE_REQUEST_CACHE_NAMESPACE = 'hr.leave-request'
-
 export class LeaveRequestRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(LEAVE_REQUEST_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'LeaveRequestRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<LeaveRequestDto | undefined> {
 		return record('LeaveRequestRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [request] = await this.db
-						.select()
-						.from(leaveRequestsTable)
-						.where(and(eq(leaveRequestsTable.id, id), isNull(leaveRequestsTable.deletedAt)))
+			const [request] = await this.db
+				.select()
+				.from(leaveRequestsTable)
+				.where(and(eq(leaveRequestsTable.id, id), isNull(leaveRequestsTable.deletedAt)))
 
-					if (!request) return skip()
+			if (!request) return undefined
 
-					return LeaveRequestDto.parse(request)
-				},
-			})
+			return LeaveRequestDto.parse(request)
 		})
 	}
 
@@ -126,7 +97,6 @@ export class LeaveRequestRepo {
 
 			if (!result) throw new Error('Leave request creation failed')
 
-			this.#clearCacheAsync()
 			return result
 		})
 	}
@@ -144,7 +114,6 @@ export class LeaveRequestRepo {
 
 			if (!result) throw new Error('Leave request not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -159,7 +128,6 @@ export class LeaveRequestRepo {
 
 			if (!result) throw new Error('Leave request not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -173,7 +141,6 @@ export class LeaveRequestRepo {
 
 			if (!result) throw new Error('Leave request not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -189,7 +156,6 @@ export class LeaveRequestRepo {
 
 			if (!result) throw new Error('Leave request not found')
 
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

@@ -3,6 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type {
 	SalesTypeCreateDto,
 	SalesTypeDto,
@@ -12,13 +14,24 @@ import type {
 import { SalesTypeRepo } from './sales-type.repo'
 
 export class SalesTypeService {
-	constructor(private readonly repo: SalesTypeRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: SalesTypeRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'sales-type', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<SalesTypeDto> {
 		return record('SalesTypeService.getById', async () => {
-			const type = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const type = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!type)
 				throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
 			return type
@@ -27,7 +40,11 @@ export class SalesTypeService {
 
 	async find(): Promise<SalesTypeDto[]> {
 		return record('SalesTypeService.find', async () => {
-			return this.repo.getAll()
+			const key = 'list'
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getAll(),
+			})
 		})
 	}
 
@@ -35,7 +52,11 @@ export class SalesTypeService {
 
 	async handleList(filter: SalesTypeFilterDto): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -47,7 +68,9 @@ export class SalesTypeService {
 
 	async handleCreate(data: SalesTypeCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('SalesTypeService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -57,13 +80,17 @@ export class SalesTypeService {
 		actorId: number,
 	): Promise<{ id: number }> {
 		return record('SalesTypeService.handleUpdate', async () => {
-			return this.repo.update(id, data, actorId)
+			const result = await this.repo.update(id, data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
 	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('SalesTypeService.handleRemove', async () => {
-			return this.repo.delete(id)
+			const result = await this.repo.delete(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -71,7 +98,8 @@ export class SalesTypeService {
 
 	async seed(data: (SalesTypeCreateDto & { id?: number; createdBy: number })[]): Promise<void> {
 		return record('SalesTypeService.seed', async () => {
-			return this.repo.seed(data)
+			await this.repo.seed(data)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 		})
 	}
 }

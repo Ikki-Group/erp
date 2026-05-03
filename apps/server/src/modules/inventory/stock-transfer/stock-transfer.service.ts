@@ -3,6 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type * as dto from './stock-transfer.dto'
 import { StockTransferRepo } from './stock-transfer.repo'
 
@@ -17,13 +19,24 @@ const err = {
 }
 
 export class StockTransferService {
-	constructor(private readonly repo: StockTransferRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: StockTransferRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'inventory.stock-transfer', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.StockTransferDto> {
 		return record('StockTransferService.getById', async () => {
-			const transfer = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const transfer = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: async () => this.repo.getById(id),
+			})
 			if (!transfer) throw err.notFound(id)
 			return transfer
 		})
@@ -35,7 +48,11 @@ export class StockTransferService {
 		filter: dto.StockTransferFilterDto,
 	): Promise<WithPaginationResult<dto.StockTransferSelectDto>> {
 		return record('StockTransferService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -47,19 +64,25 @@ export class StockTransferService {
 
 	async handleCreate(data: dto.StockTransferCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
 	async handleUpdate(data: dto.StockTransferUpdateDto, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleUpdate', async () => {
-			return this.repo.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+			return result
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
@@ -77,14 +100,14 @@ export class StockTransferService {
 				throw err.invalidStatus(transfer.status)
 			}
 
-			return this.repo.updateStatus(id, 'pending_approval', actorId)
+			return this.repo.updateStatus(id, 'pending_approval', actorId).then((result) => {
+				void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
+			})
 		})
 	}
 
-	async handleApprove(
-		data: dto.StockTransferApproveDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleApprove(data: dto.StockTransferApproveDto, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleApprove', async () => {
 			const { id } = data
 			const transfer = await this.repo.getById(id)
@@ -95,14 +118,14 @@ export class StockTransferService {
 				throw err.invalidStatus(transfer.status)
 			}
 
-			return this.repo.updateStatus(id, 'approved', actorId)
+			return this.repo.updateStatus(id, 'approved', actorId).then((result) => {
+				void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
+			})
 		})
 	}
 
-	async handleReject(
-		data: dto.StockTransferRejectDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleReject(data: dto.StockTransferRejectDto, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleReject', async () => {
 			const { id, reason } = data
 			const transfer = await this.repo.getById(id)
@@ -113,7 +136,10 @@ export class StockTransferService {
 				throw err.invalidStatus(transfer.status)
 			}
 
-			return this.repo.updateWithRejectionReason(id, 'rejected', reason, actorId)
+			return this.repo.updateWithRejectionReason(id, 'rejected', reason, actorId).then((result) => {
+				void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
+			})
 		})
 	}
 
@@ -131,7 +157,10 @@ export class StockTransferService {
 				throw err.invalidStatus(transfer.status)
 			}
 
-			return this.repo.updateStatus(id, 'in_transit', actorId)
+			return this.repo.updateStatus(id, 'in_transit', actorId).then((result) => {
+				void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
+			})
 		})
 	}
 
@@ -150,15 +179,15 @@ export class StockTransferService {
 			}
 
 			return this.repo.updateReceivedDate(id, new Date(), actorId).then(() =>
-				this.repo.updateStatus(id, 'completed', actorId),
+				this.repo.updateStatus(id, 'completed', actorId).then((result) => {
+					void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+					return result
+				}),
 			)
 		})
 	}
 
-	async handleCancel(
-		data: dto.StockTransferCancelDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleCancel(data: dto.StockTransferCancelDto, actorId: number): Promise<{ id: number }> {
 		return record('StockTransferService.handleCancel', async () => {
 			const { id } = data
 			const transfer = await this.repo.getById(id)
@@ -169,7 +198,10 @@ export class StockTransferService {
 				throw err.invalidStatus(transfer.status)
 			}
 
-			return this.repo.updateStatus(id, 'cancelled', actorId)
+			return this.repo.updateStatus(id, 'cancelled', actorId).then((result) => {
+				void this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+				return result
+			})
 		})
 	}
 }

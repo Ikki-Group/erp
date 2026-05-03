@@ -6,8 +6,9 @@ import { RelationMap } from '@/core/utils/relation-map'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location-master.dto'
-import { LocationMasterRepo } from './location-master.repo'
+import * as dto from './location.dto'
+import { LocationMasterRepo } from './location.repo'
+import { CacheService, type CacheClient } from '@/lib/cache'
 import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'name'>[] = [
@@ -26,13 +27,23 @@ const err = {
 }
 
 export class LocationMasterService {
-	constructor(private readonly repo: LocationMasterRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly r: LocationMasterRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'location', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.LocationDto[]> {
-		return record('LocationMasterService.getList', async () => {
-			return this.repo.getList()
+		return record('LocationMasterService.getList', () => {
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.r.getList(),
+			})
 		})
 	}
 
@@ -45,19 +56,25 @@ export class LocationMasterService {
 
 	async getById(id: number): Promise<dto.LocationDto | undefined> {
 		return record('LocationMasterService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.r.getById(id),
+			})
 		})
 	}
 
-	async count(): Promise<number> {
+	async getCount(): Promise<number> {
 		return record('LocationMasterService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.r.count(),
+			})
 		})
 	}
 
 	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
 		return record('LocationMasterService.seed', async () => {
-			await this.repo.seed(data)
+			await this.r.seed(data)
 		})
 	}
 
@@ -65,14 +82,14 @@ export class LocationMasterService {
 
 	async handleList(filter: dto.LocationFilterDto): Promise<WithPaginationResult<dto.LocationDto>> {
 		return record('LocationMasterService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
+			const result = await this.r.getListPaginated(filter)
 			return result
 		})
 	}
 
 	async handleDetail(id: number): Promise<dto.LocationDto> {
 		return record('LocationMasterService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
+			const result = await this.r.getById(id)
 			if (!result) throw err.notFound(id)
 			return result
 		})
@@ -86,8 +103,10 @@ export class LocationMasterService {
 				fields: uniqueFields,
 				input: data,
 			})
-			const result = await this.repo.create(data, actorId)
+			const result = await this.r.create(data, actorId)
 			if (!result) throw err.createFailed()
+
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 
 			return { id: result }
 		})
@@ -108,8 +127,10 @@ export class LocationMasterService {
 				existing,
 			})
 
-			const result = await this.repo.update(data, actorId)
+			const result = await this.r.update(data, actorId)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return { id }
 		})
@@ -117,8 +138,11 @@ export class LocationMasterService {
 
 	async handleRemove(id: number): Promise<RecordId> {
 		return record('LocationMasterService.handleRemove', async () => {
-			const result = await this.repo.remove(id)
+			const result = await this.r.remove(id)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+
 			return { id }
 		})
 	}

@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, lte, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { paymentInvoicesTable, paymentsTable } from '@/db/schema'
 
 import * as dto from './payment.dto'
 
-const PAYMENT_CACHE_NAMESPACE = 'payment'
-
 export class PaymentRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PAYMENT_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('PaymentRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'PaymentRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -78,42 +53,28 @@ export class PaymentRepo {
 
 	async getList(): Promise<dto.PaymentDto[]> {
 		return record('PaymentRepo.getList', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.db.select().from(paymentsTable),
-			})
+			return this.db.select().from(paymentsTable)
 		})
 	}
 
 	async getById(id: number): Promise<dto.PaymentDto | undefined> {
 		return record('PaymentRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(paymentsTable)
-						.where(eq(paymentsTable.id, id))
-						.limit(1)
-						.then(takeFirst)
-
-					return res ?? skip()
-				},
-			})
+			const res = await this.db
+				.select()
+				.from(paymentsTable)
+				.where(eq(paymentsTable.id, id))
+				.limit(1)
+				.then(takeFirst)
+			return res
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('PaymentRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return this.db
-						.select({ count: count() })
-						.from(paymentsTable)
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(paymentsTable)
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -141,7 +102,6 @@ export class PaymentRepo {
 				.values(insertData)
 				.returning({ id: paymentsTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -160,7 +120,6 @@ export class PaymentRepo {
 				.where(eq(paymentsTable.id, data.id))
 				.returning({ id: paymentsTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -172,7 +131,6 @@ export class PaymentRepo {
 				.where(eq(paymentsTable.id, id))
 				.returning({ id: paymentsTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}

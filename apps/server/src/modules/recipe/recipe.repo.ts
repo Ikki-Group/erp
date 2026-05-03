@@ -3,7 +3,6 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
@@ -12,7 +11,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import {
 	materialLocationsTable,
@@ -30,32 +28,10 @@ import type {
 	RecipeUpdateDto,
 } from './recipe.dto'
 
-const RECIPE_CACHE_NAMESPACE = 'recipe'
-
 export class RecipeRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(RECIPE_CACHE_NAMESPACE)
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		return record('RecipeRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'RecipeRepo cache invalidation failed')
-		})
-	}
 
 	async #getRecipeItems(recipeId: number) {
 		const results = await this.db
@@ -85,40 +61,30 @@ export class RecipeRepo {
 
 	async getById(id: number): Promise<RecipeDto | undefined> {
 		return record('RecipeRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [recipe] = await this.db
-						.select()
-						.from(recipesTable)
-						.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
+			const [recipe] = await this.db
+				.select()
+				.from(recipesTable)
+				.where(and(eq(recipesTable.id, id), isNull(recipesTable.deletedAt)))
 
-					if (!recipe) return skip()
+			if (!recipe) return undefined
 
-					const items = await this.#getRecipeItems(id)
+			const items = await this.#getRecipeItems(id)
 
-					return {
-						...recipe,
-						targetQty: recipe.targetQty,
-						items: items as any,
-					}
-				},
-			})
+			return {
+				...recipe,
+				targetQty: recipe.targetQty,
+				items: items as any,
+			}
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('RecipeRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					const result = await this.db
-						.select({ val: count() })
-						.from(recipesTable)
-						.where(isNull(recipesTable.deletedAt))
-					return result[0]?.val ?? 0
-				},
-			})
+			const result = await this.db
+				.select({ val: count() })
+				.from(recipesTable)
+				.where(isNull(recipesTable.deletedAt))
+			return result[0]?.val ?? 0
 		})
 	}
 
@@ -288,7 +254,6 @@ export class RecipeRepo {
 				return recipe as any
 			})
 
-			this.#clearCacheAsync()
 			return inserted
 		})
 	}
@@ -341,7 +306,6 @@ export class RecipeRepo {
 				return { id }
 			})
 
-			this.#clearCacheAsync(id)
 			return updated
 		})
 	}
@@ -363,7 +327,6 @@ export class RecipeRepo {
 					.where(eq(recipesTable.id, id))
 			})
 
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}

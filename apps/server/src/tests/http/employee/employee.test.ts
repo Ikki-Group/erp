@@ -16,20 +16,20 @@ describe('Employee API', () => {
 		await sessionManager.setup()
 	})
 
-	describe('GET /employee/list', () => {
+	describe('GET /hr/employee/list', () => {
 		it('returns 401 when not authenticated', async () => {
 			const app = createIntegrationTestApp()
-			const res = await app.handle(jsonRequest('GET', '/employee/list'))
+			const res = await app.handle(jsonRequest('GET', '/hr/employee/list'))
 			expect(res.status).toBe(401)
 		})
 	})
 
-	describe('GET /employee/detail', () => {
+	describe('GET /hr/employee/detail', () => {
 		it('returns 404 for non-existent employee when authenticated', async () => {
 			const app = createIntegrationTestApp()
 			const token = getTestToken()
 			const res = await app.handle(
-				authenticatedJsonRequest('GET', '/employee/detail?id=999999', token),
+				authenticatedJsonRequest('GET', '/hr/employee/detail?id=999999', token),
 			)
 			expect(res.status).toBe(404)
 		})

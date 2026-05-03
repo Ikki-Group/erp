@@ -2,7 +2,6 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, or } from 'drizzle-orm'
 import { omit } from 'es-toolkit'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -13,36 +12,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import * as dto from './user.dto'
 
-const USER_CACHE_NAMESPACE = 'iam:user'
-
 export class UserRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(USER_CACHE_NAMESPACE)
-	}
-
-	#clearCache(id?: number): Promise<void> {
-		return record('UserRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'UserRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -91,28 +67,13 @@ export class UserRepo {
 
 	async getList(): Promise<dto.UserDto[]> {
 		return record('UserRepo.getList', async () =>
-			this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.list,
-				factory: async () => this.db.select().from(usersTable).orderBy(usersTable.id),
-			}),
+			this.db.select().from(usersTable).orderBy(usersTable.id),
 		)
 	}
 
 	async getById(id: number): Promise<dto.UserDto | undefined> {
 		return record('UserRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(usersTable)
-						.where(eq(usersTable.id, id))
-						.limit(1)
-						.then(takeFirst)
-
-					return res ?? skip()
-				},
-			})
+			return this.db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
 		})
 	}
 
@@ -146,15 +107,10 @@ export class UserRepo {
 
 	async count(): Promise<number> {
 		return record('UserRepo.count', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.count,
-				factory: async () => {
-					return this.db
-						.select({ count: count() })
-						.from(usersTable)
-						.then((rows) => rows[0]?.count ?? 0)
-				},
-			})
+			return this.db
+				.select({ count: count() })
+				.from(usersTable)
+				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
@@ -187,7 +143,6 @@ export class UserRepo {
 				if (inserted) insertedIds.push(inserted.id)
 			}
 
-			this.#clearCacheAsync()
 			return insertedIds
 		})
 	}
@@ -204,7 +159,6 @@ export class UserRepo {
 				.values({ ...userData, ...metadata })
 				.returning({ id: usersTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -222,7 +176,6 @@ export class UserRepo {
 				.where(eq(usersTable.id, data.id))
 				.returning({ id: usersTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -240,7 +193,6 @@ export class UserRepo {
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
@@ -252,7 +204,6 @@ export class UserRepo {
 				.where(eq(usersTable.id, id))
 				.returning({ id: usersTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}

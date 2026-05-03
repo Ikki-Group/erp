@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 import type { IamServiceModule } from '@/modules/iam'
@@ -39,3 +40,6 @@ export function initDashboardRouteModule(module: DashboardServiceModule) {
 		.use(initSettingsRoute(module.settings))
 		.use(initAnalyticsRoute(module.analytics))
 }
+
+export { SettingsSummaryDto } from './settings/settings.dto'
+export type { SettingsService } from './settings/settings.service'

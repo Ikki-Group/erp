@@ -4,6 +4,8 @@ import Decimal from 'decimal.js'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import type {
 	RecipeCostDto,
 	RecipeCreateDto,
@@ -23,13 +25,24 @@ const err = {
 }
 
 export class RecipeService {
-	constructor(private readonly repo: RecipeRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: RecipeRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'recipe', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<RecipeDto> {
 		return record('RecipeService.getById', async () => {
-			const recipe = await this.repo.getById(id)
+			const key = `byId:${id}`
+			const recipe = await this.cache.getOrSetSkipUndefined({
+				key,
+				factory: () => this.repo.getById(id),
+			})
 			if (!recipe) throw err.notFound(id)
 			return recipe
 		})
@@ -37,7 +50,11 @@ export class RecipeService {
 
 	async count(): Promise<number> {
 		return record('RecipeService.count', async () => {
-			return this.repo.count()
+			const key = 'count'
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -45,7 +62,11 @@ export class RecipeService {
 
 	async handleList(filter: RecipeFilterDto): Promise<WithPaginationResult<RecipeSelectDto>> {
 		return record('RecipeService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
+			const key = `list.${JSON.stringify(filter)}`
+			return this.cache.getOrSet({
+				key,
+				factory: () => this.repo.getListPaginated(filter),
+			})
 		})
 	}
 
@@ -71,7 +92,9 @@ export class RecipeService {
 				throw err.targetExists()
 			}
 
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
@@ -91,19 +114,25 @@ export class RecipeService {
 				throw err.targetExists()
 			}
 
-			return this.repo.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${data.id}`] })
+			return result
 		})
 	}
 
 	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
 		return record('RecipeService.handleRemove', async () => {
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
 	async handleHardRemove(id: number): Promise<{ id: number }> {
 		return record('RecipeService.handleHardRemove', async () => {
-			return this.repo.hardDelete(id)
+			const result = await this.repo.hardDelete(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 
