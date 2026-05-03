@@ -24,3 +24,6 @@ export type ConfigNamespace =
 	| 'inventory.stock-transfer'
 	| 'inventory.alert'
 	| 'recipe'
+	| 'sales-type'
+	| 'sales.order'
+	| 'sales.invoice'

@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -11,37 +10,13 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { salesInvoicesTable, salesInvoiceItemsTable, salesOrderItemsTable } from '@/db/schema'
 
 import * as dto from './sales-invoice.dto'
 
-const SALES_INVOICE_CACHE_NAMESPACE = 'sales-invoice'
-
 export class SalesInvoiceRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(SALES_INVOICE_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-	#clearCache(id?: number): Promise<void> {
-		return record('SalesInvoiceRepo.#clearCache', async () => {
-			const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-			if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-			await this.cache.deleteMany({ keys })
-		})
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'SalesInvoiceRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -76,19 +51,14 @@ export class SalesInvoiceRepo {
 
 	async getById(id: number): Promise<dto.SalesInvoiceDto | undefined> {
 		return record('SalesInvoiceRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(salesInvoicesTable)
-						.where(eq(salesInvoicesTable.id, id))
-						.limit(1)
-						.then(takeFirst)
+			const res = await this.db
+				.select()
+				.from(salesInvoicesTable)
+				.where(eq(salesInvoicesTable.id, id))
+				.limit(1)
+				.then(takeFirst)
 
-					return res ?? skip()
-				},
-			})
+			return res ?? undefined
 		})
 	}
 
@@ -129,7 +99,6 @@ export class SalesInvoiceRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: salesInvoicesTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -143,7 +112,6 @@ export class SalesInvoiceRepo {
 				.where(eq(salesInvoicesTable.id, data.id))
 				.returning({ id: salesInvoicesTable.id })
 
-			this.#clearCacheAsync(data.id)
 			return res?.id
 		})
 	}
@@ -155,7 +123,6 @@ export class SalesInvoiceRepo {
 				.where(eq(salesInvoicesTable.id, id))
 				.returning({ id: salesInvoicesTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}

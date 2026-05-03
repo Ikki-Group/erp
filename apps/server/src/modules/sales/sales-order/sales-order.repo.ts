@@ -3,7 +3,6 @@ import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	stampCreate,
@@ -13,7 +12,6 @@ import {
 	type DbClient,
 } from '@/core/database'
 import { BadRequestError, NotFoundError } from '@/core/http/errors'
-import { logger } from '@/core/logger'
 
 import {
 	salesExternalRefsTable,
@@ -35,8 +33,6 @@ import type {
 	SalesVoidDto,
 } from './sales-order.dto'
 
-const SALES_ORDER_CACHE_NAMESPACE = 'sales.order'
-
 const err = {
 	notFound: (id: number) =>
 		new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
@@ -47,27 +43,9 @@ const err = {
 }
 
 export class SalesOrderRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(SALES_ORDER_CACHE_NAMESPACE)
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'SalesOrderRepo cache invalidation failed')
-		})
-	}
 
 	async #recalculateOrderTotals(tx: any = this.db, orderId: number, actorId: number) {
 		const allItems = await tx
@@ -114,32 +92,21 @@ export class SalesOrderRepo {
 
 	async getById(id: number): Promise<SalesOrderOutputDto | undefined> {
 		return record('SalesOrderRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [row] = await this.db
-						.select()
-						.from(salesOrdersTable)
-						.where(eq(salesOrdersTable.id, id))
-					if (!row) return skip()
+			const [row] = await this.db.select().from(salesOrdersTable).where(eq(salesOrdersTable.id, id))
+			if (!row) return undefined
 
-					const [items, batches, voids] = await Promise.all([
-						this.db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
-						this.db
-							.select()
-							.from(salesOrderBatchesTable)
-							.where(eq(salesOrderBatchesTable.orderId, id)),
-						this.db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
-					])
+			const [items, batches, voids] = await Promise.all([
+				this.db.select().from(salesOrderItemsTable).where(eq(salesOrderItemsTable.orderId, id)),
+				this.db.select().from(salesOrderBatchesTable).where(eq(salesOrderBatchesTable.orderId, id)),
+				this.db.select().from(salesVoidsTable).where(eq(salesVoidsTable.orderId, id)),
+			])
 
-					return {
-						...row,
-						items: items as unknown as SalesOrderItemDto[],
-						batches: batches as unknown as SalesOrderBatchDto[],
-						voids: voids as unknown as SalesVoidDto[],
-					} as unknown as SalesOrderOutputDto
-				},
-			})
+			return {
+				...row,
+				items: items as unknown as SalesOrderItemDto[],
+				batches: batches as unknown as SalesOrderBatchDto[],
+				voids: voids as unknown as SalesVoidDto[],
+			} as unknown as SalesOrderOutputDto
 		})
 	}
 
@@ -268,7 +235,7 @@ export class SalesOrderRepo {
 
 				return { id: order!.id }
 			})
-			this.#clearCacheAsync()
+
 			return inserted
 		})
 	}
@@ -327,7 +294,7 @@ export class SalesOrderRepo {
 
 				return { id: order!.id }
 			})
-			this.#clearCacheAsync()
+
 			return inserted
 		})
 	}
@@ -380,7 +347,6 @@ export class SalesOrderRepo {
 				await this.#recalculateOrderTotals(tx, orderId, actorId)
 				return { batchId: batch!.id }
 			})
-			this.#clearCacheAsync(orderId)
 			return result
 		})
 	}
@@ -404,7 +370,6 @@ export class SalesOrderRepo {
 				// TODO: Add GL posting for manual sales when Finance module integration is ready
 				// Similar to Moka sync's postSalesToGL method
 			})
-			this.#clearCacheAsync(orderId)
 			return { id: orderId }
 		})
 	}
@@ -445,7 +410,6 @@ export class SalesOrderRepo {
 					}
 				}
 			})
-			this.#clearCacheAsync(orderId)
 			return { id: orderId }
 		})
 	}
