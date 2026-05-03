@@ -12,3 +12,6 @@ export type ConfigNamespace =
 	| 'material-location'
 	| 'supplier'
 	| 'employee'
+	| 'finance.account'
+	| 'finance.expenditure'
+	| 'finance.gl'

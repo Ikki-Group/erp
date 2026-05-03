@@ -2,6 +2,8 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/core/database'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import {
 	GeneralLedgerService,
 	type JournalItemInput,
@@ -10,11 +12,16 @@ import type { ExpenditureCreateDto, ExpenditureFilterDto } from './expenditure.d
 import { ExpenditureRepo } from './expenditure.repo'
 
 export class ExpenditureService {
+	private readonly cache: CacheService
+
 	constructor(
 		private readonly db: DbClient,
 		private readonly journal: GeneralLedgerService,
 		private readonly repo: ExpenditureRepo,
-	) {}
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'finance.expenditure', client: cacheClient })
+	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
@@ -61,6 +68,9 @@ export class ExpenditureService {
 					},
 					actorId,
 				)
+
+				// Invalidate cache
+				await this.cache.deleteMany({ keys: ['list'] })
 
 				return expenditure
 			})

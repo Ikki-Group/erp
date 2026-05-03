@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import { AccountRepo } from './account/account.repo'
 import { initAccountRoute } from './account/account.route'
@@ -22,14 +23,19 @@ export class FinanceServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const accountRepo = new AccountRepo(this.db, this.cacheClient)
-		this.account = new AccountService(accountRepo)
+		const accountRepo = new AccountRepo(this.db)
+		this.account = new AccountService(accountRepo, this.cacheClient)
 
-		const glRepo = new GeneralLedgerRepo(this.db, this.cacheClient)
-		this.journal = new GeneralLedgerService(glRepo)
+		const glRepo = new GeneralLedgerRepo(this.db)
+		this.journal = new GeneralLedgerService(glRepo, this.cacheClient)
 
-		const expenditureRepo = new ExpenditureRepo(this.db, this.cacheClient)
-		this.expenditure = new ExpenditureService(this.db, this.journal, expenditureRepo)
+		const expenditureRepo = new ExpenditureRepo(this.db)
+		this.expenditure = new ExpenditureService(
+			this.db,
+			this.journal,
+			expenditureRepo,
+			this.cacheClient,
+		)
 	}
 }
 

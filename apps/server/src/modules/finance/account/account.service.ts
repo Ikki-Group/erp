@@ -3,17 +3,29 @@ import { record } from '@elysiajs/opentelemetry'
 import { NotFoundError } from '@/core/http/errors'
 import type { WithPaginationResult } from '@/core/utils/pagination'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+
 import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import { AccountRepo } from './account.repo'
 
 export class AccountService {
-	constructor(private readonly repo: AccountRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: AccountRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'finance.account', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number) {
 		return record('AccountService.getById', async () => {
-			const account = await this.repo.getById(id)
+			const account = await this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 			if (!account) throw new NotFoundError(`Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
 			return account
 		})
@@ -21,7 +33,10 @@ export class AccountService {
 
 	async findByCode(code: string) {
 		return record('AccountService.findByCode', async () => {
-			return this.repo.findByCode(code)
+			return this.cache.getOrSetSkipUndefined({
+				key: `code:${code}`,
+				factory: () => this.repo.findByCode(code),
+			})
 		})
 	}
 
@@ -41,13 +56,17 @@ export class AccountService {
 
 	async handleCreate(data: AccountCreateDto, actorId: number) {
 		return record('AccountService.handleCreate', async () => {
-			return this.repo.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			return result
 		})
 	}
 
 	async handleUpdate(id: number, data: AccountUpdateDto, actorId: number) {
 		return record('AccountService.handleUpdate', async () => {
-			return this.repo.update(id, data, actorId)
+			const result = await this.repo.update(id, data, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`, `code:${data.code}`] })
+			return result
 		})
 	}
 
@@ -57,7 +76,9 @@ export class AccountService {
 			if (hasChildren) {
 				throw new Error('Account has children, cannot delete')
 			}
-			return this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id, actorId)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			return result
 		})
 	}
 }
