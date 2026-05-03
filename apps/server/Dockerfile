@@ -14,6 +14,10 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Ensure all workspace and dev dependencies are available for the build step
+# (some packages required only at build-time, e.g. type-reset helpers)
+RUN bun install --frozen-lockfile
+
 # Build the server app
 WORKDIR /app/apps/server
 RUN bun run build
