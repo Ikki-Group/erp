@@ -29,3 +29,6 @@ export type ConfigNamespace =
 	| 'sales.invoice'
 	| 'purchasing.order'
 	| 'purchasing.receipt'
+	| 'moka.config'
+	| 'moka.scrap-history'
+	| 'moka.sync-cursor'
