@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
 import { useDataTable } from '@/hooks/use-data-table'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
-import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
 
 import { Card } from '@/components/ui/card'
 
@@ -19,50 +18,51 @@ export const Route = createFileRoute('/_app/reports/inventory/stock')({
 	component: InventoryStockReport,
 })
 
-const ch = createColumnHelper<StockLevelDto>()
-const columns = [
-	ch.accessor('productName', textColumn({ header: 'Produk', size: 250 })),
-	ch.accessor('sku', textColumn({ header: 'SKU', size: 120 })),
-	ch.accessor(
-		'currentStock',
-		customColumn({
-			header: 'Stok Saat Ini',
-			cell: (v, row) => {
-				const isLow = row.currentStock <= row.reorderLevel
-				return (
-					<span className={`font-mono font-medium tabular-nums ${isLow ? 'text-rose-600' : ''}`}>
-						{v} {row.unit}
-					</span>
-				)
-			},
-			size: 150,
-		}),
-	),
-	ch.accessor(
-		'reorderLevel',
-		customColumn({
-			header: 'Reorder Level',
-			cell: (v, row) => (
-				<span className="font-mono tabular-nums text-muted-foreground">
-					{v} {row.unit}
+const columns: ColumnDef<StockLevelDto>[] = [
+	{
+		accessorKey: 'productName',
+		header: 'Produk',
+		size: 250,
+	},
+	{
+		accessorKey: 'sku',
+		header: 'SKU',
+		size: 120,
+	},
+	{
+		accessorKey: 'currentStock',
+		header: 'Stok Saat Ini',
+		size: 150,
+		cell: ({ row }) => {
+			const isLow = row.original.currentStock <= row.original.reorderLevel
+			return (
+				<span className={`font-mono font-medium tabular-nums ${isLow ? 'text-rose-600' : ''}`}>
+					{row.original.currentStock} {row.original.unit}
 				</span>
+			)
+		},
+	},
+	{
+		accessorKey: 'reorderLevel',
+		header: 'Reorder Level',
+		size: 150,
+		cell: ({ row }) => (
+			<span className="font-mono tabular-nums text-muted-foreground">
+				{row.original.reorderLevel} {row.original.unit}
+			</span>
+		),
+	},
+	{
+		id: 'status',
+		header: 'Status',
+		size: 120,
+		cell: ({ row }) =>
+			row.original.currentStock <= row.original.reorderLevel ? (
+				<BadgeDot variant="destructive-outline">Low Stock</BadgeDot>
+			) : (
+				<BadgeDot variant="success-outline">Aman</BadgeDot>
 			),
-			size: 150,
-		}),
-	),
-	ch.accessor(
-		'currentStock',
-		customColumn({
-			header: 'Status',
-			cell: (_v, row) =>
-				row.currentStock <= row.reorderLevel ? (
-					<BadgeDot variant="destructive-outline">Low Stock</BadgeDot>
-				) : (
-					<BadgeDot variant="success-outline">Aman</BadgeDot>
-				),
-			size: 120,
-		}),
-	),
+	},
 ]
 
 function InventoryStockReport() {
