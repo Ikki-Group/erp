@@ -1,9 +1,14 @@
 import { useState } from 'react'
 
+import { CartPanel } from '@/components/blocks/pos/cart-panel'
+import { CustomerSelector } from '@/components/blocks/pos/customer-selector'
 import { OutletSelectionDialog } from '@/components/blocks/pos/outlet-selection-dialog'
+import { ProductGrid } from '@/components/blocks/pos/product-grid'
 import { SalesModeSelector } from '@/components/blocks/pos/sales-mode-selector'
+import { TableNumberInput } from '@/components/blocks/pos/table-number-input'
 
 import type { LocationDto } from '@/features/location'
+import { usePosCart } from '@/features/pos/hooks/use-pos-cart'
 import type { SalesTypeDto } from '@/features/sales-type'
 
 export function PosScreen() {
@@ -11,9 +16,28 @@ export function PosScreen() {
 	const [selectedSalesMode, setSelectedSalesMode] = useState<SalesTypeDto | null>(null)
 	const [showOutletDialog, setShowOutletDialog] = useState(true)
 
+	const {
+		cart,
+		addItem,
+		updateQuantity,
+		removeItem,
+		clearCart,
+		setCustomer,
+		setTableNumber,
+		total,
+	} = usePosCart()
+
 	const handleSelectOutlet = (outlet: LocationDto) => {
 		setSelectedOutlet(outlet)
 		setShowOutletDialog(false)
+	}
+
+	const handleAddToCart = (product: (typeof cart.items)[0]['product']) => {
+		addItem({
+			product,
+			quantity: 1,
+			price: product.basePrice || 0,
+		})
 	}
 
 	return (
@@ -34,12 +58,26 @@ export function PosScreen() {
 							<span className="text-sm text-muted-foreground">Mode:</span>
 							<SalesModeSelector selectedMode={selectedSalesMode} onSelect={setSelectedSalesMode} />
 						</div>
+						<CustomerSelector
+							selectedCustomer={cart.customer}
+							onSelect={setCustomer}
+							onClear={() => setCustomer(null)}
+						/>
+						<TableNumberInput value={cart.tableNumber} onChange={setTableNumber} />
 					</div>
-					<div className="flex-1 flex items-center justify-center">
-						<p className="text-muted-foreground">
-							POS Screen for: {selectedOutlet.name}
-							{selectedSalesMode && ` (${selectedSalesMode.name})`}
-						</p>
+					<div className="flex flex-1 gap-4 overflow-hidden">
+						<div className="flex-1">
+							<ProductGrid onAddToCart={handleAddToCart} />
+						</div>
+						<div className="w-[400px] flex-none">
+							<CartPanel
+								cart={cart}
+								total={total}
+								onUpdateQuantity={updateQuantity}
+								onRemoveItem={removeItem}
+								onClearCart={clearCart}
+							/>
+						</div>
 					</div>
 				</div>
 			) : (
