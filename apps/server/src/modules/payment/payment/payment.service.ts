@@ -6,9 +6,11 @@ import { RelationMap } from '@/core/utils/relation-map'
 
 import { paymentsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './payment.dto'
 import { PaymentRepo } from './payment.repo'
-import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'referenceNo'>[] = [
 	{
@@ -26,13 +28,23 @@ const err = {
 }
 
 export class PaymentService {
-	constructor(private readonly repo: PaymentRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: PaymentRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'payment', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.PaymentDto[]> {
 		return record('PaymentService.getList', async () => {
-			return this.repo.getList()
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 		})
 	}
 
@@ -45,13 +57,19 @@ export class PaymentService {
 
 	async getById(id: number): Promise<dto.PaymentDto | undefined> {
 		return record('PaymentService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('PaymentService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -88,7 +106,7 @@ export class PaymentService {
 			})
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
-
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 			return { id: result }
 		})
 	}
@@ -110,7 +128,7 @@ export class PaymentService {
 
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
-
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 			return { id }
 		})
 	}
@@ -119,6 +137,7 @@ export class PaymentService {
 		return record('PaymentService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 			return { id }
 		})
 	}

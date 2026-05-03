@@ -6,9 +6,11 @@ import { RelationMap } from '@/core/utils/relation-map'
 
 import { paymentMethodConfigsTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './payment-method.dto'
 import { PaymentMethodConfigRepo } from './payment-method.repo'
-import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'name'>[] = [
 	{
@@ -33,13 +35,23 @@ const err = {
 }
 
 export class PaymentMethodConfigService {
-	constructor(private readonly repo: PaymentMethodConfigRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: PaymentMethodConfigRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'payment-method-config', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getList(): Promise<dto.PaymentMethodConfigDto[]> {
 		return record('PaymentMethodConfigService.getList', async () => {
-			return this.repo.getList()
+			return this.cache.getOrSet({
+				key: 'list',
+				factory: () => this.repo.getList(),
+			})
 		})
 	}
 
@@ -58,13 +70,19 @@ export class PaymentMethodConfigService {
 
 	async getById(id: number): Promise<dto.PaymentMethodConfigDto | undefined> {
 		return record('PaymentMethodConfigService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
 	async count(): Promise<number> {
 		return record('PaymentMethodConfigService.count', async () => {
-			return this.repo.count()
+			return this.cache.getOrSet({
+				key: 'count',
+				factory: () => this.repo.count(),
+			})
 		})
 	}
 
@@ -97,7 +115,7 @@ export class PaymentMethodConfigService {
 			})
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
-
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 			return { id: result }
 		})
 	}
@@ -119,7 +137,7 @@ export class PaymentMethodConfigService {
 
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
-
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 			return { id }
 		})
 	}
@@ -128,6 +146,7 @@ export class PaymentMethodConfigService {
 		return record('PaymentMethodConfigService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 			return { id }
 		})
 	}
@@ -135,6 +154,7 @@ export class PaymentMethodConfigService {
 	async seed(data: (dto.PaymentMethodConfigCreateDto & { createdBy: number })[]): Promise<void> {
 		return record('PaymentMethodConfigService.seed', async () => {
 			await this.repo.seed(data)
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 		})
 	}
 

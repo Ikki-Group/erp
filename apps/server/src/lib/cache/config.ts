@@ -37,3 +37,5 @@ export type ConfigNamespace =
 	| 'hr.payroll'
 	| 'hr.leave-request'
 	| 'analytics'
+	| 'payment-method-config'
+	| 'payment'
