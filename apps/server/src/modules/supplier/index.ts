@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import { SupplierRepo } from './core/supplier.repo'
 import { initSupplierRoute } from './core/supplier.route'
@@ -14,8 +15,8 @@ export class SupplierServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const supplierRepo = new SupplierRepo(this.db, this.cacheClient)
-		this.supplier = new SupplierService(supplierRepo)
+		const supplierRepo = new SupplierRepo(this.db)
+		this.supplier = new SupplierService(supplierRepo, this.cacheClient)
 	}
 }
 

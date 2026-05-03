@@ -10,3 +10,4 @@ export type ConfigNamespace =
 	| 'material.uom'
 	| 'material'
 	| 'material-location'
+	| 'supplier'

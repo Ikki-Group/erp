@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	sortBy,
@@ -11,7 +10,6 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
@@ -22,29 +20,8 @@ import type {
 	SupplierUpdateDto,
 } from './supplier.dto'
 
-const SUPPLIER_CACHE_NAMESPACE = 'supplier'
-
 export class SupplierRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(SUPPLIER_CACHE_NAMESPACE)
-	}
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.list, CACHE_KEY_DEFAULT.count]
-		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'SupplierRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -75,19 +52,12 @@ export class SupplierRepo {
 
 	async getById(id: number): Promise<SupplierDto | undefined> {
 		return record('SupplierRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const res = await this.db
-						.select()
-						.from(suppliersTable)
-						.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
-						.limit(1)
-						.then(takeFirst)
-
-					return res ?? skip()
-				},
-			})
+			return this.db
+				.select()
+				.from(suppliersTable)
+				.where(and(eq(suppliersTable.id, id), isNull(suppliersTable.deletedAt)))
+				.limit(1)
+				.then(takeFirst)
 		})
 	}
 
@@ -101,7 +71,6 @@ export class SupplierRepo {
 				.values({ ...data, ...metadata })
 				.returning({ id: suppliersTable.id })
 
-			this.#clearCacheAsync()
 			return res?.id
 		})
 	}
@@ -116,7 +85,6 @@ export class SupplierRepo {
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			this.#clearCacheAsync(res?.id)
 			return res?.id
 		})
 	}
@@ -129,7 +97,6 @@ export class SupplierRepo {
 				.where(eq(suppliersTable.id, id))
 				.returning({ id: suppliersTable.id })
 
-			this.#clearCacheAsync(id)
 			return res?.id
 		})
 	}
