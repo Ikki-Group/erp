@@ -66,3 +66,29 @@ export function initInventoryRouteModule(s: InventoryServiceModule) {
 }
 
 export type { StockTransactionService } from './stock-transaction/stock-transaction.service'
+
+export { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert/stock-alert.dto'
+export { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard/stock-dashboard.dto'
+export { StockSummaryDto, StockSummaryFilterDto } from './stock-summary/stock-summary.dto'
+export {
+	StockTransactionDto,
+	StockTransactionFilterDto,
+	StockTransactionSelectDto,
+	TransactionTypeEnum,
+	type TransactionType,
+	PurchaseTransactionDto,
+	TransferTransactionDto,
+	AdjustmentTransactionDto,
+	UsageTransactionDto,
+	SellTransactionDto,
+	ProductionInTransactionDto,
+	ProductionOutTransactionDto,
+	TransactionResultDto,
+	StockOpnameDto,
+} from './stock-transaction/stock-transaction.dto'
+export {
+	StockTransferDto,
+	StockTransferCreateDto,
+	StockTransferUpdateDto,
+	StockTransferFilterDto,
+} from './stock-transfer/stock-transfer.dto'

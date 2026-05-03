@@ -48,3 +48,22 @@ export function initFinanceRouteModule(s: FinanceServiceModule) {
 
 export type { AccountService } from './account/account.service'
 export type { GeneralLedgerService } from './general-ledger/general-ledger.service'
+
+export {
+	AccountDto,
+	AccountCreateDto,
+	AccountUpdateDto,
+	AccountFilterDto,
+	AccountTypeEnum,
+	type AccountTypeEnum as AccountType,
+} from './account/account.dto'
+export {
+	ExpenditureDto,
+	ExpenditureCreateDto,
+	ExpenditureUpdateDto,
+	ExpenditureFilterDto,
+	ExpenditureTypeEnum,
+	ExpenditureStatusEnum,
+	type ExpenditureTypeEnum as ExpenditureType,
+	type ExpenditureStatusEnum as ExpenditureStatus,
+} from './expenditure/expenditure.dto'

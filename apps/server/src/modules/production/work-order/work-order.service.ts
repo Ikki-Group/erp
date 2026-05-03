@@ -7,7 +7,7 @@ import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { CacheService, type CacheClient } from '@/lib/cache'
 
-import type { InventoryServiceModule } from '@/modules/inventory'
+import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
 import type {
@@ -25,7 +25,7 @@ export class WorkOrderService {
 		private readonly repo: WorkOrderRepo,
 		private readonly db: DbClient,
 		private readonly recipeSvc: RecipeService,
-		private readonly inventorySvc: InventoryServiceModule,
+		private readonly stockTransactionSvc: StockTransactionService,
 		cacheClient: CacheClient,
 	) {
 		this.cache = new CacheService({ ns: 'production.work-order', client: cacheClient })
@@ -110,7 +110,7 @@ export class WorkOrderService {
 			return this.db.transaction(async (tx) => {
 				// 1. Consume raw materials
 				if (recipe.items) {
-					await this.inventorySvc.transaction.handleProductionOut(
+					await this.stockTransactionSvc.handleProductionOut(
 						{
 							locationId: wo.locationId,
 							date: new Date(),
@@ -131,7 +131,7 @@ export class WorkOrderService {
 
 				// 2. Add finished good
 				if (recipe.materialId) {
-					await this.inventorySvc.transaction.handleProductionIn(
+					await this.stockTransactionSvc.handleProductionIn(
 						{
 							locationId: wo.locationId,
 							date: new Date(),

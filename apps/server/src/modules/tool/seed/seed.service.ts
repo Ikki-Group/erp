@@ -2,20 +2,26 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/core/database'
 
-import type { IamServiceModule } from '@/modules/iam'
-import type { LocationServiceModule } from '@/modules/location'
-import type { MaterialServiceModule } from '@/modules/material'
-import type { SalesServiceModule } from '@/modules/sales'
+import type { RoleService } from '@/modules/iam'
+import type { UserService } from '@/modules/iam'
+import type { LocationMasterService } from '@/modules/location'
+import type { MaterialCategoryService } from '@/modules/material'
+import type { MaterialService } from '@/modules/material'
+import type { UomService } from '@/modules/material'
+import type { SalesTypeService } from '@/modules/sales'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 
 export class SeedService {
 	constructor(
 		private readonly db: DbClient,
-		private readonly iamSvc: IamServiceModule,
-		private readonly locationSvc: LocationServiceModule,
-		private readonly materialSvc: MaterialServiceModule,
-		private readonly salesSvc: SalesServiceModule,
+		private readonly iamRoleSvc: RoleService,
+		private readonly iamUserSvc: UserService,
+		private readonly locationMasterSvc: LocationMasterService,
+		private readonly materialCategorySvc: MaterialCategoryService,
+		private readonly materialMasterSvc: MaterialService,
+		private readonly materialUomSvc: UomService,
+		private readonly salesTypeSvc: SalesTypeService,
 	) {}
 
 	async seed(): Promise<void> {
@@ -25,7 +31,7 @@ export class SeedService {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
-				await this.iamSvc.role.seed([
+				await this.iamRoleSvc.seed([
 					{
 						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
 						name: 'Administrator',
@@ -46,7 +52,7 @@ export class SeedService {
 
 				// 2. Seed Users
 				const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
-				await this.iamSvc.user.seed([
+				await this.iamUserSvc.seed([
 					{
 						email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
 						username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
@@ -63,7 +69,7 @@ export class SeedService {
 				])
 
 				// 3. Seed Locations
-				await this.locationSvc.master.seed(
+				await this.locationMasterSvc.seed(
 					SEED_CONFIG.LOCATIONS.map((l) => ({
 						code: l.code,
 						name: l.name,
@@ -77,7 +83,7 @@ export class SeedService {
 				)
 
 				// 4. Seed Sales Types
-				await this.salesSvc.salesType.seed(
+				await this.salesTypeSvc.seed(
 					SEED_CONFIG.SALES_TYPES.map((st) => ({
 						code: st.code,
 						name: st.name,
@@ -87,7 +93,7 @@ export class SeedService {
 				)
 
 				// 5. Seed UOMs
-				await this.materialSvc.uom.seed(
+				await this.materialUomSvc.seed(
 					SEED_CONFIG.UOMS.map((u) => ({ code: u.code, createdBy: SYSTEM_ACTOR_ID })),
 				)
 			})
@@ -102,15 +108,15 @@ export class SeedService {
 			const getUom = (code: string) => uoms.find((u) => u.code === code)?.id ?? 1
 
 			// 1. Create categories
-			const { id: categoryCoffee } = await this.materialSvc.category.handleCreate(
+			const { id: categoryCoffee } = await this.materialCategorySvc.handleCreate(
 				{ name: 'Coffee Beans', description: 'Premium selected coffee beans', parentId: null },
 				SYSTEM_ACTOR_ID,
 			)
-			const { id: categoryDairy } = await this.materialSvc.category.handleCreate(
+			const { id: categoryDairy } = await this.materialCategorySvc.handleCreate(
 				{ name: 'Dairy & Milk', description: 'Milk-based products', parentId: null },
 				SYSTEM_ACTOR_ID,
 			)
-			const { id: categoryPackaging } = await this.materialSvc.category.handleCreate(
+			const { id: categoryPackaging } = await this.materialCategorySvc.handleCreate(
 				{ name: 'Packaging', description: 'Product packaging materials', parentId: null },
 				SYSTEM_ACTOR_ID,
 			)
@@ -163,7 +169,7 @@ export class SeedService {
 
 			for (const m of materialsData) {
 				try {
-					await this.materialSvc.master.handleCreate(
+					await this.materialMasterSvc.handleCreate(
 						{ ...m, conversions: [], description: null, locationIds: [] },
 						SYSTEM_ACTOR_ID,
 					)

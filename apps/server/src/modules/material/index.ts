@@ -65,3 +65,31 @@ export function initMaterialRouteModule(s: MaterialServiceModule) {
 }
 
 export type { MaterialLocationService } from './material-location/material-location.service'
+export type { MaterialCategoryService } from './material-category/material-category.service'
+export type { MaterialService } from './material-master/material.service'
+export type { UomService } from './uom/uom.service'
+
+export {
+	MaterialCategoryDto,
+	MaterialCategoryCreateDto,
+	MaterialCategoryUpdateDto,
+	MaterialCategoryFilterDto,
+} from './material-category/material-category.dto'
+export {
+	MaterialLocationDto,
+	MaterialLocationFilterDto,
+	MaterialLocationAssignDto,
+	MaterialLocationUnassignDto,
+	MaterialLocationConfigDto,
+	MaterialLocationWithLocationDto,
+	MaterialLocationStockDto,
+} from './material-location/material-location.dto'
+export {
+	MaterialDto,
+	MaterialFilterDto,
+	MaterialMutationDto,
+	MaterialSelectDto,
+	MaterialType,
+	type MaterialType as MaterialTypeEnum,
+} from './material-master/material.dto'
+export { UomDto, UomFilterDto, UomMutationDto } from './uom/uom.dto'

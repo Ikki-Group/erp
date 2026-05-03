@@ -40,3 +40,6 @@ export function initDashboardRouteModule(module: DashboardServiceModule) {
 		.use(initSettingsRoute(module.settings))
 		.use(initAnalyticsRoute(module.analytics))
 }
+
+export { SettingsSummaryDto } from './settings/settings.dto'
+export type { SettingsService } from './settings/settings.service'

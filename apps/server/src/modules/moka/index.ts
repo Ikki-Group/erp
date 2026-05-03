@@ -79,3 +79,8 @@ export type {
 	MokaSyncTriggerMode,
 	MokaScrapStatus,
 } from './shared.dto'
+
+export type { MokaConfigurationService } from './configuration/configuration.service'
+export type { MokaScrapHistoryService } from './scrap/scrap-history.service'
+export type { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
+export type { MokaScrapService } from './scrap/scrap.service'

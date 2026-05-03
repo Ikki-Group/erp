@@ -4,12 +4,12 @@ import type { DbClient } from '@/core/database'
 
 import type { CacheClient } from '@/lib/cache'
 
-import type { InventoryServiceModule } from '@/modules/inventory'
+import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'
 
 interface ProductionServiceModuleDeps {
 	recipe: RecipeService
-	inventory: InventoryServiceModule
+	stockTransaction: StockTransactionService
 }
 
 import { WorkOrderRepo } from './work-order/work-order.repo'
@@ -29,7 +29,7 @@ export class ProductionServiceModule {
 			workOrderRepo,
 			this.db,
 			this.deps.recipe,
-			this.deps.inventory,
+			this.deps.stockTransaction,
 			this.cacheClient,
 		)
 	}

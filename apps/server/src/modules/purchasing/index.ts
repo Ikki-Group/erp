@@ -40,3 +40,22 @@ export function initPurchasingRouteModule(s: PurchasingServiceModule) {
 		.use(initPurchaseOrderRoute(s.purchaseOrder))
 		.use(initGoodsReceiptRoute(s.goodsReceipt))
 }
+
+export {
+	PurchaseOrderDto,
+	PurchaseOrderCreateDto,
+	PurchaseOrderUpdateDto,
+	PurchaseOrderFilterDto,
+	PurchaseOrderStatusEnum,
+	type PurchaseOrderStatus,
+} from './purchase-order/purchase-order.dto'
+export {
+	GoodsReceiptNoteDto,
+	GoodsReceiptNoteCreateDto,
+	GoodsReceiptNoteUpdateDto,
+	GoodsReceiptNoteFilterDto,
+	GoodsReceiptStatusEnum,
+	type GoodsReceiptStatus,
+} from './goods-receipt/goods-receipt.dto'
+export type { PurchaseOrderService } from './purchase-order/purchase-order.service'
+export type { GoodsReceiptService } from './goods-receipt/goods-receipt.service'

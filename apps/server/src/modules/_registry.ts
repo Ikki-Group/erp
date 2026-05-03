@@ -8,7 +8,6 @@ import { AuthServiceModule } from './auth'
 import { CompanyServiceModule } from './company'
 import { CrmServiceModule } from './crm'
 import { DashboardServiceModule } from './dashboard'
-import { EmployeeServiceModule } from './employee'
 import { FinanceServiceModule } from './finance'
 import { HRServiceModule } from './hr'
 import { IamServiceModule } from './iam'
@@ -33,7 +32,7 @@ export interface Modules {
 	iam: IamServiceModule
 	material: MaterialServiceModule
 	supplier: SupplierServiceModule
-	employee: EmployeeServiceModule
+	hr: HRServiceModule
 	finance: FinanceServiceModule
 	crm: CrmServiceModule
 	company: CompanyServiceModule
@@ -49,7 +48,6 @@ export interface Modules {
 	moka: MokaServiceModule
 
 	production: ProductionServiceModule
-	hr: HRServiceModule
 	dashboard: DashboardServiceModule
 	tool: ToolServiceModule
 	payment: PaymentServiceModule
@@ -67,11 +65,13 @@ export function initModules(db: DbClient): Modules {
 	const iam = new IamServiceModule(db, cacheClient, { location })
 	const material = new MaterialServiceModule(db, cacheClient, location.master)
 	const supplier = new SupplierServiceModule(db, cacheClient)
-	const employee = new EmployeeServiceModule(db, cacheClient)
 	const finance = new FinanceServiceModule(db, cacheClient)
 	const crm = new CrmServiceModule(db, cacheClient)
 	const company = new CompanyServiceModule(db, cacheClient)
 	const audit = new AuditServiceModule(db, cacheClient)
+
+	// HR depends on finance
+	const hr = new HRServiceModule(db, cacheClient, { finance })
 
 	// Layer 1.5 — Auth (Depends on Iam)
 	const auth = new AuthServiceModule(db, cacheClient, iam)
@@ -87,11 +87,18 @@ export function initModules(db: DbClient): Modules {
 	// Layer 3 — Aggregators
 	const production = new ProductionServiceModule(db, cacheClient, {
 		recipe: recipe.recipe,
-		inventory,
+		stockTransaction: inventory.transaction,
 	})
-	const hr = new HRServiceModule(db, cacheClient, { finance })
 	const dashboard = new DashboardServiceModule(db, cacheClient, { iam, location, finance, sales })
-	const tool = new ToolServiceModule(db, { iam, location, material, sales })
+	const tool = new ToolServiceModule(db, {
+		iamRole: iam.role,
+		iamUser: iam.user,
+		locationMaster: location.master,
+		materialCategory: material.category,
+		materialMaster: material.master,
+		materialUom: material.uom,
+		salesType: sales.salesType,
+	})
 	const payment = new PaymentServiceModule(db, cacheClient)
 	const reporting = new ReportingServiceModule(db)
 
@@ -108,14 +115,13 @@ export function initModules(db: DbClient): Modules {
 		moka,
 		sales,
 		supplier,
-		employee,
+		hr,
 		finance,
 		crm,
 		company,
 		audit,
 		purchasing,
 		production,
-		hr,
 		payment,
 		reporting,
 	}
