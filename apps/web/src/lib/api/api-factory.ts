@@ -11,27 +11,13 @@ import type { KyInstance } from 'ky'
 import type { ZodError, ZodType, z } from 'zod'
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
+type QueryKey = readonly unknown[]
 
 export interface TErr<T = any> {
 	code: string | number
 	message: string
 	data: T
 	trace: unknown
-}
-
-interface ApiFactoryConfig<
-	TParams extends ZodType | undefined,
-	TBody extends ZodType | undefined,
-	TResult extends ZodType,
-> {
-	method: HttpMethod
-	url: string
-	keys?: ReadonlyArray<string>
-	invalidates?: ReadonlyArray<string>
-	params?: TParams
-	body?: TBody
-	result: TResult
-	client?: KyInstance
 }
 
 // Type Utilities
@@ -47,6 +33,25 @@ type FetchArgs<TParams, TBody> =
 		: IsDefined<TBody> extends true
 			? { body: Input<TBody> }
 			: undefined
+
+type InvalidateTarget<TArgs> = string | QueryKey | ((args: TArgs) => string | QueryKey)
+
+interface ApiFactoryConfig<
+	TParams extends ZodType | undefined,
+	TBody extends ZodType | undefined,
+	TResult extends ZodType,
+	TArgs = FetchArgs<TParams, TBody>,
+> {
+	method: HttpMethod
+	url: string
+	keys?: ReadonlyArray<string>
+	queryKey?: (params: Input<TParams> | undefined) => QueryKey
+	invalidates?: ReadonlyArray<InvalidateTarget<TArgs>>
+	params?: TParams
+	body?: TBody
+	result: TResult
+	client?: KyInstance
+}
 
 /* ----------------------------------------------------------------
  * Dev-only validation logger
@@ -145,8 +150,10 @@ export function apiFactory<
 
 		// Auto-invalidate declared query keys on successful mutation
 		if (config.invalidates?.length && method !== 'get') {
-			for (const invalidateUrl of config.invalidates) {
-				queryClient.invalidateQueries({ queryKey: [invalidateUrl] })
+			for (const target of config.invalidates) {
+				const resolved = typeof target === 'function' ? target(args) : target
+				const queryKey = typeof resolved === 'string' ? [resolved] : resolved
+				queryClient.invalidateQueries({ queryKey })
 			}
 		}
 
@@ -154,7 +161,8 @@ export function apiFactory<
 	}
 
 	// React Query helpers
-	const queryKey = (params: Params | undefined) => [url, ...keys, params ?? null] as const
+	const queryKey = (params: Params | undefined) =>
+		config.queryKey?.(params) ?? ([url, ...keys, params ?? null] as const)
 
 	const query = (params: Params | undefined) =>
 		queryOptions({
