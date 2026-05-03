@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
@@ -15,26 +16,14 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
-import {
-	actionColumn,
-	createColumnHelper,
-	dateColumn,
-} from '@/components/reui/data-grid/data-grid-columns'
+import { CellDate, CellMenu, type CellMenuItem } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 import type { UomDto } from '@/features/material'
 import { uomApi } from '@/features/material'
 import { UomFormDialog } from '@/features/material/components/uom-form-dialog'
-
-const ch = createColumnHelper<UomDto>()
 
 export const Route = createFileRoute('/_app/material/uom')({ component: RouteComponent })
 
@@ -53,9 +42,10 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(handleDelete: (uom: UomDto) => Promise<void>) {
+function getColumns(onRemove: (uom: UomDto) => Promise<void>): ColumnDef<UomDto>[] {
 	return [
-		ch.accessor('code', {
+		{
+			accessorKey: 'code',
 			header: 'Kode Satuan',
 			size: 200,
 			cell: ({ getValue }) => (
@@ -63,40 +53,45 @@ function getColumns(handleDelete: (uom: UomDto) => Promise<void>) {
 					{getValue()}
 				</Badge>
 			),
-		}),
-		ch.accessor('createdAt', dateColumn({ header: 'Dibuat Pada', size: 200 })),
-		actionColumn<UomDto>({
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			size: 200,
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
 			id: 'action',
+			header: '',
 			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
 			cell: ({ row }) => {
-				return (
-					<div className="flex items-center justify-end px-2">
-						<DropdownMenu>
-							<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-								<MoreHorizontalIcon />
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-36">
-								<DropdownMenuItem
-									onClick={() => {
-										void UomFormDialog.upsert({ id: row.original.id })
-									}}
-								>
-									<PencilIcon className="mr-2" />
-									Edit
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									variant="destructive"
-									onClick={() => void handleDelete(row.original)}
-								>
-									<Trash2Icon className="mr-2" />
-									Hapus
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				)
+				const items: CellMenuItem[] = [
+					{
+						type: 'button',
+						label: 'Edit',
+						icon: <PencilIcon />,
+						onClick: () => {
+							void UomFormDialog.upsert({ id: row.original.id })
+						},
+					},
+					{
+						type: 'separator',
+					},
+					{
+						type: 'button',
+						label: 'Hapus',
+						variant: 'destructive',
+						icon: <Trash2Icon />,
+						onClick: () => onRemove(row.original),
+					},
+				]
+				return <CellMenu items={items} />
 			},
-		}),
+		},
 	]
 }
 
@@ -122,8 +117,7 @@ function UomTable() {
 		})
 	}
 
-	// oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-	const columns = useMemo(() => getColumns(handleDelete), [])
+	const columns = useMemo(() => getColumns(handleDelete), [handleDelete])
 
 	const table = useDataTable({
 		columns: columns,
