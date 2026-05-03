@@ -30,11 +30,7 @@ export const Route = createFileRoute('/_app/settings/_tab/location')({
 })
 
 function RouteComponent() {
-	return (
-		<div className="space-y-4">
-			<LocationsTable />
-		</div>
-	)
+	return <LocationsTable />
 }
 
 interface GetColumnsProps {
