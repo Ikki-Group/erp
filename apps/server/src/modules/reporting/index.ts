@@ -23,7 +23,7 @@ export class ReportingServiceModule {
 	constructor(private readonly db: DbClient) {
 		this.sales = new SalesReportingService(this.db)
 		this.finance = new FinanceReportingService(this.db)
-		this.inventory = new InventoryReportingService(this.db)
+		this.inventory = new InventoryReportingService()
 		this.crm = new CrmReportingService(this.db)
 		this.payment = new PaymentReportingService(this.db)
 	}

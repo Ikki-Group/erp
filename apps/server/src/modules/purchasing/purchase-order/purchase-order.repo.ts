@@ -18,6 +18,7 @@ import {
 	PurchaseOrderDto,
 	PurchaseOrderFilterDto,
 	PurchaseOrderSelectDto,
+	type PurchaseOrderStatus,
 	PurchaseOrderUpdateDto,
 } from './purchase-order.dto'
 
@@ -182,12 +183,16 @@ export class PurchaseOrderRepo {
 		})
 	}
 
-	async updateStatus(id: number, status: string, actorId: number): Promise<{ id: number }> {
+	async updateStatus(
+		id: number,
+		status: PurchaseOrderStatus,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('PurchaseOrderRepo.updateStatus', async () => {
 			const updateMeta = stampUpdate(actorId)
 			const [result] = await this.db
 				.update(purchaseOrdersTable)
-				.set({ status: status as 'pending_approval' | 'approved' | 'rejected', ...updateMeta })
+				.set({ status, ...updateMeta })
 				.where(eq(purchaseOrdersTable.id, id))
 				.returning({ id: purchaseOrdersTable.id })
 			if (!result) throw new Error('Purchase Order not found')
