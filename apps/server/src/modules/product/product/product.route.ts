@@ -2,7 +2,6 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
 	ProductFilterDto,
@@ -11,6 +10,7 @@ import {
 	ProductSelectDto,
 } from './product.dto'
 import type { ProductService } from './product.service'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initProductRoute(s: ProductService) {
 	return new Elysia()

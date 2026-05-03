@@ -2,15 +2,15 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './location-master.dto'
+import type { LocationMasterService } from './location-master.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/core/validation'
-
-import * as dto from './location-master.dto'
-import type { LocationMasterService } from './location-master.service'
+} from '@/lib/validation'
 
 export function initLocationRoute(service: LocationMasterService) {
 	return new Elysia()

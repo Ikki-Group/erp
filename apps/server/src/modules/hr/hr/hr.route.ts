@@ -2,7 +2,6 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/core/validation'
 
 import {
 	AttendanceDto,
@@ -14,6 +13,7 @@ import {
 	ShiftDto,
 } from './hr.dto'
 import type { HRService } from './hr.service'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/lib/validation'
 
 export function initHRRoute(s: HRService) {
 	return new Elysia({ detail: { tags: ['HR'] } })

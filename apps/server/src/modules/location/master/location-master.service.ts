@@ -3,12 +3,12 @@ import { record } from '@elysiajs/opentelemetry'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
-import type { RecordId } from '@/core/validation'
 
 import { locationsTable } from '@/db/schema'
 
 import * as dto from './location-master.dto'
 import { LocationMasterRepo } from './location-master.repo'
+import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'name'>[] = [
 	{

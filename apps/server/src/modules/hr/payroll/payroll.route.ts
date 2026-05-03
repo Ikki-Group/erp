@@ -2,7 +2,6 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema, zc } from '@/core/validation'
 
 import {
 	PayrollAdjustmentCreateDto,
@@ -11,6 +10,7 @@ import {
 	PayrollBatchDto,
 } from './payroll.dto'
 import type { PayrollService } from './payroll.service'
+import { createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initPayrollRoute(s: PayrollService) {
 	return new Elysia({ detail: { tags: ['Payroll'] } })

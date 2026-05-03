@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/core/validation'
+import { zc, zp, zq } from '@/lib/validation'
 
 /** Customer loyalty tier levels */
 export const CustomerTierDto = z.enum(['bronze', 'silver', 'gold', 'platinum'])

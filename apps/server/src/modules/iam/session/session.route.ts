@@ -3,15 +3,15 @@ import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './session.dto'
+import type { SessionService } from './session.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zp,
-} from '@/core/validation'
-
-import * as dto from './session.dto'
-import type { SessionService } from './session.service'
+} from '@/lib/validation'
 
 export function initSessionRoute(service: SessionService) {
 	return new Elysia({ prefix: '/session' })

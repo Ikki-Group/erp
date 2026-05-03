@@ -13,7 +13,7 @@
 ```typescript
 // src/modules/feature/dto/entity.dto.ts
 import { z } from 'zod'
-import { zc, zp, zq } from '@/core/validation'
+import { zc, zp, zq } from '@/lib/validation'
 
 // Entity shape (DB output)
 export const EntityDto = z.object({
@@ -253,7 +253,7 @@ export class EntityService {
 import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/core/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/lib/validation'
 import * as dto from './dto/entity.dto'
 import type { EntityService } from './entity.service'
 

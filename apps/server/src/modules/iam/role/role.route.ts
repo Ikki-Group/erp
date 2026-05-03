@@ -2,15 +2,15 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './role.dto'
+import type { RoleService } from './role.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/core/validation'
-
-import * as dto from './role.dto'
-import type { RoleService } from './role.service'
+} from '@/lib/validation'
 
 export function initRoleRoute(service: RoleService) {
 	return new Elysia({ prefix: '/role' })

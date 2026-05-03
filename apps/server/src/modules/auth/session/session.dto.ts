@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp } from '@/core/validation'
+import { zp } from '@/lib/validation'
 
 export const SessionDto = z.object({
 	id: zp.id,

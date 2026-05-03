@@ -2,14 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	createSuccessResponseSchema,
-	zc,
-	zq,
-} from '@/core/validation'
 
 import * as dto from './company-settings.dto'
 import type { CompanySettingsService } from './company-settings.service'
+import { createSuccessResponseSchema, zc, zq } from '@/lib/validation'
 
 export function initCompanySettingsRoute(service: CompanySettingsService) {
 	return new Elysia({ prefix: '/settings' })

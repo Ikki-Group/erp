@@ -2,7 +2,6 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/core/validation'
 
 import {
 	AdjustmentTransactionDto,
@@ -19,6 +18,7 @@ import {
 	ProductionOutTransactionDto,
 } from './stock-transaction.dto'
 import type { StockTransactionService } from './stock-transaction.service'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initStockTransactionRoute(s: StockTransactionService) {
 	return (

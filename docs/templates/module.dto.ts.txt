@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zStr, zStrNullable, zId, zQuerySearch, zMetadataDto, zPaginationDto } from '@/core/validation'
+import { zStr, zStrNullable, zId, zQuerySearch, zMetadataDto, zPaginationDto } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

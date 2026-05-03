@@ -3,12 +3,6 @@ import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import {
-	zc,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-	zq,
-} from '@/core/validation'
 
 import {
 	MaterialCategoryFilterDto,
@@ -16,6 +10,12 @@ import {
 	MaterialCategoryDto,
 } from './material-category.dto'
 import type { MaterialCategoryService } from './material-category.service'
+import {
+	zc,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zq,
+} from '@/lib/validation'
 
 export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 	return new Elysia({ prefix: '/category' })

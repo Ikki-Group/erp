@@ -3,12 +3,12 @@ import { record } from '@elysiajs/opentelemetry'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
-import type { RecordId } from '@/core/validation'
 
 import { paymentsTable } from '@/db/schema'
 
 import * as dto from './payment.dto'
 import { PaymentRepo } from './payment.repo'
+import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'referenceNo'>[] = [
 	{
@@ -20,7 +20,8 @@ const uniqueFields: ConflictField<'referenceNo'>[] = [
 ]
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Payment with ID ${id} not found`, 'PAYMENT_NOT_FOUND'),
+	notFound: (id: number) =>
+		new NotFoundError(`Payment with ID ${id} not found`, 'PAYMENT_NOT_FOUND'),
 	createFailed: () => new InternalServerError('Payment creation failed', 'PAYMENT_CREATE_FAILED'),
 }
 

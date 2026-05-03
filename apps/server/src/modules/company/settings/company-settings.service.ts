@@ -1,10 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { RecordId } from '@/core/validation'
 
 import * as dto from './company-settings.dto'
 import { CompanySettingsRepo } from './company-settings.repo'
+import type { RecordId } from '@/lib/validation'
 
 const err = {
 	notFound: (id: number) =>

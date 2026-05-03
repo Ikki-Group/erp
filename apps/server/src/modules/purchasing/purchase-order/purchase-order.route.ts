@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from './purchase-order.dto'
 import type { PurchaseOrderService } from './purchase-order.service'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 	return new Elysia({ prefix: '/purchase-order' })

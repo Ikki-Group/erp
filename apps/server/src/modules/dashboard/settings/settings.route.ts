@@ -1,10 +1,10 @@
 import Elysia from 'elysia'
 
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema } from '@/core/validation'
 
 import { SettingsSummaryDto } from './settings.dto'
 import type { SettingsService } from './settings.service'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initSettingsRoute(service: SettingsService) {
 	return new Elysia({ prefix: '/settings' }).get(

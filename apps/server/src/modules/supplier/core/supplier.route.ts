@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from './supplier.dto'
 import type { SupplierService } from './supplier.service'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initSupplierRoute(service: SupplierService) {
 	return new Elysia({ prefix: '/supplier' })

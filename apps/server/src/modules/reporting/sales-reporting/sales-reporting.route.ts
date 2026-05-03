@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema } from '@/core/validation'
 
 import * as dto from './sales-reporting.dto'
 import type { SalesReportingService } from './sales-reporting.service'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initSalesReportingRoute(service: SalesReportingService) {
 	return new Elysia({ prefix: '/sales' })

@@ -2,15 +2,15 @@ import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import * as dto from './payment.dto'
+import type { PaymentService } from './payment.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/core/validation'
-
-import * as dto from './payment.dto'
-import type { PaymentService } from './payment.service'
+} from '@/lib/validation'
 
 export function initPaymentRoute(service: PaymentService) {
 	return new Elysia({ prefix: '/transaction' })

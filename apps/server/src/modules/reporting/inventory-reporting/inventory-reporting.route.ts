@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createSuccessResponseSchema } from '@/core/validation'
 
 import * as dto from './inventory-reporting.dto'
 import type { InventoryReportingService } from './inventory-reporting.service'
+import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initInventoryReportingRoute(service: InventoryReportingService) {
 	return new Elysia({ prefix: '/inventory' })

@@ -2,10 +2,11 @@
 import { eq } from 'drizzle-orm'
 
 import { bento } from '@/core/cache'
-import type { AuditResolved, UserSnippet } from '@/core/validation'
 
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
+
+import type { AuditResolved, UserSnippet } from '@/lib/validation'
 
 const cache = bento.namespace('system.audit')
 

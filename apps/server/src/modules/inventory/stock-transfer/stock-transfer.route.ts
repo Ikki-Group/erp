@@ -2,10 +2,10 @@ import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/core/validation'
 
 import * as dto from './stock-transfer.dto'
 import type { StockTransferService } from './stock-transfer.service'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initStockTransferRoute(service: StockTransferService) {
 	return new Elysia({ prefix: '/stock-transfer' })
