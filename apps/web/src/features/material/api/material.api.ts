@@ -40,20 +40,40 @@ export const materialApi = {
 		url: endpoint.material.create,
 		body: MaterialMutationDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [materialKeys.lists()],
+		invalidates: [
+			materialKeys.lists(),
+			// Invalidate inventory when material changes (stock depends on materials)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.material.update,
 		body: MaterialUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [materialKeys.lists(), ({ body }) => materialKeys.detail(body.id)],
+		invalidates: [
+			materialKeys.lists(),
+			({ body }) => materialKeys.detail(body.id),
+			// Invalidate inventory when material changes (stock depends on materials)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.material.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [materialKeys.lists(), ({ body }) => materialKeys.detail(body.id)],
+		invalidates: [
+			materialKeys.lists(),
+			({ body }) => materialKeys.detail(body.id),
+			// Invalidate inventory when material changes (stock depends on materials)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 }

@@ -32,7 +32,12 @@ export const productApi = {
 		url: endpoint.product.create,
 		body: ProductMutationDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.list],
+		invalidates: [
+			endpoint.product.list,
+			// Invalidate sales/production when product changes
+			endpoint.sales.order.list,
+			endpoint.production.workOrder.list,
+		],
 	}),
 
 	update: apiFactory({
@@ -40,7 +45,13 @@ export const productApi = {
 		url: endpoint.product.update,
 		body: ProductUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.list, endpoint.product.detail],
+		invalidates: [
+			endpoint.product.list,
+			endpoint.product.detail,
+			// Invalidate sales/production when product changes
+			endpoint.sales.order.list,
+			endpoint.production.workOrder.list,
+		],
 	}),
 
 	remove: apiFactory({
@@ -48,6 +59,11 @@ export const productApi = {
 		url: endpoint.product.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.product.list],
+		invalidates: [
+			endpoint.product.list,
+			// Invalidate sales/production when product changes
+			endpoint.sales.order.list,
+			endpoint.production.workOrder.list,
+		],
 	}),
 }
