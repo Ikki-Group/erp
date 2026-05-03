@@ -3,9 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './audit-log.dto'
 import { AuditLogRepo } from './audit-log.repo'
-import type { RecordId } from '@/lib/validation'
 
 const err = {
 	notFound: (id: number) =>
@@ -15,13 +17,23 @@ const err = {
 }
 
 export class AuditLogService {
-	constructor(private readonly repo: AuditLogRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: AuditLogRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'audit-log', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<dto.AuditLogDto | undefined> {
 		return record('AuditLogService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -52,6 +64,8 @@ export class AuditLogService {
 		return record('AuditLogService.handleCreate', async () => {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
+
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
 
 			return { id: result }
 		})

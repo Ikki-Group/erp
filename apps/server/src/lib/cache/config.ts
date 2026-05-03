@@ -17,3 +17,4 @@ export type ConfigNamespace =
 	| 'finance.gl'
 	| 'customer'
 	| 'company-settings'
+	| 'audit-log'
