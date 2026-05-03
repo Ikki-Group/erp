@@ -2,9 +2,11 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
+import { CacheService, type CacheClient } from '@/lib/cache'
+import type { RecordId } from '@/lib/validation'
+
 import * as dto from './company-settings.dto'
 import { CompanySettingsRepo } from './company-settings.repo'
-import type { RecordId } from '@/lib/validation'
 
 const err = {
 	notFound: (id: number) =>
@@ -16,13 +18,23 @@ const err = {
 }
 
 export class CompanySettingsService {
-	constructor(private readonly repo: CompanySettingsRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: CompanySettingsRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = new CacheService({ ns: 'company-settings', client: cacheClient })
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async get(): Promise<dto.CompanySettingsDto> {
 		return record('CompanySettingsService.get', async () => {
-			const result = await this.repo.get()
+			const result = await this.cache.getOrSetSkipUndefined({
+				key: 'list',
+				factory: () => this.repo.get(),
+			})
 			if (!result) throw err.notConfigured()
 			return result
 		})
@@ -30,7 +42,10 @@ export class CompanySettingsService {
 
 	async getById(id: number): Promise<dto.CompanySettingsDto | undefined> {
 		return record('CompanySettingsService.getById', async () => {
-			return this.repo.getById(id)
+			return this.cache.getOrSetSkipUndefined({
+				key: `byId:${id}`,
+				factory: () => this.repo.getById(id),
+			})
 		})
 	}
 
@@ -64,6 +79,8 @@ export class CompanySettingsService {
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
+			await this.cache.deleteMany({ keys: ['list', 'count'] })
+
 			return { id: result }
 		})
 	}
@@ -77,6 +94,8 @@ export class CompanySettingsService {
 
 			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
 			return { id }
 		})

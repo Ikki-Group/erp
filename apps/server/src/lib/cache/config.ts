@@ -16,3 +16,4 @@ export type ConfigNamespace =
 	| 'finance.expenditure'
 	| 'finance.gl'
 	| 'customer'
+	| 'company-settings'
