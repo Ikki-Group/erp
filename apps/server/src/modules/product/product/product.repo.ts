@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
 
-import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import {
 	paginate,
 	searchFilter,
@@ -12,7 +11,6 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-import { logger } from '@/core/logger'
 
 import {
 	productExternalMappingsTable,
@@ -32,32 +30,10 @@ import {
 	VariantPriceDto,
 } from './product.dto'
 
-const PRODUCT_CACHE_NAMESPACE = 'product'
-
 const DEFAULT_VARIANT_NAME = 'Default'
 
 export class ProductRepo {
-	private readonly db: DbClient
-	private readonly cache: CacheProvider
-
-	constructor(db: DbClient, cacheClient: CacheClient) {
-		this.db = db
-		this.cache = cacheClient.namespace(PRODUCT_CACHE_NAMESPACE)
-	}
-
-	/* -------------------------------- INTERNAL -------------------------------- */
-
-	async #clearCache(id?: number): Promise<void> {
-		const keys = [CACHE_KEY_DEFAULT.count, CACHE_KEY_DEFAULT.list]
-		if (id !== undefined) keys.push(CACHE_KEY_DEFAULT.byId(id))
-		await this.cache.deleteMany({ keys })
-	}
-
-	#clearCacheAsync(id?: number): void {
-		void this.#clearCache(id).catch((error: unknown) => {
-			logger.error(error, 'ProductRepo cache invalidation failed')
-		})
-	}
+	constructor(private readonly db: DbClient) {}
 
 	async #getProductPricesBatch(productIds: number[]) {
 		if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
@@ -129,32 +105,27 @@ export class ProductRepo {
 
 	async getById(id: number): Promise<ProductDto | undefined> {
 		return record('ProductRepo.getById', async () => {
-			return this.cache.getOrSet({
-				key: CACHE_KEY_DEFAULT.byId(id),
-				factory: async ({ skip }) => {
-					const [product] = await this.db
-						.select()
-						.from(productsTable)
-						.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
-						.limit(1)
+			const [product] = await this.db
+				.select()
+				.from(productsTable)
+				.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
+				.limit(1)
 
-					if (!product) return skip()
+			if (!product) return undefined
 
-					const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
-						this.#getVariantsBatch([id]),
-						this.#getProductPricesBatch([id]),
-						this.#getProductExternalMappingsBatch([id]),
-					])
+			const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
+				this.#getVariantsBatch([id]),
+				this.#getProductPricesBatch([id]),
+				this.#getProductExternalMappingsBatch([id]),
+			])
 
-					return {
-						...product,
-						basePrice: product.basePrice,
-						variants: variantsMap.get(id) ?? [],
-						prices: pricesMap.get(id) ?? [],
-						externalMappings: mappingsMap.get(id) ?? [],
-					}
-				},
-			})
+			return {
+				...product,
+				basePrice: product.basePrice,
+				variants: variantsMap.get(id) ?? [],
+				prices: pricesMap.get(id) ?? [],
+				externalMappings: mappingsMap.get(id) ?? [],
+			}
 		})
 	}
 
@@ -401,7 +372,6 @@ export class ProductRepo {
 					await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
 				}
 			})
-			this.#clearCacheAsync(id)
 			return { id }
 		})
 	}
@@ -414,7 +384,6 @@ export class ProductRepo {
 				.where(eq(productsTable.id, id))
 				.returning({ id: productsTable.id })
 			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}
@@ -426,7 +395,6 @@ export class ProductRepo {
 				.where(eq(productsTable.id, id))
 				.returning({ id: productsTable.id })
 			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			this.#clearCacheAsync(id)
 			return result
 		})
 	}

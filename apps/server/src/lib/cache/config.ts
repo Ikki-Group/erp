@@ -1,3 +1,3 @@
 export type ConfigNamespace =
 	//
-	'location' | 'iam.user'
+	'location' | 'iam.user' | 'product-category' | 'product'
