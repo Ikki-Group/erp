@@ -19,3 +19,5 @@ export type ConfigNamespace =
 	| 'company-settings'
 	| 'audit-log'
 	| 'session'
+	| 'inventory.dashboard'
+	| 'inventory.summary'

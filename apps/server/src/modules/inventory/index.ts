@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+
+import type { CacheClient } from '@/lib/cache'
 
 import type { MaterialServiceModule } from '@/modules/material'
 
@@ -38,15 +39,15 @@ export class InventoryServiceModule {
 		private readonly deps: InventoryServiceModuleDeps,
 	) {
 		const transactionRepo = new StockTransactionRepo(this.db, this.cacheClient)
-		const summaryRepo = new StockSummaryRepo(this.db, this.cacheClient)
+		const summaryRepo = new StockSummaryRepo(this.db)
 		const alertRepo = new StockAlertRepo(this.db, this.cacheClient)
-		const dashboardRepo = new StockDashboardRepo(this.db, this.cacheClient)
+		const dashboardRepo = new StockDashboardRepo(this.db)
 		const stockTransferRepo = new StockTransferRepo(this.db, this.cacheClient)
 
 		this.transaction = new StockTransactionService(this.deps.material.location, transactionRepo)
 		this.summary = new StockSummaryService(summaryRepo, this.deps.material.location)
 		this.alert = new StockAlertService(alertRepo)
-		this.dashboard = new StockDashboardService(dashboardRepo)
+		this.dashboard = new StockDashboardService(dashboardRepo, this.cacheClient)
 		this.stockTransfer = new StockTransferService(stockTransferRepo)
 	}
 }
