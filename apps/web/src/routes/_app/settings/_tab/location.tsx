@@ -1,16 +1,20 @@
 import { useMemo } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { EyeIcon, PencilIcon, StoreIcon, WarehouseIcon } from 'lucide-react'
+import { EyeIcon, PencilIcon, StoreIcon, Trash2Icon, WarehouseIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
+import { toastLabelMessage } from '@/lib/toast-message'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot, getActiveStatusBadge } from '@/components/blocks/data-display/badge-dot'
+import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Badge } from '@/components/reui/badge'
 import { CellDate, CellMenu } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
@@ -33,7 +37,11 @@ function RouteComponent() {
 	)
 }
 
-function getColumns(): ColumnDef<LocationDto>[] {
+interface GetColumnsProps {
+	onRemove: (location: LocationDto) => Promise<void>
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<LocationDto>[] {
 	return [
 		{
 			accessorKey: 'name',
@@ -128,6 +136,16 @@ function getColumns(): ColumnDef<LocationDto>[] {
 								icon: <PencilIcon />,
 								to: `/location/${id}/edit`,
 							},
+							{
+								type: 'separator',
+							},
+							{
+								type: 'button',
+								label: 'Hapus',
+								variant: 'destructive',
+								icon: <Trash2Icon />,
+								onClick: () => onRemove(row.original),
+							},
 						]}
 					/>
 				)
@@ -137,11 +155,33 @@ function getColumns(): ColumnDef<LocationDto>[] {
 }
 
 function LocationsTable() {
-	const columns = useMemo(() => getColumns(), [])
 	const ds = useDataTableState<{ isActive?: boolean; type?: LocationTypeDto }>()
 	const { data, isLoading } = useQuery(
 		locationApi.list.query({ ...ds.pagination, q: ds.search, ...ds.filters }),
 	)
+
+	const remove = useMutation({
+		mutationFn: locationApi.remove.mutationFn,
+	})
+
+	const handleRemove = async (location: LocationDto) => {
+		await ConfirmDialog.call({
+			title: 'Hapus Lokasi',
+			description: `Apakah Anda yakin ingin menghapus lokasi "${location.name}"? Tindakan ini tidak dapat dibatalkan.`,
+			variant: 'destructive',
+			confirmLabel: 'Hapus Lokasi',
+			confirmValidationText: location.name,
+			onConfirm: async () => {
+				await toast
+					.promise(remove.mutateAsync({ body: { id: location.id } }), {
+						...toastLabelMessage('delete', 'lokasi'),
+					})
+					.unwrap()
+			},
+		})
+	}
+
+	const columns = useMemo(() => getColumns({ onRemove: handleRemove }), [handleRemove])
 
 	const table = useDataTable({
 		columns,
