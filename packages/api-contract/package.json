@@ -1,36 +1,33 @@
 {
-  "name": "@ikki/api-contract",
-  "version": "0.1.0",
-  "description": "Shared API contract types and validators for Ikki ERP",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./core": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
-    },
-    "./validation": {
-      "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "typescript": "^5.6.3"
-  }
+	"name": "@ikki/api-contract",
+	"version": "0.1.0",
+	"description": "Shared API contract types and validators for Ikki ERP",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./core": {
+			"types": "./src/core/index.ts",
+			"default": "./src/core/index.ts"
+		},
+		"./validation": {
+			"types": "./src/validation/index.ts",
+			"default": "./src/validation/index.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"zod": "^3.23.8"
+	},
+	"devDependencies": {
+		"typescript": "^5.6.3"
+	}
 }
