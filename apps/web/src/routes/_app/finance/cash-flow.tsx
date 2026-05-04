@@ -16,7 +16,7 @@ import { Page } from '@/components/layout/page'
 import { Card } from '@/components/ui/card'
 
 import { expenditureApi } from '@/features/finance'
-import { paymentApi, PaymentTypeDto } from '@/features/payment'
+import { paymentApi } from '@/features/payment'
 
 export const Route = createFileRoute('/_app/finance/cash-flow')({ component: FinanceCashFlow })
 
