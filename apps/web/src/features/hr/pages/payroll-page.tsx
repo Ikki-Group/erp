@@ -200,6 +200,7 @@ export function PayrollPage() {
 											name: `Payroll ${now.toLocaleString('id-ID', { month: 'long', year: 'numeric' })}`,
 											periodMonth: now.getMonth() + 1,
 											periodYear: now.getFullYear(),
+											note: null,
 										},
 									})
 								}}

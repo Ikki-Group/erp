@@ -103,7 +103,7 @@ export function AttendancePage() {
 		d.setDate(d.getDate() - 7)
 		return d.toISOString().split('T')[0]
 	})
-	const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0])
+	const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]!)
 
 	const ds = useDataTableState()
 	const { data, isLoading, refetch } = useQuery(
@@ -173,7 +173,7 @@ export function AttendancePage() {
 		ds,
 	})
 
-	const today = new Date().toISOString().split('T')[0]
+	const today = new Date().toISOString().split('T')[0]!
 
 	return (
 		<Page size="xl">
