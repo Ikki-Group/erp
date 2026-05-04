@@ -1,3 +1,9 @@
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+	zp,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 import { z } from 'zod'
 
@@ -6,12 +12,6 @@ import { res } from '@/core/http/response'
 
 import * as dto from './session.dto'
 import type { SessionService } from './session.service'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zp,
-} from '@/lib/validation'
 
 export function initSessionRoute(service: SessionService) {
 	return new Elysia({ prefix: '/session' })

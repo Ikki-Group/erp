@@ -1,10 +1,9 @@
-import { z } from 'zod'
+import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { LocationDto } from '@/modules/location'
 
 import { UserAssignmentDto } from '../assignment/assignment.dto'
 import { RoleDto } from '../role/role.dto'
-import { zc, zp, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
