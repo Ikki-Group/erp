@@ -14,17 +14,7 @@ COPY /apps/server ./apps/server
 ENV NODE_ENV=production
 ENV PORT=8080
 
-RUN bun run build
-
-FROM gcr.io/distroless/base
-
-WORKDIR /app
-
-COPY --from=build /app/server server
-
-ENV NODE_ENV=production
-ENV PORT=8080
-
-CMD ["./server"]
+# Skip build right now
+CMD ["bun", "run", "./apps/server/src/server.ts"]
 
 EXPOSE 8080

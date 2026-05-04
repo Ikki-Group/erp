@@ -1,5 +1,7 @@
-// oxlint-disable-next-line import/no-unassigned-import
+// oxlint-disable import/no-unassigned-import
+
 import '@total-typescript/ts-reset'
+import '@elysiajs/opentelemetry'
 import { logger } from '@/core/logger'
 
 import { initModules } from '@/modules/_registry'
