@@ -25,9 +25,8 @@ export async function setupLogger() {
 		sinks: {
 			console: getConsoleSink(),
 			main: getConsoleSink(),
-			// @ts-expect-error
 			otel: getOpenTelemetrySink({
-				serviceName: env.APP_NAME,
+				serviceName: 'logger',
 				otlpExporterConfig: {
 					url: 'https://us-east-1.aws.edge.axiom.co/v1/traces',
 					headers: {
@@ -35,11 +34,12 @@ export async function setupLogger() {
 						'X-Axiom-Dataset': env.AXIOM_DATASET,
 					},
 				},
+				diagnostics: true,
 			}),
 		},
 		loggers: [
 			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
-			{ category: [], sinks: ['main'] },
+			{ category: [], sinks: ['main', 'otel'] },
 		],
 	})
 
@@ -57,3 +57,7 @@ export function getLogger(category: string[]): Logger {
 const logger = getLogtapeLogger([])
 
 export { logger }
+
+logger.info('Logger initialized', {
+	env: env.NODE_ENV,
+})
