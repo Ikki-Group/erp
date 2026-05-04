@@ -40,7 +40,7 @@ export class MokaScrapService {
 		)
 
 		this.runScrapTask(historyId, config, input, actorId).catch((err: unknown) => {
-			this.logger.error`Failed to run Moka scrap task (historyId: ${historyId}, error: ${err})`
+			this.logger.error('Failed to run Moka scrap task', { historyId, error: err })
 		})
 
 		return { historyId }

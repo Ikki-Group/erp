@@ -20,7 +20,7 @@ function buildErrorResponse(code: string, message: string, details?: unknown, st
 
 export const errorHandler = new Elysia({ name: 'error-handler' })
 	.onError(({ error, code, set, path }) => {
-		logger.error`Request error (path: ${path}, code: ${code}, error: ${error})`
+		logger.error('Request error', { err: error, path, code })
 		if (error instanceof ZodError) {
 			set.status = 422
 			return buildErrorResponse(

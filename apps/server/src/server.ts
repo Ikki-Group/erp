@@ -21,7 +21,11 @@ routes.register(app)
 
 app.listen({ port: env.PORT })
 
-logger.info`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT} (port: ${env.PORT}, host: ${env.HOST}, env: ${env.NODE_ENV})`
+logger.info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`, {
+	port: env.PORT,
+	host: env.HOST,
+	env: env.NODE_ENV,
+})
 
 // async function shutdown() {
 //   logger.info('Shutting down')

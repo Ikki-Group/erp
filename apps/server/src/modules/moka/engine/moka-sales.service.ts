@@ -24,7 +24,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 		// Use cursor date for incremental sync if available
 		const fromDate = this.cursorDate ?? this.dateRange.from
 		const days = expandDates(fromDate, this.dateRange.to)
-		this.logger.info`Moka Sales Engine: Starting fetch (days: ${days.join(', ')})`
+		this.logger.info('Moka Sales Engine: Starting fetch', { days })
 
 		const tokens = new Set<string>()
 		for (const day of days) {
@@ -33,13 +33,12 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 				dayTokens.forEach((t) => tokens.add(t))
 			} catch (error: unknown) {
 				const msg = error instanceof Error ? error.message : String(error)
-				this.logger
-					.error`Moka Sales Engine: Failed to fetch tokens for day (day: ${day}, error: ${msg})`
+				this.logger.error('Moka Sales Engine: Failed to fetch tokens for day', { day, error: msg })
 			}
 		}
 
 		const tokensArray = Array.from(tokens)
-		this.logger.info`Moka Sales Engine: Fetched order tokens (total: ${tokensArray.length})`
+		this.logger.info('Moka Sales Engine: Fetched order tokens', { total: tokensArray.length })
 
 		const results: MokaSalesDetailRaw[] = []
 		for (let i = 0; i < tokensArray.length; i += this.batchSize) {
@@ -49,8 +48,10 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 				results.push(...details)
 			} catch (error: unknown) {
 				const msg = error instanceof Error ? error.message : String(error)
-				this.logger
-					.error`Moka Sales Engine: Failed to fetch batch details (batch size: ${batch.length}, error: ${msg})`
+				this.logger.error('Moka Sales Engine: Failed to fetch batch details', {
+					batchSize: batch.length,
+					error: msg,
+				})
 			}
 		}
 

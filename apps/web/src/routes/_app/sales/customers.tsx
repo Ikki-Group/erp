@@ -16,13 +16,7 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
 import { Badge } from '@/components/reui/badge'
-import {
-	CellDate,
-	CellLabelDesc,
-	CellMenu,
-	CellText,
-	type CellMenuItem,
-} from '@/components/reui/data-grid/data-grid-cell'
+import { CellDate, CellMenu, type CellMenuItem } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'

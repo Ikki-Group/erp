@@ -70,7 +70,7 @@ export class MokaAuthEngine {
 	}
 
 	async login(): Promise<MokaLoginResponse> {
-		this.logger.info`Logging into Moka (email: ${this.credentials.email})`
+		this.logger.info('Logging into Moka', { email: this.credentials.email })
 
 		try {
 			const response = await axios.post<MokaLoginResponse>(
@@ -83,11 +83,11 @@ export class MokaAuthEngine {
 			this.token = result.access_token
 			this.mokaOutletId = result.outlets[0]?.id?.toString() ?? null
 
-			this.logger.info`Moka login successful (outletId: ${this.mokaOutletId})`
+			this.logger.info('Moka login successful', { outletId: this.mokaOutletId })
 			return result
 		} catch (error: unknown) {
 			const msg = error instanceof Error ? error.message : String(error)
-			this.logger.error`Moka login failed (error: ${msg})`
+			this.logger.error('Moka login failed', { error: msg })
 			throw new Error(`Moka login failed: ${msg}`, { cause: error })
 		}
 	}
