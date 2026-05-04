@@ -1,70 +1,39 @@
+import { useMemo, useState } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 
-import {
-	FileTextIcon,
-	FilterIcon,
-	SearchIcon,
-	TrendingDownIcon,
-	TrendingUpIcon,
-} from 'lucide-react'
+import { FileTextIcon, SearchIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { toDateTimeStamp } from '@/lib/formatter'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
+import { accountApi } from '@/features/finance'
+import { expenditureApi } from '@/features/finance'
+import { paymentApi } from '@/features/payment'
+
 export const Route = createFileRoute('/_app/finance/ledger')({ component: FinanceLedgerPage })
 
-// Mock Data Journal Entries
-const mockLedgers = [
-	{
-		id: 'JV-2603-001',
-		date: new Date('2026-03-01T09:00:00Z'),
-		ref: 'INV-0012',
-		account: '1-1002 Bank BCA',
-		note: 'Pembayaran Piutang Invoice 0012',
-		debit: 14500000,
-		credit: 0,
-	},
-	{
-		id: 'JV-2603-001',
-		date: new Date('2026-03-01T09:00:00Z'),
-		ref: 'INV-0012',
-		account: '1-2001 Piutang Usaha',
-		note: 'Penyelesaian Piutang',
-		debit: 0,
-		credit: 14500000,
-	},
-	{
-		id: 'JV-2603-002',
-		date: new Date('2026-03-02T10:15:00Z'),
-		ref: 'PO-2603-001',
-		account: '5-1001 Biaya Bahan Baku',
-		note: 'Pembelian Gandum via Kas',
-		debit: 4500000,
-		credit: 0,
-	},
-	{
-		id: 'JV-2603-002',
-		date: new Date('2026-03-02T10:15:00Z'),
-		ref: 'PO-2603-001',
-		account: '1-1001 Kas Kecil',
-		note: 'Pengeluaran Kas Pembelian Gudang',
-		debit: 0,
-		credit: 4500000,
-	},
-]
+interface LedgerEntry {
+	id: string
+	date: Date
+	ref: string
+	account: string
+	note: string
+	debit: number
+	credit: number
+}
 
-type LedgerType = (typeof mockLedgers)[0]
-const ch = createColumnHelper<LedgerType>()
+const ch = createColumnHelper<LedgerEntry>()
 
 const columns = [
 	ch.accessor('date', {
@@ -119,13 +88,108 @@ const columns = [
 ]
 
 function FinanceLedgerPage() {
+	const [search, setSearch] = useState('')
+
+	const dateFrom = useMemo(() => new Date(new Date().setDate(1)), [])
+	const dateTo = useMemo(() => new Date(), [])
+
+	const { data: accountsData, isLoading: isLoadingAccounts } = useQuery(
+		accountApi.list.query({ q: '', page: 1, limit: 100 }),
+	)
+	const { data: paymentsData, isLoading: isLoadingPayments } = useQuery(
+		paymentApi.list.query({ dateFrom, dateTo, q: search, page: 1, limit: 100 }),
+	)
+	const { data: expendituresData, isLoading: isLoadingExpenditures } = useQuery(
+		expenditureApi.list.query({ q: search, page: 1, limit: 100 }),
+	)
+
+	const accounts = accountsData?.data ?? []
+	const payments = paymentsData?.data ?? []
+	const expenditures = expendituresData?.data ?? []
+
+	const accountMap = useMemo(() => {
+		const map = new Map<number, string>()
+		for (const a of accounts) {
+			map.set(a.id, `[${a.code}] ${a.name}`)
+		}
+		return map
+	}, [accounts])
+
+	const ledgerEntries = useMemo(() => {
+		const entries: LedgerEntry[] = []
+
+		for (const e of expenditures.filter((x) => x.status === 'PAID')) {
+			const sourceName = accountMap.get(e.sourceAccountId) ?? `Akun #${e.sourceAccountId}`
+			const targetName = accountMap.get(e.targetAccountId) ?? `Akun #${e.targetAccountId}`
+			const amount = Number(e.amount)
+			const date = e.date instanceof Date ? e.date : new Date(e.date)
+
+			entries.push({
+				id: `EXP-${e.id}`,
+				date,
+				ref: e.title,
+				account: targetName,
+				note: `Pengeluaran: ${e.title}`,
+				debit: amount,
+				credit: 0,
+			})
+			entries.push({
+				id: `EXP-${e.id}`,
+				date,
+				ref: e.title,
+				account: sourceName,
+				note: `Pengeluaran: ${e.title}`,
+				debit: 0,
+				credit: amount,
+			})
+		}
+
+		for (const p of payments) {
+			const accountName = accountMap.get(p.accountId) ?? `Akun #${p.accountId}`
+			const amount = Number(p.amount)
+			const date = p.date instanceof Date ? p.date : new Date(p.date)
+			const ref = p.referenceNo ?? `${p.method}`
+
+			if (p.type === 'receivable') {
+				entries.push({
+					id: `PAY-${p.id}`,
+					date,
+					ref,
+					account: accountName,
+					note: `Pembayaran Masuk: ${ref}`,
+					debit: amount,
+					credit: 0,
+				})
+			} else {
+				entries.push({
+					id: `PAY-${p.id}`,
+					date,
+					ref,
+					account: accountName,
+					note: `Pembayaran Keluar: ${ref}`,
+					debit: 0,
+					credit: amount,
+				})
+			}
+		}
+
+		return entries.sort((a, b) => b.date.getTime() - a.date.getTime())
+	}, [expenditures, payments, accountMap])
+
+	const totalDebit = ledgerEntries.reduce((sum, e) => sum + e.debit, 0)
+	const totalCredit = ledgerEntries.reduce((sum, e) => sum + e.credit, 0)
+	const balance = totalDebit - totalCredit
+
+	const ds = useDataTableState()
 	const table = useDataTable({
 		columns,
-		data: mockLedgers,
+		data: ledgerEntries,
 		pageCount: 1,
-		rowCount: mockLedgers.length,
-		ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+		rowCount: ledgerEntries.length,
+		ds,
 	})
+
+	const isLoading = isLoadingAccounts || isLoadingPayments || isLoadingExpenditures
 
 	return (
 		<Page size="xl">
@@ -134,7 +198,6 @@ function FinanceLedgerPage() {
 				description="Pencatatan rekam jejak setiap mutasi masuk dan keluar dari semua akun secara kronologis."
 			/>
 			<Page.Content className="flex flex-col gap-6">
-				{/* Metric Cards Dashboard */}
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<Card className="lg:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
@@ -146,13 +209,12 @@ function FinanceLedgerPage() {
 						<Card.Content>
 							<div className="flex items-end gap-3">
 								<div className="text-2xl font-bold font-mono tracking-tight text-primary">
-									Balanced
+									{balance === 0 ? 'Balanced' : 'Unbalanced'}
 								</div>
-								<BadgeDot variant="success" className="mb-1">
-									Selisih 0
-								</BadgeDot>
 							</div>
-							<p className="text-xs text-muted-foreground mt-1">Total Debit & Kredit sama</p>
+							<p className="text-xs text-muted-foreground mt-1">
+								Selisih Rp {Math.abs(balance).toLocaleString('id-ID')}
+							</p>
 						</Card.Content>
 					</Card>
 
@@ -165,7 +227,7 @@ function FinanceLedgerPage() {
 						</Card.Header>
 						<Card.Content>
 							<div className="text-2xl font-bold font-mono tracking-tight text-emerald-600">
-								Rp 19M
+								Rp {(totalDebit / 1_000_000).toFixed(1)}M
 							</div>
 						</Card.Content>
 					</Card>
@@ -179,13 +241,12 @@ function FinanceLedgerPage() {
 						</Card.Header>
 						<Card.Content>
 							<div className="text-2xl font-bold font-mono tracking-tight text-rose-600">
-								Rp 19M
+								Rp {(totalCredit / 1_000_000).toFixed(1)}M
 							</div>
 						</Card.Content>
 					</Card>
 				</div>
 
-				{/* Action & Filter Bar */}
 				<Card className="rounded-2xl shadow-sm border-muted/60">
 					<div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -198,29 +259,21 @@ function FinanceLedgerPage() {
 									<Input
 										placeholder="Cari No Jurnal, Referensi, atau Akun..."
 										className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background"
+										value={search}
+										onChange={(e) => setSearch(e.target.value)}
 									/>
 								</div>
 							</div>
 						</div>
-
-						<div className="flex flex-col gap-1.5 sm:self-center">
-							<label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">
-								Aksi
-							</label>
-							<Button size="sm" variant="outline" className="h-10 border font-medium">
-								<FilterIcon className="size-4 mr-2" /> Filter Lanjutan
-							</Button>
-						</div>
 					</div>
 				</Card>
 
-				{/* Main Table */}
 				<div className="rounded-2xl overflow-hidden border border-muted/60 shadow-sm">
 					<DataTableCard
 						title="Riwayat Jurnal Transaksi"
 						table={table as any}
-						isLoading={false}
-						recordCount={mockLedgers.length}
+						isLoading={isLoading}
+						recordCount={ledgerEntries.length}
 					/>
 				</div>
 			</Page.Content>

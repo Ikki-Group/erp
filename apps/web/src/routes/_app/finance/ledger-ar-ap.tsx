@@ -1,71 +1,43 @@
+import { useMemo, useState } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { createColumnHelper } from '@tanstack/react-table'
 
 import { ArrowDownRightIcon, ArrowUpRightIcon, SearchIcon } from 'lucide-react'
 
 import { useDataTable } from '@/hooks/use-data-table'
+import { useDataTableState } from '@/hooks/use-data-table-state'
 
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import {
-	createColumnHelper,
 	currencyColumn,
 	dateColumn,
 	customColumn,
 } from '@/components/reui/data-grid/data-grid-columns'
 
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
+import { purchaseOrderApi } from '@/features/purchasing'
+import { salesOrderApi } from '@/features/sales'
+
 export const Route = createFileRoute('/_app/finance/ledger-ar-ap')({ component: FinanceArApPage })
 
-// Mock Data AP/AR
-const mockArAp = [
-	{
-		id: 'INV-0012',
-		type: 'AR',
-		partner: 'PT. Laris Manis',
-		date: new Date('2026-03-01'),
-		dueDate: new Date('2026-03-15'),
-		amount: 14500000,
-		paid: 14500000,
-		status: 'PAID',
-	},
-	{
-		id: 'INV-0013',
-		type: 'AR',
-		partner: 'Toko Berkah',
-		date: new Date('2026-03-05'),
-		dueDate: new Date('2026-03-20'),
-		amount: 5000000,
-		paid: 0,
-		status: 'UNPAID',
-	},
-	{
-		id: 'PO-2603-001',
-		type: 'AP',
-		partner: 'BCA (Cicilan Mesin)',
-		date: new Date('2026-03-01'),
-		dueDate: new Date('2026-03-25'),
-		amount: 8000000,
-		paid: 0,
-		status: 'UNPAID',
-	},
-	{
-		id: 'PO-2603-002',
-		type: 'AP',
-		partner: 'PT. Sumber Pangan',
-		date: new Date('2026-03-05'),
-		dueDate: new Date('2026-03-20'),
-		amount: 20000000,
-		paid: 5000000,
-		status: 'PARTIAL',
-	},
-]
+interface ArApEntry {
+	id: string
+	type: 'AR' | 'AP'
+	partner: string
+	date: Date
+	dueDate: Date
+	amount: number
+	paid: number
+	status: 'PAID' | 'UNPAID' | 'PARTIAL' | 'VOID'
+}
 
-type ArApType = (typeof mockArAp)[0]
-const ch = createColumnHelper<ArApType>()
+const ch = createColumnHelper<ArApEntry>()
 
 const columns = [
 	ch.accessor(
@@ -118,13 +90,86 @@ const columns = [
 ]
 
 function FinanceArApPage() {
+	const [search, setSearch] = useState('')
+
+	const { data: salesData, isLoading: isLoadingSales } = useQuery(
+		salesOrderApi.list.query({ q: search, page: 1, limit: 100 }),
+	)
+	const { data: purchaseData, isLoading: isLoadingPurchases } = useQuery(
+		purchaseOrderApi.list.query({ q: search, page: 1, limit: 100 }),
+	)
+
+	const salesOrders = salesData?.data ?? []
+	const purchaseOrders = purchaseData?.data ?? []
+
+	const entries = useMemo(() => {
+		const result: ArApEntry[] = []
+
+		for (const so of salesOrders) {
+			const amount = Number(so.totalAmount)
+			const status = so.status === 'closed' ? 'PAID' : so.status === 'void' ? 'VOID' : 'UNPAID'
+			const paid = status === 'PAID' ? amount : 0
+			const date =
+				so.transactionDate instanceof Date ? so.transactionDate : new Date(so.transactionDate)
+			const dueDate = new Date(date)
+			dueDate.setDate(dueDate.getDate() + 14)
+
+			result.push({
+				id: `SO-${so.id}`,
+				type: 'AR',
+				partner: so.customerId ? `Customer #${so.customerId}` : 'Walk-in',
+				date,
+				dueDate,
+				amount,
+				paid,
+				status,
+			})
+		}
+
+		for (const po of purchaseOrders) {
+			const amount = Number(po.totalAmount)
+			const status = po.status === 'closed' ? 'PAID' : po.status === 'void' ? 'VOID' : 'UNPAID'
+			const paid = status === 'PAID' ? amount : 0
+			const date =
+				po.transactionDate instanceof Date ? po.transactionDate : new Date(po.transactionDate)
+			const dueDate = po.expectedDeliveryDate
+				? po.expectedDeliveryDate instanceof Date
+					? po.expectedDeliveryDate
+					: new Date(po.expectedDeliveryDate)
+				: new Date(date.getTime() + 14 * 24 * 60 * 60 * 1000)
+
+			result.push({
+				id: `PO-${po.id}`,
+				type: 'AP',
+				partner: `Supplier #${po.supplierId}`,
+				date,
+				dueDate,
+				amount,
+				paid,
+				status,
+			})
+		}
+
+		return result.sort((a, b) => b.date.getTime() - a.date.getTime())
+	}, [salesOrders, purchaseOrders])
+
+	const totalAr = entries
+		.filter((e) => e.type === 'AR' && e.status === 'UNPAID')
+		.reduce((sum, e) => sum + (e.amount - e.paid), 0)
+	const totalAp = entries
+		.filter((e) => e.type === 'AP' && e.status === 'UNPAID')
+		.reduce((sum, e) => sum + (e.amount - e.paid), 0)
+
+	const ds = useDataTableState()
 	const table = useDataTable({
 		columns,
-		data: mockArAp,
+		data: entries,
 		pageCount: 1,
-		rowCount: mockArAp.length,
-		ds: { pagination: { limit: 10, page: 1 }, search: '', filters: {} } as any,
+		rowCount: entries.length,
+		ds,
 	})
+
+	const isLoading = isLoadingSales || isLoadingPurchases
 
 	return (
 		<Page size="xl">
@@ -133,7 +178,6 @@ function FinanceArApPage() {
 				description="Kelola tagihan pelanggan yang belum lunas (AR) dan tagihan vendor yang harus Anda bayar (AP)."
 			/>
 			<Page.Content className="flex flex-col gap-6">
-				{/* Metric Cards Dashboard */}
 				<div className="grid gap-4 md:grid-cols-2">
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
@@ -144,7 +188,7 @@ function FinanceArApPage() {
 						</Card.Header>
 						<Card.Content>
 							<div className="text-3xl font-bold font-mono tracking-tight text-emerald-600">
-								Rp 5.000.000
+								Rp {totalAr.toLocaleString('id-ID')}
 							</div>
 							<p className="text-xs text-muted-foreground mt-1">Uang yang akan diterima</p>
 						</Card.Content>
@@ -159,14 +203,13 @@ function FinanceArApPage() {
 						</Card.Header>
 						<Card.Content>
 							<div className="text-3xl font-bold font-mono tracking-tight text-rose-600">
-								Rp 23.000.000
+								Rp {totalAp.toLocaleString('id-ID')}
 							</div>
 							<p className="text-xs text-rose-600/80 mt-1">Uang yang harus dibayarkan</p>
 						</Card.Content>
 					</Card>
 				</div>
 
-				{/* Action & Filter Bar */}
 				<Card className="rounded-2xl shadow-sm border-muted/60">
 					<div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -179,42 +222,21 @@ function FinanceArApPage() {
 									<Input
 										placeholder="Cari No. Tagihan atau Pelanggan/Vendor..."
 										className="pl-9 h-10 bg-secondary/30 border-transparent focus-visible:bg-background"
+										value={search}
+										onChange={(e) => setSearch(e.target.value)}
 									/>
 								</div>
-							</div>
-						</div>
-
-						<div className="flex flex-col gap-1.5 sm:self-center">
-							<label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:block opacity-0">
-								Aksi
-							</label>
-							<div className="flex gap-2">
-								<Button
-									size="sm"
-									variant="secondary"
-									className="h-10 border shadow-none font-medium text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700"
-								>
-									+ Buat Tagihan Masuk (AR)
-								</Button>
-								<Button
-									size="sm"
-									variant="secondary"
-									className="h-10 border shadow-none font-medium text-rose-700 hover:bg-rose-500/10 hover:text-rose-700"
-								>
-									+ Catat Hutang (AP)
-								</Button>
 							</div>
 						</div>
 					</div>
 				</Card>
 
-				{/* Main Table */}
 				<div className="rounded-2xl overflow-hidden border border-muted/60 shadow-sm">
 					<DataTableCard
 						title="Daftar Tagihan"
 						table={table as any}
-						isLoading={false}
-						recordCount={mockArAp.length}
+						isLoading={isLoading}
+						recordCount={entries.length}
 					/>
 				</div>
 			</Page.Content>
