@@ -23,8 +23,7 @@
 		"typecheck": "tsc --noEmit",
 		"check-deps": "dpdm --no-tree --no-warning --exit-code circular:1 src/server.ts",
 		"verify": "bun run lint && bun run typecheck && bun run knip && bun run check-deps",
-		"fly:deploy": "flyctl deploy",
-		"prepare": "husky"
+		"fly:deploy": "flyctl deploy"
 	},
 	"dependencies": {
 		"@axiomhq/pino": "^1.4.0",

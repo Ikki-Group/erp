@@ -106,7 +106,7 @@ Validate: `bun run check-deps`
 
 - **Binary**: Use `bun` exclusively (`bun run dev`, `bun add`)
 - **Verify**: `bun run verify` (lint + typecheck + knip + check-deps)
-- **Pre-commit**: husky + lint-staged (oxlint --fix, oxfmt -w)
+- **Pre-commit**: lint-staged (oxlint --fix, oxfmt -w)
 
 ### Commands
 
