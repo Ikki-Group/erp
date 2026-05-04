@@ -23,18 +23,13 @@ export async function setupLogger() {
 	}
 
 	await configure({
-		sinks,
+		sinks: {
+			console: getConsoleSink(),
+			main: getConsoleSink(),
+		},
 		loggers: [
-			{
-				category: ['logtape', 'meta'],
-				lowestLevel: 'error',
-				sinks: ['console'],
-			},
-			{
-				category: 'ikki',
-				lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
-				sinks: ['console'],
-			},
+			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
+			{ category: [], sinks: ['main'] },
 		],
 	})
 
@@ -45,7 +40,7 @@ export function getLogger(category: string[]): Logger {
 	if (!isConfigured) {
 		throw new Error('Logger not configured. Call setupLogger() first.')
 	}
-	return getLogtapeLogger(['ikki', ...category])
+	return getLogtapeLogger([...category])
 }
 
 // Legacy logger for backward compatibility

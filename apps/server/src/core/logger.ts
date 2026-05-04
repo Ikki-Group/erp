@@ -29,17 +29,7 @@ export async function setupLogger() {
 		},
 		loggers: [
 			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
-			{ category: ['ikki'], sinks: ['main'] },
-			// {
-			// 	category: ['logtape', 'meta'],
-			// 	lowestLevel: 'error',
-			// 	sinks: ['console'],
-			// },
-			// {
-			// 	category: 'ikki',
-			// 	lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
-			// 	sinks: ['console'],
-			// },
+			{ category: [], sinks: ['main'] },
 		],
 	})
 
@@ -50,10 +40,10 @@ export function getLogger(category: string[]): Logger {
 	if (!isConfigured) {
 		throw new Error('Logger not configured. Call setupLogger() first.')
 	}
-	return getLogtapeLogger(['ikki', ...category])
+	return getLogtapeLogger([...category])
 }
 
 // Legacy logger for backward compatibility
-const logger = getLogtapeLogger(['ikki'])
+const logger = getLogtapeLogger([])
 
 export { logger }
