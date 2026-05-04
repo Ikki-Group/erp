@@ -406,7 +406,7 @@ export function getAppMenu(
 			items: [
 				{
 					title: 'Pengaturan',
-					href: '/settings',
+					href: '/settings/location',
 					icon: Settings2Icon,
 					isActive:
 						pathname.startsWith('/settings') && !pathname.startsWith('/settings/audit-trail'),
