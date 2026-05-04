@@ -37,12 +37,6 @@
 		"paths": {
 			"@/*": [
 				"./src/*"
-			],
-			"@ikki/api-contract": [
-				"../../packages/api-contract/src"
-			],
-			"@ikki/api-contract/*": [
-				"../../packages/api-contract/src/*"
 			]
 		}
 	},
