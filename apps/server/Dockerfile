@@ -1,39 +1,30 @@
 FROM oven/bun:1-slim AS base
+
 WORKDIR /app
 
-FROM base AS deps
-COPY package.json bun.lock ./
-COPY apps/server/package.json ./apps/server/
+COPY package.json ./package.json
+COPY bun.lock ./bun.lock
 
-# Install dependencies (frozen-lockfile for consistency)
-# RUN bun install --frozen-lockfile --production
+COPY apps/server/package.json ./apps/server/package.json
+
 RUN bun install
 
-# --- Builder ---
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY /apps/server ./apps/server
 
-# Ensure all workspace and dev dependencies are available for the build step
-# (some packages required only at build-time, e.g. type-reset helpers)
-RUN bun install --frozen-lockfile
-
-# Build the server app
-WORKDIR /app/apps/server
+ENV NODE_ENV=production
+ENV PORT=8080
 
 RUN bun run build
 
-# --- Runtime ---
-FROM oven/bun:1-slim AS runner
+FROM gcr.io/distroless/base
+
 WORKDIR /app
 
-# Copy the built JS file from the builder stage
-COPY --from=builder /app/apps/server/dist/server.js ./dist/server.js
+COPY --from=build /app/server server
 
-# ENV
 ENV NODE_ENV=production
 ENV PORT=8080
-EXPOSE 8080
 
-# Start it using bun run
-CMD ["bun", "run", "dist/server.js"]
+CMD ["./server"]
+
+EXPOSE 8080
