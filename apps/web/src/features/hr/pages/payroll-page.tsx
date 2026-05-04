@@ -55,7 +55,7 @@ const columns = [
 	),
 	ch.accessor(
 		'status',
-		textColumn({
+		customColumn({
 			header: 'Status',
 			size: 120,
 			cell: (value) => statusBadge(value as PayrollStatus),
@@ -103,7 +103,7 @@ export function PayrollPage() {
 	const table = useDataTable({
 		columns,
 		data: data?.data ?? [],
-		pageCount: data?.meta?.pageCount ?? 1,
+		pageCount: data?.meta?.totalPages ?? 1,
 		rowCount: data?.meta?.total ?? 0,
 		ds,
 	})
@@ -196,9 +196,11 @@ export function PayrollPage() {
 								onClick={() => {
 									const now = new Date()
 									createMutation.mutate({
-										name: `Payroll ${now.toLocaleString('id-ID', { month: 'long', year: 'numeric' })}`,
-										periodMonth: now.getMonth() + 1,
-										periodYear: now.getFullYear(),
+										body: {
+											name: `Payroll ${now.toLocaleString('id-ID', { month: 'long', year: 'numeric' })}`,
+											periodMonth: now.getMonth() + 1,
+											periodYear: now.getFullYear(),
+										},
 									})
 								}}
 								disabled={createMutation.isPending}

@@ -1,11 +1,11 @@
 # @ikki/api-contract
 
-Shared API contract types and validators for Ikki ERP (for future use).
+Shared API contract types and validators for Ikki ERP.
 
 ## Structure
 
 - **core/** - Core TypeScript types (pagination, audit, common)
-- **validation/** - Zod validators (primitive, common, query)
+- **validation/** - Zod validators (primitive, common, query, response)
 
 ## Status
 
@@ -13,20 +13,56 @@ Shared API contract types and validators for Ikki ERP (for future use).
 - Package structure created
 - Core types extracted
 - Validation schemas extracted
+- Response schema creators added
+- `z` re-exported for consumer use
 - Package builds successfully
-- Usage example works
 
-**Integration Status:** ⚠️ Deferred
-- TypeScript workspace type resolution limitations in Bun workspaces
-- Types resolve as `unknown` when imported via workspace dependency
-- Requires alternative monorepo setup (Turborepo/Nx) or different approach
+**Integration Status:** ✅ Location Module Migrated
+- `apps/server/src/modules/location` uses `@ikki/api-contract/validation`
+- Typecheck passes cleanly for location module
 
-## Current Approach
+## Consumer Usage
 
-Server and web continue to use their local `lib/validation` and `lib/utils` directories. The api-contract package exists as a reference implementation and can be used in the future if:
-1. Migrated to Turborepo or Nx for better monorepo tooling
-2. Or used with a different build setup that supports proper type resolution
-3. Or converted to a copy-based approach with CI validation
+### Import DTO builders and shared schemas
+
+```typescript
+import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+
+export const MyCreateDto = z.object({
+  name: zc.strTrim.min(3).max(100),
+  email: zc.email,
+  isActive: zp.bool.default(true),
+})
+```
+
+### Import response schema creators
+
+```typescript
+import {
+  createSuccessResponseSchema,
+  createPaginatedResponseSchema,
+  zc,
+} from '@ikki/api-contract/validation'
+
+const responseSchema = createSuccessResponseSchema(zc.RecordId)
+```
+
+## DX Workflow
+
+When modifying `@ikki/api-contract`, consumers must rebuild before typechecking:
+
+```bash
+# 1. Edit api-contract source files
+# 2. Rebuild the package
+cd packages/api-contract && bun run build
+
+# 3. Typecheck consumers
+cd apps/server && bun run typecheck
+```
+
+### Why rebuild?
+
+The server tsconfig points to `packages/api-contract/dist` (built output), not `src/`. This ensures TypeScript resolves the same `zod` instance across all consumers, preventing `unknown` type inference issues.
 
 ## Development
 

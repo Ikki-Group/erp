@@ -138,7 +138,7 @@ export function AttendancePage() {
 
 	const handleClockOut = useCallback(
 		async (row: AttendanceSelectDto) => {
-			await clockOutMutation.mutateAsync({ id: row.id, note: '' })
+			await clockOutMutation.mutateAsync({ body: { id: row.id, note: '' } })
 		},
 		[clockOutMutation],
 	)
@@ -168,7 +168,7 @@ export function AttendancePage() {
 	const table = useDataTable({
 		columns: tableColumns,
 		data: data?.data ?? [],
-		pageCount: data?.meta?.pageCount ?? 1,
+		pageCount: data?.meta?.totalPages ?? 1,
 		rowCount: data?.meta?.total ?? 0,
 		ds,
 	})
@@ -193,9 +193,10 @@ export function AttendancePage() {
 						<Card.Content>
 							<div className="text-3xl font-bold">
 								{
-									(data?.data ?? []).filter(
-										(a) => a.date.toISOString().startsWith(today) && a.status === 'present',
-									).length
+									(data?.data ?? []).filter((a) => {
+										const d = typeof a.date === 'string' ? new Date(a.date) : a.date
+										return d.toISOString().startsWith(today) && a.status === 'present'
+									}).length
 								}
 							</div>
 						</Card.Content>
@@ -296,9 +297,11 @@ export function AttendancePage() {
 										return
 									}
 									await clockInMutation.mutateAsync({
-										employeeId: emp.id,
-										locationId: loc.id,
-										note: '',
+										body: {
+											employeeId: emp.id,
+											locationId: loc.id,
+											note: '',
+										},
 									})
 								}}
 								disabled={
