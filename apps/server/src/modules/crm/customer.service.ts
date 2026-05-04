@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { RecordId } from '@/lib/validation'
 
 import * as dto from './customer.dto'

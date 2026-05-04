@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type * as dto from './leave-request.dto'
 import { LeaveRequestRepo } from './leave-request.repo'

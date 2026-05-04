@@ -2,13 +2,13 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import { RelationMap } from '@/core/utils/relation-map'
+import { RelationMap } from '@/lib/utils/relation-map'
 
 import { locationsTable } from '@/db/schema'
 
 import * as dto from './location.dto'
 import { LocationMasterRepo } from './location.repo'
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { RecordId } from '@/lib/validation'
 
 const uniqueFields: ConflictField<'name'>[] = [

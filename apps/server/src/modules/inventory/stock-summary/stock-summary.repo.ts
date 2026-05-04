@@ -18,7 +18,7 @@ import {
 } from 'drizzle-orm'
 
 import { paginate, type WithPaginationResult, type DbClient } from '@/core/database'
-import { toWibDateKey } from '@/core/utils/date.util'
+import { toWibDateKey } from '@/lib/utils/date.util'
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 

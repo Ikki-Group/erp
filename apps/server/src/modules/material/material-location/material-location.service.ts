@@ -3,9 +3,9 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbTx } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type { LocationMasterService } from '@/modules/location'
 

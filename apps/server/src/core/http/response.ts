@@ -1,4 +1,4 @@
-import type { WithPaginationResult } from '../utils/pagination'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 /**
  * Standard HTTP Response Wrapper.

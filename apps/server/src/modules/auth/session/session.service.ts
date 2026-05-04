@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 
 import { logger } from '@/core/logger'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type { UserDto } from '@/modules/iam'
 

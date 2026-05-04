@@ -6,7 +6,7 @@ import type { DbClient } from '@/core/database'
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 export interface PnLData {
 	revenue: number

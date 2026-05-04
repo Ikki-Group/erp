@@ -219,6 +219,22 @@ module-name/
 │   └── feature.dto.ts    # Data transfer objects
 ```
 
+## Core vs Lib Separation
+
+### core/ (Essential Infrastructure)
+Contains core infrastructure that the application cannot function without:
+- **database/** - Database layer (Drizzle ORM, query builders, conflict checker)
+- **http/** - HTTP layer (auth, error handling, request/response)
+- **cache/** - Caching infrastructure (BentoCache configuration and client)
+- **logger.ts** - Logging (LogTape with OpenTelemetry integration)
+- **otel.ts** - Observability (OpenTelemetry configuration)
+
+### lib/ (Shared Utilities)
+Contains shared utilities and helper functions:
+- **utils/** - General utilities (collection, pagination, date, relation-map)
+- **auth/** - Authentication utilities (password hashing and verification)
+- **validation/** - Validation utilities (common schemas, response schemas)
+
 ## Caching Strategy
 All modules implement caching through BentoCache with standardized cache keys:
 - `CACHE_KEY_DEFAULT` pattern for consistency

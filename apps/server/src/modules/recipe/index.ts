@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import type { DbClient } from '@/core/database'
 
-import type { CacheClient } from '@/lib/cache'
+import type { CacheClient } from '@/core/cache'
 
 import { RecipeRepo } from './recipe.repo'
 import { initRecipeRoute } from './recipe.route'

@@ -5,7 +5,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { employeesTable } from '@/db/schema/employee'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type {
 	EmployeeCreateDto,

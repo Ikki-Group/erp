@@ -3,8 +3,8 @@ import { and, inArray, isNull } from 'drizzle-orm'
 
 import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import { resolveAudit, resolveAuditList } from '@/core/utils/audit-resolver'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import { resolveAudit, resolveAuditList } from '@/lib/utils/audit-resolver'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 import { db } from '@/db'
 import {
@@ -14,7 +14,7 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import { LocationMasterService } from '@/modules/location'
 

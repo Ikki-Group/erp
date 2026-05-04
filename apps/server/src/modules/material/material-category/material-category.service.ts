@@ -2,11 +2,11 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 import { materialCategoriesTable } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type {
 	MaterialCategoryCreateDto,

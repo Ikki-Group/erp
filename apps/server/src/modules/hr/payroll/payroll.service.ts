@@ -4,7 +4,7 @@ import { record } from '@elysiajs/opentelemetry'
 import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type { AccountService, GeneralLedgerService } from '@/modules/finance'
 

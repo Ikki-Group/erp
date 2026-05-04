@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
-import { cacheClient } from '@/lib/cache'
+import { cacheClient } from '@/core/cache'
 import type { AuditResolved, UserSnippet } from '@/lib/validation'
 
 const cache = cacheClient.namespace('system.audit')

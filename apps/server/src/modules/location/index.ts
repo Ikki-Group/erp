@@ -5,7 +5,7 @@ import type { DbClient } from '@/core/database'
 import { LocationMasterRepo } from './location.repo'
 import { initLocationRoute } from './location.route'
 import { LocationMasterService } from './location.service'
-import type { CacheClient } from '@/lib/cache'
+import type { CacheClient } from '@/core/cache'
 
 export class LocationServiceModule {
 	public readonly master: LocationMasterService
