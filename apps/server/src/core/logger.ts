@@ -26,8 +26,8 @@ export async function setupLogger() {
 		sinks,
 		loggers: [
 			{
-				category: 'logtape',
-				lowestLevel: 'warning',
+				category: ['logtape', 'meta'],
+				lowestLevel: 'error',
 				sinks: ['console'],
 			},
 			{

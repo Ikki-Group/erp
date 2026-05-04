@@ -70,10 +70,7 @@ export const CustomerFormDialog = createCallable<CustomerFormDialogProps>((props
 				: update.mutateAsync({ body: { id, ...payload } })
 
 			await toast
-				.promise(
-					promise,
-					toastLabelMessage(isCreate ? 'create' : 'update', 'pelanggan'),
-				)
+				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'pelanggan'))
 				.unwrap()
 
 			call.end()
@@ -91,35 +88,18 @@ export const CustomerFormDialog = createCallable<CustomerFormDialogProps>((props
 			>
 				<div className="grid grid-cols-2 gap-4">
 					<form.AppField name="code">
-						{(field) => (
-							<field.Input
-								label="Kode Pelanggan"
-								required
-								placeholder="CUST-001"
-								uppercase
-							/>
-						)}
+						{(field) => <field.Input label="Kode Pelanggan" required placeholder="CUST-001" />}
 					</form.AppField>
 					<form.AppField name="name">
-						{(field) => (
-							<field.Input label="Nama" required placeholder="Nama pelanggan" />
-						)}
+						{(field) => <field.Input label="Nama" required placeholder="Nama pelanggan" />}
 					</form.AppField>
 				</div>
 				<div className="grid grid-cols-2 gap-4">
 					<form.AppField name="email">
-						{(field) => (
-							<field.Input
-								label="Email"
-								type="email"
-								placeholder="email@example.com"
-							/>
-						)}
+						{(field) => <field.Input label="Email" type="email" placeholder="email@example.com" />}
 					</form.AppField>
 					<form.AppField name="phone">
-						{(field) => (
-							<field.Input label="Telepon" placeholder="081234567890" />
-						)}
+						{(field) => <field.Input label="Telepon" placeholder="081234567890" />}
 					</form.AppField>
 				</div>
 				<form.AppField name="address">
@@ -127,9 +107,7 @@ export const CustomerFormDialog = createCallable<CustomerFormDialogProps>((props
 				</form.AppField>
 				<div className="grid grid-cols-2 gap-4">
 					<form.AppField name="taxId">
-						{(field) => (
-							<field.Input label="NPWP" placeholder="00.000.000.0-000.000" />
-						)}
+						{(field) => <field.Input label="NPWP" placeholder="00.000.000.0-000.000" />}
 					</form.AppField>
 					<form.AppField name="dateOfBirth">
 						{(field) => <field.Input label="Tanggal Lahir" type="date" />}
