@@ -28,7 +28,7 @@ COPY bun.lock ./bun.lock
 
 COPY apps/server/package.json ./apps/server/package.json
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 COPY . .
 
