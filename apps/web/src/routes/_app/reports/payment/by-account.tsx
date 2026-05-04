@@ -1,28 +1,27 @@
-import { useMemo } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { LandmarkIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { Page } from '@/components/layout/page'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { Page } from '@/components/layout/page'
 
 import { Card } from '@/components/ui/card'
 
 import { paymentReportApi } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
-export const Route = createFileRoute('/_app/reports/payment/by-account')({ component: PaymentByAccountReport })
+export const Route = createFileRoute('/_app/reports/payment/by-account')({
+	component: PaymentByAccountReport,
+})
 
 function PaymentByAccountReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data, isLoading } = useQuery(
-		paymentReportApi.byAccount.query(filter),
-	)
+	const { data, isLoading } = useQuery(paymentReportApi.byAccount.query(filter))
 
 	const items = data?.data?.data ?? []
 
@@ -35,7 +34,11 @@ function PaymentByAccountReport() {
 				accessorKey: 'accountCode',
 				header: 'Kode',
 				size: 120,
-				cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.accountCode}</span>,
+				cell: ({ row }) => (
+					<span className="font-mono text-xs text-muted-foreground">
+						{row.original.accountCode}
+					</span>
+				),
 			},
 			{ accessorKey: 'accountName', header: 'Nama Akun', size: 300 },
 			{
@@ -52,7 +55,9 @@ function PaymentByAccountReport() {
 				accessorKey: 'count',
 				header: 'Jumlah Transaksi',
 				size: 160,
-				cell: ({ row }) => <span className="tabular-nums">{row.original.count.toLocaleString('id-ID')}</span>,
+				cell: ({ row }) => (
+					<span className="tabular-nums">{row.original.count.toLocaleString('id-ID')}</span>
+				),
 			},
 		],
 		data: items,
@@ -77,7 +82,9 @@ function PaymentByAccountReport() {
 				<div className="grid gap-4 md:grid-cols-3">
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
-							<Card.Title className="text-sm font-medium text-muted-foreground">Total Transaksi</Card.Title>
+							<Card.Title className="text-sm font-medium text-muted-foreground">
+								Total Transaksi
+							</Card.Title>
 							<LandmarkIcon className="h-4 w-4 text-blue-500" />
 						</Card.Header>
 						<Card.Content>
@@ -88,7 +95,9 @@ function PaymentByAccountReport() {
 					</Card>
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
-							<Card.Title className="text-sm font-medium text-muted-foreground">Akun Aktif</Card.Title>
+							<Card.Title className="text-sm font-medium text-muted-foreground">
+								Akun Aktif
+							</Card.Title>
 							<LandmarkIcon className="h-4 w-4 text-violet-500" />
 						</Card.Header>
 						<Card.Content>
