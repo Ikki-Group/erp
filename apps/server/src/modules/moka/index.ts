@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import type { DbClient } from '@/core/database'
+import { logger } from '@/core/logger'
 
 import type { CacheClient } from '@/lib/cache'
 
@@ -16,12 +17,6 @@ import { MokaSyncCursorService } from './scrap/scrap-sync-cursor.service'
 import { MokaTransformationService } from './scrap/scrap-transformation.service'
 import { initMokaScrapRoute } from './scrap/scrap.route'
 import { MokaScrapService } from './scrap/scrap.service'
-import type { Logger } from 'pino'
-
-interface MokaServiceModuleDeps {
-	finance: FinanceServiceModule
-	logger: Logger
-}
 
 export class MokaServiceModule {
 	public readonly configuration: MokaConfigurationService
@@ -33,7 +28,7 @@ export class MokaServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		private readonly deps: MokaServiceModuleDeps,
+		private readonly deps: FinanceServiceModule,
 	) {
 		const configRepo = new MokaConfigurationRepo(this.db)
 		this.configuration = new MokaConfigurationService(configRepo, this.cacheClient)
@@ -46,8 +41,8 @@ export class MokaServiceModule {
 
 		this.transformation = new MokaTransformationService(
 			this.db,
-			this.deps.finance.account,
-			this.deps.finance.journal,
+			this.deps.account,
+			this.deps.journal,
 		)
 
 		this.scrap = new MokaScrapService(
@@ -55,7 +50,7 @@ export class MokaServiceModule {
 			this.history,
 			this.cursor,
 			this.transformation,
-			this.deps.logger,
+			logger,
 		)
 	}
 }

@@ -6,7 +6,7 @@ import axios, {
 } from 'axios'
 
 import type { MokaLoginResponse } from '../scrap/scrap-raw.types'
-import type { Logger } from 'pino'
+import type { Logger } from '@logtape/logtape'
 
 const BASE_URL = 'https://backoffice.mokapos.com'
 const AUTH_URL = 'https://service-goauth.mokapos.com'
@@ -70,7 +70,7 @@ export class MokaAuthEngine {
 	}
 
 	async login(): Promise<MokaLoginResponse> {
-		this.logger.info({ email: this.credentials.email }, 'Logging into Moka')
+		this.logger.info`Logging into Moka (email: ${this.credentials.email})`
 
 		try {
 			const response = await axios.post<MokaLoginResponse>(
@@ -83,11 +83,11 @@ export class MokaAuthEngine {
 			this.token = result.access_token
 			this.mokaOutletId = result.outlets[0]?.id?.toString() ?? null
 
-			this.logger.info({ outletId: this.mokaOutletId }, 'Moka login successful')
+			this.logger.info`Moka login successful (outletId: ${this.mokaOutletId})`
 			return result
 		} catch (error: unknown) {
 			const msg = error instanceof Error ? error.message : String(error)
-			this.logger.error({ err: msg }, 'Moka login failed')
+			this.logger.error`Moka login failed (error: ${msg})`
 			throw new Error(`Moka login failed: ${msg}`, { cause: error })
 		}
 	}

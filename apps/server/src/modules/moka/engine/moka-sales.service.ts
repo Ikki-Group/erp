@@ -4,7 +4,7 @@ import { MokaSalesDetailRawDto } from '../scrap/scrap.dto'
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 import { expandDates } from './moka-utils'
-import type { Logger } from 'pino'
+import type { Logger } from '@logtape/logtape'
 
 export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaSalesDetailRaw> {
 	private batchSize = 10
@@ -24,7 +24,7 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 		// Use cursor date for incremental sync if available
 		const fromDate = this.cursorDate ?? this.dateRange.from
 		const days = expandDates(fromDate, this.dateRange.to)
-		this.logger.info({ days }, 'Moka Sales Engine: Starting fetch')
+		this.logger.info`Moka Sales Engine: Starting fetch (days: ${days.join(', ')})`
 
 		const tokens = new Set<string>()
 		for (const day of days) {
@@ -33,12 +33,13 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 				dayTokens.forEach((t) => tokens.add(t))
 			} catch (error: unknown) {
 				const msg = error instanceof Error ? error.message : String(error)
-				this.logger.error({ day, err: msg }, 'Moka Sales Engine: Failed to fetch tokens for day')
+				this.logger
+					.error`Moka Sales Engine: Failed to fetch tokens for day (day: ${day}, error: ${msg})`
 			}
 		}
 
 		const tokensArray = Array.from(tokens)
-		this.logger.info({ total: tokensArray.length }, 'Moka Sales Engine: Fetched order tokens')
+		this.logger.info`Moka Sales Engine: Fetched order tokens (total: ${tokensArray.length})`
 
 		const results: MokaSalesDetailRaw[] = []
 		for (let i = 0; i < tokensArray.length; i += this.batchSize) {
@@ -48,7 +49,8 @@ export class MokaSalesEngine extends MokaBaseEngine implements IMokaEngine<MokaS
 				results.push(...details)
 			} catch (error: unknown) {
 				const msg = error instanceof Error ? error.message : String(error)
-				this.logger.error({ batch, err: msg }, 'Moka Sales Engine: Failed to fetch batch details')
+				this.logger
+					.error`Moka Sales Engine: Failed to fetch batch details (batch size: ${batch.length}, error: ${msg})`
 			}
 		}
 

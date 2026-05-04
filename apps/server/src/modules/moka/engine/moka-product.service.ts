@@ -4,7 +4,7 @@ import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<MokaProductRaw> {
 	async fetch(): Promise<MokaProductRaw[]> {
-		this.logger.info('Fetching products from Moka')
+		this.logger.info`Fetching products from Moka`
 		const api = await this.getApi()
 
 		try {
@@ -14,7 +14,7 @@ export class MokaProductEngine extends MokaBaseEngine implements IMokaEngine<Mok
 			return parsed.products
 		} catch (error: unknown) {
 			const msg = error instanceof Error ? error.message : String(error)
-			this.logger.error({ err: msg }, 'Failed to fetch Moka products')
+			this.logger.error`Failed to fetch Moka products (error: ${msg})`
 			throw error
 		}
 	}

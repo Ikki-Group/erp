@@ -1,5 +1,4 @@
 import type { DbClient } from '@/core/database'
-import { logger } from '@/core/logger'
 
 import { createCache } from '@/lib/cache'
 
@@ -82,7 +81,7 @@ export function initModules(db: DbClient): Modules {
 	const sales = new SalesServiceModule(db, cacheClient)
 	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
 
-	const moka = new MokaServiceModule(db, cacheClient, { finance, logger })
+	const moka = new MokaServiceModule(db, cacheClient, finance)
 
 	// Layer 3 — Aggregators
 	const production = new ProductionServiceModule(db, cacheClient, {

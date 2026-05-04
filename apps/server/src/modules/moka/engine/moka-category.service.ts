@@ -4,7 +4,7 @@ import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<MokaCategoryRaw> {
 	async fetch(): Promise<MokaCategoryRaw[]> {
-		this.logger.info('Fetching categories from Moka')
+		this.logger.info`Fetching categories from Moka`
 		const api = await this.getApi()
 
 		try {
@@ -16,7 +16,7 @@ export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<Mo
 			return parsed.results
 		} catch (error: unknown) {
 			const msg = error instanceof Error ? error.message : String(error)
-			this.logger.error({ err: msg }, 'Failed to fetch Moka categories')
+			this.logger.error`Failed to fetch Moka categories (error: ${msg})`
 			throw error
 		}
 	}

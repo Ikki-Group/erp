@@ -1,34 +1,49 @@
-import pino, { type TransportTargetOptions } from 'pino'
+import {
+	configure,
+	getLogger as getLogtapeLogger,
+	getConsoleSink,
+	type Logger,
+	type Sink,
+} from '@logtape/logtape'
+import { getPrettyFormatter } from '@logtape/pretty'
 
 import { env } from '@/config/env'
 
-const targets: TransportTargetOptions[] = []
+let isConfigured = false
 
-// Standard Output Transport
-if (env.LOG_FORMAT === 'pretty') {
-	targets.push({
-		target: 'pino-pretty',
-		options: {
-			colorize: true,
-			ignore: 'pid,hostname,req.headers,module,res',
-			translateTime: 'SYS:standard',
-		},
+export async function setupLogger() {
+	if (isConfigured) return
+
+	const sinks: Record<string, Sink> = {}
+
+	if (env.LOG_FORMAT === 'pretty') {
+		sinks.console = getPrettyFormatter()
+	} else {
+		sinks.console = getConsoleSink()
+	}
+
+	await configure({
+		sinks,
+		loggers: [
+			{
+				category: 'ikki',
+				lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
+				sinks: ['console'],
+			},
+		],
 	})
+
+	isConfigured = true
 }
 
-// Axiom Transport
-// if (env.AXIOM_TOKEN) {
-// 	targets.push({
-// 		target: '@axiomhq/pino',
-// 		options: { dataset: env.AXIOM_DATASET, token: env.AXIOM_TOKEN },
-// 	})
-// }
+export function getLogger(category: string[]): Logger {
+	if (!isConfigured) {
+		throw new Error('Logger not configured. Call setupLogger() first.')
+	}
+	return getLogtapeLogger(['ikki', ...category])
+}
 
-const transport = pino.transport({ targets })
-
-const logger = pino(
-	{ level: env.LOG_LEVEL, timestamp: pino.stdTimeFunctions.isoTime },
-	targets.length > 0 ? transport : undefined,
-)
+// Legacy logger for backward compatibility
+const logger = getLogtapeLogger([])
 
 export { logger }

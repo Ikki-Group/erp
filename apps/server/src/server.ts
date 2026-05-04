@@ -2,7 +2,7 @@
 
 import '@total-typescript/ts-reset'
 import '@elysiajs/opentelemetry'
-import { logger } from '@/core/logger'
+import { logger, setupLogger } from '@/core/logger'
 
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
@@ -10,6 +10,8 @@ import { initRoutes } from '@/modules/_routes'
 import { db } from './db'
 import { createApp } from '@/app'
 import { env } from '@/config/env'
+
+await setupLogger()
 
 const modules = initModules(db)
 const routes = initRoutes(modules)
@@ -19,10 +21,7 @@ routes.register(app)
 
 app.listen({ port: env.PORT })
 
-logger.info(
-	{ port: env.PORT, host: env.HOST, env: env.NODE_ENV },
-	`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`,
-)
+logger.info`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT} (port: ${env.PORT}, host: ${env.HOST}, env: ${env.NODE_ENV})`
 
 // async function shutdown() {
 //   logger.info('Shutting down')
