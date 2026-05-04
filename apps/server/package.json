@@ -31,6 +31,7 @@
 		"@elysiajs/opentelemetry": "^1.4.10",
 		"@kubiks/otel-drizzle": "^2.1.0",
 		"@logtape/logtape": "^2.0.6",
+		"@logtape/otel": "^2.0.6",
 		"@logtape/pretty": "^2.0.6",
 		"@neondatabase/serverless": "^1.0.2",
 		"@opentelemetry/api": "^1.9.0",
