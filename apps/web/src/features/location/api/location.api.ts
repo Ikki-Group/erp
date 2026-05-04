@@ -34,20 +34,40 @@ export const locationApi = {
 		url: endpoint.location.create,
 		body: LocationCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [locationKeys.lists()],
+		invalidates: [
+			locationKeys.lists(),
+			// Invalidate inventory when location changes (stock is per location)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	update: apiFactory({
 		method: 'put',
 		url: endpoint.location.update,
 		body: LocationUpdateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
+		invalidates: [
+			locationKeys.lists(),
+			({ body }) => locationKeys.detail(body.id),
+			// Invalidate inventory when location changes (stock is per location)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.location.remove,
 		body: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [locationKeys.lists(), ({ body }) => locationKeys.detail(body.id)],
+		invalidates: [
+			locationKeys.lists(),
+			({ body }) => locationKeys.detail(body.id),
+			// Invalidate inventory when location changes (stock is per location)
+			endpoint.inventory.summary.byLocation,
+			endpoint.inventory.summary.ledger,
+			endpoint.inventoryAlert.count,
+		],
 	}),
 }

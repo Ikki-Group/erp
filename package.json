@@ -20,6 +20,11 @@
 	"scripts": {
 		"dev:server": "bun --filter @ikki/server dev",
 		"dev:web": "bun --filter @ikki/web dev",
+		"test:e2e": "bun --filter e2e test",
+		"test:e2e:ui": "bun --filter e2e test:ui",
+		"test:e2e:headed": "bun --filter e2e test:headed",
+		"test:e2e:debug": "bun --filter e2e test:debug",
+		"test:e2e:report": "bun --filter e2e test:report",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
 		"format": "oxfmt .",

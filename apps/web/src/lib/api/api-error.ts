@@ -28,6 +28,9 @@ export class ApiError extends Error {
 				return 'Data yang Anda masukkan tidak sesuai validasi.'
 			case 500:
 				return 'Terjadi kesalahan pada server kami.'
+			case undefined: {
+				throw new Error('Not implemented yet: undefined case')
+			}
 			default:
 				return this.message || 'Terjadi kesalahan yang tidak terduga.'
 		}

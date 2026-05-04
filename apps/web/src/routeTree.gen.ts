@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PosRouteImport } from './routes/pos'
 import { Route as DocsRouteImport } from './routes/_docs'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as PosIndexRouteImport } from './routes/pos/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as ExamplesPageNewRouteImport } from './routes/examples/page-new'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
@@ -99,6 +101,11 @@ import { Route as AppInventoryTransactionsOpnameRouteImport } from './routes/_ap
 import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
 import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
 
+const PosRoute = PosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/_docs',
   getParentRoute: () => rootRouteImport,
@@ -110,6 +117,11 @@ const AuthRouteRoute = AuthRouteRouteImport.update({
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PosIndexRoute = PosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PosRoute,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
@@ -559,9 +571,11 @@ const AppInventoryTransactionsIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/pos': typeof PosRouteWithChildren
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
+  '/pos/': typeof PosIndexRoute
   '/settings': typeof AppSettingsTabRouteRouteWithChildren
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
@@ -650,6 +664,7 @@ export interface FileRoutesByTo {
   '/$': typeof AppSplatRoute
   '/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
+  '/pos': typeof PosIndexRoute
   '/settings': typeof AppSettingsTabRouteRouteWithChildren
   '/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/analytics/production': typeof AppAnalyticsProductionRoute
@@ -738,10 +753,12 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_docs': typeof DocsRouteWithChildren
+  '/pos': typeof PosRouteWithChildren
   '/_app/$': typeof AppSplatRoute
   '/_auth/login': typeof AuthLoginRoute
   '/examples/page-new': typeof ExamplesPageNewRoute
   '/_app/': typeof AppIndexRoute
+  '/pos/': typeof PosIndexRoute
   '/_app/settings/_tab': typeof AppSettingsTabRouteRouteWithChildren
   '/_app/analytics/finance': typeof AppAnalyticsFinanceRoute
   '/_app/analytics/production': typeof AppAnalyticsProductionRoute
@@ -829,9 +846,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pos'
     | '/$'
     | '/login'
     | '/examples/page-new'
+    | '/pos/'
     | '/settings'
     | '/analytics/finance'
     | '/analytics/production'
@@ -920,6 +939,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/login'
     | '/examples/page-new'
+    | '/pos'
     | '/settings'
     | '/analytics/finance'
     | '/analytics/production'
@@ -1007,10 +1027,12 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_docs'
+    | '/pos'
     | '/_app/$'
     | '/_auth/login'
     | '/examples/page-new'
     | '/_app/'
+    | '/pos/'
     | '/_app/settings/_tab'
     | '/_app/analytics/finance'
     | '/_app/analytics/production'
@@ -1099,6 +1121,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   DocsRoute: typeof DocsRouteWithChildren
+  PosRoute: typeof PosRouteWithChildren
   ExamplesPageNewRoute: typeof ExamplesPageNewRoute
   ExamplesLayoutsOneRoute: typeof ExamplesLayoutsOneRoute
   ExamplesLayoutsTwoRoute: typeof ExamplesLayoutsTwoRoute
@@ -1117,6 +1140,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pos': {
+      id: '/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof PosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_docs': {
       id: '/_docs'
       path: ''
@@ -1137,6 +1167,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/pos/': {
+      id: '/pos/'
+      path: '/'
+      fullPath: '/pos/'
+      preLoaderRoute: typeof PosIndexRouteImport
+      parentRoute: typeof PosRoute
     }
     '/_app/': {
       id: '/_app/'
@@ -1925,10 +1962,21 @@ const DocsRouteChildren: DocsRouteChildren = {
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 
+interface PosRouteChildren {
+  PosIndexRoute: typeof PosIndexRoute
+}
+
+const PosRouteChildren: PosRouteChildren = {
+  PosIndexRoute: PosIndexRoute,
+}
+
+const PosRouteWithChildren = PosRoute._addFileChildren(PosRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   DocsRoute: DocsRouteWithChildren,
+  PosRoute: PosRouteWithChildren,
   ExamplesPageNewRoute: ExamplesPageNewRoute,
   ExamplesLayoutsOneRoute: ExamplesLayoutsOneRoute,
   ExamplesLayoutsTwoRoute: ExamplesLayoutsTwoRoute,

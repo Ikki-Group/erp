@@ -1,3 +1,5 @@
+import { ApiError } from './api'
+
 interface ToastMessages {
 	loading?: string | React.ReactNode
 	success?: string | React.ReactNode | (() => React.ReactNode)
@@ -13,27 +15,36 @@ export function toastLabelMessage(operation: CrudOperation, label: string): Toas
 			return {
 				loading: `Mengubah ${label}`,
 				success: `Berhasil memperbarui ${label}`,
-				error: `Terjadi kesalahan saat memperbarui ${label}`,
+				error: (err) =>
+					extractMessageFromError(err) ?? `Terjadi kesalahan saat memperbarui ${label}`,
 			}
 		case 'delete':
 			return {
 				loading: `Menghapus ${label}`,
 				success: `Berhasil menghapus ${label}`,
-				error: `Terjadi kesalahan saat menghapus ${label}`,
+				error: (err) => extractMessageFromError(err) ?? `Terjadi kesalahan saat menghapus ${label}`,
 			}
 		case 'create':
 			return {
 				loading: `Menambah ${label}`,
 				success: `Berhasil membuat ${label}`,
-				error: `Terjadi kesalahan saat membuat ${label}`,
+				error: (err) => extractMessageFromError(err) ?? `Terjadi kesalahan saat membuat ${label}`,
 			}
 		case 'read':
 			return {
 				loading: `Mengambil ${label}`,
 				success: `Berhasil mengambil ${label}`,
-				error: `Terjadi kesalahan saat mengambil ${label}`,
+				error: (err) => extractMessageFromError(err) ?? `Terjadi kesalahan saat mengambil ${label}`,
 			}
 		default:
 			return { loading: `Mengambil ${label}`, success: `Berhasil`, error: `Terjadi kesalahan` }
 	}
+}
+
+function extractMessageFromError(err: unknown): string | undefined {
+	if (typeof err === 'string') return err
+	if (err instanceof ApiError) return err.details?.message ?? err.message
+	if (err instanceof Error) return err.message
+
+	return undefined
 }

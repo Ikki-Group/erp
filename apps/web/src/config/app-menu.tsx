@@ -52,12 +52,190 @@ export function getAppMenu(
 ): Array<AppMenuGroup> {
 	return [
 		{
+			label: 'Utama',
 			items: [
 				{ title: 'Dashboard', href: '/', icon: LayoutDashboardIcon, isActive: pathname === '/' },
 			],
 		},
 		{
-			label: 'Laporan',
+			label: 'Operasi',
+			items: [
+				{
+					title: 'Penjualan',
+					href: '/sales',
+					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/sales'),
+					children: [
+						{ title: 'POS', href: '/sales/pos', isActive: pathname === '/sales/pos' },
+						{ title: 'Pesanan', href: '/sales/orders', isActive: pathname === '/sales/orders' },
+						{ title: 'Invoice', href: '/sales/invoices', isActive: pathname === '/sales/invoices' },
+						{
+							title: 'Pelanggan',
+							href: '/sales/customers',
+							isActive: pathname === '/sales/customers',
+						},
+					],
+				},
+				{
+					title: 'Pengadaan',
+					href: '/procurement',
+					icon: TruckIcon,
+					isActive: pathname.startsWith('/procurement'),
+					children: [
+						{
+							title: 'Pesanan Pembelian',
+							href: '/procurement/orders',
+							isActive: pathname === '/procurement/orders',
+						},
+						{
+							title: 'Penerimaan Barang',
+							href: '/procurement/receipts',
+							isActive: pathname === '/procurement/receipts',
+						},
+						{
+							title: 'Supplier',
+							href: '/procurement/suppliers',
+							isActive: pathname === '/procurement/suppliers',
+						},
+					],
+				},
+				{
+					title: 'Inventory',
+					href: '/inventory',
+					icon: PackageIcon,
+					isActive: pathname.startsWith('/inventory'),
+					children: [
+						{
+							title: 'Ringkasan Stok',
+							href: '/inventory/summary',
+							isActive: pathname === '/inventory/summary',
+						},
+						{
+							title: 'Alokasi Stok',
+							href: '/inventory/allocation',
+							isActive: pathname === '/inventory/allocation',
+						},
+						{
+							title: 'Transaksi',
+							href: '/inventory/transactions',
+							isActive: pathname.startsWith('/inventory/transactions'),
+						},
+					],
+				},
+				{
+					title: 'Produksi',
+					href: '/production',
+					icon: CogIcon,
+					isActive: pathname.startsWith('/production'),
+					children: [
+						{
+							title: 'Resep (BOM)',
+							href: '/production/recipes',
+							isActive: pathname === '/production/recipes',
+						},
+						{
+							title: 'Work Order',
+							href: '/production/work-orders',
+							isActive: pathname === '/production/work-orders',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Produk & Bahan',
+			items: [
+				{
+					title: 'Produk',
+					href: '/product',
+					icon: UtensilsCrossedIcon,
+					isActive: pathname.startsWith('/product'),
+					children: [
+						{ title: 'Daftar Produk', href: '/product', isActive: pathname === '/product' },
+						{
+							title: 'Kategori Produk',
+							href: '/product/category',
+							isActive: pathname === '/product/category',
+						},
+					],
+				},
+				{
+					title: 'Bahan Baku',
+					href: '/material',
+					icon: BeakerIcon,
+					isActive: pathname.startsWith('/material'),
+					children: [
+						{ title: 'Daftar Bahan', href: '/material', isActive: pathname === '/material' },
+						{
+							title: 'Kategori Bahan',
+							href: '/material/category',
+							isActive: pathname === '/material/category',
+						},
+						{
+							title: 'Satuan (UOM)',
+							href: '/material/uom',
+							isActive: pathname === '/material/uom',
+						},
+					],
+				},
+				{
+					title: 'Tipe Penjualan',
+					href: '/sales-type',
+					icon: ShoppingBagIcon,
+					isActive: pathname.startsWith('/sales-type'),
+				},
+			],
+		},
+		{
+			label: 'Keuangan',
+			items: [
+				{
+					title: 'Keuangan',
+					href: '/finance',
+					icon: BanknoteIcon,
+					isActive: pathname.startsWith('/finance'),
+					children: [
+						{
+							title: 'Akun',
+							href: '/finance/accounts',
+							isActive: pathname === '/finance/accounts',
+						},
+						{
+							title: 'Pembayaran',
+							href: '/finance/payments',
+							isActive: pathname === '/finance/payments',
+						},
+						{
+							title: 'Arus Kas',
+							href: '/finance/cash-flow',
+							isActive: pathname === '/finance/cash-flow',
+						},
+						{
+							title: 'Pengeluaran',
+							href: '/finance/expenses',
+							isActive: pathname === '/finance/expenses',
+						},
+						{
+							title: 'Buku Besar',
+							href: '/finance/ledger',
+							isActive: pathname === '/finance/ledger',
+						},
+						{
+							title: 'Piutang & Hutang',
+							href: '/finance/ledger-ar-ap',
+							isActive: pathname === '/finance/ledger-ar-ap',
+						},
+						{
+							title: 'Laba Rugi',
+							href: '/finance/profit-loss',
+							isActive: pathname === '/finance/profit-loss',
+						},
+					],
+				},
+			],
+		},
+		{
+			label: 'Laporan & Insight',
 			items: [
 				{
 					title: 'Overview',
@@ -65,7 +243,6 @@ export function getAppMenu(
 					icon: BarChart3Icon,
 					isActive: pathname.startsWith('/reports'),
 				},
-
 				{
 					title: 'Laporan Penjualan',
 					href: '/reports/sales',
@@ -127,7 +304,6 @@ export function getAppMenu(
 						},
 					],
 				},
-
 				{
 					title: 'Laporan Pengadaan',
 					href: '/reports/procurement',
@@ -156,7 +332,6 @@ export function getAppMenu(
 						},
 					],
 				},
-
 				{
 					title: 'Laporan Keuangan',
 					href: '/reports/finance',
@@ -180,7 +355,6 @@ export function getAppMenu(
 						},
 					],
 				},
-
 				{
 					title: 'Insight Bisnis',
 					href: '/reports/insights',
@@ -208,204 +382,7 @@ export function getAppMenu(
 			],
 		},
 		{
-			label: 'Inventory & Produk',
-			items: [
-				{
-					title: 'Inventory',
-					href: '/inventory',
-					icon: PackageIcon,
-					isActive: pathname.startsWith('/inventory'),
-					children: [
-						{
-							title: 'Ringkasan Stok',
-							href: '/inventory/summary',
-							isActive: pathname === '/inventory/summary',
-						},
-						{
-							title: 'Alokasi Stok',
-							href: '/inventory/allocation',
-							isActive: pathname === '/inventory/allocation',
-						},
-						{
-							title: 'Transaksi',
-							href: '/inventory/transactions',
-							isActive: pathname.startsWith('/inventory/transactions'),
-						},
-					],
-				},
-				{
-					title: 'Produk',
-					href: '/product',
-					icon: UtensilsCrossedIcon,
-					isActive: pathname.startsWith('/product'),
-					children: [
-						{
-							title: 'Daftar Produk',
-							href: '/product',
-							isActive: pathname === '/product',
-						},
-						{
-							title: 'Kategori Produk',
-							href: '/product/category',
-							isActive: pathname === '/product/category',
-						},
-					],
-				},
-				{
-					title: 'Tipe Penjualan',
-					href: '/sales-type',
-					icon: ShoppingBagIcon,
-					isActive: pathname.startsWith('/sales-type'),
-				},
-				{
-					title: 'Bahan Baku',
-					href: '/material',
-					icon: BeakerIcon,
-					isActive: pathname.startsWith('/material'),
-					children: [
-						{
-							title: 'Daftar Bahan',
-							href: '/material',
-							isActive: pathname === '/material',
-						},
-						{
-							title: 'Kategori Bahan',
-							href: '/material/category',
-							isActive: pathname === '/material/category',
-						},
-						{
-							title: 'Satuan (UOM)',
-							href: '/material/uom',
-							isActive: pathname === '/material/uom',
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'Supply Chain',
-			items: [
-				{
-					title: 'Pengadaan',
-					href: '/procurement',
-					icon: TruckIcon,
-					isActive: pathname.startsWith('/procurement'),
-					children: [
-						{
-							title: 'Pesanan Pembelian',
-							href: '/procurement/orders',
-							isActive: pathname === '/procurement/orders',
-						},
-						{
-							title: 'Penerimaan Barang',
-							href: '/procurement/receipts',
-							isActive: pathname === '/procurement/receipts',
-						},
-						{
-							title: 'Supplier',
-							href: '/procurement/suppliers',
-							isActive: pathname === '/procurement/suppliers',
-						},
-					],
-				},
-				{
-					title: 'Produksi',
-					href: '/production',
-					icon: CogIcon,
-					isActive: pathname.startsWith('/production'),
-					children: [
-						{
-							title: 'Resep (BOM)',
-							href: '/production/recipes',
-							isActive: pathname === '/production/recipes',
-						},
-						{
-							title: 'Work Order',
-							href: '/production/work-orders',
-							isActive: pathname === '/production/work-orders',
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'Sales & Finance',
-			items: [
-				{
-					title: 'Penjualan',
-					href: '/sales',
-					icon: ShoppingBagIcon,
-					isActive: pathname.startsWith('/sales'),
-					children: [
-						{
-							title: 'POS',
-							href: '/sales/pos',
-							isActive: pathname === '/sales/pos',
-						},
-						{
-							title: 'Pesanan',
-							href: '/sales/orders',
-							isActive: pathname === '/sales/orders',
-						},
-						{
-							title: 'Invoice',
-							href: '/sales/invoices',
-							isActive: pathname === '/sales/invoices',
-						},
-						{
-							title: 'Pelanggan',
-							href: '/sales/customers',
-							isActive: pathname === '/sales/customers',
-						},
-					],
-				},
-				{
-					title: 'Keuangan',
-					href: '/finance',
-					icon: BanknoteIcon,
-					isActive: pathname.startsWith('/finance'),
-					children: [
-						{
-							title: 'Akun',
-							href: '/finance/accounts',
-							isActive: pathname === '/finance/accounts',
-						},
-						{
-							title: 'Pembayaran',
-							href: '/finance/payments',
-							isActive: pathname === '/finance/payments',
-						},
-						{
-							title: 'Arus Kas',
-							href: '/finance/cash-flow',
-							isActive: pathname === '/finance/cash-flow',
-						},
-						{
-							title: 'Pengeluaran',
-							href: '/finance/expenses',
-							isActive: pathname === '/finance/expenses',
-						},
-						{
-							title: 'Buku Besar',
-							href: '/finance/ledger',
-							isActive: pathname === '/finance/ledger',
-						},
-						{
-							title: 'Piutang & Hutang',
-							href: '/finance/ledger-ar-ap',
-							isActive: pathname === '/finance/ledger-ar-ap',
-						},
-						{
-							title: 'Laba Rugi',
-							href: '/finance/profit-loss',
-							isActive: pathname === '/finance/profit-loss',
-						},
-					],
-				},
-			],
-		},
-		{
-			label: 'HR',
+			label: 'People',
 			items: [
 				{
 					title: 'Karyawan',
@@ -418,16 +395,8 @@ export function getAppMenu(
 							href: '/hr/employees',
 							isActive: pathname === '/hr/employees',
 						},
-						{
-							title: 'Absensi',
-							href: '/hr/attendance',
-							isActive: pathname === '/hr/attendance',
-						},
-						{
-							title: 'Payroll',
-							href: '/hr/payroll',
-							isActive: pathname === '/hr/payroll',
-						},
+						{ title: 'Absensi', href: '/hr/attendance', isActive: pathname === '/hr/attendance' },
+						{ title: 'Payroll', href: '/hr/payroll', isActive: pathname === '/hr/payroll' },
 					],
 				},
 			],
@@ -437,7 +406,7 @@ export function getAppMenu(
 			items: [
 				{
 					title: 'Pengaturan',
-					href: '/settings',
+					href: '/settings/location',
 					icon: Settings2Icon,
 					isActive:
 						pathname.startsWith('/settings') && !pathname.startsWith('/settings/audit-trail'),
