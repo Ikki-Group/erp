@@ -2,12 +2,10 @@ import pino, { type TransportTargetOptions } from 'pino'
 
 import { env } from '@/config/env'
 
-const isDev = env.NODE_ENV === 'development'
-
 const targets: TransportTargetOptions[] = []
 
 // Standard Output Transport
-if (isDev || env.LOG_PRETTY) {
+if (env.LOG_FORMAT === 'pretty') {
 	targets.push({
 		target: 'pino-pretty',
 		options: {
@@ -19,15 +17,18 @@ if (isDev || env.LOG_PRETTY) {
 }
 
 // Axiom Transport
-if (env.AXIOM_TOKEN) {
-	targets.push({
-		target: '@axiomhq/pino',
-		options: { dataset: env.AXIOM_DATASET, token: env.AXIOM_TOKEN },
-	})
-}
+// if (env.AXIOM_TOKEN) {
+// 	targets.push({
+// 		target: '@axiomhq/pino',
+// 		options: { dataset: env.AXIOM_DATASET, token: env.AXIOM_TOKEN },
+// 	})
+// }
 
 const transport = pino.transport({ targets })
 
-const logger = pino({ level: env.LOG_LEVEL, timestamp: pino.stdTimeFunctions.isoTime }, transport)
+const logger = pino(
+	{ level: env.LOG_LEVEL, timestamp: pino.stdTimeFunctions.isoTime },
+	targets.length > 0 ? transport : undefined,
+)
 
 export { logger }

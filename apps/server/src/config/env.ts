@@ -31,10 +31,7 @@ const Env = z.object({
 	// App
 	APP_NAME: z.string().default('ikki-erp'),
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
-	LOG_PRETTY: z
-		.string()
-		.default('false')
-		.transform((v) => v === 'true'),
+	LOG_FORMAT: z.enum(['json', 'pretty']).catch('json'),
 
 	// Upstash
 	UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
