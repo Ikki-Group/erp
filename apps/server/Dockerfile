@@ -50,8 +50,6 @@ WORKDIR /app
 # Copy compiled binary
 COPY --from=builder /app/server ./server
 
-USER elysia
-
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
