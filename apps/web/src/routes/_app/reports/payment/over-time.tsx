@@ -1,29 +1,29 @@
-import { useMemo } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { TrendingUpIcon, ArrowDownRightIcon, ArrowUpRightIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { Page } from '@/components/layout/page'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import { toDateTimeStamp } from '@/lib/formatter'
+
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { Page } from '@/components/layout/page'
 
 import { Card } from '@/components/ui/card'
 
 import { paymentReportApi } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
-import { toDateTimeStamp } from '@/lib/formatter'
 
-export const Route = createFileRoute('/_app/reports/payment/over-time')({ component: PaymentOverTimeReport })
+export const Route = createFileRoute('/_app/reports/payment/over-time')({
+	component: PaymentOverTimeReport,
+})
 
 function PaymentOverTimeReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data, isLoading } = useQuery(
-		paymentReportApi.overTime.query(filter),
-	)
+	const { data, isLoading } = useQuery(paymentReportApi.overTime.query(filter))
 
 	const items = data?.data?.data ?? []
 
@@ -97,7 +97,9 @@ function PaymentOverTimeReport() {
 				<div className="grid gap-4 md:grid-cols-3">
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
-							<Card.Title className="text-sm font-medium text-muted-foreground">Total Kas Masuk</Card.Title>
+							<Card.Title className="text-sm font-medium text-muted-foreground">
+								Total Kas Masuk
+							</Card.Title>
 							<ArrowUpRightIcon className="h-4 w-4 text-emerald-500" />
 						</Card.Header>
 						<Card.Content>
@@ -108,7 +110,9 @@ function PaymentOverTimeReport() {
 					</Card>
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
-							<Card.Title className="text-sm font-medium text-muted-foreground">Total Kas Keluar</Card.Title>
+							<Card.Title className="text-sm font-medium text-muted-foreground">
+								Total Kas Keluar
+							</Card.Title>
 							<ArrowDownRightIcon className="h-4 w-4 text-red-500" />
 						</Card.Header>
 						<Card.Content>
@@ -119,7 +123,9 @@ function PaymentOverTimeReport() {
 					</Card>
 					<Card>
 						<Card.Header className="flex flex-row items-center justify-between pb-2">
-							<Card.Title className="text-sm font-medium text-muted-foreground">Total Net</Card.Title>
+							<Card.Title className="text-sm font-medium text-muted-foreground">
+								Total Net
+							</Card.Title>
 							<TrendingUpIcon className="h-4 w-4 text-blue-500" />
 						</Card.Header>
 						<Card.Content>

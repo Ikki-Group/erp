@@ -85,6 +85,9 @@ import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settin
 import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
 import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
 import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
+import { Route as AppReportsPaymentOverTimeRouteImport } from './routes/_app/reports/payment/over-time'
+import { Route as AppReportsPaymentByMethodRouteImport } from './routes/_app/reports/payment/by-method'
+import { Route as AppReportsPaymentByAccountRouteImport } from './routes/_app/reports/payment/by-account'
 import { Route as AppReportsInventoryStockValueRouteImport } from './routes/_app/reports/inventory/stock-value'
 import { Route as AppReportsInventoryStockRouteImport } from './routes/_app/reports/inventory/stock'
 import { Route as AppReportsInventoryMovementsRouteImport } from './routes/_app/reports/inventory/movements'
@@ -481,6 +484,24 @@ const AppReportsSalesChannelsRoute = AppReportsSalesChannelsRouteImport.update({
   path: '/reports/sales/channels',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppReportsPaymentOverTimeRoute =
+  AppReportsPaymentOverTimeRouteImport.update({
+    id: '/reports/payment/over-time',
+    path: '/reports/payment/over-time',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsPaymentByMethodRoute =
+  AppReportsPaymentByMethodRouteImport.update({
+    id: '/reports/payment/by-method',
+    path: '/reports/payment/by-method',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsPaymentByAccountRoute =
+  AppReportsPaymentByAccountRouteImport.update({
+    id: '/reports/payment/by-account',
+    path: '/reports/payment/by-account',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppReportsInventoryStockValueRoute =
   AppReportsInventoryStockValueRouteImport.update({
     id: '/reports/inventory/stock-value',
@@ -647,6 +668,9 @@ export interface FileRoutesByFullPath {
   '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
   '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
   '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
@@ -736,6 +760,9 @@ export interface FileRoutesByTo {
   '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
   '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
   '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
@@ -830,6 +857,9 @@ export interface FileRoutesById {
   '/_app/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
   '/_app/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/_app/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/_app/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/_app/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/_app/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
   '/_app/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/_app/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/_app/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
@@ -922,6 +952,9 @@ export interface FileRouteTypes {
     | '/reports/inventory/movements'
     | '/reports/inventory/stock'
     | '/reports/inventory/stock-value'
+    | '/reports/payment/by-account'
+    | '/reports/payment/by-method'
+    | '/reports/payment/over-time'
     | '/reports/sales/channels'
     | '/reports/sales/products'
     | '/reports/sales/revenue'
@@ -1011,6 +1044,9 @@ export interface FileRouteTypes {
     | '/reports/inventory/movements'
     | '/reports/inventory/stock'
     | '/reports/inventory/stock-value'
+    | '/reports/payment/by-account'
+    | '/reports/payment/by-method'
+    | '/reports/payment/over-time'
     | '/reports/sales/channels'
     | '/reports/sales/products'
     | '/reports/sales/revenue'
@@ -1104,6 +1140,9 @@ export interface FileRouteTypes {
     | '/_app/reports/inventory/movements'
     | '/_app/reports/inventory/stock'
     | '/_app/reports/inventory/stock-value'
+    | '/_app/reports/payment/by-account'
+    | '/_app/reports/payment/by-method'
+    | '/_app/reports/payment/over-time'
     | '/_app/reports/sales/channels'
     | '/_app/reports/sales/products'
     | '/_app/reports/sales/revenue'
@@ -1672,6 +1711,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsSalesChannelsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/reports/payment/over-time': {
+      id: '/_app/reports/payment/over-time'
+      path: '/reports/payment/over-time'
+      fullPath: '/reports/payment/over-time'
+      preLoaderRoute: typeof AppReportsPaymentOverTimeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/payment/by-method': {
+      id: '/_app/reports/payment/by-method'
+      path: '/reports/payment/by-method'
+      fullPath: '/reports/payment/by-method'
+      preLoaderRoute: typeof AppReportsPaymentByMethodRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/payment/by-account': {
+      id: '/_app/reports/payment/by-account'
+      path: '/reports/payment/by-account'
+      fullPath: '/reports/payment/by-account'
+      preLoaderRoute: typeof AppReportsPaymentByAccountRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/inventory/stock-value': {
       id: '/_app/reports/inventory/stock-value'
       path: '/reports/inventory/stock-value'
@@ -1854,6 +1914,9 @@ interface AppRouteRouteChildren {
   AppReportsInventoryMovementsRoute: typeof AppReportsInventoryMovementsRoute
   AppReportsInventoryStockRoute: typeof AppReportsInventoryStockRoute
   AppReportsInventoryStockValueRoute: typeof AppReportsInventoryStockValueRoute
+  AppReportsPaymentByAccountRoute: typeof AppReportsPaymentByAccountRoute
+  AppReportsPaymentByMethodRoute: typeof AppReportsPaymentByMethodRoute
+  AppReportsPaymentOverTimeRoute: typeof AppReportsPaymentOverTimeRoute
   AppReportsSalesChannelsRoute: typeof AppReportsSalesChannelsRoute
   AppReportsSalesProductsRoute: typeof AppReportsSalesProductsRoute
   AppReportsSalesRevenueRoute: typeof AppReportsSalesRevenueRoute
@@ -1924,6 +1987,9 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsInventoryMovementsRoute: AppReportsInventoryMovementsRoute,
   AppReportsInventoryStockRoute: AppReportsInventoryStockRoute,
   AppReportsInventoryStockValueRoute: AppReportsInventoryStockValueRoute,
+  AppReportsPaymentByAccountRoute: AppReportsPaymentByAccountRoute,
+  AppReportsPaymentByMethodRoute: AppReportsPaymentByMethodRoute,
+  AppReportsPaymentOverTimeRoute: AppReportsPaymentOverTimeRoute,
   AppReportsSalesChannelsRoute: AppReportsSalesChannelsRoute,
   AppReportsSalesProductsRoute: AppReportsSalesProductsRoute,
   AppReportsSalesRevenueRoute: AppReportsSalesRevenueRoute,

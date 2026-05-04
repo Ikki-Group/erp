@@ -1,21 +1,22 @@
-import { useMemo } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { CreditCardIcon, LandmarkIcon, WalletIcon } from 'lucide-react'
 
-import { DataTableCard } from '@/components/blocks/card/data-table-card'
-import { Page } from '@/components/layout/page'
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
+
+import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { Page } from '@/components/layout/page'
 
 import { Card } from '@/components/ui/card'
 
 import { paymentReportApi } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
-export const Route = createFileRoute('/_app/reports/payment/by-method')({ component: PaymentByMethodReport })
+export const Route = createFileRoute('/_app/reports/payment/by-method')({
+	component: PaymentByMethodReport,
+})
 
 const methodIcons: Record<string, React.ElementType> = {
 	cash: WalletIcon,
@@ -28,9 +29,7 @@ const methodIcons: Record<string, React.ElementType> = {
 function PaymentByMethodReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data, isLoading } = useQuery(
-		paymentReportApi.byMethod.query(filter),
-	)
+	const { data, isLoading } = useQuery(paymentReportApi.byMethod.query(filter))
 
 	const items = data?.data?.data ?? []
 
@@ -46,7 +45,9 @@ function PaymentByMethodReport() {
 					return (
 						<div className="flex items-center gap-2">
 							<Icon className="h-4 w-4 text-muted-foreground" />
-							<span className="font-medium capitalize">{row.original.method.replace('_', ' ')}</span>
+							<span className="font-medium capitalize">
+								{row.original.method.replace('_', ' ')}
+							</span>
 						</div>
 					)
 				},
@@ -66,13 +67,17 @@ function PaymentByMethodReport() {
 				accessorKey: 'count',
 				header: 'Jumlah Transaksi',
 				size: 160,
-				cell: ({ row }) => <span className="tabular-nums">{row.original.count.toLocaleString('id-ID')}</span>,
+				cell: ({ row }) => (
+					<span className="tabular-nums">{row.original.count.toLocaleString('id-ID')}</span>
+				),
 			},
 			{
 				accessorKey: 'percentage',
 				header: '%',
 				size: 100,
-				cell: ({ row }) => <span className="tabular-nums text-right block">{row.original.percentage}%</span>,
+				cell: ({ row }) => (
+					<span className="tabular-nums text-right block">{row.original.percentage}%</span>
+				),
 			},
 		],
 		data: items,
