@@ -26,6 +26,11 @@ export async function setupLogger() {
 		sinks,
 		loggers: [
 			{
+				category: 'logtape',
+				lowestLevel: 'warning',
+				sinks: ['console'],
+			},
+			{
 				category: 'ikki',
 				lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
 				sinks: ['console'],
