@@ -17,9 +17,10 @@ Shared API contract types and validators for Ikki ERP.
 - `z` re-exported for consumer use
 - Package builds successfully
 
-**Integration Status:** ✅ Location Module Migrated
+**Integration Status:** ✅ Location & IAM Modules Migrated
 - `apps/server/src/modules/location` uses `@ikki/api-contract/validation`
-- Typecheck passes cleanly for location module
+- `apps/server/src/modules/iam` (user, session) uses `@ikki/api-contract/validation`
+- Full server typecheck passes cleanly
 
 ## Consumer Usage
 
