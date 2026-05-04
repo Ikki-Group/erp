@@ -22,6 +22,7 @@ import {
 	PayrollAdjustmentDto,
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
+	PayrollBatchFilterDto,
 } from '../dto/payroll.dto'
 
 export const hrApi = {
@@ -61,11 +62,18 @@ export const hrApi = {
 }
 
 export const payrollApi = {
+	list: apiFactory({
+		method: 'get',
+		url: endpoint.hr.payroll.batches.list,
+		params: PayrollBatchFilterDto,
+		result: createPaginatedResponseSchema(PayrollBatchDto),
+	}),
 	createBatch: apiFactory({
 		method: 'post',
 		url: endpoint.hr.payroll.batches.create,
 		body: PayrollBatchCreateDto,
 		result: createSuccessResponseSchema(PayrollBatchDto),
+		invalidates: [endpoint.hr.payroll.batches.list],
 	}),
 	addAdjustment: apiFactory({
 		method: 'post',

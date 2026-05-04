@@ -34,6 +34,18 @@ export const PayrollBatchCreateDto = z.object({
 })
 export type PayrollBatchCreateDto = z.infer<typeof PayrollBatchCreateDto>
 
+export const PayrollBatchFilterDto = z.object({
+	page: z.coerce.number().int().positive().default(1).catch(1),
+	limit: z.coerce.number().int().positive().max(100).default(10).catch(10),
+	q: z
+		.string()
+		.trim()
+		.optional()
+		.transform((val) => (val?.length === 0 ? undefined : val)),
+	status: PayrollStatusEnum.optional(),
+})
+export type PayrollBatchFilterDto = z.infer<typeof PayrollBatchFilterDto>
+
 /* --------------------------------- ITEM ---------------------------------- */
 
 export const PayrollItemDto = z.object({

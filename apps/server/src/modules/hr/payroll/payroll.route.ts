@@ -3,18 +3,32 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
+
 import {
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
+	PayrollBatchFilterDto,
 } from './payroll.dto'
 import type { PayrollService } from './payroll.service'
-import { createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initPayrollRoute(s: PayrollService) {
 	return new Elysia({ detail: { tags: ['Payroll'] } })
 		.use(authPluginMacro)
+		.get(
+			'/batches',
+			async ({ query }) => {
+				const result = await s.handleBatchList(query)
+				return res.paginated(result)
+			},
+			{
+				query: PayrollBatchFilterDto,
+				response: createPaginatedResponseSchema(PayrollBatchDto),
+				auth: true,
+			},
+		)
 		.post(
 			'/batches',
 			async ({ body, auth }) => {

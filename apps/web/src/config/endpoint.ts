@@ -111,7 +111,11 @@ const hr = {
 	clockIn: 'hr/clock-in',
 	clockOut: 'hr/clock-out',
 	payroll: {
-		batches: { create: 'hr/payroll/batches', finalize: 'hr/payroll/batches/finalize' },
+		batches: {
+			list: 'hr/payroll/batches',
+			create: 'hr/payroll/batches',
+			finalize: 'hr/payroll/batches/finalize',
+		},
 		adjustments: { create: 'hr/payroll/adjustments' },
 	},
 }
