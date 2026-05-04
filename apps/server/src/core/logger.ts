@@ -23,18 +23,23 @@ export async function setupLogger() {
 	}
 
 	await configure({
-		sinks,
+		sinks: {
+			console: getConsoleSink(),
+			main: getConsoleSink(),
+		},
 		loggers: [
-			{
-				category: ['logtape', 'meta'],
-				lowestLevel: 'error',
-				sinks: ['console'],
-			},
-			{
-				category: 'ikki',
-				lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
-				sinks: ['console'],
-			},
+			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
+			{ category: ['ikki'], sinks: ['main'] },
+			// {
+			// 	category: ['logtape', 'meta'],
+			// 	lowestLevel: 'error',
+			// 	sinks: ['console'],
+			// },
+			// {
+			// 	category: 'ikki',
+			// 	lowestLevel: env.LOG_LEVEL === 'debug' ? 'debug' : 'info',
+			// 	sinks: ['console'],
+			// },
 		],
 	})
 
@@ -49,6 +54,6 @@ export function getLogger(category: string[]): Logger {
 }
 
 // Legacy logger for backward compatibility
-const logger = getLogtapeLogger([])
+const logger = getLogtapeLogger(['ikki'])
 
 export { logger }
