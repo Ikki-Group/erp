@@ -6,6 +6,7 @@ import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { ChartCard, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 
+import { Card } from '@/components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltip,
@@ -13,7 +14,6 @@ import {
 	ChartLegend,
 	ChartLegendContent,
 } from '@/components/ui/chart'
-import { Card } from '@/components/ui/card'
 
 import { salesReportApi } from '@/features/reporting'
 import type { SalesReportRequestDto } from '@/features/reporting'
@@ -41,9 +41,7 @@ function SalesChannelsReport() {
 		salesReportApi.byLocation.query(filter as SalesReportRequestDto),
 	)
 
-	const { data: typeData } = useQuery(
-		salesReportApi.byType.query(filter as SalesReportRequestDto),
-	)
+	const { data: typeData } = useQuery(salesReportApi.byType.query(filter as SalesReportRequestDto))
 
 	const byLocation = locationData?.data?.data ?? []
 	const byType = typeData?.data?.data ?? []
@@ -65,12 +63,7 @@ function SalesChannelsReport() {
 					<ChartCard title="Penjualan per Lokasi" description="Distribusi pendapatan per outlet">
 						<ChartContainer config={locationConfig} className="aspect-auto h-80 w-full">
 							<BarChart data={byLocation} margin={{ left: -20 }}>
-								<XAxis
-									dataKey="locationName"
-									tickLine={false}
-									axisLine={false}
-									fontSize={12}
-								/>
+								<XAxis dataKey="locationName" tickLine={false} axisLine={false} fontSize={12} />
 								<YAxis hide />
 								<ChartTooltip cursor={false} content={<ChartTooltipContent />} />
 								<Bar dataKey="revenue" fill="oklch(var(--primary))" radius={4} />
@@ -78,7 +71,10 @@ function SalesChannelsReport() {
 						</ChartContainer>
 					</ChartCard>
 
-					<ChartCard title="Penjualan per Tipe" description="Distribusi per tipe (Dine-in, Take-away, dll)">
+					<ChartCard
+						title="Penjualan per Tipe"
+						description="Distribusi per tipe (Dine-in, Take-away, dll)"
+					>
 						<ChartContainer config={typeConfig} className="aspect-auto h-80 w-full">
 							<PieChart>
 								<ChartTooltip content={<ChartTooltipContent hideLabel />} />

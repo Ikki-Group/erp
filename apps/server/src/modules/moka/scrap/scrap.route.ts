@@ -4,11 +4,14 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { MokaTriggerInputDto } from './scrap.dto'
 import type { MokaScrapHistoryService } from './scrap-history.service'
+import { MokaTriggerInputDto } from './scrap.dto'
 import type { MokaScrapService } from './scrap.service'
 
-export function initMokaScrapRoute(scrapSvc: MokaScrapService, historySvc: MokaScrapHistoryService) {
+export function initMokaScrapRoute(
+	scrapSvc: MokaScrapService,
+	historySvc: MokaScrapHistoryService,
+) {
 	return new Elysia({ prefix: '/scrap' })
 		.use(authPluginMacro)
 		.post(

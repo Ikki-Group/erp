@@ -88,7 +88,9 @@ export function WorkOrdersPage() {
 			header: 'Target Qty',
 			size: 130,
 			cell: ({ getValue }) => (
-				<span className="font-bold tabular-nums text-foreground/80 pr-4">{getValue() as string}</span>
+				<span className="font-bold tabular-nums text-foreground/80 pr-4">
+					{getValue() as string}
+				</span>
 			),
 		},
 		{
@@ -178,7 +180,9 @@ export function WorkOrdersPage() {
 							{isLoading ? (
 								<Skeleton className="h-8 w-20" />
 							) : (
-								<div className="text-2xl font-bold font-mono tracking-tight">{data?.data.length ?? 0} WO</div>
+								<div className="text-2xl font-bold font-mono tracking-tight">
+									{data?.data.length ?? 0} WO
+								</div>
 							)}
 							<p className="text-xs text-muted-foreground mt-1">Total tugas produksi</p>
 						</Card.Content>
@@ -232,7 +236,10 @@ export function WorkOrdersPage() {
 						isLoading={isLoading}
 						recordCount={data?.meta.total ?? 0}
 						toolbar={
-							<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari No. WO...' }]} />
+							<DataGridFilter
+								ds={ds}
+								options={[{ type: 'search', placeholder: 'Cari No. WO...' }]}
+							/>
 						}
 						action={
 							<Button size="sm" className="h-10 shadow-md font-medium">
@@ -267,7 +274,9 @@ export function WorkOrdersPage() {
 						</div>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setCompleteWoId(null)}>Batal</Button>
+						<Button variant="outline" onClick={() => setCompleteWoId(null)}>
+							Batal
+						</Button>
 						<Button
 							variant="default"
 							className="bg-emerald-600 hover:bg-emerald-700 text-white"

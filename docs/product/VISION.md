@@ -13,6 +13,7 @@ Ikki ERP is a modern, purpose-built Enterprise Resource Planning system designed
 ### 1.2 Target Client Profile
 
 **Primary**: Mid-scale F&B chains operating 2-10 locations with centralized warehouse operations
+
 - **Ikki Group**: 2+ restaurants/cafes with shared central warehouse (Gudang Utama)
 - **Operational Complexity**: Multi-outlet inventory coordination, recipe standardization, supplier management
 - **Pain Points**: Manual order tracking, data fragmentation across outlets, lost profitability visibility
@@ -21,14 +22,14 @@ Ikki ERP is a modern, purpose-built Enterprise Resource Planning system designed
 
 ### 1.3 Core Problems We Solve
 
-| Problem | Impact | Our Solution |
-|---------|--------|--------------|
-| **Data Fragmentation** | Inventory at Outlet A doesn't sync with Central Warehouse. Purchasing decisions lack real-time visibility | Unified centralized database with real-time sync across locations |
-| **Inefficient Ordering** | Manual spreadsheets and WhatsApp messages. Outlets often stock-out or overstock | Automated stock request system with intelligent reorder points |
-| **Production Inefficiency** | Recipe costs unknown. Waste not tracked. Profitability per menu item unclear | Digital recipe management with automatic COGS calculation and waste tracking |
-| **Purchasing Opacity** | No visibility into supplier performance. Manual PO tracking. Duplicate orders possible | Structured purchasing workflow with PO management and supplier analytics |
-| **Reconciliation Hell** | Physical counts don't match system records. Manual adjustments error-prone | Systematic stock opname with digital sheets and variance reconciliation |
-| **Decision Paralysis** | No visibility into sales trends, inventory turnover, or profitability by location | Real-time dashboards with KPIs, trends, and location-specific analytics |
+| Problem                     | Impact                                                                                                    | Our Solution                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Data Fragmentation**      | Inventory at Outlet A doesn't sync with Central Warehouse. Purchasing decisions lack real-time visibility | Unified centralized database with real-time sync across locations            |
+| **Inefficient Ordering**    | Manual spreadsheets and WhatsApp messages. Outlets often stock-out or overstock                           | Automated stock request system with intelligent reorder points               |
+| **Production Inefficiency** | Recipe costs unknown. Waste not tracked. Profitability per menu item unclear                              | Digital recipe management with automatic COGS calculation and waste tracking |
+| **Purchasing Opacity**      | No visibility into supplier performance. Manual PO tracking. Duplicate orders possible                    | Structured purchasing workflow with PO management and supplier analytics     |
+| **Reconciliation Hell**     | Physical counts don't match system records. Manual adjustments error-prone                                | Systematic stock opname with digital sheets and variance reconciliation      |
+| **Decision Paralysis**      | No visibility into sales trends, inventory turnover, or profitability by location                         | Real-time dashboards with KPIs, trends, and location-specific analytics      |
 
 ---
 
@@ -71,16 +72,19 @@ Ikki ERP is a modern, purpose-built Enterprise Resource Planning system designed
 ### 2.3 Success Metrics Dashboard
 
 **Financial**
+
 - COGS accuracy: ≥ 95%
 - Gross margin improvement: +2-5% per location
 - Waste as % of COGS: < 3%
 
 **Operational**
+
 - Inventory accuracy: ≥ 98%
 - Order cycle time: < 4 hours
 - System uptime: ≥ 99.5%
 
 **User Experience**
+
 - Daily active users: 100% of relevant staff
 - Average task completion time: < 5 minutes
 - User satisfaction: ≥ 4.2/5.0
@@ -129,14 +133,14 @@ WEEKLY/MONTHLY CYCLES
 
 ### 3.2 Key User Roles & Responsibilities
 
-| Role | Location | Key Activities | System Access |
-|------|----------|-----------------|---|
-| **Head Chef / Manager** | Outlet | Check inventory, create stock requests, log waste, approve opname adjustments | Full outlet-level access |
-| **Barista / Staff** | Outlet | Log waste, contribute to opname counts | Limited—view only, log waste |
-| **Warehouse Manager** | Gudang Utama | Receive orders, process transfers, manage warehouse inventory | Full warehouse access |
-| **Procurement Officer** | Head Office | Create purchase orders, track supplier performance | Purchasing module full access |
-| **Finance/Controller** | Head Office | Review ledgers, approve high-variance adjustments, generate reports | Read-only + approval rights |
-| **System Administrator** | Head Office | User management, role assignment, system config | Full system access |
+| Role                     | Location     | Key Activities                                                                | System Access                 |
+| ------------------------ | ------------ | ----------------------------------------------------------------------------- | ----------------------------- |
+| **Head Chef / Manager**  | Outlet       | Check inventory, create stock requests, log waste, approve opname adjustments | Full outlet-level access      |
+| **Barista / Staff**      | Outlet       | Log waste, contribute to opname counts                                        | Limited—view only, log waste  |
+| **Warehouse Manager**    | Gudang Utama | Receive orders, process transfers, manage warehouse inventory                 | Full warehouse access         |
+| **Procurement Officer**  | Head Office  | Create purchase orders, track supplier performance                            | Purchasing module full access |
+| **Finance/Controller**   | Head Office  | Review ledgers, approve high-variance adjustments, generate reports           | Read-only + approval rights   |
+| **System Administrator** | Head Office  | User management, role assignment, system config                               | Full system access            |
 
 ---
 
@@ -144,15 +148,15 @@ WEEKLY/MONTHLY CYCLES
 
 ### 4.1 Why Ikki ERP vs. Generic ERP?
 
-| Aspect | Generic ERP | Ikki ERP |
-|--------|------------|----------|
-| **Design** | One-size-fits-all | Purpose-built for F&B + warehouse |
-| **User Interface** | Complex, 50+ menu items | Streamlined, 5-7 key functions |
-| **Deployment** | Weeks to setup | Days to deploy |
-| **Cost** | $1000s/month | Flexible SaaS pricing (TBD) |
-| **Support** | Generic tech support | F&B domain experts |
-| **Integration** | Limited POS support | Native Moka + extensible |
-| **Speed** | Bureaucratic workflows | Fast, outlet-friendly UX |
+| Aspect             | Generic ERP             | Ikki ERP                          |
+| ------------------ | ----------------------- | --------------------------------- |
+| **Design**         | One-size-fits-all       | Purpose-built for F&B + warehouse |
+| **User Interface** | Complex, 50+ menu items | Streamlined, 5-7 key functions    |
+| **Deployment**     | Weeks to setup          | Days to deploy                    |
+| **Cost**           | $1000s/month            | Flexible SaaS pricing (TBD)       |
+| **Support**        | Generic tech support    | F&B domain experts                |
+| **Integration**    | Limited POS support     | Native Moka + extensible          |
+| **Speed**          | Bureaucratic workflows  | Fast, outlet-friendly UX          |
 
 ### 4.2 Competitive Advantages
 
@@ -167,21 +171,26 @@ WEEKLY/MONTHLY CYCLES
 ## 5. Phased Rollout Strategy
 
 ### Phase 1: MVP (Current) — Core Operations
+
 **Target**: Ikki Coffee + Ikki Resto only
 **Timeline**: By 2026-Q2
 **Scope**:
+
 - Inventory management across 2 locations
 - Manual stock requests and transfers
 - Basic opname and adjustments
 - Dashboard with stock and cost visibility
 
 **Success Criteria**:
+
 - 100% staff adoption (Chef, Manager, Warehouse staff)
 - System-to-physical accuracy ≥ 95%
 - Manual processes reduced by 60%
 
 ### Phase 2: Scale & Integration (Q3 2026)
+
 **Scope**:
+
 - Moka POS integration for real-time sales→inventory
 - Purchasing module (PO, GRN, supplier tracking)
 - Advanced recipe costing
@@ -189,7 +198,9 @@ WEEKLY/MONTHLY CYCLES
 - Multi-outlet expansion (3-5 locations)
 
 ### Phase 3: Ecosystem & Intelligence (Q4 2026+)
+
 **Scope**:
+
 - Financial integration (accounting system export)
 - Advanced reporting & BI
 - Supplier management portal
@@ -203,6 +214,7 @@ WEEKLY/MONTHLY CYCLES
 ### 6.1 Why Modern Tech Stack?
 
 **Technology Choice Rationale**:
+
 - **Bun + TypeScript**: Fast runtime, single language across stack, superior developer experience
 - **ElysiaJS**: Type-safe REST API framework, automatic OpenAPI docs
 - **React 19**: Modern UI with optimal performance for data-heavy operations
@@ -221,20 +233,21 @@ WEEKLY/MONTHLY CYCLES
 
 ## 7. Risk Management & Mitigation
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|-----------|
-| **Data Loss** | Low | Critical | Daily backups, point-in-time recovery, redundant replicas |
-| **System Downtime** | Low | High | 99.5% uptime SLA, auto-scaling, failover mechanisms |
-| **User Adoption** | Medium | High | Intensive training, Champions program, phased rollout |
-| **Integration Delays** | Medium | Medium | Moka API contract finalized early, clear API specs |
-| **Feature Scope Creep** | Medium | Medium | Strict MVP boundary, Phase 2/3 roadmap |
-| **Security Breach** | Low | Critical | Encryption at rest/transit, regular penetration testing, SOC 2 compliance (Phase 2) |
+| Risk                    | Likelihood | Impact   | Mitigation                                                                          |
+| ----------------------- | ---------- | -------- | ----------------------------------------------------------------------------------- |
+| **Data Loss**           | Low        | Critical | Daily backups, point-in-time recovery, redundant replicas                           |
+| **System Downtime**     | Low        | High     | 99.5% uptime SLA, auto-scaling, failover mechanisms                                 |
+| **User Adoption**       | Medium     | High     | Intensive training, Champions program, phased rollout                               |
+| **Integration Delays**  | Medium     | Medium   | Moka API contract finalized early, clear API specs                                  |
+| **Feature Scope Creep** | Medium     | Medium   | Strict MVP boundary, Phase 2/3 roadmap                                              |
+| **Security Breach**     | Low        | Critical | Encryption at rest/transit, regular penetration testing, SOC 2 compliance (Phase 2) |
 
 ---
 
 ## 8. Success Criteria (Go/No-Go Decision Points)
 
 ### Pre-Launch (MVP Validation)
+
 - [ ] All 4 core modules coded + tested (Location, Material, Inventory, Recipe)
 - [ ] Ikki Coffee + Ikki Resto fully onboarded (100% staff trained)
 - [ ] System-to-physical accuracy ≥ 95% for 4 consecutive weeks
@@ -242,6 +255,7 @@ WEEKLY/MONTHLY CYCLES
 - [ ] User satisfaction ≥ 4.0/5.0 from team feedback
 
 ### Phase 2 Gate (Scale Decision)
+
 - [ ] Demonstrated measurable cost savings (ROI positive)
 - [ ] Moka integration tested with live POS data
 - [ ] 3rd location ready to onboard with <6 hour setup
@@ -252,26 +266,31 @@ WEEKLY/MONTHLY CYCLES
 ## 9. What Success Looks Like (12 Months)
 
 ✅ **Ikki Group is fully digital**
+
 - No more manual spreadsheets or WhatsApp orders
 - Every outlet manager uses the system daily
 - Real-time visibility into inventory across all locations
 
 ✅ **Cost reduction achieved**
+
 - Identified and eliminated $X/month in waste
 - Recipe standardization improved margins by X%
 - Purchasing negotiation powered by supplier performance data
 
 ✅ **System runs itself**
+
 - Low-stock alerts automatically notify outlets
 - Purchasing suggestions auto-generated for approval
 - Opname discrepancies flagged and resolved in <24 hours
 
 ✅ **Data-driven decisions**
+
 - Monthly profitability reports by location and menu item
 - Trend analysis guides menu engineering
 - Supplier performance visible to stakeholders
 
 ✅ **Ready to scale**
+
 - Framework proven and documented
 - 3rd location add zero friction
 - Clear roadmap for next 12 months

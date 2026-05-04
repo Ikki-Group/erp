@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+import { DollarSignIcon } from 'lucide-react'
 import { Cell, Pie, PieChart } from 'recharts'
 
 import { CardStat } from '@/components/blocks/card/card-stat'
 import { ChartCard, ChartGrid } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 
+import { Card } from '@/components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltip,
@@ -14,7 +16,6 @@ import {
 	ChartLegend,
 	ChartLegendContent,
 } from '@/components/ui/chart'
-import { Card } from '@/components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -27,8 +28,6 @@ import {
 import { financeReportApi } from '@/features/reporting'
 import type { FinanceReportRequestDto, ExpenditureByCategoryDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
-
-import { DollarSignIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/reports/finance/expenses')({
 	component: FinanceExpensesReport,

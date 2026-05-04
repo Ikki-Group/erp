@@ -5,26 +5,29 @@
 ## 1. Executive Summary
 
 ### Purpose
+
 This document defines all functional and non-functional requirements for the Ikki ERP system—a purpose-built enterprise resource planning platform for multi-location F&B operations with integrated warehouse management.
 
 ### Target Customer Profile
+
 - **Primary**: Mid-scale restaurant & coffee chains (2-10 locations) with centralized warehouse
 - **Example**: Ikki Group operating Ikki Resto + Ikki Coffee with shared Gudang Utama (Central Warehouse)
 - **Complexity**: Multi-outlet inventory coordination, recipe standardization, supplier relationships, profitability tracking
 
 ### Core Problems Solved
 
-| Current State (Pain) | Desired State (Solution) |
-|---|---|
-| Manual spreadsheet-based inventory tracking | Real-time centralized inventory dashboard with location-specific views |
-| Outlet A doesn't know warehouse stock level | Live sync: Warehouse stock visible to all outlets instantly |
-| Stock-outs due to poor visibility and manual ordering | Automated stock requests with intelligent reorder points and alerts |
-| Unknown recipe costs and COGS per menu item | Auto-calculated COGS with waste tracking and margin analysis |
-| Supplier orders tracked via WhatsApp/email | Structured purchasing workflow (PR → PO → GRN) with supplier performance tracking |
-| Physical counts never match system records | Systematic opname process with digital sheets and variance reconciliation |
-| No visibility into profitability by outlet | Real-time dashboards showing revenue, COGS, waste, and margins by location |
+| Current State (Pain)                                  | Desired State (Solution)                                                          |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Manual spreadsheet-based inventory tracking           | Real-time centralized inventory dashboard with location-specific views            |
+| Outlet A doesn't know warehouse stock level           | Live sync: Warehouse stock visible to all outlets instantly                       |
+| Stock-outs due to poor visibility and manual ordering | Automated stock requests with intelligent reorder points and alerts               |
+| Unknown recipe costs and COGS per menu item           | Auto-calculated COGS with waste tracking and margin analysis                      |
+| Supplier orders tracked via WhatsApp/email            | Structured purchasing workflow (PR → PO → GRN) with supplier performance tracking |
+| Physical counts never match system records            | Systematic opname process with digital sheets and variance reconciliation         |
+| No visibility into profitability by outlet            | Real-time dashboards showing revenue, COGS, waste, and margins by location        |
 
 ### Business Impact (12-Month Goals)
+
 - **Efficiency**: Reduce manual data entry by 80%, cut order-to-fulfillment cycle by 50%
 - **Accuracy**: Achieve 98%+ system-to-physical inventory accuracy
 - **Cost Control**: Identify and eliminate waste, optimize recipe costs, improve gross margins by 2-5%
@@ -38,24 +41,28 @@ This document defines all functional and non-functional requirements for the Ikk
 ### 2.1 Current State Analysis
 
 **Fragmented Operations**
+
 - Ikki Coffee, Ikki Resto, and Gudang Utama operate with minimal data integration
 - Inventory levels tracked manually or via disconnected systems
 - Stock requests via WhatsApp/verbal communication prone to misalignment
 - No centralized source of truth for product availability
 
 **Operational Inefficiencies**
+
 - Stock opname (physical count) requires manual tallying—error-prone and labor-intensive
 - Outlet managers have no real-time visibility into warehouse stock levels
 - Purchasing decisions lack visibility into location-specific demand patterns
 - Recipe costs estimated manually; actual COGS unknown until month-end analysis
 
 **Cost Leakage & Visibility Gaps**
+
 - Waste (spoilage, incorrect handling) not systematically tracked
 - Price variance between locations due to independent purchasing
 - Inability to identify underperforming menu items
 - Supplier performance metrics (reliability, pricing) maintained informally
 
 **Decision Delays**
+
 - Monthly reporting is 3-5 days late (manual reconciliation)
 - Profitability insights only available after month-close
 - Reactive vs. proactive purchasing (no demand forecasting)
@@ -64,21 +71,26 @@ This document defines all functional and non-functional requirements for the Ikk
 ### 2.2 Target Users & Use Cases
 
 #### User Type 1: Outlet Manager (Ikki Coffee / Ikki Resto)
+
 **Daily Tasks**:
+
 - Check available stock in kitchen (morning stock check)
 - Submit stock request to warehouse when low
 - Log waste/spoilage during service
 - Approve staff stock opname entries (end-of-shift)
 - View outlet-specific profitability dashboard
 
-**Pain Points**: 
+**Pain Points**:
+
 - Currently takes 15-20 min to call warehouse for stock check
 - Stock requests via WhatsApp with no confirmation
 - Waste not tracked—no visibility into loss
 - Profitability reports come weeks later
 
 #### User Type 2: Warehouse Manager (Gudang Utama)
+
 **Daily Tasks**:
+
 - Receive incoming stock from suppliers
 - Process stock transfer requests from outlets
 - Conduct warehouse-level stock opname
@@ -86,13 +98,16 @@ This document defines all functional and non-functional requirements for the Ikk
 - Manage warehouse locations and organization
 
 **Pain Points**:
+
 - Manual receipt processing (30-40 min per shipment)
 - Stock transfers tracked via clipboard—high error rate
 - No visibility into which outlets need what, when
 - Stock opname requires full day count; system doesn't auto-detect discrepancies
 
 #### User Type 3: Procurement Officer (Head Office)
+
 **Tasks**:
+
 - Review stock velocity across all locations
 - Create purchase orders to suppliers
 - Track supplier delivery performance
@@ -100,18 +115,22 @@ This document defines all functional and non-functional requirements for the Ikk
 - Approve high-variance or unusual orders
 
 **Pain Points**:
+
 - Demand forecast done manually (Excel-based)
 - No supplier performance visibility
 - Frequent duplicate orders or stockouts
 - Price negotiation data incomplete
 
 #### User Type 4: Head Chef / Line Cook
+
 **Tasks**:
+
 - Check stock availability before service starts
 - Log waste/spoilage (broken items, expired goods, test tastings)
 - Contribute to end-of-shift stock opname
 
 **Pain Points**:
+
 - Manual stock checks time-consuming
 - Waste tracking sporadic—no accountability
 - Opname sheets error-prone (illegible handwriting)
@@ -119,18 +138,21 @@ This document defines all functional and non-functional requirements for the Ikk
 ### 2.3 Success Criteria (Business Metrics)
 
 **Operational KPIs**
+
 - Inventory accuracy: 98%+ (system count vs. physical count)
 - Stock-out incidents: < 5 per location per month
 - Order-to-fulfillment time: < 4 hours for stock transfers
 - Manual data entry time: < 15 min per day per outlet
 
 **Financial KPIs**
+
 - COGS accuracy: 95%+
 - Gross margin improvement: +2-5% per location (via cost control)
 - Waste as % of COGS: < 3%
 - Purchasing efficiency: 100% PO fulfillment on-time
 
 **User Adoption KPIs**
+
 - Daily active users: 100% of relevant staff
 - Feature adoption rate: > 80% for all major features
 - User satisfaction: ≥ 4.2/5.0
@@ -149,6 +171,7 @@ This section describes all functional modules included in the MVP release. Each 
 **Purpose**: Establish the geographic boundaries of operations. Every stock transaction is location-specific.
 
 **Data Model**:
+
 ```
 Location
 ├─ id: integer (PK)
@@ -162,6 +185,7 @@ Location
 ```
 
 **Core Features**:
+
 1. **Hierarchical Structure** (Flat for MVP)
    - `Gudang Utama` (Central Warehouse) — Parent
    - `Ikki Coffee - Bar` (Outlet/Display)
@@ -173,7 +197,6 @@ Location
    - `warehouse`: Central inventory storage
    - `outlet`: POS/customer-facing area
    - `kitchen`: Food production area
-   
 3. **Stock Ledger Scope**: Each location maintains separate stock ledger
 
 4. **Transfer Paths** (Allowed location transitions):
@@ -181,18 +204,21 @@ Location
    - `warehouse` ↔ `outlet` (delivery)
 
 **Business Rules**:
+
 - Only `warehouse` locations can receive goods from suppliers
 - `outlet` locations cannot directly transfer to each other (must go through warehouse)
 - Each location has a designated manager
 - Location cannot be deleted if active stock exists
 
 **APIs**:
+
 - `GET /locations/list` — All locations (with manager info)
 - `GET /locations/:id` — Location detail + current stock summary
 - `POST /locations` — Create location (admin only)
 - `PUT /locations/:id` — Update location settings
 
 **UI Requirements**:
+
 - Location dropdown in header (fast switching)
 - Location-scoped views for all lists
 - Location-based permissions enforcement
@@ -204,6 +230,7 @@ Location
 **Purpose**: Central registry of all sellable/storable items. The foundation for all transactional operations.
 
 **Data Model**:
+
 ```
 Product
 ├─ id: integer (PK)
@@ -227,6 +254,7 @@ ProductCategory
 ```
 
 **Core Features**:
+
 1. **Product Registry**
    - SKU auto-generation or manual entry
    - Categorization (for reporting and organization)
@@ -244,12 +272,14 @@ ProductCategory
    - Margin calculation: (selling - cost) / selling
 
 **Business Rules**:
+
 - SKU must be unique within system
 - Cost price can only be updated via goods receipt (GRN) transactions
 - Product cannot be deleted; only marked inactive
 - Category is required; hierarchy optional for MVP
 
 **APIs**:
+
 - `GET /products/list` — All active products (paginated, searchable)
 - `GET /products/:id` — Product detail + current stock across locations
 - `POST /products` — Create product (purchasing officer)
@@ -257,6 +287,7 @@ ProductCategory
 - `GET /products/by-category/:category_id` — Filter by category
 
 **UI Requirements**:
+
 - Product search with autocomplete
 - Quick edit: cost price, status
 - Category filter sidebar
@@ -271,6 +302,7 @@ ProductCategory
 **Purpose**: Extend Product with inventory-specific attributes. Define stock keeping unit (SKU) behavior per location.
 
 **Data Model**:
+
 ```
 Material (extends Product)
 ├─ id: integer (PK, FK → Product)
@@ -315,18 +347,21 @@ MaterialLocation (junction table)
    - Alert 3 days before expiration
 
 **Business Rules**:
+
 - Material must have reorder_point ≤ max_stock
 - Current_stock + reserved_stock cannot exceed max_stock
 - Reorder_quantity is a suggestion; actual order is discretionary
 - Material cannot be assigned to location if category mismatch
 
 **APIs**:
+
 - `GET /materials/list` — All materials with location-specific stock
 - `GET /materials/:id` — Detail + stock across all locations + reorder settings
 - `POST /materials/:id/assign-location` — Add material to location with min/max
 - `PUT /materials/:id/reorder-settings` — Update reorder_point, reorder_qty
 
 **UI Requirements**:
+
 - Materials list with stock levels per location
 - Reorder point threshold visualization (progress bar: red/yellow/green)
 - Quick reorder: suggests reorder_quantity
@@ -339,6 +374,7 @@ MaterialLocation (junction table)
 **Purpose**: Centralized user, role, and permission management. Controls who can do what.
 
 **Data Model**:
+
 ```
 User
 ├─ id: integer (PK)
@@ -392,6 +428,7 @@ Permission
    - Change log for sensitive operations (user creation, role change)
 
 **Business Rules**:
+
 - Email must be unique
 - User cannot be assigned same role at same location twice
 - At least one Admin user must exist at all times
@@ -399,6 +436,7 @@ Permission
 - Deleted users marked soft-delete (not removed from DB)
 
 **APIs**:
+
 - `POST /auth/login` — Authenticate (email/password) → JWT token
 - `POST /auth/refresh` — Refresh expired JWT
 - `POST /auth/logout` — Invalidate token
@@ -408,6 +446,7 @@ Permission
 - `POST /users/:id/assign-role` — Assign role + location
 
 **UI Requirements**:
+
 - Login page (email/password)
 - User management grid (admin only): create, edit, assign roles
 - Role assignment modal: select role + location
@@ -422,6 +461,7 @@ Permission
 **Purpose**: Secure API access with stateless JWT tokens.
 
 **Mechanism**:
+
 1. User logs in with email/password
 2. Backend validates credentials
 3. Backend generates JWT (access + refresh tokens)
@@ -430,6 +470,7 @@ Permission
 6. Backend validates token on each request
 
 **Token Format**:
+
 ```
 ACCESS TOKEN (expires in 1 hour):
 {
@@ -449,6 +490,7 @@ REFRESH TOKEN (expires in 30 days):
 ```
 
 **Security Best Practices**:
+
 - Passwords hashed with bcrypt (salt rounds ≥ 12)
 - No password logging or transmission in plain text
 - Tokens never logged in audit trail
@@ -463,6 +505,7 @@ REFRESH TOKEN (expires in 30 days):
 **Purpose**: Manage stock movements, ensure accuracy, enable real-time visibility.
 
 **Data Model**:
+
 ```
 StockMovement
 ├─ id: integer (PK)
@@ -580,6 +623,7 @@ StockOpnameDetail
    - Trend analysis: identify patterns (e.g., high spoilage on certain items)
 
 **Business Rules**:
+
 - Stock movements must have positive quantity
 - Cost snapshot recorded at time of transaction (no retroactive cost changes)
 - Reserved stock prevents over-allocation
@@ -588,6 +632,7 @@ StockOpnameDetail
 - No negative stock (safety constraint)
 
 **APIs**:
+
 - `GET /inventory/stock-summary` — All materials + current stock by location
 - `GET /inventory/stock/:material_id` — Stock history + movements for specific material
 - `POST /inventory/transfer` — Create inter-location transfer
@@ -600,6 +645,7 @@ StockOpnameDetail
 - `GET /inventory/ledger` — Stock ledger query (filtered by material/location/date)
 
 **UI Requirements**:
+
 - **Stock Dashboard**: Material list with real-time stock levels, reorder status, location filter
 - **Transfer Form**: From/to location, material select, qty, confirm
 - **Waste Logger**: Quick-entry form (material, qty, reason dropdown)
@@ -614,6 +660,7 @@ StockOpnameDetail
 **Purpose**: Define how raw materials transform into finished goods. Calculate COGS automatically.
 
 **Data Model**:
+
 ```
 Recipe
 ├─ id: integer (PK)
@@ -670,6 +717,7 @@ RecipeCostHistory
    - Logs stock movement with recipe reference
 
 **Business Rules**:
+
 - Recipe cannot be deleted (version history maintained)
 - Recipe cost recalculated when material cost changes
 - Finished product must exist before recipe creation
@@ -677,6 +725,7 @@ RecipeCostHistory
 - Yield must be ≥1
 
 **APIs**:
+
 - `GET /recipes/list` — All recipes + current COGS
 - `GET /recipes/:id` — Recipe detail + BOM components + cost trend
 - `POST /recipes` — Create recipe
@@ -686,6 +735,7 @@ RecipeCostHistory
 - `GET /recipes/:id/cost-history` — Cost trend over time
 
 **UI Requirements**:
+
 - Recipe builder: select product, add materials with qty
 - BOM table: Material | Qty | UOM | Unit Cost | Total Cost
 - COGS snapshot: current cost + 30-day trend chart
@@ -700,6 +750,7 @@ RecipeCostHistory
 **Purpose**: Manage customer orders, allocate inventory, and track fulfillment.
 
 **Data Model**:
+
 ```
 SalesOrder
 ├─ id: integer (PK)
@@ -764,6 +815,7 @@ DeliveryOrder (future)
    - Mixed orders: combination of both
 
 **Business Rules**:
+
 - SO cannot be confirmed if insufficient reserved stock
 - SO number auto-generated, unique per system
 - Unit price snapshot to prevent price disputes
@@ -771,6 +823,7 @@ DeliveryOrder (future)
 - No negative quantities
 
 **APIs**:
+
 - `POST /sales/orders` — Create sales order
 - `PUT /sales/orders/:id` — Update order (if not shipped)
 - `POST /sales/orders/:id/confirm` — Confirm + allocate inventory
@@ -780,6 +833,7 @@ DeliveryOrder (future)
 - `GET /sales/orders/:id` — Order detail + lines + fulfillment status
 
 **UI Requirements**:
+
 - SO creation form: location, customer info, add items (product search)
 - Line item entry: product, qty, auto-populate unit price, line total
 - Stock availability check: shows real-time qty available vs. ordered
@@ -795,6 +849,7 @@ DeliveryOrder (future)
 **Purpose**: Structure supplier acquisition from requisition through goods receipt.
 
 **Data Model** (Planned for Phase 2, but documented for architectural alignment):
+
 ```
 PurchaseRequisition
 ├─ id: integer (PK)
@@ -840,6 +895,7 @@ GoodsReceiptLine
 ```
 
 **Core Features** (Phase 2):
+
 1. Purchase Requisition (PR) with multi-tier approval
 2. Purchase Order (PO) creation from approved PRs
 3. Supplier performance tracking (on-time delivery %, price variance %)
@@ -855,6 +911,7 @@ GoodsReceiptLine
 **Purpose**: High-level KPI visibility across all operations.
 
 **Data Model**:
+
 ```
 DashboardMetric
 ├─ id: integer (PK)
@@ -866,6 +923,7 @@ DashboardMetric
 ```
 
 **KPI Cards** (Real-time):
+
 1. **Revenue (Today/This Month)**
    - Total sales by location
    - Trend vs. same period last month
@@ -892,6 +950,7 @@ DashboardMetric
    - Locations with high discrepancies
 
 **Charts** (Trend Analysis):
+
 - Revenue trend (30-day line chart)
 - COGS % trend (stacked area)
 - Stock movement (inbound vs. outbound)
@@ -899,11 +958,13 @@ DashboardMetric
 - Waste breakdown (pie chart: spoilage, dropped, test, etc.)
 
 **Location Filtering**:
+
 - System-wide view (consolidated)
 - Single location view (Ikki Coffee or Ikki Resto)
 - Comparative view (side-by-side location stats)
 
 **UI Requirements**:
+
 - Dashboard uses Recharts for visualization
 - Responsive: works on desktop and tablet
 - Real-time updates (WebSocket polling every 5 min)
@@ -917,12 +978,14 @@ DashboardMetric
 **Purpose**: Sync sales from external POS system into ERP for inventory-recipe deduction.
 
 **Integration Points** (Phase 2):
+
 1. **Product Sync**: Pull Moka product list → verify mapping to ERP product registry
 2. **Sales Sync**: Pull daily sales → auto-deduct recipe components from inventory
 3. **Scrap/Waste Sync**: POS "void" transactions → record as waste in inventory
 4. **Category Sync**: Moka categories → report grouping in analytics
 
 **Technical Approach**:
+
 - OAuth authentication to Moka API
 - Scheduled sync every 15 minutes (configurable)
 - Conflict resolution: if POS differs from ERP, log discrepancy + alert manager
@@ -935,12 +998,14 @@ DashboardMetric
 ### 4.1 Interface Principles
 
 **Design Philosophy**:
+
 - **Density Over Aesthetics**: Optimize for information density on desktop; compact data visualization
 - **Keyboard-First**: Support extensive keyboard navigation for data entry speed
 - **Minimal Clicks**: 2-click rule for common operations (e.g., stock check → add to cart)
 - **Mobile-Friendly**: Responsive design supports tablet use in warehouse/kitchen
 
 **Accessibility**:
+
 - WCAG 2.1 AA compliance (keyboard navigation, color contrast, screen readers)
 - Touch-target size: ≥44x44px (for warehouse/kitchen usage with gloved hands)
 
@@ -956,9 +1021,10 @@ DashboardMetric
 
 ### 4.3 Wireframe Examples
 
-*[Wireframes to be created separately in Figma/design tool]*
+_[Wireframes to be created separately in Figma/design tool]_
 
 Key screens:
+
 1. Login
 2. Dashboard (KPI cards + charts)
 3. Inventory (stock summary, search, filters)
@@ -1059,6 +1125,7 @@ User
 ### Phase 1 MVP Launch Gates
 
 **Pre-Launch Checklist**:
+
 - [ ] All 4 core modules implemented (Location, Material, Inventory, Recipe)
 - [ ] Ikki Coffee + Ikki Resto fully onboarded (100% staff trained)
 - [ ] System-to-physical accuracy ≥ 95% (4 consecutive weeks)
@@ -1066,6 +1133,7 @@ User
 - [ ] User satisfaction ≥ 4.0/5.0
 
 **Acceptance Criteria**:
+
 - **Functionality**: All documented features working as designed
 - **Performance**: All API endpoints <200ms, page loads <2s
 - **Security**: Passed security audit, RBAC enforced
@@ -1090,19 +1158,19 @@ The following features are explicitly excluded from MVP but planned for Phase 2+
 
 ## 9. Glossary & Terminology
 
-| Term | Definition |
-|------|-----------|
-| **COGS** | Cost of Goods Sold = sum of material costs for products sold |
-| **Opname** | Physical inventory count; reconciliation of system vs. actual |
-| **Gross Margin** | (Revenue - COGS) / Revenue; profitability per sale |
-| **Stock Velocity** | How fast inventory is consumed/sold (units per day) |
-| **Reorder Point** | Inventory level that triggers auto-alert to replenish |
-| **Reserved Stock** | Inventory allocated to pending orders (not yet shipped) |
-| **Scrap/Waste** | Items discarded (spoilage, dropped, test tasting) |
-| **UOM** | Unit of Measure (kg, liter, piece, box) |
-| **WAC** | Weighted Average Cost; cost calculation method |
-| **POS** | Point of Sale; physical checkout system |
-| **SKU** | Stock Keeping Unit; product identifier |
+| Term               | Definition                                                    |
+| ------------------ | ------------------------------------------------------------- |
+| **COGS**           | Cost of Goods Sold = sum of material costs for products sold  |
+| **Opname**         | Physical inventory count; reconciliation of system vs. actual |
+| **Gross Margin**   | (Revenue - COGS) / Revenue; profitability per sale            |
+| **Stock Velocity** | How fast inventory is consumed/sold (units per day)           |
+| **Reorder Point**  | Inventory level that triggers auto-alert to replenish         |
+| **Reserved Stock** | Inventory allocated to pending orders (not yet shipped)       |
+| **Scrap/Waste**    | Items discarded (spoilage, dropped, test tasting)             |
+| **UOM**            | Unit of Measure (kg, liter, piece, box)                       |
+| **WAC**            | Weighted Average Cost; cost calculation method                |
+| **POS**            | Point of Sale; physical checkout system                       |
+| **SKU**            | Stock Keeping Unit; product identifier                        |
 
 ---
 
@@ -1111,40 +1179,43 @@ The following features are explicitly excluded from MVP but planned for Phase 2+
 ### A. User Stories (MVP Phase 1)
 
 **As a Warehouse Manager**:
+
 - I want to see real-time stock levels across all outlet locations so I know what to prioritize for replenishment
 - I want to process stock transfer requests in <5 minutes so outlets don't wait long
 - I want to conduct monthly stock opname with digital sheets so accuracy improves and manual errors disappear
 
 **As an Outlet Manager**:
+
 - I want to check stock availability at central warehouse from my phone so I can quickly submit requests
 - I want to see my outlet's profitability dashboard so I understand which items are profitable
 - I want waste to be automatically tracked so we can identify where losses occur
 
 **As a Procurement Officer**:
+
 - I want to see stock velocity trends so I can optimize reorder quantities
 - I want supplier performance metrics so I can negotiate better terms
 - I want purchasing visibility across all locations so I avoid duplicate orders
 
 **As System Administrator**:
+
 - I want strict role-based access so staff can't access data outside their location
 - I want complete audit trails so I can investigate discrepancies
 - I want easy user onboarding so new outlets can go live in <1 day
 
 ### B. Sample Data Model (Partial Schema)
 
-*[See ARCHITECTURE.md for complete database schema and migration files]*
+_[See ARCHITECTURE.md for complete database schema and migration files]_
 
 ### C. API Contract Examples
 
-*[See OpenAPI specs / Swagger documentation (Phase 2)]*
+_[See OpenAPI specs / Swagger documentation (Phase 2)]_
 
 ### D. Deployment Checklist
 
-*[See DEPLOYMENT.md (Phase 2)]*
+_[See DEPLOYMENT.md (Phase 2)]_
 
 ---
 
 **Document Owner**: [Name]  
 **Last Reviewed**: 2026-04-24  
 **Next Review**: 2026-05-24
-

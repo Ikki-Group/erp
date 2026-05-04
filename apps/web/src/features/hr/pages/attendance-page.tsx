@@ -14,7 +14,6 @@ import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import { CellDate, CellMenu, type CellMenuItem } from '@/components/reui/data-grid/data-grid-cell'
 import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
-import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'

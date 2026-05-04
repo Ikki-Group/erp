@@ -1,8 +1,6 @@
-import { z } from 'zod'
+import { z, zc, zp } from '@ikki/api-contract/validation'
 
 import { payrollAdjustmentTypeEnum, payrollStatusEnum } from '@/db/schema'
-
-import { zc, zp } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

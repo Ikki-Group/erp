@@ -40,7 +40,12 @@ Test endpoints with real database + real authentication.
 For authenticated tests, use the session manager to create a test user and session:
 
 ```typescript
-import { getTestSessionManager, getTestToken, createIntegrationTestApp, authenticatedJsonRequest } from '@/tests/helpers'
+import {
+	getTestSessionManager,
+	getTestToken,
+	createIntegrationTestApp,
+	authenticatedJsonRequest,
+} from '@/tests/helpers'
 import { setupIntegrationTests } from '@/tests/helpers/setup'
 import { beforeAll, describe, expect, it } from 'bun:test'
 
@@ -126,6 +131,7 @@ const token = getTestToken()
 ```
 
 **Features:**
+
 - Creates a test user with `isRoot: true` (superadmin privileges)
 - Creates a session in the database
 - Generates a JWT token with the actual session ID
@@ -171,6 +177,7 @@ const session = await createSession(user.id)
 ```
 
 **Available Factories:**
+
 - `createUser()` - Create test user (supports `isRoot` for superadmin)
 - `createRole()` - Create test role
 - `createSession()` - Create test session
@@ -179,7 +186,11 @@ const session = await createSession(user.id)
 ### App Builders
 
 ```typescript
-import { createIntegrationTestApp, jsonRequest, authenticatedJsonRequest } from '@/tests/helpers/app-builder'
+import {
+	createIntegrationTestApp,
+	jsonRequest,
+	authenticatedJsonRequest,
+} from '@/tests/helpers/app-builder'
 
 // Full integration test with real database and services
 const app = createIntegrationTestApp()

@@ -1,9 +1,12 @@
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 import {
 	PayrollAdjustmentCreateDto,

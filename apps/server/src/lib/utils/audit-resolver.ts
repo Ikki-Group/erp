@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { eq } from 'drizzle-orm'
 
+import { cacheClient } from '@/core/cache'
+
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
-import { cacheClient } from '@/core/cache'
 import type { AuditResolved, UserSnippet } from '@/lib/validation'
 
 const cache = cacheClient.namespace('system.audit')

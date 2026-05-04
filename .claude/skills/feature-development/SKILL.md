@@ -8,6 +8,7 @@ description: Build a new feature following architecture patterns
 You are implementing a feature in the Ikki ERP server. Follow this workflow:
 
 ## Phase 1: Explore (Plan Mode)
+
 1. Read existing similar module patterns:
    - Simple CRUD: @apps/server/src/modules/location/
    - Complex: @apps/server/src/modules/iam/
@@ -15,6 +16,7 @@ You are implementing a feature in the Ikki ERP server. Follow this workflow:
 3. Identify module layer and dependencies
 
 ## Phase 2: Plan
+
 1. Determine layer (Layer 0/1/1.5/2/3)
 2. Identify dependencies on other modules
 3. Sketch DTO structure
@@ -23,6 +25,7 @@ You are implementing a feature in the Ikki ERP server. Follow this workflow:
 6. Create detailed implementation plan
 
 ## Phase 3: Implement (Normal Mode)
+
 1. **DTOs**: Zod schemas with spread-shape pattern (never .extend())
 2. **Database**: Update schema, run `bun run db:generate`, review migration
 3. **Repository**: QUERY / MUTATION / PRIVATE sections
@@ -37,9 +40,10 @@ You are implementing a feature in the Ikki ERP server. Follow this workflow:
    - Use res.ok(), res.created(), res.paginated()
    - auth: true for protected routes
 6. **Tests**: Unit + integration tests
-7. **Registration**: Add to _registry.ts and _routes.ts
+7. **Registration**: Add to \_registry.ts and \_routes.ts
 
 ## Verification
+
 1. `bun run typecheck` → 0 errors
 2. `bun run lint` → 0 errors, 0 warnings
 3. `bun run test` → All tests pass
@@ -47,6 +51,7 @@ You are implementing a feature in the Ikki ERP server. Follow this workflow:
 5. `bun run check-deps` → No circular dependencies
 
 ## Red Flags
+
 🚩 Loops with N DB calls → use inArray()
 🚩 Separate queries for relationships → use RelationMap
 🚩 Return null for missing → throw NotFoundError
@@ -56,6 +61,7 @@ You are implementing a feature in the Ikki ERP server. Follow this workflow:
 🚩 No caching for expensive ops → use bento with invalidation
 
 ## References
+
 - @docs/ARCHITECTURE.md
 - @docs/CODE_PATTERNS.md
 - @docs/MODULE_CHECKLIST.md

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
-
 import { CacheService, type CacheClient } from '@/core/cache'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
+
+import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
 
 import type {
 	AttendanceDto,

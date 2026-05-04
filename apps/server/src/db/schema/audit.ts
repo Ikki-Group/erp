@@ -2,7 +2,14 @@ import { pgEnum, pgTable, text, integer, timestamp, jsonb } from 'drizzle-orm/pg
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-export const auditActionEnum = pgEnum('audit_action', ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'])
+export const auditActionEnum = pgEnum('audit_action', [
+	'CREATE',
+	'UPDATE',
+	'DELETE',
+	'LOGIN',
+	'LOGOUT',
+	'OTHER',
+])
 
 /**
  * Audit Log Table

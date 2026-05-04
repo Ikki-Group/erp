@@ -1,3 +1,8 @@
+import {
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zc,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -5,7 +10,6 @@ import { res } from '@/core/http/response'
 
 import { ExpenditureCreateDto, ExpenditureFilterDto, ExpenditureDto } from './expenditure.dto'
 import type { ExpenditureService } from './expenditure.service'
-import { createSuccessResponseSchema, createPaginatedResponseSchema, zc } from '@/lib/validation'
 
 export function initExpenditureRoute(s: ExpenditureService) {
 	return new Elysia({ prefix: '/expenditure' })

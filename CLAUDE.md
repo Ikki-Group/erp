@@ -33,6 +33,7 @@ bun test                # Run tests
 ## Module Structure
 
 Each module follows this pattern:
+
 ```
 src/modules/{name}/
 ├── dto/          # Zod validation schemas

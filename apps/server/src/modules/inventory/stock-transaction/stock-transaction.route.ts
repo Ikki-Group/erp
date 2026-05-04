@@ -1,3 +1,8 @@
+import {
+	zc,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -18,7 +23,6 @@ import {
 	ProductionOutTransactionDto,
 } from './stock-transaction.dto'
 import type { StockTransactionService } from './stock-transaction.service'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initStockTransactionRoute(s: StockTransactionService) {
 	return (

@@ -1,9 +1,8 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 import { logger } from '@/core/logger'
-
-import type { CacheClient } from '@/core/cache'
 
 import type { FinanceServiceModule } from '@/modules/finance'
 

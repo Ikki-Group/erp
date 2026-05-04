@@ -3,14 +3,15 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './audit-log.dto'
-import type { AuditLogService } from './audit-log.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
 } from '@/lib/validation'
+
+import * as dto from './audit-log.dto'
+import type { AuditLogService } from './audit-log.service'
 
 export function initAuditLogRoute(service: AuditLogService) {
 	return new Elysia({ prefix: '/audit-log' })

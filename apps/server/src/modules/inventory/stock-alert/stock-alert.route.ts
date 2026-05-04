@@ -1,12 +1,15 @@
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zq,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert.dto'
 import type { StockAlertService } from './stock-alert.service'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/lib/validation'
 
 export function initStockAlertRoute(s: StockAlertService) {
 	return new Elysia({ prefix: '/alert' })

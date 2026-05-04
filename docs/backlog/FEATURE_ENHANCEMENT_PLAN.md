@@ -8,6 +8,7 @@
 ## Current State Analysis
 
 ### Line Counts (Baseline)
+
 - auth.md: 38 lines (minimal, needs expansion)
 - b2b_sales.md: 38 lines (minimal, needs expansion)
 - dashboard.md: 42 lines (basic)
@@ -30,19 +31,23 @@ Each feature doc should have:
 # [Feature Name]
 
 ## 1. Overview
+
 - Purpose (1 paragraph)
 - Layer & dependencies
 - Key business value
 
 ## 2. Core Objectives
+
 - 3-5 bullet points on what feature achieves
 
 ## 3. Key Entities & Relationships
+
 - Entity list (what data does it manage?)
 - Relationships diagram or list
 - Data flow (input → output)
 
 ## 4. Use Cases & Workflows
+
 - UC-001: Scenario description
   - Actors: who involved?
   - Steps: 5-10 steps
@@ -50,6 +55,7 @@ Each feature doc should have:
   - Expected outcome
 
 ## 5. API Endpoints & Routes
+
 - GET /list - List with filters
 - GET /:id - Detail
 - POST /create - Create
@@ -58,22 +64,26 @@ Each feature doc should have:
 - [Custom endpoints]
 
 ## 6. Data Model
+
 - Table definitions (brief)
 - Key fields
 - Validations
 - Constraints
 
 ## 7. Business Rules & Validations
+
 - Validation rules
 - Business constraints
 - Error scenarios
 
 ## 8. Integration Points
+
 - What modules depend on this?
 - What modules does this depend on?
 - Data dependencies
 
 ## 9. Implementation Notes
+
 - Caching strategy
 - Performance considerations
 - Batch operations
@@ -89,10 +99,12 @@ Each feature doc should have:
 ### Layer 0 (Core - No Dependencies)
 
 #### 1. **Product Management**
+
 **Current**: 52 lines (bare minimum)  
 **Enhancement**: 200-250 lines
 
 Missing:
+
 - [ ] Detailed product types & attributes
 - [ ] Category hierarchy explanation
 - [ ] SKU management strategy
@@ -105,10 +117,12 @@ Missing:
 ---
 
 #### 2. **Location Management**
+
 **Current**: 51 lines (has decent coverage)  
 **Enhancement**: 150-180 lines
 
 Missing:
+
 - [ ] Clear location type use cases
 - [ ] Detailed stock transfer path rules
 - [ ] Use case: Setup new outlet
@@ -122,10 +136,12 @@ Missing:
 ### Layer 1 (Master Data)
 
 #### 3. **Material / Raw Material Data**
+
 **Current**: 52 lines (bare minimum)  
 **Enhancement**: 250-300 lines
 
 Missing:
+
 - [ ] UOM (Unit of Measure) conversion system (critical!)
 - [ ] Reorder point & quantity logic
 - [ ] Minimum/maximum stock thresholds per location
@@ -140,10 +156,12 @@ Missing:
 ---
 
 #### 4. **Identity & Access Management (IAM)**
+
 **Current**: 62 lines (best coverage so far)  
 **Enhancement**: 200-250 lines
 
 Missing:
+
 - [ ] Role definitions (Admin, Manager, Staff, Viewer)
 - [ ] Permission matrix (CRUD + Approve)
 - [ ] Location-based access control (LBAC) explanation
@@ -158,10 +176,12 @@ Missing:
 ### Layer 1.5 (Security)
 
 #### 5. **Authentication (Auth)**
+
 **Current**: 38 lines (minimal!)  
 **Enhancement**: 150-200 lines
 
 Missing:
+
 - [ ] JWT token structure & flow
 - [ ] Login workflow
 - [ ] Token refresh mechanism
@@ -178,10 +198,12 @@ Missing:
 ### Layer 2 (Operations)
 
 #### 6. **Inventory Operations**
+
 **Current**: 47 lines (has good foundation)  
 **Enhancement**: 300-350 lines
 
 Missing:
+
 - [ ] Stock movement types detailed (inbound, outbound, transfer, adjustment)
 - [ ] Stock opname process detail (very important!)
 - [ ] Waste tracking & categorization
@@ -198,10 +220,12 @@ Missing:
 ---
 
 #### 7. **Recipe & Bill of Materials**
+
 **Current**: 47 lines (basic)  
 **Enhancement**: 200-250 lines
 
 Missing:
+
 - [ ] BOM (Bill of Materials) structure
 - [ ] Recipe versioning concept
 - [ ] COGS (Cost of Goods Sold) calculation
@@ -218,10 +242,12 @@ Missing:
 ---
 
 #### 8. **Sales & Distribution (B2B Sales)**
+
 **Current**: 38 lines (minimal!)  
 **Enhancement**: 250-300 lines
 
 Missing:
+
 - [ ] Sales order lifecycle (draft → confirmed → shipped → delivered)
 - [ ] Inventory allocation & reservation concept
 - [ ] Order fulfillment workflow
@@ -240,10 +266,12 @@ Missing:
 ### Layer 3 (Aggregators)
 
 #### 9. **Dashboard & Analytics**
+
 **Current**: 42 lines (very basic)  
 **Enhancement**: 200-250 lines
 
 Missing:
+
 - [ ] KPI definitions (Revenue, COGS, Waste, Stock Value, Margin)
 - [ ] Dashboard screens (KPI cards, charts, location filters)
 - [ ] Metrics calculations
@@ -261,22 +289,20 @@ Missing:
 ## Priority & Implementation Order
 
 ### Phase 1: Core Foundation (Week 1)
+
 **Priority**: HIGH (blocks all other features)
+
 1. **Product** (Layer 0) - Foundation for all
 2. **Location** (Layer 0) - Geographic scoping
 3. **Material** (Layer 1) - Inventory foundation
 
 ### Phase 2: Identity & Operations (Week 2)
-**Priority**: HIGH
-4. **IAM** (Layer 1) - User permissions, LBAC
-5. **Auth** (Layer 1.5) - System access control
-6. **Inventory** (Layer 2) - Core transactional feature
+
+**Priority**: HIGH 4. **IAM** (Layer 1) - User permissions, LBAC 5. **Auth** (Layer 1.5) - System access control 6. **Inventory** (Layer 2) - Core transactional feature
 
 ### Phase 3: Business Logic (Week 3)
-**Priority**: MEDIUM
-7. **Recipe** (Layer 2) - Cost calculation
-8. **Sales** (Layer 2) - Revenue generation
-9. **Dashboard** (Layer 3) - Reporting & insights
+
+**Priority**: MEDIUM 7. **Recipe** (Layer 2) - Cost calculation 8. **Sales** (Layer 2) - Revenue generation 9. **Dashboard** (Layer 3) - Reporting & insights
 
 ---
 
@@ -287,6 +313,7 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 ### Additions by Type:
 
 **Use Cases** (most valuable):
+
 - 4-6 detailed use cases per feature
 - Step-by-step workflows
 - Actor identification
@@ -295,6 +322,7 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 - Error scenarios
 
 **Data Model**:
+
 - Entity listings
 - Key fields & types
 - Relationships
@@ -303,6 +331,7 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 - Indexes
 
 **API Endpoints**:
+
 - Endpoint path & method
 - Request/response format
 - Authentication required
@@ -310,12 +339,14 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 - Example payloads
 
 **Business Rules**:
+
 - Validation constraints
 - State transitions
 - Permissions/access rules
 - Integration requirements
 
 **Implementation Notes**:
+
 - Caching strategy
 - Batch operations
 - Performance considerations
@@ -326,6 +357,7 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 ## Success Criteria
 
 ✅ Each doc has:
+
 - Clear use cases (4-6 per feature)
 - Data model documented
 - API endpoints listed
@@ -342,17 +374,17 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 
 ## Effort Estimate
 
-| Feature | Current | Target | Effort |
-|---------|---------|--------|--------|
-| Product | 52 | 250 | 2 hours |
-| Location | 51 | 180 | 1.5 hours |
-| Material | 52 | 300 | 2.5 hours |
-| IAM | 62 | 250 | 2 hours |
-| Auth | 38 | 200 | 2.5 hours |
-| Inventory | 47 | 350 | 3 hours |
-| Recipe | 47 | 250 | 2 hours |
-| Sales | 38 | 300 | 3 hours |
-| Dashboard | 42 | 250 | 2 hours |
+| Feature   | Current | Target | Effort    |
+| --------- | ------- | ------ | --------- |
+| Product   | 52      | 250    | 2 hours   |
+| Location  | 51      | 180    | 1.5 hours |
+| Material  | 52      | 300    | 2.5 hours |
+| IAM       | 62      | 250    | 2 hours   |
+| Auth      | 38      | 200    | 2.5 hours |
+| Inventory | 47      | 350    | 3 hours   |
+| Recipe    | 47      | 250    | 2 hours   |
+| Sales     | 38      | 300    | 3 hours   |
+| Dashboard | 42      | 250    | 2 hours   |
 
 **Total Effort**: ~20 hours (5 days @ 4 hrs/day)
 
@@ -361,6 +393,7 @@ Each doc should grow from ~50 lines to ~200-300 lines with:
 ## Next Step
 
 Ready to begin enhancement phase. Should I:
+
 1. **Start with Core Layer 0** (Product, Location, Material)?
 2. **Start with highest value** (Inventory - most complex)?
 3. **Start with user-facing** (Sales, Dashboard)?

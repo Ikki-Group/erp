@@ -1,6 +1,5 @@
-import type { DbClient } from '@/core/database'
-
 import { createCache } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 
 import { AuditServiceModule } from './audit'
 import { AuthServiceModule } from './auth'

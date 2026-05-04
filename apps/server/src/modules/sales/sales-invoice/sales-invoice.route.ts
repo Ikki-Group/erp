@@ -3,14 +3,15 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './sales-invoice.dto'
-import type { SalesInvoiceService } from './sales-invoice.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
 } from '@/lib/validation'
+
+import * as dto from './sales-invoice.dto'
+import type { SalesInvoiceService } from './sales-invoice.service'
 
 export function initSalesInvoiceRoute(service: SalesInvoiceService) {
 	return new Elysia({ prefix: '/invoice' })

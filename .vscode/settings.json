@@ -39,5 +39,5 @@
 	},
 	"js/ts.experimental.useTsgo": true,
 	"js/ts.tsserver.tracing.enabled": false,
-	"js/ts.tsserver.maxMemory": 4096,
+	"js/ts.tsserver.maxMemory": 4096
 }

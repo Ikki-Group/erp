@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import { CacheService, type CacheClient } from '@/core/cache'
 import type { RecordId } from '@/lib/validation'
 
 import * as dto from './sales-invoice.dto'

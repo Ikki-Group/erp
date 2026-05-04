@@ -202,6 +202,9 @@ const reporting = {
 		movements: 'reporting/inventory/movements',
 		stockValue: 'reporting/inventory/stock-value',
 		lowStock: 'reporting/inventory/low-stock',
+		consumption: 'reporting/inventory/consumption',
+		opname: 'reporting/inventory/opname',
+		waste: 'reporting/inventory/waste',
 	},
 	crm: {
 		customerGrowth: 'reporting/crm/customer-growth',

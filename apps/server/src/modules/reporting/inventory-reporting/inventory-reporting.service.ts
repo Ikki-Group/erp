@@ -4,8 +4,17 @@ import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
-import { stockTransactionsTable } from '@/db/schema/inventory'
-import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
+import {
+	stockTransactionsTable,
+	stockAdjustmentsTable,
+	stockAdjustmentItemsTable,
+} from '@/db/schema/inventory'
+import {
+	locationsTable,
+	materialLocationsTable,
+	materialsTable,
+	uomsTable,
+} from '@/db/schema/material'
 
 import * as dto from './inventory-reporting.dto'
 
@@ -217,6 +226,171 @@ export class InventoryReportingService {
 					min: '0',
 					max: '0',
 					count,
+				},
+			}
+		})
+	}
+
+	async getOpnameReport(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.OpnameVarianceResponseDto> {
+		return record('InventoryReportingService.getOpnameReport', async () => {
+			const data = await this.db
+				.select({
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					locationId: locationsTable.id,
+					locationName: locationsTable.name,
+					expectedQty: sql<number>`COALESCE(SUM(${stockAdjustmentItemsTable.qtyDiff}) + SUM(${stockAdjustmentItemsTable.qtyDiff}), 0)`,
+					actualQty: sql<number>`COALESCE(SUM(${stockAdjustmentItemsTable.qtyDiff}), 0)`,
+					variance: sql<number>`COALESCE(SUM(${stockAdjustmentItemsTable.qtyDiff}), 0)`,
+					varianceCost: sql<number>`COALESCE(SUM(${stockAdjustmentItemsTable.qtyDiff} * CAST(${stockAdjustmentItemsTable.unitCost} AS FLOAT)), 0)`,
+					adjustmentType: stockAdjustmentsTable.type,
+					date: stockAdjustmentsTable.adjustmentDate,
+				})
+				.from(stockAdjustmentsTable)
+				.innerJoin(
+					stockAdjustmentItemsTable,
+					eq(stockAdjustmentsTable.id, stockAdjustmentItemsTable.adjustmentId),
+				)
+				.innerJoin(materialsTable, eq(stockAdjustmentItemsTable.materialId, materialsTable.id))
+				.innerJoin(locationsTable, eq(stockAdjustmentsTable.locationId, locationsTable.id))
+				.where(
+					and(
+						eq(stockAdjustmentsTable.type, 'opname'),
+						gte(stockAdjustmentsTable.adjustmentDate, query.dateFrom),
+						lte(stockAdjustmentsTable.adjustmentDate, query.dateTo),
+						query.locationId ? eq(stockAdjustmentsTable.locationId, query.locationId) : undefined,
+						query.productId ? eq(stockAdjustmentItemsTable.materialId, query.productId) : undefined,
+					),
+				)
+				.groupBy(
+					materialsTable.id,
+					locationsTable.id,
+					stockAdjustmentsTable.type,
+					stockAdjustmentsTable.adjustmentDate,
+				)
+				.orderBy(stockAdjustmentsTable.adjustmentDate)
+
+			const totalVariance = data.reduce((s, d) => s + d.variance, 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({
+					...d,
+					expectedQty: Math.abs(d.expectedQty),
+					actualQty: Math.abs(d.actualQty),
+					variance: d.variance,
+					varianceCost: String(d.varianceCost),
+				})),
+				summary: {
+					total: String(totalVariance),
+					average: String(data.length > 0 ? totalVariance / data.length : 0),
+					min: String(Math.min(...data.map((d) => d.variance), 0)),
+					max: String(Math.max(...data.map((d) => d.variance), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+
+	async getConsumptionReport(
+		query: dto.InventoryReportRequestDto,
+	): Promise<dto.ConsumptionResponseDto> {
+		return record('InventoryReportingService.getConsumptionReport', async () => {
+			const conditions = [
+				gte(stockTransactionsTable.date, query.dateFrom),
+				lte(stockTransactionsTable.date, query.dateTo),
+				eq(stockTransactionsTable.type, 'usage' as any),
+				query.locationId ? eq(stockTransactionsTable.locationId, query.locationId) : undefined,
+				query.productId ? eq(stockTransactionsTable.materialId, query.productId) : undefined,
+			]
+			const data = await this.db
+				.select({
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					materialType: materialsTable.type,
+					locationId: locationsTable.id,
+					locationName: locationsTable.name,
+					quantity: sql<number>`COALESCE(SUM(${stockTransactionsTable.quantity}), 0)`,
+					unit: uomsTable.name,
+					cost: sql<number>`COALESCE(SUM(${stockTransactionsTable.quantity} * CAST(${stockTransactionsTable.unitCost} AS FLOAT)), 0)`,
+					date: stockTransactionsTable.date,
+				})
+				.from(stockTransactionsTable)
+				.innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
+				.innerJoin(locationsTable, eq(stockTransactionsTable.locationId, locationsTable.id))
+				.leftJoin(uomsTable, eq(materialsTable.uomId, uomsTable.id))
+				.where(and(...conditions.filter(Boolean)))
+				.groupBy(materialsTable.id, locationsTable.id, uomsTable.name, stockTransactionsTable.date)
+				.orderBy(stockTransactionsTable.date)
+
+			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
+			// const totalCost = data.reduce((s, d) => s + Number(d.cost), 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({ ...d, quantity: d.quantity, cost: String(d.cost) })),
+				summary: {
+					total: String(totalQty),
+					average: String(data.length > 0 ? totalQty / data.length : 0),
+					min: String(Math.min(...data.map((d) => d.quantity), 0)),
+					max: String(Math.max(...data.map((d) => d.quantity), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+
+	async getWasteReport(query: dto.InventoryReportRequestDto): Promise<dto.WasteResponseDto> {
+		return record('InventoryReportingService.getWasteReport', async () => {
+			const data = await this.db
+				.select({
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					locationId: locationsTable.id,
+					locationName: locationsTable.name,
+					quantity: sql<number>`COALESCE(SUM(ABS(${stockAdjustmentItemsTable.qtyDiff})), 0)`,
+					unit: uomsTable.name,
+					cost: sql<number>`COALESCE(SUM(ABS(${stockAdjustmentItemsTable.qtyDiff}) * CAST(${stockAdjustmentItemsTable.unitCost} AS FLOAT)), 0)`,
+					reason: stockAdjustmentsTable.notes,
+					date: stockAdjustmentsTable.adjustmentDate,
+				})
+				.from(stockAdjustmentsTable)
+				.innerJoin(
+					stockAdjustmentItemsTable,
+					eq(stockAdjustmentsTable.id, stockAdjustmentItemsTable.adjustmentId),
+				)
+				.innerJoin(materialsTable, eq(stockAdjustmentItemsTable.materialId, materialsTable.id))
+				.innerJoin(locationsTable, eq(stockAdjustmentsTable.locationId, locationsTable.id))
+				.leftJoin(uomsTable, eq(materialsTable.uomId, uomsTable.id))
+				.where(
+					and(
+						eq(stockAdjustmentsTable.type, 'waste'),
+						gte(stockAdjustmentsTable.adjustmentDate, query.dateFrom),
+						lte(stockAdjustmentsTable.adjustmentDate, query.dateTo),
+						query.locationId ? eq(stockAdjustmentsTable.locationId, query.locationId) : undefined,
+						query.productId ? eq(stockAdjustmentItemsTable.materialId, query.productId) : undefined,
+					),
+				)
+				.groupBy(
+					materialsTable.id,
+					locationsTable.id,
+					uomsTable.name,
+					stockAdjustmentsTable.notes,
+					stockAdjustmentsTable.adjustmentDate,
+				)
+				.orderBy(stockAdjustmentsTable.adjustmentDate)
+
+			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
+			// const totalCost = data.reduce((s, d) => s + Number(d.cost), 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({ ...d, quantity: d.quantity, cost: String(d.cost) })),
+				summary: {
+					total: String(totalQty),
+					average: String(data.length > 0 ? totalQty / data.length : 0),
+					min: String(Math.min(...data.map((d) => d.quantity), 0)),
+					max: String(Math.max(...data.map((d) => d.quantity), 0)),
+					count: data.length,
 				},
 			}
 		})

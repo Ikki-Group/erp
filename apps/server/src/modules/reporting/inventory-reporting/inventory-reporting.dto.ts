@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
-import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 import { zp } from '@/lib/validation'
+
+import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
 
 /** Stock level data */
 export const StockLevelDto = z.object({
@@ -81,3 +82,70 @@ export const LowStockResponseDto = z.object({
 	summary: ReportSummaryDto,
 })
 export type LowStockResponseDto = z.infer<typeof LowStockResponseDto>
+
+/** Consumption data */
+export const ConsumptionDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	materialType: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	quantity: zp.num,
+	unit: zp.str,
+	cost: zp.decimal,
+	date: zp.date,
+})
+export type ConsumptionDto = z.infer<typeof ConsumptionDto>
+
+/** Opname variance data */
+export const OpnameVarianceDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	expectedQty: zp.num,
+	actualQty: zp.num,
+	variance: zp.num,
+	varianceCost: zp.decimal,
+	adjustmentType: zp.str,
+	date: zp.date,
+})
+export type OpnameVarianceDto = z.infer<typeof OpnameVarianceDto>
+
+/** Waste data */
+export const WasteDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	quantity: zp.num,
+	unit: zp.str,
+	cost: zp.decimal,
+	reason: zp.str.optional(),
+	date: zp.date,
+})
+export type WasteDto = z.infer<typeof WasteDto>
+
+/** Consumption report response */
+export const ConsumptionResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(ConsumptionDto),
+	summary: ReportSummaryDto,
+})
+export type ConsumptionResponseDto = z.infer<typeof ConsumptionResponseDto>
+
+/** Opname variance report response */
+export const OpnameVarianceResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(OpnameVarianceDto),
+	summary: ReportSummaryDto,
+})
+export type OpnameVarianceResponseDto = z.infer<typeof OpnameVarianceResponseDto>
+
+/** Waste report response */
+export const WasteResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(WasteDto),
+	summary: ReportSummaryDto,
+})
+export type WasteResponseDto = z.infer<typeof WasteResponseDto>

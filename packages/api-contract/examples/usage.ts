@@ -4,7 +4,7 @@
  */
 
 import { PaginationQuery, AuditFull } from '../src/core'
-import { zc, zp, zq } from '../src/validation'
+import { zc, zp } from '../src/validation'
 
 // Example 1: Using core types
 const pagination: PaginationQuery = {
@@ -14,29 +14,18 @@ const pagination: PaginationQuery = {
 
 // Example 2: Using Zod primitives
 const idSchema = zp.id
-const stringSchema = zp.str
-const numberSchema = zp.num
 
 // Example 3: Using common validators
 const emailSchema = zc.email
-const usernameSchema = zc.username
-const passwordSchema = zc.password
 
-// Example 4: Using query validators
-const searchSchema = zq.search
-const booleanSchema = zq.boolean
-const paginationSchema = zq.pagination
+// Example 4: Creating a DTO with shared types
+// const UserCreateSchema = zc.RecordId.extend({
+// 	email: zc.email,
+// 	username: zc.username,
+// 	fullname: zc.fullname,
+// })
 
-// Example 5: Creating a DTO with shared types
-const UserCreateSchema = zc.RecordId.extend({
-	email: zc.email,
-	username: zc.username,
-	fullname: zc.fullname,
-})
-
-type UserCreate = typeof UserCreateSchema
-
-// Example 6: Using audit types
+// Example 5: Using audit types
 const audit: AuditFull = {
 	createdAt: new Date(),
 	updatedAt: new Date(),

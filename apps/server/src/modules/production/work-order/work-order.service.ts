@@ -1,11 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/lib/utils/pagination'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'

@@ -119,13 +119,13 @@ TOTAL:                       __ / 80
 
 ### Score Interpretation
 
-| Score | Verdict |
-|-------|---------|
-| 80/80 | 🟢 Production-ready, gold standard |
-| 65–79 | 🟢 Ship with confidence |
-| 50–64 | 🟡 Minor improvements before merge |
+| Score | Verdict                                |
+| ----- | -------------------------------------- |
+| 80/80 | 🟢 Production-ready, gold standard     |
+| 65–79 | 🟢 Ship with confidence                |
+| 50–64 | 🟡 Minor improvements before merge     |
 | 35–49 | 🟡 Needs work, address before shipping |
-| < 35  | 🔴 Major revisions required |
+| < 35  | 🔴 Major revisions required            |
 
 ---
 

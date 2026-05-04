@@ -18,6 +18,9 @@ import {
 	InventoryMovementChartResponseDto,
 	StockValueResponseDto,
 	LowStockResponseDto,
+	ConsumptionResponseDto,
+	OpnameVarianceResponseDto,
+	WasteResponseDto,
 	CrmReportRequestDto,
 	CustomerGrowthChartResponseDto,
 	CustomerByTierResponseDto,
@@ -101,6 +104,24 @@ export const inventoryReportApi = {
 		url: endpoint.reporting.inventory.lowStock,
 		params: InventoryReportRequestDto,
 		result: createSuccessResponseSchema(LowStockResponseDto),
+	}),
+	consumption: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.consumption,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(ConsumptionResponseDto),
+	}),
+	opname: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.opname,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(OpnameVarianceResponseDto),
+	}),
+	waste: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.waste,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(WasteResponseDto),
 	}),
 }
 

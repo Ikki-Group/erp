@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { UserDetailDto } from '@/modules/iam/user/user.dto'
-
 import { zc, zp } from '@/lib/validation'
+
+import { UserDetailDto } from '@/modules/iam/user/user.dto'
 
 export const LoginDto = z.object({
 	identifier: zc.strTrim.min(1),

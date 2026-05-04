@@ -34,11 +34,13 @@ Every feature document has these sections:
 **1-2 sentences**: What is this feature and why does UMKM owner care?
 
 State the business problem it solves:
+
 - What pain point exists today?
 - How much does this problem cost the business?
 - What becomes possible after this feature?
 
 **Example**:
+
 > UMKM F&B owners need real-time visibility into profitability by outlet and menu item. Currently they see P&L 1 week late (month-end close), so can't make timely pricing/menu decisions. Financial Reporting gives same-day dashboards so owner can react immediately to margin leaks.
 
 ---
@@ -54,11 +56,13 @@ List **3-5 main business outcomes** this feature enables:
 - **Objective 5** (optional): Decision-making capability
 
 **Guidelines**:
+
 - Answer "Why does the UMKM owner care?" for each objective
 - Use business language, avoid jargon
 - Focus on outcomes, not implementation
 
 **Example**:
+
 ```
 - Real-Time P&L: Owner sees profit for previous day (not 1-week delay)
 - Product Profitability: Know margin % for each menu item (drives menu engineering)
@@ -82,6 +86,7 @@ For each use case:
 **Goal**: [What they want to accomplish]
 
 **Steps** (simple, 2-5 steps):
+
 1. Staff does X (what they see/click)
 2. System does Y (what system shows)
 3. Staff makes decision Z (outcome)
@@ -89,11 +94,12 @@ For each use case:
 **Why it matters**: [Business impact for UMKM]
 
 **Example**:
+
 ```
 ### UC-001: Owner Checks Daily P&L (Morning review)
 
-**Who**: Owner/Manager  
-**When**: Next morning (after previous day completes)  
+**Who**: Owner/Manager
+**When**: Next morning (after previous day completes)
 **Goal**: See if outlet made money yesterday, spot problems
 
 **Steps**:
@@ -103,7 +109,7 @@ For each use case:
 4. System shows: "Bottled Juice sales doubled (normally 2%, now 4% of mix) but 20% margin"
 5. Owner decides: "Promote higher-margin items this week, check juice supplier pricing"
 
-**Why it matters**: 
+**Why it matters**:
 - Owner can respond to trends same-day (not 1 week late)
 - Can make data-driven menu/pricing decisions
 - Identifies underperforming products quickly
@@ -118,11 +124,13 @@ List **3-5 feature ideas** that would improve this module but are NOT in MVP sco
 For each enhancement:
 
 **Enhancement Name**: Brief description of what + why
+
 - **Priority**: Critical | Important | Nice-to-have
 - **Why**: Business benefit for UMKM
 - **Estimate** (if known): X hours for developers
 
 **Example**:
+
 ```
 - **Budget Tracking**: Compare spending vs. monthly budget per category
   - Priority: Important (cost control, prevents overspending)
@@ -168,7 +176,7 @@ Update when requirements change or enhancements move to MVP.
 **Layer**: 2 | **Status**: MVP | **Priority**: Critical | **Estimate**: 40h
 
 ## Overview
-UMKM outlets need fast customer checkouts. Baristas currently use manual tally or basic iPad POS. 
+UMKM outlets need fast customer checkouts. Baristas currently use manual tally or basic iPad POS.
 System must handle member discounts, split payments, and auto-deduct inventory instantly.
 
 ## Core Objectives
@@ -220,22 +228,27 @@ System must handle member discounts, split payments, and auto-deduct inventory i
 ## Tips for Success
 
 ✅ **Start with owner's question**
+
 - Not: "What features should the POS have?"
 - But: "How can we make checkout 5x faster?"
 
 ✅ **Use real numbers**
+
 - Not: "process transaction"
 - But: "$7.00 Iced Latte, 2 qty, member discount applied"
 
 ✅ **Show staff actions, not system functions**
+
 - Not: "System deducts inventory from ledger"
 - But: "Barista hits 'Checkout' → stock auto-updates → receipt prints"
 
 ✅ **Keep workflows minimal**
+
 - 2-5 steps max
 - If more = problem is too big, split into sub-features
 
 ✅ **Enhancements are honest backlog**
+
 - Don't sneak Phase 2 ideas into MVP
 - Don't over-engineer MVP
 - Clear prioritization (what's truly critical?)

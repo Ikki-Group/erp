@@ -1,3 +1,9 @@
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	zc,
+	zq,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -5,12 +11,6 @@ import { res } from '@/core/http/response'
 
 import * as dto from './employee.dto'
 import type { EmployeeService } from './employee.service'
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zq,
-} from '@/lib/validation'
 
 export function initEmployeeRoute(service: EmployeeService) {
 	return new Elysia({ prefix: '/employee' })

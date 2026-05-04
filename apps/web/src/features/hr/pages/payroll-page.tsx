@@ -13,7 +13,6 @@ import { DataTableCard } from '@/components/blocks/card/data-table-card'
 import { BadgeDot } from '@/components/blocks/data-display/badge-dot'
 import { Page } from '@/components/layout/page'
 import { customColumn, textColumn } from '@/components/reui/data-grid/data-grid-columns'
-import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -92,7 +91,8 @@ export function PayrollPage() {
 		},
 	})
 
-	const finalizeMutation = useMutation({
+	// Finalize mutation available for future use
+	void useMutation({
 		mutationFn: payrollApi.finalizeBatch.mutationFn,
 		onSuccess: () => {
 			toast.success('Batch payroll berhasil difinalisasi')

@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
-import { logger } from '@/core/logger'
-
 import { CacheService, type CacheClient } from '@/core/cache'
+import { logger } from '@/core/logger'
 
 import type { UserDto } from '@/modules/iam'
 

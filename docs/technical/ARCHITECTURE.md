@@ -4,14 +4,14 @@
 
 ## Quick Summary
 
-| Aspect | Standard |
-|--------|----------|
-| Structure | Flat for single submodule, package-by-feature for multiple |
-| DI | `private readonly repo` + `CacheService` constructor injection |
-| Cache | `CacheService` from `@/lib/cache` — namespace isolation in service layer |
-| Service Methods | `get*()` for cross-service reads, `handle*()` for router |
-| Testing | Co-located tests, skip DTO tests, mock via DI |
-| No Usecase | Orchestration in service layer |
+| Aspect          | Standard                                                                 |
+| --------------- | ------------------------------------------------------------------------ |
+| Structure       | Flat for single submodule, package-by-feature for multiple               |
+| DI              | `private readonly repo` + `CacheService` constructor injection           |
+| Cache           | `CacheService` from `@/lib/cache` — namespace isolation in service layer |
+| Service Methods | `get*()` for cross-service reads, `handle*()` for router                 |
+| Testing         | Co-located tests, skip DTO tests, mock via DI                            |
+| No Usecase      | Orchestration in service layer                                           |
 
 ---
 
@@ -68,6 +68,7 @@ src/modules/{name}/
 ```
 
 ---
+
 ## Layer Architecture
 
 ### Data Flow
@@ -82,11 +83,11 @@ HTTP Client → Router → Service → Repo → DB
 
 ### Method Naming
 
-| Prefix | Caller | Responsibility |
-|--------|--------|----------------|
-| `get*()` | Other services | Cache-backed reads |
-| `handle*()` | Router ONLY | Full business logic + cache invalidation |
-| `clearCache()` | Internal (private) | Cache invalidation |
+| Prefix         | Caller             | Responsibility                           |
+| -------------- | ------------------ | ---------------------------------------- |
+| `get*()`       | Other services     | Cache-backed reads                       |
+| `handle*()`    | Router ONLY        | Full business logic + cache invalidation |
+| `clearCache()` | Internal (private) | Cache invalidation                       |
 
 ### Dependency Injection
 
@@ -134,14 +135,15 @@ HTTP Client → Router → Service → Repo → DB
 - Endpoints: GET /list, GET /detail, POST /create, PUT /update, DELETE /remove
 - Response: `res.paginated()` for lists, `res.ok()` for single
 - Protected endpoints have `auth: true`, use `auth.userId` as `actorId`
-      async function remove({ body }) {
-        const result = await service.handleRemove(body.id)
-        return res.ok(result)
-      },
-      { body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-    )
-}
-```
+  async function remove({ body }) {
+  const result = await service.handleRemove(body.id)
+  return res.ok(result)
+  },
+  { body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+  )
+  }
+
+````
 
 ### Route Assembly
 
@@ -164,24 +166,24 @@ export function initEntityRouteModule(service: EntityServiceModule) {
 // _routes.ts
 import { initEntityRouteModule } from './modules/entity'
 routes.push(initEntityRouteModule(modules.entity))
-```
+````
 
 ### Response Builders
 
 ```typescript
-res.ok(data)           // { success: true, data }
-res.paginated(result)  // { success: true, data: [...], meta: { total, page, limit, pages } }
+res.ok(data) // { success: true, data }
+res.paginated(result) // { success: true, data: [...], meta: { total, page, limit, pages } }
 ```
 
 ### Endpoint Naming Convention
 
-| HTTP Method | Path | Handler | Keterangan |
-|-------------|------|---------|------------|
-| GET | `/list` | `handleList(filter)` | Paginated list |
-| GET | `/detail` | `handleDetail(id)` | Single record |
-| POST | `/create` | `handleCreate(data, actorId)` | Create record |
-| PUT | `/update` | `handleUpdate(id, data, actorId)` | Update record |
-| DELETE | `/remove` | `handleRemove(id)` | Delete record |
+| HTTP Method | Path      | Handler                           | Keterangan     |
+| ----------- | --------- | --------------------------------- | -------------- |
+| GET         | `/list`   | `handleList(filter)`              | Paginated list |
+| GET         | `/detail` | `handleDetail(id)`                | Single record  |
+| POST        | `/create` | `handleCreate(data, actorId)`     | Create record  |
+| PUT         | `/update` | `handleUpdate(id, data, actorId)` | Update record  |
+| DELETE      | `/remove` | `handleRemove(id)`                | Delete record  |
 
 ---
 
@@ -191,12 +193,16 @@ res.paginated(result)  // { success: true, data: [...], meta: { total, page, lim
 
 ```typescript
 export const entitiesTable = pgTable('entities', {
-  id: serial().primaryKey(),
-  // ... entity fields ...
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-  createdBy: integer().references(() => usersTable.id).notNull(),
-  updatedBy: integer().references(() => usersTable.id).notNull(),
+	id: serial().primaryKey(),
+	// ... entity fields ...
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
+	createdBy: integer()
+		.references(() => usersTable.id)
+		.notNull(),
+	updatedBy: integer()
+		.references(() => usersTable.id)
+		.notNull(),
 })
 ```
 
@@ -221,13 +227,13 @@ bun run db:migrate
 const users = await db.select().from(usersTable).where(inArray(usersTable.id, ids))
 
 // In-memory join — gunakan RelationMap
-const roleMap = RelationMap.fromArray(roles, r => r.id)
-const enriched = items.map(item => ({ ...item, role: roleMap.getRequired(item.roleId) }))
+const roleMap = RelationMap.fromArray(roles, (r) => r.id)
+const enriched = items.map((item) => ({ ...item, role: roleMap.getRequired(item.roleId) }))
 
 // Parallel queries
 const [roleMap, locationMap] = await Promise.all([
-  roleService.getRelationMap(),
-  locationService.getRelationMap(),
+	roleService.getRelationMap(),
+	locationService.getRelationMap(),
 ])
 ```
 

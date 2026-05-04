@@ -151,7 +151,9 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 				const isLow = val <= min
 				return (
 					<div className="flex items-center gap-2">
-						<span className={isLow ? 'font-semibold text-destructive' : 'font-semibold'}>{val}</span>
+						<span className={isLow ? 'font-semibold text-destructive' : 'font-semibold'}>
+							{val}
+						</span>
 						{isLow && (
 							<Badge variant="destructive" className="text-[10px] h-4">
 								Low

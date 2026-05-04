@@ -4,6 +4,8 @@ import z from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
+
 import {
 	GenerateSummaryDto,
 	StockLedgerFilterDto,
@@ -12,7 +14,6 @@ import {
 	StockSummarySelectDto,
 } from './stock-summary.dto'
 import type { StockSummaryService } from './stock-summary.service'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initStockSummaryRoute(s: StockSummaryService) {
 	return (

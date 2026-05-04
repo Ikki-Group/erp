@@ -1,8 +1,7 @@
 import { Elysia } from 'elysia'
 
-import type { DbClient } from '@/core/database'
-
 import type { CacheClient } from '@/core/cache'
+import type { DbClient } from '@/core/database'
 
 import type { LocationMasterService } from '@/modules/location'
 

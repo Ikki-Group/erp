@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
-
-import { CacheService, type CacheClient } from '@/core/cache'
 
 import * as dto from './purchase-order.dto'
 import { PurchaseOrderRepo } from './purchase-order.repo'

@@ -8,7 +8,8 @@
 		"test:headed": "playwright test --headed",
 		"test:debug": "playwright test --debug",
 		"test:report": "playwright show-report",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"upload:report": "bunx tdpw upload ./playwright-report --token=trx_production_27764b9688effd3ec978da7aa5d3567b638c93b659d564adba41608b4062b194"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.50.0",

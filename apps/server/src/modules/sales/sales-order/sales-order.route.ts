@@ -5,6 +5,13 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@/lib/validation'
+
+import {
 	SalesOrderAddBatchDto,
 	SalesOrderCreateDto,
 	SalesOrderFilterDto,
@@ -12,12 +19,6 @@ import {
 	SalesOrderVoidDto,
 } from './sales-order.dto'
 import type { SalesOrderService } from './sales-order.service'
-import {
-	zc,
-	zq,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
 
 export function initSalesOrderRoute(service: SalesOrderService) {
 	return new Elysia({ prefix: '/order' })

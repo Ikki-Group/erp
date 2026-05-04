@@ -10,6 +10,7 @@ Shared API contract types and validators for Ikki ERP.
 ## Status
 
 **Foundation:** ✅ Complete
+
 - Package structure created
 - Core types extracted
 - Validation schemas extracted
@@ -18,6 +19,7 @@ Shared API contract types and validators for Ikki ERP.
 - Package builds successfully
 
 **Integration Status:** ✅ Location & IAM Modules Migrated
+
 - `apps/server/src/modules/location` uses `@ikki/api-contract/validation`
 - `apps/server/src/modules/iam` (user, session) uses `@ikki/api-contract/validation`
 - Full server typecheck passes cleanly
@@ -30,9 +32,9 @@ Shared API contract types and validators for Ikki ERP.
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 export const MyCreateDto = z.object({
-  name: zc.strTrim.min(3).max(100),
-  email: zc.email,
-  isActive: zp.bool.default(true),
+	name: zc.strTrim.min(3).max(100),
+	email: zc.email,
+	isActive: zp.bool.default(true),
 })
 ```
 
@@ -40,9 +42,9 @@ export const MyCreateDto = z.object({
 
 ```typescript
 import {
-  createSuccessResponseSchema,
-  createPaginatedResponseSchema,
-  zc,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zc,
 } from '@ikki/api-contract/validation'
 
 const responseSchema = createSuccessResponseSchema(zc.RecordId)

@@ -3,6 +3,8 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
+
 import {
 	WorkOrderCompleteDto,
 	WorkOrderCreateDto,
@@ -11,7 +13,6 @@ import {
 	WorkOrderSelectDto,
 } from './work-order.dto'
 import type { WorkOrderService } from './work-order.service'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
 
 export function initWorkOrderRoute(service: WorkOrderService) {
 	return new Elysia({ prefix: '/work-orders', detail: { tags: ['Production'] } })

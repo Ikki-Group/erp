@@ -1,0 +1,207 @@
+import { record } from '@elysiajs/opentelemetry'
+import { and, eq, gte, lte, sql } from 'drizzle-orm'
+
+import type { DbClient } from '@/core/database'
+
+import {
+	locationsTable,
+	materialsTable,
+	purchaseOrderItemsTable,
+	purchaseOrdersTable,
+	stockTransferItemsTable,
+	stockTransfersTable,
+	suppliersTable,
+} from '@/db/schema'
+
+import * as dto from './procurement-reporting.dto'
+
+export class ProcurementReportingService {
+	constructor(private readonly db: DbClient) {}
+
+	async getPurchasesReport(
+		query: dto.ProcurementReportRequestDto,
+	): Promise<dto.PurchaseReportResponseDto> {
+		return record('ProcurementReportingService.getPurchasesReport', async () => {
+			const conditions = [
+				gte(purchaseOrdersTable.date, query.dateFrom),
+				lte(purchaseOrdersTable.date, query.dateTo),
+				query.locationId ? eq(purchaseOrdersTable.locationId, query.locationId) : undefined,
+				query.supplierId ? eq(purchaseOrdersTable.supplierId, query.supplierId) : undefined,
+			]
+			const data = await this.db
+				.select({
+					purchaseOrderId: purchaseOrdersTable.id,
+					date: purchaseOrdersTable.date,
+					supplierId: suppliersTable.id,
+					supplierName: suppliersTable.name,
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					qty: purchaseOrderItemsTable.qty,
+					unitPrice: purchaseOrderItemsTable.unitPrice,
+					totalAmount: purchaseOrderItemsTable.totalAmount,
+					status: purchaseOrdersTable.status,
+				})
+				.from(purchaseOrdersTable)
+				.innerJoin(
+					purchaseOrderItemsTable,
+					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.purchaseOrderId),
+				)
+				.innerJoin(suppliersTable, eq(purchaseOrdersTable.supplierId, suppliersTable.id))
+				.innerJoin(materialsTable, eq(purchaseOrderItemsTable.materialId, materialsTable.id))
+				.where(and(...conditions.filter(Boolean)))
+				.orderBy(purchaseOrdersTable.date)
+
+			const totalAmount = data.reduce((s, d) => s + Number(d.totalAmount), 0)
+			// const totalQty = data.reduce((s, d) => s + Number(d.qty), 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({
+					...d,
+					qty: Number(d.qty),
+					unitPrice: String(d.unitPrice),
+					totalAmount: String(d.totalAmount),
+				})),
+				summary: {
+					total: String(totalAmount),
+					average: String(data.length > 0 ? totalAmount / data.length : 0),
+					min: String(Math.min(...data.map((d) => Number(d.totalAmount)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.totalAmount)), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+
+	async getSuppliersReport(
+		query: dto.ProcurementReportRequestDto,
+	): Promise<dto.SupplierReportResponseDto> {
+		return record('ProcurementReportingService.getSuppliersReport', async () => {
+			const conditions = [
+				gte(purchaseOrdersTable.date, query.dateFrom),
+				lte(purchaseOrdersTable.date, query.dateTo),
+			]
+			const data = await this.db
+				.select({
+					supplierId: suppliersTable.id,
+					supplierName: suppliersTable.name,
+					totalOrders: sql<number>`COUNT(DISTINCT ${purchaseOrdersTable.id})`,
+					totalAmount: sql<number>`COALESCE(SUM(${purchaseOrdersTable.totalAmount}), 0)`,
+					completedOrders: sql<number>`COUNT(CASE WHEN ${purchaseOrdersTable.status} = 'completed' THEN 1 END)`,
+					pendingOrders: sql<number>`COUNT(CASE WHEN ${purchaseOrdersTable.status} != 'completed' THEN 1 END)`,
+				})
+				.from(purchaseOrdersTable)
+				.innerJoin(suppliersTable, eq(purchaseOrdersTable.supplierId, suppliersTable.id))
+				.where(and(...conditions.filter(Boolean)))
+				.groupBy(suppliersTable.id)
+				.orderBy(sql`totalAmount DESC`)
+
+			const totalAmount = data.reduce((s, d) => s + Number(d.totalAmount), 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({
+					...d,
+					totalAmount: String(d.totalAmount),
+					averageDeliveryDays: 0,
+				})),
+				summary: {
+					total: String(totalAmount),
+					average: String(data.length > 0 ? totalAmount / data.length : 0),
+					min: String(Math.min(...data.map((d) => Number(d.totalAmount)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.totalAmount)), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+
+	async getTransfersReport(
+		query: dto.ProcurementReportRequestDto,
+	): Promise<dto.TransferReportResponseDto> {
+		return record('ProcurementReportingService.getTransfersReport', async () => {
+			const conditions = [
+				gte(stockTransfersTable.transferDate, query.dateFrom),
+				lte(stockTransfersTable.transferDate, query.dateTo),
+				query.locationId ? eq(stockTransfersTable.sourceLocationId, query.locationId) : undefined,
+			]
+			const data = await this.db
+				.select({
+					transferId: stockTransfersTable.id,
+					date: stockTransfersTable.transferDate,
+					fromLocation: locationsTable.name,
+					toLocation: locationsTable.name,
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					qty: stockTransferItemsTable.qty,
+					unitCost: stockTransferItemsTable.unitCost,
+					totalCost: stockTransferItemsTable.totalCost,
+					status: stockTransfersTable.status,
+				})
+				.from(stockTransfersTable)
+				.innerJoin(
+					stockTransferItemsTable,
+					eq(stockTransfersTable.id, stockTransferItemsTable.transferId),
+				)
+				.innerJoin(materialsTable, eq(stockTransferItemsTable.materialId, materialsTable.id))
+				.innerJoin(locationsTable, eq(stockTransfersTable.sourceLocationId, locationsTable.id))
+				.where(and(...conditions.filter(Boolean)))
+				.orderBy(stockTransfersTable.transferDate)
+
+			const totalCost = data.reduce((s, d) => s + Number(d.totalCost), 0)
+			return {
+				chartType: 'bar' as const,
+				data: data.map((d) => ({
+					...d,
+					qty: Number(d.qty),
+					unitCost: String(d.unitCost),
+					totalCost: String(d.totalCost),
+				})),
+				summary: {
+					total: String(totalCost),
+					average: String(data.length > 0 ? totalCost / data.length : 0),
+					min: String(Math.min(...data.map((d) => Number(d.totalCost)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.totalCost)), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+
+	async getCostsReport(query: dto.ProcurementReportRequestDto): Promise<dto.CostReportResponseDto> {
+		return record('ProcurementReportingService.getCostsReport', async () => {
+			const conditions = [
+				gte(purchaseOrdersTable.date, query.dateFrom),
+				lte(purchaseOrdersTable.date, query.dateTo),
+				query.materialId ? eq(purchaseOrderItemsTable.materialId, query.materialId) : undefined,
+			]
+			const data = await this.db
+				.select({
+					materialId: materialsTable.id,
+					materialName: materialsTable.name,
+					date: purchaseOrdersTable.date,
+					unitPrice: purchaseOrderItemsTable.unitPrice,
+					qty: purchaseOrderItemsTable.qty,
+				})
+				.from(purchaseOrdersTable)
+				.innerJoin(
+					purchaseOrderItemsTable,
+					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.purchaseOrderId),
+				)
+				.innerJoin(materialsTable, eq(purchaseOrderItemsTable.materialId, materialsTable.id))
+				.where(and(...conditions.filter(Boolean)))
+				.orderBy(purchaseOrdersTable.date)
+
+			const totalCost = data.reduce((s, d) => s + Number(d.unitPrice) * Number(d.qty), 0)
+			return {
+				chartType: 'line' as const,
+				data: data.map((d) => ({ ...d, unitPrice: String(d.unitPrice), qty: Number(d.qty) })),
+				summary: {
+					total: String(totalCost),
+					average: String(data.length > 0 ? totalCost / data.length : 0),
+					min: String(Math.min(...data.map((d) => Number(d.unitPrice) * Number(d.qty)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.unitPrice) * Number(d.qty)), 0)),
+					count: data.length,
+				},
+			}
+		})
+	}
+}

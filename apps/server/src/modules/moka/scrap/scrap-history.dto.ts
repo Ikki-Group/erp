@@ -1,12 +1,13 @@
 import { z } from 'zod'
 
+import { zc, zq } from '@/lib/validation'
+
 import {
 	MokaProvider,
 	MokaScrapStatusEnum,
 	MokaScrapType,
 	MokaSyncTriggerMode,
 } from '../shared.dto'
-import { zc, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

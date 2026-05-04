@@ -4,14 +4,15 @@ import { z } from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './payment-method.dto'
-import type { PaymentMethodConfigService } from './payment-method.service'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
 } from '@/lib/validation'
+
+import * as dto from './payment-method.dto'
+import type { PaymentMethodConfigService } from './payment-method.service'
 
 export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 	return new Elysia({ prefix: '/method' })
