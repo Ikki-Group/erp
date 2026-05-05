@@ -18,28 +18,32 @@ Shared API contract types and validators for Ikki ERP.
 - `z` re-exported for consumer use
 - Package builds successfully
 
-**Integration Status:** ✅ All Server Modules Migrated
+**Integration Status:** ✅ Complete
 
-All `apps/server/src/modules/**` DTO and route files now import from `@ikki/api-contract/validation`:
+**Server Migration:**
+- All `apps/server/src/modules/**` DTO and route files migrated to `@ikki/api-contract/validation`
+- Service files migrated to `@ikki/api-contract` (main index)
+- Local `apps/server/src/lib/validation/` folder deleted
+- Zero remaining `@/lib/validation` imports in server code
 
-- `location`, `iam` (user, session, role, assignment)
-- `product` (product, product-category)
-- `finance` (account, expenditure, general-ledger)
-- `hr` (employee, payroll, leave-request)
-- `inventory` (stock-alert, stock-transaction, stock-dashboard, stock-summary, stock-transfer)
-- `material` (material-master, material-category, material-location, uom)
-- `auth` (login), `company`, `crm` (customer)
-- `dashboard` (analytics, settings)
-- `moka` (configuration, scrap, shared)
-- `payment` (payment, payment-method)
-- `production` (work-order)
-- `purchasing` (purchase-order, goods-receipt)
-- `recipe`, `sales` (sales-order, sales-invoice, sales-type)
-- `supplier`
-- `reporting` (business-insights, crm-reporting, finance-reporting, inventory-reporting, payment-reporting, procurement-reporting, sales-reporting)
-- `audit` (audit-log)
+**Web Migration:**
+- Bulk migration completed for 75 files in `apps/web/src`
+- Path mapping added to web app tsconfig
+- Note: Some edge cases with standard schema adapters remain in login.tsx
+  and password dialogs (can be addressed separately)
 
-Zero remaining `@/lib/validation` or `from 'zod'` imports in `.dto.ts`/`.route.ts` files. Full server typecheck passes cleanly (excluding pre-existing Drizzle schema issues).
+**DX Workflow:**
+When modifying `@ikki/api-contract`, consumers must rebuild before typechecking:
+
+```bash
+# 1. Edit api-contract source files
+# 2. Rebuild the package
+cd packages/api-contract && bun run build
+
+# 3. Typecheck consumers
+cd apps/server && bun run typecheck
+cd apps/web && bun run typecheck
+```
 
 ## Consumer Usage
 
