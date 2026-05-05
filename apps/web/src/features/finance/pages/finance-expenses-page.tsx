@@ -52,12 +52,12 @@ const columns = [
 			</div>
 		),
 	}),
-	ch.accessor('category', {
-		header: 'Kategori',
+	ch.accessor('type', {
+		header: 'Tipe',
 		size: 130,
 		cell: ({ row }) => (
 			<BadgeDot variant="secondary" className="text-xs">
-				{row.original.category}
+				{row.original.type}
 			</BadgeDot>
 		),
 	}),
@@ -74,7 +74,6 @@ const columns = [
 
 export function FinanceExpensesPage() {
 	const [search, setSearch] = useState('')
-	const [isDialogOpen, setIsDialogOpen] = useState(false)
 
 	const { data: expensesData, isLoading } = useQuery(
 		expenditureApi.list.query({ page: 1, limit: 50, q: search }),
@@ -109,11 +108,7 @@ export function FinanceExpensesPage() {
 								className="pl-10"
 							/>
 						</div>
-						<ExpenditureDialog
-							open={isDialogOpen}
-							onOpenChange={setIsDialogOpen}
-							onSuccess={() => setIsDialogOpen(false)}
-						>
+						<ExpenditureDialog>
 							<FlameIcon className="mr-2 h-4 w-4" />
 							Tambah Biaya
 						</ExpenditureDialog>

@@ -1,17 +1,20 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { z } from 'zod'
 import { SaveIcon, RefreshCwIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { useAppForm } from '@/components/form'
 
 import { Button } from '@/components/ui/button'
-import { FieldSeparator } from '@/components/ui/field'
-import { FormField } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { InputPassword } from '@/components/ui/input-password'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 import { mokaApi } from '../api'
-import { MokaConfigurationCreateDto, MokaConfigurationUpdateDto } from '../dto'
+import { MokaConfigurationCreateDto, MokaConfigurationOutputDto } from '../dto'
 
 const formSchema = MokaConfigurationCreateDto
 
@@ -19,11 +22,15 @@ export type MokaConfigurationFormValues = z.infer<typeof formSchema>
 
 interface MokaConfigurationFormProps {
 	locationId: number
-	existingConfig?: MokaConfigurationFormValues
+	existingConfig?: MokaConfigurationOutputDto
 	onSuccess?: () => void
 }
 
-export function MokaConfigurationForm({ locationId, existingConfig, onSuccess }: MokaConfigurationFormProps) {
+export function MokaConfigurationForm({
+	locationId,
+	existingConfig,
+	onSuccess,
+}: MokaConfigurationFormProps) {
 	const isUpdate = !!existingConfig
 
 	const createMutation = useMutation({
@@ -52,30 +59,35 @@ export function MokaConfigurationForm({ locationId, existingConfig, onSuccess }:
 		validators: {
 			onSubmit: formSchema,
 		},
-		defaultValues: existingConfig || {
-			locationId,
-			email: '',
-			password: '',
-			businessId: null,
-			outletId: null,
-			isActive: true,
-			salesCronEnabled: false,
-			salesCronExpression: null,
-		},
+		defaultValues:
+			existingConfig ??
+			({
+				locationId,
+				email: '',
+				password: '',
+				businessId: null,
+				outletId: null,
+				isActive: true,
+				salesCronEnabled: false,
+				salesCronExpression: null,
+			} as MokaConfigurationFormValues),
 	})
 
 	const handleSubmit = (values: MokaConfigurationFormValues) => {
 		if (isUpdate && existingConfig?.id) {
-			updateMutation.mutate({ params: { id: existingConfig.id }, body: values })
+			updateMutation.mutate({
+				params: { id: existingConfig.id },
+				body: { ...values, id: existingConfig.id },
+			})
 		} else {
-			createMutation.mutate(values)
+			createMutation.mutate({ body: values })
 		}
 	}
 
 	const isLoading = createMutation.isPending || updateMutation.isPending
 
 	return (
-		<form.Provider>
+		<form.AppForm>
 			<form
 				onSubmit={(e) => {
 					e.preventDefault()
@@ -85,86 +97,122 @@ export function MokaConfigurationForm({ locationId, existingConfig, onSuccess }:
 			>
 				<form.Field name="email">
 					{(field) => (
-						<FormField
-							label="Email Moka"
-							description="Email akun Moka Anda"
-							required
-						>
-							<field.Input type="email" placeholder="email@contoh.com" />
-						</FormField>
+						<div>
+							<Label>Email Moka</Label>
+							<Input
+								type="email"
+								value={field.state.value}
+								onChange={(e) => field.handleChange(e.target.value)}
+								placeholder="email@contoh.com"
+							/>
+							<p className="text-sm text-muted-foreground">Email akun Moka Anda</p>
+						</div>
 					)}
 				</form.Field>
 
 				<form.Field name="password">
 					{(field) => (
-						<FormField
-							label="Password"
-							description="Password akun Moka Anda"
-							required
-						>
-							<field.Input type="password" placeholder="••••••••" />
-						</FormField>
+						<div>
+							<Label>Password</Label>
+							<InputPassword
+								value={field.state.value}
+								onChange={(e) => field.handleChange(e.target.value)}
+								placeholder="••••••••"
+							/>
+							<p className="text-sm text-muted-foreground">Password akun Moka Anda</p>
+						</div>
 					)}
 				</form.Field>
 
-				<FieldSeparator label="Opsi Tambahan" />
+				<Separator className="my-6" />
 
-				<form.Field name="businessId">
-					{(field) => (
-						<FormField
-							label="Business ID"
-							description="ID bisnis Moka (opsional)"
-						>
-							<field.Input placeholder="Masukkan Business ID" />
-						</FormField>
-					)}
-				</form.Field>
+				<div className="space-y-4">
+					<p className="text-sm font-medium text-muted-foreground">Opsi Tambahan</p>
+					<form.Field name="businessId">
+						{(field) => (
+							<div>
+								<Label>Business ID</Label>
+								<Input
+									value={field.state.value ?? ''}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="Masukkan Business ID"
+								/>
+								<p className="text-sm text-muted-foreground">ID bisnis Moka (opsional)</p>
+							</div>
+						)}
+					</form.Field>
 
-				<form.Field name="outletId">
-					{(field) => (
-						<FormField
-							label="Outlet ID"
-							description="ID outlet Moka (opsional)"
-						>
-							<field.Input placeholder="Masukkan Outlet ID" />
-						</FormField>
-					)}
-				</form.Field>
+					<form.Field name="outletId">
+						{(field) => (
+							<div>
+								<Label>Outlet ID</Label>
+								<Input
+									value={field.state.value ?? ''}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="Masukkan Outlet ID"
+								/>
+								<p className="text-sm text-muted-foreground">ID outlet Moka (opsional)</p>
+							</div>
+						)}
+					</form.Field>
+				</div>
 
-				<FieldSeparator label="Pengaturan Sinkronisasi" />
+				<Separator className="my-6" />
 
-				<form.Field name="isActive">
-					{(field) => (
-						<FormField
-							label="Aktifkan Integrasi"
-							description="Aktifkan atau nonaktifkan integrasi Moka"
-						>
-							<field.Checkbox />
-						</FormField>
-					)}
-				</form.Field>
+				<div className="space-y-4">
+					<p className="text-sm font-medium text-muted-foreground">Pengaturan Sinkronisasi</p>
+					<form.Field name="isActive">
+						{(field) => (
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="isActive"
+									checked={field.state.value}
+									onCheckedChange={(checked) => field.handleChange(!!checked)}
+								/>
+								<div className="space-y-1 leading-none">
+									<Label htmlFor="isActive">Aktifkan Integrasi</Label>
+									<p className="text-sm text-muted-foreground">
+										Aktifkan atau nonaktifkan integrasi Moka
+									</p>
+								</div>
+							</div>
+						)}
+					</form.Field>
 
-				<form.Field name="salesCronEnabled">
-					{(field) => (
-						<FormField
-							label="Sinkronisasi Otomatis Penjualan"
-							description="Sinkronkan data penjualan secara otomatis via cronjob"
-						>
-							<field.Checkbox />
-						</FormField>
-					)}
-				</form.Field>
+					<form.Field name="salesCronEnabled">
+						{(field) => (
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="salesCronEnabled"
+									checked={field.state.value}
+									onCheckedChange={(checked) => field.handleChange(!!checked)}
+								/>
+								<div className="space-y-1 leading-none">
+									<Label htmlFor="salesCronEnabled">Sinkronisasi Otomatis Penjualan</Label>
+									<p className="text-sm text-muted-foreground">
+										Sinkronkan data penjualan secara otomatis via cronjob
+									</p>
+								</div>
+							</div>
+						)}
+					</form.Field>
 
-				<form.Field name="salesCronExpression">
-					{(field) => (
-						<FormField
-							label="Cron Expression"
-							description="Jadwal sinkronisasi otomatis (contoh: 0 */6 * * *)"
-						>
-							<field.Input placeholder="0 */6 * * *" />
-						</FormField>
-					)}
-				</form.Field>
+					<form.Field name="salesCronExpression">
+						{(field) => (
+							<div>
+								<Label>Cron Expression</Label>
+								<Input
+									value={field.state.value ?? ''}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="0 */6 * * *"
+								/>
+								<p className="text-sm text-muted-foreground">
+									Jadwal sinkronisasi otomatis (contoh: 0 */6 * * *)
+								</p>
+							</div>
+						)}
+					</form.Field>
+				</div>
 
 				<div className="flex justify-end gap-3 pt-4">
 					<Button type="submit" disabled={isLoading}>
@@ -182,6 +230,6 @@ export function MokaConfigurationForm({ locationId, existingConfig, onSuccess }:
 					</Button>
 				</div>
 			</form>
-		</form.Provider>
+		</form.AppForm>
 	)
 }

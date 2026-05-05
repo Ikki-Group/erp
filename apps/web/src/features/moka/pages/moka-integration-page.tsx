@@ -7,9 +7,9 @@ import { toast } from 'sonner'
 
 import { Page } from '@/components/layout/page'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 
 import { mokaApi } from '../api'
 import { MokaConfigurationForm } from '../components/moka-configuration-form'
@@ -23,13 +23,11 @@ export function MokaIntegrationPage() {
 		mokaApi.configurationByLocation.query({ locationId }),
 	)
 
-	const { data: historyData, isLoading: historyLoading } = useQuery(
-		mokaApi.scrapHistory.query({ mokaConfigurationId: config?.data?.id }),
-		{
-			enabled: !!config?.data?.id,
-			queryKey: ['moka', 'scrapHistory', config?.data?.id, refreshKey],
-		},
-	)
+	const { data: historyData, isLoading: historyLoading } = useQuery({
+		...mokaApi.scrapHistory.query({ mokaConfigurationId: config?.data?.id }),
+		enabled: !!config?.data?.id,
+		queryKey: ['moka', 'scrapHistory', config?.data?.id, refreshKey],
+	})
 
 	const history = historyData?.data ?? []
 
@@ -63,11 +61,7 @@ export function MokaIntegrationPage() {
 								<ClockIcon className="h-5 w-5" />
 								Riwayat Sinkronisasi
 							</h2>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setRefreshKey((prev) => prev + 1)}
-							>
+							<Button variant="outline" size="sm" onClick={() => setRefreshKey((prev) => prev + 1)}>
 								<RefreshCwIcon className="mr-2 h-4 w-4" />
 								Refresh
 							</Button>
@@ -87,12 +81,12 @@ export function MokaIntegrationPage() {
 										<div className="flex items-center gap-4">
 											<div
 												className={`p-2 rounded-full ${
-													item.status === 'success'
+													item.status === 'completed'
 														? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400'
 														: 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
 												}`}
 											>
-												{item.status === 'success' ? (
+												{item.status === 'completed' ? (
 													<CheckCircleIcon className="h-5 w-5" />
 												) : (
 													<XCircleIcon className="h-5 w-5" />
@@ -106,13 +100,13 @@ export function MokaIntegrationPage() {
 											</div>
 										</div>
 										<div className="flex items-center gap-3">
-											{item.status === 'success' && (
+											{item.status === 'completed' && (
 												<Badge variant="secondary" className="text-xs">
-													{item.recordsProcessed} records
+													{item.recordsCount} records
 												</Badge>
 											)}
 											<Badge
-												variant={item.status === 'success' ? 'default' : 'destructive'}
+												variant={item.status === 'completed' ? 'default' : 'destructive'}
 												className="capitalize"
 											>
 												{item.status}
@@ -140,9 +134,7 @@ export function MokaIntegrationPage() {
 								<RefreshCwIcon className="h-5 w-5" />
 								<div className="text-left">
 									<p className="font-medium">Sinkronisasi Produk</p>
-									<p className="text-xs text-muted-foreground">
-										Sinkronkan data produk dari Moka
-									</p>
+									<p className="text-xs text-muted-foreground">Sinkronkan data produk dari Moka</p>
 								</div>
 							</Button>
 							<Button

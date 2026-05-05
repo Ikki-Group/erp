@@ -1,7 +1,8 @@
+import * as React from 'react'
+
 import { formOptions } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { createCallable } from 'react-call'
 import { toast } from 'sonner'
 import z from 'zod'
 
@@ -39,15 +40,16 @@ function getDefaultValues(v?: SupplierDto): FormDto {
 
 interface SupplierFormDialogProps {
 	id?: number
+	children?: React.ReactNode
 }
 
-export const SupplierFormDialog = createCallable<SupplierFormDialogProps, void>((props) => {
-	const { call, id } = props
+export function SupplierFormDialog({ id, children }: SupplierFormDialogProps) {
+	const [open, setOpen] = React.useState(false)
 	const isCreate = id === undefined
 
 	const selectedSupplier = useQuery({
 		...supplierApi.detail.query({ id: id! }),
-		enabled: !!props.id,
+		enabled: !!id && open,
 		refetchOnMount: true,
 	})
 
@@ -66,44 +68,47 @@ export const SupplierFormDialog = createCallable<SupplierFormDialogProps, void>(
 				.promise(promise, toastLabelMessage(isCreate ? 'create' : 'update', 'supplier'))
 				.unwrap()
 
-			call.end()
+			setOpen(false)
 		},
 	})
 
 	return (
-		<form.AppForm>
-			<FormDialog
-				open={!call.ended}
-				onOpenChange={(open) => !open && call.end()}
-				title={isCreate ? 'Tambah Supplier' : 'Edit Supplier'}
-				onSubmit={() => form.handleSubmit()}
-				footer={<form.DialogActions onCancel={call.end} />}
-			>
-				<div className="grid grid-cols-2 gap-4">
-					<form.AppField name="code">
-						{(field) => <field.Input label="Kode Supplier" required placeholder="SUP-001" />}
+		<>
+			{children && <div onClick={() => setOpen(true)}>{children}</div>}
+			<form.AppForm>
+				<FormDialog
+					open={open}
+					onOpenChange={setOpen}
+					title={isCreate ? 'Tambah Supplier' : 'Edit Supplier'}
+					onSubmit={() => form.handleSubmit()}
+					footer={<form.DialogActions onCancel={() => setOpen(false)} />}
+				>
+					<div className="grid grid-cols-2 gap-4">
+						<form.AppField name="code">
+							{(field) => <field.Input label="Kode Supplier" required placeholder="SUP-001" />}
+						</form.AppField>
+						<form.AppField name="name">
+							{(field) => (
+								<field.Input label="Nama Supplier" required placeholder="PT. Contoh Supplier" />
+							)}
+						</form.AppField>
+					</div>
+					<form.AppField name="email">
+						{(field) => <field.Input label="Email" type="email" placeholder="email@supplier.com" />}
 					</form.AppField>
-					<form.AppField name="name">
-						{(field) => (
-							<field.Input label="Nama Supplier" required placeholder="PT. Contoh Supplier" />
-						)}
+					<div className="grid grid-cols-2 gap-4">
+						<form.AppField name="phone">
+							{(field) => <field.Input label="Telepon" placeholder="0812-3456-7890" />}
+						</form.AppField>
+						<form.AppField name="taxId">
+							{(field) => <field.Input label="NPWP / Tax ID" placeholder="00.000.000.0-000.000" />}
+						</form.AppField>
+					</div>
+					<form.AppField name="address">
+						{(field) => <field.Textarea label="Alamat" placeholder="Jl. Contoh No. 123, Jakarta" />}
 					</form.AppField>
-				</div>
-				<form.AppField name="email">
-					{(field) => <field.Input label="Email" type="email" placeholder="email@supplier.com" />}
-				</form.AppField>
-				<div className="grid grid-cols-2 gap-4">
-					<form.AppField name="phone">
-						{(field) => <field.Input label="Telepon" placeholder="0812-3456-7890" />}
-					</form.AppField>
-					<form.AppField name="taxId">
-						{(field) => <field.Input label="NPWP / Tax ID" placeholder="00.000.000.0-000.000" />}
-					</form.AppField>
-				</div>
-				<form.AppField name="address">
-					{(field) => <field.Textarea label="Alamat" placeholder="Jl. Contoh No. 123, Jakarta" />}
-				</form.AppField>
-			</FormDialog>
-		</form.AppForm>
+				</FormDialog>
+			</form.AppForm>
+		</>
 	)
-}, 200)
+}

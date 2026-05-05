@@ -21,8 +21,8 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 import { Button } from '@/components/ui/button'
 
 import { supplierApi } from '../api'
-import type { SupplierDto } from '../dto'
 import { SupplierFormDialog } from '../components/supplier-form-dialog'
+import type { SupplierDto } from '../dto'
 
 const ch = createColumnHelper<SupplierDto>()
 
@@ -116,9 +116,11 @@ export function SuppliersPage() {
 						/>
 					}
 					action={
-						<SupplierFormDialog onSuccess={() => {}}>
-							<PlusIcon className="mr-2 h-4 w-4" />
-							Tambah Supplier
+						<SupplierFormDialog>
+							<Button>
+								<PlusIcon className="mr-2 h-4 w-4" />
+								Tambah Supplier
+							</Button>
 						</SupplierFormDialog>
 					}
 				/>
