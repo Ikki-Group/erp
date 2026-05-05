@@ -9,12 +9,8 @@ import {
 	stockAdjustmentsTable,
 	stockAdjustmentItemsTable,
 } from '@/db/schema/inventory'
-import {
-	locationsTable,
-	materialLocationsTable,
-	materialsTable,
-	uomsTable,
-} from '@/db/schema/material'
+import { locationsTable } from '@/db/schema/location'
+import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
 
 import * as dto from './inventory-reporting.dto'
 
@@ -297,13 +293,6 @@ export class InventoryReportingService {
 		query: dto.InventoryReportRequestDto,
 	): Promise<dto.ConsumptionResponseDto> {
 		return record('InventoryReportingService.getConsumptionReport', async () => {
-			const conditions = [
-				gte(stockTransactionsTable.date, query.dateFrom),
-				lte(stockTransactionsTable.date, query.dateTo),
-				eq(stockTransactionsTable.type, 'usage' as any),
-				query.locationId ? eq(stockTransactionsTable.locationId, query.locationId) : undefined,
-				query.productId ? eq(stockTransactionsTable.materialId, query.productId) : undefined,
-			]
 			const data = await this.db
 				.select({
 					materialId: materialsTable.id,
@@ -311,24 +300,36 @@ export class InventoryReportingService {
 					materialType: materialsTable.type,
 					locationId: locationsTable.id,
 					locationName: locationsTable.name,
-					quantity: sql<number>`COALESCE(SUM(${stockTransactionsTable.quantity}), 0)`,
-					unit: uomsTable.name,
-					cost: sql<number>`COALESCE(SUM(${stockTransactionsTable.quantity} * CAST(${stockTransactionsTable.unitCost} AS FLOAT)), 0)`,
+					quantity: sql<number>`COALESCE(SUM(${stockTransactionsTable.qty}), 0)`,
+					unit: uomsTable.code,
+					cost: sql<number>`COALESCE(SUM(${stockTransactionsTable.qty} * CAST(${stockTransactionsTable.unitCost} AS FLOAT)), 0)`,
 					date: stockTransactionsTable.date,
 				})
 				.from(stockTransactionsTable)
 				.innerJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
 				.innerJoin(locationsTable, eq(stockTransactionsTable.locationId, locationsTable.id))
-				.leftJoin(uomsTable, eq(materialsTable.uomId, uomsTable.id))
-				.where(and(...conditions.filter(Boolean)))
-				.groupBy(materialsTable.id, locationsTable.id, uomsTable.name, stockTransactionsTable.date)
+				.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+				.where(
+					and(
+						gte(stockTransactionsTable.date, query.dateFrom),
+						lte(stockTransactionsTable.date, query.dateTo),
+						eq(stockTransactionsTable.type, 'usage' as any),
+						query.locationId ? eq(stockTransactionsTable.locationId, query.locationId) : undefined,
+						query.productId ? eq(stockTransactionsTable.materialId, query.productId) : undefined,
+					),
+				)
+				.groupBy(materialsTable.id, locationsTable.id, uomsTable.code, stockTransactionsTable.date)
 				.orderBy(stockTransactionsTable.date)
 
 			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
-			// const totalCost = data.reduce((s, d) => s + Number(d.cost), 0)
 			return {
 				chartType: 'bar' as const,
-				data: data.map((d) => ({ ...d, quantity: d.quantity, cost: String(d.cost) })),
+				data: data.map((d) => ({
+					...d,
+					quantity: d.quantity,
+					cost: String(d.cost),
+					unit: d.unit ?? '',
+				})),
 				summary: {
 					total: String(totalQty),
 					average: String(data.length > 0 ? totalQty / data.length : 0),
@@ -349,9 +350,9 @@ export class InventoryReportingService {
 					locationId: locationsTable.id,
 					locationName: locationsTable.name,
 					quantity: sql<number>`COALESCE(SUM(ABS(${stockAdjustmentItemsTable.qtyDiff})), 0)`,
-					unit: uomsTable.name,
+					unit: uomsTable.code,
 					cost: sql<number>`COALESCE(SUM(ABS(${stockAdjustmentItemsTable.qtyDiff}) * CAST(${stockAdjustmentItemsTable.unitCost} AS FLOAT)), 0)`,
-					reason: stockAdjustmentsTable.notes,
+					reason: stockAdjustmentsTable.reason,
 					date: stockAdjustmentsTable.adjustmentDate,
 				})
 				.from(stockAdjustmentsTable)
@@ -361,7 +362,7 @@ export class InventoryReportingService {
 				)
 				.innerJoin(materialsTable, eq(stockAdjustmentItemsTable.materialId, materialsTable.id))
 				.innerJoin(locationsTable, eq(stockAdjustmentsTable.locationId, locationsTable.id))
-				.leftJoin(uomsTable, eq(materialsTable.uomId, uomsTable.id))
+				.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
 				.where(
 					and(
 						eq(stockAdjustmentsTable.type, 'waste'),
@@ -374,17 +375,22 @@ export class InventoryReportingService {
 				.groupBy(
 					materialsTable.id,
 					locationsTable.id,
-					uomsTable.name,
-					stockAdjustmentsTable.notes,
+					uomsTable.code,
+					stockAdjustmentsTable.reason,
 					stockAdjustmentsTable.adjustmentDate,
 				)
 				.orderBy(stockAdjustmentsTable.adjustmentDate)
 
 			const totalQty = data.reduce((s, d) => s + d.quantity, 0)
-			// const totalCost = data.reduce((s, d) => s + Number(d.cost), 0)
 			return {
 				chartType: 'bar' as const,
-				data: data.map((d) => ({ ...d, quantity: d.quantity, cost: String(d.cost) })),
+				data: data.map((d) => ({
+					...d,
+					quantity: d.quantity,
+					cost: String(d.cost),
+					unit: d.unit ?? '',
+					reason: d.reason ?? undefined,
+				})),
 				summary: {
 					total: String(totalQty),
 					average: String(data.length > 0 ? totalQty / data.length : 0),

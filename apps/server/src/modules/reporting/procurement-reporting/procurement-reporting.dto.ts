@@ -37,7 +37,7 @@ export const TransferDto = z.object({
 	toLocation: zp.str,
 	materialId: zp.num,
 	materialName: zp.str,
-	quantity: zp.num,
+	qty: zp.num,
 	unitCost: zp.decimal,
 	totalCost: zp.decimal,
 	status: zp.str,

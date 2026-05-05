@@ -8,7 +8,7 @@ import { usersTable } from '@/db/schema'
 
 import { resolveAudit } from '@/lib/utils/audit-resolver'
 import type { RelationMap } from '@/lib/utils/relation-map'
-import type { AuditResolved } from '@/lib/validation'
+import type { AuditResolved } from '@ikki/api-contract'
 
 import type { LocationDto, LocationServiceModule } from '@/modules/location'
 

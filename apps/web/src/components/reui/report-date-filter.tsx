@@ -1,23 +1,27 @@
-import { DatePicker } from '@/components/ui/date-picker'
-
 interface DateRange {
 	dateFrom: Date
 	dateTo: Date
 }
 
+function toInputDate(d: Date): string {
+	return d.toISOString().slice(0, 10)
+}
+
 export function ReportDateFilter({ dateFrom, dateTo, onChange }: DateRange & { onChange: (range: DateRange) => void }) {
 	return (
 		<div className="flex items-center gap-3">
-			<DatePicker
-				date={dateFrom}
-				onDateChange={(date) => date && onChange({ dateFrom: date, dateTo })}
-				placeholder="Dari tanggal"
+			<input
+				type="date"
+				value={toInputDate(dateFrom)}
+				onChange={(e) => onChange({ dateFrom: new Date(e.target.value), dateTo })}
+				className="rounded-md border px-3 py-1.5 text-sm"
 			/>
-			<span className="text-muted-foreground">s.d.</span>
-			<DatePicker
-				date={dateTo}
-				onDateChange={(date) => date && onChange({ dateFrom, dateTo: date })}
-				placeholder="Sampai tanggal"
+			<span className="text-muted-foreground text-sm">s.d.</span>
+			<input
+				type="date"
+				value={toInputDate(dateTo)}
+				onChange={(e) => onChange({ dateFrom, dateTo: new Date(e.target.value) })}
+				className="rounded-md border px-3 py-1.5 text-sm"
 			/>
 		</div>
 	)

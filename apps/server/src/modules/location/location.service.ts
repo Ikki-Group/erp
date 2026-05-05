@@ -7,7 +7,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { locationsTable } from '@/db/schema'
 
 import { RelationMap } from '@/lib/utils/relation-map'
-import type { RecordId } from '@/lib/validation'
+import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './location.dto'
 import { LocationMasterRepo } from './location.repo'

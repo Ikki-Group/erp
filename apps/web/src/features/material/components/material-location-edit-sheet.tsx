@@ -76,9 +76,9 @@ function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose
 	const form = useAppForm({
 		...configFopts,
 		defaultValues: {
-			minStock: data.minStock,
-			maxStock: data.maxStock,
-			reorderPoint: data.reorderPoint,
+			minStock: Number(data.minStock),
+			maxStock: data.maxStock ? Number(data.maxStock) : null,
+			reorderPoint: Number(data.reorderPoint),
 		},
 		onSubmit: async ({ value }) => {
 			const promise = updateConfig.mutateAsync({ body: { id: data.id, ...value } })
@@ -110,11 +110,15 @@ function ConfigForm({ data, onClose }: { data: MaterialLocationStockDto; onClose
 					</div>
 					<div className="rounded-md border p-2.5">
 						<p className="text-xs text-muted-foreground">Harga Rata-rata</p>
-						<p className="text-sm font-semibold">{data.currentAvgCost.toLocaleString('id-ID')}</p>
+						<p className="text-sm font-semibold">
+							{Number(data.currentAvgCost).toLocaleString('id-ID')}
+						</p>
 					</div>
 					<div className="rounded-md border p-2.5">
 						<p className="text-xs text-muted-foreground">Nilai</p>
-						<p className="text-sm font-semibold">{data.currentValue.toLocaleString('id-ID')}</p>
+						<p className="text-sm font-semibold">
+							{Number(data.currentValue).toLocaleString('id-ID')}
+						</p>
 					</div>
 				</div>
 			</div>

@@ -46,7 +46,7 @@ export const LocationAssignMemberDialog = createCallable<LocationAssignMemberDia
 
 		// 1. Fetch users
 		const { data: usersData, isLoading: isLoadingUsers } = useQuery(
-			userApi.list.query({ page: 1, limit: 10, q: debouncedSearch || undefined, isActive: true }),
+			userApi.list.query({ page: 1, limit: 10, q: debouncedSearch || undefined, isActive: 'true' }),
 		)
 
 		// 2. Fetch roles

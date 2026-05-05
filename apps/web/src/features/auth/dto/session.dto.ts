@@ -1,5 +1,3 @@
-import z from 'zod'
-
 import { z, zp, zc } from '@ikki/api-contract/validation'
 
 export const SessionDto = z.object({

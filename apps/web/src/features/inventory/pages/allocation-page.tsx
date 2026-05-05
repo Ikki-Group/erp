@@ -168,7 +168,9 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 		ch.accessor('currentAvgCost', {
 			header: 'Harga Rata-rata',
 			cell: ({ row }) => (
-				<span className="tabular-nums">{row.original.currentAvgCost.toLocaleString('id-ID')}</span>
+				<span className="tabular-nums">
+					{Number(row.original.currentAvgCost).toLocaleString('id-ID')}
+				</span>
 			),
 			enableSorting: false,
 			size: 140,
@@ -177,7 +179,7 @@ function StockTable({ locationId, locationName }: { locationId: number; location
 			header: 'Nilai Stok',
 			cell: ({ row }) => (
 				<span className="tabular-nums font-medium">
-					{row.original.currentValue.toLocaleString('id-ID')}
+					{Number(row.original.currentValue).toLocaleString('id-ID')}
 				</span>
 			),
 			enableSorting: false,

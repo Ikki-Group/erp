@@ -43,7 +43,7 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
 										</div>
 										<h3 className="text-center font-semibold">{product.name}</h3>
 										<p className="text-center text-sm text-muted-foreground">
-											Rp {product.basePrice?.toLocaleString('id-ID') || '0'}
+											Rp {Number(product.basePrice).toLocaleString('id-ID') || '0'}
 										</p>
 									</div>
 								</CardContent>

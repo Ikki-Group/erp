@@ -40,23 +40,23 @@ export class BusinessInsightsService {
 
 			const cogsRows = await this.db
 				.select({
-					date: purchaseOrdersTable.date,
-					cogs: sql<number>`COALESCE(SUM(${purchaseOrderItemsTable.totalAmount}), 0)`,
+					date: purchaseOrdersTable.transactionDate,
+					cogs: sql<number>`COALESCE(SUM(${purchaseOrderItemsTable.subtotal}), 0)`,
 				})
 				.from(purchaseOrdersTable)
 				.innerJoin(
 					purchaseOrderItemsTable,
-					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.purchaseOrderId),
+					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.orderId),
 				)
 				.where(
 					and(
-						gte(purchaseOrdersTable.date, query.dateFrom),
-						lte(purchaseOrdersTable.date, query.dateTo),
+						gte(purchaseOrdersTable.transactionDate, query.dateFrom),
+						lte(purchaseOrdersTable.transactionDate, query.dateTo),
 						query.locationId ? eq(purchaseOrdersTable.locationId, query.locationId) : undefined,
 					),
 				)
-				.groupBy(purchaseOrdersTable.date)
-				.orderBy(purchaseOrdersTable.date)
+				.groupBy(purchaseOrdersTable.transactionDate)
+				.orderBy(purchaseOrdersTable.transactionDate)
 
 			const cogsMap = new Map(cogsRows.map((r) => [r.date.toISOString().slice(0, 10), r.cogs]))
 			const data = revenueRows.map((r) => {
@@ -74,7 +74,6 @@ export class BusinessInsightsService {
 			})
 
 			const totalRevenue = data.reduce((s, d) => s + Number(d.revenue), 0)
-			const totalProfit = data.reduce((s, d) => s + Number(d.profit), 0)
 			return {
 				chartType: 'bar' as const,
 				data,
@@ -99,7 +98,7 @@ export class BusinessInsightsService {
 					locationName: locationsTable.name,
 					totalSales: sql<number>`COUNT(${salesOrdersTable.id})`,
 					totalRevenue: sql<number>`COALESCE(SUM(${salesOrdersTable.totalAmount}), 0)`,
-					totalCost: sql<number>`COALESCE(SUM(${purchaseOrderItemsTable.totalAmount}), 0)`,
+					totalCost: sql<number>`COALESCE(SUM(${purchaseOrderItemsTable.subtotal}), 0)`,
 				})
 				.from(locationsTable)
 				.leftJoin(
@@ -114,13 +113,13 @@ export class BusinessInsightsService {
 					purchaseOrdersTable,
 					and(
 						eq(locationsTable.id, purchaseOrdersTable.locationId),
-						gte(purchaseOrdersTable.date, query.dateFrom),
-						lte(purchaseOrdersTable.date, query.dateTo),
+						gte(purchaseOrdersTable.transactionDate, query.dateFrom),
+						lte(purchaseOrdersTable.transactionDate, query.dateTo),
 					),
 				)
 				.leftJoin(
 					purchaseOrderItemsTable,
-					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.purchaseOrderId),
+					eq(purchaseOrdersTable.id, purchaseOrderItemsTable.orderId),
 				)
 				.where(query.locationId ? eq(locationsTable.id, query.locationId) : undefined)
 				.groupBy(locationsTable.id)
@@ -159,7 +158,7 @@ export class BusinessInsightsService {
 			const cogsRows = await this.db
 				.select({
 					materialId: stockTransactionsTable.materialId,
-					cogs: sql<number>`COALESCE(SUM(${stockTransactionsTable.quantity} * CAST(${stockTransactionsTable.unitCost} AS FLOAT)), 0)`,
+					cogs: sql<number>`COALESCE(SUM(${stockTransactionsTable.qty} * CAST(${stockTransactionsTable.unitCost} AS FLOAT)), 0)`,
 				})
 				.from(stockTransactionsTable)
 				.where(
@@ -175,7 +174,7 @@ export class BusinessInsightsService {
 			const avgInvRows = await this.db
 				.select({
 					materialId: materialLocationsTable.materialId,
-					avgStock: sql<number>`COALESCE(AVG(${materialLocationsTable.currentStock}), 0)`,
+					avgStock: sql<number>`COALESCE(AVG(${materialLocationsTable.currentQty}), 0)`,
 				})
 				.from(materialLocationsTable)
 				.where(

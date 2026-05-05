@@ -7,7 +7,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { paymentsTable } from '@/db/schema'
 
 import { RelationMap } from '@/lib/utils/relation-map'
-import type { RecordId } from '@/lib/validation'
+import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './payment.dto'
 import { PaymentRepo } from './payment.repo'

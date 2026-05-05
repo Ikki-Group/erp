@@ -4,12 +4,11 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import type { LinkOptions } from '@tanstack/react-router'
 
+import { z } from '@ikki/api-contract/validation'
 import { PlusIcon, ShieldAlertIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
-import z from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { z, zBool } from '@ikki/api-contract/validation'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'
@@ -43,11 +42,13 @@ const FormDto = z.object({
 		.max(32, 'Username maksimal 32 karakter'),
 	password: z.string().min(8, 'Password minimal 8 karakter').optional(),
 	email: z.email('Format email tidak valid'),
-	isRoot: zBool,
-	isActive: zBool,
+	isRoot: z.boolean(),
+	isActive: z.boolean(),
 	pinCode: z.string().nullable(),
 	defaultLocationId: z.number().nullable(),
-	assignments: z.array(z.object({ roleId: z.number(), locationId: z.number(), isDefault: zBool })),
+	assignments: z.array(
+		z.object({ roleId: z.number(), locationId: z.number(), isDefault: z.boolean() }),
+	),
 })
 
 type FormDto = z.infer<typeof FormDto>
@@ -259,7 +260,7 @@ function AssignmentsCard() {
 						<TableBody>
 							<form.AppField name="assignments" mode="array">
 								{(arrayField) =>
-									arrayField.state.value.map((_, i) => (
+									arrayField.state.value.map((_: unknown, i: number) => (
 										<TableRow key={i}>
 											<TableCell>
 												<form.AppField name={`assignments[${i}].locationId`}>

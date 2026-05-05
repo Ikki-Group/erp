@@ -7,7 +7,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
 
-import type { RecordId } from '@/lib/validation'
+import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './customer.dto'
 import { CustomerRepo } from './customer.repo'

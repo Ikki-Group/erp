@@ -59,7 +59,7 @@ const columns = [
 		header: 'Jumlah',
 		cell: ({ row }) => (
 			<span className="font-medium text-right block">
-				Rp {row.original.amount.toLocaleString('id-ID')}
+				Rp {Number(row.original.amount).toLocaleString('id-ID')}
 			</span>
 		),
 	}),

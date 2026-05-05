@@ -75,7 +75,7 @@ export function SummaryPage() {
 						description="Estimasi nilai aset saat ini"
 						icon={<TrendingUpIcon className="text-emerald-500" />}
 						loading={kpiLoading}
-						value={kpi ? `Rp ${kpi.totalStockValue.toLocaleString('id-ID')}` : '0'}
+						value={kpi ? `Rp ${Number(kpi.totalStockValue).toLocaleString('id-ID')}` : '0'}
 					/>
 					<KpiCard
 						title="Total Bahan (SKU)"
@@ -186,7 +186,9 @@ const columnDefs = [
 		header: 'Masuk',
 		cell: ({ row }) => {
 			const val =
-				row.original.purchaseQty + row.original.transferInQty + row.original.productionInQty
+				Number(row.original.purchaseQty) +
+				Number(row.original.transferInQty) +
+				Number(row.original.productionInQty)
 			return val > 0 ? (
 				<div className="flex items-center gap-1 text-emerald-600 font-medium tabular-nums">
 					<MoveUpIcon />
@@ -203,10 +205,10 @@ const columnDefs = [
 		header: 'Keluar',
 		cell: ({ row }) => {
 			const val =
-				row.original.sellQty +
-				row.original.usageQty +
-				row.original.transferOutQty +
-				row.original.productionOutQty
+				Number(row.original.sellQty) +
+				Number(row.original.usageQty) +
+				Number(row.original.transferOutQty) +
+				Number(row.original.productionOutQty)
 			return val > 0 ? (
 				<div className="flex items-center gap-1 text-rose-600 font-medium tabular-nums">
 					<MoveDownIcon />

@@ -36,7 +36,7 @@ const defaultFormData: PaymentCreateDto = {
 	referenceNo: '',
 	accountId: 0,
 	method: 'cash',
-	amount: 0,
+	amount: '',
 	notes: '',
 }
 
@@ -166,7 +166,7 @@ export function PaymentFormDialog({ open, onOpenChange, onSuccess }: PaymentForm
 							type="number"
 							placeholder="Masukkan jumlah"
 							value={formData.amount || ''}
-							onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+							onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
 							required
 						/>
 					</div>
