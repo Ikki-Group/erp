@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENUMS ---------------------------------- */
 

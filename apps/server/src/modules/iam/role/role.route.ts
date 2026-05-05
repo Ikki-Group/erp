@@ -8,7 +8,7 @@ import {
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import * as dto from './role.dto'
 import type { RoleService } from './role.service'

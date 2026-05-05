@@ -1,11 +1,11 @@
 import {
+	z,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zp,
 } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'

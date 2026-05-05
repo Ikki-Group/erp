@@ -37,6 +37,11 @@ export {
 	stockAdjustmentsTable,
 	stockAdjustmentItemsTable,
 } from './inventory'
+export {
+	stockTransfersTable,
+	stockTransferItemsTable,
+	transferStatusEnum,
+} from './inventory_transfer'
 export { locationsTable } from './location'
 export {
 	materialCategoriesTable,

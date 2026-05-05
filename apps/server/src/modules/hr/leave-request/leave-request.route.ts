@@ -3,7 +3,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@ikki/api-contract/validation'
 
 import * as dto from './leave-request.dto'
 import type { LeaveRequestService } from './leave-request.service'

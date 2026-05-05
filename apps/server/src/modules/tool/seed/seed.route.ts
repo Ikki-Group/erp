@@ -2,7 +2,7 @@ import Elysia from 'elysia'
 
 import { res } from '@/core/http/response'
 
-import { zp, createSuccessResponseSchema } from '@/lib/validation'
+import { zp, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import type { SeedService } from './seed.service'
 

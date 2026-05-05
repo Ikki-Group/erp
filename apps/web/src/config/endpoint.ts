@@ -212,6 +212,17 @@ const reporting = {
 		topCustomers: 'reporting/crm/top-customers',
 		loyaltyPoints: 'reporting/crm/loyalty-points',
 	},
+	procurement: {
+		purchases: 'reporting/procurement/purchases',
+		suppliers: 'reporting/procurement/suppliers',
+		transfers: 'reporting/procurement/transfers',
+		costs: 'reporting/procurement/costs',
+	},
+	insights: {
+		profitability: 'reporting/insights/profitability',
+		location: 'reporting/insights/location',
+		turnover: 'reporting/insights/turnover',
+	},
 	payment: {
 		byMethod: 'reporting/payment/by-method',
 		overTime: 'reporting/payment/over-time',

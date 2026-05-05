@@ -1,15 +1,14 @@
-import Elysia from 'elysia'
-import z from 'zod'
-
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
 import {
+	z,
 	zc,
 	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
+import Elysia from 'elysia'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
 
 import {
 	MaterialLocationAssignDto,

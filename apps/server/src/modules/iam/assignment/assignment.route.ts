@@ -3,7 +3,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { createPaginatedResponseSchema, successNoDataSchema } from '@/lib/validation'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@ikki/api-contract/validation'
 
 import * as dto from './assignment.dto'
 import type { UserAssignmentService } from './assignment.service'

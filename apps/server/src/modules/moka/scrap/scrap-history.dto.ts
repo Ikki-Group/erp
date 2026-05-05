@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zc, zq } from '@/lib/validation'
+import { z, zc, zq } from '@ikki/api-contract/validation'
 
 import {
 	MokaProvider,

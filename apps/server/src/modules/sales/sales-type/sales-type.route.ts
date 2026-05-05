@@ -3,7 +3,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	SalesTypeDto,

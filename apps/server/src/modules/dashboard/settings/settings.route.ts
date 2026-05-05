@@ -2,7 +2,7 @@ import Elysia from 'elysia'
 
 import { res } from '@/core/http/response'
 
-import { createSuccessResponseSchema } from '@/lib/validation'
+import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import { SettingsSummaryDto } from './settings.dto'
 import type { SettingsService } from './settings.service'

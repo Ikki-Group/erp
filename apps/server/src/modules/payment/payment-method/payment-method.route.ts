@@ -1,15 +1,14 @@
-import { Elysia } from 'elysia'
-import { z } from 'zod'
-
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
 import {
+	z,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
+import { Elysia } from 'elysia'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
 
 import * as dto from './payment-method.dto'
 import type { PaymentMethodConfigService } from './payment-method.service'
