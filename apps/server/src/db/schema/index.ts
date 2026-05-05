@@ -87,11 +87,6 @@ export { paymentMethodConfigsTable } from './payment_method_config'
 export { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
 export { auditLogsTable, auditActionEnum } from './audit'
 export {
-	stockTransfersTable,
-	stockTransferItemsTable,
-	transferStatusEnum,
-} from './inventory_transfer'
-export {
 	attendancesTable,
 	payrollAdjustmentsTable,
 	payrollBatchesTable,
