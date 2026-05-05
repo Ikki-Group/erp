@@ -10,9 +10,9 @@ export const PurchaseDto = z.object({
 	supplierName: zp.str,
 	materialId: zp.num,
 	materialName: zp.str,
-	quantity: zp.num,
+	qty: zp.num,
 	unitPrice: zp.decimal,
-	subtotal: zp.decimal,
+	totalAmount: zp.decimal,
 	status: zp.str,
 })
 export type PurchaseDto = z.infer<typeof PurchaseDto>
@@ -50,7 +50,7 @@ export const CostTrendDto = z.object({
 	materialName: zp.str,
 	date: zp.date,
 	unitPrice: zp.decimal,
-	quantity: zp.num,
+	qty: zp.num,
 })
 export type CostTrendDto = z.infer<typeof CostTrendDto>
 

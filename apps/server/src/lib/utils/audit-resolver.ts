@@ -6,7 +6,7 @@ import { cacheClient } from '@/core/cache'
 import { db } from '@/db'
 import { usersTable } from '@/db/schema'
 
-import type { AuditResolved, UserSnippet } from '@ikki/api-contract/validation'
+import type { AuditResolved, UserSnippet } from '@ikki/api-contract'
 
 const cache = cacheClient.namespace('system.audit')
 
