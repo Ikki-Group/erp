@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createSuccessResponseSchema } from '@/lib/validation'
+import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	SalesReportRequestDto,
@@ -18,6 +18,9 @@ import {
 	InventoryMovementChartResponseDto,
 	StockValueResponseDto,
 	LowStockResponseDto,
+	ConsumptionResponseDto,
+	OpnameVarianceResponseDto,
+	WasteResponseDto,
 	CrmReportRequestDto,
 	CustomerGrowthChartResponseDto,
 	CustomerByTierResponseDto,
@@ -27,6 +30,15 @@ import {
 	PaymentByMethodResponseDto,
 	PaymentOverTimeResponseDto,
 	PaymentByAccountResponseDto,
+	ProcurementReportRequestDto,
+	PurchaseReportResponseDto,
+	SupplierReportResponseDto,
+	TransferReportResponseDto,
+	CostReportResponseDto,
+	BusinessInsightsRequestDto,
+	ProfitabilityResponseDto,
+	LocationPerformanceResponseDto,
+	InventoryTurnoverResponseDto,
 } from '../dto'
 
 export const salesReportApi = {
@@ -102,6 +114,24 @@ export const inventoryReportApi = {
 		params: InventoryReportRequestDto,
 		result: createSuccessResponseSchema(LowStockResponseDto),
 	}),
+	consumption: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.consumption,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(ConsumptionResponseDto),
+	}),
+	opname: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.opname,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(OpnameVarianceResponseDto),
+	}),
+	waste: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.inventory.waste,
+		params: InventoryReportRequestDto,
+		result: createSuccessResponseSchema(WasteResponseDto),
+	}),
 }
 
 export const paymentReportApi = {
@@ -149,5 +179,53 @@ export const crmReportApi = {
 		url: endpoint.reporting.crm.loyaltyPoints,
 		params: CrmReportRequestDto,
 		result: createSuccessResponseSchema(LoyaltyPointsResponseDto),
+	}),
+}
+
+export const procurementReportApi = {
+	purchases: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.procurement.purchases,
+		params: ProcurementReportRequestDto,
+		result: createSuccessResponseSchema(PurchaseReportResponseDto),
+	}),
+	suppliers: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.procurement.suppliers,
+		params: ProcurementReportRequestDto,
+		result: createSuccessResponseSchema(SupplierReportResponseDto),
+	}),
+	transfers: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.procurement.transfers,
+		params: ProcurementReportRequestDto,
+		result: createSuccessResponseSchema(TransferReportResponseDto),
+	}),
+	costs: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.procurement.costs,
+		params: ProcurementReportRequestDto,
+		result: createSuccessResponseSchema(CostReportResponseDto),
+	}),
+}
+
+export const insightsReportApi = {
+	profitability: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.insights.profitability,
+		params: BusinessInsightsRequestDto,
+		result: createSuccessResponseSchema(ProfitabilityResponseDto),
+	}),
+	location: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.insights.location,
+		params: BusinessInsightsRequestDto,
+		result: createSuccessResponseSchema(LocationPerformanceResponseDto),
+	}),
+	turnover: apiFactory({
+		method: 'get',
+		url: endpoint.reporting.insights.turnover,
+		params: BusinessInsightsRequestDto,
+		result: createSuccessResponseSchema(InventoryTurnoverResponseDto),
 	}),
 }

@@ -3,6 +3,8 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
+import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
+
 import {
 	SalesTypeDto,
 	SalesTypeFilterDto,
@@ -10,7 +12,6 @@ import {
 	SalesTypeUpdateDto,
 } from './sales-type.dto'
 import type { SalesTypeService } from './sales-type.service'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initSalesTypeRoute(service: SalesTypeService) {
 	return new Elysia({ prefix: '/sales-type' })

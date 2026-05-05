@@ -1,8 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-
-import { CacheService, type CacheClient } from '@/lib/cache'
 
 import type { MokaProvider, MokaScrapType } from '../shared.dto'
 import * as dto from './configuration.dto'

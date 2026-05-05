@@ -1,8 +1,7 @@
 import { Elysia } from 'elysia'
 
+import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
-
-import type { CacheClient } from '@/lib/cache'
 
 import { CompanySettingsRepo } from './company-settings.repo'
 import { initCompanySettingsRoute } from './company-settings.route'

@@ -1,6 +1,4 @@
-import z from 'zod'
-
-import { zp, zc, zq } from '@/lib/validation'
+import { z, zp, zc, zq } from '@ikki/api-contract/validation'
 
 import { ProductCategoryDto } from './product-category.dto'
 
@@ -110,7 +108,7 @@ export const ProductVariantMutationDto = z.object({
 	name: zp.str,
 	sku: zp.str.optional(),
 	isDefault: zp.bool.optional().default(false),
-	basePrice: zp.decimal.optional().default(0),
+	basePrice: zp.decimal.optional().default('0'),
 	prices: VariantPriceMutationDto.array(),
 })
 

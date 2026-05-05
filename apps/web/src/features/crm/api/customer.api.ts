@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@/lib/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zc } from '@ikki/api-contract/validation'
 
 import {
 	CustomerDto,

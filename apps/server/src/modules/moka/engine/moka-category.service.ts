@@ -16,7 +16,7 @@ export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<Mo
 			return parsed.results
 		} catch (error: unknown) {
 			const msg = error instanceof Error ? error.message : String(error)
-			this.logger.error({ err: msg }, 'Failed to fetch Moka categories')
+			this.logger.error('Failed to fetch Moka categories', { error: msg })
 			throw error
 		}
 	}

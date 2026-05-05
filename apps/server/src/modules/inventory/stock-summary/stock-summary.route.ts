@@ -1,8 +1,9 @@
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { z, zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	GenerateSummaryDto,
@@ -12,7 +13,6 @@ import {
 	StockSummarySelectDto,
 } from './stock-summary.dto'
 import type { StockSummaryService } from './stock-summary.service'
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@/lib/validation'
 
 export function initStockSummaryRoute(s: StockSummaryService) {
 	return (

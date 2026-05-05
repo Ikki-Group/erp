@@ -1,5 +1,11 @@
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import { Elysia } from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -12,12 +18,6 @@ import {
 	SalesOrderVoidDto,
 } from './sales-order.dto'
 import type { SalesOrderService } from './sales-order.service'
-import {
-	zc,
-	zq,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
 
 export function initSalesOrderRoute(service: SalesOrderService) {
 	return new Elysia({ prefix: '/order' })

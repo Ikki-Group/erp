@@ -1,8 +1,6 @@
-import { z } from 'zod'
+import { z, zc, zp } from '@ikki/api-contract/validation'
 
 import { UserDetailDto } from '@/modules/iam/user/user.dto'
-
-import { zc, zp } from '@/lib/validation'
 
 export const LoginDto = z.object({
 	identifier: zc.strTrim.min(1),

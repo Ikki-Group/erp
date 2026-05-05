@@ -1,3 +1,9 @@
+import {
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zc,
+	zq,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -5,12 +11,6 @@ import { res } from '@/core/http/response'
 
 import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import type { AccountService } from './account.service'
-import {
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-	zc,
-	zq,
-} from '@/lib/validation'
 
 export function initAccountRoute(s: AccountService) {
 	return new Elysia({ prefix: '/account' })

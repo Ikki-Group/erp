@@ -3,9 +3,10 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
+import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
+
 import { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard.dto'
 import type { StockDashboardService } from './stock-dashboard.service'
-import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initStockDashboardRoute(s: StockDashboardService) {
 	return new Elysia({ prefix: '/dashboard' }).use(authPluginMacro).get(

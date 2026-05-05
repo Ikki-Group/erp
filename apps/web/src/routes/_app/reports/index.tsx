@@ -1,12 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 
-import {
-	ArchiveIcon,
-	BarChart3Icon,
-	TrendingUpIcon,
-	TruckIcon,
-	WalletIcon,
-} from 'lucide-react'
+import { ArchiveIcon, BarChart3Icon, TrendingUpIcon, TruckIcon, WalletIcon } from 'lucide-react'
 
 import { Page } from '@/components/layout/page'
 

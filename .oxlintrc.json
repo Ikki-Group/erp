@@ -9,7 +9,7 @@
 		"import",
 		"jsdoc",
 		"node",
-		"promise",
+		"promise"
 	],
 	"categories": {
 		"correctness": "error",
@@ -80,7 +80,7 @@
 				"typescript/no-misused-promises": "off",
 				"no-negated-condition": "off",
 				"typescript/prefer-readonly-parameter-types": "off",
-				"typescript/strict-void-return": "off",
+				"typescript/strict-void-return": "off"
 			}
 		},
 		{

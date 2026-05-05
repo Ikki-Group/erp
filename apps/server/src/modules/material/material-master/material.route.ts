@@ -1,17 +1,17 @@
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from './material.dto'
 import type { MaterialService } from './material.service'
-import {
-	zc,
-	zq,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
 
 export function initMaterialMasterRoute(s: MaterialService) {
 	return new Elysia()

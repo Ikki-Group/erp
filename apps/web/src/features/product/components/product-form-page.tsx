@@ -154,7 +154,7 @@ function mergeVariantDialogValues(
 			.map((variant) => [variant.id as number, variant]),
 	)
 
-	return values.variants.map((variant, index) => {
+	return values.variants.map((variant: any, index: number) => {
 		const existing = existingById.get(variant.id)
 		const fallback = currentVariants.length === 1 && index === 0 ? currentVariants[0] : undefined
 		const source = existing ?? fallback

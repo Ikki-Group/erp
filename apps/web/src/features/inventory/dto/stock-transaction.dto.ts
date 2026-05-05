@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zp, zc, zq } from '@/lib/validation'
+import { z, zp, zc, zq } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

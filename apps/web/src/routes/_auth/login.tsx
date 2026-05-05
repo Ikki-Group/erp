@@ -2,13 +2,11 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
+import { z, zc } from '@ikki/api-contract/validation'
 import { ArrowRightIcon, CheckCircle2Icon, CommandIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
-import { z } from 'zod'
 
 import { useAppState } from '@/hooks/use-app-state'
-
-import { zEmail, zPassword } from '@/lib/validation'
 
 import { useAppForm } from '@/components/form'
 
@@ -82,8 +80,8 @@ function BrandingSection() {
 }
 
 const loginSchema = z.object({
-	identifier: zEmail,
-	password: zPassword,
+	identifier: zc.email,
+	password: zc.password,
 })
 
 function LoginForm() {

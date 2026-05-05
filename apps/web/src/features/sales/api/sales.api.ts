@@ -1,9 +1,14 @@
-import { z } from 'zod'
+import {
+	z,
+	zc,
+	zq,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@ikki/api-contract/validation'
 
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, zq, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
 
 import {
 	SalesOrderAddBatchDto,

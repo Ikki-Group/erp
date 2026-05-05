@@ -19,9 +19,9 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 
-import type { MaterialCategoryDto } from '../dto'
 import { materialCategoryApi } from '../api'
 import { MaterialCategoryFormDialog } from '../components/material-category-form-dialog'
+import type { MaterialCategoryDto } from '../dto'
 
 function getColumns(
 	onRemove: (item: MaterialCategoryDto) => Promise<void>,
@@ -130,7 +130,10 @@ export function CategoryListPage() {
 					isLoading={isLoading}
 					recordCount={data?.meta.total ?? 0}
 					toolbar={
-						<DataGridFilter ds={ds} options={[{ type: 'search', placeholder: 'Cari kategori...' }]} />
+						<DataGridFilter
+							ds={ds}
+							options={[{ type: 'search', placeholder: 'Cari kategori...' }]}
+						/>
 					}
 					action={
 						<Button

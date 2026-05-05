@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
-
-import { CacheService, type CacheClient } from '@/lib/cache'
 
 import type { AccountService, GeneralLedgerService } from '@/modules/finance'
 
 import type {
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
+	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 } from './payroll.dto'
@@ -30,6 +30,15 @@ export class PayrollService {
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
+
+	async handleBatchList(filter: PayrollBatchFilterDto) {
+		const { page, limit } = filter
+		return record('PayrollService.handleBatchList', async () => {
+			const { data, count } = await this.repo.listBatches(filter)
+			const totalPages = Math.ceil(count / limit)
+			return { data, meta: { total: count, totalPages, page, limit } }
+		})
+	}
 
 	async handleBatchCreate(data: PayrollBatchCreateDto, actorId: number): Promise<PayrollBatchDto> {
 		return record('PayrollService.handleBatchCreate', async () => {

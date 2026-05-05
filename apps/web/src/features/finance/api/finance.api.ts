@@ -1,9 +1,8 @@
-import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@/lib/validation'
+import { z, zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	AccountCreateDto,

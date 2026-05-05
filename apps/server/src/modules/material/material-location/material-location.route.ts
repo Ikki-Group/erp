@@ -1,5 +1,11 @@
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
@@ -13,12 +19,6 @@ import {
 	MaterialLocationWithLocationDto,
 } from './material-location.dto'
 import type { MaterialLocationService } from './material-location.service'
-import {
-	zc,
-	zq,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
 
 export function initMaterialLocationRoute(s: MaterialLocationService) {
 	return new Elysia({ prefix: '/location' })

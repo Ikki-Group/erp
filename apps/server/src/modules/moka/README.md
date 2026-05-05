@@ -7,6 +7,7 @@ This module handles **third-party integration** with Moka POS system for syncing
 ## Architecture Pattern
 
 This is an **integration module** that follows the **Ports & Adapters** pattern:
+
 - **Configuration**: Stores Moka credentials (email, password) per outlet
 - **Sync Cursor**: Tracks synchronization state for incremental updates
 - **Transformation**: Converts Moka data format to internal domain format
@@ -15,6 +16,7 @@ This is an **integration module** that follows the **Ports & Adapters** pattern:
 ## Integration Scope
 
 Based on the Moka development plan:
+
 - **Product Sync**: Manual trigger - fetches products and categories from Moka
 - **Sales Sync**: Cronjob - automatically syncs sales transactions
 - **Applies to**: Locations/outlets that have products configured
@@ -30,13 +32,16 @@ Based on the Moka development plan:
 ## Special Architecture Notes
 
 ### Direct DB Access
+
 The `MokaTransformationService` receives `db` directly (not through repos) because:
+
 - It performs bulk data transformation and insertion
 - May need to write to multiple domain tables (finance accounts, journals)
 - Transformation logic is complex and benefits from direct transaction control
 - This is acceptable for integration layers that are boundary adapters
 
 ### Dependencies
+
 - Depends on `FinanceServiceModule` for account/journal operations
 - Depends on external `Logger` for sync operation logging
 

@@ -1,7 +1,7 @@
-import { z } from 'zod'
+
+import { z, zp } from '@ikki/api-contract/validation'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
-import { zp } from '@/lib/validation'
 
 /** Customer growth data */
 export const CustomerGrowthDto = z.object({

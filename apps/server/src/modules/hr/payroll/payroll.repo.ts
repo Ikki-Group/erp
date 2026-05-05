@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-redundant-type-constituents */
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, isNull, sql } from 'drizzle-orm'
 
 import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/core/database'
 
@@ -14,6 +14,7 @@ import {
 import type {
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
+	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
 } from './payroll.dto'
@@ -53,6 +54,35 @@ export class PayrollRepo {
 			.from(payrollItemsTable)
 			.where(eq(payrollItemsTable.id, id))
 		return result
+	}
+
+	async listBatches(filter: PayrollBatchFilterDto) {
+		const { page, limit, q, status } = filter
+		const offset = (page - 1) * limit
+
+		const conditions = [isNull(payrollBatchesTable.deletedAt)]
+		if (status) conditions.push(eq(payrollBatchesTable.status, status))
+		if (q) conditions.push(sql`LOWER(${payrollBatchesTable.name}) LIKE ${`%${q.toLowerCase()}%`}`)
+
+		const whereClause = and(...conditions)
+
+		const [data, count] = await Promise.all([
+			this.db
+				.select()
+				.from(payrollBatchesTable)
+				.where(whereClause)
+				.orderBy(
+					sql`${payrollBatchesTable.periodYear} DESC, ${payrollBatchesTable.periodMonth} DESC`,
+				)
+				.limit(limit)
+				.offset(offset),
+			this.db
+				.select({ count: sql<number>`cast(count(*) as int)` })
+				.from(payrollBatchesTable)
+				.where(whereClause),
+		])
+
+		return { data, count: count[0]?.count ?? 0 }
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */

@@ -33,7 +33,7 @@ const FormDto = z.object({
 		.array(
 			z.object({
 				materialId: z.number().min(1, 'Bahan baku wajib dipilih'),
-				qty: z.number().refine((v) => v !== 0, 'Kuantitas tidak boleh nol'),
+				qty: z.number().refine((v: number) => v !== 0, 'Kuantitas tidak boleh nol'),
 				unitCost: z.number().nonnegative().optional(),
 			}),
 		)

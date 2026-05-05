@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
-import type { RecordId } from '@/lib/validation'
+import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './customer.dto'
 import { CustomerRepo } from './customer.repo'

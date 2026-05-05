@@ -1,14 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
 import { merge } from 'es-toolkit'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import * as core from '@/core/database'
-import { resolveAudit } from '@/core/utils/audit-resolver'
-import type { RelationMap } from '@/core/utils/relation-map'
 
 import { usersTable } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
-import type { AuditResolved } from '@/lib/validation'
+import { resolveAudit } from '@/lib/utils/audit-resolver'
+import type { RelationMap } from '@/lib/utils/relation-map'
+import type { AuditResolved } from '@ikki/api-contract'
 
 import type { LocationDto, LocationServiceModule } from '@/modules/location'
 

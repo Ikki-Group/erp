@@ -8,7 +8,7 @@ import {
 	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import { ProductFilterDto, ProductMutationDto, ProductSelectDto, ProductUpdateDto } from '../dto'
 

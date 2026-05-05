@@ -8,7 +8,7 @@ import {
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 

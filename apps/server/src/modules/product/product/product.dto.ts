@@ -1,7 +1,6 @@
-import { z } from 'zod'
+import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { ProductCategoryDto } from '../product-category/product-category.dto'
-import { zc, zp, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

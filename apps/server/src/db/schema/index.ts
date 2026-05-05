@@ -37,6 +37,11 @@ export {
 	stockAdjustmentsTable,
 	stockAdjustmentItemsTable,
 } from './inventory'
+export {
+	stockTransfersTable,
+	stockTransferItemsTable,
+	transferStatusEnum,
+} from './inventory_transfer'
 export { locationsTable } from './location'
 export {
 	materialCategoriesTable,
@@ -81,11 +86,6 @@ export { paymentsTable, paymentInvoicesTable } from './finance_payment'
 export { paymentMethodConfigsTable } from './payment_method_config'
 export { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
 export { auditLogsTable, auditActionEnum } from './audit'
-export {
-	stockTransfersTable,
-	stockTransferItemsTable,
-	transferStatusEnum,
-} from './inventory_transfer'
 export {
 	attendancesTable,
 	payrollAdjustmentsTable,

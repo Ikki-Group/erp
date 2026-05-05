@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type { JournalEntryInput } from './general-ledger.repo'
 import { GeneralLedgerRepo as GLRepo } from './general-ledger.repo'

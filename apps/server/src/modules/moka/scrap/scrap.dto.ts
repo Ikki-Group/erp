@@ -1,7 +1,7 @@
-import { z } from 'zod'
+
+import { z, zp } from '@ikki/api-contract/validation'
 
 import { MokaScrapType, MokaSyncTriggerMode } from '../shared.dto'
-import { zp } from '@/lib/validation'
 
 /* ─── Category Raw DTOs ────────────────────────────────────────────────────── */
 

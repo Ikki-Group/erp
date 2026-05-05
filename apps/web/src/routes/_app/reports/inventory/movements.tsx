@@ -6,6 +6,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { ChartCard } from '@/components/blocks/data-display/chart-card'
 import { Page } from '@/components/layout/page'
 
+import { Card } from '@/components/ui/card'
 import {
 	ChartContainer,
 	ChartLegend,
@@ -13,7 +14,6 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '@/components/ui/chart'
-import { Card } from '@/components/ui/card'
 
 import { inventoryReportApi } from '@/features/reporting'
 import type { InventoryReportRequestDto } from '@/features/reporting'
@@ -32,9 +32,7 @@ const chartConfig = {
 function InventoryMovementsReport() {
 	const [filter, setFilter] = useReportDateRange()
 
-	const { data } = useQuery(
-		inventoryReportApi.movements.query(filter as InventoryReportRequestDto),
-	)
+	const { data } = useQuery(inventoryReportApi.movements.query(filter as InventoryReportRequestDto))
 
 	const chartData = data?.data?.data ?? []
 
@@ -60,13 +58,34 @@ function InventoryMovementsReport() {
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={(v) => new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+								tickFormatter={(v) =>
+									new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+								}
 							/>
 							<YAxis hide />
 							<ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-							<Area dataKey="quantityIn" type="monotone" stroke="oklch(var(--chart-2))" fill="transparent" strokeWidth={2} />
-							<Area dataKey="quantityOut" type="monotone" stroke="oklch(var(--chart-1))" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
-							<Area dataKey="netMovement" type="monotone" stroke="oklch(var(--primary))" fill="transparent" strokeWidth={2} />
+							<Area
+								dataKey="quantityIn"
+								type="monotone"
+								stroke="oklch(var(--chart-2))"
+								fill="transparent"
+								strokeWidth={2}
+							/>
+							<Area
+								dataKey="quantityOut"
+								type="monotone"
+								stroke="oklch(var(--chart-1))"
+								fill="transparent"
+								strokeWidth={2}
+								strokeDasharray="5 5"
+							/>
+							<Area
+								dataKey="netMovement"
+								type="monotone"
+								stroke="oklch(var(--primary))"
+								fill="transparent"
+								strokeWidth={2}
+							/>
 							<ChartLegend content={<ChartLegendContent />} />
 						</AreaChart>
 					</ChartContainer>

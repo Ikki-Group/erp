@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zc, zp, zq } from '@/lib/validation'
+import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /** Audit action types */
 export const AuditActionDto = z.enum([

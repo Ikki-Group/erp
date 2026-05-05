@@ -1,33 +1,59 @@
-import pino, { type TransportTargetOptions } from 'pino'
+import {
+	configure,
+	getLogger as getLogtapeLogger,
+	getConsoleSink,
+	type Logger,
+} from '@logtape/logtape'
+import { getOpenTelemetrySink } from '@logtape/otel'
 
 import { env } from '@/config/env'
 
-const isDev = env.NODE_ENV === 'development'
+let isConfigured = false
 
-const targets: TransportTargetOptions[] = []
+export async function setupLogger() {
+	if (isConfigured) return
 
-// Standard Output Transport
-if (isDev || env.LOG_PRETTY) {
-	targets.push({
-		target: 'pino-pretty',
-		options: {
-			colorize: true,
-			ignore: 'pid,hostname,req.headers,module,res',
-			translateTime: 'SYS:standard',
+	// const sinks: Record<string, Sink> = {}
+
+	// if (env.LOG_FORMAT === 'pretty') {
+	// 	sinks.console = getPrettyFormatter()
+	// } else {
+	// 	sinks.console = getConsoleSink()
+	// }
+
+	await configure({
+		sinks: {
+			console: getConsoleSink(),
+			main: getConsoleSink(),
+			otel: getOpenTelemetrySink({
+				serviceName: 'logger',
+				otlpExporterConfig: {
+					url: 'https://us-east-1.aws.edge.axiom.co/v1/traces',
+					headers: {
+						Authorization: `Bearer ${env.AXIOM_TOKEN}`,
+						'X-Axiom-Dataset': env.AXIOM_DATASET,
+					},
+				},
+				diagnostics: true,
+			}),
 		},
+		loggers: [
+			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
+			{ category: [], sinks: ['main', 'otel'] },
+		],
 	})
+
+	isConfigured = true
 }
 
-// Axiom Transport
-if (env.AXIOM_TOKEN) {
-	targets.push({
-		target: '@axiomhq/pino',
-		options: { dataset: env.AXIOM_DATASET, token: env.AXIOM_TOKEN },
-	})
+export function getLogger(category: string[]): Logger {
+	if (!isConfigured) {
+		throw new Error('Logger not configured. Call setupLogger() first.')
+	}
+	return getLogtapeLogger([...category])
 }
 
-const transport = pino.transport({ targets })
-
-const logger = pino({ level: env.LOG_LEVEL, timestamp: pino.stdTimeFunctions.isoTime }, transport)
+// Legacy logger for backward compatibility
+const logger = getLogtapeLogger([])
 
 export { logger }

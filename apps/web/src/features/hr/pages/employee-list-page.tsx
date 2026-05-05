@@ -29,7 +29,9 @@ import { Button } from '@/components/ui/button'
 import { employeeApi } from '../api'
 import type { EmployeeDto } from '../dto'
 
-function getEmployeeColumns(onRemove: (employee: EmployeeDto) => Promise<void>): ColumnDef<EmployeeDto>[] {
+function getEmployeeColumns(
+	onRemove: (employee: EmployeeDto) => Promise<void>,
+): ColumnDef<EmployeeDto>[] {
 	return [
 		{
 			accessorKey: 'code',

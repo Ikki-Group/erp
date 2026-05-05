@@ -20,9 +20,9 @@ import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
 
-import type { UomDto } from '../dto'
 import { uomApi } from '../api'
 import { UomFormDialog } from '../components/uom-form-dialog'
+import type { UomDto } from '../dto'
 
 function getColumns(onRemove: (uom: UomDto) => Promise<void>): ColumnDef<UomDto>[] {
 	return [

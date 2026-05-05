@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import jwt from 'jsonwebtoken'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import { logger } from '@/core/logger'
-
-import { CacheService, type CacheClient } from '@/lib/cache'
 
 import type { UserDto } from '@/modules/iam'
 
@@ -80,7 +79,7 @@ export class SessionService {
 
 				return session
 			} catch (error) {
-				logger.error(error, 'Failed to verify session')
+				logger.error('Failed to verify session', { error })
 				return null
 			}
 		})

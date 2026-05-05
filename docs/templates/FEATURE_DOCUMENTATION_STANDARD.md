@@ -10,11 +10,11 @@
 
 Ikki ERP is built for **UMKM F&B operations** with 4 core features that answer critical business questions:
 
-| Question | Feature | Benefit |
-|----------|---------|---------|
-| "How many customers? How much revenue?" | **Sales (POS)** | Fast checkout, real-time sales data |
-| "What does each item cost to make?" | **Production** | Recipe standardization, waste visibility |
-| "What are we spending on suppliers?" | **Purchasing** | Cost control, supplier performance tracking |
+| Question                                | Feature                 | Benefit                                             |
+| --------------------------------------- | ----------------------- | --------------------------------------------------- |
+| "How many customers? How much revenue?" | **Sales (POS)**         | Fast checkout, real-time sales data                 |
+| "What does each item cost to make?"     | **Production**          | Recipe standardization, waste visibility            |
+| "What are we spending on suppliers?"    | **Purchasing**          | Cost control, supplier performance tracking         |
 | "Are we profitable? Which outlet wins?" | **Financial Reporting** | Same-day P&L, location benchmarking, trend analysis |
 
 ---
@@ -64,6 +64,7 @@ Max **2-5 steps** per use case. If more = break into sub-features.
 ## Feature Catalog - What We Have
 
 ### ✅ Foundation (Existing)
+
 - Auth (login, JWT tokens)
 - IAM (role-based access control)
 - Location (multi-outlet management)
@@ -73,6 +74,7 @@ Max **2-5 steps** per use case. If more = break into sub-features.
 - Dashboard (KPI overview)
 
 ### 🚀 Core Operations (Designed Today)
+
 - **Sales (POS)** - Customer transactions, receipts, member discounts
 - **Purchasing** - Supplier orders, cost control, GRN matching
 - **Production** - Recipe standardization, batch costing, waste tracking
@@ -83,18 +85,21 @@ Max **2-5 steps** per use case. If more = break into sub-features.
 ## Phase 2+ Backlog Ideas
 
 ### High Priority (Q3 2026)
+
 - **Auto-Reorder**: Trigger POs when stock falls below threshold (prevents stockouts)
 - **Expense Tracking**: Track non-inventory costs (labor, rent, utilities) for complete P&L
 - **Waste Root Cause**: Deep analysis of spoilage patterns (identify & eliminate 5-10% COGS losses)
 - **Digital Payments**: Accept QR codes, e-wallets GCash, OVO (customer expectation 2026)
 
 ### Medium Priority (Q4 2026)
+
 - **Customer Loyalty**: Track repeat customers, points, tiers (increase retention)
 - **Batch Scheduling**: Optimize when to make items based on demand (reduce waste, labor)
 - **Supplier Comparison UI**: Show quotes from multiple vendors before ordering (cost optimization)
 - **Budget Alerts**: Notify when spending approaches monthly limit (cost control)
 
 ### Lower Priority (2027+)
+
 - **Barcode Scanning**: Scan during receiving/sales
 - **Mobile App**: Staff access on phones/tablets
 - **Multi-Language UI**: Bahasa Indonesia, local languages
@@ -108,26 +113,31 @@ Max **2-5 steps** per use case. If more = break into sub-features.
 Every feature follows these principles:
 
 ### 1. **Simplicity**
+
 - Minimal workflows (2-3 steps, max)
 - Fast learning (staff trained in <2 hours)
 - Obvious UX (intuitive, not feature-rich)
 
 ### 2. **Speed**
+
 - POS checkout < 30 seconds
 - Reports load in < 2 seconds
 - No waiting for calculations
 
 ### 3. **Transparency**
+
 - Every transaction logged (who, when, what)
 - Calculations shown (owner understands P&L)
 - Variance alerts (problems flagged immediately)
 
 ### 4. **Cost-Conscious**
+
 - MVP has no expensive integrations
 - Works offline (UMKM WiFi unreliable)
 - Mobile + Desktop (not smartphone-only)
 
 ### 5. **Actionable Data**
+
 - Comparisons shown (yesterday vs. today, outlet A vs. B)
 - Trends flagged (spot problems early)
 - Opportunities highlighted (what to promote/drop)
@@ -151,6 +161,7 @@ Before submitting a feature document:
 ## How to Use This Standard
 
 ### If you're discovering a new feature idea:
+
 1. Read the template (`FEATURE_TEMPLATE.md`)
 2. Copy it → fill with your feature idea
 3. Focus on: overview (problem), objectives (why it matters), use cases (real workflows)
@@ -158,6 +169,7 @@ Before submitting a feature document:
 5. Submit for PM + tech lead review
 
 ### If you're reviewing a feature:
+
 1. Check: Is the business problem clear?
 2. Check: Are use cases realistic for UMKM?
 3. Check: Are enhancements reasonable for Phase 2?

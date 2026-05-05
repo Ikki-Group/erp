@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import { CacheService, type CacheClient } from '@/core/cache'
 
 import type { StockAlertFilterDto } from './stock-alert.dto'
 import { StockAlertRepo } from './stock-alert.repo'

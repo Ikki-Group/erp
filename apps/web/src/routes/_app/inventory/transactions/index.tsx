@@ -86,7 +86,7 @@ function RouteComponent() {
 			header: 'Qty',
 			size: 100,
 			cell: ({ row }) => {
-				const qty = row.original.qty
+				const qty = Number(row.original.qty)
 				const isOut = row.original.type === 'transfer_out' || row.original.type === 'sell'
 				const color = isOut || qty < 0 ? 'destructive-light' : 'success-light'
 

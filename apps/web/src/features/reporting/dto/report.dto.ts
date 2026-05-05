@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zp } from '@/lib/validation'
+import { z, zp } from '@ikki/api-contract/validation'
 
 import { ChartTypeDto, ReportRequestDto, ReportSummaryDto } from './reporting.dto'
 
@@ -314,3 +313,223 @@ export const LoyaltyPointsResponseDto = z.object({
 	data: LoyaltyPointsSummaryDto,
 })
 export type LoyaltyPointsResponseDto = z.infer<typeof LoyaltyPointsResponseDto>
+
+/** Inventory consumption */
+export const ConsumptionDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	materialType: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	quantity: zp.num,
+	unit: zp.str,
+	cost: zp.decimal,
+	date: zp.date,
+})
+export type ConsumptionDto = z.infer<typeof ConsumptionDto>
+
+export const ConsumptionResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(ConsumptionDto),
+	summary: ReportSummaryDto,
+})
+export type ConsumptionResponseDto = z.infer<typeof ConsumptionResponseDto>
+
+/** Inventory opname variance */
+export const OpnameVarianceDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	expectedQty: zp.num,
+	actualQty: zp.num,
+	variance: zp.num,
+	varianceCost: zp.decimal,
+	adjustmentType: zp.str,
+	date: zp.date,
+})
+export type OpnameVarianceDto = z.infer<typeof OpnameVarianceDto>
+
+export const OpnameVarianceResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(OpnameVarianceDto),
+	summary: ReportSummaryDto,
+})
+export type OpnameVarianceResponseDto = z.infer<typeof OpnameVarianceResponseDto>
+
+/** Inventory waste */
+export const WasteDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	locationId: zp.num,
+	locationName: zp.str,
+	quantity: zp.num,
+	unit: zp.str,
+	cost: zp.decimal,
+	reason: zp.str.optional(),
+	date: zp.date,
+})
+export type WasteDto = z.infer<typeof WasteDto>
+
+export const WasteResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(WasteDto),
+	summary: ReportSummaryDto,
+})
+export type WasteResponseDto = z.infer<typeof WasteResponseDto>
+
+/** Procurement purchase data */
+export const PurchaseDto = z.object({
+	purchaseOrderId: zp.num,
+	date: zp.date,
+	supplierId: zp.num,
+	supplierName: zp.str,
+	materialId: zp.num,
+	materialName: zp.str,
+	qty: zp.num,
+	unitPrice: zp.decimal,
+	totalAmount: zp.decimal,
+	status: zp.str,
+})
+export type PurchaseDto = z.infer<typeof PurchaseDto>
+
+/** Supplier performance data */
+export const SupplierPerformanceDto = z.object({
+	supplierId: zp.num,
+	supplierName: zp.str,
+	totalOrders: zp.num,
+	totalAmount: zp.decimal,
+	averageDeliveryDays: zp.num,
+	completedOrders: zp.num,
+	pendingOrders: zp.num,
+})
+export type SupplierPerformanceDto = z.infer<typeof SupplierPerformanceDto>
+
+/** Transfer data */
+export const TransferDto = z.object({
+	transferId: zp.num,
+	date: zp.date,
+	fromLocation: zp.str,
+	toLocation: zp.str,
+	materialId: zp.num,
+	materialName: zp.str,
+	qty: zp.num,
+	unitCost: zp.decimal,
+	totalCost: zp.decimal,
+	status: zp.str,
+})
+export type TransferDto = z.infer<typeof TransferDto>
+
+/** Cost trend data */
+export const CostTrendDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	date: zp.date,
+	unitPrice: zp.decimal,
+	qty: zp.num,
+})
+export type CostTrendDto = z.infer<typeof CostTrendDto>
+
+/** Procurement report request */
+export const ProcurementReportRequestDto = ReportRequestDto.extend({
+	supplierId: zp.num.optional(),
+	materialId: zp.num.optional(),
+})
+export type ProcurementReportRequestDto = z.infer<typeof ProcurementReportRequestDto>
+
+/** Purchase report response */
+export const PurchaseReportResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(PurchaseDto),
+	summary: ReportSummaryDto,
+})
+export type PurchaseReportResponseDto = z.infer<typeof PurchaseReportResponseDto>
+
+/** Supplier report response */
+export const SupplierReportResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(SupplierPerformanceDto),
+	summary: ReportSummaryDto,
+})
+export type SupplierReportResponseDto = z.infer<typeof SupplierReportResponseDto>
+
+/** Transfer report response */
+export const TransferReportResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(TransferDto),
+	summary: ReportSummaryDto,
+})
+export type TransferReportResponseDto = z.infer<typeof TransferReportResponseDto>
+
+/** Cost report response */
+export const CostReportResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(CostTrendDto),
+	summary: ReportSummaryDto,
+})
+export type CostReportResponseDto = z.infer<typeof CostReportResponseDto>
+
+/** Profitability data */
+export const ProfitabilityDto = z.object({
+	date: zp.date,
+	revenue: zp.decimal,
+	cogs: zp.decimal,
+	expenses: zp.decimal,
+	profit: zp.decimal,
+	margin: zp.num,
+})
+export type ProfitabilityDto = z.infer<typeof ProfitabilityDto>
+
+/** Location performance data */
+export const LocationPerformanceDto = z.object({
+	locationId: zp.num,
+	locationName: zp.str,
+	totalSales: zp.num,
+	totalRevenue: zp.decimal,
+	totalCost: zp.decimal,
+	profit: zp.decimal,
+	avgOrderValue: zp.decimal,
+})
+export type LocationPerformanceDto = z.infer<typeof LocationPerformanceDto>
+
+/** Inventory turnover data */
+export const InventoryTurnoverDto = z.object({
+	materialId: zp.num,
+	materialName: zp.str,
+	cogs: zp.decimal,
+	avgInventory: zp.decimal,
+	turnoverRatio: zp.num,
+	daysInInventory: zp.num,
+})
+export type InventoryTurnoverDto = z.infer<typeof InventoryTurnoverDto>
+
+/** Business insights request */
+export const BusinessInsightsRequestDto = ReportRequestDto.extend({
+	locationId: zp.num.optional(),
+	materialId: zp.num.optional(),
+})
+export type BusinessInsightsRequestDto = z.infer<typeof BusinessInsightsRequestDto>
+
+/** Profitability response */
+export const ProfitabilityResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(ProfitabilityDto),
+	summary: ReportSummaryDto,
+})
+export type ProfitabilityResponseDto = z.infer<typeof ProfitabilityResponseDto>
+
+/** Location performance response */
+export const LocationPerformanceResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(LocationPerformanceDto),
+	summary: ReportSummaryDto,
+})
+export type LocationPerformanceResponseDto = z.infer<typeof LocationPerformanceResponseDto>
+
+/** Inventory turnover response */
+export const InventoryTurnoverResponseDto = z.object({
+	chartType: ChartTypeDto,
+	data: z.array(InventoryTurnoverDto),
+	summary: ReportSummaryDto,
+})
+export type InventoryTurnoverResponseDto = z.infer<typeof InventoryTurnoverResponseDto>

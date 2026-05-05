@@ -1,18 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { Page } from '@/components/layout/page'
+import { ProductListPage } from '@/features/product'
 
-import { ProductTable } from '@/features/product/components/product-table'
-
-export const Route = createFileRoute('/_app/product/')({ component: RouteComponent })
-
-function RouteComponent() {
-	return (
-		<Page size="xl">
-			<Page.BlockHeader title="Daftar Produk" />
-			<Page.Content>
-				<ProductTable />
-			</Page.Content>
-		</Page>
-	)
-}
+export const Route = createFileRoute('/_app/product/')({ component: ProductListPage })

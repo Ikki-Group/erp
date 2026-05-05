@@ -27,15 +27,22 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# Build artifacts
+.vite-temp
+.tanstack/tmp
+.wrangler/tmp
+
 # IntelliJ based IDEs
 .idea
 
 # Finder (MacOS) folder config
 .DS_Store
 
-.claude
 .windsurf
 
 # Moka dump
 .collection
 docs/draft
+
+# ai agents
+.claude

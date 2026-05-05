@@ -1,17 +1,17 @@
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import z from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import { UomFilterDto, UomMutationDto, UomDto } from './uom.dto'
 import type { UomService } from './uom.service'
-import {
-	zc,
-	zq,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@/lib/validation'
 
 export function initMaterialUomRoute(s: UomService) {
 	return new Elysia({ prefix: '/uom' })

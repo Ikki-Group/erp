@@ -7,6 +7,7 @@ This module provides **read-model/analytics** services for reporting across doma
 ## Architecture Pattern
 
 This module follows the **CQRS Read-Model** pattern:
+
 - **No cache**: Services query the database directly for optimal analytics performance
 - **No mutations**: All services are read-only
 - **Materialized views**: Reports are computed on-demand from the database
@@ -23,12 +24,14 @@ This module follows the **CQRS Read-Model** pattern:
 ## Why No Cache?
 
 Reporting queries are:
+
 - High-volume and compute-intensive
 - Often time-filtered (daily, weekly, monthly)
 - Not latency-critical (admin/reports UI)
 - Benefit from fresh data without cache invalidation complexity
 
 If caching becomes necessary for specific reports, consider:
+
 - Time-based TTL cache (e.g., 5-15 minutes)
 - Scheduled materialized view refreshes
 - Separate analytics database (OLAP)

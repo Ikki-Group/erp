@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
-import type { RecordId } from '@/lib/validation'
+import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './company-settings.dto'
 import { CompanySettingsRepo } from './company-settings.repo'

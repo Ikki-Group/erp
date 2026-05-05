@@ -1,39 +1,24 @@
-FROM oven/bun:1-slim AS base
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
-FROM base AS deps
 COPY package.json bun.lock ./
-COPY apps/server/package.json ./apps/server/
-
-# Install dependencies (frozen-lockfile for consistency)
-# RUN bun install --frozen-lockfile --production
+COPY apps/server/package.json ./apps/server/package.json
 RUN bun install
 
-# --- Builder ---
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-# Ensure all workspace and dev dependencies are available for the build step
-# (some packages required only at build-time, e.g. type-reset helpers)
-RUN bun install --frozen-lockfile
-
-# Build the server app
-WORKDIR /app/apps/server
-
-RUN bun run build
-
-# --- Runtime ---
-FROM oven/bun:1-slim AS runner
+# ── Runner ───────────────────────────────────────────────────────────────────
+FROM oven/bun:1-alpine AS runner
 WORKDIR /app
 
-# Copy the built JS file from the builder stage
-COPY --from=builder /app/apps/server/dist/server.js ./dist/server.js
-
-# ENV
 ENV NODE_ENV=production
-ENV PORT=8080
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
+COPY . .
+
 EXPOSE 8080
 
-# Start it using bun run
-CMD ["bun", "run", "dist/server.js"]
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#     CMD wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
+
+# CMD ["bun", "run", "apps/server/src/server.ts"]
+CMD ["bun", "run", "apps/server/src/server.ts"]

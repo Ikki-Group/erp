@@ -111,7 +111,11 @@ const hr = {
 	clockIn: 'hr/clock-in',
 	clockOut: 'hr/clock-out',
 	payroll: {
-		batches: { create: 'hr/payroll/batches', finalize: 'hr/payroll/batches/finalize' },
+		batches: {
+			list: 'hr/payroll/batches',
+			create: 'hr/payroll/batches',
+			finalize: 'hr/payroll/batches/finalize',
+		},
 		adjustments: { create: 'hr/payroll/adjustments' },
 	},
 }
@@ -198,12 +202,26 @@ const reporting = {
 		movements: 'reporting/inventory/movements',
 		stockValue: 'reporting/inventory/stock-value',
 		lowStock: 'reporting/inventory/low-stock',
+		consumption: 'reporting/inventory/consumption',
+		opname: 'reporting/inventory/opname',
+		waste: 'reporting/inventory/waste',
 	},
 	crm: {
 		customerGrowth: 'reporting/crm/customer-growth',
 		customersByTier: 'reporting/crm/customers-by-tier',
 		topCustomers: 'reporting/crm/top-customers',
 		loyaltyPoints: 'reporting/crm/loyalty-points',
+	},
+	procurement: {
+		purchases: 'reporting/procurement/purchases',
+		suppliers: 'reporting/procurement/suppliers',
+		transfers: 'reporting/procurement/transfers',
+		costs: 'reporting/procurement/costs',
+	},
+	insights: {
+		profitability: 'reporting/insights/profitability',
+		location: 'reporting/insights/location',
+		turnover: 'reporting/insights/turnover',
 	},
 	payment: {
 		byMethod: 'reporting/payment/by-method',

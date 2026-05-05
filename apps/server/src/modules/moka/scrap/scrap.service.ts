@@ -8,7 +8,7 @@ import type { MokaScrapHistoryService } from './scrap-history.service'
 import type { MokaSyncCursorService } from './scrap-sync-cursor.service'
 import type { MokaTransformationService } from './scrap-transformation.service'
 import type { MokaTriggerInputDto } from './scrap.dto'
-import type { Logger } from 'pino'
+import type { Logger } from '@logtape/logtape'
 
 export class MokaScrapService {
 	constructor(
@@ -40,7 +40,7 @@ export class MokaScrapService {
 		)
 
 		this.runScrapTask(historyId, config, input, actorId).catch((err: unknown) => {
-			this.logger.error({ err, historyId }, 'Failed to run Moka scrap task')
+			this.logger.error('Failed to run Moka scrap task', { historyId, error: err })
 		})
 
 		return { historyId }

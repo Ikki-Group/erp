@@ -110,14 +110,14 @@ Validate: `bun run check-deps`
 
 ### Commands
 
-| Command | Scope | Purpose |
-|---------|-------|---------|
-| `bun run dev:server` | Root | Start server with watch |
-| `bun run dev:web` | Root | Start frontend (port 3000) |
-| `bun run lint` | Root | Oxlint workspace |
-| `bun run format` | Root | Oxfmt workspace |
-| `bun run check` | Root | Lint + format check |
-| `bun run verify` | Server | Full verification |
-| `bun run db:generate` | Server | Generate migrations |
-| `bun run db:migrate` | Server | Apply migrations |
-| `bun run db:studio` | Server | Drizzle Studio GUI |
+| Command               | Scope  | Purpose                    |
+| --------------------- | ------ | -------------------------- |
+| `bun run dev:server`  | Root   | Start server with watch    |
+| `bun run dev:web`     | Root   | Start frontend (port 3000) |
+| `bun run lint`        | Root   | Oxlint workspace           |
+| `bun run format`      | Root   | Oxfmt workspace            |
+| `bun run check`       | Root   | Lint + format check        |
+| `bun run verify`      | Server | Full verification          |
+| `bun run db:generate` | Server | Generate migrations        |
+| `bun run db:migrate`  | Server | Apply migrations           |
+| `bun run db:studio`   | Server | Drizzle Studio GUI         |

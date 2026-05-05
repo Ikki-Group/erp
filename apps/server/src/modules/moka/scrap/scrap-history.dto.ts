@@ -1,4 +1,5 @@
-import { z } from 'zod'
+
+import { z, zc, zq } from '@ikki/api-contract/validation'
 
 import {
 	MokaProvider,
@@ -6,7 +7,6 @@ import {
 	MokaScrapType,
 	MokaSyncTriggerMode,
 } from '../shared.dto'
-import { zc, zq } from '@/lib/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 

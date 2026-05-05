@@ -1,6 +1,4 @@
-import { z } from 'zod'
-
-import { zc, zp } from '@/lib/validation'
+import { z, zc, zp } from '@ikki/api-contract/validation'
 
 export const CompanySettingsDto = z.object({
 	...zc.RecordId.shape,
@@ -26,7 +24,7 @@ export const CompanySettingsCreateDto = z.object({
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	email: zc.strTrim.email().optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(50).optional().or(z.literal('')),
-	taxRate: zp.decimal.min(0).max(100).default(0),
+	taxRate: zp.decimal.default('0'),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
@@ -43,7 +41,7 @@ export const CompanySettingsUpdateDto = z.object({
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
 	email: zc.strTrim.email().optional().or(z.literal('')),
 	taxId: zc.strTrim.min(10).max(50).optional().or(z.literal('')),
-	taxRate: zp.decimal.min(0).max(100).optional(),
+	taxRate: zp.decimal.optional(),
 	logoUrl: zc.strTrim.url().optional().or(z.literal('')),
 	invoiceFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	receiptFooter: zc.strTrim.min(5).max(500).optional().or(z.literal('')),

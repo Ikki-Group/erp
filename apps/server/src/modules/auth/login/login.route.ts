@@ -1,3 +1,4 @@
+import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
@@ -7,7 +8,6 @@ import { UserDetailDto } from '@/modules/iam'
 
 import { AuthOutputDto, LoginDto } from './login.dto'
 import type { LoginService } from './login.service'
-import { createSuccessResponseSchema } from '@/lib/validation'
 
 export function initAuthRoute(svc: LoginService) {
 	return new Elysia()

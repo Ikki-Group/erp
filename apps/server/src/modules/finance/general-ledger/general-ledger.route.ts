@@ -1,11 +1,10 @@
+import { z, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import type { GeneralLedgerService } from './general-ledger.service'
-import { createSuccessResponseSchema } from '@/lib/validation'
 
 const GetEntryQuery = z.object({
 	sourceType: z.string(),

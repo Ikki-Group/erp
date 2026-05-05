@@ -15,6 +15,7 @@ export function createQueryKeys<const TFeature extends string, const TResource e
 		list: <TParams>(params?: TParams) => [...root, 'list', params ?? null] as const,
 		details: () => [...root, 'detail'] as const,
 		detail: (id: QueryKeyPart) => [...root, 'detail', id ?? null] as const,
-		custom: <const TParts extends readonly QueryKeyPart[]>(...parts: TParts) => [...root, ...parts] as const,
+		custom: <const TParts extends readonly QueryKeyPart[]>(...parts: TParts) =>
+			[...root, ...parts] as const,
 	}
 }

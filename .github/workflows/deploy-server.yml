@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: deploy-server
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 

@@ -49,6 +49,7 @@
    - As orders come in, stock auto-deducts (POS integration, Phase 2)
 
 **System Records**:
+
 - Stock request: timestamp, requester, qty, status
 - Stock transfer: from location, to location, material, qty, driver, delivery time
 - Stock movement ledger entry: +200L milk to Ikki Coffee
@@ -86,6 +87,7 @@
    - Quick action: "Request stock"
 
 **System Records**:
+
 - Sale entry: product, qty, price, location, timestamp, COGS
 - Stock movement: -18g espresso, -150ml milk, -1 cup, etc.
 - Running daily total: "Today's COGS: $1,240 | Margin: 54%"
@@ -120,6 +122,7 @@
    - Alert: "Investigate milk spoilage - trend increasing"
 
 **System Records**:
+
 - Waste entry: material, location, qty, reason code, cost, user, timestamp
 - Daily waste summary: total cost, % of revenue, breakdown by reason
 - Waste trend analysis: 7-day, 30-day, YTD
@@ -170,6 +173,7 @@
    - Accuracy metric updated: "Accuracy: 97.7%" (2.3% variance)
 
 **System Records**:
+
 - Opname sheet: expected stock per material
 - Physical counts: entered by staff (timestamp, user)
 - Variance analysis: auto-calculated, flagged if >5%
@@ -220,6 +224,7 @@
    - Finance approves or requests review
 
 **System Records**:
+
 - Consumption history: material, location, qty per day, 30-day trend
 - PO created: supplier, material, qty, price, delivery date, status
 - Supplier performance: on-time %, price variance, quality score
@@ -260,6 +265,7 @@
    - Deadline: 2026-05-01
 
 **System Records**:
+
 - Accuracy trend: daily, weekly, monthly aggregation
 - By-location accuracy breakdown
 - Root cause tracking: linked to corrective actions
@@ -337,6 +343,7 @@
    - Next month focus: Target 98%+ accuracy, maintain margin >48%
 
 **System Records**:
+
 - Ledger finalized (locked, cannot modify after approval)
 - COGS report: by material, by location, total
 - Waste report: cost, % of revenue, breakdown by reason
@@ -389,6 +396,7 @@
    - Monitor: Track sales & margin change
 
 **System Records**:
+
 - Historical product performance: sales, COGS, margin, volume
 - Menu change history: what changed, when, impact on sales
 - Cost change tracking: supplier price changes, impact on margin
@@ -399,35 +407,35 @@
 
 ### 4.1 Inventory Rules
 
-| Rule | Rationale | System Enforcement |
-|------|-----------|-------------------|
-| No negative stock | Physical impossibility | API rejects movement if qty > available |
-| Stock cannot move without record | Audit trail required | StockMovement entry created before location change |
-| Opname must complete before month-close | Data integrity | System blocks month-close if pending opname |
-| High variance (>5%) requires approval | Quality control | Adjustment auto-created only after manager sign-off |
-| Waste entry needs reason code | Root cause analysis | Waste logger UI makes reason mandatory |
-| Cost price can only update via GRN | Prevent arbitrary changes | No manual cost edits; only GRN updates cost |
+| Rule                                    | Rationale                 | System Enforcement                                  |
+| --------------------------------------- | ------------------------- | --------------------------------------------------- |
+| No negative stock                       | Physical impossibility    | API rejects movement if qty > available             |
+| Stock cannot move without record        | Audit trail required      | StockMovement entry created before location change  |
+| Opname must complete before month-close | Data integrity            | System blocks month-close if pending opname         |
+| High variance (>5%) requires approval   | Quality control           | Adjustment auto-created only after manager sign-off |
+| Waste entry needs reason code           | Root cause analysis       | Waste logger UI makes reason mandatory              |
+| Cost price can only update via GRN      | Prevent arbitrary changes | No manual cost edits; only GRN updates cost         |
 
 ### 4.2 Permission Rules
 
-| Role | Can Do | Cannot Do |
-|------|--------|----------|
-| **Staff** | Log waste, count opname, view own location stock | Edit opname counts after submitted, approve variances |
-| **Manager** (Outlet) | Approve opname, create stock requests, view outlet profitability | Approve high-variance adjustments, view other locations (except read) |
-| **Manager** (Warehouse) | Process transfers, conduct opname, manage warehouse stock | Create POs, delete stock records |
-| **Procurement** | Create POs, review supplier metrics, monitor costs | Approve expense adjustments, delete GRNs |
-| **Finance** | Approve month-close, review profitability, COGS validation | Modify ledger after finalization, create stock movements |
-| **Admin** | All operations, user management, system settings | [None, full access] |
+| Role                    | Can Do                                                           | Cannot Do                                                             |
+| ----------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Staff**               | Log waste, count opname, view own location stock                 | Edit opname counts after submitted, approve variances                 |
+| **Manager** (Outlet)    | Approve opname, create stock requests, view outlet profitability | Approve high-variance adjustments, view other locations (except read) |
+| **Manager** (Warehouse) | Process transfers, conduct opname, manage warehouse stock        | Create POs, delete stock records                                      |
+| **Procurement**         | Create POs, review supplier metrics, monitor costs               | Approve expense adjustments, delete GRNs                              |
+| **Finance**             | Approve month-close, review profitability, COGS validation       | Modify ledger after finalization, create stock movements              |
+| **Admin**               | All operations, user management, system settings                 | [None, full access]                                                   |
 
 ### 4.3 Timing Constraints
 
-| Operation | Expected Duration | SLA |
-|-----------|-------------------|-----|
-| Stock request to delivery | 4 hours | < 6 hours (same-day delivery) |
-| Opname entry to approval | 30 minutes | < 1 hour (within shift) |
-| Monthly ledger finalization | < 2 hours | Day 5 of month |
-| Supplier delivery confirmation | 15 minutes | < 30 min (upon receipt) |
-| Waste entry to audit | Real-time | Within 5 minutes of logging |
+| Operation                      | Expected Duration | SLA                           |
+| ------------------------------ | ----------------- | ----------------------------- |
+| Stock request to delivery      | 4 hours           | < 6 hours (same-day delivery) |
+| Opname entry to approval       | 30 minutes        | < 1 hour (within shift)       |
+| Monthly ledger finalization    | < 2 hours         | Day 5 of month                |
+| Supplier delivery confirmation | 15 minutes        | < 30 min (upon receipt)       |
+| Waste entry to audit           | Real-time         | Within 5 minutes of logging   |
 
 ---
 
@@ -438,6 +446,7 @@
 **Scenario**: Physical count 20% below system record
 
 **Process**:
+
 1. Immediate: Halt stock movements to location (lock inventory)
 2. Investigation: Was there data entry error? System bug? Physical loss/theft?
 3. Verification: Recount affected materials (double-check)
@@ -447,6 +456,7 @@
 7. Prevention: Implement control to prevent recurrence
 
 **System Support**:
+
 - Exception log: Track all high-variance opname events
 - Investigation notes: Free-form text field for root cause
 - Approval workflow: Multi-step sign-off required
@@ -457,6 +467,7 @@
 **Scenario**: Stock requested at 06 AM, not received by 14:00 (8 hours late)
 
 **Process**:
+
 1. Alert: Manager receives notification "Stock transfer delayed"
 2. Escalation: If >4 hours overdue, escalate to Warehouse Manager
 3. Communication: Warehouse confirms ETA or acknowledges issue
@@ -465,6 +476,7 @@
 6. Follow-up: Prevent pattern (if recurring issue)
 
 **System Support**:
+
 - Transfer tracking: Estimated vs. actual delivery time
 - Overdue alert: Auto-notification if not confirmed within 6 hours
 - History: Track patterns (which suppliers/routes are slow?)
@@ -476,18 +488,21 @@
 ### 6.1 High-Volume Periods (Weekends, Holidays)
 
 **Challenges**:
+
 - Sales velocity increases 2-3x
 - Stock consumption higher
 - Opname difficult during busy service
 - Staff availability strained
 
 **Adaptations**:
+
 - Pre-stock Thursday/Friday (anticipate weekend demand)
 - Shorten opname scope (count every 2nd location, alternate days)
 - Increase waste entry frequency (more opportunities for loss)
 - Float staff between locations (support high-demand outlets)
 
 **System Support**:
+
 - Demand forecast: Historical comparison (this weekend vs. last year)
 - Stock recommendation: Pre-stock alerts 48 hours before
 - Opname flexibility: Can split across multiple days
@@ -497,16 +512,17 @@
 
 **Timeline to Onboard 3rd Location**:
 
-| Task | Duration | Blockers |
-|------|----------|----------|
-| Setup location master data | 30 min | Must have manager assigned |
-| Assign materials to location | 1 hour | Must have reorder point + min/max configured |
-| Staff training (2 hours) | 2 hours | Must have demo environment |
-| Initial stock receipt (GRN) | 2 hours | Depends on supplier delivery |
-| First opname (verification) | 1 hour | Validate system accuracy |
-| **Total Time-to-Live** | **~6 hours** | All above completed successfully |
+| Task                         | Duration     | Blockers                                     |
+| ---------------------------- | ------------ | -------------------------------------------- |
+| Setup location master data   | 30 min       | Must have manager assigned                   |
+| Assign materials to location | 1 hour       | Must have reorder point + min/max configured |
+| Staff training (2 hours)     | 2 hours      | Must have demo environment                   |
+| Initial stock receipt (GRN)  | 2 hours      | Depends on supplier delivery                 |
+| First opname (verification)  | 1 hour       | Validate system accuracy                     |
+| **Total Time-to-Live**       | **~6 hours** | All above completed successfully             |
 
 **System Requirements**:
+
 - Template location setup: Pre-configured material assignments (copy from similar location)
 - Training mode: Demo data environment
 - Onboarding checklist: Step-by-step guide
@@ -521,15 +537,18 @@
 **Sync Frequency**: Every 15 minutes
 
 **Data Flow**:
+
 - POS → ERP: Sales transactions, void/waste events
 - ERP → POS: Stock availability alerts, menu updates (future)
 
 **Reconciliation**:
+
 - Daily: Compare POS revenue with ERP revenue
 - Weekly: Reconcile inventory counts (POS movements vs. ERP ledger)
 - Monthly: Validate COGS match between systems
 
 **Example Integration**:
+
 - 14:00 Iced Latte sold at Ikki Coffee (POS)
 - 14:02 POS syncs to ERP: Product "Iced Latte", Qty 1, Price $5.00
 - 14:03 ERP recipe deduction: -18g espresso, -150ml milk, -1 cup, -1 lid
@@ -540,17 +559,17 @@
 
 ## 8. Glossary of Operational Terms
 
-| Term | Definition | System Equivalent |
-|------|-----------|-------------------|
-| **Permintaan Barang** | Stock request from outlet to warehouse | Stock request (SO table) |
-| **Pengiriman Barang** | Stock delivery from warehouse to outlet | Stock transfer (Movement type: transfer) |
-| **Opname** | Physical inventory count; reconciliation | StockOpname table |
-| **Penyesuaian** | Stock adjustment after opname | Adjustment movement |
-| **Gudang Utama** | Central warehouse | Location (type: warehouse) |
-| **Scrap/Waste** | Discarded items (spoilage, damage) | Waste entry (Movement type: outbound) |
-| **COGS** | Cost of goods sold | Calculated from material costs × qty consumed |
-| **Margin** | Profit as % of revenue | (Revenue - COGS) / Revenue |
-| **Stock Turnover** | How many times inventory replaced per month | COGS / avg inventory value |
+| Term                  | Definition                                  | System Equivalent                             |
+| --------------------- | ------------------------------------------- | --------------------------------------------- |
+| **Permintaan Barang** | Stock request from outlet to warehouse      | Stock request (SO table)                      |
+| **Pengiriman Barang** | Stock delivery from warehouse to outlet     | Stock transfer (Movement type: transfer)      |
+| **Opname**            | Physical inventory count; reconciliation    | StockOpname table                             |
+| **Penyesuaian**       | Stock adjustment after opname               | Adjustment movement                           |
+| **Gudang Utama**      | Central warehouse                           | Location (type: warehouse)                    |
+| **Scrap/Waste**       | Discarded items (spoilage, damage)          | Waste entry (Movement type: outbound)         |
+| **COGS**              | Cost of goods sold                          | Calculated from material costs × qty consumed |
+| **Margin**            | Profit as % of revenue                      | (Revenue - COGS) / Revenue                    |
+| **Stock Turnover**    | How many times inventory replaced per month | COGS / avg inventory value                    |
 
 ---
 

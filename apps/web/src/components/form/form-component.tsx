@@ -70,10 +70,7 @@ function FormDialogActions({ onCancel, disabled }: FormDialogActionsProps) {
 			</Button>
 			<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 				{([canSubmit, isSubmitting]) => (
-					<Button
-						type="submit"
-						disabled={!canSubmit || isSubmitting || disabled}
-					>
+					<Button type="submit" disabled={!canSubmit || isSubmitting || disabled}>
 						{isSubmitting ? 'Menyimpan...' : 'Simpan'}
 					</Button>
 				)}

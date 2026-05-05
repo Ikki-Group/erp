@@ -1,12 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict } from '@/core/database'
 import { NotFoundError } from '@/core/http/errors'
-import type { WithPaginationResult } from '@/core/utils/pagination'
 
 import { productCategoriesTable } from '@/db/schema'
 
-import { CacheService, type CacheClient } from '@/lib/cache'
+import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 import {
 	ProductCategoryDto,
