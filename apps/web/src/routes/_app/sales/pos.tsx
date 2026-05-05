@@ -111,9 +111,9 @@ function POSPage() {
 				{
 					productId: product.id,
 					productName: product.name,
-					price: product.basePrice ?? 0,
+					price: Number(product.basePrice ?? 0),
 					quantity: 1,
-					subtotal: product.basePrice ?? 0,
+					subtotal: Number(product.basePrice ?? 0),
 				},
 			])
 		}
@@ -241,7 +241,7 @@ function POSPage() {
 															{product.name}
 														</h3>
 														<p className="text-sm font-semibold">
-															Rp {((product.basePrice ?? 0) / 1000).toFixed(0)}k
+															Rp {(Number(product.basePrice ?? 0) / 1000).toFixed(0)}k
 														</p>
 													</CardContent>
 												</Card>

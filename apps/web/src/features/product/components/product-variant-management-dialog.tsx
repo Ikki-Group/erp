@@ -2,6 +2,7 @@ import { formOptions } from '@tanstack/react-form'
 
 import { Trash2Icon, WindIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
+import { z } from 'zod'
 
 import { generateSku } from '@/lib/sku'
 
@@ -29,11 +30,11 @@ const FormSchema = z
 	.object({
 		variants: z.array(VariantDto),
 	})
-	.superRefine((value, ctx) => {
+	.superRefine((value: any, ctx: any) => {
 		const seenNames = new Map<string, number>()
 		const seenSkus = new Map<string, number>()
 
-		value.variants.forEach((variant, index) => {
+		value.variants.forEach((variant: any, index: number) => {
 			const normalizedName = variant.name.trim().toLowerCase()
 			if (normalizedName) {
 				const firstIndex = seenNames.get(normalizedName)
@@ -154,7 +155,7 @@ export const ProductVariantManagementDialog = createCallable<ProductVariantManag
 													</TableCell>
 												</TableRow>
 											) : (
-												arrayField.state.value.map((variant, index) => {
+												arrayField.state.value.map((variant: any, index: number) => {
 													return (
 														<TableRow key={variant.id}>
 															<TableCell className="pl-4 align-top">

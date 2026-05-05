@@ -64,7 +64,7 @@ function getColumns(
 			size: 150,
 			cell: ({ row }) => (
 				<span className="font-medium text-right block tabular-nums">
-					Rp {row.original.totalAmount.toLocaleString('id-ID')}
+					Rp {Number(row.original.totalAmount).toLocaleString('id-ID')}
 				</span>
 			),
 		}),

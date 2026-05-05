@@ -173,7 +173,7 @@ function RouteComponent() {
 							<div className="flex flex-col gap-1 items-end px-2">
 								<span className="text-xs text-muted-foreground">Kuantitas (Qty)</span>
 								{(() => {
-									const qty = transaction.qty
+									const qty = Number(transaction.qty)
 									const isOut = typeStr === 'transfer_out' || typeStr === 'sell'
 									const colorQty = isOut
 										? 'text-rose-600 dark:text-rose-400'
@@ -194,19 +194,19 @@ function RouteComponent() {
 							<div className="flex flex-col gap-1 p-3 border rounded-md">
 								<span className="text-xs text-muted-foreground">HPP / Unit</span>
 								<span className="font-medium tabular-nums">
-									Rp {transaction.unitCost.toLocaleString('id-ID')}
+									Rp {Number(transaction.unitCost).toLocaleString('id-ID')}
 								</span>
 							</div>
 							<div className="flex flex-col gap-1 p-3 border rounded-md">
 								<span className="text-xs text-muted-foreground">Total Nilai</span>
 								<span className="font-medium tabular-nums">
-									Rp {transaction.totalCost.toLocaleString('id-ID')}
+									Rp {Number(transaction.totalCost).toLocaleString('id-ID')}
 								</span>
 							</div>
 							<div className="flex flex-col gap-1 p-3 border rounded-md md:col-start-3 bg-secondary/30">
 								<span className="text-xs text-muted-foreground">Avg Cost (WAC)</span>
 								<span className="font-medium tabular-nums">
-									Rp {transaction.runningAvgCost.toLocaleString('id-ID')}
+									Rp {Number(transaction.runningAvgCost).toLocaleString('id-ID')}
 								</span>
 							</div>
 							<div className="flex flex-col gap-1 p-3 border rounded-md bg-secondary/30">

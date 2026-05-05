@@ -55,7 +55,12 @@ function RouteComponent() {
 function UserTable() {
 	const ds = useDataTableState<{ isActive?: boolean }>()
 	const { data, isLoading } = useQuery(
-		userApi.list.query({ ...ds.pagination, ...ds.filters, q: ds.search }),
+		userApi.list.query({
+			...ds.pagination,
+			...ds.filters,
+			q: ds.search,
+			isActive: ds.filters.isActive ? 'true' : undefined,
+		}),
 	)
 
 	const remove = useMutation({

@@ -1,5 +1,3 @@
-import z from 'zod'
-
 import { z, zp, zc, zq } from '@ikki/api-contract/validation'
 
 import { LocationDto } from '@/features/location'

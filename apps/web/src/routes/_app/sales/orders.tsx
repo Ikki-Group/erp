@@ -40,7 +40,7 @@ const columns = [
 		header: 'Total Pembayaran',
 		cell: ({ row }) => (
 			<span className="font-medium text-right block">
-				Rp {row.original.totalAmount.toLocaleString('id-ID')}
+				Rp {Number(row.original.totalAmount).toLocaleString('id-ID')}
 			</span>
 		),
 	}),

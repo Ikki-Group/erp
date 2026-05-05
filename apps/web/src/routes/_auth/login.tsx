@@ -80,8 +80,8 @@ function BrandingSection() {
 }
 
 const loginSchema = z.object({
-	identifier: zEmail,
-	password: zPassword,
+	identifier: zc.email,
+	password: zc.password,
 })
 
 function LoginForm() {

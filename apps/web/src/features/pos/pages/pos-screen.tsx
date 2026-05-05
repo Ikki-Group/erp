@@ -37,7 +37,7 @@ export function PosScreen() {
 		addItem({
 			product,
 			quantity: 1,
-			price: product.basePrice || 0,
+			price: Number(product.basePrice || 0),
 		})
 	}
 

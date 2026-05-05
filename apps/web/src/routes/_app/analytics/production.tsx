@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { ProductionIcon, PackageCheckIcon, TimerIcon, TrendingUpIcon } from 'lucide-react'
+import { PackageIcon, PackageCheckIcon, TimerIcon, TrendingUpIcon } from 'lucide-react'
 import {
 	BarChart,
 	Bar,
@@ -21,23 +21,24 @@ import { workOrderApi } from '@/features/production/api'
 
 export default function ProductionAnalyticsRoute() {
 	const { data: woData, isLoading } = useQuery(workOrderApi.list.query({ page: 1, limit: 500 }))
-	const wos = woData?.data?.data ?? []
+	const wos = woData?.data ?? []
 
-	const completed = wos.filter((w) => w.status === 'completed')
-	const inProgress = wos.filter((w) => w.status === 'in_progress')
+	const completed = wos.filter((w: any) => w.status === 'completed')
+	const inProgress = wos.filter((w: any) => w.status === 'in_progress')
 	// Planned work orders available for future use
-	wos.filter((w) => w.status === 'planned')
+	wos.filter((w: any) => w.status === 'planned')
 
-	const totalProduced = completed.reduce((s, w) => s + Number(w.actualQty ?? 0), 0)
-	const totalPlanned = wos.reduce((s, w) => s + Number(w.plannedQty ?? 0), 0)
+	const totalProduced = completed.reduce((s: number, w: any) => s + Number(w.actualQty ?? 0), 0)
+	const totalPlanned = wos.reduce((s: number, w: any) => s + Number(w.plannedQty ?? 0), 0)
 	const efficiency = totalPlanned > 0 ? Math.round((totalProduced / totalPlanned) * 100) : 0
 
 	const byProduct: Record<string, { name: string; planned: number; actual: number }> = {}
 	for (const w of wos) {
-		if (!byProduct[w.productName])
-			byProduct[w.productName] = { name: w.productName, planned: 0, actual: 0 }
-		byProduct[w.productName].planned += Number(w.plannedQty ?? 0)
-		byProduct[w.productName].actual += Number(w.actualQty ?? 0)
+		const productName = (w as any).productName
+		if (!byProduct[productName])
+			byProduct[productName] = { name: productName, planned: 0, actual: 0 }
+		byProduct[productName]!.planned += Number((w as any).plannedQty ?? 0)
+		byProduct[productName]!.actual += Number((w as any).actualQty ?? 0)
 	}
 	const chartData = Object.values(byProduct).slice(0, 10)
 
@@ -53,32 +54,12 @@ export default function ProductionAnalyticsRoute() {
 						title="Work Order Selesai"
 						value={String(completed.length)}
 						icon={PackageCheckIcon}
-						isLoading={isLoading}
 					/>
-					<CardStat
-						title="Unit Diproduksi"
-						value={String(totalProduced)}
-						icon={ProductionIcon}
-						isLoading={isLoading}
-					/>
-					<CardStat
-						title="Efisiensi"
-						value={`${efficiency}%`}
-						icon={TrendingUpIcon}
-						isLoading={isLoading}
-					/>
-					<CardStat
-						title="Dalam Proses"
-						value={String(inProgress.length)}
-						icon={TimerIcon}
-						isLoading={isLoading}
-					/>
+					<CardStat title="Unit Diproduksi" value={String(totalProduced)} icon={PackageIcon} />
+					<CardStat title="Efisiensi" value={`${efficiency}%`} icon={TrendingUpIcon} />
+					<CardStat title="Dalam Proses" value={String(inProgress.length)} icon={TimerIcon} />
 				</div>
-				<ChartCard
-					title="Target vs Aktual per Produk"
-					subtitle="10 produk teratas"
-					isLoading={isLoading}
-				>
+				<ChartCard title="Target vs Aktual per Produk">
 					<ChartContainer>
 						<ResponsiveContainer width="100%" height="100%">
 							<BarChart data={chartData}>
