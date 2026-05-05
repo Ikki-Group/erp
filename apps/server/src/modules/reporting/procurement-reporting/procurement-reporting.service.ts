@@ -30,9 +30,9 @@ export class ProcurementReportingService {
 					supplierName: suppliersTable.name,
 					materialId: materialsTable.id,
 					materialName: materialsTable.name,
-					quantity: purchaseOrderItemsTable.quantity,
+					qty: purchaseOrderItemsTable.quantity,
 					unitPrice: purchaseOrderItemsTable.unitPrice,
-					subtotal: purchaseOrderItemsTable.subtotal,
+					totalAmount: purchaseOrderItemsTable.subtotal,
 					status: purchaseOrdersTable.status,
 				})
 				.from(purchaseOrdersTable)
@@ -52,21 +52,21 @@ export class ProcurementReportingService {
 				)
 				.orderBy(purchaseOrdersTable.transactionDate)
 
-			const totalAmount = data.reduce((s, d) => s + Number(d.subtotal), 0)
-			// const totalQty = data.reduce((s, d) => s + Number(d.quantity), 0)
+			const totalAmount = data.reduce((s, d) => s + Number(d.totalAmount), 0)
+			// const totalQty = data.reduce((s, d) => s + Number(d.qty), 0)
 			return {
 				chartType: 'bar' as const,
 				data: data.map((d) => ({
 					...d,
-					quantity: Number(d.quantity),
+					qty: Number(d.qty),
 					unitPrice: String(d.unitPrice),
-					subtotal: String(d.subtotal),
+					totalAmount: String(d.totalAmount),
 				})),
 				summary: {
 					total: String(totalAmount),
 					average: String(data.length > 0 ? totalAmount / data.length : 0),
-					min: String(Math.min(...data.map((d) => Number(d.subtotal)), 0)),
-					max: String(Math.max(...data.map((d) => Number(d.subtotal)), 0)),
+					min: String(Math.min(...data.map((d) => Number(d.totalAmount)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.totalAmount)), 0)),
 					count: data.length,
 				},
 			}
@@ -128,7 +128,7 @@ export class ProcurementReportingService {
 					toLocation: locationsTable.name,
 					materialId: materialsTable.id,
 					materialName: materialsTable.name,
-					quantity: stockTransferItemsTable.quantity,
+					qty: stockTransferItemsTable.quantity,
 					unitCost: stockTransferItemsTable.unitCost,
 					totalCost: stockTransferItemsTable.totalCost,
 					status: stockTransfersTable.status,
@@ -156,7 +156,7 @@ export class ProcurementReportingService {
 				chartType: 'bar' as const,
 				data: data.map((d) => ({
 					...d,
-					quantity: Number(d.quantity),
+					qty: Number(d.qty),
 					unitCost: String(d.unitCost),
 					totalCost: String(d.totalCost),
 				})),
@@ -179,7 +179,7 @@ export class ProcurementReportingService {
 					materialName: materialsTable.name,
 					date: purchaseOrdersTable.transactionDate,
 					unitPrice: purchaseOrderItemsTable.unitPrice,
-					quantity: purchaseOrderItemsTable.quantity,
+					qty: purchaseOrderItemsTable.quantity,
 				})
 				.from(purchaseOrdersTable)
 				.innerJoin(
@@ -196,19 +196,19 @@ export class ProcurementReportingService {
 				)
 				.orderBy(purchaseOrdersTable.transactionDate)
 
-			const totalCost = data.reduce((s, d) => s + Number(d.unitPrice) * Number(d.quantity), 0)
+			const totalCost = data.reduce((s, d) => s + Number(d.unitPrice) * Number(d.qty), 0)
 			return {
 				chartType: 'line' as const,
 				data: data.map((d) => ({
 					...d,
 					unitPrice: String(d.unitPrice),
-					quantity: Number(d.quantity),
+					qty: Number(d.qty),
 				})),
 				summary: {
 					total: String(totalCost),
 					average: String(data.length > 0 ? totalCost / data.length : 0),
-					min: String(Math.min(...data.map((d) => Number(d.unitPrice) * Number(d.quantity)), 0)),
-					max: String(Math.max(...data.map((d) => Number(d.unitPrice) * Number(d.quantity)), 0)),
+					min: String(Math.min(...data.map((d) => Number(d.unitPrice) * Number(d.qty)), 0)),
+					max: String(Math.max(...data.map((d) => Number(d.unitPrice) * Number(d.qty)), 0)),
 					count: data.length,
 				},
 			}
