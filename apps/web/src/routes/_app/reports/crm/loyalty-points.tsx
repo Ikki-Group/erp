@@ -28,8 +28,8 @@ export default function LoyaltyPointsReportRoute() {
 		dateTo: new Date(),
 	})
 	const { data, isLoading } = useQuery(crmReportApi.loyaltyPoints.query(dateRange))
-	const chartData = data?.data?.data ?? []
-	const summary = data?.data?.summary
+	const chartData = (data?.data?.data ?? []) as any[]
+	const summary = data?.data
 	return (
 		<Page size="xl">
 			<Page.BlockHeader
@@ -41,17 +41,17 @@ export default function LoyaltyPointsReportRoute() {
 				<div className="grid gap-4 md:grid-cols-3">
 					<CardStat
 						title="Total Poin Terbit"
-						value={summary?.totalIssued ?? '0'}
+						value={summary?.data?.totalPointsIssued ?? '0'}
 						icon={AwardIcon}
 					/>
 					<CardStat
 						title="Total Poin Redeem"
-						value={summary?.totalRedeemed ?? '0'}
+						value={summary?.data?.totalPointsRedeemed ?? '0'}
 						icon={GiftIcon}
 					/>
 					<CardStat
-						title="Pelanggan Aktif"
-						value={String(summary?.activeCustomers ?? 0)}
+						title="Saldo Poin"
+						value={summary?.data?.pointsBalance ?? '0'}
 						icon={UsersIcon}
 					/>
 				</div>

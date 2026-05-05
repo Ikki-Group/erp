@@ -33,7 +33,7 @@ export default function CustomersByTierReportRoute() {
 				<ReportDateFilter {...dateRange} onChange={setDateRange} />
 				<div className="grid gap-4 md:grid-cols-3">
 					<CardStat title="Total Pelanggan" value={summary?.total ?? '0'} icon={UsersIcon} />
-					<CardStat title="Tier Terbanyak" value={chartData[0]?.tier ?? '-'} icon={CrownIcon} />
+					<CardStat title="Tier Terbanyak" value={chartData[0]?.tierName ?? '-'} icon={CrownIcon} />
 					<CardStat title="Jumlah Tier" value={String(summary?.count ?? 0)} icon={UsersIcon} />
 				</div>
 				<ChartCard title="Distribusi Tier Pelanggan" isLoading={isLoading}>
