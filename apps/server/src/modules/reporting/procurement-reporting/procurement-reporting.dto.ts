@@ -1,4 +1,3 @@
-
 import { z, zp } from '@ikki/api-contract/validation'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
@@ -11,9 +10,9 @@ export const PurchaseDto = z.object({
 	supplierName: zp.str,
 	materialId: zp.num,
 	materialName: zp.str,
-	qty: zp.num,
+	quantity: zp.num,
 	unitPrice: zp.decimal,
-	totalAmount: zp.decimal,
+	subtotal: zp.decimal,
 	status: zp.str,
 })
 export type PurchaseDto = z.infer<typeof PurchaseDto>
@@ -38,7 +37,7 @@ export const TransferDto = z.object({
 	toLocation: zp.str,
 	materialId: zp.num,
 	materialName: zp.str,
-	qty: zp.num,
+	quantity: zp.num,
 	unitCost: zp.decimal,
 	totalCost: zp.decimal,
 	status: zp.str,
@@ -51,7 +50,7 @@ export const CostTrendDto = z.object({
 	materialName: zp.str,
 	date: zp.date,
 	unitPrice: zp.decimal,
-	qty: zp.num,
+	quantity: zp.num,
 })
 export type CostTrendDto = z.infer<typeof CostTrendDto>
 
