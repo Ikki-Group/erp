@@ -1,7 +1,7 @@
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory, createQueryKeys } from '@/lib/api'
-import { createSuccessResponseSchema, zc } from '@/lib/validation'
+import { createSuccessResponseSchema, zc } from '@ikki/api-contract/validation'
 
 import { CompanySettingsDto, CompanySettingsCreateDto, CompanySettingsUpdateDto } from '../dto'
 

@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zc, zp } from '@/lib/validation'
+import { z, zc, zp } from '@ikki/api-contract/validation'
 
 export const CompanySettingsDto = z.object({
 	...zc.RecordId.shape,

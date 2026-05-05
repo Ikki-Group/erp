@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { zp, zc } from '@/lib/validation'
+import { z, zp, zc } from '@ikki/api-contract/validation'
 
 export const SessionDto = z.object({
 	id: zp.id,

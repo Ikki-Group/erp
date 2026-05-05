@@ -4,7 +4,6 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
-import { z } from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
 

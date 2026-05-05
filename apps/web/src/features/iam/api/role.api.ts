@@ -8,7 +8,7 @@ import {
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from '../dto/role.dto'
 

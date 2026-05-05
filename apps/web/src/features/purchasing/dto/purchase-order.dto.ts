@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zp, zc, zq } from '@/lib/validation'
+import { z, zp, zc, zq } from '@ikki/api-contract/validation'
 
 export const PurchaseOrderStatusDto = z.enum(['open', 'closed', 'void'])
 export type PurchaseOrderStatusDto = z.infer<typeof PurchaseOrderStatusDto>

@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import z from 'zod'
 
 import { toastLabelMessage } from '@/lib/toast-message'
-import { zBool } from '@/lib/validation'
+import { z, zBool } from '@ikki/api-contract/validation'
 
 import { CardSection } from '@/components/blocks/card/card-section'
 import { FormConfig, useAppForm, useFormConfig, useTypedAppFormContext } from '@/components/form'

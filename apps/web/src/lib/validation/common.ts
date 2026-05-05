@@ -1,4 +1,3 @@
-import { z } from 'zod'
 
 import { zp } from './primitive'
 

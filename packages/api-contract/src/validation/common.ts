@@ -114,4 +114,6 @@ export const zc = {
 	UserSnippet,
 	PaginationMeta,
 	withAuditResolved,
+	zEmail: email,
+	zPassword: password,
 } as const

@@ -2,7 +2,6 @@ import { formOptions } from '@tanstack/react-form'
 
 import { Trash2Icon, WindIcon } from 'lucide-react'
 import { createCallable } from 'react-call'
-import { z } from 'zod'
 
 import { generateSku } from '@/lib/sku'
 

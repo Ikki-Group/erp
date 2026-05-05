@@ -1,6 +1,5 @@
-import { z } from 'zod'
 
-import { zc, zq, zp } from '@/lib/validation'
+import { z, zc, zq, zp } from '@ikki/api-contract/validation'
 
 export const PaymentTypeDto = z.enum([
 	/** Outgoing payment to suppliers/vendors. */

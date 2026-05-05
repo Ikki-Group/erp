@@ -1,4 +1,3 @@
-import { z } from 'zod'
 
 import { endpoint } from '@/config/endpoint'
 
@@ -8,7 +7,7 @@ import {
 	zq,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import {
 	GoodsReceiptNoteCreateDto,

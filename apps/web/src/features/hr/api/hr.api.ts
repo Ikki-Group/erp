@@ -6,7 +6,7 @@ import {
 	zq,
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-} from '@/lib/validation'
+} from '@ikki/api-contract/validation'
 
 import {
 	AttendanceDto,
