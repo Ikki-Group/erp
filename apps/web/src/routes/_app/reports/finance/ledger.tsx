@@ -21,7 +21,7 @@ import { accountApi } from '@/features/finance'
 import { expenditureApi } from '@/features/finance'
 import { paymentApi } from '@/features/payment'
 
-export const Route = createFileRoute('/_app/finance/ledger')({ component: FinanceLedgerPage })
+export const Route = createFileRoute('/_app/reports/finance/ledger')({ component: FinanceLedgerPage })
 
 interface LedgerEntry {
 	id: string

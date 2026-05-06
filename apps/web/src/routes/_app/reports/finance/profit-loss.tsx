@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/card'
 import { expenditureApi } from '@/features/finance'
 import { salesReportApi } from '@/features/reporting'
 
-export const Route = createFileRoute('/_app/finance/profit-loss')({ component: FinanceProfitLoss })
+export const Route = createFileRoute('/_app/reports/finance/profit-loss')({ component: FinanceProfitLoss })
 
 function MetricCard({
 	title,

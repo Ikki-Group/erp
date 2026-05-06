@@ -31,7 +31,8 @@
 		"format:check": "oxfmt --check .",
 		"knip": "bunx knip",
 		"check-deps": "bun --filter @ikki/server check-deps",
-		"check": "bun run lint && bun run format:check && bun run knip"
+		"check": "bun run lint && bun run format:check && bun run knip",
+		"clean": "rm -rf node_modules apps/web/node_modules apps/server/node_modules packages/api-contract/node_modules"
 	},
 	"devDependencies": {
 		"dpdm": "^4.0.1",

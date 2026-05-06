@@ -28,6 +28,7 @@
 	"dependencies": {
 		"@axiomhq/pino": "^1.4.0",
 		"@elysiajs/cors": "^1.4.1",
+		"@elysiajs/opentelemetry": "^1.4.11",
 		"@ikki/api-contract": "workspace:*",
 		"@logtape/logtape": "^2.0.6",
 		"@logtape/otel": "^2.0.6",

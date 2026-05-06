@@ -9,2034 +9,2055 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppSplatRouteImport } from './routes/_app/$'
-import { Route as AppAnalyticsFinanceRouteImport } from './routes/_app/analytics/finance'
-import { Route as AppAnalyticsProductionRouteImport } from './routes/_app/analytics/production'
-import { Route as AppAnalyticsSalesRouteImport } from './routes/_app/analytics/sales'
-import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/accounts'
-import { Route as AppFinanceCashFlowRouteImport } from './routes/_app/finance/cash-flow'
-import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
-import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
-import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
-import { Route as AppFinancePaymentsRouteImport } from './routes/_app/finance/payments'
-import { Route as AppFinanceProfitLossRouteImport } from './routes/_app/finance/profit-loss'
-import { Route as AppHrAttendanceRouteImport } from './routes/_app/hr/attendance'
-import { Route as AppHrEmployeesRouteImport } from './routes/_app/hr/employees'
-import { Route as AppHrPayrollRouteImport } from './routes/_app/hr/payroll'
-import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppInventoryAllocationRouteImport } from './routes/_app/inventory/allocation'
-import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
-import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
-import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
-import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
-import { Route as AppInventoryTransactionsOpnameRouteImport } from './routes/_app/inventory/transactions/opname'
-import { Route as AppInventoryTransactionsPurchaseRouteImport } from './routes/_app/inventory/transactions/purchase'
-import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
-import { Route as AppInventoryTransactionsUsageRouteImport } from './routes/_app/inventory/transactions/usage'
-import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
-import { Route as AppLocationIdIndexRouteImport } from './routes/_app/location/$id/index'
-import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
-import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
-import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
-import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
-import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
-import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
-import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
-import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/index'
-import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
-import { Route as AppMokaConfigurationRouteImport } from './routes/_app/moka/configuration'
-import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
-import { Route as AppMokaSyncRouteImport } from './routes/_app/moka/sync'
-import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
-import { Route as AppProcurementReceiptsRouteImport } from './routes/_app/procurement/receipts'
-import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
-import { Route as AppProductIdRouteImport } from './routes/_app/product/$id'
-import { Route as AppProductCategoryRouteImport } from './routes/_app/product/category'
-import { Route as AppProductCreateRouteImport } from './routes/_app/product/create'
-import { Route as AppProductIndexRouteImport } from './routes/_app/product/index'
-import { Route as AppProductionRecipesRouteImport } from './routes/_app/production/recipes'
-import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
-import { Route as AppReportsFinanceAccountBalancesRouteImport } from './routes/_app/reports/finance/account-balances'
-import { Route as AppReportsFinanceCashFlowRouteImport } from './routes/_app/reports/finance/cash-flow'
-import { Route as AppReportsFinanceExpensesRouteImport } from './routes/_app/reports/finance/expenses'
-import { Route as AppReportsIndexRouteImport } from './routes/_app/reports/index'
-import { Route as AppReportsInventoryMovementsRouteImport } from './routes/_app/reports/inventory/movements'
-import { Route as AppReportsInventoryStockRouteImport } from './routes/_app/reports/inventory/stock'
-import { Route as AppReportsInventoryStockValueRouteImport } from './routes/_app/reports/inventory/stock-value'
-import { Route as AppReportsPaymentByAccountRouteImport } from './routes/_app/reports/payment/by-account'
-import { Route as AppReportsPaymentByMethodRouteImport } from './routes/_app/reports/payment/by-method'
-import { Route as AppReportsPaymentOverTimeRouteImport } from './routes/_app/reports/payment/over-time'
-import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
-import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
-import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
-import { Route as AppRouteRouteImport } from './routes/_app/route'
-import { Route as AppSalesTypeIndexRouteImport } from './routes/_app/sales-type/index'
-import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
-import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoices'
-import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
-import { Route as AppSalesPosRouteImport } from './routes/_app/sales/pos'
-import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab/location'
-import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab/role'
-import { Route as AppSettingsTabRouteRouteImport } from './routes/_app/settings/_tab/route'
-import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab/user'
-import { Route as AppSettingsAuditTrailRouteImport } from './routes/_app/settings/audit-trail'
-import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user/$id'
-import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user/create'
-import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as DocsRouteImport } from './routes/_docs'
-import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
-import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
-import { Route as ExamplesChartsIndexRouteImport } from './routes/examples/charts/index'
-import { Route as ExamplesComplexFormIndexRouteImport } from './routes/examples/complex-form/index'
-import { Route as ExamplesDashboardIndexRouteImport } from './routes/examples/dashboard/index'
-import { Route as ExamplesDataTableIndexRouteImport } from './routes/examples/data-table/index'
-import { Route as ExamplesDetailIndexRouteImport } from './routes/examples/detail/index'
-import { Route as ExamplesDetailsIndexRouteImport } from './routes/examples/details/index'
-import { Route as ExamplesDialogFormIndexRouteImport } from './routes/examples/dialog-form/index'
-import { Route as ExamplesFormIndexRouteImport } from './routes/examples/form/index'
-import { Route as ExamplesLayoutsIndexRouteImport } from './routes/examples/layouts/index'
-import { Route as ExamplesLayoutsOneRouteImport } from './routes/examples/layouts/one'
-import { Route as ExamplesLayoutsTwoRouteImport } from './routes/examples/layouts/two'
-import { Route as ExamplesPageLayoutsIndexRouteImport } from './routes/examples/page-layouts/index'
-import { Route as ExamplesPageNewRouteImport } from './routes/examples/page-new'
-import { Route as ExamplesSearchIndexRouteImport } from './routes/examples/search/index'
 import { Route as PosRouteImport } from './routes/pos'
+import { Route as DocsRouteImport } from './routes/_docs'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as PosIndexRouteImport } from './routes/pos/index'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as ExamplesPageNewRouteImport } from './routes/examples/page-new'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AppSplatRouteImport } from './routes/_app/$'
+import { Route as ExamplesSearchIndexRouteImport } from './routes/examples/search/index'
+import { Route as ExamplesPageLayoutsIndexRouteImport } from './routes/examples/page-layouts/index'
+import { Route as ExamplesLayoutsIndexRouteImport } from './routes/examples/layouts/index'
+import { Route as ExamplesFormIndexRouteImport } from './routes/examples/form/index'
+import { Route as ExamplesDialogFormIndexRouteImport } from './routes/examples/dialog-form/index'
+import { Route as ExamplesDetailsIndexRouteImport } from './routes/examples/details/index'
+import { Route as ExamplesDetailIndexRouteImport } from './routes/examples/detail/index'
+import { Route as ExamplesDataTableIndexRouteImport } from './routes/examples/data-table/index'
+import { Route as ExamplesDashboardIndexRouteImport } from './routes/examples/dashboard/index'
+import { Route as ExamplesComplexFormIndexRouteImport } from './routes/examples/complex-form/index'
+import { Route as ExamplesChartsIndexRouteImport } from './routes/examples/charts/index'
+import { Route as DocsDocsIndexRouteImport } from './routes/_docs/docs/index'
+import { Route as AppSalesTypeIndexRouteImport } from './routes/_app/sales-type/index'
+import { Route as AppReportsIndexRouteImport } from './routes/_app/reports/index'
+import { Route as AppProductIndexRouteImport } from './routes/_app/product/index'
+import { Route as AppMaterialIndexRouteImport } from './routes/_app/material/index'
+import { Route as AppLocationIndexRouteImport } from './routes/_app/location/index'
+import { Route as ExamplesLayoutsTwoRouteImport } from './routes/examples/layouts/two'
+import { Route as ExamplesLayoutsOneRouteImport } from './routes/examples/layouts/one'
+import { Route as DocsDocsLayerRouteImport } from './routes/_docs/docs/$layer'
+import { Route as AppSettingsAuditTrailRouteImport } from './routes/_app/settings/audit-trail'
+import { Route as AppSalesPosRouteImport } from './routes/_app/sales/pos'
+import { Route as AppSalesOrdersRouteImport } from './routes/_app/sales/orders'
+import { Route as AppSalesInvoicesRouteImport } from './routes/_app/sales/invoices'
+import { Route as AppSalesCustomersRouteImport } from './routes/_app/sales/customers'
+import { Route as AppProductionWorkOrdersRouteImport } from './routes/_app/production/work-orders'
+import { Route as AppProductionRecipesRouteImport } from './routes/_app/production/recipes'
+import { Route as AppProductCreateRouteImport } from './routes/_app/product/create'
+import { Route as AppProductCategoryRouteImport } from './routes/_app/product/category'
+import { Route as AppProductIdRouteImport } from './routes/_app/product/$id'
+import { Route as AppProcurementSuppliersRouteImport } from './routes/_app/procurement/suppliers'
+import { Route as AppProcurementReceiptsRouteImport } from './routes/_app/procurement/receipts'
+import { Route as AppProcurementOrdersRouteImport } from './routes/_app/procurement/orders'
+import { Route as AppMokaSyncRouteImport } from './routes/_app/moka/sync'
+import { Route as AppMokaMonitoringRouteImport } from './routes/_app/moka/monitoring'
+import { Route as AppMokaConfigurationRouteImport } from './routes/_app/moka/configuration'
+import { Route as AppMaterialUomRouteImport } from './routes/_app/material/uom'
+import { Route as AppMaterialCreateRouteImport } from './routes/_app/material/create'
+import { Route as AppMaterialCategoryRouteImport } from './routes/_app/material/category'
+import { Route as AppLocationCreateRouteImport } from './routes/_app/location/create'
+import { Route as AppInventorySummaryRouteImport } from './routes/_app/inventory/summary'
+import { Route as AppInventoryAllocationRouteImport } from './routes/_app/inventory/allocation'
+import { Route as AppHrPayrollRouteImport } from './routes/_app/hr/payroll'
+import { Route as AppHrEmployeesRouteImport } from './routes/_app/hr/employees'
+import { Route as AppHrAttendanceRouteImport } from './routes/_app/hr/attendance'
+import { Route as AppFinanceProfitLossRouteImport } from './routes/_app/finance/profit-loss'
+import { Route as AppFinancePaymentsRouteImport } from './routes/_app/finance/payments'
+import { Route as AppFinanceLedgerArApRouteImport } from './routes/_app/finance/ledger-ar-ap'
+import { Route as AppFinanceLedgerRouteImport } from './routes/_app/finance/ledger'
+import { Route as AppFinanceExpensesRouteImport } from './routes/_app/finance/expenses'
+import { Route as AppFinanceCashFlowRouteImport } from './routes/_app/finance/cash-flow'
+import { Route as AppFinanceAccountsRouteImport } from './routes/_app/finance/accounts'
+import { Route as AppAnalyticsSalesRouteImport } from './routes/_app/analytics/sales'
+import { Route as AppAnalyticsFinanceRouteImport } from './routes/_app/analytics/finance'
+import { Route as AppSettingsTabRouteRouteImport } from './routes/_app/settings/_tab/route'
+import { Route as AppMaterialIdIndexRouteImport } from './routes/_app/material/$id.index'
+import { Route as AppLocationIdIndexRouteImport } from './routes/_app/location/$id/index'
+import { Route as AppInventoryTransactionsIndexRouteImport } from './routes/_app/inventory/transactions/index'
+import { Route as AppSettingsUserCreateRouteImport } from './routes/_app/settings/user/create'
+import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/user/$id'
+import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab/user'
+import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab/role'
+import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab/location'
+import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
+import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
+import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
+import { Route as AppReportsInventoryStockValueRouteImport } from './routes/_app/reports/inventory/stock-value'
+import { Route as AppReportsInventoryStockRouteImport } from './routes/_app/reports/inventory/stock'
+import { Route as AppReportsInventoryMovementsRouteImport } from './routes/_app/reports/inventory/movements'
+import { Route as AppReportsFinanceProfitLossRouteImport } from './routes/_app/reports/finance/profit-loss'
+import { Route as AppReportsFinancePaymentsRouteImport } from './routes/_app/reports/finance/payments'
+import { Route as AppReportsFinanceLedgerArApRouteImport } from './routes/_app/reports/finance/ledger-ar-ap'
+import { Route as AppReportsFinanceLedgerRouteImport } from './routes/_app/reports/finance/ledger'
+import { Route as AppReportsFinanceExpensesRouteImport } from './routes/_app/reports/finance/expenses'
+import { Route as AppReportsFinanceCashFlowRouteImport } from './routes/_app/reports/finance/cash-flow'
+import { Route as AppReportsFinanceAccountBalancesRouteImport } from './routes/_app/reports/finance/account-balances'
+import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
+import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
+import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
+import { Route as AppInventoryTransactionsUsageRouteImport } from './routes/_app/inventory/transactions/usage'
+import { Route as AppInventoryTransactionsTransferRouteImport } from './routes/_app/inventory/transactions/transfer'
+import { Route as AppInventoryTransactionsPurchaseRouteImport } from './routes/_app/inventory/transactions/purchase'
+import { Route as AppInventoryTransactionsOpnameRouteImport } from './routes/_app/inventory/transactions/opname'
+import { Route as AppInventoryTransactionsAdjustmentRouteImport } from './routes/_app/inventory/transactions/adjustment'
+import { Route as AppInventoryTransactionsIdRouteImport } from './routes/_app/inventory/transactions/$id'
 
 const PosRoute = PosRouteImport.update({
-	id: '/pos',
-	path: '/pos',
-	getParentRoute: () => rootRouteImport,
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
-	id: '/_docs',
-	getParentRoute: () => rootRouteImport,
+  id: '/_docs',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
-	id: '/_auth',
-	getParentRoute: () => rootRouteImport,
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppRouteRoute = AppRouteRouteImport.update({
-	id: '/_app',
-	getParentRoute: () => rootRouteImport,
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PosIndexRoute = PosIndexRouteImport.update({
-	id: '/',
-	path: '/',
-	getParentRoute: () => PosRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => PosRoute,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
-	id: '/',
-	path: '/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const ExamplesPageNewRoute = ExamplesPageNewRouteImport.update({
-	id: '/examples/page-new',
-	path: '/examples/page-new',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/page-new',
+  path: '/examples/page-new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
-	id: '/login',
-	path: '/login',
-	getParentRoute: () => AuthRouteRoute,
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRouteRoute,
 } as any)
 const AppSplatRoute = AppSplatRouteImport.update({
-	id: '/$',
-	path: '/$',
-	getParentRoute: () => AppRouteRoute,
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const ExamplesSearchIndexRoute = ExamplesSearchIndexRouteImport.update({
-	id: '/examples/search/',
-	path: '/examples/search/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/search/',
+  path: '/examples/search/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ExamplesPageLayoutsIndexRoute = ExamplesPageLayoutsIndexRouteImport.update({
-	id: '/examples/page-layouts/',
-	path: '/examples/page-layouts/',
-	getParentRoute: () => rootRouteImport,
-} as any)
+const ExamplesPageLayoutsIndexRoute =
+  ExamplesPageLayoutsIndexRouteImport.update({
+    id: '/examples/page-layouts/',
+    path: '/examples/page-layouts/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ExamplesLayoutsIndexRoute = ExamplesLayoutsIndexRouteImport.update({
-	id: '/examples/layouts/',
-	path: '/examples/layouts/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/layouts/',
+  path: '/examples/layouts/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesFormIndexRoute = ExamplesFormIndexRouteImport.update({
-	id: '/examples/form/',
-	path: '/examples/form/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/form/',
+  path: '/examples/form/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesDialogFormIndexRoute = ExamplesDialogFormIndexRouteImport.update({
-	id: '/examples/dialog-form/',
-	path: '/examples/dialog-form/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/dialog-form/',
+  path: '/examples/dialog-form/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesDetailsIndexRoute = ExamplesDetailsIndexRouteImport.update({
-	id: '/examples/details/',
-	path: '/examples/details/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/details/',
+  path: '/examples/details/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesDetailIndexRoute = ExamplesDetailIndexRouteImport.update({
-	id: '/examples/detail/',
-	path: '/examples/detail/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/detail/',
+  path: '/examples/detail/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesDataTableIndexRoute = ExamplesDataTableIndexRouteImport.update({
-	id: '/examples/data-table/',
-	path: '/examples/data-table/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/data-table/',
+  path: '/examples/data-table/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesDashboardIndexRoute = ExamplesDashboardIndexRouteImport.update({
-	id: '/examples/dashboard/',
-	path: '/examples/dashboard/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/dashboard/',
+  path: '/examples/dashboard/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ExamplesComplexFormIndexRoute = ExamplesComplexFormIndexRouteImport.update({
-	id: '/examples/complex-form/',
-	path: '/examples/complex-form/',
-	getParentRoute: () => rootRouteImport,
-} as any)
+const ExamplesComplexFormIndexRoute =
+  ExamplesComplexFormIndexRouteImport.update({
+    id: '/examples/complex-form/',
+    path: '/examples/complex-form/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ExamplesChartsIndexRoute = ExamplesChartsIndexRouteImport.update({
-	id: '/examples/charts/',
-	path: '/examples/charts/',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/charts/',
+  path: '/examples/charts/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DocsDocsIndexRoute = DocsDocsIndexRouteImport.update({
-	id: '/docs/',
-	path: '/docs/',
-	getParentRoute: () => DocsRoute,
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AppSalesTypeIndexRoute = AppSalesTypeIndexRouteImport.update({
-	id: '/sales-type/',
-	path: '/sales-type/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/sales-type/',
+  path: '/sales-type/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsIndexRoute = AppReportsIndexRouteImport.update({
-	id: '/reports/',
-	path: '/reports/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductIndexRoute = AppProductIndexRouteImport.update({
-	id: '/product/',
-	path: '/product/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/product/',
+  path: '/product/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialIndexRoute = AppMaterialIndexRouteImport.update({
-	id: '/material/',
-	path: '/material/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/',
+  path: '/material/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLocationIndexRoute = AppLocationIndexRouteImport.update({
-	id: '/location/',
-	path: '/location/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/location/',
+  path: '/location/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const ExamplesLayoutsTwoRoute = ExamplesLayoutsTwoRouteImport.update({
-	id: '/examples/layouts/two',
-	path: '/examples/layouts/two',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/layouts/two',
+  path: '/examples/layouts/two',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesLayoutsOneRoute = ExamplesLayoutsOneRouteImport.update({
-	id: '/examples/layouts/one',
-	path: '/examples/layouts/one',
-	getParentRoute: () => rootRouteImport,
+  id: '/examples/layouts/one',
+  path: '/examples/layouts/one',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DocsDocsLayerRoute = DocsDocsLayerRouteImport.update({
-	id: '/docs/$layer',
-	path: '/docs/$layer',
-	getParentRoute: () => DocsRoute,
+  id: '/docs/$layer',
+  path: '/docs/$layer',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AppSettingsAuditTrailRoute = AppSettingsAuditTrailRouteImport.update({
-	id: '/settings/audit-trail',
-	path: '/settings/audit-trail',
-	getParentRoute: () => AppRouteRoute,
+  id: '/settings/audit-trail',
+  path: '/settings/audit-trail',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesPosRoute = AppSalesPosRouteImport.update({
-	id: '/sales/pos',
-	path: '/sales/pos',
-	getParentRoute: () => AppRouteRoute,
+  id: '/sales/pos',
+  path: '/sales/pos',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesOrdersRoute = AppSalesOrdersRouteImport.update({
-	id: '/sales/orders',
-	path: '/sales/orders',
-	getParentRoute: () => AppRouteRoute,
+  id: '/sales/orders',
+  path: '/sales/orders',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesInvoicesRoute = AppSalesInvoicesRouteImport.update({
-	id: '/sales/invoices',
-	path: '/sales/invoices',
-	getParentRoute: () => AppRouteRoute,
+  id: '/sales/invoices',
+  path: '/sales/invoices',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSalesCustomersRoute = AppSalesCustomersRouteImport.update({
-	id: '/sales/customers',
-	path: '/sales/customers',
-	getParentRoute: () => AppRouteRoute,
+  id: '/sales/customers',
+  path: '/sales/customers',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductionWorkOrdersRoute = AppProductionWorkOrdersRouteImport.update({
-	id: '/production/work-orders',
-	path: '/production/work-orders',
-	getParentRoute: () => AppRouteRoute,
+  id: '/production/work-orders',
+  path: '/production/work-orders',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductionRecipesRoute = AppProductionRecipesRouteImport.update({
-	id: '/production/recipes',
-	path: '/production/recipes',
-	getParentRoute: () => AppRouteRoute,
+  id: '/production/recipes',
+  path: '/production/recipes',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductCreateRoute = AppProductCreateRouteImport.update({
-	id: '/product/create',
-	path: '/product/create',
-	getParentRoute: () => AppRouteRoute,
+  id: '/product/create',
+  path: '/product/create',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductCategoryRoute = AppProductCategoryRouteImport.update({
-	id: '/product/category',
-	path: '/product/category',
-	getParentRoute: () => AppRouteRoute,
+  id: '/product/category',
+  path: '/product/category',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductIdRoute = AppProductIdRouteImport.update({
-	id: '/product/$id',
-	path: '/product/$id',
-	getParentRoute: () => AppRouteRoute,
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProcurementSuppliersRoute = AppProcurementSuppliersRouteImport.update({
-	id: '/procurement/suppliers',
-	path: '/procurement/suppliers',
-	getParentRoute: () => AppRouteRoute,
+  id: '/procurement/suppliers',
+  path: '/procurement/suppliers',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProcurementReceiptsRoute = AppProcurementReceiptsRouteImport.update({
-	id: '/procurement/receipts',
-	path: '/procurement/receipts',
-	getParentRoute: () => AppRouteRoute,
+  id: '/procurement/receipts',
+  path: '/procurement/receipts',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProcurementOrdersRoute = AppProcurementOrdersRouteImport.update({
-	id: '/procurement/orders',
-	path: '/procurement/orders',
-	getParentRoute: () => AppRouteRoute,
+  id: '/procurement/orders',
+  path: '/procurement/orders',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMokaSyncRoute = AppMokaSyncRouteImport.update({
-	id: '/moka/sync',
-	path: '/moka/sync',
-	getParentRoute: () => AppRouteRoute,
+  id: '/moka/sync',
+  path: '/moka/sync',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMokaMonitoringRoute = AppMokaMonitoringRouteImport.update({
-	id: '/moka/monitoring',
-	path: '/moka/monitoring',
-	getParentRoute: () => AppRouteRoute,
+  id: '/moka/monitoring',
+  path: '/moka/monitoring',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMokaConfigurationRoute = AppMokaConfigurationRouteImport.update({
-	id: '/moka/configuration',
-	path: '/moka/configuration',
-	getParentRoute: () => AppRouteRoute,
+  id: '/moka/configuration',
+  path: '/moka/configuration',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialUomRoute = AppMaterialUomRouteImport.update({
-	id: '/material/uom',
-	path: '/material/uom',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/uom',
+  path: '/material/uom',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialCreateRoute = AppMaterialCreateRouteImport.update({
-	id: '/material/create',
-	path: '/material/create',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/create',
+  path: '/material/create',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialCategoryRoute = AppMaterialCategoryRouteImport.update({
-	id: '/material/category',
-	path: '/material/category',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/category',
+  path: '/material/category',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLocationCreateRoute = AppLocationCreateRouteImport.update({
-	id: '/location/create',
-	path: '/location/create',
-	getParentRoute: () => AppRouteRoute,
+  id: '/location/create',
+  path: '/location/create',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppInventorySummaryRoute = AppInventorySummaryRouteImport.update({
-	id: '/inventory/summary',
-	path: '/inventory/summary',
-	getParentRoute: () => AppRouteRoute,
+  id: '/inventory/summary',
+  path: '/inventory/summary',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppInventoryAllocationRoute = AppInventoryAllocationRouteImport.update({
-	id: '/inventory/allocation',
-	path: '/inventory/allocation',
-	getParentRoute: () => AppRouteRoute,
+  id: '/inventory/allocation',
+  path: '/inventory/allocation',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppHrPayrollRoute = AppHrPayrollRouteImport.update({
-	id: '/hr/payroll',
-	path: '/hr/payroll',
-	getParentRoute: () => AppRouteRoute,
+  id: '/hr/payroll',
+  path: '/hr/payroll',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppHrEmployeesRoute = AppHrEmployeesRouteImport.update({
-	id: '/hr/employees',
-	path: '/hr/employees',
-	getParentRoute: () => AppRouteRoute,
+  id: '/hr/employees',
+  path: '/hr/employees',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
-	id: '/hr/attendance',
-	path: '/hr/attendance',
-	getParentRoute: () => AppRouteRoute,
+  id: '/hr/attendance',
+  path: '/hr/attendance',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceProfitLossRoute = AppFinanceProfitLossRouteImport.update({
-	id: '/finance/profit-loss',
-	path: '/finance/profit-loss',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/profit-loss',
+  path: '/finance/profit-loss',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinancePaymentsRoute = AppFinancePaymentsRouteImport.update({
-	id: '/finance/payments',
-	path: '/finance/payments',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/payments',
+  path: '/finance/payments',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceLedgerArApRoute = AppFinanceLedgerArApRouteImport.update({
-	id: '/finance/ledger-ar-ap',
-	path: '/finance/ledger-ar-ap',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/ledger-ar-ap',
+  path: '/finance/ledger-ar-ap',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceLedgerRoute = AppFinanceLedgerRouteImport.update({
-	id: '/finance/ledger',
-	path: '/finance/ledger',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/ledger',
+  path: '/finance/ledger',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceExpensesRoute = AppFinanceExpensesRouteImport.update({
-	id: '/finance/expenses',
-	path: '/finance/expenses',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/expenses',
+  path: '/finance/expenses',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceCashFlowRoute = AppFinanceCashFlowRouteImport.update({
-	id: '/finance/cash-flow',
-	path: '/finance/cash-flow',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/cash-flow',
+  path: '/finance/cash-flow',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFinanceAccountsRoute = AppFinanceAccountsRouteImport.update({
-	id: '/finance/accounts',
-	path: '/finance/accounts',
-	getParentRoute: () => AppRouteRoute,
+  id: '/finance/accounts',
+  path: '/finance/accounts',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAnalyticsSalesRoute = AppAnalyticsSalesRouteImport.update({
-	id: '/analytics/sales',
-	path: '/analytics/sales',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppAnalyticsProductionRoute = AppAnalyticsProductionRouteImport.update({
-	id: '/analytics/production',
-	path: '/analytics/production',
-	getParentRoute: () => AppRouteRoute,
+  id: '/analytics/sales',
+  path: '/analytics/sales',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAnalyticsFinanceRoute = AppAnalyticsFinanceRouteImport.update({
-	id: '/analytics/finance',
-	path: '/analytics/finance',
-	getParentRoute: () => AppRouteRoute,
+  id: '/analytics/finance',
+  path: '/analytics/finance',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsTabRouteRoute = AppSettingsTabRouteRouteImport.update({
-	id: '/settings/_tab',
-	path: '/settings',
-	getParentRoute: () => AppRouteRoute,
+  id: '/settings/_tab',
+  path: '/settings',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialIdIndexRoute = AppMaterialIdIndexRouteImport.update({
-	id: '/material/$id/',
-	path: '/material/$id/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/$id/',
+  path: '/material/$id/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLocationIdIndexRoute = AppLocationIdIndexRouteImport.update({
-	id: '/location/$id/',
-	path: '/location/$id/',
-	getParentRoute: () => AppRouteRoute,
+  id: '/location/$id/',
+  path: '/location/$id/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppInventoryTransactionsIndexRoute = AppInventoryTransactionsIndexRouteImport.update({
-	id: '/inventory/transactions/',
-	path: '/inventory/transactions/',
-	getParentRoute: () => AppRouteRoute,
-} as any)
+const AppInventoryTransactionsIndexRoute =
+  AppInventoryTransactionsIndexRouteImport.update({
+    id: '/inventory/transactions/',
+    path: '/inventory/transactions/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppSettingsUserCreateRoute = AppSettingsUserCreateRouteImport.update({
-	id: '/settings/user/create',
-	path: '/settings/user/create',
-	getParentRoute: () => AppRouteRoute,
+  id: '/settings/user/create',
+  path: '/settings/user/create',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsUserIdRoute = AppSettingsUserIdRouteImport.update({
-	id: '/settings/user/$id',
-	path: '/settings/user/$id',
-	getParentRoute: () => AppRouteRoute,
+  id: '/settings/user/$id',
+  path: '/settings/user/$id',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsTabUserRoute = AppSettingsTabUserRouteImport.update({
-	id: '/user',
-	path: '/user',
-	getParentRoute: () => AppSettingsTabRouteRoute,
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppSettingsTabRoleRoute = AppSettingsTabRoleRouteImport.update({
-	id: '/role',
-	path: '/role',
-	getParentRoute: () => AppSettingsTabRouteRoute,
+  id: '/role',
+  path: '/role',
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
-	id: '/location',
-	path: '/location',
-	getParentRoute: () => AppSettingsTabRouteRoute,
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
 const AppReportsSalesRevenueRoute = AppReportsSalesRevenueRouteImport.update({
-	id: '/reports/sales/revenue',
-	path: '/reports/sales/revenue',
-	getParentRoute: () => AppRouteRoute,
+  id: '/reports/sales/revenue',
+  path: '/reports/sales/revenue',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsSalesProductsRoute = AppReportsSalesProductsRouteImport.update({
-	id: '/reports/sales/products',
-	path: '/reports/sales/products',
-	getParentRoute: () => AppRouteRoute,
+  id: '/reports/sales/products',
+  path: '/reports/sales/products',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsSalesChannelsRoute = AppReportsSalesChannelsRouteImport.update({
-	id: '/reports/sales/channels',
-	path: '/reports/sales/channels',
-	getParentRoute: () => AppRouteRoute,
+  id: '/reports/sales/channels',
+  path: '/reports/sales/channels',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppReportsPaymentOverTimeRoute = AppReportsPaymentOverTimeRouteImport.update({
-	id: '/reports/payment/over-time',
-	path: '/reports/payment/over-time',
-	getParentRoute: () => AppRouteRoute,
+const AppReportsInventoryStockValueRoute =
+  AppReportsInventoryStockValueRouteImport.update({
+    id: '/reports/inventory/stock-value',
+    path: '/reports/inventory/stock-value',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryStockRoute =
+  AppReportsInventoryStockRouteImport.update({
+    id: '/reports/inventory/stock',
+    path: '/reports/inventory/stock',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryMovementsRoute =
+  AppReportsInventoryMovementsRouteImport.update({
+    id: '/reports/inventory/movements',
+    path: '/reports/inventory/movements',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceProfitLossRoute =
+  AppReportsFinanceProfitLossRouteImport.update({
+    id: '/reports/finance/profit-loss',
+    path: '/reports/finance/profit-loss',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinancePaymentsRoute =
+  AppReportsFinancePaymentsRouteImport.update({
+    id: '/reports/finance/payments',
+    path: '/reports/finance/payments',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceLedgerArApRoute =
+  AppReportsFinanceLedgerArApRouteImport.update({
+    id: '/reports/finance/ledger-ar-ap',
+    path: '/reports/finance/ledger-ar-ap',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceLedgerRoute = AppReportsFinanceLedgerRouteImport.update({
+  id: '/reports/finance/ledger',
+  path: '/reports/finance/ledger',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppReportsPaymentByMethodRoute = AppReportsPaymentByMethodRouteImport.update({
-	id: '/reports/payment/by-method',
-	path: '/reports/payment/by-method',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsPaymentByAccountRoute = AppReportsPaymentByAccountRouteImport.update({
-	id: '/reports/payment/by-account',
-	path: '/reports/payment/by-account',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsInventoryStockValueRoute = AppReportsInventoryStockValueRouteImport.update({
-	id: '/reports/inventory/stock-value',
-	path: '/reports/inventory/stock-value',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsInventoryStockRoute = AppReportsInventoryStockRouteImport.update({
-	id: '/reports/inventory/stock',
-	path: '/reports/inventory/stock',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsInventoryMovementsRoute = AppReportsInventoryMovementsRouteImport.update({
-	id: '/reports/inventory/movements',
-	path: '/reports/inventory/movements',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsFinanceExpensesRoute = AppReportsFinanceExpensesRouteImport.update({
-	id: '/reports/finance/expenses',
-	path: '/reports/finance/expenses',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsFinanceCashFlowRoute = AppReportsFinanceCashFlowRouteImport.update({
-	id: '/reports/finance/cash-flow',
-	path: '/reports/finance/cash-flow',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppReportsFinanceAccountBalancesRoute = AppReportsFinanceAccountBalancesRouteImport.update({
-	id: '/reports/finance/account-balances',
-	path: '/reports/finance/account-balances',
-	getParentRoute: () => AppRouteRoute,
-} as any)
+const AppReportsFinanceExpensesRoute =
+  AppReportsFinanceExpensesRouteImport.update({
+    id: '/reports/finance/expenses',
+    path: '/reports/finance/expenses',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceCashFlowRoute =
+  AppReportsFinanceCashFlowRouteImport.update({
+    id: '/reports/finance/cash-flow',
+    path: '/reports/finance/cash-flow',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsFinanceAccountBalancesRoute =
+  AppReportsFinanceAccountBalancesRouteImport.update({
+    id: '/reports/finance/account-balances',
+    path: '/reports/finance/account-balances',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppMaterialIdUpdateRoute = AppMaterialIdUpdateRouteImport.update({
-	id: '/material/$id/update',
-	path: '/material/$id/update',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/$id/update',
+  path: '/material/$id/update',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMaterialIdRecipeRoute = AppMaterialIdRecipeRouteImport.update({
-	id: '/material/$id/recipe',
-	path: '/material/$id/recipe',
-	getParentRoute: () => AppRouteRoute,
+  id: '/material/$id/recipe',
+  path: '/material/$id/recipe',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLocationIdEditRoute = AppLocationIdEditRouteImport.update({
-	id: '/location/$id/edit',
-	path: '/location/$id/edit',
-	getParentRoute: () => AppRouteRoute,
+  id: '/location/$id/edit',
+  path: '/location/$id/edit',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppInventoryTransactionsUsageRoute = AppInventoryTransactionsUsageRouteImport.update({
-	id: '/inventory/transactions/usage',
-	path: '/inventory/transactions/usage',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInventoryTransactionsTransferRoute = AppInventoryTransactionsTransferRouteImport.update({
-	id: '/inventory/transactions/transfer',
-	path: '/inventory/transactions/transfer',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInventoryTransactionsPurchaseRoute = AppInventoryTransactionsPurchaseRouteImport.update({
-	id: '/inventory/transactions/purchase',
-	path: '/inventory/transactions/purchase',
-	getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInventoryTransactionsOpnameRoute = AppInventoryTransactionsOpnameRouteImport.update({
-	id: '/inventory/transactions/opname',
-	path: '/inventory/transactions/opname',
-	getParentRoute: () => AppRouteRoute,
-} as any)
+const AppInventoryTransactionsUsageRoute =
+  AppInventoryTransactionsUsageRouteImport.update({
+    id: '/inventory/transactions/usage',
+    path: '/inventory/transactions/usage',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppInventoryTransactionsTransferRoute =
+  AppInventoryTransactionsTransferRouteImport.update({
+    id: '/inventory/transactions/transfer',
+    path: '/inventory/transactions/transfer',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppInventoryTransactionsPurchaseRoute =
+  AppInventoryTransactionsPurchaseRouteImport.update({
+    id: '/inventory/transactions/purchase',
+    path: '/inventory/transactions/purchase',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppInventoryTransactionsOpnameRoute =
+  AppInventoryTransactionsOpnameRouteImport.update({
+    id: '/inventory/transactions/opname',
+    path: '/inventory/transactions/opname',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppInventoryTransactionsAdjustmentRoute =
-	AppInventoryTransactionsAdjustmentRouteImport.update({
-		id: '/inventory/transactions/adjustment',
-		path: '/inventory/transactions/adjustment',
-		getParentRoute: () => AppRouteRoute,
-	} as any)
-const AppInventoryTransactionsIdRoute = AppInventoryTransactionsIdRouteImport.update({
-	id: '/inventory/transactions/$id',
-	path: '/inventory/transactions/$id',
-	getParentRoute: () => AppRouteRoute,
-} as any)
+  AppInventoryTransactionsAdjustmentRouteImport.update({
+    id: '/inventory/transactions/adjustment',
+    path: '/inventory/transactions/adjustment',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppInventoryTransactionsIdRoute =
+  AppInventoryTransactionsIdRouteImport.update({
+    id: '/inventory/transactions/$id',
+    path: '/inventory/transactions/$id',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-	'/': typeof AppIndexRoute
-	'/pos': typeof PosRouteWithChildren
-	'/$': typeof AppSplatRoute
-	'/login': typeof AuthLoginRoute
-	'/examples/page-new': typeof ExamplesPageNewRoute
-	'/pos/': typeof PosIndexRoute
-	'/settings': typeof AppSettingsTabRouteRouteWithChildren
-	'/analytics/finance': typeof AppAnalyticsFinanceRoute
-	'/analytics/production': typeof AppAnalyticsProductionRoute
-	'/analytics/sales': typeof AppAnalyticsSalesRoute
-	'/finance/accounts': typeof AppFinanceAccountsRoute
-	'/finance/cash-flow': typeof AppFinanceCashFlowRoute
-	'/finance/expenses': typeof AppFinanceExpensesRoute
-	'/finance/ledger': typeof AppFinanceLedgerRoute
-	'/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
-	'/finance/payments': typeof AppFinancePaymentsRoute
-	'/finance/profit-loss': typeof AppFinanceProfitLossRoute
-	'/hr/attendance': typeof AppHrAttendanceRoute
-	'/hr/employees': typeof AppHrEmployeesRoute
-	'/hr/payroll': typeof AppHrPayrollRoute
-	'/inventory/allocation': typeof AppInventoryAllocationRoute
-	'/inventory/summary': typeof AppInventorySummaryRoute
-	'/location/create': typeof AppLocationCreateRoute
-	'/material/category': typeof AppMaterialCategoryRoute
-	'/material/create': typeof AppMaterialCreateRoute
-	'/material/uom': typeof AppMaterialUomRoute
-	'/moka/configuration': typeof AppMokaConfigurationRoute
-	'/moka/monitoring': typeof AppMokaMonitoringRoute
-	'/moka/sync': typeof AppMokaSyncRoute
-	'/procurement/orders': typeof AppProcurementOrdersRoute
-	'/procurement/receipts': typeof AppProcurementReceiptsRoute
-	'/procurement/suppliers': typeof AppProcurementSuppliersRoute
-	'/product/$id': typeof AppProductIdRoute
-	'/product/category': typeof AppProductCategoryRoute
-	'/product/create': typeof AppProductCreateRoute
-	'/production/recipes': typeof AppProductionRecipesRoute
-	'/production/work-orders': typeof AppProductionWorkOrdersRoute
-	'/sales/customers': typeof AppSalesCustomersRoute
-	'/sales/invoices': typeof AppSalesInvoicesRoute
-	'/sales/orders': typeof AppSalesOrdersRoute
-	'/sales/pos': typeof AppSalesPosRoute
-	'/settings/audit-trail': typeof AppSettingsAuditTrailRoute
-	'/docs/$layer': typeof DocsDocsLayerRoute
-	'/examples/layouts/one': typeof ExamplesLayoutsOneRoute
-	'/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
-	'/location/': typeof AppLocationIndexRoute
-	'/material/': typeof AppMaterialIndexRoute
-	'/product/': typeof AppProductIndexRoute
-	'/reports/': typeof AppReportsIndexRoute
-	'/sales-type/': typeof AppSalesTypeIndexRoute
-	'/docs/': typeof DocsDocsIndexRoute
-	'/examples/charts/': typeof ExamplesChartsIndexRoute
-	'/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
-	'/examples/dashboard/': typeof ExamplesDashboardIndexRoute
-	'/examples/data-table/': typeof ExamplesDataTableIndexRoute
-	'/examples/detail/': typeof ExamplesDetailIndexRoute
-	'/examples/details/': typeof ExamplesDetailsIndexRoute
-	'/examples/dialog-form/': typeof ExamplesDialogFormIndexRoute
-	'/examples/form/': typeof ExamplesFormIndexRoute
-	'/examples/layouts/': typeof ExamplesLayoutsIndexRoute
-	'/examples/page-layouts/': typeof ExamplesPageLayoutsIndexRoute
-	'/examples/search/': typeof ExamplesSearchIndexRoute
-	'/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
-	'/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
-	'/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
-	'/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
-	'/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
-	'/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
-	'/location/$id/edit': typeof AppLocationIdEditRoute
-	'/material/$id/recipe': typeof AppMaterialIdRecipeRoute
-	'/material/$id/update': typeof AppMaterialIdUpdateRoute
-	'/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
-	'/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
-	'/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
-	'/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
-	'/reports/inventory/stock': typeof AppReportsInventoryStockRoute
-	'/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
-	'/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
-	'/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
-	'/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
-	'/reports/sales/channels': typeof AppReportsSalesChannelsRoute
-	'/reports/sales/products': typeof AppReportsSalesProductsRoute
-	'/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
-	'/settings/location': typeof AppSettingsTabLocationRoute
-	'/settings/role': typeof AppSettingsTabRoleRoute
-	'/settings/user': typeof AppSettingsTabUserRoute
-	'/settings/user/$id': typeof AppSettingsUserIdRoute
-	'/settings/user/create': typeof AppSettingsUserCreateRoute
-	'/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
-	'/location/$id/': typeof AppLocationIdIndexRoute
-	'/material/$id/': typeof AppMaterialIdIndexRoute
+  '/': typeof AppIndexRoute
+  '/pos': typeof PosRouteWithChildren
+  '/$': typeof AppSplatRoute
+  '/login': typeof AuthLoginRoute
+  '/examples/page-new': typeof ExamplesPageNewRoute
+  '/pos/': typeof PosIndexRoute
+  '/settings': typeof AppSettingsTabRouteRouteWithChildren
+  '/analytics/finance': typeof AppAnalyticsFinanceRoute
+  '/analytics/sales': typeof AppAnalyticsSalesRoute
+  '/finance/accounts': typeof AppFinanceAccountsRoute
+  '/finance/cash-flow': typeof AppFinanceCashFlowRoute
+  '/finance/expenses': typeof AppFinanceExpensesRoute
+  '/finance/ledger': typeof AppFinanceLedgerRoute
+  '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
+  '/finance/profit-loss': typeof AppFinanceProfitLossRoute
+  '/hr/attendance': typeof AppHrAttendanceRoute
+  '/hr/employees': typeof AppHrEmployeesRoute
+  '/hr/payroll': typeof AppHrPayrollRoute
+  '/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/inventory/summary': typeof AppInventorySummaryRoute
+  '/location/create': typeof AppLocationCreateRoute
+  '/material/category': typeof AppMaterialCategoryRoute
+  '/material/create': typeof AppMaterialCreateRoute
+  '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
+  '/moka/monitoring': typeof AppMokaMonitoringRoute
+  '/moka/sync': typeof AppMokaSyncRoute
+  '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/receipts': typeof AppProcurementReceiptsRoute
+  '/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/product/$id': typeof AppProductIdRoute
+  '/product/category': typeof AppProductCategoryRoute
+  '/product/create': typeof AppProductCreateRoute
+  '/production/recipes': typeof AppProductionRecipesRoute
+  '/production/work-orders': typeof AppProductionWorkOrdersRoute
+  '/sales/customers': typeof AppSalesCustomersRoute
+  '/sales/invoices': typeof AppSalesInvoicesRoute
+  '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
+  '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
+  '/docs/$layer': typeof DocsDocsLayerRoute
+  '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
+  '/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
+  '/location/': typeof AppLocationIndexRoute
+  '/material/': typeof AppMaterialIndexRoute
+  '/product/': typeof AppProductIndexRoute
+  '/reports/': typeof AppReportsIndexRoute
+  '/sales-type/': typeof AppSalesTypeIndexRoute
+  '/docs/': typeof DocsDocsIndexRoute
+  '/examples/charts/': typeof ExamplesChartsIndexRoute
+  '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
+  '/examples/dashboard/': typeof ExamplesDashboardIndexRoute
+  '/examples/data-table/': typeof ExamplesDataTableIndexRoute
+  '/examples/detail/': typeof ExamplesDetailIndexRoute
+  '/examples/details/': typeof ExamplesDetailsIndexRoute
+  '/examples/dialog-form/': typeof ExamplesDialogFormIndexRoute
+  '/examples/form/': typeof ExamplesFormIndexRoute
+  '/examples/layouts/': typeof ExamplesLayoutsIndexRoute
+  '/examples/page-layouts/': typeof ExamplesPageLayoutsIndexRoute
+  '/examples/search/': typeof ExamplesSearchIndexRoute
+  '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
+  '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
+  '/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
+  '/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
+  '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
+  '/location/$id/edit': typeof AppLocationIdEditRoute
+  '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
+  '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/reports/finance/ledger': typeof AppReportsFinanceLedgerRoute
+  '/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
+  '/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
+  '/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
+  '/settings/role': typeof AppSettingsTabRoleRoute
+  '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/$id': typeof AppSettingsUserIdRoute
+  '/settings/user/create': typeof AppSettingsUserCreateRoute
+  '/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
+  '/location/$id/': typeof AppLocationIdIndexRoute
+  '/material/$id/': typeof AppMaterialIdIndexRoute
 }
 export interface FileRoutesByTo {
-	'/': typeof AppIndexRoute
-	'/$': typeof AppSplatRoute
-	'/login': typeof AuthLoginRoute
-	'/examples/page-new': typeof ExamplesPageNewRoute
-	'/pos': typeof PosIndexRoute
-	'/settings': typeof AppSettingsTabRouteRouteWithChildren
-	'/analytics/finance': typeof AppAnalyticsFinanceRoute
-	'/analytics/production': typeof AppAnalyticsProductionRoute
-	'/analytics/sales': typeof AppAnalyticsSalesRoute
-	'/finance/accounts': typeof AppFinanceAccountsRoute
-	'/finance/cash-flow': typeof AppFinanceCashFlowRoute
-	'/finance/expenses': typeof AppFinanceExpensesRoute
-	'/finance/ledger': typeof AppFinanceLedgerRoute
-	'/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
-	'/finance/payments': typeof AppFinancePaymentsRoute
-	'/finance/profit-loss': typeof AppFinanceProfitLossRoute
-	'/hr/attendance': typeof AppHrAttendanceRoute
-	'/hr/employees': typeof AppHrEmployeesRoute
-	'/hr/payroll': typeof AppHrPayrollRoute
-	'/inventory/allocation': typeof AppInventoryAllocationRoute
-	'/inventory/summary': typeof AppInventorySummaryRoute
-	'/location/create': typeof AppLocationCreateRoute
-	'/material/category': typeof AppMaterialCategoryRoute
-	'/material/create': typeof AppMaterialCreateRoute
-	'/material/uom': typeof AppMaterialUomRoute
-	'/moka/configuration': typeof AppMokaConfigurationRoute
-	'/moka/monitoring': typeof AppMokaMonitoringRoute
-	'/moka/sync': typeof AppMokaSyncRoute
-	'/procurement/orders': typeof AppProcurementOrdersRoute
-	'/procurement/receipts': typeof AppProcurementReceiptsRoute
-	'/procurement/suppliers': typeof AppProcurementSuppliersRoute
-	'/product/$id': typeof AppProductIdRoute
-	'/product/category': typeof AppProductCategoryRoute
-	'/product/create': typeof AppProductCreateRoute
-	'/production/recipes': typeof AppProductionRecipesRoute
-	'/production/work-orders': typeof AppProductionWorkOrdersRoute
-	'/sales/customers': typeof AppSalesCustomersRoute
-	'/sales/invoices': typeof AppSalesInvoicesRoute
-	'/sales/orders': typeof AppSalesOrdersRoute
-	'/sales/pos': typeof AppSalesPosRoute
-	'/settings/audit-trail': typeof AppSettingsAuditTrailRoute
-	'/docs/$layer': typeof DocsDocsLayerRoute
-	'/examples/layouts/one': typeof ExamplesLayoutsOneRoute
-	'/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
-	'/location': typeof AppLocationIndexRoute
-	'/material': typeof AppMaterialIndexRoute
-	'/product': typeof AppProductIndexRoute
-	'/reports': typeof AppReportsIndexRoute
-	'/sales-type': typeof AppSalesTypeIndexRoute
-	'/docs': typeof DocsDocsIndexRoute
-	'/examples/charts': typeof ExamplesChartsIndexRoute
-	'/examples/complex-form': typeof ExamplesComplexFormIndexRoute
-	'/examples/dashboard': typeof ExamplesDashboardIndexRoute
-	'/examples/data-table': typeof ExamplesDataTableIndexRoute
-	'/examples/detail': typeof ExamplesDetailIndexRoute
-	'/examples/details': typeof ExamplesDetailsIndexRoute
-	'/examples/dialog-form': typeof ExamplesDialogFormIndexRoute
-	'/examples/form': typeof ExamplesFormIndexRoute
-	'/examples/layouts': typeof ExamplesLayoutsIndexRoute
-	'/examples/page-layouts': typeof ExamplesPageLayoutsIndexRoute
-	'/examples/search': typeof ExamplesSearchIndexRoute
-	'/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
-	'/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
-	'/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
-	'/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
-	'/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
-	'/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
-	'/location/$id/edit': typeof AppLocationIdEditRoute
-	'/material/$id/recipe': typeof AppMaterialIdRecipeRoute
-	'/material/$id/update': typeof AppMaterialIdUpdateRoute
-	'/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
-	'/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
-	'/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
-	'/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
-	'/reports/inventory/stock': typeof AppReportsInventoryStockRoute
-	'/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
-	'/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
-	'/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
-	'/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
-	'/reports/sales/channels': typeof AppReportsSalesChannelsRoute
-	'/reports/sales/products': typeof AppReportsSalesProductsRoute
-	'/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
-	'/settings/location': typeof AppSettingsTabLocationRoute
-	'/settings/role': typeof AppSettingsTabRoleRoute
-	'/settings/user': typeof AppSettingsTabUserRoute
-	'/settings/user/$id': typeof AppSettingsUserIdRoute
-	'/settings/user/create': typeof AppSettingsUserCreateRoute
-	'/inventory/transactions': typeof AppInventoryTransactionsIndexRoute
-	'/location/$id': typeof AppLocationIdIndexRoute
-	'/material/$id': typeof AppMaterialIdIndexRoute
+  '/': typeof AppIndexRoute
+  '/$': typeof AppSplatRoute
+  '/login': typeof AuthLoginRoute
+  '/examples/page-new': typeof ExamplesPageNewRoute
+  '/pos': typeof PosIndexRoute
+  '/settings': typeof AppSettingsTabRouteRouteWithChildren
+  '/analytics/finance': typeof AppAnalyticsFinanceRoute
+  '/analytics/sales': typeof AppAnalyticsSalesRoute
+  '/finance/accounts': typeof AppFinanceAccountsRoute
+  '/finance/cash-flow': typeof AppFinanceCashFlowRoute
+  '/finance/expenses': typeof AppFinanceExpensesRoute
+  '/finance/ledger': typeof AppFinanceLedgerRoute
+  '/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/finance/payments': typeof AppFinancePaymentsRoute
+  '/finance/profit-loss': typeof AppFinanceProfitLossRoute
+  '/hr/attendance': typeof AppHrAttendanceRoute
+  '/hr/employees': typeof AppHrEmployeesRoute
+  '/hr/payroll': typeof AppHrPayrollRoute
+  '/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/inventory/summary': typeof AppInventorySummaryRoute
+  '/location/create': typeof AppLocationCreateRoute
+  '/material/category': typeof AppMaterialCategoryRoute
+  '/material/create': typeof AppMaterialCreateRoute
+  '/material/uom': typeof AppMaterialUomRoute
+  '/moka/configuration': typeof AppMokaConfigurationRoute
+  '/moka/monitoring': typeof AppMokaMonitoringRoute
+  '/moka/sync': typeof AppMokaSyncRoute
+  '/procurement/orders': typeof AppProcurementOrdersRoute
+  '/procurement/receipts': typeof AppProcurementReceiptsRoute
+  '/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/product/$id': typeof AppProductIdRoute
+  '/product/category': typeof AppProductCategoryRoute
+  '/product/create': typeof AppProductCreateRoute
+  '/production/recipes': typeof AppProductionRecipesRoute
+  '/production/work-orders': typeof AppProductionWorkOrdersRoute
+  '/sales/customers': typeof AppSalesCustomersRoute
+  '/sales/invoices': typeof AppSalesInvoicesRoute
+  '/sales/orders': typeof AppSalesOrdersRoute
+  '/sales/pos': typeof AppSalesPosRoute
+  '/settings/audit-trail': typeof AppSettingsAuditTrailRoute
+  '/docs/$layer': typeof DocsDocsLayerRoute
+  '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
+  '/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
+  '/location': typeof AppLocationIndexRoute
+  '/material': typeof AppMaterialIndexRoute
+  '/product': typeof AppProductIndexRoute
+  '/reports': typeof AppReportsIndexRoute
+  '/sales-type': typeof AppSalesTypeIndexRoute
+  '/docs': typeof DocsDocsIndexRoute
+  '/examples/charts': typeof ExamplesChartsIndexRoute
+  '/examples/complex-form': typeof ExamplesComplexFormIndexRoute
+  '/examples/dashboard': typeof ExamplesDashboardIndexRoute
+  '/examples/data-table': typeof ExamplesDataTableIndexRoute
+  '/examples/detail': typeof ExamplesDetailIndexRoute
+  '/examples/details': typeof ExamplesDetailsIndexRoute
+  '/examples/dialog-form': typeof ExamplesDialogFormIndexRoute
+  '/examples/form': typeof ExamplesFormIndexRoute
+  '/examples/layouts': typeof ExamplesLayoutsIndexRoute
+  '/examples/page-layouts': typeof ExamplesPageLayoutsIndexRoute
+  '/examples/search': typeof ExamplesSearchIndexRoute
+  '/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
+  '/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
+  '/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
+  '/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
+  '/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
+  '/location/$id/edit': typeof AppLocationIdEditRoute
+  '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
+  '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/reports/finance/ledger': typeof AppReportsFinanceLedgerRoute
+  '/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
+  '/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
+  '/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/settings/location': typeof AppSettingsTabLocationRoute
+  '/settings/role': typeof AppSettingsTabRoleRoute
+  '/settings/user': typeof AppSettingsTabUserRoute
+  '/settings/user/$id': typeof AppSettingsUserIdRoute
+  '/settings/user/create': typeof AppSettingsUserCreateRoute
+  '/inventory/transactions': typeof AppInventoryTransactionsIndexRoute
+  '/location/$id': typeof AppLocationIdIndexRoute
+  '/material/$id': typeof AppMaterialIdIndexRoute
 }
 export interface FileRoutesById {
-	__root__: typeof rootRouteImport
-	'/_app': typeof AppRouteRouteWithChildren
-	'/_auth': typeof AuthRouteRouteWithChildren
-	'/_docs': typeof DocsRouteWithChildren
-	'/pos': typeof PosRouteWithChildren
-	'/_app/$': typeof AppSplatRoute
-	'/_auth/login': typeof AuthLoginRoute
-	'/examples/page-new': typeof ExamplesPageNewRoute
-	'/_app/': typeof AppIndexRoute
-	'/pos/': typeof PosIndexRoute
-	'/_app/settings/_tab': typeof AppSettingsTabRouteRouteWithChildren
-	'/_app/analytics/finance': typeof AppAnalyticsFinanceRoute
-	'/_app/analytics/production': typeof AppAnalyticsProductionRoute
-	'/_app/analytics/sales': typeof AppAnalyticsSalesRoute
-	'/_app/finance/accounts': typeof AppFinanceAccountsRoute
-	'/_app/finance/cash-flow': typeof AppFinanceCashFlowRoute
-	'/_app/finance/expenses': typeof AppFinanceExpensesRoute
-	'/_app/finance/ledger': typeof AppFinanceLedgerRoute
-	'/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
-	'/_app/finance/payments': typeof AppFinancePaymentsRoute
-	'/_app/finance/profit-loss': typeof AppFinanceProfitLossRoute
-	'/_app/hr/attendance': typeof AppHrAttendanceRoute
-	'/_app/hr/employees': typeof AppHrEmployeesRoute
-	'/_app/hr/payroll': typeof AppHrPayrollRoute
-	'/_app/inventory/allocation': typeof AppInventoryAllocationRoute
-	'/_app/inventory/summary': typeof AppInventorySummaryRoute
-	'/_app/location/create': typeof AppLocationCreateRoute
-	'/_app/material/category': typeof AppMaterialCategoryRoute
-	'/_app/material/create': typeof AppMaterialCreateRoute
-	'/_app/material/uom': typeof AppMaterialUomRoute
-	'/_app/moka/configuration': typeof AppMokaConfigurationRoute
-	'/_app/moka/monitoring': typeof AppMokaMonitoringRoute
-	'/_app/moka/sync': typeof AppMokaSyncRoute
-	'/_app/procurement/orders': typeof AppProcurementOrdersRoute
-	'/_app/procurement/receipts': typeof AppProcurementReceiptsRoute
-	'/_app/procurement/suppliers': typeof AppProcurementSuppliersRoute
-	'/_app/product/$id': typeof AppProductIdRoute
-	'/_app/product/category': typeof AppProductCategoryRoute
-	'/_app/product/create': typeof AppProductCreateRoute
-	'/_app/production/recipes': typeof AppProductionRecipesRoute
-	'/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
-	'/_app/sales/customers': typeof AppSalesCustomersRoute
-	'/_app/sales/invoices': typeof AppSalesInvoicesRoute
-	'/_app/sales/orders': typeof AppSalesOrdersRoute
-	'/_app/sales/pos': typeof AppSalesPosRoute
-	'/_app/settings/audit-trail': typeof AppSettingsAuditTrailRoute
-	'/_docs/docs/$layer': typeof DocsDocsLayerRoute
-	'/examples/layouts/one': typeof ExamplesLayoutsOneRoute
-	'/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
-	'/_app/location/': typeof AppLocationIndexRoute
-	'/_app/material/': typeof AppMaterialIndexRoute
-	'/_app/product/': typeof AppProductIndexRoute
-	'/_app/reports/': typeof AppReportsIndexRoute
-	'/_app/sales-type/': typeof AppSalesTypeIndexRoute
-	'/_docs/docs/': typeof DocsDocsIndexRoute
-	'/examples/charts/': typeof ExamplesChartsIndexRoute
-	'/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
-	'/examples/dashboard/': typeof ExamplesDashboardIndexRoute
-	'/examples/data-table/': typeof ExamplesDataTableIndexRoute
-	'/examples/detail/': typeof ExamplesDetailIndexRoute
-	'/examples/details/': typeof ExamplesDetailsIndexRoute
-	'/examples/dialog-form/': typeof ExamplesDialogFormIndexRoute
-	'/examples/form/': typeof ExamplesFormIndexRoute
-	'/examples/layouts/': typeof ExamplesLayoutsIndexRoute
-	'/examples/page-layouts/': typeof ExamplesPageLayoutsIndexRoute
-	'/examples/search/': typeof ExamplesSearchIndexRoute
-	'/_app/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
-	'/_app/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
-	'/_app/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
-	'/_app/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
-	'/_app/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
-	'/_app/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
-	'/_app/location/$id/edit': typeof AppLocationIdEditRoute
-	'/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
-	'/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
-	'/_app/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
-	'/_app/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
-	'/_app/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
-	'/_app/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
-	'/_app/reports/inventory/stock': typeof AppReportsInventoryStockRoute
-	'/_app/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
-	'/_app/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
-	'/_app/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
-	'/_app/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
-	'/_app/reports/sales/channels': typeof AppReportsSalesChannelsRoute
-	'/_app/reports/sales/products': typeof AppReportsSalesProductsRoute
-	'/_app/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
-	'/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
-	'/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
-	'/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
-	'/_app/settings/user/$id': typeof AppSettingsUserIdRoute
-	'/_app/settings/user/create': typeof AppSettingsUserCreateRoute
-	'/_app/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
-	'/_app/location/$id/': typeof AppLocationIdIndexRoute
-	'/_app/material/$id/': typeof AppMaterialIdIndexRoute
+  __root__: typeof rootRouteImport
+  '/_app': typeof AppRouteRouteWithChildren
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/_docs': typeof DocsRouteWithChildren
+  '/pos': typeof PosRouteWithChildren
+  '/_app/$': typeof AppSplatRoute
+  '/_auth/login': typeof AuthLoginRoute
+  '/examples/page-new': typeof ExamplesPageNewRoute
+  '/_app/': typeof AppIndexRoute
+  '/pos/': typeof PosIndexRoute
+  '/_app/settings/_tab': typeof AppSettingsTabRouteRouteWithChildren
+  '/_app/analytics/finance': typeof AppAnalyticsFinanceRoute
+  '/_app/analytics/sales': typeof AppAnalyticsSalesRoute
+  '/_app/finance/accounts': typeof AppFinanceAccountsRoute
+  '/_app/finance/cash-flow': typeof AppFinanceCashFlowRoute
+  '/_app/finance/expenses': typeof AppFinanceExpensesRoute
+  '/_app/finance/ledger': typeof AppFinanceLedgerRoute
+  '/_app/finance/ledger-ar-ap': typeof AppFinanceLedgerArApRoute
+  '/_app/finance/payments': typeof AppFinancePaymentsRoute
+  '/_app/finance/profit-loss': typeof AppFinanceProfitLossRoute
+  '/_app/hr/attendance': typeof AppHrAttendanceRoute
+  '/_app/hr/employees': typeof AppHrEmployeesRoute
+  '/_app/hr/payroll': typeof AppHrPayrollRoute
+  '/_app/inventory/allocation': typeof AppInventoryAllocationRoute
+  '/_app/inventory/summary': typeof AppInventorySummaryRoute
+  '/_app/location/create': typeof AppLocationCreateRoute
+  '/_app/material/category': typeof AppMaterialCategoryRoute
+  '/_app/material/create': typeof AppMaterialCreateRoute
+  '/_app/material/uom': typeof AppMaterialUomRoute
+  '/_app/moka/configuration': typeof AppMokaConfigurationRoute
+  '/_app/moka/monitoring': typeof AppMokaMonitoringRoute
+  '/_app/moka/sync': typeof AppMokaSyncRoute
+  '/_app/procurement/orders': typeof AppProcurementOrdersRoute
+  '/_app/procurement/receipts': typeof AppProcurementReceiptsRoute
+  '/_app/procurement/suppliers': typeof AppProcurementSuppliersRoute
+  '/_app/product/$id': typeof AppProductIdRoute
+  '/_app/product/category': typeof AppProductCategoryRoute
+  '/_app/product/create': typeof AppProductCreateRoute
+  '/_app/production/recipes': typeof AppProductionRecipesRoute
+  '/_app/production/work-orders': typeof AppProductionWorkOrdersRoute
+  '/_app/sales/customers': typeof AppSalesCustomersRoute
+  '/_app/sales/invoices': typeof AppSalesInvoicesRoute
+  '/_app/sales/orders': typeof AppSalesOrdersRoute
+  '/_app/sales/pos': typeof AppSalesPosRoute
+  '/_app/settings/audit-trail': typeof AppSettingsAuditTrailRoute
+  '/_docs/docs/$layer': typeof DocsDocsLayerRoute
+  '/examples/layouts/one': typeof ExamplesLayoutsOneRoute
+  '/examples/layouts/two': typeof ExamplesLayoutsTwoRoute
+  '/_app/location/': typeof AppLocationIndexRoute
+  '/_app/material/': typeof AppMaterialIndexRoute
+  '/_app/product/': typeof AppProductIndexRoute
+  '/_app/reports/': typeof AppReportsIndexRoute
+  '/_app/sales-type/': typeof AppSalesTypeIndexRoute
+  '/_docs/docs/': typeof DocsDocsIndexRoute
+  '/examples/charts/': typeof ExamplesChartsIndexRoute
+  '/examples/complex-form/': typeof ExamplesComplexFormIndexRoute
+  '/examples/dashboard/': typeof ExamplesDashboardIndexRoute
+  '/examples/data-table/': typeof ExamplesDataTableIndexRoute
+  '/examples/detail/': typeof ExamplesDetailIndexRoute
+  '/examples/details/': typeof ExamplesDetailsIndexRoute
+  '/examples/dialog-form/': typeof ExamplesDialogFormIndexRoute
+  '/examples/form/': typeof ExamplesFormIndexRoute
+  '/examples/layouts/': typeof ExamplesLayoutsIndexRoute
+  '/examples/page-layouts/': typeof ExamplesPageLayoutsIndexRoute
+  '/examples/search/': typeof ExamplesSearchIndexRoute
+  '/_app/inventory/transactions/$id': typeof AppInventoryTransactionsIdRoute
+  '/_app/inventory/transactions/adjustment': typeof AppInventoryTransactionsAdjustmentRoute
+  '/_app/inventory/transactions/opname': typeof AppInventoryTransactionsOpnameRoute
+  '/_app/inventory/transactions/purchase': typeof AppInventoryTransactionsPurchaseRoute
+  '/_app/inventory/transactions/transfer': typeof AppInventoryTransactionsTransferRoute
+  '/_app/inventory/transactions/usage': typeof AppInventoryTransactionsUsageRoute
+  '/_app/location/$id/edit': typeof AppLocationIdEditRoute
+  '/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
+  '/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/_app/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
+  '/_app/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
+  '/_app/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
+  '/_app/reports/finance/ledger': typeof AppReportsFinanceLedgerRoute
+  '/_app/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
+  '/_app/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
+  '/_app/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/_app/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/_app/reports/inventory/stock': typeof AppReportsInventoryStockRoute
+  '/_app/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/_app/reports/sales/channels': typeof AppReportsSalesChannelsRoute
+  '/_app/reports/sales/products': typeof AppReportsSalesProductsRoute
+  '/_app/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
+  '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
+  '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
+  '/_app/settings/user/$id': typeof AppSettingsUserIdRoute
+  '/_app/settings/user/create': typeof AppSettingsUserCreateRoute
+  '/_app/inventory/transactions/': typeof AppInventoryTransactionsIndexRoute
+  '/_app/location/$id/': typeof AppLocationIdIndexRoute
+  '/_app/material/$id/': typeof AppMaterialIdIndexRoute
 }
 export interface FileRouteTypes {
-	fileRoutesByFullPath: FileRoutesByFullPath
-	fullPaths:
-		| '/'
-		| '/pos'
-		| '/$'
-		| '/login'
-		| '/examples/page-new'
-		| '/pos/'
-		| '/settings'
-		| '/analytics/finance'
-		| '/analytics/production'
-		| '/analytics/sales'
-		| '/finance/accounts'
-		| '/finance/cash-flow'
-		| '/finance/expenses'
-		| '/finance/ledger'
-		| '/finance/ledger-ar-ap'
-		| '/finance/payments'
-		| '/finance/profit-loss'
-		| '/hr/attendance'
-		| '/hr/employees'
-		| '/hr/payroll'
-		| '/inventory/allocation'
-		| '/inventory/summary'
-		| '/location/create'
-		| '/material/category'
-		| '/material/create'
-		| '/material/uom'
-		| '/moka/configuration'
-		| '/moka/monitoring'
-		| '/moka/sync'
-		| '/procurement/orders'
-		| '/procurement/receipts'
-		| '/procurement/suppliers'
-		| '/product/$id'
-		| '/product/category'
-		| '/product/create'
-		| '/production/recipes'
-		| '/production/work-orders'
-		| '/sales/customers'
-		| '/sales/invoices'
-		| '/sales/orders'
-		| '/sales/pos'
-		| '/settings/audit-trail'
-		| '/docs/$layer'
-		| '/examples/layouts/one'
-		| '/examples/layouts/two'
-		| '/location/'
-		| '/material/'
-		| '/product/'
-		| '/reports/'
-		| '/sales-type/'
-		| '/docs/'
-		| '/examples/charts/'
-		| '/examples/complex-form/'
-		| '/examples/dashboard/'
-		| '/examples/data-table/'
-		| '/examples/detail/'
-		| '/examples/details/'
-		| '/examples/dialog-form/'
-		| '/examples/form/'
-		| '/examples/layouts/'
-		| '/examples/page-layouts/'
-		| '/examples/search/'
-		| '/inventory/transactions/$id'
-		| '/inventory/transactions/adjustment'
-		| '/inventory/transactions/opname'
-		| '/inventory/transactions/purchase'
-		| '/inventory/transactions/transfer'
-		| '/inventory/transactions/usage'
-		| '/location/$id/edit'
-		| '/material/$id/recipe'
-		| '/material/$id/update'
-		| '/reports/finance/account-balances'
-		| '/reports/finance/cash-flow'
-		| '/reports/finance/expenses'
-		| '/reports/inventory/movements'
-		| '/reports/inventory/stock'
-		| '/reports/inventory/stock-value'
-		| '/reports/payment/by-account'
-		| '/reports/payment/by-method'
-		| '/reports/payment/over-time'
-		| '/reports/sales/channels'
-		| '/reports/sales/products'
-		| '/reports/sales/revenue'
-		| '/settings/location'
-		| '/settings/role'
-		| '/settings/user'
-		| '/settings/user/$id'
-		| '/settings/user/create'
-		| '/inventory/transactions/'
-		| '/location/$id/'
-		| '/material/$id/'
-	fileRoutesByTo: FileRoutesByTo
-	to:
-		| '/'
-		| '/$'
-		| '/login'
-		| '/examples/page-new'
-		| '/pos'
-		| '/settings'
-		| '/analytics/finance'
-		| '/analytics/production'
-		| '/analytics/sales'
-		| '/finance/accounts'
-		| '/finance/cash-flow'
-		| '/finance/expenses'
-		| '/finance/ledger'
-		| '/finance/ledger-ar-ap'
-		| '/finance/payments'
-		| '/finance/profit-loss'
-		| '/hr/attendance'
-		| '/hr/employees'
-		| '/hr/payroll'
-		| '/inventory/allocation'
-		| '/inventory/summary'
-		| '/location/create'
-		| '/material/category'
-		| '/material/create'
-		| '/material/uom'
-		| '/moka/configuration'
-		| '/moka/monitoring'
-		| '/moka/sync'
-		| '/procurement/orders'
-		| '/procurement/receipts'
-		| '/procurement/suppliers'
-		| '/product/$id'
-		| '/product/category'
-		| '/product/create'
-		| '/production/recipes'
-		| '/production/work-orders'
-		| '/sales/customers'
-		| '/sales/invoices'
-		| '/sales/orders'
-		| '/sales/pos'
-		| '/settings/audit-trail'
-		| '/docs/$layer'
-		| '/examples/layouts/one'
-		| '/examples/layouts/two'
-		| '/location'
-		| '/material'
-		| '/product'
-		| '/reports'
-		| '/sales-type'
-		| '/docs'
-		| '/examples/charts'
-		| '/examples/complex-form'
-		| '/examples/dashboard'
-		| '/examples/data-table'
-		| '/examples/detail'
-		| '/examples/details'
-		| '/examples/dialog-form'
-		| '/examples/form'
-		| '/examples/layouts'
-		| '/examples/page-layouts'
-		| '/examples/search'
-		| '/inventory/transactions/$id'
-		| '/inventory/transactions/adjustment'
-		| '/inventory/transactions/opname'
-		| '/inventory/transactions/purchase'
-		| '/inventory/transactions/transfer'
-		| '/inventory/transactions/usage'
-		| '/location/$id/edit'
-		| '/material/$id/recipe'
-		| '/material/$id/update'
-		| '/reports/finance/account-balances'
-		| '/reports/finance/cash-flow'
-		| '/reports/finance/expenses'
-		| '/reports/inventory/movements'
-		| '/reports/inventory/stock'
-		| '/reports/inventory/stock-value'
-		| '/reports/payment/by-account'
-		| '/reports/payment/by-method'
-		| '/reports/payment/over-time'
-		| '/reports/sales/channels'
-		| '/reports/sales/products'
-		| '/reports/sales/revenue'
-		| '/settings/location'
-		| '/settings/role'
-		| '/settings/user'
-		| '/settings/user/$id'
-		| '/settings/user/create'
-		| '/inventory/transactions'
-		| '/location/$id'
-		| '/material/$id'
-	id:
-		| '__root__'
-		| '/_app'
-		| '/_auth'
-		| '/_docs'
-		| '/pos'
-		| '/_app/$'
-		| '/_auth/login'
-		| '/examples/page-new'
-		| '/_app/'
-		| '/pos/'
-		| '/_app/settings/_tab'
-		| '/_app/analytics/finance'
-		| '/_app/analytics/production'
-		| '/_app/analytics/sales'
-		| '/_app/finance/accounts'
-		| '/_app/finance/cash-flow'
-		| '/_app/finance/expenses'
-		| '/_app/finance/ledger'
-		| '/_app/finance/ledger-ar-ap'
-		| '/_app/finance/payments'
-		| '/_app/finance/profit-loss'
-		| '/_app/hr/attendance'
-		| '/_app/hr/employees'
-		| '/_app/hr/payroll'
-		| '/_app/inventory/allocation'
-		| '/_app/inventory/summary'
-		| '/_app/location/create'
-		| '/_app/material/category'
-		| '/_app/material/create'
-		| '/_app/material/uom'
-		| '/_app/moka/configuration'
-		| '/_app/moka/monitoring'
-		| '/_app/moka/sync'
-		| '/_app/procurement/orders'
-		| '/_app/procurement/receipts'
-		| '/_app/procurement/suppliers'
-		| '/_app/product/$id'
-		| '/_app/product/category'
-		| '/_app/product/create'
-		| '/_app/production/recipes'
-		| '/_app/production/work-orders'
-		| '/_app/sales/customers'
-		| '/_app/sales/invoices'
-		| '/_app/sales/orders'
-		| '/_app/sales/pos'
-		| '/_app/settings/audit-trail'
-		| '/_docs/docs/$layer'
-		| '/examples/layouts/one'
-		| '/examples/layouts/two'
-		| '/_app/location/'
-		| '/_app/material/'
-		| '/_app/product/'
-		| '/_app/reports/'
-		| '/_app/sales-type/'
-		| '/_docs/docs/'
-		| '/examples/charts/'
-		| '/examples/complex-form/'
-		| '/examples/dashboard/'
-		| '/examples/data-table/'
-		| '/examples/detail/'
-		| '/examples/details/'
-		| '/examples/dialog-form/'
-		| '/examples/form/'
-		| '/examples/layouts/'
-		| '/examples/page-layouts/'
-		| '/examples/search/'
-		| '/_app/inventory/transactions/$id'
-		| '/_app/inventory/transactions/adjustment'
-		| '/_app/inventory/transactions/opname'
-		| '/_app/inventory/transactions/purchase'
-		| '/_app/inventory/transactions/transfer'
-		| '/_app/inventory/transactions/usage'
-		| '/_app/location/$id/edit'
-		| '/_app/material/$id/recipe'
-		| '/_app/material/$id/update'
-		| '/_app/reports/finance/account-balances'
-		| '/_app/reports/finance/cash-flow'
-		| '/_app/reports/finance/expenses'
-		| '/_app/reports/inventory/movements'
-		| '/_app/reports/inventory/stock'
-		| '/_app/reports/inventory/stock-value'
-		| '/_app/reports/payment/by-account'
-		| '/_app/reports/payment/by-method'
-		| '/_app/reports/payment/over-time'
-		| '/_app/reports/sales/channels'
-		| '/_app/reports/sales/products'
-		| '/_app/reports/sales/revenue'
-		| '/_app/settings/_tab/location'
-		| '/_app/settings/_tab/role'
-		| '/_app/settings/_tab/user'
-		| '/_app/settings/user/$id'
-		| '/_app/settings/user/create'
-		| '/_app/inventory/transactions/'
-		| '/_app/location/$id/'
-		| '/_app/material/$id/'
-	fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/pos'
+    | '/$'
+    | '/login'
+    | '/examples/page-new'
+    | '/pos/'
+    | '/settings'
+    | '/analytics/finance'
+    | '/analytics/sales'
+    | '/finance/accounts'
+    | '/finance/cash-flow'
+    | '/finance/expenses'
+    | '/finance/ledger'
+    | '/finance/ledger-ar-ap'
+    | '/finance/payments'
+    | '/finance/profit-loss'
+    | '/hr/attendance'
+    | '/hr/employees'
+    | '/hr/payroll'
+    | '/inventory/allocation'
+    | '/inventory/summary'
+    | '/location/create'
+    | '/material/category'
+    | '/material/create'
+    | '/material/uom'
+    | '/moka/configuration'
+    | '/moka/monitoring'
+    | '/moka/sync'
+    | '/procurement/orders'
+    | '/procurement/receipts'
+    | '/procurement/suppliers'
+    | '/product/$id'
+    | '/product/category'
+    | '/product/create'
+    | '/production/recipes'
+    | '/production/work-orders'
+    | '/sales/customers'
+    | '/sales/invoices'
+    | '/sales/orders'
+    | '/sales/pos'
+    | '/settings/audit-trail'
+    | '/docs/$layer'
+    | '/examples/layouts/one'
+    | '/examples/layouts/two'
+    | '/location/'
+    | '/material/'
+    | '/product/'
+    | '/reports/'
+    | '/sales-type/'
+    | '/docs/'
+    | '/examples/charts/'
+    | '/examples/complex-form/'
+    | '/examples/dashboard/'
+    | '/examples/data-table/'
+    | '/examples/detail/'
+    | '/examples/details/'
+    | '/examples/dialog-form/'
+    | '/examples/form/'
+    | '/examples/layouts/'
+    | '/examples/page-layouts/'
+    | '/examples/search/'
+    | '/inventory/transactions/$id'
+    | '/inventory/transactions/adjustment'
+    | '/inventory/transactions/opname'
+    | '/inventory/transactions/purchase'
+    | '/inventory/transactions/transfer'
+    | '/inventory/transactions/usage'
+    | '/location/$id/edit'
+    | '/material/$id/recipe'
+    | '/material/$id/update'
+    | '/reports/finance/account-balances'
+    | '/reports/finance/cash-flow'
+    | '/reports/finance/expenses'
+    | '/reports/finance/ledger'
+    | '/reports/finance/ledger-ar-ap'
+    | '/reports/finance/payments'
+    | '/reports/finance/profit-loss'
+    | '/reports/inventory/movements'
+    | '/reports/inventory/stock'
+    | '/reports/inventory/stock-value'
+    | '/reports/sales/channels'
+    | '/reports/sales/products'
+    | '/reports/sales/revenue'
+    | '/settings/location'
+    | '/settings/role'
+    | '/settings/user'
+    | '/settings/user/$id'
+    | '/settings/user/create'
+    | '/inventory/transactions/'
+    | '/location/$id/'
+    | '/material/$id/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/$'
+    | '/login'
+    | '/examples/page-new'
+    | '/pos'
+    | '/settings'
+    | '/analytics/finance'
+    | '/analytics/sales'
+    | '/finance/accounts'
+    | '/finance/cash-flow'
+    | '/finance/expenses'
+    | '/finance/ledger'
+    | '/finance/ledger-ar-ap'
+    | '/finance/payments'
+    | '/finance/profit-loss'
+    | '/hr/attendance'
+    | '/hr/employees'
+    | '/hr/payroll'
+    | '/inventory/allocation'
+    | '/inventory/summary'
+    | '/location/create'
+    | '/material/category'
+    | '/material/create'
+    | '/material/uom'
+    | '/moka/configuration'
+    | '/moka/monitoring'
+    | '/moka/sync'
+    | '/procurement/orders'
+    | '/procurement/receipts'
+    | '/procurement/suppliers'
+    | '/product/$id'
+    | '/product/category'
+    | '/product/create'
+    | '/production/recipes'
+    | '/production/work-orders'
+    | '/sales/customers'
+    | '/sales/invoices'
+    | '/sales/orders'
+    | '/sales/pos'
+    | '/settings/audit-trail'
+    | '/docs/$layer'
+    | '/examples/layouts/one'
+    | '/examples/layouts/two'
+    | '/location'
+    | '/material'
+    | '/product'
+    | '/reports'
+    | '/sales-type'
+    | '/docs'
+    | '/examples/charts'
+    | '/examples/complex-form'
+    | '/examples/dashboard'
+    | '/examples/data-table'
+    | '/examples/detail'
+    | '/examples/details'
+    | '/examples/dialog-form'
+    | '/examples/form'
+    | '/examples/layouts'
+    | '/examples/page-layouts'
+    | '/examples/search'
+    | '/inventory/transactions/$id'
+    | '/inventory/transactions/adjustment'
+    | '/inventory/transactions/opname'
+    | '/inventory/transactions/purchase'
+    | '/inventory/transactions/transfer'
+    | '/inventory/transactions/usage'
+    | '/location/$id/edit'
+    | '/material/$id/recipe'
+    | '/material/$id/update'
+    | '/reports/finance/account-balances'
+    | '/reports/finance/cash-flow'
+    | '/reports/finance/expenses'
+    | '/reports/finance/ledger'
+    | '/reports/finance/ledger-ar-ap'
+    | '/reports/finance/payments'
+    | '/reports/finance/profit-loss'
+    | '/reports/inventory/movements'
+    | '/reports/inventory/stock'
+    | '/reports/inventory/stock-value'
+    | '/reports/sales/channels'
+    | '/reports/sales/products'
+    | '/reports/sales/revenue'
+    | '/settings/location'
+    | '/settings/role'
+    | '/settings/user'
+    | '/settings/user/$id'
+    | '/settings/user/create'
+    | '/inventory/transactions'
+    | '/location/$id'
+    | '/material/$id'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_auth'
+    | '/_docs'
+    | '/pos'
+    | '/_app/$'
+    | '/_auth/login'
+    | '/examples/page-new'
+    | '/_app/'
+    | '/pos/'
+    | '/_app/settings/_tab'
+    | '/_app/analytics/finance'
+    | '/_app/analytics/sales'
+    | '/_app/finance/accounts'
+    | '/_app/finance/cash-flow'
+    | '/_app/finance/expenses'
+    | '/_app/finance/ledger'
+    | '/_app/finance/ledger-ar-ap'
+    | '/_app/finance/payments'
+    | '/_app/finance/profit-loss'
+    | '/_app/hr/attendance'
+    | '/_app/hr/employees'
+    | '/_app/hr/payroll'
+    | '/_app/inventory/allocation'
+    | '/_app/inventory/summary'
+    | '/_app/location/create'
+    | '/_app/material/category'
+    | '/_app/material/create'
+    | '/_app/material/uom'
+    | '/_app/moka/configuration'
+    | '/_app/moka/monitoring'
+    | '/_app/moka/sync'
+    | '/_app/procurement/orders'
+    | '/_app/procurement/receipts'
+    | '/_app/procurement/suppliers'
+    | '/_app/product/$id'
+    | '/_app/product/category'
+    | '/_app/product/create'
+    | '/_app/production/recipes'
+    | '/_app/production/work-orders'
+    | '/_app/sales/customers'
+    | '/_app/sales/invoices'
+    | '/_app/sales/orders'
+    | '/_app/sales/pos'
+    | '/_app/settings/audit-trail'
+    | '/_docs/docs/$layer'
+    | '/examples/layouts/one'
+    | '/examples/layouts/two'
+    | '/_app/location/'
+    | '/_app/material/'
+    | '/_app/product/'
+    | '/_app/reports/'
+    | '/_app/sales-type/'
+    | '/_docs/docs/'
+    | '/examples/charts/'
+    | '/examples/complex-form/'
+    | '/examples/dashboard/'
+    | '/examples/data-table/'
+    | '/examples/detail/'
+    | '/examples/details/'
+    | '/examples/dialog-form/'
+    | '/examples/form/'
+    | '/examples/layouts/'
+    | '/examples/page-layouts/'
+    | '/examples/search/'
+    | '/_app/inventory/transactions/$id'
+    | '/_app/inventory/transactions/adjustment'
+    | '/_app/inventory/transactions/opname'
+    | '/_app/inventory/transactions/purchase'
+    | '/_app/inventory/transactions/transfer'
+    | '/_app/inventory/transactions/usage'
+    | '/_app/location/$id/edit'
+    | '/_app/material/$id/recipe'
+    | '/_app/material/$id/update'
+    | '/_app/reports/finance/account-balances'
+    | '/_app/reports/finance/cash-flow'
+    | '/_app/reports/finance/expenses'
+    | '/_app/reports/finance/ledger'
+    | '/_app/reports/finance/ledger-ar-ap'
+    | '/_app/reports/finance/payments'
+    | '/_app/reports/finance/profit-loss'
+    | '/_app/reports/inventory/movements'
+    | '/_app/reports/inventory/stock'
+    | '/_app/reports/inventory/stock-value'
+    | '/_app/reports/sales/channels'
+    | '/_app/reports/sales/products'
+    | '/_app/reports/sales/revenue'
+    | '/_app/settings/_tab/location'
+    | '/_app/settings/_tab/role'
+    | '/_app/settings/_tab/user'
+    | '/_app/settings/user/$id'
+    | '/_app/settings/user/create'
+    | '/_app/inventory/transactions/'
+    | '/_app/location/$id/'
+    | '/_app/material/$id/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-	AppRouteRoute: typeof AppRouteRouteWithChildren
-	AuthRouteRoute: typeof AuthRouteRouteWithChildren
-	DocsRoute: typeof DocsRouteWithChildren
-	PosRoute: typeof PosRouteWithChildren
-	ExamplesPageNewRoute: typeof ExamplesPageNewRoute
-	ExamplesLayoutsOneRoute: typeof ExamplesLayoutsOneRoute
-	ExamplesLayoutsTwoRoute: typeof ExamplesLayoutsTwoRoute
-	ExamplesChartsIndexRoute: typeof ExamplesChartsIndexRoute
-	ExamplesComplexFormIndexRoute: typeof ExamplesComplexFormIndexRoute
-	ExamplesDashboardIndexRoute: typeof ExamplesDashboardIndexRoute
-	ExamplesDataTableIndexRoute: typeof ExamplesDataTableIndexRoute
-	ExamplesDetailIndexRoute: typeof ExamplesDetailIndexRoute
-	ExamplesDetailsIndexRoute: typeof ExamplesDetailsIndexRoute
-	ExamplesDialogFormIndexRoute: typeof ExamplesDialogFormIndexRoute
-	ExamplesFormIndexRoute: typeof ExamplesFormIndexRoute
-	ExamplesLayoutsIndexRoute: typeof ExamplesLayoutsIndexRoute
-	ExamplesPageLayoutsIndexRoute: typeof ExamplesPageLayoutsIndexRoute
-	ExamplesSearchIndexRoute: typeof ExamplesSearchIndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  DocsRoute: typeof DocsRouteWithChildren
+  PosRoute: typeof PosRouteWithChildren
+  ExamplesPageNewRoute: typeof ExamplesPageNewRoute
+  ExamplesLayoutsOneRoute: typeof ExamplesLayoutsOneRoute
+  ExamplesLayoutsTwoRoute: typeof ExamplesLayoutsTwoRoute
+  ExamplesChartsIndexRoute: typeof ExamplesChartsIndexRoute
+  ExamplesComplexFormIndexRoute: typeof ExamplesComplexFormIndexRoute
+  ExamplesDashboardIndexRoute: typeof ExamplesDashboardIndexRoute
+  ExamplesDataTableIndexRoute: typeof ExamplesDataTableIndexRoute
+  ExamplesDetailIndexRoute: typeof ExamplesDetailIndexRoute
+  ExamplesDetailsIndexRoute: typeof ExamplesDetailsIndexRoute
+  ExamplesDialogFormIndexRoute: typeof ExamplesDialogFormIndexRoute
+  ExamplesFormIndexRoute: typeof ExamplesFormIndexRoute
+  ExamplesLayoutsIndexRoute: typeof ExamplesLayoutsIndexRoute
+  ExamplesPageLayoutsIndexRoute: typeof ExamplesPageLayoutsIndexRoute
+  ExamplesSearchIndexRoute: typeof ExamplesSearchIndexRoute
 }
 
 declare module '@tanstack/react-router' {
-	interface FileRoutesByPath {
-		'/pos': {
-			id: '/pos'
-			path: '/pos'
-			fullPath: '/pos'
-			preLoaderRoute: typeof PosRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_docs': {
-			id: '/_docs'
-			path: ''
-			fullPath: '/'
-			preLoaderRoute: typeof DocsRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_auth': {
-			id: '/_auth'
-			path: ''
-			fullPath: '/'
-			preLoaderRoute: typeof AuthRouteRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_app': {
-			id: '/_app'
-			path: ''
-			fullPath: '/'
-			preLoaderRoute: typeof AppRouteRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/pos/': {
-			id: '/pos/'
-			path: '/'
-			fullPath: '/pos/'
-			preLoaderRoute: typeof PosIndexRouteImport
-			parentRoute: typeof PosRoute
-		}
-		'/_app/': {
-			id: '/_app/'
-			path: '/'
-			fullPath: '/'
-			preLoaderRoute: typeof AppIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/examples/page-new': {
-			id: '/examples/page-new'
-			path: '/examples/page-new'
-			fullPath: '/examples/page-new'
-			preLoaderRoute: typeof ExamplesPageNewRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_auth/login': {
-			id: '/_auth/login'
-			path: '/login'
-			fullPath: '/login'
-			preLoaderRoute: typeof AuthLoginRouteImport
-			parentRoute: typeof AuthRouteRoute
-		}
-		'/_app/$': {
-			id: '/_app/$'
-			path: '/$'
-			fullPath: '/$'
-			preLoaderRoute: typeof AppSplatRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/examples/search/': {
-			id: '/examples/search/'
-			path: '/examples/search'
-			fullPath: '/examples/search/'
-			preLoaderRoute: typeof ExamplesSearchIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/page-layouts/': {
-			id: '/examples/page-layouts/'
-			path: '/examples/page-layouts'
-			fullPath: '/examples/page-layouts/'
-			preLoaderRoute: typeof ExamplesPageLayoutsIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/layouts/': {
-			id: '/examples/layouts/'
-			path: '/examples/layouts'
-			fullPath: '/examples/layouts/'
-			preLoaderRoute: typeof ExamplesLayoutsIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/form/': {
-			id: '/examples/form/'
-			path: '/examples/form'
-			fullPath: '/examples/form/'
-			preLoaderRoute: typeof ExamplesFormIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/dialog-form/': {
-			id: '/examples/dialog-form/'
-			path: '/examples/dialog-form'
-			fullPath: '/examples/dialog-form/'
-			preLoaderRoute: typeof ExamplesDialogFormIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/details/': {
-			id: '/examples/details/'
-			path: '/examples/details'
-			fullPath: '/examples/details/'
-			preLoaderRoute: typeof ExamplesDetailsIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/detail/': {
-			id: '/examples/detail/'
-			path: '/examples/detail'
-			fullPath: '/examples/detail/'
-			preLoaderRoute: typeof ExamplesDetailIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/data-table/': {
-			id: '/examples/data-table/'
-			path: '/examples/data-table'
-			fullPath: '/examples/data-table/'
-			preLoaderRoute: typeof ExamplesDataTableIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/dashboard/': {
-			id: '/examples/dashboard/'
-			path: '/examples/dashboard'
-			fullPath: '/examples/dashboard/'
-			preLoaderRoute: typeof ExamplesDashboardIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/complex-form/': {
-			id: '/examples/complex-form/'
-			path: '/examples/complex-form'
-			fullPath: '/examples/complex-form/'
-			preLoaderRoute: typeof ExamplesComplexFormIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/charts/': {
-			id: '/examples/charts/'
-			path: '/examples/charts'
-			fullPath: '/examples/charts/'
-			preLoaderRoute: typeof ExamplesChartsIndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_docs/docs/': {
-			id: '/_docs/docs/'
-			path: '/docs'
-			fullPath: '/docs/'
-			preLoaderRoute: typeof DocsDocsIndexRouteImport
-			parentRoute: typeof DocsRoute
-		}
-		'/_app/sales-type/': {
-			id: '/_app/sales-type/'
-			path: '/sales-type'
-			fullPath: '/sales-type/'
-			preLoaderRoute: typeof AppSalesTypeIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/': {
-			id: '/_app/reports/'
-			path: '/reports'
-			fullPath: '/reports/'
-			preLoaderRoute: typeof AppReportsIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/product/': {
-			id: '/_app/product/'
-			path: '/product'
-			fullPath: '/product/'
-			preLoaderRoute: typeof AppProductIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/': {
-			id: '/_app/material/'
-			path: '/material'
-			fullPath: '/material/'
-			preLoaderRoute: typeof AppMaterialIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/location/': {
-			id: '/_app/location/'
-			path: '/location'
-			fullPath: '/location/'
-			preLoaderRoute: typeof AppLocationIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/examples/layouts/two': {
-			id: '/examples/layouts/two'
-			path: '/examples/layouts/two'
-			fullPath: '/examples/layouts/two'
-			preLoaderRoute: typeof ExamplesLayoutsTwoRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/examples/layouts/one': {
-			id: '/examples/layouts/one'
-			path: '/examples/layouts/one'
-			fullPath: '/examples/layouts/one'
-			preLoaderRoute: typeof ExamplesLayoutsOneRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-		'/_docs/docs/$layer': {
-			id: '/_docs/docs/$layer'
-			path: '/docs/$layer'
-			fullPath: '/docs/$layer'
-			preLoaderRoute: typeof DocsDocsLayerRouteImport
-			parentRoute: typeof DocsRoute
-		}
-		'/_app/settings/audit-trail': {
-			id: '/_app/settings/audit-trail'
-			path: '/settings/audit-trail'
-			fullPath: '/settings/audit-trail'
-			preLoaderRoute: typeof AppSettingsAuditTrailRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/sales/pos': {
-			id: '/_app/sales/pos'
-			path: '/sales/pos'
-			fullPath: '/sales/pos'
-			preLoaderRoute: typeof AppSalesPosRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/sales/orders': {
-			id: '/_app/sales/orders'
-			path: '/sales/orders'
-			fullPath: '/sales/orders'
-			preLoaderRoute: typeof AppSalesOrdersRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/sales/invoices': {
-			id: '/_app/sales/invoices'
-			path: '/sales/invoices'
-			fullPath: '/sales/invoices'
-			preLoaderRoute: typeof AppSalesInvoicesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/sales/customers': {
-			id: '/_app/sales/customers'
-			path: '/sales/customers'
-			fullPath: '/sales/customers'
-			preLoaderRoute: typeof AppSalesCustomersRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/production/work-orders': {
-			id: '/_app/production/work-orders'
-			path: '/production/work-orders'
-			fullPath: '/production/work-orders'
-			preLoaderRoute: typeof AppProductionWorkOrdersRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/production/recipes': {
-			id: '/_app/production/recipes'
-			path: '/production/recipes'
-			fullPath: '/production/recipes'
-			preLoaderRoute: typeof AppProductionRecipesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/product/create': {
-			id: '/_app/product/create'
-			path: '/product/create'
-			fullPath: '/product/create'
-			preLoaderRoute: typeof AppProductCreateRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/product/category': {
-			id: '/_app/product/category'
-			path: '/product/category'
-			fullPath: '/product/category'
-			preLoaderRoute: typeof AppProductCategoryRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/product/$id': {
-			id: '/_app/product/$id'
-			path: '/product/$id'
-			fullPath: '/product/$id'
-			preLoaderRoute: typeof AppProductIdRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/procurement/suppliers': {
-			id: '/_app/procurement/suppliers'
-			path: '/procurement/suppliers'
-			fullPath: '/procurement/suppliers'
-			preLoaderRoute: typeof AppProcurementSuppliersRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/procurement/receipts': {
-			id: '/_app/procurement/receipts'
-			path: '/procurement/receipts'
-			fullPath: '/procurement/receipts'
-			preLoaderRoute: typeof AppProcurementReceiptsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/procurement/orders': {
-			id: '/_app/procurement/orders'
-			path: '/procurement/orders'
-			fullPath: '/procurement/orders'
-			preLoaderRoute: typeof AppProcurementOrdersRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/moka/sync': {
-			id: '/_app/moka/sync'
-			path: '/moka/sync'
-			fullPath: '/moka/sync'
-			preLoaderRoute: typeof AppMokaSyncRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/moka/monitoring': {
-			id: '/_app/moka/monitoring'
-			path: '/moka/monitoring'
-			fullPath: '/moka/monitoring'
-			preLoaderRoute: typeof AppMokaMonitoringRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/moka/configuration': {
-			id: '/_app/moka/configuration'
-			path: '/moka/configuration'
-			fullPath: '/moka/configuration'
-			preLoaderRoute: typeof AppMokaConfigurationRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/uom': {
-			id: '/_app/material/uom'
-			path: '/material/uom'
-			fullPath: '/material/uom'
-			preLoaderRoute: typeof AppMaterialUomRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/create': {
-			id: '/_app/material/create'
-			path: '/material/create'
-			fullPath: '/material/create'
-			preLoaderRoute: typeof AppMaterialCreateRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/category': {
-			id: '/_app/material/category'
-			path: '/material/category'
-			fullPath: '/material/category'
-			preLoaderRoute: typeof AppMaterialCategoryRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/location/create': {
-			id: '/_app/location/create'
-			path: '/location/create'
-			fullPath: '/location/create'
-			preLoaderRoute: typeof AppLocationCreateRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/summary': {
-			id: '/_app/inventory/summary'
-			path: '/inventory/summary'
-			fullPath: '/inventory/summary'
-			preLoaderRoute: typeof AppInventorySummaryRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/allocation': {
-			id: '/_app/inventory/allocation'
-			path: '/inventory/allocation'
-			fullPath: '/inventory/allocation'
-			preLoaderRoute: typeof AppInventoryAllocationRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/hr/payroll': {
-			id: '/_app/hr/payroll'
-			path: '/hr/payroll'
-			fullPath: '/hr/payroll'
-			preLoaderRoute: typeof AppHrPayrollRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/hr/employees': {
-			id: '/_app/hr/employees'
-			path: '/hr/employees'
-			fullPath: '/hr/employees'
-			preLoaderRoute: typeof AppHrEmployeesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/hr/attendance': {
-			id: '/_app/hr/attendance'
-			path: '/hr/attendance'
-			fullPath: '/hr/attendance'
-			preLoaderRoute: typeof AppHrAttendanceRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/profit-loss': {
-			id: '/_app/finance/profit-loss'
-			path: '/finance/profit-loss'
-			fullPath: '/finance/profit-loss'
-			preLoaderRoute: typeof AppFinanceProfitLossRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/payments': {
-			id: '/_app/finance/payments'
-			path: '/finance/payments'
-			fullPath: '/finance/payments'
-			preLoaderRoute: typeof AppFinancePaymentsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/ledger-ar-ap': {
-			id: '/_app/finance/ledger-ar-ap'
-			path: '/finance/ledger-ar-ap'
-			fullPath: '/finance/ledger-ar-ap'
-			preLoaderRoute: typeof AppFinanceLedgerArApRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/ledger': {
-			id: '/_app/finance/ledger'
-			path: '/finance/ledger'
-			fullPath: '/finance/ledger'
-			preLoaderRoute: typeof AppFinanceLedgerRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/expenses': {
-			id: '/_app/finance/expenses'
-			path: '/finance/expenses'
-			fullPath: '/finance/expenses'
-			preLoaderRoute: typeof AppFinanceExpensesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/cash-flow': {
-			id: '/_app/finance/cash-flow'
-			path: '/finance/cash-flow'
-			fullPath: '/finance/cash-flow'
-			preLoaderRoute: typeof AppFinanceCashFlowRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/finance/accounts': {
-			id: '/_app/finance/accounts'
-			path: '/finance/accounts'
-			fullPath: '/finance/accounts'
-			preLoaderRoute: typeof AppFinanceAccountsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/analytics/sales': {
-			id: '/_app/analytics/sales'
-			path: '/analytics/sales'
-			fullPath: '/analytics/sales'
-			preLoaderRoute: typeof AppAnalyticsSalesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/analytics/production': {
-			id: '/_app/analytics/production'
-			path: '/analytics/production'
-			fullPath: '/analytics/production'
-			preLoaderRoute: typeof AppAnalyticsProductionRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/analytics/finance': {
-			id: '/_app/analytics/finance'
-			path: '/analytics/finance'
-			fullPath: '/analytics/finance'
-			preLoaderRoute: typeof AppAnalyticsFinanceRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/settings/_tab': {
-			id: '/_app/settings/_tab'
-			path: '/settings'
-			fullPath: '/settings'
-			preLoaderRoute: typeof AppSettingsTabRouteRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/$id/': {
-			id: '/_app/material/$id/'
-			path: '/material/$id'
-			fullPath: '/material/$id/'
-			preLoaderRoute: typeof AppMaterialIdIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/location/$id/': {
-			id: '/_app/location/$id/'
-			path: '/location/$id'
-			fullPath: '/location/$id/'
-			preLoaderRoute: typeof AppLocationIdIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/': {
-			id: '/_app/inventory/transactions/'
-			path: '/inventory/transactions'
-			fullPath: '/inventory/transactions/'
-			preLoaderRoute: typeof AppInventoryTransactionsIndexRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/settings/user/create': {
-			id: '/_app/settings/user/create'
-			path: '/settings/user/create'
-			fullPath: '/settings/user/create'
-			preLoaderRoute: typeof AppSettingsUserCreateRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/settings/user/$id': {
-			id: '/_app/settings/user/$id'
-			path: '/settings/user/$id'
-			fullPath: '/settings/user/$id'
-			preLoaderRoute: typeof AppSettingsUserIdRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/settings/_tab/user': {
-			id: '/_app/settings/_tab/user'
-			path: '/user'
-			fullPath: '/settings/user'
-			preLoaderRoute: typeof AppSettingsTabUserRouteImport
-			parentRoute: typeof AppSettingsTabRouteRoute
-		}
-		'/_app/settings/_tab/role': {
-			id: '/_app/settings/_tab/role'
-			path: '/role'
-			fullPath: '/settings/role'
-			preLoaderRoute: typeof AppSettingsTabRoleRouteImport
-			parentRoute: typeof AppSettingsTabRouteRoute
-		}
-		'/_app/settings/_tab/location': {
-			id: '/_app/settings/_tab/location'
-			path: '/location'
-			fullPath: '/settings/location'
-			preLoaderRoute: typeof AppSettingsTabLocationRouteImport
-			parentRoute: typeof AppSettingsTabRouteRoute
-		}
-		'/_app/reports/sales/revenue': {
-			id: '/_app/reports/sales/revenue'
-			path: '/reports/sales/revenue'
-			fullPath: '/reports/sales/revenue'
-			preLoaderRoute: typeof AppReportsSalesRevenueRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/sales/products': {
-			id: '/_app/reports/sales/products'
-			path: '/reports/sales/products'
-			fullPath: '/reports/sales/products'
-			preLoaderRoute: typeof AppReportsSalesProductsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/sales/channels': {
-			id: '/_app/reports/sales/channels'
-			path: '/reports/sales/channels'
-			fullPath: '/reports/sales/channels'
-			preLoaderRoute: typeof AppReportsSalesChannelsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/payment/over-time': {
-			id: '/_app/reports/payment/over-time'
-			path: '/reports/payment/over-time'
-			fullPath: '/reports/payment/over-time'
-			preLoaderRoute: typeof AppReportsPaymentOverTimeRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/payment/by-method': {
-			id: '/_app/reports/payment/by-method'
-			path: '/reports/payment/by-method'
-			fullPath: '/reports/payment/by-method'
-			preLoaderRoute: typeof AppReportsPaymentByMethodRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/payment/by-account': {
-			id: '/_app/reports/payment/by-account'
-			path: '/reports/payment/by-account'
-			fullPath: '/reports/payment/by-account'
-			preLoaderRoute: typeof AppReportsPaymentByAccountRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/inventory/stock-value': {
-			id: '/_app/reports/inventory/stock-value'
-			path: '/reports/inventory/stock-value'
-			fullPath: '/reports/inventory/stock-value'
-			preLoaderRoute: typeof AppReportsInventoryStockValueRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/inventory/stock': {
-			id: '/_app/reports/inventory/stock'
-			path: '/reports/inventory/stock'
-			fullPath: '/reports/inventory/stock'
-			preLoaderRoute: typeof AppReportsInventoryStockRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/inventory/movements': {
-			id: '/_app/reports/inventory/movements'
-			path: '/reports/inventory/movements'
-			fullPath: '/reports/inventory/movements'
-			preLoaderRoute: typeof AppReportsInventoryMovementsRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/finance/expenses': {
-			id: '/_app/reports/finance/expenses'
-			path: '/reports/finance/expenses'
-			fullPath: '/reports/finance/expenses'
-			preLoaderRoute: typeof AppReportsFinanceExpensesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/finance/cash-flow': {
-			id: '/_app/reports/finance/cash-flow'
-			path: '/reports/finance/cash-flow'
-			fullPath: '/reports/finance/cash-flow'
-			preLoaderRoute: typeof AppReportsFinanceCashFlowRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/reports/finance/account-balances': {
-			id: '/_app/reports/finance/account-balances'
-			path: '/reports/finance/account-balances'
-			fullPath: '/reports/finance/account-balances'
-			preLoaderRoute: typeof AppReportsFinanceAccountBalancesRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/$id/update': {
-			id: '/_app/material/$id/update'
-			path: '/material/$id/update'
-			fullPath: '/material/$id/update'
-			preLoaderRoute: typeof AppMaterialIdUpdateRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/material/$id/recipe': {
-			id: '/_app/material/$id/recipe'
-			path: '/material/$id/recipe'
-			fullPath: '/material/$id/recipe'
-			preLoaderRoute: typeof AppMaterialIdRecipeRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/location/$id/edit': {
-			id: '/_app/location/$id/edit'
-			path: '/location/$id/edit'
-			fullPath: '/location/$id/edit'
-			preLoaderRoute: typeof AppLocationIdEditRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/usage': {
-			id: '/_app/inventory/transactions/usage'
-			path: '/inventory/transactions/usage'
-			fullPath: '/inventory/transactions/usage'
-			preLoaderRoute: typeof AppInventoryTransactionsUsageRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/transfer': {
-			id: '/_app/inventory/transactions/transfer'
-			path: '/inventory/transactions/transfer'
-			fullPath: '/inventory/transactions/transfer'
-			preLoaderRoute: typeof AppInventoryTransactionsTransferRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/purchase': {
-			id: '/_app/inventory/transactions/purchase'
-			path: '/inventory/transactions/purchase'
-			fullPath: '/inventory/transactions/purchase'
-			preLoaderRoute: typeof AppInventoryTransactionsPurchaseRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/opname': {
-			id: '/_app/inventory/transactions/opname'
-			path: '/inventory/transactions/opname'
-			fullPath: '/inventory/transactions/opname'
-			preLoaderRoute: typeof AppInventoryTransactionsOpnameRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/adjustment': {
-			id: '/_app/inventory/transactions/adjustment'
-			path: '/inventory/transactions/adjustment'
-			fullPath: '/inventory/transactions/adjustment'
-			preLoaderRoute: typeof AppInventoryTransactionsAdjustmentRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-		'/_app/inventory/transactions/$id': {
-			id: '/_app/inventory/transactions/$id'
-			path: '/inventory/transactions/$id'
-			fullPath: '/inventory/transactions/$id'
-			preLoaderRoute: typeof AppInventoryTransactionsIdRouteImport
-			parentRoute: typeof AppRouteRoute
-		}
-	}
+  interface FileRoutesByPath {
+    '/pos': {
+      id: '/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof PosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_docs': {
+      id: '/_docs'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pos/': {
+      id: '/pos/'
+      path: '/'
+      fullPath: '/pos/'
+      preLoaderRoute: typeof PosIndexRouteImport
+      parentRoute: typeof PosRoute
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/examples/page-new': {
+      id: '/examples/page-new'
+      path: '/examples/page-new'
+      fullPath: '/examples/page-new'
+      preLoaderRoute: typeof ExamplesPageNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_app/$': {
+      id: '/_app/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof AppSplatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/examples/search/': {
+      id: '/examples/search/'
+      path: '/examples/search'
+      fullPath: '/examples/search/'
+      preLoaderRoute: typeof ExamplesSearchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/page-layouts/': {
+      id: '/examples/page-layouts/'
+      path: '/examples/page-layouts'
+      fullPath: '/examples/page-layouts/'
+      preLoaderRoute: typeof ExamplesPageLayoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/layouts/': {
+      id: '/examples/layouts/'
+      path: '/examples/layouts'
+      fullPath: '/examples/layouts/'
+      preLoaderRoute: typeof ExamplesLayoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/form/': {
+      id: '/examples/form/'
+      path: '/examples/form'
+      fullPath: '/examples/form/'
+      preLoaderRoute: typeof ExamplesFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/dialog-form/': {
+      id: '/examples/dialog-form/'
+      path: '/examples/dialog-form'
+      fullPath: '/examples/dialog-form/'
+      preLoaderRoute: typeof ExamplesDialogFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/details/': {
+      id: '/examples/details/'
+      path: '/examples/details'
+      fullPath: '/examples/details/'
+      preLoaderRoute: typeof ExamplesDetailsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/detail/': {
+      id: '/examples/detail/'
+      path: '/examples/detail'
+      fullPath: '/examples/detail/'
+      preLoaderRoute: typeof ExamplesDetailIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/data-table/': {
+      id: '/examples/data-table/'
+      path: '/examples/data-table'
+      fullPath: '/examples/data-table/'
+      preLoaderRoute: typeof ExamplesDataTableIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/dashboard/': {
+      id: '/examples/dashboard/'
+      path: '/examples/dashboard'
+      fullPath: '/examples/dashboard/'
+      preLoaderRoute: typeof ExamplesDashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/complex-form/': {
+      id: '/examples/complex-form/'
+      path: '/examples/complex-form'
+      fullPath: '/examples/complex-form/'
+      preLoaderRoute: typeof ExamplesComplexFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/charts/': {
+      id: '/examples/charts/'
+      path: '/examples/charts'
+      fullPath: '/examples/charts/'
+      preLoaderRoute: typeof ExamplesChartsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_docs/docs/': {
+      id: '/_docs/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsDocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/_app/sales-type/': {
+      id: '/_app/sales-type/'
+      path: '/sales-type'
+      fullPath: '/sales-type/'
+      preLoaderRoute: typeof AppSalesTypeIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/': {
+      id: '/_app/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AppReportsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/product/': {
+      id: '/_app/product/'
+      path: '/product'
+      fullPath: '/product/'
+      preLoaderRoute: typeof AppProductIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/': {
+      id: '/_app/material/'
+      path: '/material'
+      fullPath: '/material/'
+      preLoaderRoute: typeof AppMaterialIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/location/': {
+      id: '/_app/location/'
+      path: '/location'
+      fullPath: '/location/'
+      preLoaderRoute: typeof AppLocationIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/examples/layouts/two': {
+      id: '/examples/layouts/two'
+      path: '/examples/layouts/two'
+      fullPath: '/examples/layouts/two'
+      preLoaderRoute: typeof ExamplesLayoutsTwoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/layouts/one': {
+      id: '/examples/layouts/one'
+      path: '/examples/layouts/one'
+      fullPath: '/examples/layouts/one'
+      preLoaderRoute: typeof ExamplesLayoutsOneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_docs/docs/$layer': {
+      id: '/_docs/docs/$layer'
+      path: '/docs/$layer'
+      fullPath: '/docs/$layer'
+      preLoaderRoute: typeof DocsDocsLayerRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/_app/settings/audit-trail': {
+      id: '/_app/settings/audit-trail'
+      path: '/settings/audit-trail'
+      fullPath: '/settings/audit-trail'
+      preLoaderRoute: typeof AppSettingsAuditTrailRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/sales/pos': {
+      id: '/_app/sales/pos'
+      path: '/sales/pos'
+      fullPath: '/sales/pos'
+      preLoaderRoute: typeof AppSalesPosRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/sales/orders': {
+      id: '/_app/sales/orders'
+      path: '/sales/orders'
+      fullPath: '/sales/orders'
+      preLoaderRoute: typeof AppSalesOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/sales/invoices': {
+      id: '/_app/sales/invoices'
+      path: '/sales/invoices'
+      fullPath: '/sales/invoices'
+      preLoaderRoute: typeof AppSalesInvoicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/sales/customers': {
+      id: '/_app/sales/customers'
+      path: '/sales/customers'
+      fullPath: '/sales/customers'
+      preLoaderRoute: typeof AppSalesCustomersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/production/work-orders': {
+      id: '/_app/production/work-orders'
+      path: '/production/work-orders'
+      fullPath: '/production/work-orders'
+      preLoaderRoute: typeof AppProductionWorkOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/production/recipes': {
+      id: '/_app/production/recipes'
+      path: '/production/recipes'
+      fullPath: '/production/recipes'
+      preLoaderRoute: typeof AppProductionRecipesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/product/create': {
+      id: '/_app/product/create'
+      path: '/product/create'
+      fullPath: '/product/create'
+      preLoaderRoute: typeof AppProductCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/product/category': {
+      id: '/_app/product/category'
+      path: '/product/category'
+      fullPath: '/product/category'
+      preLoaderRoute: typeof AppProductCategoryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/product/$id': {
+      id: '/_app/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof AppProductIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/suppliers': {
+      id: '/_app/procurement/suppliers'
+      path: '/procurement/suppliers'
+      fullPath: '/procurement/suppliers'
+      preLoaderRoute: typeof AppProcurementSuppliersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/receipts': {
+      id: '/_app/procurement/receipts'
+      path: '/procurement/receipts'
+      fullPath: '/procurement/receipts'
+      preLoaderRoute: typeof AppProcurementReceiptsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/procurement/orders': {
+      id: '/_app/procurement/orders'
+      path: '/procurement/orders'
+      fullPath: '/procurement/orders'
+      preLoaderRoute: typeof AppProcurementOrdersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/moka/sync': {
+      id: '/_app/moka/sync'
+      path: '/moka/sync'
+      fullPath: '/moka/sync'
+      preLoaderRoute: typeof AppMokaSyncRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/moka/monitoring': {
+      id: '/_app/moka/monitoring'
+      path: '/moka/monitoring'
+      fullPath: '/moka/monitoring'
+      preLoaderRoute: typeof AppMokaMonitoringRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/moka/configuration': {
+      id: '/_app/moka/configuration'
+      path: '/moka/configuration'
+      fullPath: '/moka/configuration'
+      preLoaderRoute: typeof AppMokaConfigurationRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/uom': {
+      id: '/_app/material/uom'
+      path: '/material/uom'
+      fullPath: '/material/uom'
+      preLoaderRoute: typeof AppMaterialUomRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/create': {
+      id: '/_app/material/create'
+      path: '/material/create'
+      fullPath: '/material/create'
+      preLoaderRoute: typeof AppMaterialCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/category': {
+      id: '/_app/material/category'
+      path: '/material/category'
+      fullPath: '/material/category'
+      preLoaderRoute: typeof AppMaterialCategoryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/location/create': {
+      id: '/_app/location/create'
+      path: '/location/create'
+      fullPath: '/location/create'
+      preLoaderRoute: typeof AppLocationCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/summary': {
+      id: '/_app/inventory/summary'
+      path: '/inventory/summary'
+      fullPath: '/inventory/summary'
+      preLoaderRoute: typeof AppInventorySummaryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/allocation': {
+      id: '/_app/inventory/allocation'
+      path: '/inventory/allocation'
+      fullPath: '/inventory/allocation'
+      preLoaderRoute: typeof AppInventoryAllocationRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/hr/payroll': {
+      id: '/_app/hr/payroll'
+      path: '/hr/payroll'
+      fullPath: '/hr/payroll'
+      preLoaderRoute: typeof AppHrPayrollRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/hr/employees': {
+      id: '/_app/hr/employees'
+      path: '/hr/employees'
+      fullPath: '/hr/employees'
+      preLoaderRoute: typeof AppHrEmployeesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/hr/attendance': {
+      id: '/_app/hr/attendance'
+      path: '/hr/attendance'
+      fullPath: '/hr/attendance'
+      preLoaderRoute: typeof AppHrAttendanceRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/profit-loss': {
+      id: '/_app/finance/profit-loss'
+      path: '/finance/profit-loss'
+      fullPath: '/finance/profit-loss'
+      preLoaderRoute: typeof AppFinanceProfitLossRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/payments': {
+      id: '/_app/finance/payments'
+      path: '/finance/payments'
+      fullPath: '/finance/payments'
+      preLoaderRoute: typeof AppFinancePaymentsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/ledger-ar-ap': {
+      id: '/_app/finance/ledger-ar-ap'
+      path: '/finance/ledger-ar-ap'
+      fullPath: '/finance/ledger-ar-ap'
+      preLoaderRoute: typeof AppFinanceLedgerArApRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/ledger': {
+      id: '/_app/finance/ledger'
+      path: '/finance/ledger'
+      fullPath: '/finance/ledger'
+      preLoaderRoute: typeof AppFinanceLedgerRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/expenses': {
+      id: '/_app/finance/expenses'
+      path: '/finance/expenses'
+      fullPath: '/finance/expenses'
+      preLoaderRoute: typeof AppFinanceExpensesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/cash-flow': {
+      id: '/_app/finance/cash-flow'
+      path: '/finance/cash-flow'
+      fullPath: '/finance/cash-flow'
+      preLoaderRoute: typeof AppFinanceCashFlowRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/finance/accounts': {
+      id: '/_app/finance/accounts'
+      path: '/finance/accounts'
+      fullPath: '/finance/accounts'
+      preLoaderRoute: typeof AppFinanceAccountsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/analytics/sales': {
+      id: '/_app/analytics/sales'
+      path: '/analytics/sales'
+      fullPath: '/analytics/sales'
+      preLoaderRoute: typeof AppAnalyticsSalesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/analytics/finance': {
+      id: '/_app/analytics/finance'
+      path: '/analytics/finance'
+      fullPath: '/analytics/finance'
+      preLoaderRoute: typeof AppAnalyticsFinanceRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/_tab': {
+      id: '/_app/settings/_tab'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsTabRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/$id/': {
+      id: '/_app/material/$id/'
+      path: '/material/$id'
+      fullPath: '/material/$id/'
+      preLoaderRoute: typeof AppMaterialIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/location/$id/': {
+      id: '/_app/location/$id/'
+      path: '/location/$id'
+      fullPath: '/location/$id/'
+      preLoaderRoute: typeof AppLocationIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/': {
+      id: '/_app/inventory/transactions/'
+      path: '/inventory/transactions'
+      fullPath: '/inventory/transactions/'
+      preLoaderRoute: typeof AppInventoryTransactionsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/user/create': {
+      id: '/_app/settings/user/create'
+      path: '/settings/user/create'
+      fullPath: '/settings/user/create'
+      preLoaderRoute: typeof AppSettingsUserCreateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/user/$id': {
+      id: '/_app/settings/user/$id'
+      path: '/settings/user/$id'
+      fullPath: '/settings/user/$id'
+      preLoaderRoute: typeof AppSettingsUserIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/_tab/user': {
+      id: '/_app/settings/_tab/user'
+      path: '/user'
+      fullPath: '/settings/user'
+      preLoaderRoute: typeof AppSettingsTabUserRouteImport
+      parentRoute: typeof AppSettingsTabRouteRoute
+    }
+    '/_app/settings/_tab/role': {
+      id: '/_app/settings/_tab/role'
+      path: '/role'
+      fullPath: '/settings/role'
+      preLoaderRoute: typeof AppSettingsTabRoleRouteImport
+      parentRoute: typeof AppSettingsTabRouteRoute
+    }
+    '/_app/settings/_tab/location': {
+      id: '/_app/settings/_tab/location'
+      path: '/location'
+      fullPath: '/settings/location'
+      preLoaderRoute: typeof AppSettingsTabLocationRouteImport
+      parentRoute: typeof AppSettingsTabRouteRoute
+    }
+    '/_app/reports/sales/revenue': {
+      id: '/_app/reports/sales/revenue'
+      path: '/reports/sales/revenue'
+      fullPath: '/reports/sales/revenue'
+      preLoaderRoute: typeof AppReportsSalesRevenueRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/sales/products': {
+      id: '/_app/reports/sales/products'
+      path: '/reports/sales/products'
+      fullPath: '/reports/sales/products'
+      preLoaderRoute: typeof AppReportsSalesProductsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/sales/channels': {
+      id: '/_app/reports/sales/channels'
+      path: '/reports/sales/channels'
+      fullPath: '/reports/sales/channels'
+      preLoaderRoute: typeof AppReportsSalesChannelsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/stock-value': {
+      id: '/_app/reports/inventory/stock-value'
+      path: '/reports/inventory/stock-value'
+      fullPath: '/reports/inventory/stock-value'
+      preLoaderRoute: typeof AppReportsInventoryStockValueRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/stock': {
+      id: '/_app/reports/inventory/stock'
+      path: '/reports/inventory/stock'
+      fullPath: '/reports/inventory/stock'
+      preLoaderRoute: typeof AppReportsInventoryStockRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/movements': {
+      id: '/_app/reports/inventory/movements'
+      path: '/reports/inventory/movements'
+      fullPath: '/reports/inventory/movements'
+      preLoaderRoute: typeof AppReportsInventoryMovementsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/profit-loss': {
+      id: '/_app/reports/finance/profit-loss'
+      path: '/reports/finance/profit-loss'
+      fullPath: '/reports/finance/profit-loss'
+      preLoaderRoute: typeof AppReportsFinanceProfitLossRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/payments': {
+      id: '/_app/reports/finance/payments'
+      path: '/reports/finance/payments'
+      fullPath: '/reports/finance/payments'
+      preLoaderRoute: typeof AppReportsFinancePaymentsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/ledger-ar-ap': {
+      id: '/_app/reports/finance/ledger-ar-ap'
+      path: '/reports/finance/ledger-ar-ap'
+      fullPath: '/reports/finance/ledger-ar-ap'
+      preLoaderRoute: typeof AppReportsFinanceLedgerArApRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/ledger': {
+      id: '/_app/reports/finance/ledger'
+      path: '/reports/finance/ledger'
+      fullPath: '/reports/finance/ledger'
+      preLoaderRoute: typeof AppReportsFinanceLedgerRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/expenses': {
+      id: '/_app/reports/finance/expenses'
+      path: '/reports/finance/expenses'
+      fullPath: '/reports/finance/expenses'
+      preLoaderRoute: typeof AppReportsFinanceExpensesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/cash-flow': {
+      id: '/_app/reports/finance/cash-flow'
+      path: '/reports/finance/cash-flow'
+      fullPath: '/reports/finance/cash-flow'
+      preLoaderRoute: typeof AppReportsFinanceCashFlowRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/finance/account-balances': {
+      id: '/_app/reports/finance/account-balances'
+      path: '/reports/finance/account-balances'
+      fullPath: '/reports/finance/account-balances'
+      preLoaderRoute: typeof AppReportsFinanceAccountBalancesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/$id/update': {
+      id: '/_app/material/$id/update'
+      path: '/material/$id/update'
+      fullPath: '/material/$id/update'
+      preLoaderRoute: typeof AppMaterialIdUpdateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/material/$id/recipe': {
+      id: '/_app/material/$id/recipe'
+      path: '/material/$id/recipe'
+      fullPath: '/material/$id/recipe'
+      preLoaderRoute: typeof AppMaterialIdRecipeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/location/$id/edit': {
+      id: '/_app/location/$id/edit'
+      path: '/location/$id/edit'
+      fullPath: '/location/$id/edit'
+      preLoaderRoute: typeof AppLocationIdEditRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/usage': {
+      id: '/_app/inventory/transactions/usage'
+      path: '/inventory/transactions/usage'
+      fullPath: '/inventory/transactions/usage'
+      preLoaderRoute: typeof AppInventoryTransactionsUsageRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/transfer': {
+      id: '/_app/inventory/transactions/transfer'
+      path: '/inventory/transactions/transfer'
+      fullPath: '/inventory/transactions/transfer'
+      preLoaderRoute: typeof AppInventoryTransactionsTransferRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/purchase': {
+      id: '/_app/inventory/transactions/purchase'
+      path: '/inventory/transactions/purchase'
+      fullPath: '/inventory/transactions/purchase'
+      preLoaderRoute: typeof AppInventoryTransactionsPurchaseRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/opname': {
+      id: '/_app/inventory/transactions/opname'
+      path: '/inventory/transactions/opname'
+      fullPath: '/inventory/transactions/opname'
+      preLoaderRoute: typeof AppInventoryTransactionsOpnameRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/adjustment': {
+      id: '/_app/inventory/transactions/adjustment'
+      path: '/inventory/transactions/adjustment'
+      fullPath: '/inventory/transactions/adjustment'
+      preLoaderRoute: typeof AppInventoryTransactionsAdjustmentRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/inventory/transactions/$id': {
+      id: '/_app/inventory/transactions/$id'
+      path: '/inventory/transactions/$id'
+      fullPath: '/inventory/transactions/$id'
+      preLoaderRoute: typeof AppInventoryTransactionsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+  }
 }
 
 interface AppSettingsTabRouteRouteChildren {
-	AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
-	AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
-	AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
+  AppSettingsTabLocationRoute: typeof AppSettingsTabLocationRoute
+  AppSettingsTabRoleRoute: typeof AppSettingsTabRoleRoute
+  AppSettingsTabUserRoute: typeof AppSettingsTabUserRoute
 }
 
 const AppSettingsTabRouteRouteChildren: AppSettingsTabRouteRouteChildren = {
-	AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
-	AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
-	AppSettingsTabUserRoute: AppSettingsTabUserRoute,
+  AppSettingsTabLocationRoute: AppSettingsTabLocationRoute,
+  AppSettingsTabRoleRoute: AppSettingsTabRoleRoute,
+  AppSettingsTabUserRoute: AppSettingsTabUserRoute,
 }
 
-const AppSettingsTabRouteRouteWithChildren = AppSettingsTabRouteRoute._addFileChildren(
-	AppSettingsTabRouteRouteChildren,
-)
+const AppSettingsTabRouteRouteWithChildren =
+  AppSettingsTabRouteRoute._addFileChildren(AppSettingsTabRouteRouteChildren)
 
 interface AppRouteRouteChildren {
-	AppSplatRoute: typeof AppSplatRoute
-	AppIndexRoute: typeof AppIndexRoute
-	AppSettingsTabRouteRoute: typeof AppSettingsTabRouteRouteWithChildren
-	AppAnalyticsFinanceRoute: typeof AppAnalyticsFinanceRoute
-	AppAnalyticsProductionRoute: typeof AppAnalyticsProductionRoute
-	AppAnalyticsSalesRoute: typeof AppAnalyticsSalesRoute
-	AppFinanceAccountsRoute: typeof AppFinanceAccountsRoute
-	AppFinanceCashFlowRoute: typeof AppFinanceCashFlowRoute
-	AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
-	AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
-	AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
-	AppFinancePaymentsRoute: typeof AppFinancePaymentsRoute
-	AppFinanceProfitLossRoute: typeof AppFinanceProfitLossRoute
-	AppHrAttendanceRoute: typeof AppHrAttendanceRoute
-	AppHrEmployeesRoute: typeof AppHrEmployeesRoute
-	AppHrPayrollRoute: typeof AppHrPayrollRoute
-	AppInventoryAllocationRoute: typeof AppInventoryAllocationRoute
-	AppInventorySummaryRoute: typeof AppInventorySummaryRoute
-	AppLocationCreateRoute: typeof AppLocationCreateRoute
-	AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
-	AppMaterialCreateRoute: typeof AppMaterialCreateRoute
-	AppMaterialUomRoute: typeof AppMaterialUomRoute
-	AppMokaConfigurationRoute: typeof AppMokaConfigurationRoute
-	AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
-	AppMokaSyncRoute: typeof AppMokaSyncRoute
-	AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
-	AppProcurementReceiptsRoute: typeof AppProcurementReceiptsRoute
-	AppProcurementSuppliersRoute: typeof AppProcurementSuppliersRoute
-	AppProductIdRoute: typeof AppProductIdRoute
-	AppProductCategoryRoute: typeof AppProductCategoryRoute
-	AppProductCreateRoute: typeof AppProductCreateRoute
-	AppProductionRecipesRoute: typeof AppProductionRecipesRoute
-	AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
-	AppSalesCustomersRoute: typeof AppSalesCustomersRoute
-	AppSalesInvoicesRoute: typeof AppSalesInvoicesRoute
-	AppSalesOrdersRoute: typeof AppSalesOrdersRoute
-	AppSalesPosRoute: typeof AppSalesPosRoute
-	AppSettingsAuditTrailRoute: typeof AppSettingsAuditTrailRoute
-	AppLocationIndexRoute: typeof AppLocationIndexRoute
-	AppMaterialIndexRoute: typeof AppMaterialIndexRoute
-	AppProductIndexRoute: typeof AppProductIndexRoute
-	AppReportsIndexRoute: typeof AppReportsIndexRoute
-	AppSalesTypeIndexRoute: typeof AppSalesTypeIndexRoute
-	AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
-	AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
-	AppInventoryTransactionsOpnameRoute: typeof AppInventoryTransactionsOpnameRoute
-	AppInventoryTransactionsPurchaseRoute: typeof AppInventoryTransactionsPurchaseRoute
-	AppInventoryTransactionsTransferRoute: typeof AppInventoryTransactionsTransferRoute
-	AppInventoryTransactionsUsageRoute: typeof AppInventoryTransactionsUsageRoute
-	AppLocationIdEditRoute: typeof AppLocationIdEditRoute
-	AppMaterialIdRecipeRoute: typeof AppMaterialIdRecipeRoute
-	AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
-	AppReportsFinanceAccountBalancesRoute: typeof AppReportsFinanceAccountBalancesRoute
-	AppReportsFinanceCashFlowRoute: typeof AppReportsFinanceCashFlowRoute
-	AppReportsFinanceExpensesRoute: typeof AppReportsFinanceExpensesRoute
-	AppReportsInventoryMovementsRoute: typeof AppReportsInventoryMovementsRoute
-	AppReportsInventoryStockRoute: typeof AppReportsInventoryStockRoute
-	AppReportsInventoryStockValueRoute: typeof AppReportsInventoryStockValueRoute
-	AppReportsPaymentByAccountRoute: typeof AppReportsPaymentByAccountRoute
-	AppReportsPaymentByMethodRoute: typeof AppReportsPaymentByMethodRoute
-	AppReportsPaymentOverTimeRoute: typeof AppReportsPaymentOverTimeRoute
-	AppReportsSalesChannelsRoute: typeof AppReportsSalesChannelsRoute
-	AppReportsSalesProductsRoute: typeof AppReportsSalesProductsRoute
-	AppReportsSalesRevenueRoute: typeof AppReportsSalesRevenueRoute
-	AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
-	AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
-	AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
-	AppLocationIdIndexRoute: typeof AppLocationIdIndexRoute
-	AppMaterialIdIndexRoute: typeof AppMaterialIdIndexRoute
+  AppSplatRoute: typeof AppSplatRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppSettingsTabRouteRoute: typeof AppSettingsTabRouteRouteWithChildren
+  AppAnalyticsFinanceRoute: typeof AppAnalyticsFinanceRoute
+  AppAnalyticsSalesRoute: typeof AppAnalyticsSalesRoute
+  AppFinanceAccountsRoute: typeof AppFinanceAccountsRoute
+  AppFinanceCashFlowRoute: typeof AppFinanceCashFlowRoute
+  AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
+  AppFinanceLedgerRoute: typeof AppFinanceLedgerRoute
+  AppFinanceLedgerArApRoute: typeof AppFinanceLedgerArApRoute
+  AppFinancePaymentsRoute: typeof AppFinancePaymentsRoute
+  AppFinanceProfitLossRoute: typeof AppFinanceProfitLossRoute
+  AppHrAttendanceRoute: typeof AppHrAttendanceRoute
+  AppHrEmployeesRoute: typeof AppHrEmployeesRoute
+  AppHrPayrollRoute: typeof AppHrPayrollRoute
+  AppInventoryAllocationRoute: typeof AppInventoryAllocationRoute
+  AppInventorySummaryRoute: typeof AppInventorySummaryRoute
+  AppLocationCreateRoute: typeof AppLocationCreateRoute
+  AppMaterialCategoryRoute: typeof AppMaterialCategoryRoute
+  AppMaterialCreateRoute: typeof AppMaterialCreateRoute
+  AppMaterialUomRoute: typeof AppMaterialUomRoute
+  AppMokaConfigurationRoute: typeof AppMokaConfigurationRoute
+  AppMokaMonitoringRoute: typeof AppMokaMonitoringRoute
+  AppMokaSyncRoute: typeof AppMokaSyncRoute
+  AppProcurementOrdersRoute: typeof AppProcurementOrdersRoute
+  AppProcurementReceiptsRoute: typeof AppProcurementReceiptsRoute
+  AppProcurementSuppliersRoute: typeof AppProcurementSuppliersRoute
+  AppProductIdRoute: typeof AppProductIdRoute
+  AppProductCategoryRoute: typeof AppProductCategoryRoute
+  AppProductCreateRoute: typeof AppProductCreateRoute
+  AppProductionRecipesRoute: typeof AppProductionRecipesRoute
+  AppProductionWorkOrdersRoute: typeof AppProductionWorkOrdersRoute
+  AppSalesCustomersRoute: typeof AppSalesCustomersRoute
+  AppSalesInvoicesRoute: typeof AppSalesInvoicesRoute
+  AppSalesOrdersRoute: typeof AppSalesOrdersRoute
+  AppSalesPosRoute: typeof AppSalesPosRoute
+  AppSettingsAuditTrailRoute: typeof AppSettingsAuditTrailRoute
+  AppLocationIndexRoute: typeof AppLocationIndexRoute
+  AppMaterialIndexRoute: typeof AppMaterialIndexRoute
+  AppProductIndexRoute: typeof AppProductIndexRoute
+  AppReportsIndexRoute: typeof AppReportsIndexRoute
+  AppSalesTypeIndexRoute: typeof AppSalesTypeIndexRoute
+  AppInventoryTransactionsIdRoute: typeof AppInventoryTransactionsIdRoute
+  AppInventoryTransactionsAdjustmentRoute: typeof AppInventoryTransactionsAdjustmentRoute
+  AppInventoryTransactionsOpnameRoute: typeof AppInventoryTransactionsOpnameRoute
+  AppInventoryTransactionsPurchaseRoute: typeof AppInventoryTransactionsPurchaseRoute
+  AppInventoryTransactionsTransferRoute: typeof AppInventoryTransactionsTransferRoute
+  AppInventoryTransactionsUsageRoute: typeof AppInventoryTransactionsUsageRoute
+  AppLocationIdEditRoute: typeof AppLocationIdEditRoute
+  AppMaterialIdRecipeRoute: typeof AppMaterialIdRecipeRoute
+  AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
+  AppReportsFinanceAccountBalancesRoute: typeof AppReportsFinanceAccountBalancesRoute
+  AppReportsFinanceCashFlowRoute: typeof AppReportsFinanceCashFlowRoute
+  AppReportsFinanceExpensesRoute: typeof AppReportsFinanceExpensesRoute
+  AppReportsFinanceLedgerRoute: typeof AppReportsFinanceLedgerRoute
+  AppReportsFinanceLedgerArApRoute: typeof AppReportsFinanceLedgerArApRoute
+  AppReportsFinancePaymentsRoute: typeof AppReportsFinancePaymentsRoute
+  AppReportsFinanceProfitLossRoute: typeof AppReportsFinanceProfitLossRoute
+  AppReportsInventoryMovementsRoute: typeof AppReportsInventoryMovementsRoute
+  AppReportsInventoryStockRoute: typeof AppReportsInventoryStockRoute
+  AppReportsInventoryStockValueRoute: typeof AppReportsInventoryStockValueRoute
+  AppReportsSalesChannelsRoute: typeof AppReportsSalesChannelsRoute
+  AppReportsSalesProductsRoute: typeof AppReportsSalesProductsRoute
+  AppReportsSalesRevenueRoute: typeof AppReportsSalesRevenueRoute
+  AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
+  AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
+  AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
+  AppLocationIdIndexRoute: typeof AppLocationIdIndexRoute
+  AppMaterialIdIndexRoute: typeof AppMaterialIdIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
-	AppSplatRoute: AppSplatRoute,
-	AppIndexRoute: AppIndexRoute,
-	AppSettingsTabRouteRoute: AppSettingsTabRouteRouteWithChildren,
-	AppAnalyticsFinanceRoute: AppAnalyticsFinanceRoute,
-	AppAnalyticsProductionRoute: AppAnalyticsProductionRoute,
-	AppAnalyticsSalesRoute: AppAnalyticsSalesRoute,
-	AppFinanceAccountsRoute: AppFinanceAccountsRoute,
-	AppFinanceCashFlowRoute: AppFinanceCashFlowRoute,
-	AppFinanceExpensesRoute: AppFinanceExpensesRoute,
-	AppFinanceLedgerRoute: AppFinanceLedgerRoute,
-	AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
-	AppFinancePaymentsRoute: AppFinancePaymentsRoute,
-	AppFinanceProfitLossRoute: AppFinanceProfitLossRoute,
-	AppHrAttendanceRoute: AppHrAttendanceRoute,
-	AppHrEmployeesRoute: AppHrEmployeesRoute,
-	AppHrPayrollRoute: AppHrPayrollRoute,
-	AppInventoryAllocationRoute: AppInventoryAllocationRoute,
-	AppInventorySummaryRoute: AppInventorySummaryRoute,
-	AppLocationCreateRoute: AppLocationCreateRoute,
-	AppMaterialCategoryRoute: AppMaterialCategoryRoute,
-	AppMaterialCreateRoute: AppMaterialCreateRoute,
-	AppMaterialUomRoute: AppMaterialUomRoute,
-	AppMokaConfigurationRoute: AppMokaConfigurationRoute,
-	AppMokaMonitoringRoute: AppMokaMonitoringRoute,
-	AppMokaSyncRoute: AppMokaSyncRoute,
-	AppProcurementOrdersRoute: AppProcurementOrdersRoute,
-	AppProcurementReceiptsRoute: AppProcurementReceiptsRoute,
-	AppProcurementSuppliersRoute: AppProcurementSuppliersRoute,
-	AppProductIdRoute: AppProductIdRoute,
-	AppProductCategoryRoute: AppProductCategoryRoute,
-	AppProductCreateRoute: AppProductCreateRoute,
-	AppProductionRecipesRoute: AppProductionRecipesRoute,
-	AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
-	AppSalesCustomersRoute: AppSalesCustomersRoute,
-	AppSalesInvoicesRoute: AppSalesInvoicesRoute,
-	AppSalesOrdersRoute: AppSalesOrdersRoute,
-	AppSalesPosRoute: AppSalesPosRoute,
-	AppSettingsAuditTrailRoute: AppSettingsAuditTrailRoute,
-	AppLocationIndexRoute: AppLocationIndexRoute,
-	AppMaterialIndexRoute: AppMaterialIndexRoute,
-	AppProductIndexRoute: AppProductIndexRoute,
-	AppReportsIndexRoute: AppReportsIndexRoute,
-	AppSalesTypeIndexRoute: AppSalesTypeIndexRoute,
-	AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
-	AppInventoryTransactionsAdjustmentRoute: AppInventoryTransactionsAdjustmentRoute,
-	AppInventoryTransactionsOpnameRoute: AppInventoryTransactionsOpnameRoute,
-	AppInventoryTransactionsPurchaseRoute: AppInventoryTransactionsPurchaseRoute,
-	AppInventoryTransactionsTransferRoute: AppInventoryTransactionsTransferRoute,
-	AppInventoryTransactionsUsageRoute: AppInventoryTransactionsUsageRoute,
-	AppLocationIdEditRoute: AppLocationIdEditRoute,
-	AppMaterialIdRecipeRoute: AppMaterialIdRecipeRoute,
-	AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
-	AppReportsFinanceAccountBalancesRoute: AppReportsFinanceAccountBalancesRoute,
-	AppReportsFinanceCashFlowRoute: AppReportsFinanceCashFlowRoute,
-	AppReportsFinanceExpensesRoute: AppReportsFinanceExpensesRoute,
-	AppReportsInventoryMovementsRoute: AppReportsInventoryMovementsRoute,
-	AppReportsInventoryStockRoute: AppReportsInventoryStockRoute,
-	AppReportsInventoryStockValueRoute: AppReportsInventoryStockValueRoute,
-	AppReportsPaymentByAccountRoute: AppReportsPaymentByAccountRoute,
-	AppReportsPaymentByMethodRoute: AppReportsPaymentByMethodRoute,
-	AppReportsPaymentOverTimeRoute: AppReportsPaymentOverTimeRoute,
-	AppReportsSalesChannelsRoute: AppReportsSalesChannelsRoute,
-	AppReportsSalesProductsRoute: AppReportsSalesProductsRoute,
-	AppReportsSalesRevenueRoute: AppReportsSalesRevenueRoute,
-	AppSettingsUserIdRoute: AppSettingsUserIdRoute,
-	AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
-	AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,
-	AppLocationIdIndexRoute: AppLocationIdIndexRoute,
-	AppMaterialIdIndexRoute: AppMaterialIdIndexRoute,
+  AppSplatRoute: AppSplatRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppSettingsTabRouteRoute: AppSettingsTabRouteRouteWithChildren,
+  AppAnalyticsFinanceRoute: AppAnalyticsFinanceRoute,
+  AppAnalyticsSalesRoute: AppAnalyticsSalesRoute,
+  AppFinanceAccountsRoute: AppFinanceAccountsRoute,
+  AppFinanceCashFlowRoute: AppFinanceCashFlowRoute,
+  AppFinanceExpensesRoute: AppFinanceExpensesRoute,
+  AppFinanceLedgerRoute: AppFinanceLedgerRoute,
+  AppFinanceLedgerArApRoute: AppFinanceLedgerArApRoute,
+  AppFinancePaymentsRoute: AppFinancePaymentsRoute,
+  AppFinanceProfitLossRoute: AppFinanceProfitLossRoute,
+  AppHrAttendanceRoute: AppHrAttendanceRoute,
+  AppHrEmployeesRoute: AppHrEmployeesRoute,
+  AppHrPayrollRoute: AppHrPayrollRoute,
+  AppInventoryAllocationRoute: AppInventoryAllocationRoute,
+  AppInventorySummaryRoute: AppInventorySummaryRoute,
+  AppLocationCreateRoute: AppLocationCreateRoute,
+  AppMaterialCategoryRoute: AppMaterialCategoryRoute,
+  AppMaterialCreateRoute: AppMaterialCreateRoute,
+  AppMaterialUomRoute: AppMaterialUomRoute,
+  AppMokaConfigurationRoute: AppMokaConfigurationRoute,
+  AppMokaMonitoringRoute: AppMokaMonitoringRoute,
+  AppMokaSyncRoute: AppMokaSyncRoute,
+  AppProcurementOrdersRoute: AppProcurementOrdersRoute,
+  AppProcurementReceiptsRoute: AppProcurementReceiptsRoute,
+  AppProcurementSuppliersRoute: AppProcurementSuppliersRoute,
+  AppProductIdRoute: AppProductIdRoute,
+  AppProductCategoryRoute: AppProductCategoryRoute,
+  AppProductCreateRoute: AppProductCreateRoute,
+  AppProductionRecipesRoute: AppProductionRecipesRoute,
+  AppProductionWorkOrdersRoute: AppProductionWorkOrdersRoute,
+  AppSalesCustomersRoute: AppSalesCustomersRoute,
+  AppSalesInvoicesRoute: AppSalesInvoicesRoute,
+  AppSalesOrdersRoute: AppSalesOrdersRoute,
+  AppSalesPosRoute: AppSalesPosRoute,
+  AppSettingsAuditTrailRoute: AppSettingsAuditTrailRoute,
+  AppLocationIndexRoute: AppLocationIndexRoute,
+  AppMaterialIndexRoute: AppMaterialIndexRoute,
+  AppProductIndexRoute: AppProductIndexRoute,
+  AppReportsIndexRoute: AppReportsIndexRoute,
+  AppSalesTypeIndexRoute: AppSalesTypeIndexRoute,
+  AppInventoryTransactionsIdRoute: AppInventoryTransactionsIdRoute,
+  AppInventoryTransactionsAdjustmentRoute:
+    AppInventoryTransactionsAdjustmentRoute,
+  AppInventoryTransactionsOpnameRoute: AppInventoryTransactionsOpnameRoute,
+  AppInventoryTransactionsPurchaseRoute: AppInventoryTransactionsPurchaseRoute,
+  AppInventoryTransactionsTransferRoute: AppInventoryTransactionsTransferRoute,
+  AppInventoryTransactionsUsageRoute: AppInventoryTransactionsUsageRoute,
+  AppLocationIdEditRoute: AppLocationIdEditRoute,
+  AppMaterialIdRecipeRoute: AppMaterialIdRecipeRoute,
+  AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
+  AppReportsFinanceAccountBalancesRoute: AppReportsFinanceAccountBalancesRoute,
+  AppReportsFinanceCashFlowRoute: AppReportsFinanceCashFlowRoute,
+  AppReportsFinanceExpensesRoute: AppReportsFinanceExpensesRoute,
+  AppReportsFinanceLedgerRoute: AppReportsFinanceLedgerRoute,
+  AppReportsFinanceLedgerArApRoute: AppReportsFinanceLedgerArApRoute,
+  AppReportsFinancePaymentsRoute: AppReportsFinancePaymentsRoute,
+  AppReportsFinanceProfitLossRoute: AppReportsFinanceProfitLossRoute,
+  AppReportsInventoryMovementsRoute: AppReportsInventoryMovementsRoute,
+  AppReportsInventoryStockRoute: AppReportsInventoryStockRoute,
+  AppReportsInventoryStockValueRoute: AppReportsInventoryStockValueRoute,
+  AppReportsSalesChannelsRoute: AppReportsSalesChannelsRoute,
+  AppReportsSalesProductsRoute: AppReportsSalesProductsRoute,
+  AppReportsSalesRevenueRoute: AppReportsSalesRevenueRoute,
+  AppSettingsUserIdRoute: AppSettingsUserIdRoute,
+  AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
+  AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,
+  AppLocationIdIndexRoute: AppLocationIdIndexRoute,
+  AppMaterialIdIndexRoute: AppMaterialIdIndexRoute,
 }
 
-const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(AppRouteRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 interface AuthRouteRouteChildren {
-	AuthLoginRoute: typeof AuthLoginRoute
+  AuthLoginRoute: typeof AuthLoginRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-	AuthLoginRoute: AuthLoginRoute,
+  AuthLoginRoute: AuthLoginRoute,
 }
 
-const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(AuthRouteRouteChildren)
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
 
 interface DocsRouteChildren {
-	DocsDocsLayerRoute: typeof DocsDocsLayerRoute
-	DocsDocsIndexRoute: typeof DocsDocsIndexRoute
+  DocsDocsLayerRoute: typeof DocsDocsLayerRoute
+  DocsDocsIndexRoute: typeof DocsDocsIndexRoute
 }
 
 const DocsRouteChildren: DocsRouteChildren = {
-	DocsDocsLayerRoute: DocsDocsLayerRoute,
-	DocsDocsIndexRoute: DocsDocsIndexRoute,
+  DocsDocsLayerRoute: DocsDocsLayerRoute,
+  DocsDocsIndexRoute: DocsDocsIndexRoute,
 }
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 
 interface PosRouteChildren {
-	PosIndexRoute: typeof PosIndexRoute
+  PosIndexRoute: typeof PosIndexRoute
 }
 
 const PosRouteChildren: PosRouteChildren = {
-	PosIndexRoute: PosIndexRoute,
+  PosIndexRoute: PosIndexRoute,
 }
 
 const PosRouteWithChildren = PosRoute._addFileChildren(PosRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-	AppRouteRoute: AppRouteRouteWithChildren,
-	AuthRouteRoute: AuthRouteRouteWithChildren,
-	DocsRoute: DocsRouteWithChildren,
-	PosRoute: PosRouteWithChildren,
-	ExamplesPageNewRoute: ExamplesPageNewRoute,
-	ExamplesLayoutsOneRoute: ExamplesLayoutsOneRoute,
-	ExamplesLayoutsTwoRoute: ExamplesLayoutsTwoRoute,
-	ExamplesChartsIndexRoute: ExamplesChartsIndexRoute,
-	ExamplesComplexFormIndexRoute: ExamplesComplexFormIndexRoute,
-	ExamplesDashboardIndexRoute: ExamplesDashboardIndexRoute,
-	ExamplesDataTableIndexRoute: ExamplesDataTableIndexRoute,
-	ExamplesDetailIndexRoute: ExamplesDetailIndexRoute,
-	ExamplesDetailsIndexRoute: ExamplesDetailsIndexRoute,
-	ExamplesDialogFormIndexRoute: ExamplesDialogFormIndexRoute,
-	ExamplesFormIndexRoute: ExamplesFormIndexRoute,
-	ExamplesLayoutsIndexRoute: ExamplesLayoutsIndexRoute,
-	ExamplesPageLayoutsIndexRoute: ExamplesPageLayoutsIndexRoute,
-	ExamplesSearchIndexRoute: ExamplesSearchIndexRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
+  DocsRoute: DocsRouteWithChildren,
+  PosRoute: PosRouteWithChildren,
+  ExamplesPageNewRoute: ExamplesPageNewRoute,
+  ExamplesLayoutsOneRoute: ExamplesLayoutsOneRoute,
+  ExamplesLayoutsTwoRoute: ExamplesLayoutsTwoRoute,
+  ExamplesChartsIndexRoute: ExamplesChartsIndexRoute,
+  ExamplesComplexFormIndexRoute: ExamplesComplexFormIndexRoute,
+  ExamplesDashboardIndexRoute: ExamplesDashboardIndexRoute,
+  ExamplesDataTableIndexRoute: ExamplesDataTableIndexRoute,
+  ExamplesDetailIndexRoute: ExamplesDetailIndexRoute,
+  ExamplesDetailsIndexRoute: ExamplesDetailsIndexRoute,
+  ExamplesDialogFormIndexRoute: ExamplesDialogFormIndexRoute,
+  ExamplesFormIndexRoute: ExamplesFormIndexRoute,
+  ExamplesLayoutsIndexRoute: ExamplesLayoutsIndexRoute,
+  ExamplesPageLayoutsIndexRoute: ExamplesPageLayoutsIndexRoute,
+  ExamplesSearchIndexRoute: ExamplesSearchIndexRoute,
 }
 export const routeTree = rootRouteImport
-	._addFileChildren(rootRouteChildren)
-	._addFileTypes<FileRouteTypes>()
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()

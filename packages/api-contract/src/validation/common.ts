@@ -15,7 +15,6 @@ const strTrimNullable = z
 	.nullable()
 
 const email = z
-	.string()
 	.email()
 	.max(255)
 	.transform((v: string) => v.toLowerCase())

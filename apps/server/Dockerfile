@@ -2,7 +2,10 @@ FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
 COPY package.json bun.lock ./
+
 COPY apps/server/package.json ./apps/server/package.json
+COPY packages/api-contract/package.json ./packages/api-contract/package.json
+
 RUN bun install
 
 # ── Runner ───────────────────────────────────────────────────────────────────

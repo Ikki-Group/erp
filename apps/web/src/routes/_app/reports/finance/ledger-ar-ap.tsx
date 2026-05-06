@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input'
 import { purchaseOrderApi } from '@/features/purchasing'
 import { salesOrderApi } from '@/features/sales'
 
-export const Route = createFileRoute('/_app/finance/ledger-ar-ap')({ component: FinanceArApPage })
+export const Route = createFileRoute('/_app/reports/finance/ledger-ar-ap')({ component: FinanceArApPage })
 
 interface ArApEntry {
 	id: string

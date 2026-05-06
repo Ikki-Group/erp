@@ -20,7 +20,7 @@ import { paymentApi } from '@/features/payment'
 import type { PaymentDto } from '@/features/payment'
 import { PaymentFormDialog } from '@/features/payment/components'
 
-export const Route = createFileRoute('/_app/finance/payments')({ component: PaymentsPage })
+export const Route = createFileRoute('/_app/reports/finance/payments')({ component: PaymentsPage })
 
 const ch = createColumnHelper<PaymentDto>()
 
