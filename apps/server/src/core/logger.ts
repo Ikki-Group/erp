@@ -19,6 +19,9 @@ await configure({
 							icons: false,
 							timestamp: 'time',
 							properties: true,
+							align: false,
+							messageColor: 'cyan',
+							messageStyle: 'reset',
 						})
 					: jsonLinesFormatter,
 		}),
