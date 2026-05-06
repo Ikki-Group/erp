@@ -1,5 +1,5 @@
 import ms from 'ms'
-import z from 'zod'
+import { z } from 'zod'
 
 const Env = z.object({
 	NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -13,6 +13,7 @@ const Env = z.object({
 	PORT: z.coerce.number().default(3001),
 	HOST: z.string().default('0.0.0.0'),
 
+	// Log
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
 	LOG_FORMAT: z.enum(['json', 'pretty']).catch('json'),
 
@@ -41,11 +42,6 @@ const Env = z.object({
 	// Upstash
 	UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
 	UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
-
-	// // Seed
-	// SEED_SUPERADMIN_EMAIL: z.email().optional(),
-	// SEED_SUPERADMIN_PASSWORD: z.string().min(8).optional(),
-	// SEED_SUPERADMIN_USERNAME: z.string().min(3).optional(),
 })
 
 const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle

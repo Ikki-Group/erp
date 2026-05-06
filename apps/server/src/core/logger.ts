@@ -3,55 +3,49 @@ import {
 	getLogger as getLogtapeLogger,
 	getConsoleSink,
 	type Logger,
+	jsonLinesFormatter,
 } from '@logtape/logtape'
+import { getOpenTelemetrySink } from '@logtape/otel'
+import { getPrettyFormatter } from '@logtape/pretty'
 
-let isConfigured = false
+import { env } from '@/config/env'
 
-export async function setupLogger() {
-	if (isConfigured) return
+await configure({
+	sinks: {
+		console: getConsoleSink(),
+		main: getConsoleSink({
+			formatter:
+				env.LOG_FORMAT === 'pretty'
+					? getPrettyFormatter({
+							icons: false,
+							timestamp: 'time',
+							properties: true,
+						})
+					: jsonLinesFormatter,
+		}),
+		otel: getOpenTelemetrySink({
+			serviceName: env.APP_NAME,
+			diagnostics: true,
+			otlpExporterConfig: {
+				url: env.AXIOM_URL!,
+				headers: {
+					Authorization: `Bearer ${env.AXIOM_TOKEN}`,
+					'X-Axiom-Dataset': env.AXIOM_DATASET!,
+				},
+			},
+		}),
+	},
+	loggers: [
+		{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
+		{ category: ['otel'], sinks: ['otel'], lowestLevel: 'debug' },
+		{ category: [], sinks: ['main', 'otel'], lowestLevel: 'debug' },
+	],
+})
 
-	// const sinks: Record<string, Sink> = {}
-
-	// if (env.LOG_FORMAT === 'pretty') {
-	// 	sinks.console = getPrettyFormatter()
-	// } else {
-	// 	sinks.console = getConsoleSink()
-	// }
-
-	await configure({
-		sinks: {
-			console: getConsoleSink(),
-			main: getConsoleSink(),
-			// otel: getOpenTelemetrySink({
-			// 	serviceName: 'logger',
-			// 	otlpExporterConfig: {
-			// 		url: 'https://us-east-1.aws.edge.axiom.co/v1/traces',
-			// 		headers: {
-			// 			Authorization: `Bearer ${env.AXIOM_TOKEN}`,
-			// 			'X-Axiom-Dataset': env.AXIOM_DATASET,
-			// 		},
-			// 	},
-			// 	diagnostics: true,
-			// }),
-		},
-		loggers: [
-			{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
-			// { category: [], sinks: ['main', 'otel'] },
-			{ category: [], sinks: ['main'] },
-		],
-	})
-
-	isConfigured = true
-}
-
-export function getLogger(category: string[]): Logger {
-	if (!isConfigured) {
-		throw new Error('Logger not configured. Call setupLogger() first.')
-	}
+export function getLogger(category: string[] = []): Logger {
 	return getLogtapeLogger([...category])
 }
 
-// Legacy logger for backward compatibility
 const logger = getLogtapeLogger([])
 
 export { logger }

@@ -1,19 +1,15 @@
-import { opentelemetry, type ElysiaOpenTelemetryOptions } from '@elysiajs/opentelemetry'
+import { opentelemetry } from '@elysiajs/opentelemetry'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
-import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base'
+import { resources } from '@opentelemetry/sdk-node'
+import { AlwaysOnSampler, type SpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 
 import { env } from '@/config/env'
 
-const opts: ElysiaOpenTelemetryOptions = {
-	serviceName: env.APP_NAME,
-	autoDetectResources: true,
-	spanProcessors: [],
-	sampler: new AlwaysOnSampler(),
-}
+const spanProcessors: SpanProcessor[] = []
 
 if (env.AXIOM_URL && env.AXIOM_TOKEN && env.AXIOM_DATASET) {
-	opts.spanProcessors?.push(
+	spanProcessors.push(
 		new BatchSpanProcessor(
 			new OTLPTraceExporter({
 				url: env.AXIOM_URL,
@@ -22,8 +18,19 @@ if (env.AXIOM_URL && env.AXIOM_TOKEN && env.AXIOM_DATASET) {
 					'X-Axiom-Dataset': env.AXIOM_DATASET,
 				},
 			}),
+			{
+				maxQueueSize: 2048,
+				maxExportBatchSize: 512,
+				scheduledDelayMillis: 500,
+			},
 		),
 	)
 }
 
-export const otel = opentelemetry(opts)
+export const otel = opentelemetry({
+	serviceName: env.APP_NAME,
+	autoDetectResources: true,
+	spanProcessors,
+	sampler: new AlwaysOnSampler(),
+	resource: resources.defaultResource(),
+})

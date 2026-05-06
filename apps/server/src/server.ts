@@ -1,8 +1,7 @@
 // oxlint-disable import/no-unassigned-import
 
-import '@total-typescript/ts-reset'
-import '@elysiajs/opentelemetry'
-import { logger, setupLogger } from '@/core/logger'
+import '@/core/otel'
+import { logger } from '@/core/logger'
 
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
@@ -11,7 +10,7 @@ import { db } from './db'
 import { createApp } from '@/app'
 import { env } from '@/config/env'
 
-await setupLogger()
+// await setupLogger()
 
 const modules = initModules(db)
 const routes = initRoutes(modules)
