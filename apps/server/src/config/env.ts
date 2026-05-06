@@ -2,10 +2,19 @@ import ms from 'ms'
 import z from 'zod'
 
 const Env = z.object({
-	// Server
 	NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+	COMMIT_SHA: z.string().optional(),
+
+	// App
+	APP_NAME: z.string().default('ikki-erp'),
+	APP_ENV: z.enum(['local', 'staging', 'production']).default('local'),
+
+	// Server
 	PORT: z.coerce.number().default(3001),
 	HOST: z.string().default('0.0.0.0'),
+
+	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
+	LOG_FORMAT: z.enum(['json', 'pretty']).catch('json'),
 
 	// Database
 	DATABASE_URL: z.url().describe('PostgreSQL connection string'),
@@ -19,8 +28,9 @@ const Env = z.object({
 		.transform((value) => ms(value as ms.StringValue)),
 
 	// Observability
+	AXIOM_URL: z.string().optional(),
 	AXIOM_TOKEN: z.string().optional(),
-	AXIOM_DATASET: z.string().default('ikki'),
+	AXIOM_DATASET: z.string().optional(),
 
 	OTEL_LOGS_ENABLED: z
 		.string()
@@ -28,19 +38,14 @@ const Env = z.object({
 		.transform((v) => v === 'true'),
 	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
-	// App
-	APP_NAME: z.string().default('ikki-erp'),
-	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
-	LOG_FORMAT: z.enum(['json', 'pretty']).catch('json'),
-
 	// Upstash
 	UPSTASH_REDIS_REST_URL: z.url().describe('Upstash Redis REST URL'),
 	UPSTASH_REDIS_REST_TOKEN: z.string().describe('Upstash Redis REST token'),
 
-	// Seed
-	SEED_SUPERADMIN_EMAIL: z.email().optional(),
-	SEED_SUPERADMIN_PASSWORD: z.string().min(8).optional(),
-	SEED_SUPERADMIN_USERNAME: z.string().min(3).optional(),
+	// // Seed
+	// SEED_SUPERADMIN_EMAIL: z.email().optional(),
+	// SEED_SUPERADMIN_PASSWORD: z.string().min(8).optional(),
+	// SEED_SUPERADMIN_USERNAME: z.string().min(3).optional(),
 })
 
 const _env = Env.safeParse(Bun.env) // eslint-disable-line no-underscore-dangle
