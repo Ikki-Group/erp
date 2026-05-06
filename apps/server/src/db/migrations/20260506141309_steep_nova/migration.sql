@@ -299,7 +299,7 @@ CREATE TABLE "leave_requests" (
 --> statement-breakpoint
 CREATE TABLE "locations" (
 	"id" serial PRIMARY KEY,
-	"code" text NOT NULL,
+	"code" text,
 	"name" text NOT NULL,
 	"type" "location_type" NOT NULL,
 	"description" text,

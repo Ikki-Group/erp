@@ -6,6 +6,7 @@
 		"dev:debug": "bun run --watch --inspect src/server.ts",
 		"build": "bun build --compile --outfile ./dist/server ./src/server.ts",
 		"start": "bun run dist/server.js",
+		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"db:generate": "bunx --bun drizzle-kit generate",
 		"db:migrate": "bunx --bun drizzle-kit migrate",

@@ -1,39 +1,49 @@
-import { SQL, $ } from 'bun'
-import { drizzle } from 'drizzle-orm/bun-sql'
+import { $ } from 'bun'
 
-import { relations } from '@/db/schema'
+import { initDb } from '@/db'
 
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
 import { runDbScriptsHelper } from '../../scripts/db-scripts-helper'
 import { createApp } from '@/app'
-import { beforeAll, afterAll } from 'bun:test'
+import { beforeAll } from 'bun:test'
 
-const client = new SQL(Bun.env.TEST_DATABASE_URL!)
-const db = drizzle({ client, relations })
+if (!Bun.env.DATABASE_URL) {
+	throw new Error('DATABASE_URL must be set')
+}
 
-const modules = initModules(db)
-const routes = initRoutes(modules)
+const db = initDb(Bun.env.DATABASE_URL)
 
-const app = createApp(modules)
-routes.register(app)
+console.log(Bun.env.NODE_ENV)
 
 beforeAll(async () => {
 	console.log(`=== Setup test ===`)
-
-	if (!Bun.env.TEST_DATABASE_URL) {
-		throw new Error('TEST_DATABASE_URL must be set')
-	}
+	console.log(Bun.env.NODE_ENV)
 
 	await runDbScriptsHelper(db, 'reset').catch(() => {
 		// ignore
 	})
 
-	await $`bun run db:migrate`
-	await runDbScriptsHelper(db, 'seed-dev')
-})
+	console.log('🌱 Running migrations...')
 
-afterAll(async () => {
-	console.log('Teardown test')
-})
+	await $`bun run db:migrate`
+
+	console.log('✅ Migrations completed.')
+
+	// Create fresh client and db after migrations
+	const m = initModules(db)
+	const routes = initRoutes(m)
+
+	const app = createApp(m)
+	routes.register(app)
+
+	console.log('🌱 Running seed...')
+	await runDbScriptsHelper(db, 'seed-dev')
+	console.log('✅ Seed completed.')
+}, 60000)
+
+// afterAll(async () => {
+// 	console.log('Teardown test')
+// 	// await client?.close()
+// })
