@@ -1,6 +1,6 @@
 /**
  * Password hashing and verification utilities using Bun's built-in password functions
- * @module lib/auth/password
+ * @module core/auth/password
  */
 
 /**

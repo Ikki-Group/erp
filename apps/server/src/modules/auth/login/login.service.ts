@@ -1,6 +1,5 @@
+import { verifyPassword } from '@/core/auth'
 import { UnauthorizedError } from '@/core/http/errors'
-
-import { verifyPassword } from '@/lib/auth'
 
 import type { UserDetailDto, UserDto, UserService } from '@/modules/iam'
 

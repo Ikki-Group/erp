@@ -21,7 +21,7 @@ import { paginate, type WithPaginationResult, type DbClient } from '@/core/datab
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 
-import { toWibDateKey } from '@/lib/utils/date.util'
+import { toWibDateKey } from '@/core/utils/date'
 
 import type {
 	StockLedgerFilterDto,

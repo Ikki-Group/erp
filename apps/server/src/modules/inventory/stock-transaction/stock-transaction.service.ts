@@ -4,7 +4,7 @@ import type { DbTx } from '@/core/database'
 
 import { db } from '@/db'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { MaterialLocationService } from '@/modules/material'
 

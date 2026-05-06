@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { NotFoundError } from '@/core/http/errors'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type {
 	SalesTypeCreateDto,

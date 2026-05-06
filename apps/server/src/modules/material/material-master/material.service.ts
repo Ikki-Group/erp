@@ -1,8 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, inArray, isNull } from 'drizzle-orm'
 
+import { resolveAudit, resolveAuditList } from '@/core/audit'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
@@ -12,9 +14,6 @@ import {
 	materialsTable,
 	uomsTable,
 } from '@/db/schema'
-
-import { resolveAudit, resolveAuditList } from '@/lib/utils/audit-resolver'
-import type { WithPaginationResult } from '@/lib/utils/pagination'
 
 import { LocationMasterService } from '@/modules/location'
 
@@ -227,7 +226,6 @@ export class MaterialService {
 	}
 
 	async handleDetail(id: number): Promise<MaterialSelectDto> {
-		// @ts-expect-error
 		return record('MaterialService.handleDetail', async () => {
 			const material = await this.getById(id)
 			const [category, uom, locations] = await Promise.all([
@@ -236,7 +234,9 @@ export class MaterialService {
 					: null,
 				this.uomSvc.getById(material.baseUomId).catch(() => null),
 				material.locationIds.length > 0
-					? Promise.all(material.locationIds.map((lId) => this.locationSvc.getById(lId)))
+					? Promise.all(material.locationIds.map((lId) => this.locationSvc.getById(lId))).then(
+							(results) => results.filter((l): l is NonNullable<typeof l> => l !== undefined),
+						)
 					: [],
 			])
 

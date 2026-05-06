@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { materialCategoriesTable } from '@/db/schema'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type {
 	MaterialCategoryCreateDto,

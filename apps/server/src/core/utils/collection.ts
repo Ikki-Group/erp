@@ -1,6 +1,6 @@
 /**
  * Collection utility functions for array operations
- * @module lib/utils/collection
+ * @module core/utils/collection
  */
 
 /**

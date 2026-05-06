@@ -5,7 +5,7 @@ import * as core from '@/core/database'
 
 import { rolesTable } from '@/db/schema'
 
-import { RelationMap } from '@/lib/utils/relation-map'
+import { RelationMap } from '@/core/utils/relation-map'
 
 import { SYSTEM_ROLES } from '../constants'
 import { RoleErrors } from '../errors'

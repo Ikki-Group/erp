@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { asc, desc, ilike, type SQL } from 'drizzle-orm'
 
-import type { PaginationQuery, WithPaginationResult } from '@/lib/utils/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/core/database/pagination'
 
 import type { PgColumn } from 'drizzle-orm/pg-core'
 

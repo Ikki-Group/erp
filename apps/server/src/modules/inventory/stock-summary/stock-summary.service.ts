@@ -8,8 +8,8 @@ import { stampCreate } from '@/core/database'
 import { db } from '@/db'
 import { stockSummariesTable, stockTransactionsTable } from '@/db/schema'
 
-import { toWibDateKey, toWibDayBounds } from '@/lib/utils/date.util'
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import { toWibDateKey, toWibDayBounds } from '@/core/utils/date'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { MaterialLocationService } from '@/modules/material'
 

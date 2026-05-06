@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { uomsTable } from '@/db/schema'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { UomDto, UomFilterDto, UomMutationDto } from './uom.dto'
 import { UomRepo } from './uom.repo'

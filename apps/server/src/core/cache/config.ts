@@ -39,3 +39,4 @@ export type ConfigNamespace =
 	| 'analytics'
 	| 'payment-method-config'
 	| 'payment'
+	| 'system.audit'

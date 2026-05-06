@@ -1,4 +1,4 @@
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 /**
  * Standard HTTP Response Wrapper.

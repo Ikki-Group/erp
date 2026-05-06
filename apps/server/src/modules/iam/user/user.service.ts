@@ -1,14 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 import { merge } from 'es-toolkit'
 
+import { resolveAudit } from '@/core/audit'
 import { CacheService, type CacheClient } from '@/core/cache'
 import * as core from '@/core/database'
+import type { RelationMap } from '@/core/utils/relation-map'
 
 import { usersTable } from '@/db/schema'
-
-import { resolveAudit } from '@/lib/utils/audit-resolver'
-import type { RelationMap } from '@/lib/utils/relation-map'
-import type { AuditResolved } from '@ikki/api-contract'
 
 import type { LocationDto, LocationServiceModule } from '@/modules/location'
 
@@ -18,6 +16,7 @@ import type { RoleDto } from '../role/role.dto'
 import type { RoleService } from '../role/role.service'
 import * as dto from './user.dto'
 import type { UserRepo } from './user.repo'
+import type { AuditResolved } from '@ikki/api-contract'
 
 const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	{

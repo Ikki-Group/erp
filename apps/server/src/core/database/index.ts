@@ -1,6 +1,6 @@
 export * from './conflict-checker'
 export * from './metadata'
+export * from './pagination'
 export * from './query-builder'
 export * from './types'
 export * from './utils'
-export type { WithPaginationResult } from '@/lib/utils/pagination'

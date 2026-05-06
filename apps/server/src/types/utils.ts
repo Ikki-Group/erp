@@ -1,3 +1,3 @@
-import type { PaginationQuery } from '@/lib/utils/pagination'
+import type { PaginationQuery } from '@/core/database/pagination'
 
 export type OmitPaginationQuery<T> = Omit<T, keyof PaginationQuery>

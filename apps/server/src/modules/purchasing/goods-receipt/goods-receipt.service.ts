@@ -7,7 +7,7 @@ import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import { purchaseOrderItemsTable } from '@/db/schema'
 
-import type { WithPaginationResult } from '@/lib/utils/pagination'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { StockTransactionService } from '@/modules/inventory'
 
