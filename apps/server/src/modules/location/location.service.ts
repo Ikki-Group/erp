@@ -3,14 +3,13 @@ import { record } from '@elysiajs/opentelemetry'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { RelationMap } from '@/core/utils/relation-map'
 
 import { locationsTable } from '@/db/schema'
 
-import { RelationMap } from '@/core/utils/relation-map'
-import type { RecordId } from '@ikki/api-contract'
-
 import * as dto from './location.dto'
 import { LocationMasterRepo } from './location.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 const uniqueFields: ConflictField<'name'>[] = [
 	{
@@ -31,7 +30,7 @@ export class LocationMasterService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly r: LocationMasterRepo,
+		private readonly repo: LocationMasterRepo,
 		cacheClient: CacheClient,
 	) {
 		this.cache = new CacheService({ ns: 'location', client: cacheClient })
@@ -43,7 +42,7 @@ export class LocationMasterService {
 		return record('LocationMasterService.getList', () => {
 			return this.cache.getOrSet({
 				key: 'list',
-				factory: () => this.r.getList(),
+				factory: () => this.repo.getList(),
 			})
 		})
 	}
@@ -59,7 +58,7 @@ export class LocationMasterService {
 		return record('LocationMasterService.getById', async () => {
 			return this.cache.getOrSetSkipUndefined({
 				key: `byId:${id}`,
-				factory: () => this.r.getById(id),
+				factory: () => this.repo.getById(id),
 			})
 		})
 	}
@@ -68,14 +67,14 @@ export class LocationMasterService {
 		return record('LocationMasterService.count', async () => {
 			return this.cache.getOrSet({
 				key: 'count',
-				factory: () => this.r.count(),
+				factory: () => this.repo.count(),
 			})
 		})
 	}
 
 	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
 		return record('LocationMasterService.seed', async () => {
-			await this.r.seed(data)
+			await this.repo.seed(data)
 		})
 	}
 
@@ -83,14 +82,14 @@ export class LocationMasterService {
 
 	async handleList(filter: dto.LocationFilterDto): Promise<WithPaginationResult<dto.LocationDto>> {
 		return record('LocationMasterService.handleList', async () => {
-			const result = await this.r.getListPaginated(filter)
+			const result = await this.repo.getListPaginated(filter)
 			return result
 		})
 	}
 
 	async handleDetail(id: number): Promise<dto.LocationDto> {
 		return record('LocationMasterService.handleDetail', async () => {
-			const result = await this.r.getById(id)
+			const result = await this.repo.getById(id)
 			if (!result) throw err.notFound(id)
 			return result
 		})
@@ -104,7 +103,7 @@ export class LocationMasterService {
 				fields: uniqueFields,
 				input: data,
 			})
-			const result = await this.r.create(data, actorId)
+			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
@@ -128,7 +127,7 @@ export class LocationMasterService {
 				existing,
 			})
 
-			const result = await this.r.update(data, actorId)
+			const result = await this.repo.update(data, actorId)
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
@@ -139,7 +138,7 @@ export class LocationMasterService {
 
 	async handleRemove(id: number): Promise<RecordId> {
 		return record('LocationMasterService.handleRemove', async () => {
-			const result = await this.r.remove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
