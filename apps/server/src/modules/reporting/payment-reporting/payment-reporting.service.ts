@@ -1,40 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
-import { accountsTable, paymentsTable } from '@/db/schema'
-
 import * as dto from './payment-reporting.dto'
+import { PaymentReportingRepo } from './payment-reporting.repo'
 
 export class PaymentReportingService {
-	constructor(private readonly db: DbClient) {}
+	private readonly repo: PaymentReportingRepo
+
+	constructor(db: DbClient) {
+		this.repo = new PaymentReportingRepo(db)
+	}
 
 	async getPaymentsByMethod(
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentByMethodResponseDto> {
 		return record('PaymentReportingService.getPaymentsByMethod', async () => {
-			const { dateFrom, dateTo, accountId, method, type } = query
-
-			const where = and(
-				gte(paymentsTable.date, dateFrom),
-				lte(paymentsTable.date, dateTo),
-				accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-				method ? eq(paymentsTable.method, method as any) : undefined,
-				type ? eq(paymentsTable.type, type as any) : undefined,
-			)
-
-			const data = await this.db
-				.select({
-					method: paymentsTable.method,
-					totalAmount: sql<number>`COALESCE(SUM(${paymentsTable.amount}), 0)`,
-					count: sql<number>`COUNT(*)`,
-				})
-				.from(paymentsTable)
-				.where(where)
-				.groupBy(paymentsTable.method)
-				.orderBy(sql`totalAmount DESC`)
+			const data = await this.repo.getPaymentsByMethod(query)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
 
@@ -62,42 +44,7 @@ export class PaymentReportingService {
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentOverTimeResponseDto> {
 		return record('PaymentReportingService.getPaymentsOverTime', async () => {
-			const { dateFrom, dateTo, accountId, method, type, groupBy = 'day' } = query
-
-			const where = and(
-				gte(paymentsTable.date, dateFrom),
-				lte(paymentsTable.date, dateTo),
-				accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-				method ? eq(paymentsTable.method, method as any) : undefined,
-				type ? eq(paymentsTable.type, type as any) : undefined,
-			)
-
-			let dateTrunc
-			switch (groupBy) {
-				case 'day':
-					dateTrunc = sql`DATE(${paymentsTable.date})`
-					break
-				case 'week':
-					dateTrunc = sql`DATE_TRUNC('week', ${paymentsTable.date})`
-					break
-				case 'month':
-					dateTrunc = sql`DATE_TRUNC('month', ${paymentsTable.date})`
-					break
-				case 'year':
-					dateTrunc = sql`DATE_TRUNC('year', ${paymentsTable.date})`
-					break
-			}
-
-			const data = await this.db
-				.select({
-					date: dateTrunc,
-					payableAmount: sql<number>`COALESCE(SUM(CASE WHEN ${paymentsTable.type} = 'payable' THEN ${paymentsTable.amount} ELSE 0 END), 0)`,
-					receivableAmount: sql<number>`COALESCE(SUM(CASE WHEN ${paymentsTable.type} = 'receivable' THEN ${paymentsTable.amount} ELSE 0 END), 0)`,
-				})
-				.from(paymentsTable)
-				.where(where)
-				.groupBy(dateTrunc)
-				.orderBy(dateTrunc)
+			const data = await this.repo.getPaymentsOverTime(query)
 
 			const totalPayable = data.reduce((sum, d) => sum + Number(d.payableAmount), 0)
 			const totalReceivable = data.reduce((sum, d) => sum + Number(d.receivableAmount), 0)
@@ -105,7 +52,7 @@ export class PaymentReportingService {
 			return {
 				chartType: 'line' as const,
 				data: data.map((d) => ({
-					date: d.date as string,
+					date: String(d.date),
 					payableAmount: String(d.payableAmount),
 					receivableAmount: String(d.receivableAmount),
 					totalAmount: String(Number(d.payableAmount) + Number(d.receivableAmount)),
@@ -129,28 +76,7 @@ export class PaymentReportingService {
 		query: dto.PaymentReportRequestDto,
 	): Promise<dto.PaymentByAccountResponseDto> {
 		return record('PaymentReportingService.getPaymentsByAccount', async () => {
-			const { dateFrom, dateTo, method, type } = query
-
-			const where = and(
-				gte(paymentsTable.date, dateFrom),
-				lte(paymentsTable.date, dateTo),
-				method ? eq(paymentsTable.method, method as any) : undefined,
-				type ? eq(paymentsTable.type, type as any) : undefined,
-			)
-
-			const data = await this.db
-				.select({
-					accountId: accountsTable.id,
-					accountName: accountsTable.name,
-					accountCode: accountsTable.code,
-					totalAmount: sql<number>`COALESCE(SUM(${paymentsTable.amount}), 0)`,
-					count: sql<number>`COUNT(*)`,
-				})
-				.from(paymentsTable)
-				.innerJoin(accountsTable, eq(paymentsTable.accountId, accountsTable.id))
-				.where(where)
-				.groupBy(accountsTable.id, accountsTable.name, accountsTable.code)
-				.orderBy(sql`totalAmount DESC`)
+			const data = await this.repo.getPaymentsByAccount(query)
 
 			const totalAmount = data.reduce((sum, d) => sum + Number(d.totalAmount), 0)
 			const avgAmount = data.length > 0 ? totalAmount / data.length : 0
