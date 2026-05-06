@@ -6,8 +6,5 @@ depth = 10
 [test]
 root = "src/tests"
 preload = ["./src/tests/setup.ts"]
-pathIgnorePatterns = [
-	# 
-	"**/tests-backup/**/**",
-]
+pathIgnorePatterns = ["**/tests-backup/**/**"]
 concurrentTestGlob = "**/integration/*.test.ts"
