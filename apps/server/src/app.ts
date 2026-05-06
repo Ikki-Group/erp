@@ -6,6 +6,7 @@ import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
 import { otel } from '@/core/otel'
 
+import { logger } from './core/logger'
 import type { Modules } from './modules/_registry'
 
 export function createApp(m: Modules): Elysia {
@@ -17,7 +18,10 @@ export function createApp(m: Modules): Elysia {
 		.use(requestIdPlugin())
 		.use(cors())
 		.use(createAuthPlugin(m.auth))
-		.get('/', () => ({ status: 'ok', name: 'Ikki ERP API' }))
+		.get('/', () => {
+			logger.info('Ikki ERP API is running')
+			return { status: 'ok', name: 'Ikki ERP API' }
+		})
 
 	return app
 }

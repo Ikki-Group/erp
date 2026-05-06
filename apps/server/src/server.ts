@@ -10,8 +10,6 @@ import { db } from './db'
 import { createApp } from '@/app'
 import { env } from '@/config/env'
 
-// await setupLogger()
-
 const modules = initModules(db)
 const routes = initRoutes(modules)
 
