@@ -1,4 +1,3 @@
-
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
@@ -25,7 +24,7 @@ export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const SalesTypeMutationDto = z.object({
-	code: zc.strTrim.uppercase().min(1).max(20),
+	code: zc.strTrim.min(1).max(20).toUpperCase(),
 	name: zc.strTrim.min(1).max(100),
 	isSystem: zp.bool.default(false),
 })

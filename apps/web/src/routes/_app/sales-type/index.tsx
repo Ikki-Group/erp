@@ -1,15 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
+
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { PencilIcon } from 'lucide-react'
+import { DollarSignIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { useDataTable } from '@/hooks/use-data-table'
 import { useDataTableState } from '@/hooks/use-data-table-state'
 
+import { toastLabelMessage } from '@/lib/toast-message'
+
 import { DataTableCard } from '@/components/blocks/card/data-table-card'
+import { ConfirmDialog } from '@/components/blocks/feedback/confirm-dialog'
 import { Page } from '@/components/layout/page'
-import { CellDate, CellText } from '@/components/reui/data-grid/data-grid-cell'
+import { Badge } from '@/components/reui/badge'
+import { CellDate, CellMenu } from '@/components/reui/data-grid/data-grid-cell'
 import { DataGridFilter } from '@/components/reui/data-grid/data-grid-filter'
 
 import { Button } from '@/components/ui/button'
@@ -35,67 +42,112 @@ function RouteComponent() {
 	)
 }
 
-const columns: ColumnDef<SalesTypeDto>[] = [
-	{
-		accessorKey: 'code',
-		header: 'Kode',
-		size: 120,
-		cell: ({ row }) => <CellText value={row.original.code} />,
-	},
-	{
-		accessorKey: 'name',
-		header: 'Jenis Penjualan',
-		size: 300,
-		cell: ({ row }) => (
-			<div className="flex flex-col gap-1 py-1">
-				<div className="flex items-center gap-2">
-					<span className="font-semibold text-sm tracking-tight">{row.original.name}</span>
-					{row.original.isSystem && (
-						<span className="px-1.5 py-0.5 rounded-sm bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-tighter leading-none">
-							System
-						</span>
-					)}
-				</div>
-			</div>
-		),
-	},
-	{
-		accessorKey: 'createdAt',
-		header: 'Dibuat Pada',
-		size: 180,
-		cell: ({ row }) => <CellDate value={row.original.createdAt} />,
-	},
-	{
-		id: 'action',
-		header: '',
-		size: 60,
-		enableSorting: false,
-		enableHiding: false,
-		enableResizing: false,
-		enablePinning: true,
-		cell: ({ row }) => {
-			if (row.original.isSystem) return null
-			return (
-				<div className="flex items-center justify-end px-2">
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						className="size-8 text-muted-foreground hover:text-foreground"
-						onClick={() => {
-							void SalesTypeFormDialog.upsert({ id: row.original.id })
-						}}
-					>
-						<PencilIcon className="size-4" />
-					</Button>
-				</div>
-			)
+interface GetColumnsProps {
+	onRemove: (salesType: SalesTypeDto) => Promise<void>
+}
+
+function getColumns({ onRemove }: GetColumnsProps): ColumnDef<SalesTypeDto>[] {
+	return [
+		{
+			accessorKey: 'name',
+			header: 'Jenis Penjualan',
+			size: 350,
+			cell: ({ row }) => {
+				const { name, code, isSystem } = row.original
+				return (
+					<div className="flex gap-3 items-start py-0.5">
+						<div className="mt-0.5 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/50">
+							<DollarSignIcon className="text-success size-4" />
+						</div>
+						<div className="flex flex-col gap-0.5 min-w-0">
+							<div className="flex items-center gap-2">
+								<p className="font-semibold text-foreground truncate">{name}</p>
+								{isSystem && (
+									<Badge variant="info-outline" size="sm" className="font-medium">
+										System
+									</Badge>
+								)}
+							</div>
+							<span className="text-[10px] font-mono text-muted-foreground bg-muted hover:bg-muted-foreground/10 px-1.5 py-0.5 rounded uppercase tracking-wider transition-colors">
+								{code}
+							</span>
+						</div>
+					</div>
+				)
+			},
 		},
-	},
-]
+		{
+			accessorKey: 'createdAt',
+			header: 'Dibuat Pada',
+			size: 180,
+			cell: ({ row }) => <CellDate value={row.original.createdAt} />,
+		},
+		{
+			id: 'action',
+			header: '',
+			size: 60,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: true,
+			cell: ({ row }) => {
+				const { id, isSystem } = row.original
+				if (isSystem) return null
+				return (
+					<CellMenu
+						items={[
+							{
+								type: 'button',
+								label: 'Edit',
+								icon: <PencilIcon />,
+								onClick: () => {
+									void SalesTypeFormDialog.upsert({ id })
+								},
+							},
+							{
+								type: 'separator',
+							},
+							{
+								type: 'button',
+								label: 'Hapus',
+								variant: 'destructive',
+								icon: <Trash2Icon />,
+								onClick: () => onRemove(row.original),
+							},
+						]}
+					/>
+				)
+			},
+		},
+	]
+}
 
 function SalesTypeTable() {
 	const ds = useDataTableState()
 	const { data, isLoading } = useQuery(salesTypeApi.list.query({ ...ds.pagination, q: ds.search }))
+
+	const remove = useMutation({
+		mutationFn: salesTypeApi.remove.mutationFn,
+	})
+
+	const handleRemove = async (salesType: SalesTypeDto) => {
+		await ConfirmDialog.call({
+			title: 'Hapus Jenis Penjualan',
+			description: `Apakah Anda yakin ingin menghapus jenis penjualan "${salesType.name}"? Tindakan ini tidak dapat dibatalkan.`,
+			variant: 'destructive',
+			confirmLabel: 'Hapus Jenis Penjualan',
+			confirmValidationText: salesType.name,
+			onConfirm: async () => {
+				await toast
+					.promise(remove.mutateAsync({ params: { id: salesType.id } }), {
+						...toastLabelMessage('delete', 'jenis penjualan'),
+					})
+					.unwrap()
+			},
+		})
+	}
+
+	const columns = useMemo(() => getColumns({ onRemove: handleRemove }), [handleRemove])
 
 	const table = useDataTable({
 		columns,

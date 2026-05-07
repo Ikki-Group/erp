@@ -1,9 +1,13 @@
+import {
+	zc,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+	zq,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-
-import { zc, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	SalesTypeDto,
@@ -34,7 +38,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				const salesType = await service.handleDetail(query.id)
 				return res.ok(salesType)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
 		)
 		.post(
 			'/create',
@@ -48,7 +52,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const { id } = await service.handleUpdate(body.id, body, auth.userId)
