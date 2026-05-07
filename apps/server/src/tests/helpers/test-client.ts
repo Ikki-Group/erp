@@ -1,20 +1,34 @@
 // oxlint-disable typescript/no-unsafe-type-assertion
 // oxlint-disable typescript/no-misused-spread
 
-import type { Elysia } from 'elysia'
+import type { TokenStore } from './token-store'
 
 export class TestClient {
 	constructor(
 		private readonly app: Elysia,
 		private readonly baseUrl: string,
 		private readonly defaultHeaders: Record<string, string> = {},
+		private readonly tokenStore?: TokenStore,
 	) {}
+
+	as(label: string): TestClient {
+		if (!this.tokenStore) {
+			throw new Error('TokenStore not initialized in TestClient')
+		}
+
+		const authData = this.tokenStore.get(label)
+		if (!authData) {
+			throw new Error(`No token found for label: ${label}`)
+		}
+
+		return this.withAuth(authData.token)
+	}
 
 	withAuth(token: string): TestClient {
 		return new TestClient(this.app, this.baseUrl, {
 			...this.defaultHeaders,
 			authorization: `Bearer ${token}`,
-		})
+		}, this.tokenStore)
 	}
 
 	#request(method: string, path: string, opts?: RequestInit): Promise<Response> {
