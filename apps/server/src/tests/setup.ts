@@ -39,7 +39,7 @@ beforeAll(() => {
 		tokens,
 		client: new TestClient(app, 'http://localhost', {}, tokens),
 	}
-}, 500_000)
+})
 
 // afterAll(async () => {
 // 	// Cleanup after all tests complete
