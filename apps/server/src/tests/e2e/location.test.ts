@@ -2,14 +2,6 @@ import { testCtx } from '../setup'
 import { beforeAll, describe, test, expect } from 'bun:test'
 import type { ApiResponse, AuthLoginResponse } from '../helpers/test-types'
 
-/**
- * Serial test
- * - Create location with multiple types (store & warehouse)
- * - Get id from created response id
- * - Update the data
- * - Ensure location exist inside list
- * - Remove store
- */
 
 describe('e2e/location', () => {
 	let storeId: number

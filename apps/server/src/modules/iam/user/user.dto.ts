@@ -77,8 +77,8 @@ export type UserUpdateDto = z.infer<typeof UserUpdateDto>
 export const UserFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
-	isActive: zq.boolean,
-	isRoot: zq.boolean,
+	isActive: zq.boolean.optional(),
+	isRoot: zq.boolean.optional(),
 	locationId: zq.id.optional(),
 })
 export type UserFilterDto = z.infer<typeof UserFilterDto>

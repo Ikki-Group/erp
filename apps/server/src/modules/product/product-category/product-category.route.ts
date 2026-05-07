@@ -55,7 +55,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				auth: true,
 			},
 		)
-		.patch(
+		.put(
 			'/update',
 			async function update({ body, auth }) {
 				const { id } = await s.handleUpdate(body.id, body, auth.userId)

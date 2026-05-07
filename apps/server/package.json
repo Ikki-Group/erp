@@ -6,7 +6,7 @@
 		"dev:debug": "bun run --watch --inspect src/server.ts",
 		"build": "bun build --compile --outfile ./dist/server ./src/server.ts",
 		"start": "bun run dist/server.js",
-		"test": "bun test",
+		"test": "NODE_ENV=test bun test --bail",
 		"test:prepare": "NODE_ENV=test bun run db:reset; NODE_ENV=test bun run db:migrate; NODE_ENV=test bun run db:seed-dev",
 		"test:watch": "NODE_ENV=test bun test --watch",
 		"db:generate": "bunx --bun drizzle-kit generate",
