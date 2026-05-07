@@ -2,6 +2,7 @@ import {
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 	zc,
+	zq,
 } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
@@ -38,7 +39,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.ok(category)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				response: createSuccessResponseSchema(ProductCategoryDto),
 				auth: true,
 			},

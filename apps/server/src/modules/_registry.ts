@@ -77,7 +77,7 @@ export function initModules(db: DbClient): Modules {
 	// Layer 2 — Operations
 	const inventory = new InventoryServiceModule(db, cacheClient, { material })
 	const recipe = new RecipeServiceModule(db, cacheClient)
-	const sales = new SalesServiceModule(db, cacheClient)
+	const sales = new SalesServiceModule(db, cacheClient, { location, crm, product })
 	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
 
 	const moka = new MokaServiceModule(db, cacheClient, finance)

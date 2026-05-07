@@ -1,19 +1,19 @@
-import z from 'zod'
-
-import { endpoint } from '@/config/endpoint'
-
-import { apiFactory } from '@/lib/api'
 import {
 	zc,
 	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@ikki/api-contract/validation'
+import z from 'zod'
+
+import { endpoint } from '@/config/endpoint'
+
+import { apiFactory } from '@/lib/api'
 
 import {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
-	ProductCategoryMutationDto,
+	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 } from '../dto'
 
@@ -28,14 +28,14 @@ export const productCategoryApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.product.category.detail,
-		params: zc.RecordId,
+		params: zq.recordId,
 		result: createSuccessResponseSchema(ProductCategoryDto),
 	}),
 
 	create: apiFactory({
 		method: 'post',
 		url: endpoint.product.category.create,
-		body: ProductCategoryMutationDto,
+		body: ProductCategoryCreateDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.product.category.list],
 	}),
