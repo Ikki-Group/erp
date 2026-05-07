@@ -7,7 +7,15 @@ export class TestClient {
 	constructor(
 		private readonly app: Elysia,
 		private readonly baseUrl: string,
+		private readonly defaultHeaders: Record<string, string> = {},
 	) {}
+
+	withAuth(token: string): TestClient {
+		return new TestClient(this.app, this.baseUrl, {
+			...this.defaultHeaders,
+			authorization: `Bearer ${token}`,
+		})
+	}
 
 	#request(method: string, path: string, opts?: RequestInit): Promise<Response> {
 		const url = path.startsWith('http') ? path : `${this.baseUrl}${path}`
@@ -16,6 +24,7 @@ export class TestClient {
 				method,
 				...opts,
 				headers: {
+					...this.defaultHeaders,
 					...opts?.headers,
 				},
 			}),
