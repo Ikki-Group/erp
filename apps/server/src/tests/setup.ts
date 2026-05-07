@@ -4,6 +4,7 @@ import { initModules, type Modules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
 import { TestClient } from './helpers/test-client'
+import { TokenStore } from './helpers/token-store'
 import { createApp } from '@/app'
 import { beforeAll } from 'bun:test'
 import type { Elysia } from 'elysia'
@@ -16,6 +17,7 @@ interface TestContext {
 	app: Elysia
 	modules: Modules
 	client: TestClient
+	tokens: TokenStore
 }
 
 export let testCtx: TestContext
@@ -29,10 +31,13 @@ beforeAll(() => {
 	const app = createApp(modules)
 	initRoutes(modules).register(app)
 
+	const tokens = new TokenStore()
+
 	testCtx = {
 		app,
 		modules,
-		client: new TestClient(app, 'http://localhost'),
+		tokens,
+		client: new TestClient(app, 'http://localhost', {}, tokens),
 	}
 }, 500_000)
 

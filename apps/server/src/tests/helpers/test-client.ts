@@ -1,6 +1,7 @@
 // oxlint-disable typescript/no-unsafe-type-assertion
 // oxlint-disable typescript/no-misused-spread
 
+import type { Elysia } from 'elysia'
 import type { TokenStore } from './token-store'
 
 export class TestClient {
