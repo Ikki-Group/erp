@@ -22,8 +22,7 @@ export let testCtx: TestContext
 
 /**
  * Global test setup.
- * Clears DB and seeds essential data before all tests.
- * Each test handles its own transaction isolation via createTestContext().
+ * Initializes app, routes, and test client once before all tests.
  */
 beforeAll(() => {
 	const modules = initModules(db)
