@@ -20,19 +20,19 @@ export async function createTestContext(): Promise<TestContext> {
 	const client = new SQL(Bun.env.DATABASE_URL!)
 
 	// Reserve a dedicated connection for transaction
-	const reserved = await client.reserve()
+	// const reserved = await client.reserve()
 
-	// Start transaction on reserved connection
-	await reserved`BEGIN`
+	// // Start transaction on reserved connection
+	// await reserved`BEGIN`
 
-	const db = drizzle({ client: reserved, relations }) as DbClient
+	const db = drizzle({ client, relations })
 
 	return {
 		db,
 		cleanup: async () => {
-			await reserved`ROLLBACK`
-			reserved.release()
-			await client.close()
+			// await reserved`ROLLBACK`
+			// reserved.release()
+			// await client.close()
 		},
 	}
 }

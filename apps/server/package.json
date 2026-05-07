@@ -2,7 +2,7 @@
 	"name": "@ikki/server",
 	"version": "1.0.50",
 	"scripts": {
-		"dev": "bun run --watch src/server.ts",
+		"dev": "NODE_ENV=development bun run --watch src/server.ts",
 		"dev:debug": "bun run --watch --inspect src/server.ts",
 		"build": "bun build --compile --outfile ./dist/server ./src/server.ts",
 		"start": "bun run dist/server.js",

@@ -6,11 +6,10 @@ import { logger } from '@/core/logger'
 import { initModules } from '@/modules/_registry'
 import { initRoutes } from '@/modules/_routes'
 
-import { initDb } from './db'
+import { db } from './db'
 import { createApp } from '@/app'
 import { env } from '@/config/env'
 
-const db = initDb(env.DATABASE_URL)
 const modules = initModules(db)
 const routes = initRoutes(modules)
 

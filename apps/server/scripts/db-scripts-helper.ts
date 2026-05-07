@@ -3,11 +3,9 @@ import { z } from 'zod'
 
 import type { DbClient } from '@/core/database'
 
-import { initDb } from '@/db'
+import { db } from '@/db'
 
 import { createModules } from '@/modules/_registry'
-
-import { env } from '@/config/env'
 
 const Action = z.enum(['reset', 'seed', 'seed-dev'])
 type Action = z.infer<typeof Action>
@@ -60,6 +58,5 @@ export async function runDbScriptsHelper(db: DbClient, action: Action) {
 }
 
 if (import.meta.main) {
-	const db = initDb(env.DATABASE_URL)
 	await runDbScriptsHelper(db, Action.parse(process.argv[2]))
 }

@@ -1,8 +1,3 @@
-import { $ } from 'bun'
-
-import { db } from '@/db'
-
-import { runDbScriptsHelper } from '../../scripts/db-scripts-helper'
 import { beforeAll } from 'bun:test'
 
 if (!Bun.env.DATABASE_URL) {
@@ -16,10 +11,7 @@ if (!Bun.env.DATABASE_URL) {
  */
 beforeAll(async () => {
 	console.log('Setup ')
-	await runDbScriptsHelper(db, 'reset').catch(() => null)
-	await $`bun run db:migrate`.catch(() => null)
-	await runDbScriptsHelper(db, 'seed-dev')
-	console.log('Setup DOne')
+	// console.log('Setup DOne')
 }, 500_000)
 
 // afterAll(async () => {

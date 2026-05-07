@@ -18,7 +18,7 @@ const Env = z.object({
 	LOG_FORMAT: z.enum(['json', 'pretty']).catch('json'),
 
 	// Database
-	DATABASE_URL: z.url().describe('PostgreSQL connection string'),
+	DATABASE_URL: z.string().describe('PostgreSQL connection string'),
 
 	// Auth
 	JWT_SECRET: z.string().min(32).describe('JWT signing secret'),
