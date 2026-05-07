@@ -18,7 +18,7 @@ interface TestContext {
 	client: TestClient
 }
 
-export let textCtx: TestContext
+export let testCtx: TestContext
 
 /**
  * Global test setup.
@@ -30,7 +30,7 @@ beforeAll(() => {
 	const app = createApp(modules)
 	initRoutes(modules).register(app)
 
-	textCtx = {
+	testCtx = {
 		app,
 		modules,
 		client: new TestClient(app, 'http://localhost'),
