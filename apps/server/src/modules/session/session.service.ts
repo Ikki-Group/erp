@@ -1,17 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
+import jwt from 'jsonwebtoken'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { NotFoundError } from '@/core/http/errors'
+import { logger } from '@/core/logger'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
+import type { UserDto } from '@/modules/iam'
 
-import type * as dto from './session.dto'
+import { SessionPayloadDto, type SessionDto } from './session.dto'
 import { SessionRepo } from './session.repo'
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError(`Session with ID ${id} not found`, 'SESSION_NOT_FOUND'),
-}
+import { env } from '@/config/env'
 
 export class SessionService {
 	private readonly cache: CacheService
@@ -20,88 +17,90 @@ export class SessionService {
 		private readonly repo: SessionRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'iam.session', client: cacheClient })
+		this.cache = new CacheService({ ns: 'session', client: cacheClient })
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getById(id: number): Promise<dto.SessionDto> {
+	/**
+	 * Finds a single session by its ID. Cached.
+	 */
+	async getById(id: number): Promise<SessionDto | undefined> {
 		return record('SessionService.getById', async () => {
-			const session = await this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetSkipUndefined({
 				key: `byId:${id}`,
 				factory: () => this.repo.getById(id),
 			})
-			if (!session) throw err.notFound(id)
-			return session
 		})
 	}
 
-	/* --------------------------------- HANDLER -------------------------------- */
+	/**
+	 * Creates a new session and returns the signed JWT token.
+	 */
+	async createSession(user: UserDto): Promise<{ session: SessionDto; token: string }> {
+		return record('SessionService.createSession', async () => {
+			const createdAt = new Date()
+			const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
-	async handleList(
-		filter: dto.SessionFilterDto,
-	): Promise<WithPaginationResult<dto.SessionSelectDto>> {
-		return record('SessionService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
-		})
-	}
+			const session = await this.repo.create({
+				userId: user.id,
+				createdAt,
+				expiredAt,
+			})
 
-	async handleDetail(id: number): Promise<dto.SessionDto> {
-		return record('SessionService.handleDetail', async () => {
-			return this.getById(id)
-		})
-	}
-
-	async handleGetByUserId(userId: number): Promise<dto.SessionDto[]> {
-		return record('SessionService.handleGetByUserId', async () => {
-			return this.repo.getByUserId(userId)
-		})
-	}
-
-	async handleGetActiveByUserId(userId: number): Promise<dto.SessionDto[]> {
-		return record('SessionService.handleGetActiveByUserId', async () => {
-			return this.repo.getActiveByUserId(userId)
-		})
-	}
-
-	async handleInvalidate(data: dto.SessionInvalidateDto): Promise<void> {
-		return record('SessionService.handleInvalidate', async () => {
-			await this.repo.deleteMany(data.sessionIds)
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-		})
-	}
-
-	async handleInvalidateAll(data: dto.SessionInvalidateAllDto): Promise<void> {
-		return record('SessionService.handleInvalidateAll', async () => {
-			const { userId, exceptCurrentSessionId } = data
-
-			if (exceptCurrentSessionId) {
-				await this.repo.deleteByUserIdExcept(userId, exceptCurrentSessionId)
-			} else {
-				await this.repo.deleteByUserId(userId)
+			const data: SessionPayloadDto = {
+				id: session.id,
+				userId: user.id,
+				email: user.email,
+				username: user.username,
 			}
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			const token = jwt.sign(data, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN })
+
+			return { session, token }
 		})
 	}
 
-	async handleInvalidateExpired(): Promise<void> {
-		return record('SessionService.handleInvalidateExpired', async () => {
-			await this.repo.deleteExpired()
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+	/**
+	 * Verifies a session's token and integrity.
+	 */
+	async verifySession(token: string): Promise<SessionDto | null> {
+		return record('SessionService.verifySession', async () => {
+			try {
+				const decoded = jwt.verify(token, env.JWT_SECRET)
+				const valid = SessionPayloadDto.parse(decoded)
+				const session = await this.getById(valid.id)
+
+				if (!session) return null
+
+				// If session expired, invalidate it and return null
+				if (session.expiredAt < new Date()) {
+					await this.deleteSession(session.id)
+					return null
+				}
+
+				return session
+			} catch (error) {
+				logger.error('Failed to verify session', { error })
+				return null
+			}
 		})
 	}
 
-	async handleRefreshExpiry(id: number, newExpiredAt: Date): Promise<{ id: number }> {
-		return record('SessionService.handleRefreshExpiry', async () => {
-			const session = await this.getById(id)
-			if (!session) throw err.notFound(id)
-
-			const result = await this.repo.refreshExpiry(id, newExpiredAt)
-
+	/**
+	 * Explicitly deletes a session. Invalidates cache.
+	 */
+	async deleteSession(id: number): Promise<void> {
+		return record('SessionService.deleteSession', async () => {
+			await this.repo.invalidate(id)
 			await this.cache.deleteMany({ keys: [`byId:${id}`] })
+		})
+	}
 
-			return result
+	/**
+	 * Cleanup expired sessions from the database.
+	 */
+	async cleanupExpired(): Promise<void> {
+		return record('SessionService.cleanupExpired', async () => {
+			await this.repo.cleanupExpired()
 		})
 	}
 }

@@ -21,6 +21,7 @@ import { RecipeServiceModule } from './recipe'
 import { ReportingServiceModule } from './reporting'
 import { SalesServiceModule } from './sales'
 import { SalesTypeServiceModule } from './sales-type'
+import { SessionServiceModule } from './session'
 import { SupplierServiceModule } from './supplier'
 import { ToolServiceModule } from './tool'
 
@@ -28,6 +29,7 @@ export interface Modules {
 	location: LocationServiceModule
 	product: ProductServiceModule
 	salesType: SalesTypeServiceModule
+	session: SessionServiceModule
 
 	iam: IamServiceModule
 	material: MaterialServiceModule
@@ -61,6 +63,7 @@ export function initModules(db: DbClient): Modules {
 	const location = new LocationServiceModule(db, cacheClient)
 	const product = new ProductServiceModule(db, cacheClient)
 	const salesType = new SalesTypeServiceModule(db, cacheClient)
+	const session = new SessionServiceModule(db, cacheClient)
 
 	// Layer 1 — Masters
 	const iam = new IamServiceModule(db, cacheClient, { location })
@@ -107,6 +110,7 @@ export function initModules(db: DbClient): Modules {
 		location,
 		product,
 		salesType,
+		session,
 		iam,
 		material,
 		auth,

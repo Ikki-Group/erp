@@ -1,6 +1,4 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
-
-/* --------------------------------- ENTITY --------------------------------- */
+import { z, zc, zp } from '@ikki/api-contract/validation'
 
 export const SessionDto = z.object({
 	...zc.RecordId.shape,
@@ -10,34 +8,10 @@ export const SessionDto = z.object({
 })
 export type SessionDto = z.infer<typeof SessionDto>
 
-export const SessionSelectDto = SessionDto.extend({
-	userEmail: zp.str.optional(),
-	userUsername: zp.str.optional(),
-	userFullname: zp.str.optional(),
-})
-export type SessionSelectDto = z.infer<typeof SessionSelectDto>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const SessionFilterDto = z.object({
-	...zq.pagination.shape,
-	userId: zq.id.optional(),
-	isActive: z.boolean().optional(),
-})
-export type SessionFilterDto = z.infer<typeof SessionFilterDto>
-
-/* -------------------------------- MUTATION -------------------------------- */
-
-export const SessionInvalidateDto = z.object({
-	sessionIds: z.array(zp.id).min(1),
-})
-export type SessionInvalidateDto = z.infer<typeof SessionInvalidateDto>
-
-export const SessionInvalidateAllDto = z.object({
+export const SessionPayloadDto = z.object({
+	id: zp.id,
 	userId: zp.id,
-	exceptCurrentSessionId: zp.id.optional(),
+	email: zp.str,
+	username: zp.str,
 })
-export type SessionInvalidateAllDto = z.infer<typeof SessionInvalidateAllDto>
-
-export const SessionInvalidateExpiredDto = z.object({})
-export type SessionInvalidateExpiredDto = z.infer<typeof SessionInvalidateExpiredDto>
+export type SessionPayloadDto = z.infer<typeof SessionPayloadDto>
