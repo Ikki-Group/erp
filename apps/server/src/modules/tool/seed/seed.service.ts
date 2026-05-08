@@ -8,7 +8,7 @@ import type { LocationMasterService } from '@/modules/location'
 import type { MaterialCategoryService } from '@/modules/material'
 import type { MaterialService } from '@/modules/material'
 import type { UomService } from '@/modules/material'
-import type { SalesTypeService } from '@/modules/sales'
+import type { SalesTypeService } from '@/modules/sales-type'
 
 import { SEED_CONFIG } from '@/config/seed-config'
 

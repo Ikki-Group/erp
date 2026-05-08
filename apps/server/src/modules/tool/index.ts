@@ -8,7 +8,10 @@ import type { LocationMasterService } from '@/modules/location'
 import type { MaterialCategoryService } from '@/modules/material'
 import type { MaterialService } from '@/modules/material'
 import type { UomService } from '@/modules/material'
-import type { SalesTypeService } from '@/modules/sales'
+import type { SalesTypeService } from '@/modules/sales-type'
+
+import { initSeedRoute } from './seed/seed.route'
+import { SeedService } from './seed/seed.service'
 
 interface ToolServiceModuleDeps {
 	iamRole: RoleService
@@ -19,9 +22,6 @@ interface ToolServiceModuleDeps {
 	materialUom: UomService
 	salesType: SalesTypeService
 }
-
-import { initSeedRoute } from './seed/seed.route'
-import { SeedService } from './seed/seed.service'
 
 export class ToolServiceModule {
 	public readonly seed: SeedService
@@ -47,5 +47,4 @@ export function initToolRouteModule(module: ToolServiceModule) {
 	return new Elysia({ prefix: '/tool', detail: { tags: ['Tool'] } }).use(initSeedRoute(module.seed))
 }
 
-export * from './seed/seed.dto'
 export type { SeedService } from './seed/seed.service'

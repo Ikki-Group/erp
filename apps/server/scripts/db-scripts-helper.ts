@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm'
+import { migrate } from 'drizzle-orm/bun-sql/migrator'
 import { z } from 'zod'
 
 import type { DbClient } from '@/core/database'
@@ -9,7 +10,7 @@ import { createModules } from '@/modules/_registry'
 
 import { env } from '@/config/env'
 
-const Action = z.enum(['reset', 'seed', 'seed-dev'])
+const Action = z.enum(['reset', 'seed', 'seed-dev', 'all'])
 type Action = z.infer<typeof Action>
 
 async function reset(db: DbClient) {
@@ -53,6 +54,13 @@ export async function runDbScriptsHelper(db: DbClient, action: Action) {
 			break
 		case 'seed-dev':
 			await seedDev(db)
+			break
+		case 'all':
+			await reset(db).catch(console.error)
+			await migrate(db, {
+				migrationsFolder: './src/db/migrations',
+			}).catch(console.error)
+			await seedDev(db).catch(console.error)
 			break
 		default:
 			console.warn('Invalid action')

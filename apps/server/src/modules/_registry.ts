@@ -98,7 +98,7 @@ export function initModules(db: DbClient): Modules {
 		materialCategory: material.category,
 		materialMaster: material.master,
 		materialUom: material.uom,
-		salesType,
+		salesType: salesType.salesType,
 	})
 	const payment = new PaymentServiceModule(db, cacheClient)
 	const reporting = new ReportingServiceModule(db)
