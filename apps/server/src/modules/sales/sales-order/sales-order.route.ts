@@ -41,7 +41,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 				return res.ok(order)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				response: createSuccessResponseSchema(SalesOrderOutputDto),
 				auth: true,
 			},
@@ -65,7 +65,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 				return res.ok(result)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				body: SalesOrderAddBatchDto,
 				response: createSuccessResponseSchema(z.object({ batchId: z.number() })),
 				auth: true,
@@ -77,7 +77,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 				const result = await service.handleClose(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.post(
 			'/void',
@@ -86,7 +86,7 @@ export function initSalesOrderRoute(service: SalesOrderService) {
 				return res.ok(result)
 			},
 			{
-				query: zc.RecordId,
+				query: zq.recordId,
 				body: SalesOrderVoidDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,

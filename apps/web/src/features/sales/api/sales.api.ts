@@ -28,7 +28,7 @@ export const salesOrderApi = {
 	detail: apiFactory({
 		method: 'get',
 		url: endpoint.sales.order.detail,
-		params: zc.RecordId,
+		params: zq.recordId,
 		result: createSuccessResponseSchema(SalesOrderSelectDto),
 	}),
 	create: apiFactory({
@@ -41,7 +41,7 @@ export const salesOrderApi = {
 	addBatch: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.addBatch,
-		params: zc.RecordId,
+		params: zq.recordId,
 		body: SalesOrderAddBatchDto,
 		result: createSuccessResponseSchema(z.object({ batchId: z.number() })),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
@@ -49,14 +49,14 @@ export const salesOrderApi = {
 	close: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.close,
-		params: zc.RecordId,
+		params: zq.recordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
 	}),
 	void: apiFactory({
 		method: 'post',
 		url: endpoint.sales.order.void,
-		params: zc.RecordId,
+		params: zq.recordId,
 		body: SalesOrderVoidDto,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.sales.order.list, endpoint.sales.order.detail],
