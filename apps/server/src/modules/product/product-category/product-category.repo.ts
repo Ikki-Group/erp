@@ -1,14 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { and, count, eq, isNull, not } from 'drizzle-orm'
 
 import {
-	checkConflict,
 	paginate,
 	searchFilter,
 	sortBy,
 	stampCreate,
 	stampUpdate,
-	type ConflictField,
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
@@ -22,15 +20,6 @@ import {
 	ProductCategoryCreateDto,
 	ProductCategoryUpdateDto,
 } from './product-category.dto'
-
-const uniqueFields: ConflictField<'name'>[] = [
-	{
-		field: 'name',
-		column: productCategoriesTable.name,
-		message: 'Product category name already exists',
-		code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
-	},
-]
 
 export class ProductCategoryRepo {
 	constructor(private readonly db: DbClient) {}
@@ -51,11 +40,12 @@ export class ProductCategoryRepo {
 		filter: ProductCategoryFilterDto,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return record('ProductCategoryRepo.getListPaginated', async () => {
-			const { q, parentId, page, limit } = filter
+			const { q, locationId, parentId, page, limit } = filter
 
 			const where = and(
 				isNull(productCategoriesTable.deletedAt),
 				searchFilter(productCategoriesTable.name, q),
+				locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
 				parentId ? eq(productCategoriesTable.parentId, parentId) : undefined,
 			)
 
@@ -76,12 +66,16 @@ export class ProductCategoryRepo {
 		})
 	}
 
-	async getAll(): Promise<ProductCategoryDto[]> {
+	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
 		return record('ProductCategoryRepo.getAll', async () => {
+			const where = and(
+				isNull(productCategoriesTable.deletedAt),
+				locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
+			)
 			const rows = await this.db
 				.select()
 				.from(productCategoriesTable)
-				.where(isNull(productCategoriesTable.deletedAt))
+				.where(where)
 				.orderBy(productCategoriesTable.name)
 			return rows.map((r) => ProductCategoryDto.parse(r))
 		})
@@ -93,12 +87,24 @@ export class ProductCategoryRepo {
 		return record('ProductCategoryRepo.create', async () => {
 			const name = data.name.trim()
 
-			await checkConflict({
-				table: productCategoriesTable,
-				pkColumn: productCategoriesTable.id,
-				fields: uniqueFields,
-				input: { name },
-			})
+			const [conflict] = await this.db
+				.select()
+				.from(productCategoriesTable)
+				.where(
+					and(
+						eq(productCategoriesTable.locationId, data.locationId),
+						eq(productCategoriesTable.name, name),
+						isNull(productCategoriesTable.deletedAt),
+					),
+				)
+				.limit(1)
+
+			if (conflict) {
+				throw new InternalServerError(
+					'Product category name already exists in this location',
+					'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
+				)
+			}
 
 			const [inserted] = await this.db
 				.insert(productCategoriesTable)
@@ -122,6 +128,28 @@ export class ProductCategoryRepo {
 	): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.update', async () => {
 			const name = data.name ? data.name.trim() : undefined
+
+			if (name && data.locationId) {
+				const [conflict] = await this.db
+					.select()
+					.from(productCategoriesTable)
+					.where(
+						and(
+							eq(productCategoriesTable.locationId, data.locationId),
+							eq(productCategoriesTable.name, name),
+							not(eq(productCategoriesTable.id, id)),
+							isNull(productCategoriesTable.deletedAt),
+						),
+					)
+					.limit(1)
+
+				if (conflict) {
+					throw new InternalServerError(
+						'Product category name already exists in this location',
+						'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
+					)
+				}
+			}
 
 			await this.db
 				.update(productCategoriesTable)

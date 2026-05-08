@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-
 import type { WithPaginationResult } from '@/core/database/pagination'
+import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import type { ProductCategoryDto } from '../product-category/product-category.dto'
 import type { ProductCategoryService } from '../product-category/product-category.service'
@@ -54,6 +53,7 @@ export class ProductService {
 
 			const allCategories = await this.categorySvc.handleList({
 				q: undefined,
+				locationId: filter.locationId,
 				page: 1,
 				limit: 1000,
 			})

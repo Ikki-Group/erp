@@ -1,12 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { checkConflict } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 import { NotFoundError } from '@/core/http/errors'
 
 import { productCategoriesTable } from '@/db/schema'
-
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import {
 	ProductCategoryDto,
@@ -15,15 +13,6 @@ import {
 	ProductCategoryUpdateDto,
 } from './product-category.dto'
 import { ProductCategoryRepo } from './product-category.repo'
-
-const uniqueFields = [
-	{
-		field: 'name' as const,
-		column: productCategoriesTable.name,
-		message: 'Product category name already exists',
-		code: 'PRODUCT_CATEGORY_NAME_ALREADY_EXISTS',
-	},
-]
 
 export class ProductCategoryService {
 	private readonly cache: CacheService
@@ -46,11 +35,12 @@ export class ProductCategoryService {
 		})
 	}
 
-	async getAll(): Promise<ProductCategoryDto[]> {
+	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
 		return record('ProductCategoryService.getAll', async () => {
+			const cacheKey = locationId ? `list:location:${locationId}` : 'list'
 			return this.cache.getOrSet({
-				key: 'list',
-				factory: () => this.repo.getAll(),
+				key: cacheKey,
+				factory: () => this.repo.getAll(locationId),
 			})
 		})
 	}
@@ -79,16 +69,9 @@ export class ProductCategoryService {
 
 	async handleCreate(data: ProductCategoryCreateDto, actorId: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleCreate', async () => {
-			await checkConflict({
-				table: productCategoriesTable,
-				pkColumn: productCategoriesTable.id,
-				fields: uniqueFields,
-				input: data,
-			})
-
 			const result = await this.repo.create(data, actorId)
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+			await this.cache.deleteMany({ keys: ['list', `list:location:${data.locationId}`, 'count'] })
 
 			return result
 		})
@@ -107,17 +90,14 @@ export class ProductCategoryService {
 					'PRODUCT_CATEGORY_NOT_FOUND',
 				)
 
-			await checkConflict({
-				table: productCategoriesTable,
-				pkColumn: productCategoriesTable.id,
-				fields: uniqueFields,
-				input: data,
-				existing,
-			})
-
 			await this.repo.update(id, data, actorId)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			const cacheKeys = ['list', 'count', `byId:${id}`]
+			if (data.locationId) {
+				cacheKeys.push(`list:location:${data.locationId}`)
+				cacheKeys.push(`list:location:${existing.locationId}`)
+			}
+			await this.cache.deleteMany({ keys: cacheKeys })
 
 			return { id }
 		})

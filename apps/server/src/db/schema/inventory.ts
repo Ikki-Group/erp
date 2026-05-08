@@ -20,7 +20,6 @@ import { materialsTable } from './material'
 
 /**
  * Stock Batches Table
- *
  * Support for Batch/Lot tracking and Expiry dates.
  */
 export const stockBatchesTable = pgTable(

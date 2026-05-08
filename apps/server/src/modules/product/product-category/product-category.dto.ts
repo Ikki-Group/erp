@@ -6,6 +6,7 @@ export const ProductCategoryDto = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
 	description: zp.strNullable,
+	locationId: zp.id,
 	parentId: zp.id.nullable(),
 	...zc.AuditBasic.shape,
 })
@@ -17,6 +18,7 @@ export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 export const ProductCategoryFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
+	locationId: zq.id.optional(),
 	parentId: zq.id.optional(),
 })
 
@@ -27,6 +29,7 @@ export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 const ProductCategoryMutationDto = z.object({
 	name: zc.strTrim.min(1).max(100),
 	description: zc.strTrimNullable,
+	locationId: zp.id,
 	parentId: zp.id.optional().nullable(),
 })
 
