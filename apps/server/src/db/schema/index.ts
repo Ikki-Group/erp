@@ -48,16 +48,12 @@ export {
 	materialConversionsTable,
 	materialLocationsTable,
 	materialsTable,
-	uomsTable,
 } from './material'
 export {
-	categoryExternalMappingsTable,
 	productCategoriesTable,
-	productExternalMappingsTable,
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
-	salesTypesTable,
 	variantPricesTable,
 } from './product'
 export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'

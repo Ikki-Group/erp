@@ -1,5 +1,3 @@
-// oxlint-disable import/max-dependencies
-// oxlint-disable max-lines
 import { defineRelations } from 'drizzle-orm'
 
 import { customersTable } from './customer'
@@ -28,17 +26,13 @@ import {
 	materialConversionsTable,
 	materialLocationsTable,
 	materialsTable,
-	uomsTable,
 } from './material'
 import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 import {
-	categoryExternalMappingsTable,
 	productCategoriesTable,
-	productExternalMappingsTable,
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
-	salesTypesTable,
 	variantPricesTable,
 } from './product'
 import { workOrdersTable } from './production'
@@ -62,8 +56,10 @@ import {
 	salesOrdersTable,
 	salesVoidsTable,
 } from './sales'
+import { salesTypesTable } from './sales-type'
 import { suppliersTable } from './supplier'
 import { taxesTable } from './tax'
+import { uomsTable } from './uom'
 
 export const relations = defineRelations(
 	{
@@ -88,8 +84,6 @@ export const relations = defineRelations(
 		productPricesTable,
 		productVariantsTable,
 		variantPricesTable,
-		productExternalMappingsTable,
-		categoryExternalMappingsTable,
 		recipesTable,
 		recipeItemsTable,
 		mokaConfigurationsTable,
@@ -189,7 +183,6 @@ export const relations = defineRelations(
 				from: r.materialsTable.categoryId,
 				to: r.materialCategoriesTable.id,
 			}),
-			tax: r.one.taxesTable({ from: r.materialsTable.taxId, to: r.taxesTable.id }),
 			conversions: r.many.materialConversionsTable(),
 			materialLocations: r.many.materialLocationsTable(),
 			stockTransactions: r.many.stockTransactionsTable(),
@@ -297,7 +290,7 @@ export const relations = defineRelations(
 
 		productCategoriesTable: {
 			products: r.many.productsTable(),
-			externalMappings: r.many.categoryExternalMappingsTable(),
+			// externalMappings: r.many.categoryExternalMappingsTable(),
 		},
 
 		productsTable: {
@@ -309,7 +302,7 @@ export const relations = defineRelations(
 			tax: r.one.taxesTable({ from: r.productsTable.taxId, to: r.taxesTable.id }),
 			variants: r.many.productVariantsTable(),
 			prices: r.many.productPricesTable(),
-			externalMappings: r.many.productExternalMappingsTable(),
+			// externalMappings: r.many.productExternalMappingsTable(),
 			recipe: r.many.recipesTable(),
 			salesOrderItems: r.many.salesOrderItemsTable(),
 		},
@@ -332,7 +325,7 @@ export const relations = defineRelations(
 			}),
 			prices: r.many.variantPricesTable(),
 			recipe: r.many.recipesTable(),
-			externalMappings: r.many.productExternalMappingsTable(),
+			// externalMappings: r.many.productExternalMappingsTable(),
 			salesOrderItems: r.many.salesOrderItemsTable(),
 		},
 
@@ -347,23 +340,23 @@ export const relations = defineRelations(
 			}),
 		},
 
-		productExternalMappingsTable: {
-			product: r.one.productsTable({
-				from: r.productExternalMappingsTable.productId,
-				to: r.productsTable.id,
-			}),
-			variant: r.one.productVariantsTable({
-				from: r.productExternalMappingsTable.variantId,
-				to: r.productVariantsTable.id,
-			}),
-		},
+		// productExternalMappingsTable: {
+		// 	product: r.one.productsTable({
+		// 		from: r.productExternalMappingsTable.productId,
+		// 		to: r.productsTable.id,
+		// 	}),
+		// 	variant: r.one.productVariantsTable({
+		// 		from: r.productExternalMappingsTable.variantId,
+		// 		to: r.productVariantsTable.id,
+		// 	}),
+		// },
 
-		categoryExternalMappingsTable: {
-			category: r.one.productCategoriesTable({
-				from: r.categoryExternalMappingsTable.categoryId,
-				to: r.productCategoriesTable.id,
-			}),
-		},
+		// categoryExternalMappingsTable: {
+		// 	category: r.one.productCategoriesTable({
+		// 		from: r.categoryExternalMappingsTable.categoryId,
+		// 		to: r.productCategoriesTable.id,
+		// 	}),
+		// },
 
 		// ─── Recipe ───────────────────────────────────────────────────────
 
