@@ -9,7 +9,6 @@ import {
 	text,
 	timestamp,
 	uniqueIndex,
-	type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
@@ -17,31 +16,13 @@ import { auditColumns, pk } from '@/core/database/schema'
 import { productStatusEnum } from './_helpers'
 import { locationsTable } from './location'
 
-// ─── Sales Types ──────────────────────────────────────────────────────────────
-
-export const salesTypesTable = pgTable(
-	'sales_types',
-	{
-		...pk,
-		code: text().notNull(),
-		name: text().notNull(),
-		isSystem: boolean().notNull().default(false),
-		...auditColumns,
-	},
-	(t) => [uniqueIndex('sales_types_code_idx').on(t.code)],
-)
-
-// ─── Product Categories ───────────────────────────────────────────────────────
-
 export const productCategoriesTable = pgTable(
 	'product_categories',
 	{
 		...pk,
+		locationId: integer().references(() => locationsTable.id, { onDelete: 'cascade' }),
 		name: text().notNull(),
 		description: text(),
-		parentId: integer().references((): AnyPgColumn => productCategoriesTable.id, {
-			onDelete: 'set null',
-		}),
 		...auditColumns,
 	},
 	(t) => [uniqueIndex('product_categories_name_idx').on(t.name).where(isNull(t.deletedAt))],
