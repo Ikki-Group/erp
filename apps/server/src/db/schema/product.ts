@@ -1,6 +1,6 @@
 import { boolean, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from '@/core/database/schema'
 
 import { productStatusEnum } from './_helpers'
 import { locationsTable } from './location'
@@ -103,7 +103,7 @@ export const variantPricesTable = pgTable(
 			.notNull()
 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
 		price: numeric({ precision: 18, scale: 4 }).notNull(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('variant_prices_variant_sales_type_idx').on(t.variantId, t.salesTypeId),
