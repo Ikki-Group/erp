@@ -163,7 +163,7 @@ export const relations = defineRelations(
 
 		taxesTable: {
 			account: r.one.accountsTable({ from: r.taxesTable.accountId, to: r.accountsTable.id }),
-			materials: r.many.materialsTable(),
+			// materials: r.many.materialsTable(),
 			products: r.many.productsTable(),
 		},
 

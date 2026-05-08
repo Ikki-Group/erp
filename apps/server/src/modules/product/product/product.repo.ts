@@ -1,19 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, inArray, isNull, not, or } from 'drizzle-orm'
+import { and, eq, inArray, isNull, not, or } from 'drizzle-orm'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+import { searchFilter, stampCreate, stampUpdate, type DbClient } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import {
-	productExternalMappingsTable,
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
@@ -22,7 +13,6 @@ import {
 
 import {
 	ProductDto,
-	ProductExternalMappingDto,
 	ProductFilterDto,
 	ProductMutationDto,
 	ProductPriceDto,
@@ -86,20 +76,20 @@ export class ProductRepo {
 		return map
 	}
 
-	async #getProductExternalMappingsBatch(
-		productIds: number[],
-	): Promise<Map<number, ProductExternalMappingDto[]>> {
-		if (productIds.length === 0) return new Map()
-		const mappings = await this.db
-			.select()
-			.from(productExternalMappingsTable)
-			.where(inArray(productExternalMappingsTable.productId, productIds))
+	// async #getProductExternalMappingsBatch(
+	// 	productIds: number[],
+	// ): Promise<Map<number, ProductExternalMappingDto[]>> {
+	// 	if (productIds.length === 0) return new Map()
+	// 	const mappings = await this.db
+	// 		.select()
+	// 		.from(productExternalMappingsTable)
+	// 		.where(inArray(productExternalMappingsTable.productId, productIds))
 
-		const map = new Map<number, ProductExternalMappingDto[]>()
-		for (const id of productIds) map.set(id, [])
-		for (const m of mappings) map.get(m.productId)!.push(m)
-		return map
-	}
+	// 	const map = new Map<number, ProductExternalMappingDto[]>()
+	// 	for (const id of productIds) map.set(id, [])
+	// 	for (const m of mappings) map.get(m.productId)!.push(m)
+	// 	return map
+	// }
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
@@ -116,7 +106,7 @@ export class ProductRepo {
 			const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
 				this.#getVariantsBatch([id]),
 				this.#getProductPricesBatch([id]),
-				this.#getProductExternalMappingsBatch([id]),
+				// this.#getProductExternalMappingsBatch([id]),
 			])
 
 			return {
@@ -129,74 +119,70 @@ export class ProductRepo {
 		})
 	}
 
-	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
-		return record('ProductRepo.getListPaginated', async () => {
-			const { search, status, categoryId, locationId, isExternal, provider, page, limit } = filter
+	// async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
+	// 	return record('ProductRepo.getListPaginated', async () => {
+	// 		const { search, status, categoryId, locationId, isExternal, provider, page, limit } = filter
 
-			const externalCondition =
-				isExternal !== undefined || provider !== undefined
-					? exists(
-							this.db
-								.select({ id: productExternalMappingsTable.id })
-								.from(productExternalMappingsTable)
-								.where(
-									and(
-										eq(productExternalMappingsTable.provider, provider ?? 'moka'),
-										eq(productExternalMappingsTable.productId, productsTable.id),
-									),
-								),
-						)
-					: undefined
+	// 		const externalCondition =
+	// 			isExternal !== undefined || provider !== undefined
+	// 				? exists(
+	// 						this.db
+	// 							.select({ id: productExternalMappingsTable.id })
+	// 							.from(productExternalMappingsTable)
+	// 							.where(
+	// 								and(
+	// 									eq(productExternalMappingsTable.provider, provider ?? 'moka'),
+	// 									eq(productExternalMappingsTable.productId, productsTable.id),
+	// 								),
+	// 							),
+	// 					)
+	// 				: undefined
 
-			const where = and(
-				isNull(productsTable.deletedAt),
-				search
-					? or(searchFilter(productsTable.name, search), searchFilter(productsTable.sku, search))
-					: undefined,
-				status ? eq(productsTable.status, status) : undefined,
-				categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
-				locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
-				externalCondition
-					? isExternal === false
-						? not(externalCondition)
-						: externalCondition
-					: undefined,
-			)
+	// 		const where = and(
+	// 			isNull(productsTable.deletedAt),
+	// 			search
+	// 				? or(searchFilter(productsTable.name, search), searchFilter(productsTable.sku, search))
+	// 				: undefined,
+	// 			status ? eq(productsTable.status, status) : undefined,
+	// 			categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
+	// 			locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
+	// 			externalCondition ? (!isExternal ? not(externalCondition) : externalCondition) : undefined,
+	// 		)
 
-			const result = await paginate({
-				data: ({ limit: l, offset }) =>
-					this.db
-						.select()
-						.from(productsTable)
-						.where(where)
-						.orderBy(sortBy(productsTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
-			})
+	// 		const result = await paginate({
+	// 			data: ({ limit: l, offset }) =>
+	// 				this.db
+	// 					.select()
+	// 					.from(productsTable)
+	// 					.where(where)
+	// 					.orderBy(sortBy(productsTable.updatedAt, 'desc'))
+	// 					.limit(l)
+	// 					.offset(offset),
+	// 			pq: { page, limit },
+	// 			countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
+	// 		})
 
-			const productIds = result.data.map((p) => p.id)
-			const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
-				this.#getVariantsBatch(productIds),
-				this.#getProductPricesBatch(productIds),
-				this.#getProductExternalMappingsBatch(productIds),
-			])
+	// 		const productIds = result.data.map((p) => p.id)
+	// 		const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
+	// 			this.#getVariantsBatch(productIds),
+	// 			this.#getProductPricesBatch(productIds),
+	// 			this.#getProductExternalMappingsBatch(productIds),
+	// 		])
 
-			return {
-				data: result.data.map((p) =>
-					ProductDto.parse({
-						...p,
-						basePrice: p.basePrice,
-						variants: variantsMap.get(p.id) ?? [],
-						prices: pricesMap.get(p.id) ?? [],
-						externalMappings: mappingsMap.get(p.id) ?? [],
-					}),
-				),
-				meta: result.meta,
-			}
-		})
-	}
+	// 		return {
+	// 			data: result.data.map((p) =>
+	// 				ProductDto.parse({
+	// 					...p,
+	// 					basePrice: p.basePrice,
+	// 					variants: variantsMap.get(p.id) ?? [],
+	// 					prices: pricesMap.get(p.id) ?? [],
+	// 					externalMappings: mappingsMap.get(p.id) ?? [],
+	// 				}),
+	// 			),
+	// 			meta: result.meta,
+	// 		}
+	// 	})
+	// }
 
 	async checkScopedConflict(
 		locationId: number,

@@ -4,14 +4,11 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { stampCreate, takeFirst, type DbClient, type DbTx } from '@/core/database'
 
 import {
-	categoryExternalMappingsTable,
 	productCategoriesTable,
-	productExternalMappingsTable,
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
 	salesExternalRefsTable,
-	salesOrderItemsTable,
 	salesOrdersTable,
 	salesRefundsTable,
 	salesTypesTable,
@@ -27,7 +24,6 @@ import type {
 	MokaItemVariantRaw,
 	MokaProductRaw,
 	MokaSalesDetailRaw,
-	MokaSalesItemRaw,
 	MokaSplitPaymentDetailRaw,
 } from './scrap-raw.types'
 
@@ -91,14 +87,14 @@ export class MokaTransformationService {
 
 					if (existingCat) {
 						// Category exists by name — just create the mapping
-						await this.db.insert(categoryExternalMappingsTable).values({
-							categoryId: existingCat.id,
-							provider: 'moka',
-							externalId: String(cat.id),
-							externalData: cat,
-							lastSyncedAt: new Date(),
-							...stampCreate(actorId),
-						})
+						// await this.db.insert(categoryExternalMappingsTable).values({
+						// 	categoryId: existingCat.id,
+						// 	provider: 'moka',
+						// 	externalId: String(cat.id),
+						// 	externalData: cat,
+						// 	lastSyncedAt: new Date(),
+						// 	...stampCreate(actorId),
+						// })
 					} else {
 						// Truly new — create category + mapping
 						const [newCat] = await this.db
@@ -106,16 +102,16 @@ export class MokaTransformationService {
 							.values({ name: cat.name, description: cat.description, ...stampCreate(actorId) })
 							.returning({ id: productCategoriesTable.id })
 
-						if (newCat) {
-							await this.db.insert(categoryExternalMappingsTable).values({
-								categoryId: newCat.id,
-								provider: 'moka',
-								externalId: String(cat.id),
-								externalData: cat,
-								lastSyncedAt: new Date(),
-								...stampCreate(actorId),
-							})
-						}
+						// if (newCat) {
+						// 	await this.db.insert(categoryExternalMappingsTable).values({
+						// 		categoryId: newCat.id,
+						// 		provider: 'moka',
+						// 		externalId: String(cat.id),
+						// 		externalData: cat,
+						// 		lastSyncedAt: new Date(),
+						// 		...stampCreate(actorId),
+						// 	})
+						// }
 					}
 				}
 			}
@@ -159,10 +155,10 @@ export class MokaTransformationService {
 				})
 				.where(eq(productsTable.id, mapping.productId))
 
-			await this.db
-				.update(productExternalMappingsTable)
-				.set({ lastSyncedAt: new Date(), externalData: prod })
-				.where(eq(productExternalMappingsTable.id, mapping.id))
+			// await this.db
+			// 	.update(productExternalMappingsTable)
+			// 	.set({ lastSyncedAt: new Date(), externalData: prod })
+			// 	.where(eq(productExternalMappingsTable.id, mapping.id))
 
 			await this.syncVariants(mapping.productId, prod.item_variants, actorId)
 		} else {
@@ -229,10 +225,10 @@ export class MokaTransformationService {
 					.where(eq(productVariantsTable.id, existingVariantId))
 
 				// Update mapping sync data
-				await this.db
-					.update(productExternalMappingsTable)
-					.set({ lastSyncedAt: new Date() })
-					.where(eq(productExternalMappingsTable.id, variantMapping.id))
+				// await this.db
+				// 	.update(productExternalMappingsTable)
+				// 	.set({ lastSyncedAt: new Date() })
+				// 	.where(eq(productExternalMappingsTable.id, variantMapping.id))
 			} else {
 				// Fallback: lookup by name for previously synced variants without mapping
 				const existing = await this.db
@@ -331,33 +327,33 @@ export class MokaTransformationService {
 		}
 	}
 
-	private async ensureVariantMapping(
-		productId: number,
-		variantId: number,
-		mokaVariantId: number,
-		actorId: number,
-	) {
-		const existing = await this.db
-			.select()
-			.from(productExternalMappingsTable)
-			.where(
-				and(
-					eq(productExternalMappingsTable.provider, 'moka'),
-					eq(productExternalMappingsTable.productId, productId),
-					eq(productExternalMappingsTable.variantId, variantId),
-				),
-			)
-		if (takeFirst(existing)) return
+	// private async ensureVariantMapping(
+	// 	productId: number,
+	// 	variantId: number,
+	// 	mokaVariantId: number,
+	// 	actorId: number,
+	// ) {
+	// 	const existing = await this.db
+	// 		.select()
+	// 		.from(productExternalMappingsTable)
+	// 		.where(
+	// 			and(
+	// 				eq(productExternalMappingsTable.provider, 'moka'),
+	// 				eq(productExternalMappingsTable.productId, productId),
+	// 				eq(productExternalMappingsTable.variantId, variantId),
+	// 			),
+	// 		)
+	// 	if (takeFirst(existing)) return
 
-		await this.db.insert(productExternalMappingsTable).values({
-			productId,
-			variantId,
-			provider: 'moka',
-			externalId: String(mokaVariantId),
-			lastSyncedAt: new Date(),
-			...stampCreate(actorId),
-		})
-	}
+	// 	await this.db.insert(productExternalMappingsTable).values({
+	// 		productId,
+	// 		variantId,
+	// 		provider: 'moka',
+	// 		externalId: String(mokaVariantId),
+	// 		lastSyncedAt: new Date(),
+	// 		...stampCreate(actorId),
+	// 	})
+	// }
 
 	/* ─── Sales Sync ────────────────────────────────────────────────────────── */
 
@@ -511,38 +507,38 @@ export class MokaTransformationService {
 		})
 	}
 
-	private async insertSalesItem(
-		tx: DbTx,
-		orderId: number,
-		item: MokaSalesItemRaw,
-		actorId: number,
-	) {
-		// Try to find product mapping by Moka item_id
-		const [mapping] = await tx
-			.select()
-			.from(productExternalMappingsTable)
-			.where(
-				and(
-					eq(productExternalMappingsTable.provider, 'moka'),
-					eq(productExternalMappingsTable.externalId, String(item.item_id)),
-				),
-			)
+	// private async insertSalesItem(
+	// 	tx: DbTx,
+	// 	orderId: number,
+	// 	item: MokaSalesItemRaw,
+	// 	actorId: number,
+	// ) {
+	// 	// Try to find product mapping by Moka item_id
+	// 	const [mapping] = await tx
+	// 		.select()
+	// 		.from(productExternalMappingsTable)
+	// 		.where(
+	// 			and(
+	// 				eq(productExternalMappingsTable.provider, 'moka'),
+	// 				eq(productExternalMappingsTable.externalId, String(item.item_id)),
+	// 			),
+	// 		)
 
-		const itemDiscount = (item.discounts ?? []).reduce((sum, d) => sum + (d.amount ?? 0), 0)
-		const lineSubtotal = item.price * item.quantity - itemDiscount
+	// 	const itemDiscount = (item.discounts ?? []).reduce((sum, d) => sum + (d.amount ?? 0), 0)
+	// 	const lineSubtotal = item.price * item.quantity - itemDiscount
 
-		await tx.insert(salesOrderItemsTable).values({
-			orderId,
-			productId: mapping?.productId ?? null,
-			variantId: mapping?.variantId ?? null,
-			itemName: item.item_name,
-			quantity: String(item.quantity),
-			unitPrice: String(item.price),
-			discountAmount: String(itemDiscount),
-			subtotal: String(Math.max(0, lineSubtotal)),
-			...stampCreate(actorId),
-		})
-	}
+	// 	await tx.insert(salesOrderItemsTable).values({
+	// 		orderId,
+	// 		productId: mapping?.productId ?? null,
+	// 		variantId: mapping?.variantId ?? null,
+	// 		itemName: item.item_name,
+	// 		quantity: String(item.quantity),
+	// 		unitPrice: String(item.price),
+	// 		discountAmount: String(itemDiscount),
+	// 		subtotal: String(Math.max(0, lineSubtotal)),
+	// 		...stampCreate(actorId),
+	// 	})
+	// }
 
 	private async postSalesToGL(orderId: number, sale: MokaSalesDetailRaw, actorId: number) {
 		const cashAcc = await this.accountSvc.findByCode('1101')
@@ -646,70 +642,70 @@ export class MokaTransformationService {
 
 	/* ─── Helpers ───────────────────────────────────────────────────────────── */
 
-	private async findCategoryMapping(externalId: string) {
-		const result = await this.db
-			.select()
-			.from(categoryExternalMappingsTable)
-			.where(
-				and(
-					eq(categoryExternalMappingsTable.provider, 'moka'),
-					eq(categoryExternalMappingsTable.externalId, externalId),
-				),
-			)
-		return takeFirst(result)
-	}
+	// private async findCategoryMapping(externalId: string) {
+	// 	const result = await this.db
+	// 		.select()
+	// 		.from(categoryExternalMappingsTable)
+	// 		.where(
+	// 			and(
+	// 				eq(categoryExternalMappingsTable.provider, 'moka'),
+	// 				eq(categoryExternalMappingsTable.externalId, externalId),
+	// 			),
+	// 		)
+	// 	return takeFirst(result)
+	// }
 
-	private async findProductMapping(externalId: string) {
-		const result = await this.db
-			.select()
-			.from(productExternalMappingsTable)
-			.where(
-				and(
-					eq(productExternalMappingsTable.provider, 'moka'),
-					eq(productExternalMappingsTable.externalId, externalId),
-					isNull(productExternalMappingsTable.variantId),
-				),
-			)
-		return takeFirst(result)
-	}
+	// private async findProductMapping(externalId: string) {
+	// 	const result = await this.db
+	// 		.select()
+	// 		.from(productExternalMappingsTable)
+	// 		.where(
+	// 			and(
+	// 				eq(productExternalMappingsTable.provider, 'moka'),
+	// 				eq(productExternalMappingsTable.externalId, externalId),
+	// 				isNull(productExternalMappingsTable.variantId),
+	// 			),
+	// 		)
+	// 	return takeFirst(result)
+	// }
 
-	private async findVariantMapping(externalId: string) {
-		const result = await this.db
-			.select()
-			.from(productExternalMappingsTable)
-			.where(
-				and(
-					eq(productExternalMappingsTable.provider, 'moka'),
-					eq(productExternalMappingsTable.externalId, externalId),
-				),
-			)
-		return takeFirst(result)
-	}
+	// private async findVariantMapping(externalId: string) {
+	// 	const result = await this.db
+	// 		.select()
+	// 		.from(productExternalMappingsTable)
+	// 		.where(
+	// 			and(
+	// 				eq(productExternalMappingsTable.provider, 'moka'),
+	// 				eq(productExternalMappingsTable.externalId, externalId),
+	// 			),
+	// 		)
+	// 	return takeFirst(result)
+	// }
 
-	private async resolveCategoryId(
-		mokaCategoryId?: number,
-		categoryName?: string,
-	): Promise<number | null> {
-		// 1. Try by Moka category ID via external mapping
-		if (mokaCategoryId) {
-			const mapping = await this.findCategoryMapping(String(mokaCategoryId))
-			if (mapping) return mapping.categoryId
-		}
+	// private async resolveCategoryId(
+	// 	mokaCategoryId?: number,
+	// 	categoryName?: string,
+	// ): Promise<number | null> {
+	// 	// 1. Try by Moka category ID via external mapping
+	// 	if (mokaCategoryId) {
+	// 		const mapping = await this.findCategoryMapping(String(mokaCategoryId))
+	// 		if (mapping) return mapping.categoryId
+	// 	}
 
-		// 2. Fallback to name match
-		if (!categoryName) return null
-		const result = await this.db
-			.select()
-			.from(productCategoriesTable)
-			.where(
-				and(
-					eq(productCategoriesTable.name, categoryName),
-					isNull(productCategoriesTable.deletedAt),
-				),
-			)
-		const cat = takeFirst(result)
-		return cat?.id ?? null
-	}
+	// 	// 2. Fallback to name match
+	// 	if (!categoryName) return null
+	// 	const result = await this.db
+	// 		.select()
+	// 		.from(productCategoriesTable)
+	// 		.where(
+	// 			and(
+	// 				eq(productCategoriesTable.name, categoryName),
+	// 				isNull(productCategoriesTable.deletedAt),
+	// 			),
+	// 		)
+	// 	const cat = takeFirst(result)
+	// 	return cat?.id ?? null
+	// }
 
 	private async ensureSalesType(name: string, actorId: number) {
 		const result = await this.db

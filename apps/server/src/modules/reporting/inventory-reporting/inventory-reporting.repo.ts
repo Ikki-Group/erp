@@ -2,13 +2,13 @@ import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
+import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 import {
 	stockTransactionsTable,
 	stockAdjustmentsTable,
 	stockAdjustmentItemsTable,
 } from '@/db/schema/inventory'
 import { locationsTable } from '@/db/schema/location'
-import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
 
 import type { InventoryReportRequestDto } from './inventory-reporting.dto'
 

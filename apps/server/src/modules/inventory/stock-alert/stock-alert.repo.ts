@@ -3,8 +3,7 @@ import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
-import { locationsTable } from '@/db/schema/location'
-import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema/material'
+import { materialLocationsTable, materialsTable, uomsTable, locationsTable } from '@/db/schema'
 
 import type { StockAlertFilterDto } from './stock-alert.dto'
 
@@ -20,8 +19,8 @@ export class StockAlertRepo {
 			const offset = (page - 1) * limit
 
 			const conditions = [
-				isNull(materialLocationsTable.deletedAt),
-				isNull(materialsTable.deletedAt),
+				// isNull(materialLocationsTable.deletedAt),
+				// isNull(materialsTable.deletedAt),
 				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
 			]
 
