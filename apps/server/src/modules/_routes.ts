@@ -18,6 +18,7 @@ import { initPurchasingRouteModule } from './purchasing'
 import { initRecipeRouteModule } from './recipe'
 import { initReportingRouteModule } from './reporting'
 import { initSalesRouteModule } from './sales'
+import { initSalesTypeRouteModule } from './sales-type'
 import { initSupplierRouteModule } from './supplier'
 import { initToolRouteModule } from './tool'
 import type Elysia from 'elysia'
@@ -45,6 +46,7 @@ export function initRoutes(m: Modules) {
 		initHRRouteModule(m.hr),
 		initPaymentRouteModule(m.payment),
 		initReportingRouteModule(m.reporting),
+		initSalesTypeRouteModule(m.salesType),
 	]
 
 	return {
