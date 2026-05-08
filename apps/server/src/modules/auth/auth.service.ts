@@ -1,9 +1,10 @@
 import { verifyPassword } from '@/core/auth'
 import { UnauthorizedError } from '@/core/http/errors'
 
-import type { SessionService, UserDetailDto, UserDto, UserService } from '@/modules/iam'
+import type { UserDetailDto, UserDto, UserService } from '@/modules/iam'
+import type { SessionService } from '@/modules/session/session.service'
 
-import type { AuthOutputDto, LoginDto } from './auth.dto'
+import type { AuthOutputDto, AuthLoginDto } from './auth.dto'
 
 const err = {
 	userNotFound: () => new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND'),
@@ -17,7 +18,7 @@ export class AuthService {
 		private readonly sessionSvc: SessionService,
 	) {}
 
-	async login(input: LoginDto): Promise<AuthOutputDto> {
+	async login(input: AuthLoginDto): Promise<AuthOutputDto> {
 		const { identifier, password } = input
 		const targetUser = await this.userSvc.getByIdentifier(identifier)
 
@@ -37,15 +38,15 @@ export class AuthService {
 	}
 
 	async verifyToken(token: string): Promise<UserDto> {
-		const session = await this.svc.session.verifySession(token)
+		const session = await this.sessionSvc.verifySession(token)
 		if (!session) {
 			throw err.invalidCredentials()
 		}
 
-		return this.svc.user.getDetailById(session.userId)
+		return this.userSvc.getDetailById(session.userId)
 	}
 
 	async getById(userId: number): Promise<UserDetailDto> {
-		return this.svc.user.getDetailById(userId)
+		return this.userSvc.getDetailById(userId)
 	}
 }

@@ -1,49 +1,24 @@
 import Elysia from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+import type { SessionServiceModule } from '@/modules/session'
 
 import type { UserService } from '../iam'
+import { initAuthRoute } from './auth.route'
+import { AuthService } from './auth.service'
 
 interface AuthServiceModuleDeps {
+	session: SessionServiceModule
 	user: UserService
 }
 
-import { initAuthRoute } from './login/login.route'
-import { LoginService } from './login/login.service'
-import { SessionRepo } from './session/session.repo'
-import { SessionService } from './session/session.service'
-
 export class AuthServiceModule {
-	public readonly login: LoginService
-	public readonly session: SessionService
+	public readonly auth: AuthService
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: AuthServiceModuleDeps,
-	) {
-		const sessionRepo = new SessionRepo(this.db)
-		this.session = new SessionService(sessionRepo, this.cacheClient)
-		this.login = new LoginService({
-			user: this.deps.user,
-			session: this.session,
-		})
-	}
-
-	async verifyToken(token: string) {
-		const session = await this.session.verifySession(token)
-		if (!session) return null
-		return this.deps.user.getDetailById(session.userId)
+	constructor(private readonly deps: AuthServiceModuleDeps) {
+		this.auth = new AuthService(this.deps.user, this.deps.session.session)
 	}
 }
 
 export function initAuthRouteModule(s: AuthServiceModule) {
-	return new Elysia({ prefix: '/auth' }).use(initAuthRoute(s.login))
+	return new Elysia({ prefix: '/auth' }).use(initAuthRoute(s.auth))
 }
-
-export * from './login/login.dto'
-export type { LoginService } from './login/login.service'
-
-export * from './session/session.dto'
-export type { SessionService } from './session/session.service'

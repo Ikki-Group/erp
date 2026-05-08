@@ -4,7 +4,6 @@
 	"oxc.enable": true,
 	"oxc.typeAware": true,
 	"editor.formatOnSave": true,
-	// "oxc.fmt.configPath": ".oxfmtrc.json",
 	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.codeActionsOnSave": {
 		"source.fixAll.oxc": "always"
@@ -39,5 +38,7 @@
 	},
 	"js/ts.experimental.useTsgo": true,
 	"js/ts.tsserver.tracing.enabled": false,
-	"js/ts.tsserver.maxMemory": 4096
+	"js/ts.tsserver.maxMemory": 4096,
+	"js/ts.suggest.autoImports": true,
+	"js/ts.preferences.importModuleSpecifier": "non-relative",
 }

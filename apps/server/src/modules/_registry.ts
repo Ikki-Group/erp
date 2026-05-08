@@ -78,7 +78,7 @@ export function initModules(db: DbClient): Modules {
 	const hr = new HRServiceModule(db, cacheClient, { finance })
 
 	// Layer 1.5 — Auth (Depends on Iam)
-	const auth = new AuthServiceModule(db, cacheClient, iam)
+	const auth = new AuthServiceModule({ session, user: iam.user })
 
 	// Layer 2 — Operations
 	const inventory = new InventoryServiceModule(db, cacheClient, { material })

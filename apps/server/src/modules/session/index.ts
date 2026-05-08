@@ -15,3 +15,6 @@ export class SessionServiceModule {
 		this.session = new SessionService(sessionRepo, cacheClient)
 	}
 }
+
+export * from './session.dto'
+export * from './session.service'
