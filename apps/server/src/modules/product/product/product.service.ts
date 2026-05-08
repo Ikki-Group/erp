@@ -127,9 +127,9 @@ export class ProductService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('ProductService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 

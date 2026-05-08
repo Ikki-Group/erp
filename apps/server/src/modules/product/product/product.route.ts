@@ -69,8 +69,8 @@ export function initProductRoute(s: ProductService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ query, auth }) {
-				await s.handleRemove(query.id, auth.userId)
+			async function remove({ query }) {
+				await s.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
 			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },

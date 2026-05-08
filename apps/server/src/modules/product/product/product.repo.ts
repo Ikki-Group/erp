@@ -1,7 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, inArray, isNull, not, or } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, not, or } from 'drizzle-orm'
 
-import { searchFilter, stampCreate, stampUpdate, type DbClient } from '@/core/database'
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type DbClient,
+	type WithPaginationResult,
+} from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import {
@@ -98,15 +105,14 @@ export class ProductRepo {
 			const [product] = await this.db
 				.select()
 				.from(productsTable)
-				.where(and(eq(productsTable.id, id), isNull(productsTable.deletedAt)))
+				.where(eq(productsTable.id, id))
 				.limit(1)
 
 			if (!product) return undefined
 
-			const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
+			const [variantsMap, pricesMap] = await Promise.all([
 				this.#getVariantsBatch([id]),
 				this.#getProductPricesBatch([id]),
-				// this.#getProductExternalMappingsBatch([id]),
 			])
 
 			return {
@@ -114,75 +120,52 @@ export class ProductRepo {
 				basePrice: product.basePrice,
 				variants: variantsMap.get(id) ?? [],
 				prices: pricesMap.get(id) ?? [],
-				externalMappings: mappingsMap.get(id) ?? [],
+				externalMappings: [],
 			}
 		})
 	}
 
-	// async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
-	// 	return record('ProductRepo.getListPaginated', async () => {
-	// 		const { search, status, categoryId, locationId, isExternal, provider, page, limit } = filter
+	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
+		return record('ProductRepo.getListPaginated', async () => {
+			const { search, status, categoryId, locationId, page, limit } = filter
 
-	// 		const externalCondition =
-	// 			isExternal !== undefined || provider !== undefined
-	// 				? exists(
-	// 						this.db
-	// 							.select({ id: productExternalMappingsTable.id })
-	// 							.from(productExternalMappingsTable)
-	// 							.where(
-	// 								and(
-	// 									eq(productExternalMappingsTable.provider, provider ?? 'moka'),
-	// 									eq(productExternalMappingsTable.productId, productsTable.id),
-	// 								),
-	// 							),
-	// 					)
-	// 				: undefined
+			const conditions = [
+				search
+					? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
+					: undefined,
+				status ? eq(productsTable.status, status) : undefined,
+				categoryId ? eq(productsTable.categoryId, categoryId) : undefined,
+				locationId ? eq(productsTable.locationId, locationId) : undefined,
+			].filter((c): c is NonNullable<typeof c> => c !== undefined)
 
-	// 		const where = and(
-	// 			isNull(productsTable.deletedAt),
-	// 			search
-	// 				? or(searchFilter(productsTable.name, search), searchFilter(productsTable.sku, search))
-	// 				: undefined,
-	// 			status ? eq(productsTable.status, status) : undefined,
-	// 			categoryId === undefined ? undefined : eq(productsTable.categoryId, categoryId),
-	// 			locationId === undefined ? undefined : eq(productsTable.locationId, locationId),
-	// 			externalCondition ? (!isExternal ? not(externalCondition) : externalCondition) : undefined,
-	// 		)
+			const where = conditions.length > 0 ? and(...conditions) : undefined
 
-	// 		const result = await paginate({
-	// 			data: ({ limit: l, offset }) =>
-	// 				this.db
-	// 					.select()
-	// 					.from(productsTable)
-	// 					.where(where)
-	// 					.orderBy(sortBy(productsTable.updatedAt, 'desc'))
-	// 					.limit(l)
-	// 					.offset(offset),
-	// 			pq: { page, limit },
-	// 			countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
-	// 		})
+			const result = await paginate({
+				data: async ({ limit: l, offset }) => {
+					const rows = await this.db
+						.select()
+						.from(productsTable)
+						.where(where)
+						.orderBy(sortBy(productsTable.updatedAt, 'desc'))
+						.limit(l)
+						.offset(offset)
+					return rows.map((r) =>
+						ProductDto.parse({
+							...r,
+							basePrice: r.basePrice,
+							variants: [],
+							prices: [],
+							externalMappings: [],
+						}),
+					)
+				},
+				pq: { page, limit },
+				countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
+			})
 
-	// 		const productIds = result.data.map((p) => p.id)
-	// 		const [variantsMap, pricesMap, mappingsMap] = await Promise.all([
-	// 			this.#getVariantsBatch(productIds),
-	// 			this.#getProductPricesBatch(productIds),
-	// 			this.#getProductExternalMappingsBatch(productIds),
-	// 		])
-
-	// 		return {
-	// 			data: result.data.map((p) =>
-	// 				ProductDto.parse({
-	// 					...p,
-	// 					basePrice: p.basePrice,
-	// 					variants: variantsMap.get(p.id) ?? [],
-	// 					prices: pricesMap.get(p.id) ?? [],
-	// 					externalMappings: mappingsMap.get(p.id) ?? [],
-	// 				}),
-	// 			),
-	// 			meta: result.meta,
-	// 		}
-	// 	})
-	// }
+			return result
+		})
+	}
 
 	async checkScopedConflict(
 		locationId: number,
@@ -191,7 +174,6 @@ export class ProductRepo {
 	) {
 		const conditions = [
 			eq(productsTable.locationId, locationId),
-			isNull(productsTable.deletedAt),
 			or(eq(productsTable.sku, input.sku), eq(productsTable.name, input.name)),
 		]
 		if (excludeId) conditions.push(not(eq(productsTable.id, excludeId)))
@@ -271,7 +253,7 @@ export class ProductRepo {
 						.values({
 							productId: product.id,
 							name: variant.name.trim(),
-							sku: variant.sku?.trim() ?? null,
+							sku: variant.sku?.trim() || '',
 							isDefault: variant.isDefault ?? false,
 							basePrice: (variant.basePrice ?? 0).toString(),
 							...meta,
@@ -336,7 +318,7 @@ export class ProductRepo {
 							.values({
 								productId: id,
 								name: variant.name.trim(),
-								sku: variant.sku?.trim() ?? null,
+								sku: variant.sku?.trim() || '',
 								isDefault: variant.isDefault ?? false,
 								basePrice: (variant.basePrice ?? 0).toString(),
 								...createMeta,
@@ -362,11 +344,10 @@ export class ProductRepo {
 		})
 	}
 
-	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
+	async softDelete(id: number): Promise<{ id: number }> {
 		return record('ProductRepo.softDelete', async () => {
 			const [result] = await this.db
-				.update(productsTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
+				.delete(productsTable)
 				.where(eq(productsTable.id, id))
 				.returning({ id: productsTable.id })
 			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')

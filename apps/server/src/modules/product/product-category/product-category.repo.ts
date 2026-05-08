@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull, not } from 'drizzle-orm'
+import { and, count, eq, not } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -31,7 +31,8 @@ export class ProductCategoryRepo {
 			const [result] = await this.db
 				.select()
 				.from(productCategoriesTable)
-				.where(and(eq(productCategoriesTable.id, id), isNull(productCategoriesTable.deletedAt)))
+				.where(eq(productCategoriesTable.id, id))
+				.limit(1)
 			return result ? ProductCategoryDto.parse(result) : undefined
 		})
 	}
@@ -40,14 +41,14 @@ export class ProductCategoryRepo {
 		filter: ProductCategoryFilterDto,
 	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return record('ProductCategoryRepo.getListPaginated', async () => {
-			const { q, locationId, parentId, page, limit } = filter
+			const { q, locationId, page, limit } = filter
 
-			const where = and(
-				isNull(productCategoriesTable.deletedAt),
+			const conditions = [
 				searchFilter(productCategoriesTable.name, q),
 				locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
-				parentId ? eq(productCategoriesTable.parentId, parentId) : undefined,
-			)
+			].filter((c): c is NonNullable<typeof c> => c !== undefined)
+
+			const where = conditions.length > 0 ? and(...conditions) : undefined
 
 			return paginate({
 				data: async ({ limit: l, offset }) => {
@@ -68,10 +69,11 @@ export class ProductCategoryRepo {
 
 	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
 		return record('ProductCategoryRepo.getAll', async () => {
-			const where = and(
-				isNull(productCategoriesTable.deletedAt),
+			const conditions = [
 				locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
-			)
+			].filter((c): c is NonNullable<typeof c> => c !== undefined)
+
+			const where = conditions.length > 0 ? and(...conditions) : undefined
 			const rows = await this.db
 				.select()
 				.from(productCategoriesTable)
@@ -94,7 +96,6 @@ export class ProductCategoryRepo {
 					and(
 						eq(productCategoriesTable.locationId, data.locationId),
 						eq(productCategoriesTable.name, name),
-						isNull(productCategoriesTable.deletedAt),
 					),
 				)
 				.limit(1)
@@ -138,7 +139,6 @@ export class ProductCategoryRepo {
 							eq(productCategoriesTable.locationId, data.locationId),
 							eq(productCategoriesTable.name, name),
 							not(eq(productCategoriesTable.id, id)),
-							isNull(productCategoriesTable.deletedAt),
 						),
 					)
 					.limit(1)
@@ -160,11 +160,10 @@ export class ProductCategoryRepo {
 		})
 	}
 
-	async softDelete(id: number, actorId: number): Promise<{ id: number }> {
+	async softDelete(id: number): Promise<{ id: number }> {
 		return record('ProductCategoryRepo.softDelete', async () => {
 			const [result] = await this.db
-				.update(productCategoriesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
+				.delete(productCategoriesTable)
 				.where(eq(productCategoriesTable.id, id))
 				.returning({ id: productCategoriesTable.id })
 
@@ -174,7 +173,7 @@ export class ProductCategoryRepo {
 					'PRODUCT_CATEGORY_NOT_FOUND',
 				)
 
-			return { id }
+			return result
 		})
 	}
 

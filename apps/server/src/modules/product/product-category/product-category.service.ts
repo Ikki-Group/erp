@@ -4,8 +4,6 @@ import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { NotFoundError } from '@/core/http/errors'
 
-import { productCategoriesTable } from '@/db/schema'
-
 import {
 	ProductCategoryDto,
 	ProductCategoryFilterDto,
@@ -103,9 +101,9 @@ export class ProductCategoryService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('ProductCategoryService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
+			const result = await this.repo.softDelete(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
