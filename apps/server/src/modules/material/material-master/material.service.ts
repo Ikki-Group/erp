@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, inArray, isNull } from 'drizzle-orm'
+import { and, inArray } from 'drizzle-orm'
 
 import { resolveAudit, resolveAuditList } from '@/core/audit'
 import { CacheService, type CacheClient } from '@/core/cache'
@@ -86,12 +86,7 @@ export class MaterialService {
 					uomId: materialConversionsTable.uomId,
 				})
 				.from(materialConversionsTable)
-				.where(
-					and(
-						inArray(materialConversionsTable.materialId, ids),
-						isNull(materialConversionsTable.deletedAt),
-					),
-				),
+				.where(and(inArray(materialConversionsTable.materialId, ids))),
 
 			db
 				.select({
@@ -99,12 +94,7 @@ export class MaterialService {
 					locationId: materialLocationsTable.locationId,
 				})
 				.from(materialLocationsTable)
-				.where(
-					and(
-						inArray(materialLocationsTable.materialId, ids),
-						isNull(materialLocationsTable.deletedAt),
-					),
-				),
+				.where(and(inArray(materialLocationsTable.materialId, ids))),
 		])
 
 		// Fetch UOMs in batch

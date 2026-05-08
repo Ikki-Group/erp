@@ -24,18 +24,14 @@ export class UomRepo {
 
 	async getList(): Promise<UomDto[]> {
 		return record('UomRepo.getList', async () => {
-			return this.db
-				.select()
-				.from(uomsTable)
-				.where(isNull(uomsTable.deletedAt))
-				.orderBy(uomsTable.code)
+			return this.db.select().from(uomsTable).orderBy(uomsTable.code)
 		})
 	}
 
 	async getListPaginated(filter: UomFilterDto): Promise<WithPaginationResult<UomDto>> {
 		return record('UomRepo.getListPaginated', async () => {
 			const { q, page, limit } = filter
-			const where = and(isNull(uomsTable.deletedAt), searchFilter(uomsTable.code, q))
+			const where = and(searchFilter(uomsTable.code, q))
 
 			return paginate<UomDto>({
 				data: ({ limit: l, offset }) =>
@@ -67,7 +63,6 @@ export class UomRepo {
 			return this.db
 				.select({ count: count() })
 				.from(uomsTable)
-				.where(isNull(uomsTable.deletedAt))
 				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
@@ -105,8 +100,7 @@ export class UomRepo {
 	async remove(id: number, actorId: number): Promise<number | undefined> {
 		return record('UomRepo.remove', async () => {
 			const [res] = await this.db
-				.update(uomsTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
+				.delete(uomsTable)
 				.where(eq(uomsTable.id, id))
 				.returning({ id: uomsTable.id })
 

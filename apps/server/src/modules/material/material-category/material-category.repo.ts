@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import {
@@ -29,11 +29,7 @@ export class MaterialCategoryRepo {
 
 	async getList(): Promise<MaterialCategoryDto[]> {
 		return record('MaterialCategoryRepo.getList', async () => {
-			return this.db
-				.select()
-				.from(materialCategoriesTable)
-				.where(isNull(materialCategoriesTable.deletedAt))
-				.orderBy(materialCategoriesTable.name)
+			return this.db.select().from(materialCategoriesTable).orderBy(materialCategoriesTable.name)
 		})
 	}
 
@@ -41,12 +37,8 @@ export class MaterialCategoryRepo {
 		filter: MaterialCategoryFilterDto,
 	): Promise<WithPaginationResult<MaterialCategoryDto>> {
 		return record('MaterialCategoryRepo.getListPaginated', async () => {
-			const { q, parentId, page, limit } = filter
-			const where = and(
-				isNull(materialCategoriesTable.deletedAt),
-				searchFilter(materialCategoriesTable.name, q),
-				parentId === undefined ? undefined : eq(materialCategoriesTable.parentId, parentId),
-			)
+			const { q, page, limit } = filter
+			const where = and(searchFilter(materialCategoriesTable.name, q))
 
 			return paginate<MaterialCategoryDto>({
 				data: ({ limit: l, offset }) =>
@@ -68,7 +60,7 @@ export class MaterialCategoryRepo {
 			return this.db
 				.select()
 				.from(materialCategoriesTable)
-				.where(and(eq(materialCategoriesTable.id, id), isNull(materialCategoriesTable.deletedAt)))
+				.where(and(eq(materialCategoriesTable.id, id)))
 				.then(takeFirst)
 		})
 	}
@@ -78,7 +70,6 @@ export class MaterialCategoryRepo {
 			return this.db
 				.select({ count: count() })
 				.from(materialCategoriesTable)
-				.where(isNull(materialCategoriesTable.deletedAt))
 				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
@@ -119,7 +110,6 @@ export class MaterialCategoryRepo {
 		return record('MaterialCategoryRepo.remove', async () => {
 			const [res] = await this.db
 				.update(materialCategoriesTable)
-				.set({ deletedAt: new Date(), deletedBy: actorId })
 				.where(eq(materialCategoriesTable.id, id))
 				.returning({ id: materialCategoriesTable.id })
 

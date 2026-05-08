@@ -18,10 +18,9 @@ import {
 } from 'drizzle-orm'
 
 import { paginate, type WithPaginationResult, type DbClient } from '@/core/database'
+import { toWibDateKey } from '@/core/utils/date'
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
-
-import { toWibDateKey } from '@/core/utils/date'
 
 import type {
 	StockLedgerFilterDto,
@@ -119,7 +118,6 @@ export class StockSummaryRepo {
 
 			// 1. Paginate Materials matching filter
 			const matWhere = and(
-				isNull(materialsTable.deletedAt),
 				materialId === undefined ? undefined : eq(materialsTable.id, materialId),
 				q
 					? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))

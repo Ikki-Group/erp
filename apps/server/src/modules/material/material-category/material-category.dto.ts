@@ -1,4 +1,3 @@
-
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
@@ -7,7 +6,6 @@ export const MaterialCategoryDto = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
 	description: zp.strNullable,
-	parentId: zp.id.nullable(),
 	...zc.AuditBasic.shape,
 })
 

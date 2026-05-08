@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, eq, lte, or, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
@@ -76,8 +76,6 @@ export class StockAlertRepo {
 	async getAlertCount(filter: StockAlertFilterDto) {
 		return record('StockAlertRepo.getAlertCount', async () => {
 			const conditions = [
-				isNull(materialLocationsTable.deletedAt),
-				isNull(materialsTable.deletedAt),
 				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
 			]
 
