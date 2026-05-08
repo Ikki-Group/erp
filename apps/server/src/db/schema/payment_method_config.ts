@@ -3,6 +3,8 @@ import { boolean, index, pgTable, text } from 'drizzle-orm/pg-core'
 import { auditColumns, pk } from '@/core/database/schema'
 
 import { paymentMethodCategoryEnum, paymentMethodEnum } from './_helpers'
+// Import for reference
+import { paymentProvidersTable } from './payment_provider'
 
 /**
  * Payment Method Configuration Table
@@ -27,11 +29,17 @@ export const paymentMethodConfigsTable = pgTable(
 		/** Whether this is the default payment method */
 		isDefault: boolean('is_default').notNull().default(false),
 
+		/** Reference to the payment provider (optional) */
+		paymentProviderId: text('payment_provider_id').references(() => paymentProvidersTable.id, {
+			onDelete: 'set null',
+		}),
+
 		...auditColumns,
 	},
 	(t) => [
 		index('payment_method_configs_type_idx').on(t.type),
 		index('payment_method_configs_category_idx').on(t.category),
 		index('payment_method_configs_is_enabled_idx').on(t.isEnabled),
+		index('payment_method_configs_payment_provider_id_idx').on(t.paymentProviderId),
 	],
 )

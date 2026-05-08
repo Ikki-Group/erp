@@ -21,6 +21,7 @@ import {
 	stockTransactionsTable,
 } from './inventory'
 import { locationsTable } from './location'
+import { locationPaymentMethodsTable } from './location_payment_method'
 import {
 	materialCategoriesTable,
 	materialConversionsTable,
@@ -28,6 +29,8 @@ import {
 	materialsTable,
 } from './material'
 import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
+import { paymentMethodConfigsTable } from './payment_method_config'
+import { paymentProvidersTable } from './payment_provider'
 import {
 	productCategoriesTable,
 	productPricesTable,
@@ -121,6 +124,9 @@ export const relations = defineRelations(
 		taxesTable,
 		paymentsTable,
 		paymentInvoicesTable,
+		paymentMethodConfigsTable,
+		paymentProvidersTable,
+		locationPaymentMethodsTable,
 	},
 	(r) => ({
 		// ─── IAM ──────────────────────────────────────────────────────────
@@ -157,6 +163,7 @@ export const relations = defineRelations(
 			purchaseInvoices: r.many.purchaseInvoicesTable(),
 			salesInvoices: r.many.salesInvoicesTable(),
 			stockAdjustments: r.many.stockAdjustmentsTable(),
+			locationPaymentMethods: r.many.locationPaymentMethodsTable(),
 		},
 
 		// ─── Taxation ─────────────────────────────────────────────────────
@@ -677,6 +684,36 @@ export const relations = defineRelations(
 			purchaseInvoice: r.one.purchaseInvoicesTable({
 				from: r.paymentInvoicesTable.purchaseInvoiceId,
 				to: r.purchaseInvoicesTable.id,
+			}),
+		},
+
+		// ─── Payment Configuration ─────────────────────────────────────────
+
+		paymentProvidersTable: {
+			paymentMethodConfigs: r.many.paymentMethodConfigsTable(),
+			locationPaymentMethods: r.many.locationPaymentMethodsTable(),
+		},
+
+		paymentMethodConfigsTable: {
+			provider: r.one.paymentProvidersTable({
+				from: r.paymentMethodConfigsTable.paymentProviderId,
+				to: r.paymentProvidersTable.id,
+			}),
+			locationPaymentMethods: r.many.locationPaymentMethodsTable(),
+		},
+
+		locationPaymentMethodsTable: {
+			location: r.one.locationsTable({
+				from: r.locationPaymentMethodsTable.locationId,
+				to: r.locationsTable.id,
+			}),
+			paymentMethodConfig: r.one.paymentMethodConfigsTable({
+				from: r.locationPaymentMethodsTable.paymentMethodConfigId,
+				to: r.paymentMethodConfigsTable.id,
+			}),
+			paymentProvider: r.one.paymentProvidersTable({
+				from: r.locationPaymentMethodsTable.paymentProviderId,
+				to: r.paymentProvidersTable.id,
 			}),
 		},
 
