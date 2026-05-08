@@ -107,18 +107,17 @@ export class RoleRepo {
 				await this.db
 					.insert(rolesTable)
 					.values({ ...d, ...metadata })
-					.onConflictDoNothing()
-				// .onConflictDoUpdate({
-				// 	target: rolesTable.code,
-				// 	set: {
-				// 		name: d.name,
-				// 		description: d.description,
-				// 		permissions: d.permissions,
-				// 		isSystem: d.isSystem,
-				// 		updatedAt: metadata.updatedAt,
-				// 		updatedBy: metadata.updatedBy,
-				// 	},
-				// })
+					.onConflictDoUpdate({
+						target: rolesTable.code,
+						set: {
+							name: d.name,
+							description: d.description,
+							permissions: d.permissions,
+							isSystem: d.isSystem,
+							updatedAt: metadata.updatedAt,
+							updatedBy: metadata.updatedBy,
+						},
+					})
 			}
 		})
 	}
