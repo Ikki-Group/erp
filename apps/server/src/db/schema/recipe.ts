@@ -12,10 +12,9 @@ import {
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { materialsTable, uomsTable } from './material'
+import { materialsTable } from './material'
 import { productsTable, productVariantsTable } from './product'
-
-// ─── Recipes ──────────────────────────────────────────────────────────────────
+import { uomsTable } from './uom'
 
 export const recipesTable = pgTable(
 	'recipes',

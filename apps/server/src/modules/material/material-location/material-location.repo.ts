@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-deprecated, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -34,7 +34,6 @@ export class MaterialLocationRepo {
 					and(
 						eq(materialLocationsTable.materialId, materialId),
 						eq(materialLocationsTable.locationId, locationId),
-						isNull(materialLocationsTable.deletedAt),
 					),
 				)
 
@@ -56,12 +55,7 @@ export class MaterialLocationRepo {
 			const results = await this.db
 				.select()
 				.from(materialLocationsTable)
-				.where(
-					and(
-						eq(materialLocationsTable.materialId, materialId),
-						isNull(materialLocationsTable.deletedAt),
-					),
-				)
+				.where(eq(materialLocationsTable.materialId, materialId))
 			return results.map((r) =>
 				Object.assign({}, r, {
 					minStock: r.minStock,
@@ -80,12 +74,7 @@ export class MaterialLocationRepo {
 			const results = await this.db
 				.select()
 				.from(materialLocationsTable)
-				.where(
-					and(
-						eq(materialLocationsTable.locationId, locationId),
-						isNull(materialLocationsTable.deletedAt),
-					),
-				)
+				.where(and(eq(materialLocationsTable.locationId, locationId)))
 			return results.map((r) =>
 				Object.assign({}, r, {
 					minStock: r.minStock,
@@ -105,12 +94,7 @@ export class MaterialLocationRepo {
 				.select({ assignment: materialLocationsTable, location: locationsTable })
 				.from(materialLocationsTable)
 				.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
-				.where(
-					and(
-						eq(materialLocationsTable.materialId, materialId),
-						isNull(materialLocationsTable.deletedAt),
-					),
-				)
+				.where(and(eq(materialLocationsTable.materialId, materialId)))
 
 			return assignments.map((row) =>
 				Object.assign({}, row.assignment, {
@@ -136,11 +120,7 @@ export class MaterialLocationRepo {
 				? or(ilike(materialsTable.name, `%${q}%`), ilike(materialsTable.sku, `%${q}%`))
 				: undefined
 
-			const where = and(
-				eq(materialLocationsTable.locationId, locationId),
-				isNull(materialLocationsTable.deletedAt),
-				searchCondition,
-			)
+			const where = and(eq(materialLocationsTable.locationId, locationId), searchCondition)
 
 			const result = await paginate({
 				data: ({ limit: l, offset }) =>

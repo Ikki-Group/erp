@@ -15,7 +15,8 @@ import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from '.
 import { customersTable } from './customer'
 import { usersTable } from './iam'
 import { locationsTable } from './location'
-import { productsTable, productVariantsTable, salesTypesTable } from './product'
+import { productsTable, productVariantsTable } from './product'
+import { salesTypesTable } from './sales-type'
 
 // ─── Sales Orders ─────────────────────────────────────────────────────────────
 

@@ -102,6 +102,7 @@ export {
 } from './purchasing'
 export { workOrdersTable } from './production'
 export { salesTypesTable } from './sales-type'
+export { uomsTable } from './uom'
 
 // ─── Re-export Relations ──────────────────────────────────────────────────────
 
