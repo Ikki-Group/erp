@@ -83,14 +83,15 @@ export class SalesTypeRepo {
 				await this.db
 					.insert(salesTypesTable)
 					.values({ ...d, ...metadata })
-					.onConflictDoUpdate({
-						target: salesTypesTable.code,
-						set: {
-							name: d.name,
-							updatedAt: metadata.updatedAt,
-							updatedBy: metadata.updatedBy,
-						},
-					})
+					.onConflictDoNothing()
+				// .onConflictDoUpdate({
+				// 	target: [salesTypesTable.code, salesTypesTable.locationId],
+				// 	set: {
+				// 		name: d.name,
+				// 		updatedAt: metadata.updatedAt,
+				// 		updatedBy: metadata.updatedBy,
+				// 	},
+				// })
 			}
 		})
 	}

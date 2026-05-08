@@ -121,10 +121,8 @@ export class UomRepo {
 
 	async seed(data: { code: string; createdBy: number }[]): Promise<void> {
 		return record('UomRepo.seed', async () => {
-			const existing = await this.db
-				.select({ code: uomsTable.code })
-				.from(uomsTable)
-				.where(isNull(uomsTable.deletedAt))
+			const existing = await this.db.select({ code: uomsTable.code }).from(uomsTable)
+			// .where(isNull(uomsTable.deletedAt))
 			const existingCodes = new Set(existing.map((e) => e.code))
 
 			const newUoms = data

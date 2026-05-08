@@ -1,4 +1,6 @@
-import { index, integer, pgTable, text, unique } from 'drizzle-orm/pg-core'
+import { integer, pgTable, text } from 'drizzle-orm/pg-core'
+import { unique } from 'drizzle-orm/pg-core'
+import { index } from 'drizzle-orm/pg-core'
 
 import { auditBasicColumns, pk } from '@/core/database/schema'
 
@@ -9,7 +11,7 @@ export const salesTypesTable = pgTable(
 	{
 		...pk,
 		locationId: integer().references(() => locationsTable.id, { onDelete: 'cascade' }),
-		code: text().notNull(),
+		code: text().notNull().unique(),
 		name: text().notNull(),
 		...auditBasicColumns,
 	},

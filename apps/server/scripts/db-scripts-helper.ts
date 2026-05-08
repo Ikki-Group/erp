@@ -32,6 +32,14 @@ async function seed(db: DbClient) {
 	console.log('✅ Core seed completed.')
 }
 
+async function runMigrate(db: DbClient) {
+	console.log('🌱 Migrating database...')
+	await migrate(db, {
+		migrationsFolder: './src/db/migrations',
+	})
+	console.log('✅ Database migrated.')
+}
+
 async function seedDev(db: DbClient) {
 	const m = createModules(db)
 
@@ -57,10 +65,8 @@ export async function runDbScriptsHelper(db: DbClient, action: Action) {
 			break
 		case 'all':
 			await reset(db).catch(console.error)
-			await migrate(db, {
-				migrationsFolder: './src/db/migrations',
-			}).catch(console.error)
-			await seedDev(db).catch(console.error)
+			await runMigrate(db)
+			await seedDev(db)
 			break
 		default:
 			console.warn('Invalid action')

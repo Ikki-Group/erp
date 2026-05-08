@@ -72,7 +72,9 @@ export const rolesTable = pgTable(
 		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},
-	(t) => [uniqueIndex('roles_code_idx').on(t.code), uniqueIndex('roles_name_idx').on(t.name)],
+	// (t) => [
+	// 	uniqueIndex('roles_code_idx').on(t.code), uniqueIndex('roles_name_idx').on(t.name)
+	// ],
 )
 
 /**
