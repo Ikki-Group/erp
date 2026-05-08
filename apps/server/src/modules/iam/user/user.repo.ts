@@ -50,7 +50,7 @@ export class UserRepo {
 						),
 			)
 
-			return paginate({
+			return paginate<dto.UserDto>({
 				data: ({ limit, offset }) =>
 					this.db
 						.select()
