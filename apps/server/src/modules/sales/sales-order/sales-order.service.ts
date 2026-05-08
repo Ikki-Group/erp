@@ -18,6 +18,7 @@ interface SalesOrderServiceDeps {
 	location: { master: { getById: (id: number) => Promise<any> } }
 	crm: { customer: { getById: (id: number) => Promise<any> } }
 	product: { product: { getById: (id: number) => Promise<any> } }
+	salesType: { salesType: { getById: (id: number) => Promise<any> } }
 }
 
 export class SalesOrderService {
@@ -38,6 +39,15 @@ export class SalesOrderService {
 		const location = await this.deps.location.master.getById(data.locationId)
 		if (!location) {
 			throw new NotFoundError(`Location with ID ${data.locationId} not found`, 'LOCATION_NOT_FOUND')
+		}
+
+		// Validate sales type exists
+		const salesType = await this.deps.salesType.salesType.getById(data.salesTypeId)
+		if (!salesType) {
+			throw new NotFoundError(
+				`Sales type with ID ${data.salesTypeId} not found`,
+				'SALES_TYPE_NOT_FOUND',
+			)
 		}
 
 		// Validate customer exists if provided
