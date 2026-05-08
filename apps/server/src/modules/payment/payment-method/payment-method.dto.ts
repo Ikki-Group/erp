@@ -1,4 +1,3 @@
-
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /** Payment method types. */
@@ -22,6 +21,7 @@ export const PaymentMethodConfigDto = z.object({
 	name: zp.str,
 	isEnabled: zp.bool,
 	isDefault: zp.bool,
+	paymentProviderId: zp.str.nullable(),
 	...zc.AuditBasic.shape,
 })
 export type PaymentMethodConfigDto = z.infer<typeof PaymentMethodConfigDto>
@@ -32,6 +32,7 @@ export const PaymentMethodConfigCreateDto = z.object({
 	name: zc.strTrim.min(2).max(100),
 	isEnabled: zp.bool.default(true),
 	isDefault: zp.bool.default(false),
+	paymentProviderId: zp.str.nullable(),
 })
 export type PaymentMethodConfigCreateDto = z.infer<typeof PaymentMethodConfigCreateDto>
 
