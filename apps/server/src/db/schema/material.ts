@@ -14,16 +14,6 @@ import { auditColumns, pk } from '@/core/database/schema'
 import { materialTypeEnum } from './_helpers'
 import { locationsTable } from './location'
 
-// ─── UOM (Unit of Measure) ────────────────────────────────────────────────────
-
-export const uomsTable = pgTable(
-	'uoms',
-	{ ...pk, code: text().notNull(), ...auditColumns },
-	(t) => [uniqueIndex('uoms_code_idx').on(t.code).where(isNull(t.deletedAt))],
-)
-
-// ─── Material Categories ──────────────────────────────────────────────────────
-
 export const materialCategoriesTable = pgTable(
 	'material_categories',
 	{
