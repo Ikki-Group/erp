@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -35,8 +37,10 @@ export const Route = createFileRoute('/_app/')({ component: Dashboard })
 const productConfig = { totalRevenue: { label: 'Pendapatan', color: 'oklch(var(--primary))' } }
 
 function Dashboard() {
-	const now = new Date()
-	const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+	const { now, startOfMonth } = useMemo(() => {
+		const n = new Date()
+		return { now: n, startOfMonth: new Date(n.getFullYear(), n.getMonth(), 1) }
+	}, [])
 
 	const { data: pnlData } = useQuery({
 		queryKey: ['dashboard', 'pnl', startOfMonth.toISOString(), now.toISOString()],
