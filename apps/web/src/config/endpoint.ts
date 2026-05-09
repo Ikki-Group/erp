@@ -78,7 +78,9 @@ const inventory = {
 		remove: 'inventory/summary/remove',
 	},
 	transaction: {
-		...crud('inventory/transaction'),
+		list: 'inventory/transaction/list',
+		detail: 'inventory/transaction/detail',
+		remove: 'inventory/transaction/remove',
 		purchase: 'inventory/transaction/purchase',
 		transfer: 'inventory/transaction/transfer',
 		adjustment: 'inventory/transaction/adjustment',
