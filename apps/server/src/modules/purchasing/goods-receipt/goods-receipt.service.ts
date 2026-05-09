@@ -3,11 +3,10 @@ import { and, inArray } from 'drizzle-orm'
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import { purchaseOrderItemsTable } from '@/db/schema'
-
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { StockTransactionService } from '@/modules/inventory'
 

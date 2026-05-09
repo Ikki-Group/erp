@@ -1,8 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { type ReactNode } from 'react'
 
-export function ChartCard({ title, children, isLoading }: { title: string; children: ReactNode; isLoading?: boolean }) {
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export function ChartCard({
+	title,
+	children,
+	isLoading,
+}: {
+	title: string
+	children: ReactNode
+	isLoading?: boolean
+}) {
 	return (
 		<Card>
 			<CardHeader>

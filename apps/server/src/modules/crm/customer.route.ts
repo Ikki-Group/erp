@@ -1,14 +1,13 @@
-import Elysia from 'elysia'
-
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
 } from '@ikki/api-contract/validation'
+import Elysia from 'elysia'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
 
 import * as dto from './customer.dto'
 import type { CustomerService } from './customer.service'

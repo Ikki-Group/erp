@@ -54,7 +54,9 @@ const columns = [
 ]
 
 export function SalesOrdersPage() {
-	const { data: ordersData, isLoading } = useQuery(salesOrderApi.list.query({ page: 1, limit: 100 }))
+	const { data: ordersData, isLoading } = useQuery(
+		salesOrderApi.list.query({ page: 1, limit: 100 }),
+	)
 
 	const orders = ordersData?.data ?? []
 	const rowCount = ordersData?.meta?.total ?? 0

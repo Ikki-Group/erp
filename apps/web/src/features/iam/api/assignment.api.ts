@@ -1,7 +1,8 @@
+import { createPaginatedResponseSchema, successNoDataSchema } from '@ikki/api-contract/validation'
+
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory, createQueryKeys } from '@/lib/api'
-import { createPaginatedResponseSchema, successNoDataSchema } from '@ikki/api-contract/validation'
 
 import {
 	AssignmentBulkBodyDto,

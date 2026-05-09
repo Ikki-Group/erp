@@ -1,9 +1,8 @@
+import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
-
-import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import * as dto from './inventory-reporting.dto'
 import type { InventoryReportingService } from './inventory-reporting.service'

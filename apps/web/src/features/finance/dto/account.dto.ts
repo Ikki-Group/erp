@@ -1,4 +1,3 @@
-
 import { z, zp, zc, zq } from '@ikki/api-contract/validation'
 
 export const AccountTypeEnum = z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])

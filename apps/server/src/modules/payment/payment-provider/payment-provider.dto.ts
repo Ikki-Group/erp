@@ -13,7 +13,10 @@ export const PaymentProviderDto = z.object({
 export type PaymentProviderDto = z.infer<typeof PaymentProviderDto>
 
 export const PaymentProviderCreateDto = z.object({
-	code: zc.strTrim.min(2).max(20).transform((v) => v.toUpperCase()),
+	code: zc.strTrim
+		.min(2)
+		.max(20)
+		.transform((v) => v.toUpperCase()),
 	name: zc.strTrim.min(2).max(100),
 	description: zc.strTrimNullable,
 	websiteUrl: zc.strTrim.url().nullable().optional(),

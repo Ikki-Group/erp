@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import type { DbTx } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { db } from '@/db'
-
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { MaterialLocationService } from '@/modules/material'
 

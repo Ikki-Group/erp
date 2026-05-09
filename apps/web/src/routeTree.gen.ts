@@ -81,12 +81,26 @@ import { Route as AppSettingsUserIdRouteImport } from './routes/_app/settings/us
 import { Route as AppSettingsTabUserRouteImport } from './routes/_app/settings/_tab/user'
 import { Route as AppSettingsTabRoleRouteImport } from './routes/_app/settings/_tab/role'
 import { Route as AppSettingsTabLocationRouteImport } from './routes/_app/settings/_tab/location'
+import { Route as AppReportsSalesTransactionsRouteImport } from './routes/_app/reports/sales/transactions'
 import { Route as AppReportsSalesRevenueRouteImport } from './routes/_app/reports/sales/revenue'
 import { Route as AppReportsSalesProductsRouteImport } from './routes/_app/reports/sales/products'
 import { Route as AppReportsSalesChannelsRouteImport } from './routes/_app/reports/sales/channels'
+import { Route as AppReportsProcurementTransfersRouteImport } from './routes/_app/reports/procurement/transfers'
+import { Route as AppReportsProcurementSuppliersRouteImport } from './routes/_app/reports/procurement/suppliers'
+import { Route as AppReportsProcurementPurchasesRouteImport } from './routes/_app/reports/procurement/purchases'
+import { Route as AppReportsProcurementCostsRouteImport } from './routes/_app/reports/procurement/costs'
+import { Route as AppReportsPaymentOverTimeRouteImport } from './routes/_app/reports/payment/over-time'
+import { Route as AppReportsPaymentByMethodRouteImport } from './routes/_app/reports/payment/by-method'
+import { Route as AppReportsPaymentByAccountRouteImport } from './routes/_app/reports/payment/by-account'
+import { Route as AppReportsInventoryWasteRouteImport } from './routes/_app/reports/inventory/waste'
 import { Route as AppReportsInventoryStockValueRouteImport } from './routes/_app/reports/inventory/stock-value'
 import { Route as AppReportsInventoryStockRouteImport } from './routes/_app/reports/inventory/stock'
+import { Route as AppReportsInventoryOpnameRouteImport } from './routes/_app/reports/inventory/opname'
 import { Route as AppReportsInventoryMovementsRouteImport } from './routes/_app/reports/inventory/movements'
+import { Route as AppReportsInventoryConsumptionRouteImport } from './routes/_app/reports/inventory/consumption'
+import { Route as AppReportsInsightsProfitabilityRouteImport } from './routes/_app/reports/insights/profitability'
+import { Route as AppReportsInsightsLocationPerformanceRouteImport } from './routes/_app/reports/insights/location-performance'
+import { Route as AppReportsInsightsInventoryTurnoverRouteImport } from './routes/_app/reports/insights/inventory-turnover'
 import { Route as AppReportsFinanceProfitLossRouteImport } from './routes/_app/reports/finance/profit-loss'
 import { Route as AppReportsFinancePaymentsRouteImport } from './routes/_app/reports/finance/payments'
 import { Route as AppReportsFinanceLedgerArApRouteImport } from './routes/_app/reports/finance/ledger-ar-ap'
@@ -94,6 +108,10 @@ import { Route as AppReportsFinanceLedgerRouteImport } from './routes/_app/repor
 import { Route as AppReportsFinanceExpensesRouteImport } from './routes/_app/reports/finance/expenses'
 import { Route as AppReportsFinanceCashFlowRouteImport } from './routes/_app/reports/finance/cash-flow'
 import { Route as AppReportsFinanceAccountBalancesRouteImport } from './routes/_app/reports/finance/account-balances'
+import { Route as AppReportsCrmTopCustomersRouteImport } from './routes/_app/reports/crm/top-customers'
+import { Route as AppReportsCrmLoyaltyPointsRouteImport } from './routes/_app/reports/crm/loyalty-points'
+import { Route as AppReportsCrmCustomersByTierRouteImport } from './routes/_app/reports/crm/customers-by-tier'
+import { Route as AppReportsCrmCustomerGrowthRouteImport } from './routes/_app/reports/crm/customer-growth'
 import { Route as AppMaterialIdUpdateRouteImport } from './routes/_app/material/$id.update'
 import { Route as AppMaterialIdRecipeRouteImport } from './routes/_app/material/$id.recipe'
 import { Route as AppLocationIdEditRouteImport } from './routes/_app/location/$id/edit'
@@ -464,6 +482,12 @@ const AppSettingsTabLocationRoute = AppSettingsTabLocationRouteImport.update({
   path: '/location',
   getParentRoute: () => AppSettingsTabRouteRoute,
 } as any)
+const AppReportsSalesTransactionsRoute =
+  AppReportsSalesTransactionsRouteImport.update({
+    id: '/reports/sales/transactions',
+    path: '/reports/sales/transactions',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppReportsSalesRevenueRoute = AppReportsSalesRevenueRouteImport.update({
   id: '/reports/sales/revenue',
   path: '/reports/sales/revenue',
@@ -479,6 +503,54 @@ const AppReportsSalesChannelsRoute = AppReportsSalesChannelsRouteImport.update({
   path: '/reports/sales/channels',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppReportsProcurementTransfersRoute =
+  AppReportsProcurementTransfersRouteImport.update({
+    id: '/reports/procurement/transfers',
+    path: '/reports/procurement/transfers',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsProcurementSuppliersRoute =
+  AppReportsProcurementSuppliersRouteImport.update({
+    id: '/reports/procurement/suppliers',
+    path: '/reports/procurement/suppliers',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsProcurementPurchasesRoute =
+  AppReportsProcurementPurchasesRouteImport.update({
+    id: '/reports/procurement/purchases',
+    path: '/reports/procurement/purchases',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsProcurementCostsRoute =
+  AppReportsProcurementCostsRouteImport.update({
+    id: '/reports/procurement/costs',
+    path: '/reports/procurement/costs',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsPaymentOverTimeRoute =
+  AppReportsPaymentOverTimeRouteImport.update({
+    id: '/reports/payment/over-time',
+    path: '/reports/payment/over-time',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsPaymentByMethodRoute =
+  AppReportsPaymentByMethodRouteImport.update({
+    id: '/reports/payment/by-method',
+    path: '/reports/payment/by-method',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsPaymentByAccountRoute =
+  AppReportsPaymentByAccountRouteImport.update({
+    id: '/reports/payment/by-account',
+    path: '/reports/payment/by-account',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryWasteRoute =
+  AppReportsInventoryWasteRouteImport.update({
+    id: '/reports/inventory/waste',
+    path: '/reports/inventory/waste',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppReportsInventoryStockValueRoute =
   AppReportsInventoryStockValueRouteImport.update({
     id: '/reports/inventory/stock-value',
@@ -491,10 +563,40 @@ const AppReportsInventoryStockRoute =
     path: '/reports/inventory/stock',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppReportsInventoryOpnameRoute =
+  AppReportsInventoryOpnameRouteImport.update({
+    id: '/reports/inventory/opname',
+    path: '/reports/inventory/opname',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppReportsInventoryMovementsRoute =
   AppReportsInventoryMovementsRouteImport.update({
     id: '/reports/inventory/movements',
     path: '/reports/inventory/movements',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInventoryConsumptionRoute =
+  AppReportsInventoryConsumptionRouteImport.update({
+    id: '/reports/inventory/consumption',
+    path: '/reports/inventory/consumption',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInsightsProfitabilityRoute =
+  AppReportsInsightsProfitabilityRouteImport.update({
+    id: '/reports/insights/profitability',
+    path: '/reports/insights/profitability',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInsightsLocationPerformanceRoute =
+  AppReportsInsightsLocationPerformanceRouteImport.update({
+    id: '/reports/insights/location-performance',
+    path: '/reports/insights/location-performance',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsInsightsInventoryTurnoverRoute =
+  AppReportsInsightsInventoryTurnoverRouteImport.update({
+    id: '/reports/insights/inventory-turnover',
+    path: '/reports/insights/inventory-turnover',
     getParentRoute: () => AppRouteRoute,
   } as any)
 const AppReportsFinanceProfitLossRoute =
@@ -536,6 +638,30 @@ const AppReportsFinanceAccountBalancesRoute =
   AppReportsFinanceAccountBalancesRouteImport.update({
     id: '/reports/finance/account-balances',
     path: '/reports/finance/account-balances',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsCrmTopCustomersRoute =
+  AppReportsCrmTopCustomersRouteImport.update({
+    id: '/reports/crm/top-customers',
+    path: '/reports/crm/top-customers',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsCrmLoyaltyPointsRoute =
+  AppReportsCrmLoyaltyPointsRouteImport.update({
+    id: '/reports/crm/loyalty-points',
+    path: '/reports/crm/loyalty-points',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsCrmCustomersByTierRoute =
+  AppReportsCrmCustomersByTierRouteImport.update({
+    id: '/reports/crm/customers-by-tier',
+    path: '/reports/crm/customers-by-tier',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppReportsCrmCustomerGrowthRoute =
+  AppReportsCrmCustomerGrowthRouteImport.update({
+    id: '/reports/crm/customer-growth',
+    path: '/reports/crm/customer-growth',
     getParentRoute: () => AppRouteRoute,
   } as any)
 const AppMaterialIdUpdateRoute = AppMaterialIdUpdateRouteImport.update({
@@ -661,6 +787,10 @@ export interface FileRoutesByFullPath {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/crm/customer-growth': typeof AppReportsCrmCustomerGrowthRoute
+  '/reports/crm/customers-by-tier': typeof AppReportsCrmCustomersByTierRoute
+  '/reports/crm/loyalty-points': typeof AppReportsCrmLoyaltyPointsRoute
+  '/reports/crm/top-customers': typeof AppReportsCrmTopCustomersRoute
   '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
   '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
   '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
@@ -668,12 +798,26 @@ export interface FileRoutesByFullPath {
   '/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
   '/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
   '/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/reports/insights/inventory-turnover': typeof AppReportsInsightsInventoryTurnoverRoute
+  '/reports/insights/location-performance': typeof AppReportsInsightsLocationPerformanceRoute
+  '/reports/insights/profitability': typeof AppReportsInsightsProfitabilityRoute
+  '/reports/inventory/consumption': typeof AppReportsInventoryConsumptionRoute
   '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/opname': typeof AppReportsInventoryOpnameRoute
   '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/inventory/waste': typeof AppReportsInventoryWasteRoute
+  '/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
+  '/reports/procurement/costs': typeof AppReportsProcurementCostsRoute
+  '/reports/procurement/purchases': typeof AppReportsProcurementPurchasesRoute
+  '/reports/procurement/suppliers': typeof AppReportsProcurementSuppliersRoute
+  '/reports/procurement/transfers': typeof AppReportsProcurementTransfersRoute
   '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/reports/sales/transactions': typeof AppReportsSalesTransactionsRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -753,6 +897,10 @@ export interface FileRoutesByTo {
   '/location/$id/edit': typeof AppLocationIdEditRoute
   '/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/reports/crm/customer-growth': typeof AppReportsCrmCustomerGrowthRoute
+  '/reports/crm/customers-by-tier': typeof AppReportsCrmCustomersByTierRoute
+  '/reports/crm/loyalty-points': typeof AppReportsCrmLoyaltyPointsRoute
+  '/reports/crm/top-customers': typeof AppReportsCrmTopCustomersRoute
   '/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
   '/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
   '/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
@@ -760,12 +908,26 @@ export interface FileRoutesByTo {
   '/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
   '/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
   '/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/reports/insights/inventory-turnover': typeof AppReportsInsightsInventoryTurnoverRoute
+  '/reports/insights/location-performance': typeof AppReportsInsightsLocationPerformanceRoute
+  '/reports/insights/profitability': typeof AppReportsInsightsProfitabilityRoute
+  '/reports/inventory/consumption': typeof AppReportsInventoryConsumptionRoute
   '/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/reports/inventory/opname': typeof AppReportsInventoryOpnameRoute
   '/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/reports/inventory/waste': typeof AppReportsInventoryWasteRoute
+  '/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
+  '/reports/procurement/costs': typeof AppReportsProcurementCostsRoute
+  '/reports/procurement/purchases': typeof AppReportsProcurementPurchasesRoute
+  '/reports/procurement/suppliers': typeof AppReportsProcurementSuppliersRoute
+  '/reports/procurement/transfers': typeof AppReportsProcurementTransfersRoute
   '/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/reports/sales/transactions': typeof AppReportsSalesTransactionsRoute
   '/settings/location': typeof AppSettingsTabLocationRoute
   '/settings/role': typeof AppSettingsTabRoleRoute
   '/settings/user': typeof AppSettingsTabUserRoute
@@ -850,6 +1012,10 @@ export interface FileRoutesById {
   '/_app/location/$id/edit': typeof AppLocationIdEditRoute
   '/_app/material/$id/recipe': typeof AppMaterialIdRecipeRoute
   '/_app/material/$id/update': typeof AppMaterialIdUpdateRoute
+  '/_app/reports/crm/customer-growth': typeof AppReportsCrmCustomerGrowthRoute
+  '/_app/reports/crm/customers-by-tier': typeof AppReportsCrmCustomersByTierRoute
+  '/_app/reports/crm/loyalty-points': typeof AppReportsCrmLoyaltyPointsRoute
+  '/_app/reports/crm/top-customers': typeof AppReportsCrmTopCustomersRoute
   '/_app/reports/finance/account-balances': typeof AppReportsFinanceAccountBalancesRoute
   '/_app/reports/finance/cash-flow': typeof AppReportsFinanceCashFlowRoute
   '/_app/reports/finance/expenses': typeof AppReportsFinanceExpensesRoute
@@ -857,12 +1023,26 @@ export interface FileRoutesById {
   '/_app/reports/finance/ledger-ar-ap': typeof AppReportsFinanceLedgerArApRoute
   '/_app/reports/finance/payments': typeof AppReportsFinancePaymentsRoute
   '/_app/reports/finance/profit-loss': typeof AppReportsFinanceProfitLossRoute
+  '/_app/reports/insights/inventory-turnover': typeof AppReportsInsightsInventoryTurnoverRoute
+  '/_app/reports/insights/location-performance': typeof AppReportsInsightsLocationPerformanceRoute
+  '/_app/reports/insights/profitability': typeof AppReportsInsightsProfitabilityRoute
+  '/_app/reports/inventory/consumption': typeof AppReportsInventoryConsumptionRoute
   '/_app/reports/inventory/movements': typeof AppReportsInventoryMovementsRoute
+  '/_app/reports/inventory/opname': typeof AppReportsInventoryOpnameRoute
   '/_app/reports/inventory/stock': typeof AppReportsInventoryStockRoute
   '/_app/reports/inventory/stock-value': typeof AppReportsInventoryStockValueRoute
+  '/_app/reports/inventory/waste': typeof AppReportsInventoryWasteRoute
+  '/_app/reports/payment/by-account': typeof AppReportsPaymentByAccountRoute
+  '/_app/reports/payment/by-method': typeof AppReportsPaymentByMethodRoute
+  '/_app/reports/payment/over-time': typeof AppReportsPaymentOverTimeRoute
+  '/_app/reports/procurement/costs': typeof AppReportsProcurementCostsRoute
+  '/_app/reports/procurement/purchases': typeof AppReportsProcurementPurchasesRoute
+  '/_app/reports/procurement/suppliers': typeof AppReportsProcurementSuppliersRoute
+  '/_app/reports/procurement/transfers': typeof AppReportsProcurementTransfersRoute
   '/_app/reports/sales/channels': typeof AppReportsSalesChannelsRoute
   '/_app/reports/sales/products': typeof AppReportsSalesProductsRoute
   '/_app/reports/sales/revenue': typeof AppReportsSalesRevenueRoute
+  '/_app/reports/sales/transactions': typeof AppReportsSalesTransactionsRoute
   '/_app/settings/_tab/location': typeof AppSettingsTabLocationRoute
   '/_app/settings/_tab/role': typeof AppSettingsTabRoleRoute
   '/_app/settings/_tab/user': typeof AppSettingsTabUserRoute
@@ -945,6 +1125,10 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/reports/crm/customer-growth'
+    | '/reports/crm/customers-by-tier'
+    | '/reports/crm/loyalty-points'
+    | '/reports/crm/top-customers'
     | '/reports/finance/account-balances'
     | '/reports/finance/cash-flow'
     | '/reports/finance/expenses'
@@ -952,12 +1136,26 @@ export interface FileRouteTypes {
     | '/reports/finance/ledger-ar-ap'
     | '/reports/finance/payments'
     | '/reports/finance/profit-loss'
+    | '/reports/insights/inventory-turnover'
+    | '/reports/insights/location-performance'
+    | '/reports/insights/profitability'
+    | '/reports/inventory/consumption'
     | '/reports/inventory/movements'
+    | '/reports/inventory/opname'
     | '/reports/inventory/stock'
     | '/reports/inventory/stock-value'
+    | '/reports/inventory/waste'
+    | '/reports/payment/by-account'
+    | '/reports/payment/by-method'
+    | '/reports/payment/over-time'
+    | '/reports/procurement/costs'
+    | '/reports/procurement/purchases'
+    | '/reports/procurement/suppliers'
+    | '/reports/procurement/transfers'
     | '/reports/sales/channels'
     | '/reports/sales/products'
     | '/reports/sales/revenue'
+    | '/reports/sales/transactions'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -1037,6 +1235,10 @@ export interface FileRouteTypes {
     | '/location/$id/edit'
     | '/material/$id/recipe'
     | '/material/$id/update'
+    | '/reports/crm/customer-growth'
+    | '/reports/crm/customers-by-tier'
+    | '/reports/crm/loyalty-points'
+    | '/reports/crm/top-customers'
     | '/reports/finance/account-balances'
     | '/reports/finance/cash-flow'
     | '/reports/finance/expenses'
@@ -1044,12 +1246,26 @@ export interface FileRouteTypes {
     | '/reports/finance/ledger-ar-ap'
     | '/reports/finance/payments'
     | '/reports/finance/profit-loss'
+    | '/reports/insights/inventory-turnover'
+    | '/reports/insights/location-performance'
+    | '/reports/insights/profitability'
+    | '/reports/inventory/consumption'
     | '/reports/inventory/movements'
+    | '/reports/inventory/opname'
     | '/reports/inventory/stock'
     | '/reports/inventory/stock-value'
+    | '/reports/inventory/waste'
+    | '/reports/payment/by-account'
+    | '/reports/payment/by-method'
+    | '/reports/payment/over-time'
+    | '/reports/procurement/costs'
+    | '/reports/procurement/purchases'
+    | '/reports/procurement/suppliers'
+    | '/reports/procurement/transfers'
     | '/reports/sales/channels'
     | '/reports/sales/products'
     | '/reports/sales/revenue'
+    | '/reports/sales/transactions'
     | '/settings/location'
     | '/settings/role'
     | '/settings/user'
@@ -1133,6 +1349,10 @@ export interface FileRouteTypes {
     | '/_app/location/$id/edit'
     | '/_app/material/$id/recipe'
     | '/_app/material/$id/update'
+    | '/_app/reports/crm/customer-growth'
+    | '/_app/reports/crm/customers-by-tier'
+    | '/_app/reports/crm/loyalty-points'
+    | '/_app/reports/crm/top-customers'
     | '/_app/reports/finance/account-balances'
     | '/_app/reports/finance/cash-flow'
     | '/_app/reports/finance/expenses'
@@ -1140,12 +1360,26 @@ export interface FileRouteTypes {
     | '/_app/reports/finance/ledger-ar-ap'
     | '/_app/reports/finance/payments'
     | '/_app/reports/finance/profit-loss'
+    | '/_app/reports/insights/inventory-turnover'
+    | '/_app/reports/insights/location-performance'
+    | '/_app/reports/insights/profitability'
+    | '/_app/reports/inventory/consumption'
     | '/_app/reports/inventory/movements'
+    | '/_app/reports/inventory/opname'
     | '/_app/reports/inventory/stock'
     | '/_app/reports/inventory/stock-value'
+    | '/_app/reports/inventory/waste'
+    | '/_app/reports/payment/by-account'
+    | '/_app/reports/payment/by-method'
+    | '/_app/reports/payment/over-time'
+    | '/_app/reports/procurement/costs'
+    | '/_app/reports/procurement/purchases'
+    | '/_app/reports/procurement/suppliers'
+    | '/_app/reports/procurement/transfers'
     | '/_app/reports/sales/channels'
     | '/_app/reports/sales/products'
     | '/_app/reports/sales/revenue'
+    | '/_app/reports/sales/transactions'
     | '/_app/settings/_tab/location'
     | '/_app/settings/_tab/role'
     | '/_app/settings/_tab/user'
@@ -1683,6 +1917,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTabLocationRouteImport
       parentRoute: typeof AppSettingsTabRouteRoute
     }
+    '/_app/reports/sales/transactions': {
+      id: '/_app/reports/sales/transactions'
+      path: '/reports/sales/transactions'
+      fullPath: '/reports/sales/transactions'
+      preLoaderRoute: typeof AppReportsSalesTransactionsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/sales/revenue': {
       id: '/_app/reports/sales/revenue'
       path: '/reports/sales/revenue'
@@ -1704,6 +1945,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsSalesChannelsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/reports/procurement/transfers': {
+      id: '/_app/reports/procurement/transfers'
+      path: '/reports/procurement/transfers'
+      fullPath: '/reports/procurement/transfers'
+      preLoaderRoute: typeof AppReportsProcurementTransfersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/procurement/suppliers': {
+      id: '/_app/reports/procurement/suppliers'
+      path: '/reports/procurement/suppliers'
+      fullPath: '/reports/procurement/suppliers'
+      preLoaderRoute: typeof AppReportsProcurementSuppliersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/procurement/purchases': {
+      id: '/_app/reports/procurement/purchases'
+      path: '/reports/procurement/purchases'
+      fullPath: '/reports/procurement/purchases'
+      preLoaderRoute: typeof AppReportsProcurementPurchasesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/procurement/costs': {
+      id: '/_app/reports/procurement/costs'
+      path: '/reports/procurement/costs'
+      fullPath: '/reports/procurement/costs'
+      preLoaderRoute: typeof AppReportsProcurementCostsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/payment/over-time': {
+      id: '/_app/reports/payment/over-time'
+      path: '/reports/payment/over-time'
+      fullPath: '/reports/payment/over-time'
+      preLoaderRoute: typeof AppReportsPaymentOverTimeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/payment/by-method': {
+      id: '/_app/reports/payment/by-method'
+      path: '/reports/payment/by-method'
+      fullPath: '/reports/payment/by-method'
+      preLoaderRoute: typeof AppReportsPaymentByMethodRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/payment/by-account': {
+      id: '/_app/reports/payment/by-account'
+      path: '/reports/payment/by-account'
+      fullPath: '/reports/payment/by-account'
+      preLoaderRoute: typeof AppReportsPaymentByAccountRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/waste': {
+      id: '/_app/reports/inventory/waste'
+      path: '/reports/inventory/waste'
+      fullPath: '/reports/inventory/waste'
+      preLoaderRoute: typeof AppReportsInventoryWasteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/inventory/stock-value': {
       id: '/_app/reports/inventory/stock-value'
       path: '/reports/inventory/stock-value'
@@ -1718,11 +2015,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsInventoryStockRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/reports/inventory/opname': {
+      id: '/_app/reports/inventory/opname'
+      path: '/reports/inventory/opname'
+      fullPath: '/reports/inventory/opname'
+      preLoaderRoute: typeof AppReportsInventoryOpnameRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/inventory/movements': {
       id: '/_app/reports/inventory/movements'
       path: '/reports/inventory/movements'
       fullPath: '/reports/inventory/movements'
       preLoaderRoute: typeof AppReportsInventoryMovementsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/inventory/consumption': {
+      id: '/_app/reports/inventory/consumption'
+      path: '/reports/inventory/consumption'
+      fullPath: '/reports/inventory/consumption'
+      preLoaderRoute: typeof AppReportsInventoryConsumptionRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/insights/profitability': {
+      id: '/_app/reports/insights/profitability'
+      path: '/reports/insights/profitability'
+      fullPath: '/reports/insights/profitability'
+      preLoaderRoute: typeof AppReportsInsightsProfitabilityRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/insights/location-performance': {
+      id: '/_app/reports/insights/location-performance'
+      path: '/reports/insights/location-performance'
+      fullPath: '/reports/insights/location-performance'
+      preLoaderRoute: typeof AppReportsInsightsLocationPerformanceRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/insights/inventory-turnover': {
+      id: '/_app/reports/insights/inventory-turnover'
+      path: '/reports/insights/inventory-turnover'
+      fullPath: '/reports/insights/inventory-turnover'
+      preLoaderRoute: typeof AppReportsInsightsInventoryTurnoverRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/finance/profit-loss': {
@@ -1772,6 +2104,34 @@ declare module '@tanstack/react-router' {
       path: '/reports/finance/account-balances'
       fullPath: '/reports/finance/account-balances'
       preLoaderRoute: typeof AppReportsFinanceAccountBalancesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/crm/top-customers': {
+      id: '/_app/reports/crm/top-customers'
+      path: '/reports/crm/top-customers'
+      fullPath: '/reports/crm/top-customers'
+      preLoaderRoute: typeof AppReportsCrmTopCustomersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/crm/loyalty-points': {
+      id: '/_app/reports/crm/loyalty-points'
+      path: '/reports/crm/loyalty-points'
+      fullPath: '/reports/crm/loyalty-points'
+      preLoaderRoute: typeof AppReportsCrmLoyaltyPointsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/crm/customers-by-tier': {
+      id: '/_app/reports/crm/customers-by-tier'
+      path: '/reports/crm/customers-by-tier'
+      fullPath: '/reports/crm/customers-by-tier'
+      preLoaderRoute: typeof AppReportsCrmCustomersByTierRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/reports/crm/customer-growth': {
+      id: '/_app/reports/crm/customer-growth'
+      path: '/reports/crm/customer-growth'
+      fullPath: '/reports/crm/customer-growth'
+      preLoaderRoute: typeof AppReportsCrmCustomerGrowthRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/material/$id/update': {
@@ -1907,6 +2267,10 @@ interface AppRouteRouteChildren {
   AppLocationIdEditRoute: typeof AppLocationIdEditRoute
   AppMaterialIdRecipeRoute: typeof AppMaterialIdRecipeRoute
   AppMaterialIdUpdateRoute: typeof AppMaterialIdUpdateRoute
+  AppReportsCrmCustomerGrowthRoute: typeof AppReportsCrmCustomerGrowthRoute
+  AppReportsCrmCustomersByTierRoute: typeof AppReportsCrmCustomersByTierRoute
+  AppReportsCrmLoyaltyPointsRoute: typeof AppReportsCrmLoyaltyPointsRoute
+  AppReportsCrmTopCustomersRoute: typeof AppReportsCrmTopCustomersRoute
   AppReportsFinanceAccountBalancesRoute: typeof AppReportsFinanceAccountBalancesRoute
   AppReportsFinanceCashFlowRoute: typeof AppReportsFinanceCashFlowRoute
   AppReportsFinanceExpensesRoute: typeof AppReportsFinanceExpensesRoute
@@ -1914,12 +2278,26 @@ interface AppRouteRouteChildren {
   AppReportsFinanceLedgerArApRoute: typeof AppReportsFinanceLedgerArApRoute
   AppReportsFinancePaymentsRoute: typeof AppReportsFinancePaymentsRoute
   AppReportsFinanceProfitLossRoute: typeof AppReportsFinanceProfitLossRoute
+  AppReportsInsightsInventoryTurnoverRoute: typeof AppReportsInsightsInventoryTurnoverRoute
+  AppReportsInsightsLocationPerformanceRoute: typeof AppReportsInsightsLocationPerformanceRoute
+  AppReportsInsightsProfitabilityRoute: typeof AppReportsInsightsProfitabilityRoute
+  AppReportsInventoryConsumptionRoute: typeof AppReportsInventoryConsumptionRoute
   AppReportsInventoryMovementsRoute: typeof AppReportsInventoryMovementsRoute
+  AppReportsInventoryOpnameRoute: typeof AppReportsInventoryOpnameRoute
   AppReportsInventoryStockRoute: typeof AppReportsInventoryStockRoute
   AppReportsInventoryStockValueRoute: typeof AppReportsInventoryStockValueRoute
+  AppReportsInventoryWasteRoute: typeof AppReportsInventoryWasteRoute
+  AppReportsPaymentByAccountRoute: typeof AppReportsPaymentByAccountRoute
+  AppReportsPaymentByMethodRoute: typeof AppReportsPaymentByMethodRoute
+  AppReportsPaymentOverTimeRoute: typeof AppReportsPaymentOverTimeRoute
+  AppReportsProcurementCostsRoute: typeof AppReportsProcurementCostsRoute
+  AppReportsProcurementPurchasesRoute: typeof AppReportsProcurementPurchasesRoute
+  AppReportsProcurementSuppliersRoute: typeof AppReportsProcurementSuppliersRoute
+  AppReportsProcurementTransfersRoute: typeof AppReportsProcurementTransfersRoute
   AppReportsSalesChannelsRoute: typeof AppReportsSalesChannelsRoute
   AppReportsSalesProductsRoute: typeof AppReportsSalesProductsRoute
   AppReportsSalesRevenueRoute: typeof AppReportsSalesRevenueRoute
+  AppReportsSalesTransactionsRoute: typeof AppReportsSalesTransactionsRoute
   AppSettingsUserIdRoute: typeof AppSettingsUserIdRoute
   AppSettingsUserCreateRoute: typeof AppSettingsUserCreateRoute
   AppInventoryTransactionsIndexRoute: typeof AppInventoryTransactionsIndexRoute
@@ -1980,6 +2358,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLocationIdEditRoute: AppLocationIdEditRoute,
   AppMaterialIdRecipeRoute: AppMaterialIdRecipeRoute,
   AppMaterialIdUpdateRoute: AppMaterialIdUpdateRoute,
+  AppReportsCrmCustomerGrowthRoute: AppReportsCrmCustomerGrowthRoute,
+  AppReportsCrmCustomersByTierRoute: AppReportsCrmCustomersByTierRoute,
+  AppReportsCrmLoyaltyPointsRoute: AppReportsCrmLoyaltyPointsRoute,
+  AppReportsCrmTopCustomersRoute: AppReportsCrmTopCustomersRoute,
   AppReportsFinanceAccountBalancesRoute: AppReportsFinanceAccountBalancesRoute,
   AppReportsFinanceCashFlowRoute: AppReportsFinanceCashFlowRoute,
   AppReportsFinanceExpensesRoute: AppReportsFinanceExpensesRoute,
@@ -1987,12 +2369,28 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsFinanceLedgerArApRoute: AppReportsFinanceLedgerArApRoute,
   AppReportsFinancePaymentsRoute: AppReportsFinancePaymentsRoute,
   AppReportsFinanceProfitLossRoute: AppReportsFinanceProfitLossRoute,
+  AppReportsInsightsInventoryTurnoverRoute:
+    AppReportsInsightsInventoryTurnoverRoute,
+  AppReportsInsightsLocationPerformanceRoute:
+    AppReportsInsightsLocationPerformanceRoute,
+  AppReportsInsightsProfitabilityRoute: AppReportsInsightsProfitabilityRoute,
+  AppReportsInventoryConsumptionRoute: AppReportsInventoryConsumptionRoute,
   AppReportsInventoryMovementsRoute: AppReportsInventoryMovementsRoute,
+  AppReportsInventoryOpnameRoute: AppReportsInventoryOpnameRoute,
   AppReportsInventoryStockRoute: AppReportsInventoryStockRoute,
   AppReportsInventoryStockValueRoute: AppReportsInventoryStockValueRoute,
+  AppReportsInventoryWasteRoute: AppReportsInventoryWasteRoute,
+  AppReportsPaymentByAccountRoute: AppReportsPaymentByAccountRoute,
+  AppReportsPaymentByMethodRoute: AppReportsPaymentByMethodRoute,
+  AppReportsPaymentOverTimeRoute: AppReportsPaymentOverTimeRoute,
+  AppReportsProcurementCostsRoute: AppReportsProcurementCostsRoute,
+  AppReportsProcurementPurchasesRoute: AppReportsProcurementPurchasesRoute,
+  AppReportsProcurementSuppliersRoute: AppReportsProcurementSuppliersRoute,
+  AppReportsProcurementTransfersRoute: AppReportsProcurementTransfersRoute,
   AppReportsSalesChannelsRoute: AppReportsSalesChannelsRoute,
   AppReportsSalesProductsRoute: AppReportsSalesProductsRoute,
   AppReportsSalesRevenueRoute: AppReportsSalesRevenueRoute,
+  AppReportsSalesTransactionsRoute: AppReportsSalesTransactionsRoute,
   AppSettingsUserIdRoute: AppSettingsUserIdRoute,
   AppSettingsUserCreateRoute: AppSettingsUserCreateRoute,
   AppInventoryTransactionsIndexRoute: AppInventoryTransactionsIndexRoute,

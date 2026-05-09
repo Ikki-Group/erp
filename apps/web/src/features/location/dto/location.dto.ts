@@ -1,4 +1,3 @@
-
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /** Types of operational locations. */

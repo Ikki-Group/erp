@@ -21,12 +21,14 @@ Shared API contract types and validators for Ikki ERP.
 **Integration Status:** ✅ Complete
 
 **Server Migration:**
+
 - All `apps/server/src/modules/**` DTO and route files migrated to `@ikki/api-contract/validation`
 - Service files migrated to `@ikki/api-contract` (main index)
 - Local `apps/server/src/lib/validation/` folder deleted
 - Zero remaining `@/lib/validation` imports in server code
 
 **Web Migration:**
+
 - Bulk migration completed for 75 files in `apps/web/src`
 - Path mapping added to web app tsconfig
 - Note: Some edge cases with standard schema adapters remain in login.tsx

@@ -1,7 +1,6 @@
+import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { attendanceStatusEnum } from '@/db/schema'
-
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

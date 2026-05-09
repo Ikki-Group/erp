@@ -1,4 +1,3 @@
-
 import { z, zp } from '@ikki/api-contract/validation'
 
 import { MokaScrapType, MokaSyncTriggerMode } from '../shared.dto'

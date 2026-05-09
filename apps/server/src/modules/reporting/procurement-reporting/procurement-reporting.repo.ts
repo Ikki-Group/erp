@@ -102,9 +102,7 @@ export class ProcurementReportingRepo {
 				and(
 					gte(stockTransfersTable.transferDate, dateFrom),
 					lte(stockTransfersTable.transferDate, dateTo),
-					locationId
-						? eq(stockTransfersTable.sourceLocationId, locationId)
-						: undefined,
+					locationId ? eq(stockTransfersTable.sourceLocationId, locationId) : undefined,
 				),
 			)
 			.orderBy(stockTransfersTable.transferDate)

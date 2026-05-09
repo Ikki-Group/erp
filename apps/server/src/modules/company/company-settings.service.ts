@@ -3,10 +3,9 @@ import { record } from '@elysiajs/opentelemetry'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import type { RecordId } from '@ikki/api-contract'
-
 import * as dto from './company-settings.dto'
 import { CompanySettingsRepo } from './company-settings.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 const err = {
 	notFound: (id: number) =>

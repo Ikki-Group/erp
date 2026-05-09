@@ -1,4 +1,3 @@
-
 import { z, zc, zq, zp } from '@ikki/api-contract/validation'
 
 export const PaymentTypeDto = z.enum([

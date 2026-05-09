@@ -13,6 +13,7 @@ A payment method can be **global** (`is_global = true`) — automatically availa
 Master data for payment providers (e.g., BCA, Mandiri).
 
 **Fields:**
+
 - `id`: Primary key (serial integer)
 - `code`: Unique provider code (e.g., 'BCA', 'MANDIRI')
 - `name`: Provider display name
@@ -23,6 +24,7 @@ Master data for payment providers (e.g., BCA, Mandiri).
 - Audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 **Indexes:**
+
 - `payment_providers_code_idx` on `code`
 - `payment_providers_is_active_idx` on `is_active`
 
@@ -31,6 +33,7 @@ Master data for payment providers (e.g., BCA, Mandiri).
 Master data for payment methods with cash/cashless flags and global availability.
 
 **Fields:**
+
 - `id`: Primary key (serial integer)
 - `type`: Payment method type (enum: 'cash', 'bank_transfer', 'credit_card', 'debit_card', 'e_wallet')
 - `category`: Cash vs cashless flag (enum: 'cash', 'cashless')
@@ -42,6 +45,7 @@ Master data for payment methods with cash/cashless flags and global availability
 - Audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 **Indexes:**
+
 - `payment_methods_type_idx` on `type`
 - `payment_methods_category_idx` on `category`
 - `payment_methods_is_enabled_idx` on `is_enabled`
@@ -53,6 +57,7 @@ Master data for payment methods with cash/cashless flags and global availability
 Junction table that maps which payment methods are active for specific locations. Stores location-specific credentials and configurations.
 
 **Fields:**
+
 - `id`: Primary key (serial integer)
 - `location_id`: Reference to the location (CASCADE delete, integer)
 - `payment_method_id`: Reference to the payment method (CASCADE delete, integer)
@@ -73,6 +78,7 @@ Junction table that maps which payment methods are active for specific locations
 - Audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 **Indexes:**
+
 - `location_payment_methods_location_id_idx` on `location_id`
 - `location_payment_methods_payment_method_id_idx` on `payment_method_id`
 - `location_payment_methods_payment_provider_id_idx` on `payment_provider_id`
@@ -86,15 +92,18 @@ The system enforces the constraint that only locations with `type = 'store'` can
 
 ```typescript
 // Validate location exists and is a store
-const location = await this.db.select().from(locationsTable).where(eq(locationsTable.id, data.locationId))
+const location = await this.db
+	.select()
+	.from(locationsTable)
+	.where(eq(locationsTable.id, data.locationId))
 if (location.length === 0) {
-  throw new NotFoundError(`Location with ID ${data.locationId} not found`, 'LOCATION_NOT_FOUND')
+	throw new NotFoundError(`Location with ID ${data.locationId} not found`, 'LOCATION_NOT_FOUND')
 }
 if (location[0].type !== 'store') {
-  throw new BadRequestError(
-    'Payment methods can only be configured for store locations',
-    'INVALID_LOCATION_TYPE',
-  )
+	throw new BadRequestError(
+		'Payment methods can only be configured for store locations',
+		'INVALID_LOCATION_TYPE',
+	)
 }
 ```
 
@@ -105,15 +114,15 @@ When setting a payment method as default for a location, the system automaticall
 ```typescript
 // If setting as default, unset other defaults for this location
 if (data.isDefault) {
-  await this.db
-    .update(locationPaymentMethodsTable)
-    .set({ isDefault: false })
-    .where(
-      and(
-        eq(locationPaymentMethodsTable.locationId, data.locationId),
-        eq(locationPaymentMethodsTable.isDefault, true),
-      ),
-    )
+	await this.db
+		.update(locationPaymentMethodsTable)
+		.set({ isDefault: false })
+		.where(
+			and(
+				eq(locationPaymentMethodsTable.locationId, data.locationId),
+				eq(locationPaymentMethodsTable.isDefault, true),
+			),
+		)
 }
 ```
 
@@ -210,7 +219,7 @@ GET /payment/location-payment-method/by-location?locationId=1
 ### 5. Get Global Payment Methods
 
 ```typescript
-GET /payment/payment-method/global
+GET / payment / payment - method / global
 ```
 
 ## Relations

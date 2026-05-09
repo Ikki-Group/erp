@@ -1,8 +1,8 @@
+import { z, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory } from '@/lib/api'
-import { z, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	PnLDataDto,

@@ -1,6 +1,6 @@
+import { z, zp } from '@ikki/api-contract/validation'
 
 import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
-import { z, zp } from '@ikki/api-contract/validation'
 
 /** Profitability data */
 export const ProfitabilityDto = z.object({

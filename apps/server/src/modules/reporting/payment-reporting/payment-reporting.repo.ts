@@ -27,7 +27,9 @@ export class PaymentReportingRepo {
 			gte(paymentsTable.date, dateFrom),
 			lte(paymentsTable.date, dateTo),
 			accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-			method ? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer') : undefined,
+			method
+				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				: undefined,
 			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
 		)
 
@@ -50,7 +52,9 @@ export class PaymentReportingRepo {
 			gte(paymentsTable.date, dateFrom),
 			lte(paymentsTable.date, dateTo),
 			accountId ? eq(paymentsTable.accountId, accountId) : undefined,
-			method ? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer') : undefined,
+			method
+				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				: undefined,
 			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
 		)
 
@@ -88,7 +92,9 @@ export class PaymentReportingRepo {
 		const where = and(
 			gte(paymentsTable.date, dateFrom),
 			lte(paymentsTable.date, dateTo),
-			method ? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer') : undefined,
+			method
+				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				: undefined,
 			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
 		)
 

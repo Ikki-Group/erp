@@ -32,7 +32,10 @@ export class PaymentProviderService {
 				factory: () => this.repo.getById(id),
 			})
 			if (!provider)
-				throw new NotFoundError(`Payment provider with ID ${id} not found`, 'PAYMENT_PROVIDER_NOT_FOUND')
+				throw new NotFoundError(
+					`Payment provider with ID ${id} not found`,
+					'PAYMENT_PROVIDER_NOT_FOUND',
+				)
 			return provider
 		})
 	}
@@ -59,7 +62,9 @@ export class PaymentProviderService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: PaymentProviderFilterDto): Promise<WithPaginationResult<PaymentProviderDto>> {
+	async handleList(
+		filter: PaymentProviderFilterDto,
+	): Promise<WithPaginationResult<PaymentProviderDto>> {
 		return record('PaymentProviderService.handleList', async () => {
 			const key = `list.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
@@ -105,7 +110,9 @@ export class PaymentProviderService {
 
 	/* --------------------------------- INTERNAL -------------------------------- */
 
-	async seed(data: (PaymentProviderCreateDto & { id?: string; createdBy: string })[]): Promise<void> {
+	async seed(
+		data: (PaymentProviderCreateDto & { id?: string; createdBy: string })[],
+	): Promise<void> {
 		return record('PaymentProviderService.seed', async () => {
 			for (const d of data) {
 				await this.repo.create(d, d.createdBy)

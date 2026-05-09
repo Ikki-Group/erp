@@ -2,10 +2,9 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import * as core from '@/core/database'
+import { RelationMap } from '@/core/utils/relation-map'
 
 import { rolesTable } from '@/db/schema'
-
-import { RelationMap } from '@/core/utils/relation-map'
 
 import { SYSTEM_ROLES } from '../constants'
 import { RoleErrors } from '../errors'

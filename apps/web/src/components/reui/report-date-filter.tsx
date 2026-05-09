@@ -7,7 +7,11 @@ function toInputDate(d: Date): string {
 	return d.toISOString().slice(0, 10)
 }
 
-export function ReportDateFilter({ dateFrom, dateTo, onChange }: DateRange & { onChange: (range: DateRange) => void }) {
+export function ReportDateFilter({
+	dateFrom,
+	dateTo,
+	onChange,
+}: DateRange & { onChange: (range: DateRange) => void }) {
 	return (
 		<div className="flex items-center gap-3">
 			<input

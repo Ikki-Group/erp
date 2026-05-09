@@ -1,7 +1,6 @@
+import type { ApiResponse, AuthLoginResponse } from '../helpers/test-types'
 import { testCtx } from '../setup'
 import { beforeAll, describe, test, expect } from 'bun:test'
-import type { ApiResponse, AuthLoginResponse } from '../helpers/test-types'
-
 
 describe('e2e/location', () => {
 	let storeId: number

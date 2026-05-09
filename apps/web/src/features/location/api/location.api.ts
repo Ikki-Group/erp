@@ -1,14 +1,14 @@
-import z from 'zod'
-
-import { endpoint } from '@/config/endpoint'
-
-import { apiFactory, createQueryKeys } from '@/lib/api'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
 } from '@ikki/api-contract/validation'
+import z from 'zod'
+
+import { endpoint } from '@/config/endpoint'
+
+import { apiFactory, createQueryKeys } from '@/lib/api'
 
 import { LocationCreateDto, LocationDto, LocationFilterDto, LocationUpdateDto } from '../dto'
 

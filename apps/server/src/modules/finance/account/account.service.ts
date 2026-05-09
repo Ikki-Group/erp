@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { NotFoundError } from '@/core/http/errors'
-
 import type { WithPaginationResult } from '@/core/database/pagination'
+import { NotFoundError } from '@/core/http/errors'
 
 import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import { AccountRepo } from './account.repo'

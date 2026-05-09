@@ -5,6 +5,7 @@ This document provides a comprehensive example of the sales order creation endpo
 ## Overview
 
 The sales order creation endpoint (`POST /sales/order/create`) is now fully integrated with:
+
 - **Location Module** - Validates location exists
 - **CRM Module** - Validates customer (if provided)
 - **Product Module** - Validates products and variants (if provided)
@@ -13,11 +14,13 @@ The sales order creation endpoint (`POST /sales/order/create`) is now fully inte
 ## Endpoint Details
 
 ### URL
+
 ```
 POST /sales/order/create
 ```
 
 ### Authentication
+
 Required (uses authPluginMacro)
 
 ### Request Body
@@ -69,33 +72,34 @@ The `SalesOrderService.validateRelatedEntities()` method validates:
 // Location validation
 const location = await deps.location.master.getById(data.locationId)
 if (!location) {
-  throw NotFoundError('LOCATION_NOT_FOUND')
+	throw NotFoundError('LOCATION_NOT_FOUND')
 }
 
 // Customer validation (if provided)
 if (data.customerId) {
-  const customer = await deps.crm.customer.getById(data.customerId)
-  if (!customer) {
-    throw NotFoundError('CUSTOMER_NOT_FOUND')
-  }
+	const customer = await deps.crm.customer.getById(data.customerId)
+	if (!customer) {
+		throw NotFoundError('CUSTOMER_NOT_FOUND')
+	}
 }
 
 // Product validation (if items provided)
 if (data.items) {
-  for (const item of data.items) {
-    if (item.productId) {
-      const product = await deps.product.product.getById(item.productId)
-      if (!product) {
-        throw NotFoundError('PRODUCT_NOT_FOUND')
-      }
-    }
-  }
+	for (const item of data.items) {
+		if (item.productId) {
+			const product = await deps.product.product.getById(item.productId)
+			if (!product) {
+				throw NotFoundError('PRODUCT_NOT_FOUND')
+			}
+		}
+	}
 }
 ```
 
 ### 2. Database Transaction (Repository Layer)
 
 The `SalesOrderRepo.create()` method:
+
 - Creates the sales order record
 - Creates associated sales order items (if provided)
 - All within a single transaction for data consistency
@@ -103,6 +107,7 @@ The `SalesOrderRepo.create()` method:
 ### 3. Cache Invalidation
 
 After successful creation:
+
 ```typescript
 await cache.deleteMany({ keys: ['list', 'count'] })
 ```
@@ -155,10 +160,10 @@ curl -X POST http://localhost:3000/sales/order/create \
 
 ```json
 {
-  "success": true,
-  "data": {
-    "id": 12345
-  }
+	"success": true,
+	"data": {
+		"id": 12345
+	}
 }
 ```
 
@@ -202,11 +207,11 @@ curl -X POST http://localhost:3000/sales/order/create \
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "LOCATION_NOT_FOUND",
-    "message": "Location with ID 999 not found"
-  }
+	"success": false,
+	"error": {
+		"code": "LOCATION_NOT_FOUND",
+		"message": "Location with ID 999 not found"
+	}
 }
 ```
 
@@ -214,11 +219,11 @@ curl -X POST http://localhost:3000/sales/order/create \
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "CUSTOMER_NOT_FOUND",
-    "message": "Customer with ID 999 not found"
-  }
+	"success": false,
+	"error": {
+		"code": "CUSTOMER_NOT_FOUND",
+		"message": "Customer with ID 999 not found"
+	}
 }
 ```
 
@@ -226,11 +231,11 @@ curl -X POST http://localhost:3000/sales/order/create \
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "PRODUCT_NOT_FOUND",
-    "message": "Product with ID 999 not found"
-  }
+	"success": false,
+	"error": {
+		"code": "PRODUCT_NOT_FOUND",
+		"message": "Product with ID 999 not found"
+	}
 }
 ```
 
@@ -240,25 +245,25 @@ curl -X POST http://localhost:3000/sales/order/create \
 
 ```typescript
 interface SalesServiceModuleDeps {
-  location: LocationServiceModule
-  crm: CrmServiceModule
-  product: ProductServiceModule
+	location: LocationServiceModule
+	crm: CrmServiceModule
+	product: ProductServiceModule
 }
 
 export class SalesServiceModule {
-  constructor(
-    db: DbClient,
-    cacheClient: CacheClient,
-    private readonly deps: SalesServiceModuleDeps,
-  ) {
-    const salesOrderRepo = new SalesOrderRepo(db)
-    this.order = new SalesOrderService(salesOrderRepo, cacheClient, deps)
-    // ...
-  }
+	constructor(
+		db: DbClient,
+		cacheClient: CacheClient,
+		private readonly deps: SalesServiceModuleDeps,
+	) {
+		const salesOrderRepo = new SalesOrderRepo(db)
+		this.order = new SalesOrderService(salesOrderRepo, cacheClient, deps)
+		// ...
+	}
 }
 ```
 
-### Registry Initialization (apps/server/src/modules/_registry.ts)
+### Registry Initialization (apps/server/src/modules/\_registry.ts)
 
 ```typescript
 // Layer 2 — Operations
@@ -290,6 +295,7 @@ Use the example requests above to test the endpoint.
 ### 3. Test Validation Errors
 
 Try with invalid IDs to ensure proper error messages:
+
 - Non-existent locationId
 - Non-existent customerId
 - Non-existent productId
@@ -297,26 +303,31 @@ Try with invalid IDs to ensure proper error messages:
 ## Related Endpoints
 
 ### Add Batch to Existing Order
+
 ```
 POST /sales/order/add-batch?orderId=12345
 ```
 
 ### Close Order
+
 ```
 POST /sales/order/close?orderId=12345
 ```
 
 ### Void Order
+
 ```
 POST /sales/order/void?orderId=12345
 ```
 
 ### List Orders
+
 ```
 GET /sales/order/list?locationId=1&status=open&page=1&limit=20
 ```
 
 ### Get Order Detail
+
 ```
 GET /sales/order/detail?id=12345
 ```
@@ -324,21 +335,25 @@ GET /sales/order/detail?id=12345
 ## Key Design Decisions
 
 ### 1. Immutable Sales History
+
 - `itemName`, `unitPrice`, `taxAmount`, `discountAmount` are always stored
 - Sales history never depends on product master records
 - Even if product is deleted or modified, sales data remains accurate
 
 ### 2. Optional Product References
+
 - `productId` and `variantId` are nullable
 - Supports custom items, manual charges, special requests
 - Flexible for both POS and external ingestion scenarios
 
 ### 3. Validation Before Transaction
+
 - All related entities validated before database transaction
 - Prevents partial data insertion
 - Provides clear error messages for debugging
 
 ### 4. Cache Invalidation
+
 - List and count cache cleared after creation
 - Ensures queries return fresh data
 - Follows cache-first strategy for reads
@@ -346,25 +361,33 @@ GET /sales/order/detail?id=12345
 ## Future Enhancements
 
 ### 1. Inventory Integration
+
 When inventory module is ready:
+
 - Validate stock availability
 - Auto-deduct inventory on order close
 - Restore inventory on void
 
 ### 2. Finance Integration
+
 When finance module is ready:
+
 - Auto-post to general ledger on order close
 - Create accounting entries
 - Handle tax accounting
 
 ### 3. Customer Loyalty
+
 When CRM loyalty is ready:
+
 - Auto-add loyalty points
 - Track customer visit history
 - Apply loyalty discounts
 
 ### 4. Payment Integration
+
 When payment module is ready:
+
 - Link payment to order
 - Support multiple payment methods
 - Handle payment status

@@ -1,7 +1,12 @@
+import {
+	zc,
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+} from '@ikki/api-contract/validation'
+
 import { endpoint } from '@/config/endpoint'
 
 import { apiFactory, createQueryKeys } from '@/lib/api'
-import { zc, createPaginatedResponseSchema, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 
 import {
 	EmployeeCreateDto,

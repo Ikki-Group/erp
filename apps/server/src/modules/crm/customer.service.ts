@@ -7,10 +7,9 @@ import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
 
-import type { RecordId } from '@ikki/api-contract'
-
 import * as dto from './customer.dto'
 import { CustomerRepo } from './customer.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	{
