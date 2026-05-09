@@ -12,7 +12,7 @@ import * as dto from './supplier.dto'
 import type { SupplierService } from './supplier.service'
 
 export function initSupplierRoute(service: SupplierService) {
-	return new Elysia({ prefix: '/supplier' })
+	return new Elysia()
 		.use(authPluginMacro)
 		.get(
 			'/list',
