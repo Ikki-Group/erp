@@ -15,7 +15,7 @@ if (!Bun.env.DATABASE_URL) {
 
 interface TestContext {
 	app: Elysia
-	modules: Modules
+	m: Modules
 	client: TestClient
 	tokens: TokenStore
 }
@@ -35,7 +35,7 @@ beforeAll(() => {
 
 	testCtx = {
 		app,
-		modules,
+		m: modules,
 		tokens,
 		client: new TestClient(app, 'http://localhost', {}, tokens),
 	}
