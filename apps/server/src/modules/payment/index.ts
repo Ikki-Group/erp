@@ -6,9 +6,9 @@ import type { DbClient } from '@/core/database'
 import { LocationPaymentMethodRepo } from './location-payment-method/location-payment-method.repo'
 import { initLocationPaymentMethodRoute } from './location-payment-method/location-payment-method.route'
 import { LocationPaymentMethodService } from './location-payment-method/location-payment-method.service'
-import { PaymentMethodConfigRepo } from './payment-method/payment-method.repo'
+import { PaymentMethodRepo } from './payment-method/payment-method.repo'
 import { initPaymentMethodRoute } from './payment-method/payment-method.route'
-import { PaymentMethodConfigService } from './payment-method/payment-method.service'
+import { PaymentMethodService } from './payment-method/payment-method.service'
 import { PaymentProviderRepo } from './payment-provider/payment-provider.repo'
 import { initPaymentProviderRoute } from './payment-provider/payment-provider.route'
 import { PaymentProviderService } from './payment-provider/payment-provider.service'
@@ -17,7 +17,7 @@ import { initPaymentRoute } from './payment/payment.route'
 import { PaymentService } from './payment/payment.service'
 
 export class PaymentServiceModule {
-	public readonly paymentMethod: PaymentMethodConfigService
+	public readonly paymentMethod: PaymentMethodService
 	public readonly payment: PaymentService
 	public readonly paymentProvider: PaymentProviderService
 	public readonly locationPaymentMethod: LocationPaymentMethodService
@@ -26,8 +26,8 @@ export class PaymentServiceModule {
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
 	) {
-		const paymentMethodConfigRepo = new PaymentMethodConfigRepo(this.db)
-		this.paymentMethod = new PaymentMethodConfigService(paymentMethodConfigRepo, this.cacheClient)
+		const paymentMethodRepo = new PaymentMethodRepo(this.db)
+		this.paymentMethod = new PaymentMethodService(paymentMethodRepo, this.cacheClient)
 
 		const paymentRepo = new PaymentRepo(this.db)
 		this.payment = new PaymentService(paymentRepo, this.cacheClient)
@@ -51,19 +51,17 @@ export function initPaymentRouteModule(s: PaymentServiceModule) {
 		.use(initLocationPaymentMethodRoute(s.locationPaymentMethod))
 }
 
-export {
-	PaymentDto,
-	PaymentInvoiceDto,
-	PaymentTypeDto,
-	PaymentMethodDto,
-} from './payment/payment.dto'
+export { PaymentDto, PaymentInvoiceDto, PaymentTypeDto } from './payment/payment.dto'
 export type { PaymentService } from './payment/payment.service'
 export {
-	PaymentMethodConfigDto,
+	PaymentMethodDto,
+	PaymentMethodCreateDto,
+	PaymentMethodUpdateDto,
+	PaymentMethodFilterDto,
 	PaymentMethodCategoryDto,
 	PaymentMethodTypeDto,
 } from './payment-method/payment-method.dto'
-export type { PaymentMethodConfigService } from './payment-method/payment-method.service'
+export type { PaymentMethodService } from './payment-method/payment-method.service'
 export {
 	PaymentProviderDto,
 	PaymentProviderCreateDto,

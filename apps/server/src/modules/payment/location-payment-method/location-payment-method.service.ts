@@ -24,7 +24,7 @@ export class LocationPaymentMethodService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: string): Promise<LocationPaymentMethodDto> {
+	async getById(id: number): Promise<LocationPaymentMethodDto> {
 		return record('LocationPaymentMethodService.getById', async () => {
 			const key = `byId:${id}`
 			const locationPaymentMethod = await this.cache.getOrSetSkipUndefined({
@@ -32,12 +32,15 @@ export class LocationPaymentMethodService {
 				factory: () => this.repo.getById(id),
 			})
 			if (!locationPaymentMethod)
-				throw new NotFoundError(`Location payment method with ID ${id} not found`, 'LOCATION_PAYMENT_METHOD_NOT_FOUND')
+				throw new NotFoundError(
+					`Location payment method with ID ${id} not found`,
+					'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				)
 			return locationPaymentMethod
 		})
 	}
 
-	async getByLocation(locationId: string): Promise<LocationPaymentMethodDto[]> {
+	async getByLocation(locationId: number): Promise<LocationPaymentMethodDto[]> {
 		return record('LocationPaymentMethodService.getByLocation', async () => {
 			const key = `byLocation:${locationId}`
 			return this.cache.getOrSet({
@@ -49,7 +52,9 @@ export class LocationPaymentMethodService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: LocationPaymentMethodFilterDto): Promise<WithPaginationResult<LocationPaymentMethodDto>> {
+	async handleList(
+		filter: LocationPaymentMethodFilterDto,
+	): Promise<WithPaginationResult<LocationPaymentMethodDto>> {
 		return record('LocationPaymentMethodService.handleList', async () => {
 			const key = `list.${JSON.stringify(filter)}`
 			return this.cache.getOrSet({
@@ -59,13 +64,16 @@ export class LocationPaymentMethodService {
 		})
 	}
 
-	async handleDetail(id: string): Promise<LocationPaymentMethodDto> {
+	async handleDetail(id: number): Promise<LocationPaymentMethodDto> {
 		return record('LocationPaymentMethodService.handleDetail', async () => {
 			return this.getById(id)
 		})
 	}
 
-	async handleCreate(data: LocationPaymentMethodCreateDto, actorId: string): Promise<{ id: string }> {
+	async handleCreate(
+		data: LocationPaymentMethodCreateDto,
+		actorId: string,
+	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodService.handleCreate', async () => {
 			const result = await this.repo.create(data, actorId)
 			await this.cache.deleteMany({ keys: ['list', 'count', `byLocation:${data.locationId}`] })
@@ -74,10 +82,10 @@ export class LocationPaymentMethodService {
 	}
 
 	async handleUpdate(
-		id: string,
+		id: number,
 		data: Partial<LocationPaymentMethodUpdateDto>,
 		actorId: string,
-	): Promise<{ id: string }> {
+	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodService.handleUpdate', async () => {
 			const existing = await this.getById(id)
 			const result = await this.repo.update(id, data, actorId)
@@ -88,7 +96,7 @@ export class LocationPaymentMethodService {
 		})
 	}
 
-	async handleRemove(id: string): Promise<{ id: string }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('LocationPaymentMethodService.handleRemove', async () => {
 			const existing = await this.getById(id)
 			const result = await this.repo.delete(id)

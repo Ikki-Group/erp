@@ -12,7 +12,7 @@ import {
 } from '@/core/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import { locationPaymentMethodsTable, locationsTable, paymentMethodConfigsTable } from '@/db/schema'
+import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
 
 import type {
 	LocationPaymentMethodCreateDto,
@@ -26,15 +26,18 @@ export class LocationPaymentMethodRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: string): Promise<LocationPaymentMethodDto | undefined> {
+	async getById(id: number): Promise<LocationPaymentMethodDto | undefined> {
 		return record('LocationPaymentMethodRepo.getById', async () => {
-			const result = await this.db.select().from(locationPaymentMethodsTable).where(eq(locationPaymentMethodsTable.id, id))
+			const result = await this.db
+				.select()
+				.from(locationPaymentMethodsTable)
+				.where(eq(locationPaymentMethodsTable.id, id))
 			if (result.length === 0) return undefined
 			return LocationPaymentMethodDto.parse(result[0])
 		})
 	}
 
-	async getByLocation(locationId: string): Promise<LocationPaymentMethodDto[]> {
+	async getByLocation(locationId: number): Promise<LocationPaymentMethodDto[]> {
 		return record('LocationPaymentMethodRepo.getByLocation', async () => {
 			const rows = await this.db
 				.select()
@@ -45,15 +48,20 @@ export class LocationPaymentMethodRepo {
 		})
 	}
 
-	async getListPaginated(filter: LocationPaymentMethodFilterDto): Promise<WithPaginationResult<LocationPaymentMethodDto>> {
+	async getListPaginated(
+		filter: LocationPaymentMethodFilterDto,
+	): Promise<WithPaginationResult<LocationPaymentMethodDto>> {
 		return record('LocationPaymentMethodRepo.getListPaginated', async () => {
-			const { page, limit, locationId, paymentMethodConfigId, paymentProviderId, isEnabled } = filter
+			const { page, limit, locationId, paymentMethodId, paymentProviderId, isEnabled } = filter
 
 			const conditions = []
 			if (locationId) conditions.push(eq(locationPaymentMethodsTable.locationId, locationId))
-			if (paymentMethodConfigId) conditions.push(eq(locationPaymentMethodsTable.paymentMethodConfigId, paymentMethodConfigId))
-			if (paymentProviderId) conditions.push(eq(locationPaymentMethodsTable.paymentProviderId, paymentProviderId))
-			if (isEnabled !== undefined) conditions.push(eq(locationPaymentMethodsTable.isEnabled, isEnabled))
+			if (paymentMethodId)
+				conditions.push(eq(locationPaymentMethodsTable.paymentMethodId, paymentMethodId))
+			if (paymentProviderId)
+				conditions.push(eq(locationPaymentMethodsTable.paymentProviderId, paymentProviderId))
+			if (isEnabled !== undefined)
+				conditions.push(eq(locationPaymentMethodsTable.isEnabled, isEnabled))
 
 			const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -69,19 +77,28 @@ export class LocationPaymentMethodRepo {
 					return rows.map((r) => LocationPaymentMethodDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(locationPaymentMethodsTable).where(where),
+				countQuery: this.db
+					.select({ count: count() })
+					.from(locationPaymentMethodsTable)
+					.where(where),
 			})
 		})
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: LocationPaymentMethodCreateDto, actorId: string): Promise<{ id: string }> {
+	async create(data: LocationPaymentMethodCreateDto, actorId: string): Promise<{ id: number }> {
 		return record('LocationPaymentMethodRepo.create', async () => {
 			// Validate location exists and is a store
-			const location = await this.db.select().from(locationsTable).where(eq(locationsTable.id, data.locationId))
+			const location = await this.db
+				.select()
+				.from(locationsTable)
+				.where(eq(locationsTable.id, data.locationId))
 			if (location.length === 0) {
-				throw new NotFoundError(`Location with ID ${data.locationId} not found`, 'LOCATION_NOT_FOUND')
+				throw new NotFoundError(
+					`Location with ID ${data.locationId} not found`,
+					'LOCATION_NOT_FOUND',
+				)
 			}
 			if (location[0].type !== 'store') {
 				throw new BadRequestError(
@@ -90,15 +107,15 @@ export class LocationPaymentMethodRepo {
 				)
 			}
 
-			// Validate payment method config exists
-			const paymentMethodConfig = await this.db
+			// Validate payment method exists
+			const paymentMethod = await this.db
 				.select()
-				.from(paymentMethodConfigsTable)
-				.where(eq(paymentMethodConfigsTable.id, data.paymentMethodConfigId))
-			if (paymentMethodConfig.length === 0) {
+				.from(paymentMethodsTable)
+				.where(eq(paymentMethodsTable.id, data.paymentMethodId))
+			if (paymentMethod.length === 0) {
 				throw new NotFoundError(
-					`Payment method config with ID ${data.paymentMethodConfigId} not found`,
-					'PAYMENT_METHOD_CONFIG_NOT_FOUND',
+					`Payment method with ID ${data.paymentMethodId} not found`,
+					'PAYMENT_METHOD_NOT_FOUND',
 				)
 			}
 
@@ -125,21 +142,27 @@ export class LocationPaymentMethodRepo {
 				.returning({ id: locationPaymentMethodsTable.id })
 
 			if (!inserted)
-				throw new InternalServerError('Location payment method creation failed', 'LOCATION_PAYMENT_METHOD_CREATE_FAILED')
+				throw new InternalServerError(
+					'Location payment method creation failed',
+					'LOCATION_PAYMENT_METHOD_CREATE_FAILED',
+				)
 
 			return inserted
 		})
 	}
 
 	async update(
-		id: string,
+		id: number,
 		data: Partial<LocationPaymentMethodUpdateDto>,
 		actorId: string,
-	): Promise<{ id: string }> {
+	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodRepo.update', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(`Location payment method with ID ${id} not found`, 'LOCATION_PAYMENT_METHOD_NOT_FOUND')
+				throw new NotFoundError(
+					`Location payment method with ID ${id} not found`,
+					'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				)
 
 			// If setting as default, unset other defaults for this location
 			if (data.isDefault === true && !existing.isDefault) {
@@ -169,19 +192,24 @@ export class LocationPaymentMethodRepo {
 		})
 	}
 
-	async delete(id: string): Promise<{ id: string }> {
+	async delete(id: number): Promise<{ id: number }> {
 		return record('LocationPaymentMethodRepo.delete', async () => {
 			const existing = await this.getById(id)
 			if (!existing)
-				throw new NotFoundError(`Location payment method with ID ${id} not found`, 'LOCATION_PAYMENT_METHOD_NOT_FOUND')
+				throw new NotFoundError(
+					`Location payment method with ID ${id} not found`,
+					'LOCATION_PAYMENT_METHOD_NOT_FOUND',
+				)
 
-			await this.db.delete(locationPaymentMethodsTable).where(eq(locationPaymentMethodsTable.id, id))
+			await this.db
+				.delete(locationPaymentMethodsTable)
+				.where(eq(locationPaymentMethodsTable.id, id))
 
 			return { id }
 		})
 	}
 
-	async deleteByLocation(locationId: string): Promise<number> {
+	async deleteByLocation(locationId: number): Promise<number> {
 		return record('LocationPaymentMethodRepo.deleteByLocation', async () => {
 			const result = await this.db
 				.delete(locationPaymentMethodsTable)

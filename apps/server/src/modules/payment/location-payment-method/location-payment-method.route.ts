@@ -1,5 +1,7 @@
 import {
+	z,
 	zc,
+	zp,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 	zq,
@@ -38,7 +40,11 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 				const locationPaymentMethod = await service.handleDetail(query.id)
 				return res.ok(locationPaymentMethod)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(LocationPaymentMethodDto), auth: true },
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(LocationPaymentMethodDto),
+				auth: true,
+			},
 		)
 		.get(
 			'/by-location',
@@ -46,7 +52,11 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 				const result = await service.getByLocation(query.locationId)
 				return res.ok(result)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(zc.array(LocationPaymentMethodDto)), auth: true },
+			{
+				query: z.object({ locationId: zp.num }),
+				response: createSuccessResponseSchema(zc.array(LocationPaymentMethodDto)),
+				auth: true,
+			},
 		)
 		.post(
 			'/create',

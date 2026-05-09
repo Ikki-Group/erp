@@ -6,7 +6,9 @@ export const LocationPaymentMethodCredentialsDto = z.object({
 	accountNumber: zc.strTrim.optional(),
 	terminalId: zc.strTrim.optional(),
 })
-export type LocationPaymentMethodCredentialsDto = z.infer<typeof LocationPaymentMethodCredentialsDto>
+export type LocationPaymentMethodCredentialsDto = z.infer<
+	typeof LocationPaymentMethodCredentialsDto
+>
 
 export const LocationPaymentMethodConfigDto = z.object({
 	minAmount: zp.num.optional(),
@@ -18,9 +20,9 @@ export type LocationPaymentMethodConfigDto = z.infer<typeof LocationPaymentMetho
 
 export const LocationPaymentMethodDto = z.object({
 	...zc.RecordId.shape,
-	locationId: zp.str,
-	paymentMethodConfigId: zp.str,
-	paymentProviderId: zp.str.nullable(),
+	locationId: zp.num,
+	paymentMethodId: zp.num,
+	paymentProviderId: zp.num.nullable(),
 	isEnabled: zp.bool,
 	isDefault: zp.bool,
 	credentials: LocationPaymentMethodCredentialsDto.nullable(),
@@ -31,9 +33,9 @@ export const LocationPaymentMethodDto = z.object({
 export type LocationPaymentMethodDto = z.infer<typeof LocationPaymentMethodDto>
 
 export const LocationPaymentMethodCreateDto = z.object({
-	locationId: zp.str,
-	paymentMethodConfigId: zp.str,
-	paymentProviderId: zp.str.nullable(),
+	locationId: zp.num,
+	paymentMethodId: zp.num,
+	paymentProviderId: zp.num.nullable(),
 	isEnabled: zp.bool.default(true),
 	isDefault: zp.bool.default(false),
 	credentials: LocationPaymentMethodCredentialsDto.optional(),
@@ -48,9 +50,9 @@ export const LocationPaymentMethodUpdateDto = z.object({
 export type LocationPaymentMethodUpdateDto = z.infer<typeof LocationPaymentMethodUpdateDto>
 
 export const LocationPaymentMethodFilterDto = z.object({
-	locationId: zp.str.optional(),
-	paymentMethodConfigId: zp.str.optional(),
-	paymentProviderId: zp.str.optional(),
+	locationId: zp.num.optional(),
+	paymentMethodId: zp.num.optional(),
+	paymentProviderId: zp.num.optional(),
 	isEnabled: zp.bool.optional(),
 	...zq.pagination.shape,
 })
