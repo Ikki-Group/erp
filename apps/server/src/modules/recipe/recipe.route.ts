@@ -56,7 +56,7 @@ export function initRecipeRoute(service: RecipeService) {
 				auth: true,
 			},
 		)
-		.post(
+		.delete(
 			'/remove',
 			async function remove({ query, auth }) {
 				await service.handleRemove(query.id, auth.userId)
