@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { AwardIcon, UsersIcon, GiftIcon } from 'lucide-react'
 import {
@@ -22,7 +23,11 @@ import { ReportDateFilter } from '@/components/reui/report-date-filter'
 
 import { crmReportApi } from '@/features/reporting/api'
 
-export default function LoyaltyPointsReportRoute() {
+export const Route = createFileRoute('/_app/reports/crm/loyalty-points')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
 	const [dateRange, setDateRange] = useState({
 		dateFrom: new Date(Date.now() - 30 * 86400000),
 		dateTo: new Date(),

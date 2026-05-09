@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { UsersIcon, DollarSignIcon } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
@@ -15,7 +16,11 @@ import { crmReportApi } from '@/features/reporting/api'
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
-export default function TopCustomersReportRoute() {
+export const Route = createFileRoute('/_app/reports/crm/top-customers')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
 	const [dateRange, setDateRange] = useState({
 		dateFrom: new Date(Date.now() - 30 * 86400000),
 		dateTo: new Date(),

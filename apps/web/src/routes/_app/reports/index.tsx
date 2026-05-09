@@ -6,7 +6,9 @@ import { Page } from '@/components/layout/page'
 
 import { Card } from '@/components/ui/card'
 
-export const Route = createFileRoute('/_app/reports/')({ component: ReportsOverviewPage })
+export const Route = createFileRoute('/_app/reports/')({
+	component: RouteComponent,
+})
 
 const reportGroups = [
 	{
@@ -59,7 +61,7 @@ const reportGroups = [
 	},
 ]
 
-function ReportsOverviewPage() {
+function RouteComponent() {
 	return (
 		<Page>
 			<Page.BlockHeader
