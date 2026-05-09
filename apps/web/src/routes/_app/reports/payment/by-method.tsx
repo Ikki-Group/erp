@@ -1,25 +1,40 @@
 import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+
 import { CreditCardIcon, TrendingUpIcon, HashIcon } from 'lucide-react'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+
 import { Page } from '@/components/layout/page'
 import { CardStat } from '@/components/reui/card-stat'
 import { ChartCard } from '@/components/reui/chart-card'
 import { ChartContainer } from '@/components/reui/chart-container'
 import { ReportDateFilter } from '@/components/reui/report-date-filter'
+
 import { paymentReportApi } from '@/features/reporting/api'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
-export default function PaymentByMethodRoute() {
-	const [dateRange, setDateRange] = useState({ dateFrom: new Date(Date.now() - 30 * 86400000), dateTo: new Date() })
+export const Route = createFileRoute('/_app/reports/payment/by-method')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
+	const [dateRange, setDateRange] = useState({
+		dateFrom: new Date(Date.now() - 30 * 86400000),
+		dateTo: new Date(),
+	})
 	const { data, isLoading } = useQuery(paymentReportApi.byMethod.query(dateRange))
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
 
 	return (
 		<Page size="xl">
-			<Page.BlockHeader title="Pembayaran per Metode" description="Distribusi pembayaran berdasarkan metode." />
+			<Page.BlockHeader
+				title="Pembayaran per Metode"
+				description="Distribusi pembayaran berdasarkan metode."
+			/>
 			<Page.Content className="flex flex-col gap-6">
 				<ReportDateFilter {...dateRange} onChange={setDateRange} />
 				<div className="grid gap-4 md:grid-cols-3">
@@ -45,7 +60,13 @@ export default function PaymentByMethodRoute() {
 										<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
 									))}
 								</Pie>
-								<Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+								<Tooltip
+									contentStyle={{
+										backgroundColor: 'hsl(var(--card))',
+										border: '1px solid hsl(var(--border))',
+										borderRadius: '8px',
+									}}
+								/>
 								<Legend />
 							</PieChart>
 						</ResponsiveContainer>
