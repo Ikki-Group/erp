@@ -1,27 +1,54 @@
 import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+
 import { StoreIcon, DollarSignIcon, TrendingUpIcon, HashIcon } from 'lucide-react'
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	ResponsiveContainer,
+	Legend,
+} from 'recharts'
+
 import { Page } from '@/components/layout/page'
 import { CardStat } from '@/components/reui/card-stat'
 import { ChartCard } from '@/components/reui/chart-card'
 import { ChartContainer } from '@/components/reui/chart-container'
 import { ReportDateFilter } from '@/components/reui/report-date-filter'
-import { insightsReportApi } from '@/features/reporting/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
-export default function LocationPerformanceReportRoute() {
-	const [dateRange, setDateRange] = useState({ dateFrom: new Date(Date.now() - 30 * 86400000), dateTo: new Date() })
+import { insightsReportApi } from '@/features/reporting/api'
+
+export const Route = createFileRoute('/_app/reports/insights/location-performance')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
+	const [dateRange, setDateRange] = useState({
+		dateFrom: new Date(Date.now() - 30 * 86400000),
+		dateTo: new Date(),
+	})
 	const { data, isLoading } = useQuery(insightsReportApi.location.query(dateRange))
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
 	const totalRevenue = chartData.reduce((s, d) => s + Number(d.totalRevenue), 0)
 	const totalSales = chartData.reduce((s, d) => s + Number(d.totalSales), 0)
 	const totalProfit = chartData.reduce((s, d) => s + Number(d.profit), 0)
-	const avgOrderValue = chartData.length > 0 ? chartData.reduce((s, d) => s + Number(d.avgOrderValue), 0) / chartData.length : 0
+	const avgOrderValue =
+		chartData.length > 0
+			? chartData.reduce((s, d) => s + Number(d.avgOrderValue), 0) / chartData.length
+			: 0
 
 	return (
 		<Page size="xl">
-			<Page.BlockHeader title="Lokasi Performa" description="Kinerja lokasi berdasarkan revenue dan profit." />
+			<Page.BlockHeader
+				title="Lokasi Performa"
+				description="Kinerja lokasi berdasarkan revenue dan profit."
+			/>
 			<Page.Content className="flex flex-col gap-6">
 				<ReportDateFilter {...dateRange} onChange={setDateRange} />
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -37,7 +64,13 @@ export default function LocationPerformanceReportRoute() {
 								<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
 								<XAxis dataKey="locationName" className="text-xs text-muted-foreground" />
 								<YAxis className="text-xs text-muted-foreground" />
-								<Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+								<Tooltip
+									contentStyle={{
+										backgroundColor: 'hsl(var(--card))',
+										border: '1px solid hsl(var(--border))',
+										borderRadius: '8px',
+									}}
+								/>
 								<Legend />
 								<Bar dataKey="totalRevenue" fill="#6366f1" name="Revenue" />
 								<Bar dataKey="profit" fill="#10b981" name="Profit" />
