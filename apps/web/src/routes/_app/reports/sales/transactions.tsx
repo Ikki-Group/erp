@@ -1,12 +1,17 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { Page } from '@/components/layout/page'
 
 import { salesOrderApi } from '@/features/sales/api'
 
-export default function SalesTransactionsReportRoute() {
+export const Route = createFileRoute('/_app/reports/sales/transactions')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
 	const { data, isLoading } = useQuery(salesOrderApi.list.query({ page: 1, limit: 10 }))
 
 	return (

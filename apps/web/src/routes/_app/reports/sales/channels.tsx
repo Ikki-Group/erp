@@ -20,7 +20,7 @@ import type { SalesReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/sales/channels')({
-	component: SalesChannelsReport,
+	component: RouteComponent,
 })
 
 const COLORS = [
@@ -34,7 +34,7 @@ const COLORS = [
 const locationConfig = { revenue: { label: 'Pendapatan', color: 'oklch(var(--primary))' } }
 const typeConfig = { revenue: { label: 'Pendapatan', color: 'oklch(var(--chart-1))' } }
 
-function SalesChannelsReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data: locationData } = useQuery(

@@ -22,7 +22,7 @@ import type { SalesReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/sales/revenue')({
-	component: SalesRevenueReport,
+	component: RouteComponent,
 })
 
 const chartConfig = {
@@ -30,7 +30,7 @@ const chartConfig = {
 	orderCount: { label: 'Jumlah Order', color: 'oklch(var(--chart-2))' },
 }
 
-function SalesRevenueReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data } = useQuery(salesReportApi.revenue.query(filter as SalesReportRequestDto))
