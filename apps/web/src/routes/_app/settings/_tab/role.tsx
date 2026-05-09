@@ -113,7 +113,7 @@ function RolesTable() {
 			confirmValidationText: role.name,
 			onConfirm: async () => {
 				await toast
-					.promise(remove.mutateAsync({ body: { id: role.id } }), {
+					.promise(remove.mutateAsync({ params: { id: role.id } }), {
 						...toastLabelMessage('delete', 'role'),
 					})
 					.unwrap()

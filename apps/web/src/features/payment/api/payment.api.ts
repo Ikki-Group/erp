@@ -53,7 +53,7 @@ export const paymentApi = {
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.payment.transaction.remove,
-		body: zc.RecordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.payment.transaction.list],
 	}),

@@ -65,8 +65,8 @@ export const userApi = {
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.iam.user.remove,
-		body: zc.RecordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [userKeys.lists(), ({ body }) => userKeys.detail(body.id)],
+		invalidates: [userKeys.lists(), ({ params }) => userKeys.detail(params.id)],
 	}),
 }

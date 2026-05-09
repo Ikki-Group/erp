@@ -80,7 +80,7 @@ function UserTable() {
 						onConfirm: async () => {
 							await toast
 								.promise(
-									remove.mutateAsync({ body: { id: user.id } }),
+									remove.mutateAsync({ params: { id: user.id } }),
 									toastLabelMessage('delete', 'pengguna'),
 								)
 								.unwrap()

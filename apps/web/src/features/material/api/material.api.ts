@@ -65,11 +65,11 @@ export const materialApi = {
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.material.remove,
-		body: zc.RecordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [
 			materialKeys.lists(),
-			({ body }) => materialKeys.detail(body.id),
+			({ params }) => materialKeys.detail(params.id),
 			// Invalidate inventory when material changes (stock depends on materials)
 			endpoint.inventory.summary.byLocation,
 			endpoint.inventory.summary.ledger,

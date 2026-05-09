@@ -225,7 +225,7 @@ export function MaterialTable() {
 			variant: 'destructive',
 			confirmLabel: 'Hapus',
 			onConfirm: async () => {
-				const promise = deleteMutation.mutateAsync({ body: { id: material.id } })
+				const promise = deleteMutation.mutateAsync({ params: { id: material.id } })
 				await toast.promise(promise, toastLabelMessage('delete', 'bahan baku')).unwrap()
 			},
 		})

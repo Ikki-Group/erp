@@ -46,8 +46,8 @@ export const roleApi = {
 	remove: apiFactory({
 		method: 'delete',
 		url: endpoint.iam.role.remove,
-		body: zc.RecordId,
+		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [roleKeys.lists(), ({ body }) => roleKeys.detail(body.id)],
+		invalidates: [roleKeys.lists(), ({ params }) => roleKeys.detail(params.id)],
 	}),
 }
