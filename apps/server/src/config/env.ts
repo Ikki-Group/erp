@@ -2,7 +2,7 @@ import ms from 'ms'
 import { z } from 'zod'
 
 const Env = z.object({
-	NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+	NODE_ENV: z.enum(['development', 'production', 'test']),
 	COMMIT_SHA: z.string().optional(),
 
 	// App

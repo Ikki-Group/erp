@@ -13,6 +13,10 @@ import { env } from '@/config/env'
 const Action = z.enum(['reset', 'seed', 'seed-dev', 'all'])
 type Action = z.infer<typeof Action>
 
+const isAllowed =
+	(env.NODE_ENV === 'test' && env.DATABASE_URL.includes('test-user')) ||
+	(env.NODE_ENV === 'development' && env.DATABASE_URL.includes('dev-user'))
+
 async function reset(db: DbClient) {
 	console.log('🌱 Resetting database...')
 	const resetSql = sql`
@@ -53,6 +57,11 @@ async function seedDev(db: DbClient) {
 }
 
 export async function runDbScriptsHelper(db: DbClient, action: Action) {
+	if (!isAllowed) {
+		console.warn('Not allowed to run db scripts in this environment')
+		throw new Error('Not allowed to run db scripts in this environment')
+	}
+
 	switch (action) {
 		case 'reset':
 			await reset(db)
