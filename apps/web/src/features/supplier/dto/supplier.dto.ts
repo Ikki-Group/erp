@@ -8,7 +8,7 @@ export const SupplierDto = z.object({
 	phone: zp.strNullable,
 	address: zp.strNullable,
 	taxId: zp.strNullable,
-	...zc.AuditFull.shape,
+	...zc.AuditBasic.shape,
 })
 export type SupplierDto = z.infer<typeof SupplierDto>
 

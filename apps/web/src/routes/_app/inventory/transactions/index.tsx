@@ -143,66 +143,72 @@ function RouteComponent() {
 									<PlusIcon className="size-4 mr-2" /> Catat Transaksi
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuLabel>Penerimaan Barang</DropdownMenuLabel>
-									<DropdownMenuItem
-										nativeButton={false}
-										render={
-											<Link
-												to="/inventory/transactions/purchase"
-												className="flex items-center w-full"
-											/>
-										}
-									>
-										Pembelian
-									</DropdownMenuItem>
+									<DropdownMenuGroup>
+										<DropdownMenuLabel>Penerimaan Barang</DropdownMenuLabel>
+										<DropdownMenuItem
+											nativeButton={false}
+											render={
+												<Link
+													to="/inventory/transactions/purchase"
+													className="flex items-center w-full"
+												/>
+											}
+										>
+											Pembelian
+										</DropdownMenuItem>
+									</DropdownMenuGroup>
 									<DropdownMenuSeparator />
-									<DropdownMenuLabel>Pengeluaran Barang</DropdownMenuLabel>
-									<DropdownMenuItem
-										nativeButton={false}
-										render={
-											<Link
-												to="/inventory/transactions/usage"
-												className="flex items-center w-full"
-											/>
-										}
-									>
-										Pemakaian / Konsumsi
-									</DropdownMenuItem>
+									<DropdownMenuGroup>
+										<DropdownMenuLabel>Pengeluaran Barang</DropdownMenuLabel>
+										<DropdownMenuItem
+											nativeButton={false}
+											render={
+												<Link
+													to="/inventory/transactions/usage"
+													className="flex items-center w-full"
+												/>
+											}
+										>
+											Pemakaian / Konsumsi
+										</DropdownMenuItem>
+									</DropdownMenuGroup>
 									<DropdownMenuSeparator />
-									<DropdownMenuLabel>Mutasi & Stok Fisik</DropdownMenuLabel>
-									<DropdownMenuItem
-										nativeButton={false}
-										render={
-											<Link
-												to="/inventory/transactions/transfer"
-												className="flex items-center w-full"
-											/>
-										}
-									>
-										Mutasi Internal (Transfer)
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										nativeButton={false}
-										render={
-											<Link
-												to="/inventory/transactions/opname"
-												className="flex items-center w-full"
-											/>
-										}
-									>
-										Stock Opname
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										nativeButton={false}
-										render={
-											<Link
-												to="/inventory/transactions/adjustment"
-												className="flex items-center w-full"
-											/>
-										}
-									>
-										Koreksi / Adjustment
-									</DropdownMenuItem>
+									<DropdownMenuGroup>
+										<DropdownMenuLabel>Mutasi & Stok Fisik</DropdownMenuLabel>
+										<DropdownMenuItem
+											nativeButton={false}
+											render={
+												<Link
+													to="/inventory/transactions/transfer"
+													className="flex items-center w-full"
+												/>
+											}
+										>
+											Mutasi Internal (Transfer)
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											nativeButton={false}
+											render={
+												<Link
+													to="/inventory/transactions/opname"
+													className="flex items-center w-full"
+												/>
+											}
+										>
+											Stock Opname
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											nativeButton={false}
+											render={
+												<Link
+													to="/inventory/transactions/adjustment"
+													className="flex items-center w-full"
+												/>
+											}
+										>
+											Koreksi / Adjustment
+										</DropdownMenuItem>
+									</DropdownMenuGroup>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</div>
