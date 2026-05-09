@@ -2,17 +2,19 @@
 
 ## Overview
 
-The Payment Module provides a comprehensive system for managing payment providers, payment method configurations, and location-specific payment method settings. The design follows the business rule that only store locations can have payment methods configured.
+The Payment Module provides a comprehensive system for managing payment providers, payment methods, and location-specific payment method settings. The design follows the business rule that only store locations can have payment methods configured.
+
+A payment method can be **global** (`is_global = true`) — automatically available to all store locations — or **location-specific** (`is_global = false`) — explicitly mapped to individual stores via the junction table.
 
 ## Database Schema
 
 ### 1. Payment Providers (`payment_providers`)
 
-Master data for payment providers (e.g., BCA, BNI, Mandiri, GoPay, OVO).
+Master data for payment providers (e.g., BCA, Mandiri).
 
 **Fields:**
-- `id`: Primary key (UUID)
-- `code`: Unique provider code (e.g., 'BCA', 'BNI', 'GOPAY')
+- `id`: Primary key (serial integer)
+- `code`: Unique provider code (e.g., 'BCA', 'MANDIRI')
 - `name`: Provider display name
 - `description`: Provider description
 - `website_url`: Provider website URL
@@ -24,35 +26,37 @@ Master data for payment providers (e.g., BCA, BNI, Mandiri, GoPay, OVO).
 - `payment_providers_code_idx` on `code`
 - `payment_providers_is_active_idx` on `is_active`
 
-### 2. Payment Method Configs (`payment_method_configs`)
+### 2. Payment Methods (`payment_methods`)
 
-Global configuration for payment methods with cash/cashless flags.
+Master data for payment methods with cash/cashless flags and global availability.
 
 **Fields:**
-- `id`: Primary key (UUID)
+- `id`: Primary key (serial integer)
 - `type`: Payment method type (enum: 'cash', 'bank_transfer', 'credit_card', 'debit_card', 'e_wallet')
 - `category`: Cash vs cashless flag (enum: 'cash', 'cashless')
 - `name`: Display name for the payment method
 - `is_enabled`: Whether this payment method is enabled
 - `is_default`: Whether this is the default payment method
-- `payment_provider_id`: Reference to payment provider (optional)
+- `is_global`: Whether this payment method is available to all stores automatically
+- `payment_provider_id`: Reference to payment provider (optional, integer)
 - Audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 **Indexes:**
-- `payment_method_configs_type_idx` on `type`
-- `payment_method_configs_category_idx` on `category`
-- `payment_method_configs_is_enabled_idx` on `is_enabled`
-- `payment_method_configs_payment_provider_id_idx` on `payment_provider_id`
+- `payment_methods_type_idx` on `type`
+- `payment_methods_category_idx` on `category`
+- `payment_methods_is_enabled_idx` on `is_enabled`
+- `payment_methods_is_global_idx` on `is_global`
+- `payment_methods_payment_provider_id_idx` on `payment_provider_id`
 
 ### 3. Location Payment Methods (`location_payment_methods`)
 
 Junction table that maps which payment methods are active for specific locations. Stores location-specific credentials and configurations.
 
 **Fields:**
-- `id`: Primary key (UUID)
-- `location_id`: Reference to the location (CASCADE delete)
-- `payment_method_config_id`: Reference to the payment method configuration (CASCADE delete)
-- `payment_provider_id`: Reference to the payment provider (SET NULL on delete)
+- `id`: Primary key (serial integer)
+- `location_id`: Reference to the location (CASCADE delete, integer)
+- `payment_method_id`: Reference to the payment method (CASCADE delete, integer)
+- `payment_provider_id`: Reference to the payment provider (SET NULL on delete, integer)
 - `is_enabled`: Whether this payment method is enabled for this location
 - `is_default`: Whether this is the default payment method for this location
 - `credentials`: Provider-specific credentials (JSONB):
@@ -70,7 +74,7 @@ Junction table that maps which payment methods are active for specific locations
 
 **Indexes:**
 - `location_payment_methods_location_id_idx` on `location_id`
-- `location_payment_methods_payment_method_config_id_idx` on `payment_method_config_id`
+- `location_payment_methods_payment_method_id_idx` on `payment_method_id`
 - `location_payment_methods_payment_provider_id_idx` on `payment_provider_id`
 - `location_payment_methods_is_enabled_idx` on `is_enabled`
 
@@ -123,6 +127,17 @@ if (data.isDefault) {
 - `PUT /payment/payment-provider/update` - Update payment provider
 - `DELETE /payment/payment-provider/remove` - Delete payment provider
 
+### Payment Method Module
+
+- `GET /payment/method/list` - List payment methods with pagination
+- `GET /payment/method/detail` - Get payment method by ID
+- `GET /payment/method/enabled` - List all enabled payment methods
+- `GET /payment/method/global` - List all global payment methods
+- `POST /payment/method/create` - Create new payment method
+- `PUT /payment/method/update` - Update payment method
+- `DELETE /payment/method/remove` - Delete payment method
+- `POST /payment/method/seed` - Seed default payment methods
+
 ### Location Payment Method Module
 
 - `GET /payment/location-payment-method/list` - List location payment methods with pagination
@@ -148,17 +163,18 @@ POST /payment/payment-provider/create
 }
 ```
 
-### 2. Create a Payment Method Config
+### 2. Create a Payment Method
 
 ```typescript
 POST /payment/payment-method/create
 {
-  "type": "bank_transfer",
+  "type": "e_wallet",
   "category": "cashless",
-  "name": "BCA Transfer",
+  "name": "QRIS BCA",
   "isEnabled": true,
   "isDefault": false,
-  "paymentProviderId": "<provider-id>"
+  "isGlobal": true,
+  "paymentProviderId": 1
 }
 ```
 
@@ -167,9 +183,9 @@ POST /payment/payment-method/create
 ```typescript
 POST /payment/location-payment-method/create
 {
-  "locationId": "<store-location-id>",
-  "paymentMethodConfigId": "<payment-method-config-id>",
-  "paymentProviderId": "<provider-id>",
+  "locationId": 1,
+  "paymentMethodId": 2,
+  "paymentProviderId": 1,
   "isEnabled": true,
   "isDefault": true,
   "credentials": {
@@ -188,15 +204,21 @@ POST /payment/location-payment-method/create
 ### 4. Get Payment Methods for a Location
 
 ```typescript
-GET /payment/location-payment-method/by-location?locationId=<store-location-id>
+GET /payment/location-payment-method/by-location?locationId=1
+```
+
+### 5. Get Global Payment Methods
+
+```typescript
+GET /payment/payment-method/global
 ```
 
 ## Relations
 
 ```
 locationsTable (1) ----< (N) locationPaymentMethodsTable
-paymentMethodConfigsTable (1) ----< (N) locationPaymentMethodsTable
-paymentProvidersTable (1) ----< (N) paymentMethodConfigsTable
+paymentMethodsTable (1) ----< (N) locationPaymentMethodsTable
+paymentProvidersTable (1) ----< (N) paymentMethodsTable
 paymentProvidersTable (1) ----< (N) locationPaymentMethodsTable
 ```
 
@@ -204,7 +226,7 @@ paymentProvidersTable (1) ----< (N) locationPaymentMethodsTable
 
 1. **Credentials Storage**: Payment method credentials are stored as JSONB in the database. In production, consider encrypting sensitive fields.
 
-2. **System Protection**: System providers and payment method configs are protected from modification/deletion.
+2. **System Protection**: System providers and payment methods are protected from modification/deletion.
 
 3. **Location Type Validation**: Only store locations can have payment methods configured.
 
