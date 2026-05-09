@@ -1,4 +1,4 @@
-import { integer, pgTable, text } from 'drizzle-orm/pg-core'
+import { boolean, integer, pgTable, text } from 'drizzle-orm/pg-core'
 import { unique } from 'drizzle-orm/pg-core'
 import { index } from 'drizzle-orm/pg-core'
 
@@ -13,6 +13,7 @@ export const salesTypesTable = pgTable(
 		locationId: integer().references(() => locationsTable.id, { onDelete: 'cascade' }),
 		code: text().notNull().unique(),
 		name: text().notNull(),
+		isSystem: boolean().notNull().default(false),
 		...auditBasicColumns,
 	},
 	(t) => [
