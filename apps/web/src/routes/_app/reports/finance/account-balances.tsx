@@ -15,7 +15,7 @@ import type { FinanceReportRequestDto, AccountBalanceDto } from '@/features/repo
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/finance/account-balances')({
-	component: FinanceAccountBalancesReport,
+	component: RouteComponent,
 })
 
 const ch = createColumnHelper<AccountBalanceDto>()
@@ -38,7 +38,7 @@ const columns = [
 	),
 ]
 
-function FinanceAccountBalancesReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data, isLoading } = useQuery(

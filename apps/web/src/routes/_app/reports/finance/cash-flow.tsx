@@ -22,7 +22,7 @@ import type { FinanceReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/finance/cash-flow')({
-	component: FinanceCashFlowReport,
+	component: RouteComponent,
 })
 
 const chartConfig = {
@@ -31,7 +31,7 @@ const chartConfig = {
 	net: { label: 'Bersih', color: 'oklch(var(--primary))' },
 }
 
-function FinanceCashFlowReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data } = useQuery(financeReportApi.cashFlow.query(filter as FinanceReportRequestDto))

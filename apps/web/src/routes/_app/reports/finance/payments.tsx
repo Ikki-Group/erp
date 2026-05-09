@@ -20,7 +20,9 @@ import { paymentApi } from '@/features/payment'
 import type { PaymentDto } from '@/features/payment'
 import { PaymentFormDialog } from '@/features/payment/components'
 
-export const Route = createFileRoute('/_app/reports/finance/payments')({ component: PaymentsPage })
+export const Route = createFileRoute('/_app/reports/finance/payments')({
+	component: RouteComponent,
+})
 
 const ch = createColumnHelper<PaymentDto>()
 
@@ -69,7 +71,7 @@ const columns = [
 	}),
 ]
 
-function PaymentsPage() {
+function RouteComponent() {
 	const [showPaymentDialog, setShowPaymentDialog] = React.useState(false)
 
 	const { data: paymentsData, isLoading } = useQuery(paymentApi.list.query({ page: 1, limit: 100 }))

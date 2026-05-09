@@ -24,7 +24,9 @@ import { Input } from '@/components/ui/input'
 import { purchaseOrderApi } from '@/features/purchasing'
 import { salesOrderApi } from '@/features/sales'
 
-export const Route = createFileRoute('/_app/reports/finance/ledger-ar-ap')({ component: FinanceArApPage })
+export const Route = createFileRoute('/_app/reports/finance/ledger-ar-ap')({
+	component: RouteComponent,
+})
 
 interface ArApEntry {
 	id: string
@@ -89,7 +91,7 @@ const columns = [
 	),
 ]
 
-function FinanceArApPage() {
+function RouteComponent() {
 	const [search, setSearch] = useState('')
 
 	const { data: salesData, isLoading: isLoadingSales } = useQuery(

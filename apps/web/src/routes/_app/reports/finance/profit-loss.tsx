@@ -18,7 +18,9 @@ import { Card } from '@/components/ui/card'
 import { expenditureApi } from '@/features/finance'
 import { salesReportApi } from '@/features/reporting'
 
-export const Route = createFileRoute('/_app/reports/finance/profit-loss')({ component: FinanceProfitLoss })
+export const Route = createFileRoute('/_app/reports/finance/profit-loss')({
+	component: RouteComponent,
+})
 
 function MetricCard({
 	title,
@@ -47,7 +49,7 @@ function MetricCard({
 	)
 }
 
-function FinanceProfitLoss() {
+function RouteComponent() {
 	const dateFrom = useMemo(() => new Date(new Date().setDate(1)), [])
 	const dateTo = useMemo(() => new Date(), [])
 

@@ -21,7 +21,9 @@ import { accountApi } from '@/features/finance'
 import { expenditureApi } from '@/features/finance'
 import { paymentApi } from '@/features/payment'
 
-export const Route = createFileRoute('/_app/reports/finance/ledger')({ component: FinanceLedgerPage })
+export const Route = createFileRoute('/_app/reports/finance/ledger')({
+	component: RouteComponent,
+})
 
 interface LedgerEntry {
 	id: string
@@ -87,7 +89,7 @@ const columns = [
 	}),
 ]
 
-function FinanceLedgerPage() {
+function RouteComponent() {
 	const [search, setSearch] = useState('')
 
 	const dateFrom = useMemo(() => new Date(new Date().setDate(1)), [])

@@ -30,7 +30,7 @@ import type { FinanceReportRequestDto, ExpenditureByCategoryDto } from '@/featur
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/finance/expenses')({
-	component: FinanceExpensesReport,
+	component: RouteComponent,
 })
 
 const COLORS = [
@@ -43,7 +43,7 @@ const COLORS = [
 
 const chartConfig = { totalAmount: { label: 'Total', color: 'oklch(var(--chart-1))' } }
 
-function FinanceExpensesReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data } = useQuery(
