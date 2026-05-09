@@ -54,7 +54,7 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 			},
 			{
 				query: z.object({ locationId: zp.num }),
-				response: createSuccessResponseSchema(zc.array(LocationPaymentMethodDto)),
+				response: createSuccessResponseSchema(z.array(LocationPaymentMethodDto)),
 				auth: true,
 			},
 		)
@@ -88,6 +88,6 @@ export function initLocationPaymentMethodRoute(service: LocationPaymentMethodSer
 				await service.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zq.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

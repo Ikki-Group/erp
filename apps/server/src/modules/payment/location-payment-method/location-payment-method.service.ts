@@ -72,7 +72,7 @@ export class LocationPaymentMethodService {
 
 	async handleCreate(
 		data: LocationPaymentMethodCreateDto,
-		actorId: string,
+		actorId: number,
 	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodService.handleCreate', async () => {
 			const result = await this.repo.create(data, actorId)
@@ -84,7 +84,7 @@ export class LocationPaymentMethodService {
 	async handleUpdate(
 		id: number,
 		data: Partial<LocationPaymentMethodUpdateDto>,
-		actorId: string,
+		actorId: number,
 	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodService.handleUpdate', async () => {
 			const existing = await this.getById(id)

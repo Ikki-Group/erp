@@ -1,9 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
-	searchFilter,
 	sortBy,
 	stampCreate,
 	stampUpdate,
@@ -154,7 +153,7 @@ export class LocationPaymentMethodRepo {
 	async update(
 		id: number,
 		data: Partial<LocationPaymentMethodUpdateDto>,
-		actorId: string,
+		actorId: number,
 	): Promise<{ id: number }> {
 		return record('LocationPaymentMethodRepo.update', async () => {
 			const existing = await this.getById(id)
