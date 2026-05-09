@@ -20,7 +20,7 @@ export class SalesTypeServiceModule {
 }
 
 export function initSalesTypeRouteModule(s: SalesTypeServiceModule) {
-	return new Elysia({ prefix: '/sales-type' }).use(initSalesTypeRoute(s.salesType))
+	return new Elysia().use(initSalesTypeRoute(s.salesType))
 }
 
 export * from './sales-type.dto'

@@ -7,7 +7,7 @@ import type { CrmServiceModule } from '@/modules/crm'
 import type { LocationServiceModule } from '@/modules/location'
 import type { ProductServiceModule } from '@/modules/product'
 
-import type { SalesTypeServiceModule } from '../sales-type'
+import { initSalesTypeRouteModule, type SalesTypeServiceModule } from '../sales-type'
 import { SalesInvoiceRepo } from './sales-invoice/sales-invoice.repo'
 import { initSalesInvoiceRoute } from './sales-invoice/sales-invoice.route'
 import { SalesInvoiceService } from './sales-invoice/sales-invoice.service'
@@ -43,6 +43,7 @@ export function initSalesRouteModule(s: SalesServiceModule) {
 	return new Elysia({ prefix: '/sales' })
 		.use(initSalesOrderRoute(s.order))
 		.use(initSalesInvoiceRoute(s.invoice))
+		.use(initSalesTypeRouteModule(s.deps.salesType))
 }
 
 export * from './sales-order/sales-order.dto'
