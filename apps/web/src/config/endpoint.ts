@@ -138,7 +138,9 @@ const moka = {
 
 const production = {
 	workOrder: {
-		...crud('production/work-orders'),
+		list: 'production/work-orders/list',
+		detail: 'production/work-orders/detail',
+		create: 'production/work-orders/create',
 		start: 'production/work-orders/start',
 		complete: 'production/work-orders/complete',
 	},
@@ -147,7 +149,10 @@ const production = {
 const purchasing = {
 	order: crud('purchasing/purchase-order'),
 	goodsReceipt: {
-		...crud('purchasing/goods-receipt'),
+		list: 'purchasing/goods-receipt/list',
+		detail: 'purchasing/goods-receipt/detail',
+		create: 'purchasing/goods-receipt/create',
+		remove: 'purchasing/goods-receipt/remove',
 		complete: 'purchasing/goods-receipt/complete',
 	},
 }
