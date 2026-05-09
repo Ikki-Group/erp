@@ -281,6 +281,25 @@ CREATE TABLE "leave_requests" (
 	"sync_at" timestamp with time zone
 );
 --> statement-breakpoint
+CREATE TABLE "location_payment_methods" (
+	"id" serial PRIMARY KEY,
+	"location_id" integer NOT NULL,
+	"payment_method_id" integer NOT NULL,
+	"payment_provider_id" integer,
+	"is_enabled" boolean DEFAULT true NOT NULL,
+	"is_default" boolean DEFAULT false NOT NULL,
+	"credentials" jsonb,
+	"config" jsonb,
+	"enabled_at" timestamp,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE "locations" (
 	"id" serial PRIMARY KEY,
 	"code" text,
@@ -428,13 +447,32 @@ CREATE TABLE "payment_invoices" (
 	"sync_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "payment_method_configs" (
+CREATE TABLE "payment_methods" (
 	"id" serial PRIMARY KEY,
 	"type" "payment_method" NOT NULL,
 	"category" "payment_method_category" NOT NULL,
 	"name" text NOT NULL,
 	"is_enabled" boolean DEFAULT true NOT NULL,
 	"is_default" boolean DEFAULT false NOT NULL,
+	"is_global" boolean DEFAULT false NOT NULL,
+	"payment_provider_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" integer NOT NULL,
+	"updated_by" integer NOT NULL,
+	"deleted_by" integer,
+	"sync_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "payment_providers" (
+	"id" serial PRIMARY KEY,
+	"code" text NOT NULL UNIQUE,
+	"name" text NOT NULL,
+	"description" text,
+	"website_url" text,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"is_system" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -868,6 +906,7 @@ CREATE TABLE "sales_types" (
 	"locationId" integer,
 	"code" text NOT NULL UNIQUE,
 	"name" text NOT NULL,
+	"isSystem" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"created_by" integer NOT NULL,
@@ -1179,6 +1218,10 @@ CREATE INDEX "journal_entries_date_idx" ON "journal_entries" ("date");--> statem
 CREATE INDEX "journal_entries_source_idx" ON "journal_entries" ("source_type","source_id");--> statement-breakpoint
 CREATE INDEX "journal_items_entry_idx" ON "journal_items" ("journal_entry_id");--> statement-breakpoint
 CREATE INDEX "journal_items_account_idx" ON "journal_items" ("account_id");--> statement-breakpoint
+CREATE INDEX "location_payment_methods_location_id_idx" ON "location_payment_methods" ("location_id");--> statement-breakpoint
+CREATE INDEX "location_payment_methods_payment_method_id_idx" ON "location_payment_methods" ("payment_method_id");--> statement-breakpoint
+CREATE INDEX "location_payment_methods_payment_provider_id_idx" ON "location_payment_methods" ("payment_provider_id");--> statement-breakpoint
+CREATE INDEX "location_payment_methods_is_enabled_idx" ON "location_payment_methods" ("is_enabled");--> statement-breakpoint
 CREATE UNIQUE INDEX "locations_code_idx" ON "locations" ("code");--> statement-breakpoint
 CREATE UNIQUE INDEX "locations_name_idx" ON "locations" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "material_categories_name_idx" ON "material_categories" ("name");--> statement-breakpoint
@@ -1205,9 +1248,13 @@ CREATE INDEX "moka_sync_cursor_history_idx" ON "moka_sync_cursors" ("lastHistory
 CREATE INDEX "payment_invoices_payment_idx" ON "payment_invoices" ("paymentId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_sales_inv_idx" ON "payment_invoices" ("salesInvoiceId");--> statement-breakpoint
 CREATE INDEX "payment_invoices_purchase_inv_idx" ON "payment_invoices" ("purchaseInvoiceId");--> statement-breakpoint
-CREATE INDEX "payment_method_configs_type_idx" ON "payment_method_configs" ("type");--> statement-breakpoint
-CREATE INDEX "payment_method_configs_category_idx" ON "payment_method_configs" ("category");--> statement-breakpoint
-CREATE INDEX "payment_method_configs_is_enabled_idx" ON "payment_method_configs" ("is_enabled");--> statement-breakpoint
+CREATE INDEX "payment_methods_type_idx" ON "payment_methods" ("type");--> statement-breakpoint
+CREATE INDEX "payment_methods_category_idx" ON "payment_methods" ("category");--> statement-breakpoint
+CREATE INDEX "payment_methods_is_enabled_idx" ON "payment_methods" ("is_enabled");--> statement-breakpoint
+CREATE INDEX "payment_methods_is_global_idx" ON "payment_methods" ("is_global");--> statement-breakpoint
+CREATE INDEX "payment_methods_payment_provider_id_idx" ON "payment_methods" ("payment_provider_id");--> statement-breakpoint
+CREATE INDEX "payment_providers_code_idx" ON "payment_providers" ("code");--> statement-breakpoint
+CREATE INDEX "payment_providers_is_active_idx" ON "payment_providers" ("is_active");--> statement-breakpoint
 CREATE INDEX "payments_date_idx" ON "payments" ("date");--> statement-breakpoint
 CREATE INDEX "payments_account_idx" ON "payments" ("account_id");--> statement-breakpoint
 CREATE INDEX "payments_type_idx" ON "payments" ("type");--> statement-breakpoint
@@ -1244,6 +1291,7 @@ CREATE INDEX "recipe_items_uom_idx" ON "recipe_items" ("uomId");--> statement-br
 CREATE UNIQUE INDEX "recipes_material_idx" ON "recipes" ("materialId") WHERE "materialId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_product_idx" ON "recipes" ("productId") WHERE "productId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
 CREATE UNIQUE INDEX "recipes_product_variant_idx" ON "recipes" ("productVariantId") WHERE "productVariantId" IS NOT NULL AND "deleted_at" IS NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "roles_code_idx" ON "roles" ("code");--> statement-breakpoint
 CREATE UNIQUE INDEX "sales_external_refs_source_ext_id_idx" ON "sales_external_refs" ("externalSource","externalOrderId");--> statement-breakpoint
 CREATE INDEX "sales_external_refs_order_idx" ON "sales_external_refs" ("orderId");--> statement-breakpoint
 CREATE INDEX "sales_invoice_items_invoice_idx" ON "sales_invoice_items" ("invoiceId");--> statement-breakpoint
@@ -1325,6 +1373,9 @@ ALTER TABLE "goods_receipt_notes" ADD CONSTRAINT "goods_receipt_notes_supplierId
 ALTER TABLE "journal_items" ADD CONSTRAINT "journal_items_journal_entry_id_journal_entries_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "journal_entries"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "journal_items" ADD CONSTRAINT "journal_items_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "accounts"("id");--> statement-breakpoint
 ALTER TABLE "leave_requests" ADD CONSTRAINT "leave_requests_employee_id_employees_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "location_payment_methods" ADD CONSTRAINT "location_payment_methods_location_id_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "location_payment_methods" ADD CONSTRAINT "location_payment_methods_fS3Ob7JTlMq0_fkey" FOREIGN KEY ("payment_method_id") REFERENCES "payment_methods"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "location_payment_methods" ADD CONSTRAINT "location_payment_methods_N34VZ9RW0bR6_fkey" FOREIGN KEY ("payment_provider_id") REFERENCES "payment_providers"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "material_conversions" ADD CONSTRAINT "material_conversions_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "material_conversions" ADD CONSTRAINT "material_conversions_uomId_uoms_id_fkey" FOREIGN KEY ("uomId") REFERENCES "uoms"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "material_locations" ADD CONSTRAINT "material_locations_materialId_materials_id_fkey" FOREIGN KEY ("materialId") REFERENCES "materials"("id") ON DELETE CASCADE;--> statement-breakpoint
@@ -1338,6 +1389,7 @@ ALTER TABLE "moka_sync_cursors" ADD CONSTRAINT "moka_sync_cursors_lastHistoryId_
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_paymentId_payments_id_fkey" FOREIGN KEY ("paymentId") REFERENCES "payments"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_salesInvoiceId_sales_invoices_id_fkey" FOREIGN KEY ("salesInvoiceId") REFERENCES "sales_invoices"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "payment_invoices" ADD CONSTRAINT "payment_invoices_purchaseInvoiceId_purchase_invoices_id_fkey" FOREIGN KEY ("purchaseInvoiceId") REFERENCES "purchase_invoices"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "payment_methods" ADD CONSTRAINT "payment_methods_payment_provider_id_payment_providers_id_fkey" FOREIGN KEY ("payment_provider_id") REFERENCES "payment_providers"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "accounts"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "payroll_adjustments" ADD CONSTRAINT "payroll_adjustments_payroll_item_id_payroll_items_id_fkey" FOREIGN KEY ("payroll_item_id") REFERENCES "payroll_items"("id");--> statement-breakpoint
 ALTER TABLE "payroll_items" ADD CONSTRAINT "payroll_items_batch_id_payroll_batches_id_fkey" FOREIGN KEY ("batch_id") REFERENCES "payroll_batches"("id");--> statement-breakpoint

@@ -108,7 +108,7 @@ export class RoleRepo {
 					.insert(rolesTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
-						target: rolesTable.code,
+						target: [rolesTable.code],
 						set: {
 							name: d.name,
 							description: d.description,
