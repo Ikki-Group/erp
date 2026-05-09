@@ -46,8 +46,8 @@ export const MaterialCategoryFormDialog = createCallable<MaterialCategoryFormDia
 			defaultValues: getDefaultValues(selectedCategory.data?.data),
 			onSubmit: async ({ value }) => {
 				const promise = isCreate
-					? create.mutateAsync({ body: { ...value, parentId: null } })
-					: update.mutateAsync({ body: { id, ...value, parentId: null } })
+					? create.mutateAsync({ body: { ...value } })
+					: update.mutateAsync({ body: { id, ...value } })
 
 				await toast
 					.promise(

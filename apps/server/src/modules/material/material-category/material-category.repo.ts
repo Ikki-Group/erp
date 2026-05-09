@@ -116,15 +116,4 @@ export class MaterialCategoryRepo {
 			return res
 		})
 	}
-
-	async hardRemove(id: number): Promise<{ id: number } | undefined> {
-		return record('MaterialCategoryRepo.hardRemove', async () => {
-			const [res] = await this.db
-				.delete(materialCategoriesTable)
-				.where(eq(materialCategoriesTable.id, id))
-				.returning({ id: materialCategoriesTable.id })
-
-			return res
-		})
-	}
 }
