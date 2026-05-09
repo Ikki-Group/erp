@@ -29,7 +29,7 @@ import {
 	materialsTable,
 } from './material'
 import { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
-import { paymentMethodConfigsTable } from './payment_method_config'
+import { paymentMethodsTable } from './payment_methods'
 import { paymentProvidersTable } from './payment_provider'
 import {
 	productCategoriesTable,
@@ -124,7 +124,7 @@ export const relations = defineRelations(
 		taxesTable,
 		paymentsTable,
 		paymentInvoicesTable,
-		paymentMethodConfigsTable,
+		paymentMethodsTable,
 		paymentProvidersTable,
 		locationPaymentMethodsTable,
 	},
@@ -690,13 +690,13 @@ export const relations = defineRelations(
 		// ─── Payment Configuration ─────────────────────────────────────────
 
 		paymentProvidersTable: {
-			paymentMethodConfigs: r.many.paymentMethodConfigsTable(),
+			paymentMethods: r.many.paymentMethodsTable(),
 			locationPaymentMethods: r.many.locationPaymentMethodsTable(),
 		},
 
-		paymentMethodConfigsTable: {
+		paymentMethodsTable: {
 			provider: r.one.paymentProvidersTable({
-				from: r.paymentMethodConfigsTable.paymentProviderId,
+				from: r.paymentMethodsTable.paymentProviderId,
 				to: r.paymentProvidersTable.id,
 			}),
 			locationPaymentMethods: r.many.locationPaymentMethodsTable(),
@@ -707,9 +707,9 @@ export const relations = defineRelations(
 				from: r.locationPaymentMethodsTable.locationId,
 				to: r.locationsTable.id,
 			}),
-			paymentMethodConfig: r.one.paymentMethodConfigsTable({
-				from: r.locationPaymentMethodsTable.paymentMethodConfigId,
-				to: r.paymentMethodConfigsTable.id,
+			paymentMethod: r.one.paymentMethodsTable({
+				from: r.locationPaymentMethodsTable.paymentMethodId,
+				to: r.paymentMethodsTable.id,
 			}),
 			paymentProvider: r.one.paymentProvidersTable({
 				from: r.locationPaymentMethodsTable.paymentProviderId,

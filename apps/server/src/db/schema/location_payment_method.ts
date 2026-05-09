@@ -1,8 +1,10 @@
-import { index, pgTable, text, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, pgTable, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core'
 
 import { auditColumns, pk } from '@/core/database/schema'
 
-import { paymentMethodCategoryEnum } from './_helpers'
+import { locationsTable } from './location'
+import { paymentMethodsTable } from './payment_methods'
+import { paymentProvidersTable } from './payment_provider'
 
 /**
  * Location Payment Methods Table
@@ -18,15 +20,17 @@ export const locationPaymentMethodsTable = pgTable(
 		...pk,
 
 		/** Reference to the location */
-		locationId: text('location_id').notNull().references(() => locationsTable.id, { onDelete: 'cascade' }),
-
-		/** Reference to the payment method configuration */
-		paymentMethodConfigId: text('payment_method_config_id')
+		locationId: integer('location_id')
 			.notNull()
-			.references(() => paymentMethodConfigsTable.id, { onDelete: 'cascade' }),
+			.references(() => locationsTable.id, { onDelete: 'cascade' }),
+
+		/** Reference to the payment method */
+		paymentMethodId: integer('payment_method_id')
+			.notNull()
+			.references(() => paymentMethodsTable.id, { onDelete: 'cascade' }),
 
 		/** Reference to the payment provider (optional) */
-		paymentProviderId: text('payment_provider_id').references(() => paymentProvidersTable.id, {
+		paymentProviderId: integer('payment_provider_id').references(() => paymentProvidersTable.id, {
 			onDelete: 'set null',
 		}),
 
@@ -61,13 +65,8 @@ export const locationPaymentMethodsTable = pgTable(
 	},
 	(t) => [
 		index('location_payment_methods_location_id_idx').on(t.locationId),
-		index('location_payment_methods_payment_method_config_id_idx').on(t.paymentMethodConfigId),
+		index('location_payment_methods_payment_method_id_idx').on(t.paymentMethodId),
 		index('location_payment_methods_payment_provider_id_idx').on(t.paymentProviderId),
 		index('location_payment_methods_is_enabled_idx').on(t.isEnabled),
 	],
 )
-
-// Import tables for references
-import { locationsTable } from './location'
-import { paymentMethodConfigsTable } from './payment_method_config'
-import { paymentProvidersTable } from './payment_provider'
