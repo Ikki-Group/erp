@@ -60,18 +60,18 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ body, auth }) {
-				const result = await service.handleRemove(body.id, auth.userId)
+			async function remove({ query, auth }) {
+				const result = await service.handleRemove(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
-			async function hardRemove({ body }) {
-				const result = await service.handleHardRemove(body.id)
+			async function hardRemove({ query }) {
+				const result = await service.handleHardRemove(query.id)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }

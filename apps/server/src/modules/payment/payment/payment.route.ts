@@ -73,10 +73,10 @@ export function initPaymentRoute(service: PaymentService) {
 		)
 		.delete(
 			'/remove',
-			async function remove({ body }) {
-				const result = await service.handleRemove(body.id)
+			async function remove({ query }) {
+				const result = await service.handleRemove(query.id)
 				return res.ok(result)
 			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }
