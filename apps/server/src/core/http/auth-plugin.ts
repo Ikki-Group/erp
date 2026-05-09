@@ -15,7 +15,9 @@ export function createAuthPlugin(authService: AuthServiceModule) {
 				let token = request.headers.get('authorization')
 
 				if (token) {
-					token = token.startsWith('Bearer ') ? token.slice(7) : token
+					token = token.replace('Bearer', '').trim()
+					if (!token) return { auth }
+
 					const user = await authService.auth.verifyToken(token).catch(() => null)
 					if (user) {
 						auth = new AuthContext(user)
