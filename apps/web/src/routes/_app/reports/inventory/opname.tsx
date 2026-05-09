@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { ScaleIcon, AlertTriangleIcon, HashIcon } from 'lucide-react'
 import {
@@ -22,7 +23,11 @@ import { ReportDateFilter } from '@/components/reui/report-date-filter'
 
 import { inventoryReportApi } from '@/features/reporting/api'
 
-export default function InventoryOpnameReportRoute() {
+export const Route = createFileRoute('/_app/reports/inventory/opname')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
 	const [dateRange, setDateRange] = useState({
 		dateFrom: new Date(Date.now() - 30 * 86400000),
 		dateTo: new Date(),

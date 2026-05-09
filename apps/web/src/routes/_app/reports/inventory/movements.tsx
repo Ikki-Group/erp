@@ -20,7 +20,7 @@ import type { InventoryReportRequestDto } from '@/features/reporting'
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/inventory/movements')({
-	component: InventoryMovementsReport,
+	component: RouteComponent,
 })
 
 const chartConfig = {
@@ -29,7 +29,7 @@ const chartConfig = {
 	netMovement: { label: 'Bersih', color: 'oklch(var(--primary))' },
 }
 
-function InventoryMovementsReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data } = useQuery(inventoryReportApi.movements.query(filter as InventoryReportRequestDto))

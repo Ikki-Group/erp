@@ -15,7 +15,7 @@ import type { InventoryReportRequestDto, StockLevelDto } from '@/features/report
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/inventory/stock')({
-	component: InventoryStockReport,
+	component: RouteComponent,
 })
 
 const columns: ColumnDef<StockLevelDto>[] = [
@@ -65,7 +65,7 @@ const columns: ColumnDef<StockLevelDto>[] = [
 	},
 ]
 
-function InventoryStockReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data, isLoading } = useQuery(

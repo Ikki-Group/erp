@@ -18,7 +18,7 @@ import type { InventoryReportRequestDto, StockValueDto } from '@/features/report
 import { ReportDateFilter, useReportDateRange } from '@/features/reporting/components'
 
 export const Route = createFileRoute('/_app/reports/inventory/stock-value')({
-	component: InventoryStockValueReport,
+	component: RouteComponent,
 })
 
 const chartConfig = { totalValue: { label: 'Nilai Stok', color: 'oklch(var(--primary))' } }
@@ -62,7 +62,7 @@ const columns: ColumnDef<StockValueDto>[] = [
 	},
 ]
 
-function InventoryStockValueReport() {
+function RouteComponent() {
 	const [filter, setFilter] = useReportDateRange()
 
 	const { data, isLoading } = useQuery(
