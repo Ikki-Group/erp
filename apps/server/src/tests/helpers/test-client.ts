@@ -1,8 +1,16 @@
 // oxlint-disable typescript/no-unsafe-type-assertion
 // oxlint-disable typescript/no-misused-spread
 
-import type { Elysia } from 'elysia'
 import type { TokenStore } from './token-store'
+import type { Elysia } from 'elysia'
+
+// type ApiResponse<T = any> = {
+// 	success: true,
+// 	code: string,
+// } | {
+// 	success: false,
+// 	example: string
+// }
 
 export class TestClient {
 	constructor(
@@ -26,10 +34,15 @@ export class TestClient {
 	}
 
 	withAuth(token: string): TestClient {
-		return new TestClient(this.app, this.baseUrl, {
-			...this.defaultHeaders,
-			authorization: `Bearer ${token}`,
-		}, this.tokenStore)
+		return new TestClient(
+			this.app,
+			this.baseUrl,
+			{
+				...this.defaultHeaders,
+				authorization: `Bearer ${token}`,
+			},
+			this.tokenStore,
+		)
 	}
 
 	#request(method: string, path: string, opts?: RequestInit): Promise<Response> {

@@ -11,8 +11,7 @@ describe('e2e/auth', () => {
 		const res = await testCtx.client.post('/auth/login', USER_SUPERADMIN)
 
 		const json = await testCtx.client.toJsonResponse(res)
-		expect(res.status).toBe(200)
-		expect(json.success).toBe(true)
+		expect(json.data.user.isRoot).toBe(true)
 	})
 
 	test('login fails with invalid password', async () => {
