@@ -165,7 +165,7 @@ export const stockTransactionApi = {
 		],
 	}),
 	remove: apiFactory({
-		method: 'post',
+		method: 'delete',
 		url: endpoint.inventory.transaction.remove,
 		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),

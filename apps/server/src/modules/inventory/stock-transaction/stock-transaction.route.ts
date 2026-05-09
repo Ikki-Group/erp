@@ -180,7 +180,7 @@ export function initStockTransactionRoute(s: StockTransactionService) {
 			)
 
 			/* ─────── Soft delete transaction ─────── */
-			.post(
+			.delete(
 				'/remove',
 				async function remove({ query, auth }) {
 					await s.handleRemove(query.id, auth.userId)
