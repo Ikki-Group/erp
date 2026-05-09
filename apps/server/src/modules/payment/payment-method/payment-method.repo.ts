@@ -11,37 +11,38 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { paymentMethodConfigsTable } from '@/db/schema'
+import { paymentMethodsTable } from '@/db/schema'
 
 import * as dto from './payment-method.dto'
 
-export class PaymentMethodConfigRepo {
+export class PaymentMethodRepo {
 	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(
-		filter: dto.PaymentMethodConfigFilterDto,
-	): Promise<WithPaginationResult<dto.PaymentMethodConfigDto>> {
-		return record('PaymentMethodConfigRepo.getListPaginated', async () => {
-			const { q, page, limit, category, isEnabled } = filter
+		filter: dto.PaymentMethodFilterDto,
+	): Promise<WithPaginationResult<dto.PaymentMethodDto>> {
+		return record('PaymentMethodRepo.getListPaginated', async () => {
+			const { q, page, limit, category, isEnabled, isGlobal } = filter
 			const where = and(
-				q === undefined ? undefined : searchFilter(paymentMethodConfigsTable.name, q),
-				category === undefined ? undefined : eq(paymentMethodConfigsTable.category, category),
-				isEnabled === undefined ? undefined : eq(paymentMethodConfigsTable.isEnabled, isEnabled),
+				q === undefined ? undefined : searchFilter(paymentMethodsTable.name, q),
+				category === undefined ? undefined : eq(paymentMethodsTable.category, category),
+				isEnabled === undefined ? undefined : eq(paymentMethodsTable.isEnabled, isEnabled),
+				isGlobal === undefined ? undefined : eq(paymentMethodsTable.isGlobal, isGlobal),
 			)
 
 			const result = await paginate({
 				data: ({ limit, offset }) =>
 					this.db
 						.select()
-						.from(paymentMethodConfigsTable)
+						.from(paymentMethodsTable)
 						.where(where)
-						.orderBy(paymentMethodConfigsTable.name)
+						.orderBy(paymentMethodsTable.name)
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(paymentMethodConfigsTable).where(where),
+				countQuery: this.db.select({ count: count() }).from(paymentMethodsTable).where(where),
 			})
 
 			return {
@@ -51,29 +52,39 @@ export class PaymentMethodConfigRepo {
 		})
 	}
 
-	async getList(): Promise<dto.PaymentMethodConfigDto[]> {
-		return record('PaymentMethodConfigRepo.getList', async () => {
-			const data = await this.db.select().from(paymentMethodConfigsTable)
+	async getList(): Promise<dto.PaymentMethodDto[]> {
+		return record('PaymentMethodRepo.getList', async () => {
+			const data = await this.db.select().from(paymentMethodsTable)
 			return data.map((item) => ({ ...item }))
 		})
 	}
 
-	async getEnabled(): Promise<dto.PaymentMethodConfigDto[]> {
-		return record('PaymentMethodConfigRepo.getEnabled', async () => {
+	async getEnabled(): Promise<dto.PaymentMethodDto[]> {
+		return record('PaymentMethodRepo.getEnabled', async () => {
 			const data = await this.db
 				.select()
-				.from(paymentMethodConfigsTable)
-				.where(eq(paymentMethodConfigsTable.isEnabled, true))
+				.from(paymentMethodsTable)
+				.where(eq(paymentMethodsTable.isEnabled, true))
 			return data.map((item) => ({ ...item }))
 		})
 	}
 
-	async getById(id: number): Promise<dto.PaymentMethodConfigDto | undefined> {
-		return record('PaymentMethodConfigRepo.getById', async () => {
+	async getGlobal(): Promise<dto.PaymentMethodDto[]> {
+		return record('PaymentMethodRepo.getGlobal', async () => {
 			const data = await this.db
 				.select()
-				.from(paymentMethodConfigsTable)
-				.where(eq(paymentMethodConfigsTable.id, id))
+				.from(paymentMethodsTable)
+				.where(and(eq(paymentMethodsTable.isEnabled, true), eq(paymentMethodsTable.isGlobal, true)))
+			return data.map((item) => ({ ...item }))
+		})
+	}
+
+	async getById(id: number): Promise<dto.PaymentMethodDto | undefined> {
+		return record('PaymentMethodRepo.getById', async () => {
+			const data = await this.db
+				.select()
+				.from(paymentMethodsTable)
+				.where(eq(paymentMethodsTable.id, id))
 				.limit(1)
 				.then(takeFirst)
 			return data
@@ -81,72 +92,67 @@ export class PaymentMethodConfigRepo {
 	}
 
 	async count(): Promise<number> {
-		return record('PaymentMethodConfigRepo.count', async () => {
+		return record('PaymentMethodRepo.count', async () => {
 			return this.db
 				.select({ count: count() })
-				.from(paymentMethodConfigsTable)
+				.from(paymentMethodsTable)
 				.then((rows) => rows[0]?.count ?? 0)
 		})
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(
-		data: dto.PaymentMethodConfigCreateDto,
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('PaymentMethodConfigRepo.create', async () => {
+	async create(data: dto.PaymentMethodCreateDto, actorId: number): Promise<number | undefined> {
+		return record('PaymentMethodRepo.create', async () => {
 			const metadata = stampCreate(actorId)
 			const [res] = await this.db
-				.insert(paymentMethodConfigsTable)
+				.insert(paymentMethodsTable)
 				.values({ ...data, ...metadata })
-				.returning({ id: paymentMethodConfigsTable.id })
+				.returning({ id: paymentMethodsTable.id })
 
 			return res?.id
 		})
 	}
 
-	async update(
-		data: dto.PaymentMethodConfigUpdateDto,
-		actorId: number,
-	): Promise<number | undefined> {
-		return record('PaymentMethodConfigRepo.update', async () => {
+	async update(data: dto.PaymentMethodUpdateDto, actorId: number): Promise<number | undefined> {
+		return record('PaymentMethodRepo.update', async () => {
 			const metadata = stampUpdate(actorId)
 			const [res] = await this.db
-				.update(paymentMethodConfigsTable)
+				.update(paymentMethodsTable)
 				.set({ ...data, ...metadata })
-				.where(eq(paymentMethodConfigsTable.id, data.id))
-				.returning({ id: paymentMethodConfigsTable.id })
+				.where(eq(paymentMethodsTable.id, data.id))
+				.returning({ id: paymentMethodsTable.id })
 
 			return res?.id
 		})
 	}
 
 	async remove(id: number): Promise<number | undefined> {
-		return record('PaymentMethodConfigRepo.remove', async () => {
+		return record('PaymentMethodRepo.remove', async () => {
 			const [res] = await this.db
-				.delete(paymentMethodConfigsTable)
-				.where(eq(paymentMethodConfigsTable.id, id))
-				.returning({ id: paymentMethodConfigsTable.id })
+				.delete(paymentMethodsTable)
+				.where(eq(paymentMethodsTable.id, id))
+				.returning({ id: paymentMethodsTable.id })
 
 			return res?.id
 		})
 	}
 
-	async seed(data: (dto.PaymentMethodConfigCreateDto & { createdBy: number })[]) {
-		return record('PaymentMethodConfigRepo.seed', async () => {
+	async seed(data: (dto.PaymentMethodCreateDto & { createdBy: number })[]) {
+		return record('PaymentMethodRepo.seed', async () => {
 			for (const d of data) {
 				const metadata = stampCreate(d.createdBy)
 				await this.db
-					.insert(paymentMethodConfigsTable)
+					.insert(paymentMethodsTable)
 					.values({ ...d, ...metadata })
 					.onConflictDoUpdate({
-						target: paymentMethodConfigsTable.name,
+						target: paymentMethodsTable.name,
 						set: {
 							type: d.type,
 							category: d.category,
 							isEnabled: d.isEnabled,
 							isDefault: d.isDefault,
+							isGlobal: d.isGlobal,
 							updatedAt: metadata.updatedAt,
 							updatedBy: metadata.updatedBy,
 						},

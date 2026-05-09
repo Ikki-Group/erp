@@ -11,9 +11,9 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import * as dto from './payment-method.dto'
-import type { PaymentMethodConfigService } from './payment-method.service'
+import type { PaymentMethodService } from './payment-method.service'
 
-export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
+export function initPaymentMethodRoute(service: PaymentMethodService) {
 	return new Elysia({ prefix: '/method' })
 		.use(authPluginMacro)
 		.get(
@@ -23,8 +23,8 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 				return res.paginated(result)
 			},
 			{
-				query: dto.PaymentMethodConfigFilterDto,
-				response: createPaginatedResponseSchema(dto.PaymentMethodConfigDto),
+				query: dto.PaymentMethodFilterDto,
+				response: createPaginatedResponseSchema(dto.PaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -36,7 +36,7 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.PaymentMethodConfigDto),
+				response: createSuccessResponseSchema(dto.PaymentMethodDto),
 				auth: true,
 			},
 		)
@@ -46,7 +46,15 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 				const result = await service.getEnabled()
 				return res.ok(result)
 			},
-			{ response: createSuccessResponseSchema(dto.PaymentMethodConfigDto.array()), auth: true },
+			{ response: createSuccessResponseSchema(dto.PaymentMethodDto.array()), auth: true },
+		)
+		.get(
+			'/global',
+			async function global() {
+				const result = await service.getGlobal()
+				return res.ok(result)
+			},
+			{ response: createSuccessResponseSchema(dto.PaymentMethodDto.array()), auth: true },
 		)
 		.post(
 			'/create',
@@ -55,7 +63,7 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PaymentMethodConfigCreateDto,
+				body: dto.PaymentMethodCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -67,7 +75,7 @@ export function initPaymentMethodRoute(service: PaymentMethodConfigService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PaymentMethodConfigUpdateDto,
+				body: dto.PaymentMethodUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
