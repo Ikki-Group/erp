@@ -15,7 +15,6 @@ import {
 	WorkOrderCreateDto,
 	WorkOrderDto,
 	WorkOrderFilterDto,
-	WorkOrderUpdateDto,
 } from '../dto/work-order.dto'
 
 export const workOrderApi = {
@@ -35,20 +34,6 @@ export const workOrderApi = {
 		method: 'post',
 		url: endpoint.production.workOrder.create,
 		body: WorkOrderCreateDto,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.production.workOrder.list],
-	}),
-	update: apiFactory({
-		method: 'patch',
-		url: endpoint.production.workOrder.update,
-		body: WorkOrderUpdateDto,
-		result: createSuccessResponseSchema(zc.RecordId),
-		invalidates: [endpoint.production.workOrder.list, endpoint.production.workOrder.detail],
-	}),
-	remove: apiFactory({
-		method: 'delete',
-		url: endpoint.production.workOrder.remove,
-		params: zc.RecordId,
 		result: createSuccessResponseSchema(zc.RecordId),
 		invalidates: [endpoint.production.workOrder.list],
 	}),

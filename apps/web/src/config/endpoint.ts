@@ -16,13 +16,15 @@ const auth = { login: 'auth/login', me: 'auth/me' }
 
 const audit = {
 	log: {
-		...crud('audit/audit-log'),
+		list: 'audit/audit-log/list',
+		detail: 'audit/audit-log/detail',
+		create: 'audit/audit-log/create',
 	},
 }
 
 const company = {
 	settings: {
-		get: 'company/settings',
+		get: 'company/settings/',
 		detail: 'company/settings/detail',
 		create: 'company/settings/create',
 		update: 'company/settings/update',
@@ -102,7 +104,10 @@ const employee = crud('hr/employee')
 const finance = {
 	account: crud('finance/account'),
 	journal: { entry: 'finance/general-ledger/entry' },
-	expenditure: crud('finance/expenditure'),
+	expenditure: {
+		list: 'finance/expenditure/list',
+		create: 'finance/expenditure/create',
+	},
 }
 
 const hr = {
@@ -122,9 +127,9 @@ const hr = {
 
 const moka = {
 	configuration: {
-		byLocation: 'moka/config/by-location/:locationId',
+		byLocation: 'moka/config/by-location',
 		create: 'moka/config/create',
-		update: 'moka/config/update/:id',
+		update: 'moka/config/update',
 	},
 	scrap: { history: 'moka/scrap/history', trigger: 'moka/scrap/trigger' },
 }
@@ -147,7 +152,9 @@ const purchasing = {
 
 const sales = {
 	order: {
-		...crud('sales/order'),
+		list: 'sales/order/list',
+		detail: 'sales/order/detail',
+		create: 'sales/order/create',
 		addBatch: 'sales/order/add-batch',
 		close: 'sales/order/close',
 		void: 'sales/order/void',
@@ -170,7 +177,7 @@ const crm = {
 }
 
 const tool = {
-	seed: 'tool/seed',
+	seed: 'tool/seed/',
 }
 
 const payment = {

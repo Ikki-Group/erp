@@ -15,13 +15,13 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 	return new Elysia({ prefix: '/config' })
 		.use(authPluginMacro)
 		.get(
-			'/by-location/:locationId',
-			async function findByLocationId({ params }) {
-				const result = await service.findByLocationId(params.locationId)
+			'/by-location',
+			async function findByLocationId({ query }) {
+				const result = await service.findByLocationId(query.locationId)
 				if (!result) return res.ok(null)
 				return res.ok(MokaConfigurationOutputDto.parse(result))
 			},
-			{ params: z.object({ locationId: z.coerce.number() }), auth: true },
+			{ query: z.object({ locationId: z.coerce.number() }), auth: true },
 		)
 		.post(
 			'/create',
@@ -32,11 +32,11 @@ export function initMokaConfigurationRoute(service: MokaConfigurationService) {
 			{ body: MokaConfigurationCreateDto, auth: true },
 		)
 		.put(
-			'/update/:id',
-			async function update({ params, body, auth }) {
-				const result = await service.handleUpdate(params.id, body, auth.userId)
+			'/update',
+			async function update({ query, body, auth }) {
+				const result = await service.handleUpdate(query.id, body, auth.userId)
 				return res.ok(result)
 			},
-			{ params: z.object({ id: z.coerce.number() }), body: MokaConfigurationUpdateDto, auth: true },
+			{ query: z.object({ id: z.coerce.number() }), body: MokaConfigurationUpdateDto, auth: true },
 		)
 }
