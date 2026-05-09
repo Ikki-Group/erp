@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 
 import type { DbClient } from '@/core/database'
 
@@ -15,8 +15,6 @@ export class StockDashboardRepo {
 	async getKpi(filter: DashboardKpiFilterDto) {
 		return record('StockDashboardRepo.getKpi', async () => {
 			const conditions = [
-				isNull(materialLocationsTable.deletedAt),
-				isNull(materialsTable.deletedAt),
 				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
 			]
 
