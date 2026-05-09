@@ -1,22 +1,46 @@
 import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+
 import { DollarSignIcon, TrendingUpIcon, HashIcon } from 'lucide-react'
+import {
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	ResponsiveContainer,
+	Legend,
+} from 'recharts'
+
 import { Page } from '@/components/layout/page'
 import { CardStat } from '@/components/reui/card-stat'
 import { ChartCard } from '@/components/reui/chart-card'
 import { ChartContainer } from '@/components/reui/chart-container'
 import { ReportDateFilter } from '@/components/reui/report-date-filter'
-import { procurementReportApi } from '@/features/reporting/api'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
-export default function ProcurementCostsReportRoute() {
-	const [dateRange, setDateRange] = useState({ dateFrom: new Date(Date.now() - 30 * 86400000), dateTo: new Date() })
+import { procurementReportApi } from '@/features/reporting/api'
+
+export const Route = createFileRoute('/_app/reports/procurement/costs')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
+	const [dateRange, setDateRange] = useState({
+		dateFrom: new Date(Date.now() - 30 * 86400000),
+		dateTo: new Date(),
+	})
 	const { data, isLoading } = useQuery(procurementReportApi.costs.query(dateRange))
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
 	return (
 		<Page size="xl">
-			<Page.BlockHeader title="Tren Harga Material" description="Analisis tren harga pembelian material." />
+			<Page.BlockHeader
+				title="Tren Harga Material"
+				description="Analisis tren harga pembelian material."
+			/>
 			<Page.Content className="flex flex-col gap-6">
 				<ReportDateFilter {...dateRange} onChange={setDateRange} />
 				<div className="grid gap-4 md:grid-cols-3">
@@ -31,7 +55,13 @@ export default function ProcurementCostsReportRoute() {
 								<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
 								<XAxis dataKey="materialName" className="text-xs text-muted-foreground" />
 								<YAxis className="text-xs text-muted-foreground" />
-								<Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+								<Tooltip
+									contentStyle={{
+										backgroundColor: 'hsl(var(--card))',
+										border: '1px solid hsl(var(--border))',
+										borderRadius: '8px',
+									}}
+								/>
 								<Legend />
 								<Line type="monotone" dataKey="unitPrice" stroke="#6366f1" name="Unit Price" />
 							</LineChart>

@@ -1,16 +1,37 @@
 import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+
 import { ShoppingCartIcon, TrendingUpIcon, HashIcon } from 'lucide-react'
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	ResponsiveContainer,
+	Legend,
+} from 'recharts'
+
 import { Page } from '@/components/layout/page'
 import { CardStat } from '@/components/reui/card-stat'
 import { ChartCard } from '@/components/reui/chart-card'
 import { ChartContainer } from '@/components/reui/chart-container'
 import { ReportDateFilter } from '@/components/reui/report-date-filter'
-import { procurementReportApi } from '@/features/reporting/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
-export default function ProcurementPurchasesReportRoute() {
-	const [dateRange, setDateRange] = useState({ dateFrom: new Date(Date.now() - 30 * 86400000), dateTo: new Date() })
+import { procurementReportApi } from '@/features/reporting/api'
+
+export const Route = createFileRoute('/_app/reports/procurement/purchases')({
+	component: RouteComponent,
+})
+
+function RouteComponent() {
+	const [dateRange, setDateRange] = useState({
+		dateFrom: new Date(Date.now() - 30 * 86400000),
+		dateTo: new Date(),
+	})
 	const { data, isLoading } = useQuery(procurementReportApi.purchases.query(dateRange))
 	const chartData = data?.data?.data ?? []
 	const summary = data?.data?.summary
@@ -31,7 +52,13 @@ export default function ProcurementPurchasesReportRoute() {
 								<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
 								<XAxis dataKey="supplierName" className="text-xs text-muted-foreground" />
 								<YAxis className="text-xs text-muted-foreground" />
-								<Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+								<Tooltip
+									contentStyle={{
+										backgroundColor: 'hsl(var(--card))',
+										border: '1px solid hsl(var(--border))',
+										borderRadius: '8px',
+									}}
+								/>
 								<Legend />
 								<Bar dataKey="qty" fill="#6366f1" name="Qty" />
 								<Bar dataKey="totalAmount" fill="#10b981" name="Total" />
