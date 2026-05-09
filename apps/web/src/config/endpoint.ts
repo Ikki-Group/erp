@@ -52,8 +52,12 @@ const location = crud('location')
 
 const material = {
 	...crud('material'),
-	category: crud('material/category'),
+	category: {
+		...crud('material/category'),
+		hardRemove: 'material/category/hard-remove',
+	},
 	uom: crud('material/uom'),
+	hardRemove: 'material/hard-remove',
 	location: {
 		assign: 'material/location/assign',
 		unassign: 'material/location/unassign',
@@ -66,9 +70,13 @@ const material = {
 const product = {
 	...crud('product'),
 	category: crud('product/category'),
+	hardRemove: 'product/hard-remove',
 }
 
-const recipe = crud('recipe')
+const recipe = {
+	...crud('recipe'),
+	cost: 'recipe/cost',
+}
 
 const inventory = {
 	summary: {
@@ -76,6 +84,18 @@ const inventory = {
 		ledger: 'inventory/summary/ledger',
 		generate: 'inventory/summary/generate',
 		remove: 'inventory/summary/remove',
+	},
+	stockTransfer: {
+		list: 'inventory/stock-transfer/list',
+		detail: 'inventory/stock-transfer/detail',
+		create: 'inventory/stock-transfer/create',
+		update: 'inventory/stock-transfer/update',
+		remove: 'inventory/stock-transfer/remove',
+		approve: 'inventory/stock-transfer/approve',
+		reject: 'inventory/stock-transfer/reject',
+		markInTransit: 'inventory/stock-transfer/mark-in-transit',
+		markCompleted: 'inventory/stock-transfer/mark-completed',
+		cancel: 'inventory/stock-transfer/cancel',
 	},
 	transaction: {
 		list: 'inventory/transaction/list',
@@ -117,6 +137,16 @@ const hr = {
 	attendances: { list: 'hr/attendances' },
 	clockIn: 'hr/clock-in',
 	clockOut: 'hr/clock-out',
+	leaveRequest: {
+		list: 'hr/leave-request/list',
+		detail: 'hr/leave-request/detail',
+		create: 'hr/leave-request/create',
+		update: 'hr/leave-request/update',
+		remove: 'hr/leave-request/remove',
+		approve: 'hr/leave-request/approve',
+		reject: 'hr/leave-request/reject',
+		cancel: 'hr/leave-request/cancel',
+	},
 	payroll: {
 		batches: {
 			list: 'hr/payroll/batches',
@@ -147,13 +177,20 @@ const production = {
 }
 
 const purchasing = {
-	order: crud('purchasing/purchase-order'),
+	order: {
+		...crud('purchasing/purchase-order'),
+		submitForApproval: 'purchasing/purchase-order/submit-for-approval',
+		approve: 'purchasing/purchase-order/approve',
+		reject: 'purchasing/purchase-order/reject',
+		hardRemove: 'purchasing/purchase-order/hard-remove',
+	},
 	goodsReceipt: {
 		list: 'purchasing/goods-receipt/list',
 		detail: 'purchasing/goods-receipt/detail',
 		create: 'purchasing/goods-receipt/create',
 		remove: 'purchasing/goods-receipt/remove',
 		complete: 'purchasing/goods-receipt/complete',
+		hardRemove: 'purchasing/goods-receipt/hard-remove',
 	},
 }
 
@@ -165,6 +202,15 @@ const sales = {
 		addBatch: 'sales/order/add-batch',
 		close: 'sales/order/close',
 		void: 'sales/order/void',
+	},
+	invoice: {
+		list: 'sales/invoice/list',
+		detail: 'sales/invoice/detail',
+		detailWithItems: 'sales/invoice/detail-with-items',
+		create: 'sales/invoice/create',
+		generateFromOrder: 'sales/invoice/generate-from-order',
+		update: 'sales/invoice/update',
+		remove: 'sales/invoice/remove',
 	},
 	salesType: crud('sales/sales-type'),
 }
@@ -192,11 +238,13 @@ const payment = {
 		...crud('payment/method'),
 		enabled: 'payment/method/enabled',
 		seed: 'payment/method/seed',
+		global: 'payment/method/global',
 	},
 	transaction: {
 		...crud('payment/transaction'),
 		invoices: 'payment/transaction/invoices',
 	},
+	provider: crud('payment/payment-provider'),
 }
 
 const reporting = {
