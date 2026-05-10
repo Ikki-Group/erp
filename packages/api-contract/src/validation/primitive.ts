@@ -17,7 +17,7 @@ const boolCoerce = z.coerce.boolean()
 const date = z.coerce.date()
 
 const id = z.number().int().positive()
-const uuid = z.string().uuid()
+const uuid = z.uuid()
 
 const decimal = z
 	.union([z.string(), z.number()])

@@ -4,6 +4,7 @@ import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { RelationMap } from '@/core/utils'
 
 import { materialCategoriesTable } from '@/db/schema'
 
@@ -47,7 +48,7 @@ export class MaterialCategoryService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async find(): Promise<MaterialCategoryDto[]> {
+	async getList(): Promise<MaterialCategoryDto[]> {
 		return record('MaterialCategoryService.find', async () => {
 			return this.cache.getOrSet({
 				key: 'list',
@@ -71,6 +72,13 @@ export class MaterialCategoryService {
 				key: 'count',
 				factory: () => this.repo.count(),
 			})
+		})
+	}
+
+	async getRelationMap(): Promise<RelationMap<number, MaterialCategoryDto>> {
+		return record('MaterialCategoryService.getRelationMap', async () => {
+			const categories = await this.getList()
+			return RelationMap.fromArray(categories, (c) => c.id)
 		})
 	}
 

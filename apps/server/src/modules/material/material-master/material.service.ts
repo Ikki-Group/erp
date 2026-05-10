@@ -21,6 +21,7 @@ import { MaterialCategoryService } from '../material-category/material-category.
 import { UomService } from '../uom/uom.service'
 import {
 	MaterialCategoryDto,
+	MaterialDetailDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialMutationDto,
@@ -28,6 +29,7 @@ import {
 	UomDto,
 } from './material.dto'
 import { MaterialRepo } from './material.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -147,22 +149,34 @@ export class MaterialService {
 		})
 	}
 
-	async getById(id: number): Promise<MaterialDto> {
+	async getById(id: number): Promise<MaterialDto | undefined> {
 		return record('MaterialService.getById', async () => {
-			const cached = await this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetSkipUndefined({
 				key: `byId:${id}`,
-				factory: async () => {
-					const result = await this.repo.getById(id)
-					if (!result) return undefined
-					const relationsMap = await this.getMaterialsBatchWithRelations([id])
-					return Object.assign({}, result, {
-						conversions: relationsMap.get(id)!.conversions,
-						locationIds: relationsMap.get(id)!.locationIds,
-					})
-				},
+				factory: async () => this.repo.getById(id),
 			})
-			if (!cached) throw err.notFound(id)
-			return cached
+		})
+	}
+
+	async getDetailById(id: number): Promise<MaterialDetailDto | undefined> {
+		return record('MaterialService.getDetailById', async () => {
+			const material = await this.getById(id)
+			if (!material) return undefined
+
+			const uomMap = await this.uomSvc.getRelationMap()
+			const categoryMap = await this.categorySvc.getRelationMap()
+
+			const result: MaterialDetailDto = {
+				...material,
+				category: material.categoryId ? categoryMap.getRequired(material.categoryId) : null,
+				// conversions: material..map((c) => ({
+				// 	...c,
+				// 	uom: c.uomId ? uomMap.getRequired(c.uomId) : null,
+				// })),
+				conversions: [],
+			}
+
+			return result
 		})
 	}
 
@@ -177,7 +191,7 @@ export class MaterialService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialSelectDto>> {
+	async handleList(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialDetailDto>> {
 		return record('MaterialService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 
@@ -234,10 +248,9 @@ export class MaterialService {
 		})
 	}
 
-	async handleCreate(data: MaterialMutationDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleCreate', async () => {
-			const sku = data.sku.trim()
-			const name = data.name.trim()
+			const { sku, name } = data
 
 			await checkConflict({
 				table: materialsTable,
@@ -254,21 +267,16 @@ export class MaterialService {
 			})
 
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
-
 			return created
 		})
 	}
 
-	async handleUpdate(
-		id: number,
-		data: MaterialMutationDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleUpdate', async () => {
-			const existing = await this.getById(id)
+			const { sku, name } = data
 
-			const sku = data.sku ? data.sku.trim() : existing.sku
-			const name = data.name ? data.name.trim() : existing.name
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
 
 			await checkConflict({
 				table: materialsTable,
@@ -286,35 +294,18 @@ export class MaterialService {
 			})
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
 			return updated
 		})
 	}
 
-	/**
-	 * Marks a material as deleted (Soft Delete).
-	 */
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<RecordId> {
 		return record('MaterialService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id, actorId)
+			const result = await this.repo.remove(id)
+			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
-			return result
-		})
-	}
-
-	/**
-	 * Permanently deletes a material (Hard Delete).
-	 * USE WITH CAUTION.
-	 */
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('MaterialService.handleHardRemove', async () => {
-			const result = await this.repo.hardDelete(id)
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return result
+			return { id: result }
 		})
 	}
 }

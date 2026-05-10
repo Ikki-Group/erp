@@ -4,6 +4,7 @@ import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { RelationMap } from '@/core/utils'
 
 import { uomsTable } from '@/db/schema'
 
@@ -40,7 +41,7 @@ export class UomService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async find(): Promise<UomDto[]> {
+	async getList(): Promise<UomDto[]> {
 		return record('UomService.find', async () => {
 			return this.cache.getOrSet({
 				key: 'list',
@@ -57,6 +58,13 @@ export class UomService {
 			})
 			if (!result) throw err.notFound(id)
 			return result
+		})
+	}
+
+	async getRelationMap(): Promise<RelationMap<number, UomDto>> {
+		return record('UomService.getRelationMap', async () => {
+			const uoms = await this.getList()
+			return RelationMap.fromArray(uoms, (u) => u.id)
 		})
 	}
 

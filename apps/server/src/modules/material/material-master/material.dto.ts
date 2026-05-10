@@ -1,8 +1,5 @@
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
-import { LocationDto } from '@/modules/location'
-import { RecipeDto } from '@/modules/recipe'
-
 import { MaterialCategoryDto } from '../material-category/material-category.dto'
 export { MaterialCategoryDto }
 import { UomDto } from '../uom/uom.dto'
@@ -12,15 +9,6 @@ export { UomDto }
 
 export const MaterialType = z.enum(['raw', 'semi', 'packaging'])
 export type MaterialType = z.infer<typeof MaterialType>
-
-/* --------------------------------- NESTED --------------------------------- */
-
-export const MaterialConversionDto = z.object({
-	toBaseFactor: zp.decimal,
-	uomId: zp.id,
-	uom: UomDto.optional(),
-})
-export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
@@ -32,11 +20,18 @@ export const MaterialDto = z.object({
 	type: MaterialType,
 	categoryId: zp.id.nullable(),
 	baseUomId: zp.id,
-	locationIds: z.array(zp.id),
-	conversions: z.array(MaterialConversionDto),
 	...zc.AuditBasic.shape,
 })
 export type MaterialDto = z.infer<typeof MaterialDto>
+
+export const MaterialConversionDto = z.object({
+	...zc.RecordId.shape,
+	materialId: zp.id,
+	uomId: zp.id,
+	toBaseFactor: zp.decimal,
+	...zc.AuditBasic.shape,
+})
+export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
@@ -73,11 +68,23 @@ export type MaterialFilterDto = z.infer<typeof MaterialFilterDto>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const MaterialSelectDto = zc.withAuditResolved({
+const MaterialConversionDetailDto = z.object({
+	...MaterialConversionDto.shape,
+	uom: UomDto,
+})
+
+export const MaterialDetailDto = z.object({
 	...MaterialDto.shape,
 	category: MaterialCategoryDto.nullable(),
-	uom: UomDto.nullable(),
-	locations: z.array(LocationDto).optional(),
-	recipe: RecipeDto.nullable().optional(),
+	conversions: z.array(MaterialConversionDetailDto),
 })
+export type MaterialDetailDto = z.infer<typeof MaterialDetailDto>
+
+/** @deprecated */
+export const MaterialSelectDto = z.object({
+	...MaterialDto.shape,
+	category: MaterialCategoryDto.nullable(),
+})
+
+/** @deprecated */
 export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
