@@ -138,12 +138,12 @@ export class MaterialCategoryService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<{ id: number }> {
 		return record('MaterialCategoryService.handleRemove', async () => {
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
 
-			const result = await this.repo.remove(id, actorId)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
@@ -152,17 +152,17 @@ export class MaterialCategoryService {
 		})
 	}
 
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('MaterialCategoryService.handleHardRemove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+	// async handleHardRemove(id: number): Promise<{ id: number }> {
+	// 	return record('MaterialCategoryService.handleHardRemove', async () => {
+	// 		const existing = await this.getById(id)
+	// 		if (!existing) throw err.notFound(id)
 
-			const result = await this.repo.hardRemove(id)
-			if (!result) throw err.notFound(id)
+	// 		const result = await this.repo.hardRemove(id)
+	// 		if (!result) throw err.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+	// 		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
-			return result
-		})
-	}
+	// 		return result
+	// 	})
+	// }
 }

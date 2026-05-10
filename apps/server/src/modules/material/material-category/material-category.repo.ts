@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -106,10 +105,10 @@ export class MaterialCategoryRepo {
 		})
 	}
 
-	async remove(id: number, actorId: number): Promise<{ id: number } | undefined> {
+	async remove(id: number): Promise<{ id: number } | undefined> {
 		return record('MaterialCategoryRepo.remove', async () => {
 			const [res] = await this.db
-				.update(materialCategoriesTable)
+				.delete(materialCategoriesTable)
 				.where(eq(materialCategoriesTable.id, id))
 				.returning({ id: materialCategoriesTable.id })
 
