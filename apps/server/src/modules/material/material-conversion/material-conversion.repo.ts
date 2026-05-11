@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 
 import {
 	paginate,

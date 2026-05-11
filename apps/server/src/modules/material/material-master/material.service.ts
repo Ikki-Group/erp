@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, inArray } from 'drizzle-orm'
 
-import { resolveAudit } from '@/core/audit'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
@@ -184,7 +183,7 @@ export class MaterialService {
 
 	async handleCreate(data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleCreate', async () => {
-			const { sku, name, conversions, locationIds } = data
+			const { sku, name, conversions, } = data
 
 			await checkConflict({
 				table: materialsTable,

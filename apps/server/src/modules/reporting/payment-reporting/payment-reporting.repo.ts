@@ -30,7 +30,7 @@ export class PaymentReportingRepo {
 			method
 				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
-			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
+			type ? eq(paymentsTable.type, type) : undefined,
 		)
 
 		return this.db
@@ -55,7 +55,7 @@ export class PaymentReportingRepo {
 			method
 				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
-			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
+			type ? eq(paymentsTable.type, type) : undefined,
 		)
 
 		let dateTrunc
@@ -95,7 +95,7 @@ export class PaymentReportingRepo {
 			method
 				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
-			type ? eq(paymentsTable.type, type as 'payable' | 'receivable') : undefined,
+			type ? eq(paymentsTable.type, type) : undefined,
 		)
 
 		return this.db

@@ -253,7 +253,7 @@ export class ProductRepo {
 						.values({
 							productId: product.id,
 							name: variant.name.trim(),
-							sku: variant.sku?.trim() || '',
+							sku: variant.sku?.trim() ?? '',
 							isDefault: variant.isDefault ?? false,
 							basePrice: (variant.basePrice ?? 0).toString(),
 							...meta,
@@ -318,7 +318,7 @@ export class ProductRepo {
 							.values({
 								productId: id,
 								name: variant.name.trim(),
-								sku: variant.sku?.trim() || '',
+								sku: variant.sku?.trim() ?? '',
 								isDefault: variant.isDefault ?? false,
 								basePrice: (variant.basePrice ?? 0).toString(),
 								...createMeta,

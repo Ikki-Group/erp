@@ -1,15 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
-import {
-	paginate,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
+import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
 
 import { materialsTable } from '@/db/schema'
 
@@ -58,7 +50,7 @@ export class MaterialRepo {
 	async create(data: MaterialMutationDto & { createdBy: number }): Promise<{ id: number }> {
 		return record('MaterialRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
-			const { conversions, locationIds, ...materialData } = data
+			const { locationIds, ...materialData } = data
 
 			const [material] = await this.db
 				.insert(materialsTable)
@@ -80,7 +72,7 @@ export class MaterialRepo {
 	): Promise<{ id: number }> {
 		return record('MaterialRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)
-			const { conversions, locationIds, ...updateData } = data
+			const { locationIds, ...updateData } = data
 
 			await this.db
 				.update(materialsTable)

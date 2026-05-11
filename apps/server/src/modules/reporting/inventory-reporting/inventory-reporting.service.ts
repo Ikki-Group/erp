@@ -21,7 +21,7 @@ export class InventoryReportingService {
 				data,
 				summary: {
 					total: String(s?.total ?? 0),
-					average: String((s?.total ?? 0) / (s?.count || 1)),
+					average: String((s?.total ?? 0) / (s?.count ?? 1)),
 					min: '0',
 					max: '0',
 					count: s?.count ?? 0,
@@ -46,7 +46,7 @@ export class InventoryReportingService {
 				data,
 				summary: {
 					total: String(s?.total ?? 0),
-					average: String((s?.total ?? 0) / (s?.count || 1)),
+					average: String((s?.total ?? 0) / (s?.count ?? 1)),
 					min: '0',
 					max: '0',
 					count: s?.count ?? 0,
