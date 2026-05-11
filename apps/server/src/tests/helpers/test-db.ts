@@ -16,6 +16,7 @@ export interface TestContext {
  *
  * Uses Bun SQL's reserve() to get a dedicated connection for transaction control.
  */
+// oxlint-disable-next-line typescript/require-await
 export async function createTestContext(): Promise<TestContext> {
 	const client = new SQL(Bun.env.DATABASE_URL!)
 

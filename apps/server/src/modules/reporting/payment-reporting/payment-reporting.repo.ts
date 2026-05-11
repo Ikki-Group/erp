@@ -28,7 +28,9 @@ export class PaymentReportingRepo {
 			lte(paymentsTable.date, dateTo),
 			accountId ? eq(paymentsTable.accountId, accountId) : undefined,
 			method
-				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				? // @ts-expect-error
+					// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+					eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
 			type ? eq(paymentsTable.type, type) : undefined,
 		)
@@ -53,7 +55,9 @@ export class PaymentReportingRepo {
 			lte(paymentsTable.date, dateTo),
 			accountId ? eq(paymentsTable.accountId, accountId) : undefined,
 			method
-				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				? // @ts-expect-error
+					// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+					eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
 			type ? eq(paymentsTable.type, type) : undefined,
 		)
@@ -93,7 +97,9 @@ export class PaymentReportingRepo {
 			gte(paymentsTable.date, dateFrom),
 			lte(paymentsTable.date, dateTo),
 			method
-				? eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
+				? // @ts-expect-error
+					// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+					eq(paymentsTable.method, method as 'cash' | 'card' | 'e-wallet' | 'bank_transfer')
 				: undefined,
 			type ? eq(paymentsTable.type, type) : undefined,
 		)

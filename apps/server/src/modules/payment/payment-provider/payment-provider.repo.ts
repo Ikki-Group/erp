@@ -63,7 +63,7 @@ export class PaymentProviderRepo {
 		filter: PaymentProviderFilterDto,
 	): Promise<WithPaginationResult<PaymentProviderDto>> {
 		return record('PaymentProviderRepo.getListPaginated', async () => {
-			const { q, page, limit, isSystem } = filter
+			const { q, page, limit, } = filter
 			const where = searchFilter(paymentProvidersTable.name, q)
 
 			return paginate({

@@ -27,8 +27,6 @@ export class InventoryReportingRepo {
 		const { locationId, productId } = this.buildBaseWhere(query)
 
 		const conditions = [
-			isNull(materialLocationsTable.deletedAt),
-			isNull(materialsTable.deletedAt),
 			locationId ? eq(materialLocationsTable.locationId, locationId) : undefined,
 			productId ? eq(materialLocationsTable.materialId, productId) : undefined,
 		]
@@ -66,8 +64,6 @@ export class InventoryReportingRepo {
 		const { locationId, productId } = this.buildBaseWhere(query)
 
 		const conditions = [
-			isNull(materialLocationsTable.deletedAt),
-			isNull(materialsTable.deletedAt),
 			locationId ? eq(materialLocationsTable.locationId, locationId) : undefined,
 			productId ? eq(materialLocationsTable.materialId, productId) : undefined,
 		]
@@ -104,8 +100,6 @@ export class InventoryReportingRepo {
 		const { locationId, productId } = this.buildBaseWhere(query)
 
 		const conditions = [
-			isNull(materialLocationsTable.deletedAt),
-			isNull(materialsTable.deletedAt),
 			locationId ? eq(materialLocationsTable.locationId, locationId) : undefined,
 			productId ? eq(materialLocationsTable.materialId, productId) : undefined,
 			or(

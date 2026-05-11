@@ -50,7 +50,7 @@ export class MaterialRepo {
 	async create(data: MaterialMutationDto & { createdBy: number }): Promise<{ id: number }> {
 		return record('MaterialRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
-			const { locationIds, ...materialData } = data
+			const { ...materialData } = data
 
 			const [material] = await this.db
 				.insert(materialsTable)
@@ -72,7 +72,7 @@ export class MaterialRepo {
 	): Promise<{ id: number }> {
 		return record('MaterialRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)
-			const { locationIds, ...updateData } = data
+			const { ...updateData } = data
 
 			await this.db
 				.update(materialsTable)
