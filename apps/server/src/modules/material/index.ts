@@ -100,6 +100,13 @@ export {
 	MaterialCategoryFilterDto,
 } from './material-category/material-category.dto'
 export {
+	MaterialConversionCreateDto,
+	MaterialConversionDto,
+	MaterialConversionDetailDto,
+	MaterialConversionFilterDto,
+	MaterialConversionUpdateDto,
+} from './material-conversion/material-conversion.dto'
+export {
 	MaterialLocationDto,
 	MaterialLocationFilterDto,
 	MaterialLocationAssignDto,
@@ -110,10 +117,11 @@ export {
 } from './material-location/material-location.dto'
 export {
 	MaterialDto,
+	MaterialDetailDto,
 	MaterialFilterDto,
 	MaterialMutationDto,
-	MaterialSelectDto,
 	MaterialType,
 	type MaterialType as MaterialTypeEnum,
 } from './material-master/material.dto'
+export { MaterialDetailDto as MaterialDetailWithRelationsDto } from './material-query/material-query.dto'
 export { UomDto, UomFilterDto, UomMutationDto } from './uom/uom.dto'

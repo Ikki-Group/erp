@@ -77,12 +77,3 @@ export const MaterialDetailDto = z.object({
 	conversions: z.array(MaterialConversionDetailDto),
 })
 export type MaterialDetailDto = z.infer<typeof MaterialDetailDto>
-
-/** @deprecated */
-export const MaterialSelectDto = z.object({
-	...MaterialDto.shape,
-	category: MaterialCategoryDto.nullable(),
-})
-
-/** @deprecated */
-export type MaterialSelectDto = z.infer<typeof MaterialSelectDto>
