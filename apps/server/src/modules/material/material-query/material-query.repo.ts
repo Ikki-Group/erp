@@ -74,8 +74,6 @@ export class MaterialQueryRepo {
 				countQuery: this.db.select({ count: count() }).from(materialsTable).where(where),
 			})
 
-			console.log(result)
-
 			return result
 		})
 	}

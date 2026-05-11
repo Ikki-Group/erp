@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, inArray } from 'drizzle-orm'
 
-import { resolveAudit, resolveAuditList } from '@/core/audit'
+import { resolveAudit } from '@/core/audit'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField } from '@/core/database'
-import type { WithPaginationResult } from '@/core/database/pagination'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { db } from '@/db'
@@ -16,17 +15,10 @@ import {
 } from '@/db/schema'
 
 import { LocationMasterService } from '@/modules/location'
-import type { MaterialCategoryDto } from '@/modules/material/material-category/material-category.dto'
 
 import { MaterialCategoryService } from '../material-category/material-category.service'
 import { UomService } from '../uom/uom.service'
-import {
-	MaterialDetailDto,
-	MaterialDto,
-	MaterialFilterDto,
-	MaterialMutationDto,
-	MaterialSelectDto,
-} from './material.dto'
+import { MaterialDetailDto, MaterialDto, MaterialMutationDto } from './material.dto'
 import { MaterialRepo } from './material.repo'
 import type { RecordId } from '@ikki/api-contract'
 
@@ -73,7 +65,7 @@ export class MaterialService {
 	/**
 	 * Batch fetch full material details including conversions and locationIds
 	 */
-	private async getMaterialsBatchWithRelations(
+	async getMaterialsBatchWithRelations(
 		ids: number[],
 	): Promise<Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>> {
 		if (ids.length === 0)
@@ -185,65 +177,6 @@ export class MaterialService {
 				key: 'count',
 				factory: () => this.repo.count(),
 			})
-		})
-	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialDetailDto>> {
-		return record('MaterialService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-
-			const materialIds = result.data.map((m) => m.id)
-			const relationsMap = await this.getMaterialsBatchWithRelations(materialIds)
-
-			const categoriesMap = new Map<number, MaterialCategoryDto>()
-			const uomsMap = new Map<number, UomDto>()
-			const [allCategories, allUoms] = await Promise.all([
-				this.categorySvc.find(),
-				this.uomSvc.find(),
-			])
-
-			for (const cat of allCategories) {
-				categoriesMap.set(cat.id, cat)
-			}
-			for (const uom of allUoms) {
-				uomsMap.set(uom.id, uom)
-			}
-
-			const data: MaterialSelectDto[] = result.data.map((m) => {
-				const relations = relationsMap.get(m.id)!
-				return {
-					...m,
-					conversions: relations.conversions,
-					locationIds: relations.locationIds,
-					category: m.categoryId ? (categoriesMap.get(m.categoryId) ?? null) : null,
-					uom: uomsMap.get(m.baseUomId) ?? null,
-				}
-			})
-
-			const resolvedData = await resolveAuditList(data)
-
-			return { data: resolvedData, meta: result.meta }
-		})
-	}
-
-	async handleDetail(id: number): Promise<MaterialSelectDto> {
-		return record('MaterialService.handleDetail', async () => {
-			const material = await this.getById(id)
-			const [category, uom, locations] = await Promise.all([
-				material.categoryId
-					? this.categorySvc.getById(material.categoryId).then((res) => res ?? null)
-					: null,
-				this.uomSvc.getById(material.baseUomId).catch(() => null),
-				material.locationIds.length > 0
-					? Promise.all(material.locationIds.map((lId) => this.locationSvc.getById(lId))).then(
-							(results) => results.filter((l): l is NonNullable<typeof l> => l !== undefined),
-						)
-					: [],
-			])
-
-			return resolveAudit({ ...material, category, uom, locations })
 		})
 	}
 

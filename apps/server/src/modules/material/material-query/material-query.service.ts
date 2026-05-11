@@ -25,22 +25,55 @@ export class MaterialQueryService {
 		return record('MaterialQueryService.handleList', async () => {
 			const { data, meta } = await this.repo.getListPaginated(filter)
 
-			const [categoriesMap, uomsMap, locationsMap] = await Promise.all([
+			const materialIds = data.map((m) => m.id)
+			const [relationsMap, categoriesMap, locationsMap] = await Promise.all([
+				this.masterSvc.getMaterialsBatchWithRelations(materialIds),
 				this.categorySvc.getRelationMap(),
-				this.uomSvc.getRelationMap(),
 				this.locationSvc.getRelationMap(),
 			])
 
-			const results: MaterialDetailDto[] = []
-
-			for (const m of data) {
-				results.push({
+			const results: MaterialDetailDto[] = data.map((m) => {
+				const relations = relationsMap.get(m.id)!
+				return {
 					...m,
 					category: m.categoryId ? (categoriesMap.get(m.categoryId) ?? null) : null,
-				})
-			}
+					conversions: relations.conversions.map((c) => ({
+						...c,
+						uom: c.uom!,
+					})),
+					locations: relations.locationIds
+						.map((id) => locationsMap.get(id))
+						.filter((l): l is NonNullable<typeof l> => l !== undefined),
+				}
+			})
 
 			return { data: results, meta }
+		})
+	}
+
+	async handleDetail(id: number): Promise<MaterialDetailDto | undefined> {
+		return record('MaterialQueryService.handleDetail', async () => {
+			const material = await this.masterSvc.getById(id)
+			if (!material) return undefined
+
+			const [relationsMap, categoriesMap, locationsMap] = await Promise.all([
+				this.masterSvc.getMaterialsBatchWithRelations([id]),
+				this.categorySvc.getRelationMap(),
+				this.locationSvc.getRelationMap(),
+			])
+
+			const relations = relationsMap.get(id)!
+			return {
+				...material,
+				category: material.categoryId ? (categoriesMap.get(material.categoryId) ?? null) : null,
+				conversions: relations.conversions.map((c) => ({
+					...c,
+					uom: c.uom!,
+				})),
+				locations: relations.locationIds
+					.map((locId) => locationsMap.get(locId))
+					.filter((l): l is NonNullable<typeof l> => l !== undefined),
+			}
 		})
 	}
 }

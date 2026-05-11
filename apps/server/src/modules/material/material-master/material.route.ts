@@ -10,32 +10,12 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { MaterialFilterDto, MaterialMutationDto, MaterialSelectDto } from './material.dto'
+import { MaterialMutationDto } from './material.dto'
 import type { MaterialService } from './material.service'
 
 export function initMaterialMasterRoute(s: MaterialService) {
 	return new Elysia()
 		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await s.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: z.object({ ...MaterialFilterDto.shape, ...zq.pagination.shape }),
-				response: createPaginatedResponseSchema(MaterialSelectDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const category = await s.handleDetail(query.id)
-				return res.ok(category)
-			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(MaterialSelectDto), auth: true },
-		)
 		.post(
 			'/create',
 			async function create({ body, auth }) {

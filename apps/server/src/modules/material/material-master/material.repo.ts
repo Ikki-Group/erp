@@ -13,7 +13,7 @@ import {
 
 import { materialConversionsTable, materialLocationsTable, materialsTable } from '@/db/schema'
 
-import type { MaterialDto, MaterialFilterDto, MaterialMutationDto } from './material.dto'
+import type { MaterialDto, MaterialMutationDto } from './material.dto'
 
 export class MaterialRepo {
 	constructor(private readonly db: DbClient) {}
@@ -53,73 +53,12 @@ export class MaterialRepo {
 		})
 	}
 
-	async getListPaginated(filter: MaterialFilterDto): Promise<WithPaginationResult<MaterialDto>> {
-		return record('MaterialRepo.getListPaginated', async () => {
-			const { search, type, categoryId, locationIds, excludeLocationIds } = filter
-
-			const searchCondition = search
-				? or(ilike(materialsTable.name, `%${search}%`), ilike(materialsTable.sku, `%${search}%`))
-				: undefined
-
-			const locationInclude =
-				locationIds && locationIds.length > 0
-					? exists(
-							this.db
-								.select({ _: materialLocationsTable.materialId })
-								.from(materialLocationsTable)
-								.where(
-									and(
-										eq(materialLocationsTable.materialId, materialsTable.id),
-										inArray(materialLocationsTable.locationId, locationIds),
-									),
-								),
-						)
-					: undefined
-
-			const locationExclude =
-				excludeLocationIds && excludeLocationIds.length > 0
-					? notExists(
-							this.db
-								.select({ _: materialLocationsTable.materialId })
-								.from(materialLocationsTable)
-								.where(
-									and(
-										eq(materialLocationsTable.materialId, materialsTable.id),
-										inArray(materialLocationsTable.locationId, excludeLocationIds),
-									),
-								),
-						)
-					: undefined
-
-			const where = and(
-				searchCondition,
-				type ? eq(materialsTable.type, type) : undefined,
-				categoryId === undefined ? undefined : eq(materialsTable.categoryId, categoryId),
-				locationInclude,
-				locationExclude,
-			)
-
-			const result = await paginate({
-				data: ({ limit, offset }) =>
-					this.db
-						.select()
-						.from(materialsTable)
-						.where(where)
-						.orderBy(sortBy(materialsTable.updatedAt, 'desc'))
-						.limit(limit)
-						.offset(offset),
-				pq: filter,
-				countQuery: this.db.select({ count: count() }).from(materialsTable).where(where),
-			})
-
-			console.log(result)
-
-			return result
-		})
-	}
-
 	/* -------------------------------- MUTATION -------------------------------- */
 
+	/**
+	 * TODO:
+	 * Bagian conversion akan kita pindah ke submodule material-conversion, agar bisa di invalidate cache secara otomatis
+	 */
 	async create(data: MaterialMutationDto & { createdBy: number }): Promise<{ id: number }> {
 		return record('MaterialRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
@@ -157,6 +96,10 @@ export class MaterialRepo {
 		})
 	}
 
+	/**
+	 * TODO:
+	 * Bagian conversion akan kita pindah ke submodule material-conversion, agar bisa di invalidate cache secara otomatis
+	 */
 	async update(
 		id: number,
 		data: Partial<MaterialMutationDto> & { updatedBy: number },
