@@ -1,7 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database'
+import type { DbTx } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
 
@@ -135,6 +136,28 @@ export class MaterialConversionService {
 			})
 
 			return { id }
+		})
+	}
+
+	async batchCreate(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx?: DbTx,
+	): Promise<void> {
+		return record('MaterialConversionService.batchCreate', async () => {
+			await this.repo.batchCreate(materialId, conversions, actorId, tx ?? this.db)
+		})
+	}
+
+	async batchReplace(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx?: DbTx,
+	): Promise<void> {
+		return record('MaterialConversionService.batchReplace', async () => {
+			await this.repo.batchReplace(materialId, conversions, actorId, tx ?? this.db)
 		})
 	}
 }

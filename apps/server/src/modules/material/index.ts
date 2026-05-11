@@ -8,6 +8,8 @@ import type { LocationMasterService } from '@/modules/location'
 import { MaterialCategoryRepo } from './material-category/material-category.repo'
 import { initMaterialCategoryRoute } from './material-category/material-category.route'
 import { MaterialCategoryService } from './material-category/material-category.service'
+import { MaterialConversionRepo } from './material-conversion/material-conversion.repo'
+import { MaterialConversionService } from './material-conversion/material-conversion.service'
 import { MaterialLocationRepo } from './material-location/material-location.repo'
 import { initMaterialLocationRoute } from './material-location/material-location.route'
 import { MaterialLocationService } from './material-location/material-location.service'
@@ -27,6 +29,7 @@ export class MaterialServiceModule {
 	public readonly location: MaterialLocationService
 	public readonly master: MaterialService
 	public readonly query: MaterialQueryService
+	public readonly conversion: MaterialConversionService
 
 	constructor(
 		private readonly db: DbClient,
@@ -39,6 +42,9 @@ export class MaterialServiceModule {
 		const uomRepo = new UomRepo(this.db)
 		this.uom = new UomService(uomRepo, this.cacheClient)
 
+		const materialConversionRepo = new MaterialConversionRepo(this.db)
+		this.conversion = new MaterialConversionService(materialConversionRepo, this.cacheClient)
+
 		const materialRepo = new MaterialRepo(this.db)
 		const materialLocationRepo = new MaterialLocationRepo(this.db)
 
@@ -46,6 +52,7 @@ export class MaterialServiceModule {
 			this.category,
 			this.uom,
 			locationMaster,
+			this.conversion,
 			materialRepo,
 			this.cacheClient,
 		)
@@ -79,6 +86,7 @@ export function initMaterialRouteModule(s: MaterialServiceModule) {
 
 export type { MaterialLocationService } from './material-location/material-location.service'
 export type { MaterialCategoryService } from './material-category/material-category.service'
+export type { MaterialConversionService } from './material-conversion/material-conversion.service'
 export type { MaterialService } from './material-master/material.service'
 export type { MaterialQueryService } from './material-query/material-query.service'
 export type { UomService } from './uom/uom.service'

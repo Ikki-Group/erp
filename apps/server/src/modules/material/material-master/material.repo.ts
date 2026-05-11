@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, exists, ilike, inArray, notExists, or } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -11,7 +11,7 @@ import {
 	type WithPaginationResult,
 } from '@/core/database'
 
-import { materialConversionsTable, materialLocationsTable, materialsTable } from '@/db/schema'
+import { materialsTable } from '@/db/schema'
 
 import type { MaterialDto, MaterialMutationDto } from './material.dto'
 
@@ -55,86 +55,37 @@ export class MaterialRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	/**
-	 * TODO:
-	 * Bagian conversion akan kita pindah ke submodule material-conversion, agar bisa di invalidate cache secara otomatis
-	 */
 	async create(data: MaterialMutationDto & { createdBy: number }): Promise<{ id: number }> {
 		return record('MaterialRepo.create', async () => {
 			const metadata = stampCreate(data.createdBy)
-			const { conversions, ...materialData } = data
+			const { conversions, locationIds, ...materialData } = data
 
-			const inserted = await this.db.transaction(async (tx) => {
-				const [material] = await tx
-					.insert(materialsTable)
-					.values({
-						...materialData,
-						...metadata,
-					})
-					.returning({ id: materialsTable.id })
+			const [material] = await this.db
+				.insert(materialsTable)
+				.values({
+					...materialData,
+					...metadata,
+				})
+				.returning({ id: materialsTable.id })
 
-				if (material && conversions && conversions.length > 0) {
-					const uniqueConversions = Array.from(
-						new Map(conversions.map((c) => [c.uomId, c])).values(),
-					)
-					await tx.insert(materialConversionsTable).values(
-						uniqueConversions.map((c) => ({
-							materialId: material.id,
-							uomId: c.uomId,
-							toBaseFactor: c.toBaseFactor.toString(),
-							...metadata,
-						})),
-					)
-				}
+			if (!material) throw new Error('Material creation failed')
 
-				return material
-			})
-
-			if (!inserted) throw new Error('Material creation failed')
-
-			return inserted
+			return material
 		})
 	}
 
-	/**
-	 * TODO:
-	 * Bagian conversion akan kita pindah ke submodule material-conversion, agar bisa di invalidate cache secara otomatis
-	 */
 	async update(
 		id: number,
 		data: Partial<MaterialMutationDto> & { updatedBy: number },
 	): Promise<{ id: number }> {
 		return record('MaterialRepo.update', async () => {
 			const metadata = stampUpdate(data.updatedBy)
-			const createMetadata = stampCreate(data.updatedBy)
-			const { conversions, ...updateData } = data
+			const { conversions, locationIds, ...updateData } = data
 
-			await this.db.transaction(async (tx) => {
-				await tx
-					.update(materialsTable)
-					.set({ ...updateData, ...metadata })
-					.where(eq(materialsTable.id, id))
-
-				if (conversions !== undefined) {
-					await tx
-						.delete(materialConversionsTable)
-						.where(eq(materialConversionsTable.materialId, id))
-
-					if (conversions.length > 0) {
-						const uniqueConversions = Array.from(
-							new Map(conversions.map((c) => [c.uomId, c])).values(),
-						)
-						await tx.insert(materialConversionsTable).values(
-							uniqueConversions.map((c) => ({
-								materialId: id,
-								uomId: c.uomId,
-								toBaseFactor: c.toBaseFactor.toString(),
-								...createMetadata,
-							})),
-						)
-					}
-				}
-			})
+			await this.db
+				.update(materialsTable)
+				.set({ ...updateData, ...metadata })
+				.where(eq(materialsTable.id, id))
 
 			return { id }
 		})

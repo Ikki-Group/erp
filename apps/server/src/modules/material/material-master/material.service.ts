@@ -17,6 +17,7 @@ import {
 import { LocationMasterService } from '@/modules/location'
 
 import { MaterialCategoryService } from '../material-category/material-category.service'
+import { MaterialConversionService } from '../material-conversion/material-conversion.service'
 import { UomService } from '../uom/uom.service'
 import { MaterialDetailDto, MaterialDto, MaterialMutationDto } from './material.dto'
 import { MaterialRepo } from './material.repo'
@@ -54,6 +55,7 @@ export class MaterialService {
 		private readonly categorySvc: MaterialCategoryService,
 		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
+		private readonly conversionSvc: MaterialConversionService,
 		private readonly repo: MaterialRepo,
 		cacheClient: CacheClient,
 	) {
@@ -182,7 +184,7 @@ export class MaterialService {
 
 	async handleCreate(data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleCreate', async () => {
-			const { sku, name } = data
+			const { sku, name, conversions, locationIds } = data
 
 			await checkConflict({
 				table: materialsTable,
@@ -191,11 +193,29 @@ export class MaterialService {
 				input: { sku, name },
 			})
 
-			const created = await this.repo.create({
-				...data,
-				sku,
-				name,
-				createdBy: actorId,
+			const created = await db.transaction(async (tx) => {
+				const material = await this.repo.create(
+					{
+						sku,
+						name,
+						createdBy: actorId,
+					},
+					actorId,
+				)
+
+				if (conversions && conversions.length > 0) {
+					await this.conversionSvc.batchCreate(
+						material.id,
+						conversions.map((c) => ({
+							uomId: c.uomId,
+							toBaseFactor: c.toBaseFactor.toString(),
+						})),
+						actorId,
+						tx,
+					)
+				}
+
+				return material
 			})
 
 			await this.cache.deleteMany({ keys: ['list', 'count'] })
@@ -205,7 +225,7 @@ export class MaterialService {
 
 	async handleUpdate(id: number, data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleUpdate', async () => {
-			const { sku, name } = data
+			const { sku, name, conversions } = data
 
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
@@ -218,15 +238,32 @@ export class MaterialService {
 				existing,
 			})
 
-			const updated = await this.repo.update(id, {
-				...data,
-				sku,
-				name,
-				updatedBy: actorId,
+			await db.transaction(async (tx) => {
+				await this.repo.update(
+					id,
+					{
+						sku,
+						name,
+						updatedBy: actorId,
+					},
+					actorId,
+				)
+
+				if (conversions !== undefined) {
+					await this.conversionSvc.batchReplace(
+						id,
+						conversions.map((c) => ({
+							uomId: c.uomId,
+							toBaseFactor: c.toBaseFactor.toString(),
+						})),
+						actorId,
+						tx,
+					)
+				}
 			})
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-			return updated
+			return { id }
 		})
 	}
 

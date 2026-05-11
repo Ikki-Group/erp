@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -7,6 +7,7 @@ import {
 	stampUpdate,
 	takeFirst,
 	type DbClient,
+	type DbTx,
 	type WithPaginationResult,
 } from '@/core/database'
 
@@ -145,6 +146,56 @@ export class MaterialConversionRepo {
 				.returning({ id: materialConversionsTable.id })
 
 			return res?.id
+		})
+	}
+
+	async batchCreate(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx: DbTx | DbClient = this.db,
+	): Promise<void> {
+		return record('MaterialConversionRepo.batchCreate', async () => {
+			if (conversions.length === 0) return
+
+			const metadata = stampCreate(actorId)
+			const uniqueConversions = Array.from(new Map(conversions.map((c) => [c.uomId, c])).values())
+
+			await tx.insert(materialConversionsTable).values(
+				uniqueConversions.map((c) => ({
+					materialId,
+					uomId: c.uomId,
+					toBaseFactor: c.toBaseFactor,
+					...metadata,
+				})),
+			)
+		})
+	}
+
+	async batchReplace(
+		materialId: number,
+		conversions: { uomId: number; toBaseFactor: string }[],
+		actorId: number,
+		tx: DbTx | DbClient = this.db,
+	): Promise<void> {
+		return record('MaterialConversionRepo.batchReplace', async () => {
+			const createMetadata = stampCreate(actorId)
+			const uniqueConversions = Array.from(new Map(conversions.map((c) => [c.uomId, c])).values())
+
+			await tx
+				.delete(materialConversionsTable)
+				.where(eq(materialConversionsTable.materialId, materialId))
+
+			if (uniqueConversions.length > 0) {
+				await tx.insert(materialConversionsTable).values(
+					uniqueConversions.map((c) => ({
+						materialId,
+						uomId: c.uomId,
+						toBaseFactor: c.toBaseFactor,
+						...createMetadata,
+					})),
+				)
+			}
 		})
 	}
 }
