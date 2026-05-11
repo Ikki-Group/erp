@@ -1,4 +1,5 @@
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+
 import { UomDto } from '../uom/uom.dto'
 
 export const MaterialConversionDto = z.object({
@@ -32,6 +33,6 @@ export type MaterialConversionFilterDto = z.infer<typeof MaterialConversionFilte
 
 export const MaterialConversionDetailDto = z.object({
 	...MaterialConversionDto.shape,
-	uom: UomDto.nullable(),
+	uom: UomDto,
 })
 export type MaterialConversionDetailDto = z.infer<typeof MaterialConversionDetailDto>

@@ -16,17 +16,16 @@ import {
 } from '@/db/schema'
 
 import { LocationMasterService } from '@/modules/location'
+import type { MaterialCategoryDto } from '@/modules/material/material-category/material-category.dto'
 
 import { MaterialCategoryService } from '../material-category/material-category.service'
 import { UomService } from '../uom/uom.service'
 import {
-	MaterialCategoryDto,
 	MaterialDetailDto,
 	MaterialDto,
 	MaterialFilterDto,
 	MaterialMutationDto,
 	MaterialSelectDto,
-	UomDto,
 } from './material.dto'
 import { MaterialRepo } from './material.repo'
 import type { RecordId } from '@ikki/api-contract'

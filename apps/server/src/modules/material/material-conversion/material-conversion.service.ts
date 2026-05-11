@@ -4,16 +4,27 @@ import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database'
 import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
-import type { RecordId } from '@ikki/api-contract'
 
 import * as dto from './material-conversion.dto'
 import { MaterialConversionRepo } from './material-conversion.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Material conversion with ID ${id} not found`, 'MATERIAL_CONVERSION_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Material conversion creation failed', 'MATERIAL_CONVERSION_CREATE_FAILED'),
-	conflictUom: () => new ConflictError('Material conversion for this UOM already exists', 'MATERIAL_CONVERSION_UOM_ALREADY_EXISTS'),
+		new NotFoundError(
+			`Material conversion with ID ${id} not found`,
+			'MATERIAL_CONVERSION_NOT_FOUND',
+		),
+	createFailed: () =>
+		new InternalServerError(
+			'Material conversion creation failed',
+			'MATERIAL_CONVERSION_CREATE_FAILED',
+		),
+	conflictUom: () =>
+		new ConflictError(
+			'Material conversion for this UOM already exists',
+			'MATERIAL_CONVERSION_UOM_ALREADY_EXISTS',
+		),
 }
 
 export class MaterialConversionService {
@@ -23,7 +34,7 @@ export class MaterialConversionService {
 		private readonly repo: MaterialConversionRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'material-conversion', client: cacheClient })
+		this.cache = new CacheService({ ns: 'material.conversion', client: cacheClient })
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
@@ -37,7 +48,9 @@ export class MaterialConversionService {
 		})
 	}
 
-	async getRelationMap(materialId?: number): Promise<RelationMap<number, dto.MaterialConversionDto>> {
+	async getRelationMap(
+		materialId?: number,
+	): Promise<RelationMap<number, dto.MaterialConversionDto>> {
 		return record('MaterialConversionService.getRelationMap', async () => {
 			const conversions = await this.getList(materialId)
 			return RelationMap.fromArray(conversions, (c) => c.id)
@@ -55,7 +68,9 @@ export class MaterialConversionService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: dto.MaterialConversionFilterDto): Promise<WithPaginationResult<dto.MaterialConversionDto>> {
+	async handleList(
+		filter: dto.MaterialConversionFilterDto,
+	): Promise<WithPaginationResult<dto.MaterialConversionDto>> {
 		return record('MaterialConversionService.handleList', async () => {
 			const result = await this.repo.getListPaginated(filter)
 			return result
@@ -115,7 +130,9 @@ export class MaterialConversionService {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
-			await this.cache.deleteMany({ keys: [`list:${current.materialId}`, 'list:all', `byId:${id}`] })
+			await this.cache.deleteMany({
+				keys: [`list:${current.materialId}`, 'list:all', `byId:${id}`],
+			})
 
 			return { id }
 		})

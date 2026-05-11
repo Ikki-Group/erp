@@ -1,9 +1,7 @@
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { MaterialCategoryDto } from '../material-category/material-category.dto'
-export { MaterialCategoryDto }
 import { UomDto } from '../uom/uom.dto'
-export { UomDto }
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -38,7 +36,7 @@ export type MaterialConversionDto = z.infer<typeof MaterialConversionDto>
 export const MaterialMutationDto = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
-	sku: zc.strTrim.uppercase().min(3).max(50),
+	sku: zc.strTrim.min(3).max(50).toUpperCase(),
 	type: MaterialType,
 	categoryId: zp.id.nullable(),
 	baseUomId: zp.id,
