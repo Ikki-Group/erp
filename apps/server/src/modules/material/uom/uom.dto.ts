@@ -22,7 +22,7 @@ export type UomFilterDto = z.infer<typeof UomFilterDto>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const UomMutationDto = z.object({
-	code: zc.strTrim.uppercase().min(1).max(10),
+	code: zc.strTrim.min(1).max(10).toUpperCase(),
 })
 
 export type UomMutationDto = z.infer<typeof UomMutationDto>

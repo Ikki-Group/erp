@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import { record } from '@elysiajs/opentelemetry'
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -50,11 +49,7 @@ export class UomRepo {
 
 	async getById(id: number): Promise<UomDto | undefined> {
 		return record('UomRepo.getById', async () => {
-			return this.db
-				.select()
-				.from(uomsTable)
-				.where(and(eq(uomsTable.id, id), isNull(uomsTable.deletedAt)))
-				.then(takeFirst)
+			return this.db.select().from(uomsTable).where(eq(uomsTable.id, id)).limit(1).then(takeFirst)
 		})
 	}
 
@@ -97,19 +92,8 @@ export class UomRepo {
 		})
 	}
 
-	async remove(id: number, actorId: number): Promise<number | undefined> {
+	async remove(id: number): Promise<number | undefined> {
 		return record('UomRepo.remove', async () => {
-			const [res] = await this.db
-				.delete(uomsTable)
-				.where(eq(uomsTable.id, id))
-				.returning({ id: uomsTable.id })
-
-			return res?.id
-		})
-	}
-
-	async hardRemove(id: number): Promise<number | undefined> {
-		return record('UomRepo.hardRemove', async () => {
 			const [res] = await this.db
 				.delete(uomsTable)
 				.where(eq(uomsTable.id, id))
@@ -122,7 +106,6 @@ export class UomRepo {
 	async seed(data: { code: string; createdBy: number }[]): Promise<void> {
 		return record('UomRepo.seed', async () => {
 			const existing = await this.db.select({ code: uomsTable.code }).from(uomsTable)
-			// .where(isNull(uomsTable.deletedAt))
 			const existingCodes = new Set(existing.map((e) => e.code))
 
 			const newUoms = data

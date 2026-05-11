@@ -10,6 +10,7 @@ import { uomsTable } from '@/db/schema'
 
 import type { UomDto, UomFilterDto, UomMutationDto } from './uom.dto'
 import { UomRepo } from './uom.repo'
+import type { RecordId } from '@ikki/api-contract'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -144,23 +145,12 @@ export class UomService {
 		})
 	}
 
-	async handleRemove(id: number, actorId: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<RecordId> {
 		return record('UomService.handleRemove', async () => {
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
 
-			const result = await this.repo.remove(id, actorId)
-			if (!result) throw err.notFound(id)
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
-		})
-	}
-
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('UomService.handleHardRemove', async () => {
-			const result = await this.repo.hardRemove(id)
+			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
