@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbTx } from '@/core/database'
+import type { DbClient, DbTx } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { ConflictError, InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
@@ -33,6 +33,7 @@ export class MaterialConversionService {
 
 	constructor(
 		private readonly repo: MaterialConversionRepo,
+		private readonly db: DbClient,
 		cacheClient: CacheClient,
 	) {
 		this.cache = new CacheService({ ns: 'material.conversion', client: cacheClient })

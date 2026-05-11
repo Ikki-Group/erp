@@ -1,5 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { count, eq } from 'drizzle-orm'
+import { count, eq, inArray } from 'drizzle-orm'
 
 import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
 

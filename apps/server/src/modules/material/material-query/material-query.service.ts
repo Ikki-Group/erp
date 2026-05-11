@@ -5,16 +5,15 @@ import type { WithPaginationResult } from '@/core/database/pagination'
 import { LocationMasterService } from '@/modules/location'
 
 import { MaterialCategoryService } from '../material-category/material-category.service'
+import { MaterialConversionDetailDto } from '../material-conversion/material-conversion.dto'
 import type { MaterialService } from '../material-master/material.service'
 import type { MaterialDetailDto, MaterialListFilterDto } from '../material-query/material-query.dto'
 import type { MaterialQueryRepo } from '../material-query/material-query.repo'
-import { UomService } from '../uom/uom.service'
 
 export class MaterialQueryService {
 	constructor(
 		private readonly masterSvc: MaterialService,
 		private readonly categorySvc: MaterialCategoryService,
-		private readonly uomSvc: UomService,
 		private readonly locationSvc: LocationMasterService,
 		private readonly repo: MaterialQueryRepo,
 	) {}
@@ -40,7 +39,7 @@ export class MaterialQueryService {
 					conversions: relations.conversions.map((c) => ({
 						...c,
 						uom: c.uom!,
-					})),
+					})) as MaterialConversionDetailDto[],
 					locations: relations.locationIds
 						.map((id) => locationsMap.get(id))
 						.filter((l): l is NonNullable<typeof l> => l !== undefined),
@@ -69,7 +68,7 @@ export class MaterialQueryService {
 				conversions: relations.conversions.map((c) => ({
 					...c,
 					uom: c.uom!,
-				})),
+				})) as MaterialConversionDetailDto[],
 				locations: relations.locationIds
 					.map((locId) => locationsMap.get(locId))
 					.filter((l): l is NonNullable<typeof l> => l !== undefined),

@@ -44,15 +44,17 @@ export class MaterialServiceModule {
 		this.uom = new UomService(uomRepo, this.cacheClient)
 
 		const materialConversionRepo = new MaterialConversionRepo(this.db)
-		this.conversion = new MaterialConversionService(materialConversionRepo, this.cacheClient)
+		this.conversion = new MaterialConversionService(
+			materialConversionRepo,
+			this.db,
+			this.cacheClient,
+		)
 
 		const materialRepo = new MaterialRepo(this.db)
 		const materialLocationRepo = new MaterialLocationRepo(this.db)
 
 		this.master = new MaterialService(
 			this.category,
-			this.uom,
-			locationMaster,
 			this.conversion,
 			materialRepo,
 			this.cacheClient,
@@ -69,7 +71,6 @@ export class MaterialServiceModule {
 		this.query = new MaterialQueryService(
 			this.master,
 			this.category,
-			this.uom,
 			locationMaster,
 			materialQueryRepo,
 		)

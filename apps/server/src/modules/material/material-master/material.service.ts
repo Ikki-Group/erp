@@ -13,11 +13,8 @@ import {
 	uomsTable,
 } from '@/db/schema'
 
-import { LocationMasterService } from '@/modules/location'
-
 import { MaterialCategoryService } from '../material-category/material-category.service'
 import { MaterialConversionService } from '../material-conversion/material-conversion.service'
-import { UomService } from '../uom/uom.service'
 import { MaterialDetailDto, MaterialDto, MaterialMutationDto } from './material.dto'
 import { MaterialRepo } from './material.repo'
 import type { RecordId } from '@ikki/api-contract'
@@ -52,8 +49,6 @@ export class MaterialService {
 
 	constructor(
 		private readonly categorySvc: MaterialCategoryService,
-		private readonly uomSvc: UomService,
-		private readonly locationSvc: LocationMasterService,
 		private readonly conversionSvc: MaterialConversionService,
 		private readonly repo: MaterialRepo,
 		cacheClient: CacheClient,
@@ -66,11 +61,45 @@ export class MaterialService {
 	/**
 	 * Batch fetch full material details including conversions and locationIds
 	 */
-	async getMaterialsBatchWithRelations(
-		ids: number[],
-	): Promise<Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>> {
+	async getMaterialsBatchWithRelations(ids: number[]): Promise<
+		Map<
+			number,
+			{
+				conversions: Array<{
+					toBaseFactor: string
+					uomId: number
+					uom: {
+						id: number
+						code: string
+						createdAt: Date
+						createdBy: number
+						updatedAt: Date
+						updatedBy: number
+					} | null
+				}>
+				locationIds: number[]
+			}
+		>
+	> {
 		if (ids.length === 0)
-			return new Map<number, { conversions: MaterialDto['conversions']; locationIds: number[] }>()
+			return new Map<
+				number,
+				{
+					conversions: Array<{
+						toBaseFactor: string
+						uomId: number
+						uom: {
+							id: number
+							code: string
+							createdAt: Date
+							createdBy: number
+							updatedAt: Date
+							updatedBy: number
+						} | null
+					}>
+					locationIds: number[]
+				}
+			>()
 
 		const [conversions, locations] = await Promise.all([
 			db
@@ -101,7 +130,21 @@ export class MaterialService {
 
 		const map = new Map<
 			number,
-			{ conversions: MaterialDto['conversions']; locationIds: number[] }
+			{
+				conversions: Array<{
+					toBaseFactor: string
+					uomId: number
+					uom: {
+						id: number
+						code: string
+						createdAt: Date
+						createdBy: number
+						updatedAt: Date
+						updatedBy: number
+					} | null
+				}>
+				locationIds: number[]
+			}
 		>()
 		for (const id of ids) {
 			map.set(id, { conversions: [], locationIds: [] })
@@ -111,7 +154,7 @@ export class MaterialService {
 			map.get(c.materialId)!.conversions.push({
 				toBaseFactor: c.toBaseFactor,
 				uomId: c.uomId,
-				uom: uomMap.get(c.uomId),
+				uom: uomMap.get(c.uomId) as any,
 			})
 		}
 
@@ -130,14 +173,7 @@ export class MaterialService {
 				key: 'list',
 				factory: () => this.repo.getList(),
 			})
-			const relationsMap = await this.getMaterialsBatchWithRelations(rawMaterials.map((m) => m.id))
-
-			return rawMaterials.map((m) =>
-				Object.assign({}, m, {
-					conversions: relationsMap.get(m.id)!.conversions,
-					locationIds: relationsMap.get(m.id)!.locationIds,
-				}),
-			)
+			return rawMaterials
 		})
 	}
 
@@ -155,16 +191,11 @@ export class MaterialService {
 			const material = await this.getById(id)
 			if (!material) return undefined
 
-			const uomMap = await this.uomSvc.getRelationMap()
 			const categoryMap = await this.categorySvc.getRelationMap()
 
 			const result: MaterialDetailDto = {
 				...material,
 				category: material.categoryId ? categoryMap.getRequired(material.categoryId) : null,
-				// conversions: material..map((c) => ({
-				// 	...c,
-				// 	uom: c.uomId ? uomMap.getRequired(c.uomId) : null,
-				// })),
 				conversions: [],
 			}
 
@@ -183,7 +214,7 @@ export class MaterialService {
 
 	async handleCreate(data: MaterialMutationDto, actorId: number): Promise<RecordId> {
 		return record('MaterialService.handleCreate', async () => {
-			const { sku, name, conversions, } = data
+			const { sku, name, conversions } = data
 
 			await checkConflict({
 				table: materialsTable,
@@ -193,14 +224,17 @@ export class MaterialService {
 			})
 
 			const created = await db.transaction(async (tx) => {
-				const material = await this.repo.create(
-					{
-						sku,
-						name,
-						createdBy: actorId,
-					},
-					actorId,
-				)
+				const material = await this.repo.create({
+					sku,
+					name,
+					type: data.type,
+					categoryId: data.categoryId,
+					baseUomId: data.baseUomId,
+					description: data.description,
+					locationIds: data.locationIds ?? [],
+					conversions: data.conversions ?? [],
+					createdBy: actorId,
+				})
 
 				if (conversions && conversions.length > 0) {
 					await this.conversionSvc.batchCreate(
@@ -238,15 +272,11 @@ export class MaterialService {
 			})
 
 			await db.transaction(async (tx) => {
-				await this.repo.update(
-					id,
-					{
-						sku,
-						name,
-						updatedBy: actorId,
-					},
-					actorId,
-				)
+				await this.repo.update(id, {
+					sku,
+					name,
+					updatedBy: actorId,
+				})
 
 				if (conversions !== undefined) {
 					await this.conversionSvc.batchReplace(
