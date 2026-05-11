@@ -46,7 +46,8 @@ export class MaterialConversionRepo {
 
 	async getList(materialId?: number): Promise<dto.MaterialConversionDto[]> {
 		return record('MaterialConversionRepo.getList', async () => {
-			const where = materialId === undefined ? undefined : eq(materialConversionsTable.materialId, materialId)
+			const where =
+				materialId === undefined ? undefined : eq(materialConversionsTable.materialId, materialId)
 			return this.db.select().from(materialConversionsTable).where(where)
 		})
 	}
@@ -62,7 +63,10 @@ export class MaterialConversionRepo {
 		})
 	}
 
-	async getByMaterialAndUom(materialId: number, uomId: number): Promise<dto.MaterialConversionDto | undefined> {
+	async getByMaterialAndUom(
+		materialId: number,
+		uomId: number,
+	): Promise<dto.MaterialConversionDto | undefined> {
 		return record('MaterialConversionRepo.getByMaterialAndUom', async () => {
 			return this.db
 				.select()
@@ -80,7 +84,8 @@ export class MaterialConversionRepo {
 
 	async count(materialId?: number): Promise<number> {
 		return record('MaterialConversionRepo.count', async () => {
-			const where = materialId === undefined ? undefined : eq(materialConversionsTable.materialId, materialId)
+			const where =
+				materialId === undefined ? undefined : eq(materialConversionsTable.materialId, materialId)
 			return this.db
 				.select({ count: count() })
 				.from(materialConversionsTable)
@@ -91,7 +96,10 @@ export class MaterialConversionRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: dto.MaterialConversionCreateDto, actorId: number): Promise<number | undefined> {
+	async create(
+		data: dto.MaterialConversionCreateDto,
+		actorId: number,
+	): Promise<number | undefined> {
 		return record('MaterialConversionRepo.create', async () => {
 			const metadata = stampCreate(actorId)
 			const [res] = await this.db
@@ -108,7 +116,10 @@ export class MaterialConversionRepo {
 		})
 	}
 
-	async update(data: dto.MaterialConversionUpdateDto, actorId: number): Promise<number | undefined> {
+	async update(
+		data: dto.MaterialConversionUpdateDto,
+		actorId: number,
+	): Promise<number | undefined> {
 		return record('MaterialConversionRepo.update', async () => {
 			const metadata = stampUpdate(actorId)
 			const [res] = await this.db
