@@ -9,6 +9,7 @@ import { MaterialCategoryRepo } from './material-category/material-category.repo
 import { initMaterialCategoryRoute } from './material-category/material-category.route'
 import { MaterialCategoryService } from './material-category/material-category.service'
 import { MaterialConversionRepo } from './material-conversion/material-conversion.repo'
+import { initMaterialConversionRoute } from './material-conversion/material-conversion.route'
 import { MaterialConversionService } from './material-conversion/material-conversion.service'
 import { MaterialLocationRepo } from './material-location/material-location.repo'
 import { initMaterialLocationRoute } from './material-location/material-location.route'
@@ -79,6 +80,7 @@ export function initMaterialRouteModule(s: MaterialServiceModule) {
 	return new Elysia({ prefix: '/material' })
 		.use(initMaterialCategoryRoute(s.category))
 		.use(initMaterialUomRoute(s.uom))
+		.use(initMaterialConversionRoute(s.conversion))
 		.use(initMaterialLocationRoute(s.location))
 		.use(initMaterialQueryRoute(s.query))
 		.use(initMaterialMasterRoute(s.master))
