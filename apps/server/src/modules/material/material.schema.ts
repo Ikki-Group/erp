@@ -1,33 +1,27 @@
-/**
- * Material Schemas — Core validation schemas
- *
- * These are the base schemas that define the structure of material data.
- * They are used by DTOs for HTTP layer validation.
- */
+import { z } from 'zod'
 
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { zc, zp } from '@/shared/validation'
 
-import { MaterialCategoryEntity } from './domain/material-category.entity'
-import { MaterialConversionEntity } from './domain/material-conversion.entity'
-import { MaterialEntity, MaterialTypeSchema } from './domain/material.entity'
+/* ---------------------------------- BASE ---------------------------------- */
 
-/* -------------------------------- RESPONSE -------------------------------- */
+export const MaterialTypeSchema = z.enum(['raw', 'semi', 'packaging'])
+export type MaterialTypeSchema = z.infer<typeof MaterialTypeSchema>
 
-/** Response schema — entity shape as-is */
-export const MaterialSchema = MaterialEntity
-export type MaterialSchema = z.infer<typeof MaterialSchema>
-
-/** Detail response — entity + resolved relations */
-export const MaterialDetailSchema = z.object({
-	...MaterialEntity.shape,
-	category: MaterialCategoryEntity.nullable(),
-	conversions: z.array(MaterialConversionEntity),
+export const MaterialSchema = z.object({
+	id: zp.id,
+	name: zp.str,
+	description: zp.strNullable,
+	sku: zp.str,
+	type: MaterialTypeSchema,
+	categoryId: zp.id.nullable(),
+	baseUomId: zp.id,
+	...zc.AuditBasic.shape,
 })
-export type MaterialDetailSchema = z.infer<typeof MaterialDetailSchema>
+export type MaterialSchema = z.infer<typeof MaterialSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const MaterialCreateSchema = z.object({
+export const MaterialMutationSchema = z.object({
 	name: zc.strTrim.min(3).max(100),
 	description: zc.strTrimNullable,
 	sku: zc.strTrim.min(3).max(50).toUpperCase(),
@@ -44,20 +38,5 @@ export const MaterialCreateSchema = z.object({
 		)
 		.default([]),
 })
-export type MaterialCreateSchema = z.infer<typeof MaterialCreateSchema>
 
-/** Update uses same shape as create — PUT semantics */
-export const MaterialUpdateSchema = MaterialCreateSchema
-export type MaterialUpdateSchema = z.infer<typeof MaterialUpdateSchema>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const MaterialFilterSchema = z.object({
-	...zq.pagination.shape,
-	search: zq.search,
-	type: MaterialTypeSchema.optional(),
-	categoryId: zq.id.optional(),
-	locationIds: zq.ids.optional(),
-	excludeLocationIds: zq.ids.optional(),
-})
-export type MaterialFilterSchema = z.infer<typeof MaterialFilterSchema>
+export type MaterialMutationSchema = z.infer<typeof MaterialMutationSchema>

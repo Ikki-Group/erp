@@ -1,7 +1,3 @@
-/**
- * Material Category Schemas — Core validation schemas
- */
-
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { MaterialCategoryEntity } from './domain/material-category.entity'

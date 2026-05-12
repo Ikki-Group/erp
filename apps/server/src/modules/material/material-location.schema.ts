@@ -74,3 +74,17 @@ export const MaterialLocationConfigSchema = z.object({
 	reorderPoint: zp.decimal.refine((v) => Number(v) >= 0, 'Must be at least 0').optional(),
 })
 export type MaterialLocationConfigSchema = z.infer<typeof MaterialLocationConfigSchema>
+
+/** Create material location assignment */
+export const MaterialLocationCreateSchema = z.object({
+	materialId: zp.id,
+	locationId: zp.id,
+	minStock: zp.decimal.optional(),
+	maxStock: zp.decimal.nullable().optional(),
+	reorderPoint: zp.decimal.optional(),
+})
+export type MaterialLocationCreateSchema = z.infer<typeof MaterialLocationCreateSchema>
+
+/** Update material location assignment */
+export const MaterialLocationUpdateSchema = MaterialLocationConfigSchema
+export type MaterialLocationUpdateSchema = z.infer<typeof MaterialLocationUpdateSchema>
