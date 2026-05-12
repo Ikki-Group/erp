@@ -1,0 +1,6 @@
+export { MaterialService } from './material.service'
+export { MaterialCategoryService } from './material-category.service'
+export { UomService } from './uom.service'
+export { MaterialConversionService } from './material-conversion.service'
+export { MaterialLocationService } from './material-location.service'
+export { MaterialQueryService } from './material-query.service'

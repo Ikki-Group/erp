@@ -6,6 +6,14 @@ export type ConfigNamespace =
 	| 'iam.session'
 	| 'product-category'
 	| 'product'
+	// Material module - new standardized format
+	| 'material:category'
+	| 'material:uom'
+	| 'material:master'
+	| 'material:location'
+	| 'material:conversion'
+	| 'material:query'
+	// Legacy material namespaces (deprecated, migrate to new format)
 	| 'material-category'
 	| 'material.uom'
 	| 'material'

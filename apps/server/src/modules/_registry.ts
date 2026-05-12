@@ -11,7 +11,7 @@ import { HRServiceModule } from './hr'
 import { IamServiceModule } from './iam'
 import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
-import { MaterialServiceModule } from './material'
+import { MaterialModule } from './material'
 import { MokaServiceModule } from './moka'
 import { PaymentServiceModule } from './payment'
 import { ProductServiceModule } from './product'
@@ -32,7 +32,7 @@ export interface Modules {
 	session: SessionServiceModule
 
 	iam: IamServiceModule
-	material: MaterialServiceModule
+	material: MaterialModule
 	supplier: SupplierServiceModule
 	hr: HRServiceModule
 	finance: FinanceServiceModule
@@ -67,7 +67,7 @@ export function initModules(db: DbClient): Modules {
 
 	// Layer 1 — Masters
 	const iam = new IamServiceModule(db, cacheClient, { location })
-	const material = new MaterialServiceModule(db, cacheClient, location.master)
+	const material = new MaterialModule(db, cacheClient, { location: location.master })
 	const supplier = new SupplierServiceModule(db, cacheClient)
 	const finance = new FinanceServiceModule(db, cacheClient)
 	const crm = new CrmServiceModule(db, cacheClient)

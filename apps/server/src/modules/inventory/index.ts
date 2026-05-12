@@ -3,10 +3,10 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import type { MaterialServiceModule } from '@/modules/material'
+import type { MaterialModule } from '@/modules/material'
 
 interface InventoryServiceModuleDeps {
-	material: MaterialServiceModule
+	material: MaterialModule
 }
 
 import { StockAlertRepo } from './stock-alert/stock-alert.repo'

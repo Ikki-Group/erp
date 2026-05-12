@@ -9,7 +9,7 @@ import { initHRRouteModule } from './hr'
 import { initIamRouteModule } from './iam'
 import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
-import { initMaterialRouteModule } from './material'
+import { initMaterialRoutes } from './material'
 import { initMokaRouteModule } from './moka'
 import { initPaymentRouteModule } from './payment'
 import { initProductRouteModule } from './product'
@@ -29,7 +29,7 @@ export function initRoutes(m: Modules) {
 		initDashboardRouteModule(m.dashboard),
 		initInventoryRouteModule(m.inventory),
 		initLocationRouteModule(m.location),
-		initMaterialRouteModule(m.material),
+		initMaterialRoutes(m.material),
 		initProductRouteModule(m.product),
 		initRecipeRouteModule(m.recipe),
 		initToolRouteModule(m.tool),
