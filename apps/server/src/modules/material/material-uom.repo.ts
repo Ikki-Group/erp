@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -28,19 +28,19 @@ export class MaterialUomRepo {
 	async getListPaginated(
 		filter: MaterialUomFilterSchema,
 	): Promise<WithPaginationResult<MaterialUomSchema>> {
-		const { q, page, limit } = filter
-		const where = and(searchFilter(uomsTable.code, q))
+		const { q } = filter
+		const where = searchFilter(uomsTable.code, q)
 
 		return paginate<MaterialUomSchema>({
-			data: ({ limit: l, offset }) =>
+			data: ({ limit, offset }) =>
 				this.db
 					.select()
 					.from(uomsTable)
 					.where(where)
 					.orderBy(sortBy(uomsTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
+			pq: filter,
 			countQuery: this.db.select({ count: count() }).from(uomsTable).where(where),
 		})
 	}
