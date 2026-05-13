@@ -123,6 +123,12 @@
 							]
 						},
 						{
+							"groupName": "types",
+							"elementNamePattern": [
+								"@/types/**"
+							]
+						},
+						{
 							"groupName": "internal-modules",
 							"elementNamePattern": [
 								"@/modules/**"
@@ -135,6 +141,7 @@
 						"db",
 						"lib",
 						"shared",
+						"types",
 						"internal-modules",
 						"unknown"
 					]

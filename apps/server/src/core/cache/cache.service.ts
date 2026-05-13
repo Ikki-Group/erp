@@ -123,4 +123,11 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 			return this.client.deleteMany({ keys: filteredKeys, ...options })
 		})
 	}
+
+	async deleteFromKeys(keys: (KeyFactory | undefined | null)[]): Promise<boolean> {
+		return record('CacheService.deleteFromKeys', async (s) => {
+			s.setAttribute('cache.namespace', this.ns)
+			return this.deleteMany({ keys: keys })
+		})
+	}
 }

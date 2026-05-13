@@ -1,5 +1,4 @@
 export type ConfigNamespace =
-	//
 	| 'location'
 	| 'iam.user'
 	| 'iam.role'
@@ -7,18 +6,12 @@ export type ConfigNamespace =
 	| 'product-category'
 	| 'product'
 	// Material module - new standardized format
-	| 'material:category'
-	| 'material:uom'
-	| 'material:master'
-	| 'material:location'
-	| 'material:conversion'
-	| 'material:query'
-	// Legacy material namespaces (deprecated, migrate to new format)
-	| 'material-category'
+	| 'material.category'
 	| 'material.uom'
-	| 'material'
+	| 'material.master'
 	| 'material.location'
 	| 'material.conversion'
+	| 'material.query'
 	| 'supplier'
 	| 'employee'
 	| 'finance.account'

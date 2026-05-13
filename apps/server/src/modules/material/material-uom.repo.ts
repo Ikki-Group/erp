@@ -13,10 +13,13 @@ import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { uomsTable } from '@/db/schema'
 
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import type {
 	MaterialUomFilterSchema,
+	MaterialUomMutationSchema,
 	MaterialUomSchema,
-} from '@/modules/material/material-uom.schema'
+} from './material-uom.schema'
 
 export class MaterialUomRepo {
 	constructor(private readonly db: DbClient) {}
@@ -56,37 +59,41 @@ export class MaterialUomRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: { code: string; createdBy: number }): Promise<number | undefined> {
-		const metadata = stampCreate(data.createdBy)
+	async create(data: MaterialUomMutationSchema, actorId: ActorId): Promise<EntityRef | undefined> {
+		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(uomsTable)
 			.values({ ...data, ...metadata })
 			.returning({ id: uomsTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async update(id: number, data: { code: string; updatedBy: number }): Promise<number | undefined> {
-		const metadata = stampUpdate(data.updatedBy)
+	async update(
+		id: number,
+		data: MaterialUomMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef | undefined> {
+		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(uomsTable)
 			.set({ ...data, ...metadata })
 			.where(eq(uomsTable.id, id))
 			.returning({ id: uomsTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async remove(id: number): Promise<number | undefined> {
+	async remove(id: number): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.delete(uomsTable)
 			.where(eq(uomsTable.id, id))
 			.returning({ id: uomsTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async seed(data: { code: string; createdBy: number }[]): Promise<void> {
+	async seed(data: Pick<MaterialUomSchema, 'code' | 'createdBy'>[]): Promise<void> {
 		const existing = await this.db.select({ code: uomsTable.code }).from(uomsTable)
 		const existingCodes = new Set(existing.map((e) => e.code))
 

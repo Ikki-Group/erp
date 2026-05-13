@@ -9,10 +9,7 @@ const strTrimNullable = z
 	.transform((val: string) => (val.length === 0 ? null : val))
 	.nullable()
 
-const email = z
-	.email()
-	.max(255)
-	.transform((v: string) => v.toLowerCase())
+const email = z.email().max(255).toLowerCase()
 
 const username = z
 	.string()
