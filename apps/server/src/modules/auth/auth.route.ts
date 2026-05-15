@@ -6,7 +6,7 @@ import { res } from '@/core/http/response'
 
 import { UserSchema } from '@/modules/iam'
 
-import { AuthLoginDto, AuthOutputDto } from './auth.dto'
+import { AuthLoginSchema, AuthOutputSchema } from './auth.schema'
 import type { AuthService } from './auth.service'
 
 export function initAuthRoute(svc: AuthService) {
@@ -18,7 +18,7 @@ export function initAuthRoute(svc: AuthService) {
 				const { user, token } = await svc.login(body)
 				return res.ok({ token, user }, 'AUTH_LOGIN_SUCCESS')
 			},
-			{ body: AuthLoginDto, response: createSuccessResponseSchema(AuthOutputDto) },
+			{ body: AuthLoginSchema, response: createSuccessResponseSchema(AuthOutputSchema) },
 		)
 		.get(
 			'/me',

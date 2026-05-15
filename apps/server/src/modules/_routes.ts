@@ -1,50 +1,32 @@
 import type { Modules } from './_registry'
-import { initAuditRouteModule } from './audit'
 import { initAuthRouteModule } from './auth'
-import { initCompanyRouteModule } from './company'
-import { initCrmRouteModule } from './crm'
-import { initDashboardRouteModule } from './dashboard'
-import { initFinanceRouteModule } from './finance'
-import { initHRRouteModule } from './hr'
 import { createIamRouteModule } from './iam'
-import { initInventoryRouteModule } from './inventory'
-import { initLocationRouteModule } from './location'
-import { initMaterialRoutes } from './material'
-import { initMokaRouteModule } from './moka'
-import { initPaymentRouteModule } from './payment'
-import { initProductRouteModule } from './product'
-import { initProductionRouteModule } from './production'
-import { initPurchasingRouteModule } from './purchasing'
-import { initRecipeRouteModule } from './recipe'
-import { initReportingRouteModule } from './reporting'
-import { initSalesRouteModule } from './sales'
-import { initSupplierRouteModule } from './supplier'
-import { initToolRouteModule } from './tool'
+import { createLocationRouteModule } from './location'
 import type Elysia from 'elysia'
 
 export function initRoutes(m: Modules) {
 	const routes = [
 		initAuthRouteModule(m.auth),
 		createIamRouteModule(m.iam),
-		initDashboardRouteModule(m.dashboard),
-		initInventoryRouteModule(m.inventory),
-		initLocationRouteModule(m.location),
-		initMaterialRoutes(m.material),
-		initProductRouteModule(m.product),
-		initRecipeRouteModule(m.recipe),
-		initToolRouteModule(m.tool),
-		initMokaRouteModule(m.moka),
-		initSalesRouteModule(m.sales),
-		initSupplierRouteModule(m.supplier),
-		initFinanceRouteModule(m.finance),
-		initCrmRouteModule(m.crm),
-		initCompanyRouteModule(m.company),
-		initAuditRouteModule(m.audit),
-		initPurchasingRouteModule(m.purchasing),
-		initProductionRouteModule(m.production),
-		initHRRouteModule(m.hr),
-		initPaymentRouteModule(m.payment),
-		initReportingRouteModule(m.reporting),
+		// initDashboardRouteModule(m.dashboard),
+		// initInventoryRouteModule(m.inventory),
+		createLocationRouteModule(m.location),
+		// initMaterialRoutes(m.material),
+		// initProductRouteModule(m.product),
+		// initRecipeRouteModule(m.recipe),
+		// initToolRouteModule(m.tool),
+		// initMokaRouteModule(m.moka),
+		// initSalesRouteModule(m.sales),
+		// initSupplierRouteModule(m.supplier),
+		// initFinanceRouteModule(m.finance),
+		// initCrmRouteModule(m.crm),
+		// initCompanyRouteModule(m.company),
+		// initAuditRouteModule(m.audit),
+		// initPurchasingRouteModule(m.purchasing),
+		// initProductionRouteModule(m.production),
+		// initHRRouteModule(m.hr),
+		// initPaymentRouteModule(m.payment),
+		// initReportingRouteModule(m.reporting),
 	]
 
 	return {

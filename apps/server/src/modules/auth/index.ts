@@ -4,7 +4,10 @@ import type { SessionServiceModule } from '@/modules/session'
 
 import type { UserService } from '../iam'
 import { initAuthRoute } from './auth.route'
+import type { AuthLoginSchema, AuthOutputSchema } from './auth.schema'
 import { AuthService } from './auth.service'
+
+export type { AuthLoginSchema, AuthOutputSchema }
 
 interface AuthServiceModuleDeps {
 	session: SessionServiceModule

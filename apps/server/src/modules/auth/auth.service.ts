@@ -4,7 +4,7 @@ import { UnauthorizedError } from '@/core/http/errors'
 import type { UserSchema, UserService } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
-import type { AuthOutputDto, AuthLoginDto } from './auth.dto'
+import type { AuthOutputSchema, AuthLoginSchema } from './auth.schema'
 
 const err = {
 	userNotFound: () => new UnauthorizedError('User not found', 'AUTH_USER_NOT_FOUND'),
@@ -18,7 +18,7 @@ export class AuthService {
 		private readonly sessionSvc: SessionService,
 	) {}
 
-	async login(input: AuthLoginDto): Promise<AuthOutputDto> {
+	async login(input: AuthLoginSchema): Promise<AuthOutputSchema> {
 		const { identifier, password } = input
 		const targetUser = await this.userSvc.getByIdentifier(identifier)
 

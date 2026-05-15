@@ -11,7 +11,6 @@ import { HRServiceModule } from './hr'
 import { IamServiceModule } from './iam'
 import { InventoryServiceModule } from './inventory'
 import { LocationServiceModule } from './location'
-import { MaterialModule } from './material'
 import { MokaServiceModule } from './moka'
 import { PaymentServiceModule } from './payment'
 import { ProductServiceModule } from './product'
@@ -32,7 +31,7 @@ export interface Modules {
 	session: SessionServiceModule
 
 	iam: IamServiceModule
-	material: MaterialModule
+	// material: MaterialModule
 	supplier: SupplierServiceModule
 	hr: HRServiceModule
 	finance: FinanceServiceModule
@@ -67,7 +66,7 @@ export function initModules(db: DbClient): Modules {
 
 	// Layer 1 — Masters
 	const iam = new IamServiceModule(db, cacheClient, { location })
-	const material = new MaterialModule(db, cacheClient, { location: location.master })
+	// const material = new MaterialModule(db, cacheClient, { location: location.master })
 	const supplier = new SupplierServiceModule(db, cacheClient)
 	const finance = new FinanceServiceModule(db, cacheClient)
 	const crm = new CrmServiceModule(db, cacheClient)
@@ -81,28 +80,28 @@ export function initModules(db: DbClient): Modules {
 	const auth = new AuthServiceModule({ session, user: iam.user })
 
 	// Layer 2 — Operations
-	const inventory = new InventoryServiceModule(db, cacheClient, { material })
+	// const inventory = new InventoryServiceModule(db, cacheClient, { material })
 	const recipe = new RecipeServiceModule(db, cacheClient)
 	const sales = new SalesServiceModule(db, cacheClient, { location, crm, product, salesType })
-	const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
+	// const purchasing = new PurchasingServiceModule(db, cacheClient, inventory)
 
 	const moka = new MokaServiceModule(db, cacheClient, finance)
 
 	// Layer 3 — Aggregators
-	const production = new ProductionServiceModule(db, cacheClient, {
-		recipe: recipe.recipe,
-		stockTransaction: inventory.transaction,
-	})
+	// const production = new ProductionServiceModule(db, cacheClient, {
+	// 	recipe: recipe.recipe,
+	// 	stockTransaction: inventory.transaction,
+	// })
 	const dashboard = new DashboardServiceModule(db, cacheClient, { iam, location, finance, sales })
-	const tool = new ToolServiceModule(db, {
-		iamRole: iam.role,
-		iamUser: iam.user,
-		locationMaster: location.master,
-		materialCategory: material.category,
-		materialMaster: material.master,
-		materialUom: material.uom,
-		salesType: salesType.salesType,
-	})
+	// const tool = new ToolServiceModule(db, {
+	// 	iamRole: iam.role,
+	// 	iamUser: iam.user,
+	// 	locationMaster: location.master,
+	// 	materialCategory: material.category,
+	// 	materialMaster: material.master,
+	// 	materialUom: material.uom,
+	// 	salesType: salesType.salesType,
+	// })
 	const payment = new PaymentServiceModule(db, cacheClient)
 	const reporting = new ReportingServiceModule(db)
 
@@ -112,12 +111,12 @@ export function initModules(db: DbClient): Modules {
 		salesType,
 		session,
 		iam,
-		material,
+		// material,
 		auth,
-		inventory,
+		// inventory,
 		recipe,
 		dashboard,
-		tool,
+		// tool,
 		moka,
 		sales,
 		supplier,
@@ -126,8 +125,8 @@ export function initModules(db: DbClient): Modules {
 		crm,
 		company,
 		audit,
-		purchasing,
-		production,
+		// purchasing,
+		// production,
 		payment,
 		reporting,
 	}
