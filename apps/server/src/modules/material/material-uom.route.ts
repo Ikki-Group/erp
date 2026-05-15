@@ -18,7 +18,7 @@ import {
 } from './material-uom.schema'
 import type { MaterialUomService } from './material-uom.service'
 
-export function initMaterialUomRoute(svc: MaterialUomService) {
+export function createMaterialUomRoute(svc: MaterialUomService) {
 	return new Elysia({ prefix: '/uom' })
 		.use(authPluginMacro)
 		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {

@@ -1,70 +1,53 @@
+import { Elysia } from 'elysia'
+import { z } from 'zod'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
+
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@ikki/api-contract/validation'
-import { Elysia } from 'elysia'
+} from '@/shared/validation'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
+import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './location.schema'
+import type { LocationService } from './location.service'
 
-import * as dto from './location.dto'
-import type { LocationMasterService } from './location.service'
-
-export function initLocationRoute(service: LocationMasterService) {
-	return new Elysia()
+export function createLocationRoute(svc: LocationService) {
+	return new Elysia({ prefix: '/location' })
 		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.LocationFilterDto,
-				response: createPaginatedResponseSchema(dto.LocationDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
-				return res.ok(result)
-			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(dto.LocationDto), auth: true },
-		)
+		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
+			query: LocationFilterSchema,
+			response: createPaginatedResponseSchema(LocationSchema),
+			auth: true,
+		})
+		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(LocationSchema),
+			auth: true,
+		})
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.ok(result)
-			},
+			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
 			{
-				body: dto.LocationCreateDto,
+				body: LocationMutationSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
-				return res.ok(result)
-			},
+			async ({ body, auth }) => res.ok(await svc.handleUpdate(body.id, body, auth.userId)),
 			{
-				body: dto.LocationUpdateDto,
+				body: z.object({ ...zc.RecordId.shape, ...LocationMutationSchema.shape }),
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
-		.delete(
-			'/remove',
-			async function remove({ body }) {
-				const result = await service.handleRemove(body.id)
-				return res.ok(result)
-			},
-			{ body: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-		)
+		.delete('/remove', async ({ query }) => res.ok(await svc.handleRemove(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(zc.RecordId),
+			auth: true,
+		})
 }

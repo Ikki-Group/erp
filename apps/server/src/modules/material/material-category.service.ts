@@ -28,7 +28,7 @@ const uniqueFields: ConflictField<'name'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Category not found`, { code: 'CATEGORY_NOT_FOUND', meta: { id } }),
+		new NotFoundError('Category not found', { code: 'CATEGORY_NOT_FOUND', meta: { id } }),
 	createFailed: () =>
 		new InternalServerError('Category creation failed', { code: 'CATEGORY_CREATE_FAILED' }),
 }
@@ -45,7 +45,8 @@ export class MaterialCategoryService {
 
 	async getListAll(): Promise<MaterialCategorySchema[]> {
 		return record('MaterialCategoryService.getListAll', async () =>
-			this.cache.getOrSet(this.cache.keys.list, {
+			this.cache.getOrSet({
+				key: this.cache.keys.list,
 				factory: () => this.repo.getList(),
 			}),
 		)
@@ -59,7 +60,8 @@ export class MaterialCategoryService {
 
 	async getById(id: number): Promise<MaterialCategorySchema | undefined> {
 		return record('MaterialCategoryService.getById', async () =>
-			this.cache.getOrSetSkipUndefined(this.cache.keys.byId(id), {
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
 				factory: () => this.repo.getById(id),
 			}),
 		)

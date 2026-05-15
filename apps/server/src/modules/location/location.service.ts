@@ -1,15 +1,21 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheServiceV2, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
 import { RelationMap } from '@/core/utils/relation-map'
 
 import { locationsTable } from '@/db/schema'
 
-import * as dto from './location.dto'
-import { LocationMasterRepo } from './location.repo'
-import type { RecordId } from '@ikki/api-contract'
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+
+import type { ActorId, EntityRef } from '@/types/utils'
+
+import { LocationRepo } from './location.repo'
+import type {
+	LocationSchema,
+	LocationMutationSchema,
+	LocationFilterSchema,
+} from './location.schema'
 
 const uniqueFields: ConflictField<'name'>[] = [
 	{
@@ -22,100 +28,68 @@ const uniqueFields: ConflictField<'name'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Location with ID ${id} not found`, 'LOCATION_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Location creation failed', 'LOCATION_CREATE_FAILED'),
+		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', meta: { id } }),
+	createFailed: () =>
+		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
 }
 
-export class LocationMasterService {
-	private readonly cache: CacheService
+export class LocationService {
+	private readonly cache: CacheServiceV2
 
 	constructor(
-		private readonly repo: LocationMasterRepo,
+		private readonly repo: LocationRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'location', client: cacheClient })
+		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'location')
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
-
-	async getList(): Promise<dto.LocationDto[]> {
-		return record('LocationMasterService.getList', () => {
-			return this.cache.getOrSet({
-				key: 'list',
+	async getListAll(): Promise<LocationSchema[]> {
+		return record('LocationService.getListAll', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.list,
 				factory: () => this.repo.getList(),
-			})
-		})
+			}),
+		)
 	}
 
-	async getRelationMap(): Promise<RelationMap<number, dto.LocationDto>> {
-		return record('LocationMasterService.getRelationMap', async () => {
-			const locations = await this.getList()
-			return RelationMap.fromArray(locations, (l) => l.id)
-		})
+	async getRelationMap(): Promise<RelationMap<number, LocationSchema>> {
+		return record('LocationService.getRelationMap', async () =>
+			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
+		)
 	}
 
-	async getById(id: number): Promise<dto.LocationDto | undefined> {
-		return record('LocationMasterService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
+	async getById(id: number): Promise<LocationSchema | undefined> {
+		return record('LocationService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
 				factory: () => this.repo.getById(id),
-			})
-		})
+			}),
+		)
 	}
 
-	async getCount(): Promise<number> {
-		return record('LocationMasterService.count', async () => {
-			return this.cache.getOrSet({
-				key: 'count',
-				factory: () => this.repo.count(),
-			})
-		})
-	}
-
-	async seed(data: (dto.LocationCreateDto & { createdBy: number })[]): Promise<void> {
-		return record('LocationMasterService.seed', async () => {
-			await this.repo.seed(data)
-		})
-	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: dto.LocationFilterDto): Promise<WithPaginationResult<dto.LocationDto>> {
-		return record('LocationMasterService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return result
-		})
-	}
-
-	async handleDetail(id: number): Promise<dto.LocationDto> {
-		return record('LocationMasterService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
-		})
-	}
-
-	async handleCreate(data: dto.LocationCreateDto, actorId: number): Promise<RecordId> {
-		return record('LocationMasterService.handleCreate', async () => {
+	async create(data: LocationMutationSchema, actorId: ActorId): Promise<EntityRef> {
+		return record('LocationService.create', async () => {
 			await checkConflict({
 				table: locationsTable,
 				pkColumn: locationsTable.id,
 				fields: uniqueFields,
 				input: data,
 			})
+
 			const result = await this.repo.create(data, actorId)
 			if (!result) throw err.createFailed()
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-			return { id: result }
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+			return result
 		})
 	}
 
-	async handleUpdate(data: dto.LocationUpdateDto, actorId: number): Promise<RecordId> {
-		return record('LocationMasterService.handleUpdate', async () => {
-			const { id } = data
-
+	async update(
+		id: number,
+		data: LocationMutationSchema,
+		actorId: ActorId,
+	): Promise<{ id: number }> {
+		return record('LocationService.update', async () => {
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)
 
@@ -127,23 +101,70 @@ export class LocationMasterService {
 				existing,
 			})
 
-			const result = await this.repo.update(data, actorId)
+			const result = await this.repo.update(id, data, actorId)
 			if (!result) throw err.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 
-			return { id }
+			return result
 		})
 	}
 
-	async handleRemove(id: number): Promise<RecordId> {
-		return record('LocationMasterService.handleRemove', async () => {
+	async remove(id: number): Promise<EntityRef> {
+		return record('LocationService.remove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 
-			return { id }
+			return result
+		})
+	}
+
+	/* --------------------------------- HANDLER -------------------------------- */
+
+	async handleList(filter: LocationFilterSchema): Promise<WithPaginationResult<LocationSchema>> {
+		return record('LocationService.handleList', async () => {
+			const result = await this.repo.getListPaginated(filter)
+			return result
+		})
+	}
+
+	async handleDetail(id: number): Promise<LocationSchema> {
+		return record('LocationService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
+
+	async handleCreate(data: LocationMutationSchema, actorId: ActorId): Promise<EntityRef> {
+		return record('LocationService.handleCreate', async () => {
+			return this.create(data, actorId)
+		})
+	}
+
+	async handleUpdate(
+		id: number,
+		data: LocationMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('LocationService.handleUpdate', async () => {
+			return this.update(id, data, actorId)
+		})
+	}
+
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('LocationService.handleRemove', async () => {
+			return this.remove(id)
 		})
 	}
 }

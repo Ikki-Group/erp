@@ -55,6 +55,8 @@ export class CacheService {
 type KeyFactory = string | ((...any: any[]) => string)
 type CacheKeys = Record<string, KeyFactory>
 
+type GetOrSetOptionsWithKey<T> = Omit<GetOrSetOptions<T>, 'key'> & { key: KeyFactory }
+
 const DEFAULT_KEYS = {
 	list: 'list',
 	count: 'count',
@@ -78,7 +80,7 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 		return typeof key === 'function' ? key() : key
 	}
 
-	async getOrSet<T>(key: KeyFactory, options: Omit<GetOrSetOptions<T>, 'key'>): Promise<T> {
+	async getOrSet<T>({ key, ...options }: GetOrSetOptionsWithKey<T>): Promise<T> {
 		return record('CacheService.getOrSet', (s) => {
 			s.setAttribute('cache.namespace', this.ns)
 			return this.client.getOrSet({
@@ -88,11 +90,11 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 		})
 	}
 
-	async getOrSetSkipUndefined<T>(
-		key: KeyFactory,
-		options: Omit<GetOrSetOptions<T>, 'key'>,
-	): Promise<T | undefined> {
-		return record('CacheService.getOrSetSkipUndefined', (s) => {
+	async getOrSetWithSkip<T>({
+		key,
+		...options
+	}: GetOrSetOptionsWithKey<T>): Promise<T | undefined> {
+		return record('CacheService.getOrSetWithSkip', (s) => {
 			s.setAttribute('cache.namespace', this.ns)
 			return this.client.getOrSet({
 				key: this.#buildKey(key),

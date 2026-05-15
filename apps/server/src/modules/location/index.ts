@@ -3,31 +3,28 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { LocationMasterRepo } from './location.repo'
-import { initLocationRoute } from './location.route'
-import { LocationMasterService } from './location.service'
+import { LocationRepo } from './location.repo'
+import { createLocationRoute } from './location.route'
+import { LocationService } from './location.service'
 
 export class LocationServiceModule {
-	public readonly master: LocationMasterService
+	public readonly location: LocationService
 
 	constructor(db: DbClient, cacheClient: CacheClient) {
-		const repo = new LocationMasterRepo(db)
-		this.master = new LocationMasterService(repo, cacheClient)
+		const repo = new LocationRepo(db)
+		this.location = new LocationService(repo, cacheClient)
 	}
 }
 
-export function initLocationRouteModule(service: LocationServiceModule) {
-	const locationRouter = initLocationRoute(service.master)
-
-	return new Elysia({ prefix: '/location' }).use(locationRouter)
+export function createLocationRouteModule(s: LocationServiceModule) {
+	return new Elysia({ prefix: '/location' }).use(createLocationRoute(s.location))
 }
 
 export {
-	LocationDto,
-	LocationCreateDto,
-	LocationUpdateDto,
-	LocationFilterDto,
-	LocationTypeDto,
-	type LocationTypeDto as LocationTypeDtoType,
-} from './location.dto'
-export { LocationMasterService } from './location.service'
+	LocationSchema,
+	LocationMutationSchema,
+	LocationFilterSchema,
+	LocationTypeSchema,
+	type LocationSchema as LocationTypeSchemaType,
+} from './location.schema'
+export { LocationService } from './location.service'
