@@ -22,6 +22,6 @@ export class AuthServiceModule {
 	}
 }
 
-export function initAuthRouteModule(s: AuthServiceModule) {
+export function createAuthRouteModule(s: AuthServiceModule) {
 	return new Elysia({ prefix: '/auth' }).use(initAuthRoute(s.auth))
 }

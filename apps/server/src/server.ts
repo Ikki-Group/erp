@@ -3,15 +3,16 @@
 import '@/core/otel'
 import { logger } from '@/core/logger'
 
+import { env } from '@/config/env'
+
 import { initModules } from '@/modules/_registry'
-import { initRoutes } from '@/modules/_routes'
+import { createRoutes } from '@/modules/_routes'
 
 import { db } from './db'
 import { createApp } from '@/app'
-import { env } from '@/config/env'
 
 const modules = initModules(db)
-const routes = initRoutes(modules)
+const routes = createRoutes(modules)
 
 const app = createApp(modules)
 routes.register(app)
