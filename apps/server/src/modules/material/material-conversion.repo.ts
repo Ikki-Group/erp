@@ -12,11 +12,12 @@ import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { materialConversionsTable } from '@/db/schema'
 
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import type {
 	MaterialConversionFilterSchema,
+	MaterialConversionMutationSchema,
 	MaterialConversionSchema,
-	MaterialConversionCreateSchema,
-	MaterialConversionUpdateSchema,
 } from './material-conversion.schema'
 
 export class MaterialConversionRepo {
@@ -43,22 +44,22 @@ export class MaterialConversionRepo {
 	async getListPaginated(
 		filter: MaterialConversionFilterSchema,
 	): Promise<WithPaginationResult<MaterialConversionSchema>> {
-		const { materialId, uomId, page, limit } = filter
+		const { materialId, uomId } = filter
 		const where = and(
 			materialId ? eq(materialConversionsTable.materialId, materialId) : undefined,
 			uomId ? eq(materialConversionsTable.uomId, uomId) : undefined,
 		)
 
 		return paginate<MaterialConversionSchema>({
-			data: ({ limit: l, offset }) =>
+			data: ({ limit, offset }) =>
 				this.db
 					.select()
 					.from(materialConversionsTable)
 					.where(where)
 					.orderBy(sortBy(materialConversionsTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
+			pq: filter,
 			countQuery: this.db.select({ count: count() }).from(materialConversionsTable).where(where),
 		})
 	}
@@ -72,21 +73,24 @@ export class MaterialConversionRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: MaterialConversionCreateSchema, actorId: number): Promise<number | undefined> {
+	async create(
+		data: MaterialConversionMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef | undefined> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(materialConversionsTable)
 			.values({ ...data, ...metadata })
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 
 	async update(
 		id: number,
-		data: MaterialConversionUpdateSchema,
-		actorId: number,
-	): Promise<number | undefined> {
+		data: MaterialConversionMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef | undefined> {
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(materialConversionsTable)
@@ -94,15 +98,15 @@ export class MaterialConversionRepo {
 			.where(eq(materialConversionsTable.id, id))
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async remove(id: number): Promise<number | undefined> {
+	async remove(id: number): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.delete(materialConversionsTable)
 			.where(eq(materialConversionsTable.id, id))
 			.returning({ id: materialConversionsTable.id })
 
-		return res?.id
+		return res
 	}
 }

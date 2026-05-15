@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
 import {
 	paginate,
@@ -9,16 +9,16 @@ import {
 	takeFirst,
 	type DbClient,
 } from '@/core/database'
-
 import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { materialCategoriesTable } from '@/db/schema'
 
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import type {
 	MaterialCategoryFilterSchema,
+	MaterialCategoryMutationSchema,
 	MaterialCategorySchema,
-	MaterialCategoryCreateSchema,
-	MaterialCategoryUpdateSchema,
 } from './material-category.schema'
 
 export class MaterialCategoryRepo {
@@ -33,22 +33,19 @@ export class MaterialCategoryRepo {
 	async getListPaginated(
 		filter: MaterialCategoryFilterSchema,
 	): Promise<WithPaginationResult<MaterialCategorySchema>> {
-		const { q, page, limit, parentId } = filter
-		const where = and(
-			searchFilter(materialCategoriesTable.name, q),
-			parentId ? eq(materialCategoriesTable.parentId, parentId) : undefined,
-		)
+		const { q } = filter
+		const where = searchFilter(materialCategoriesTable.name, q)
 
 		return paginate<MaterialCategorySchema>({
-			data: ({ limit: l, offset }) =>
+			data: ({ limit, offset }) =>
 				this.db
 					.select()
 					.from(materialCategoriesTable)
 					.where(where)
 					.orderBy(sortBy(materialCategoriesTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset),
-			pq: { page, limit },
+			pq: filter,
 			countQuery: this.db.select({ count: count() }).from(materialCategoriesTable).where(where),
 		})
 	}
@@ -71,17 +68,24 @@ export class MaterialCategoryRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: MaterialCategoryCreateSchema, actorId: number): Promise<number | undefined> {
+	async create(
+		data: MaterialCategoryMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef | undefined> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(materialCategoriesTable)
 			.values({ ...data, ...metadata })
 			.returning({ id: materialCategoriesTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async update(id: number, data: MaterialCategoryUpdateSchema, actorId: number): Promise<number | undefined> {
+	async update(
+		id: number,
+		data: MaterialCategoryMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef | undefined> {
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(materialCategoriesTable)
@@ -89,15 +93,15 @@ export class MaterialCategoryRepo {
 			.where(eq(materialCategoriesTable.id, id))
 			.returning({ id: materialCategoriesTable.id })
 
-		return res?.id
+		return res
 	}
 
-	async remove(id: number): Promise<number | undefined> {
+	async remove(id: number): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.delete(materialCategoriesTable)
 			.where(eq(materialCategoriesTable.id, id))
 			.returning({ id: materialCategoriesTable.id })
 
-		return res?.id
+		return res
 	}
 }

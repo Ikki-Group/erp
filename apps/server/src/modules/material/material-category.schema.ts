@@ -1,34 +1,29 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
 
-import { MaterialCategoryEntity } from './domain/material-category.entity'
+import { zc, zp, zq } from '@/shared/validation'
 
-/* -------------------------------- RESPONSE -------------------------------- */
+/* ---------------------------------- BASE ---------------------------------- */
 
-export const MaterialCategorySchema = MaterialCategoryEntity
-export type MaterialCategorySchema = z.infer<typeof MaterialCategorySchema>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const MaterialCategoryFilterSchema = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	parentId: zq.id.optional(),
+export const MaterialCategorySchema = z.object({
+	id: zp.id,
+	name: zp.str,
+	description: zp.str.nullable(),
+	...zc.AuditBasic.shape,
 })
-export type MaterialCategoryFilterSchema = z.infer<typeof MaterialCategoryFilterSchema>
+export type MaterialCategorySchema = z.infer<typeof MaterialCategorySchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const MaterialCategoryMutationSchema = z.object({
 	name: zc.strTrim.min(1).max(100),
 	description: zc.strTrimNullable,
-	parentId: zp.id.optional().nullable(),
 })
 export type MaterialCategoryMutationSchema = z.infer<typeof MaterialCategoryMutationSchema>
 
-export const MaterialCategoryCreateSchema = MaterialCategoryMutationSchema
-export type MaterialCategoryCreateSchema = z.infer<typeof MaterialCategoryCreateSchema>
+/* --------------------------------- FILTER --------------------------------- */
 
-export const MaterialCategoryUpdateSchema = MaterialCategoryMutationSchema.extend({
-	...zc.RecordId.shape,
+export const MaterialCategoryFilterSchema = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
 })
-export type MaterialCategoryUpdateSchema = z.infer<typeof MaterialCategoryUpdateSchema>
+export type MaterialCategoryFilterSchema = z.infer<typeof MaterialCategoryFilterSchema>
