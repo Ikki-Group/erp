@@ -2,7 +2,7 @@ import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
-export const SalesTypeDto = z.object({
+export const SalesTypeSchema = z.object({
 	...zc.RecordId.shape,
 	code: zp.str,
 	name: zp.str,
@@ -10,29 +10,29 @@ export const SalesTypeDto = z.object({
 	...zc.AuditBasic.shape,
 })
 
-export type SalesTypeDto = z.infer<typeof SalesTypeDto>
+export type SalesTypeSchema = z.infer<typeof SalesTypeSchema>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const SalesTypeFilterDto = z.object({
+export const SalesTypeFilterSchema = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 })
 
-export type SalesTypeFilterDto = z.infer<typeof SalesTypeFilterDto>
+export type SalesTypeFilterSchema = z.infer<typeof SalesTypeFilterSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-export const SalesTypeMutationDto = z.object({
+export const SalesTypeMutationSchema = z.object({
 	code: zc.strTrim.min(1).max(20).toUpperCase(),
 	name: zc.strTrim.min(1).max(100),
 	isSystem: zp.bool.default(false),
 })
 
-export const SalesTypeCreateDto = SalesTypeMutationDto
-export type SalesTypeCreateDto = z.infer<typeof SalesTypeCreateDto>
+export const SalesTypeCreateSchema = SalesTypeMutationSchema
+export type SalesTypeCreateSchema = z.infer<typeof SalesTypeCreateSchema>
 
-export const SalesTypeUpdateDto = SalesTypeMutationDto.extend({
+export const SalesTypeUpdateSchema = SalesTypeMutationSchema.extend({
 	...zc.RecordId.shape,
 })
-export type SalesTypeUpdateDto = z.infer<typeof SalesTypeUpdateDto>
+export type SalesTypeUpdateSchema = z.infer<typeof SalesTypeUpdateSchema>

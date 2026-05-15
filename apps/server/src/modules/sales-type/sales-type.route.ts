@@ -10,11 +10,11 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import {
-	SalesTypeDto,
-	SalesTypeFilterDto,
-	SalesTypeCreateDto,
-	SalesTypeUpdateDto,
-} from './sales-type.dto'
+	SalesTypeSchema,
+	SalesTypeFilterSchema,
+	SalesTypeCreateSchema,
+	SalesTypeUpdateSchema,
+} from './sales-type.schema'
 import type { SalesTypeService } from './sales-type.service'
 
 export function initSalesTypeRoute(service: SalesTypeService) {
@@ -27,8 +27,8 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				return res.paginated(result)
 			},
 			{
-				query: SalesTypeFilterDto,
-				response: createPaginatedResponseSchema(SalesTypeDto),
+				query: SalesTypeFilterSchema,
+				response: createPaginatedResponseSchema(SalesTypeSchema),
 				auth: true,
 			},
 		)
@@ -38,7 +38,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				const salesType = await service.handleDetail(query.id)
 				return res.ok(salesType)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(SalesTypeSchema), auth: true },
 		)
 		.post(
 			'/create',
@@ -47,7 +47,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				return res.created({ id })
 			},
 			{
-				body: SalesTypeCreateDto,
+				body: SalesTypeCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -59,7 +59,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				return res.ok({ id })
 			},
 			{
-				body: SalesTypeUpdateDto,
+				body: SalesTypeUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

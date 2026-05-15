@@ -5,6 +5,12 @@ import type { DbClient } from '@/core/database'
 
 import { SalesTypeRepo } from './sales-type.repo'
 import { initSalesTypeRoute } from './sales-type.route'
+import type {
+	SalesTypeSchema,
+	SalesTypeFilterSchema,
+	SalesTypeCreateSchema,
+	SalesTypeUpdateSchema,
+} from './sales-type.schema'
 import { SalesTypeService } from './sales-type.service'
 
 export class SalesTypeServiceModule {
@@ -23,5 +29,5 @@ export function initSalesTypeRouteModule(s: SalesTypeServiceModule) {
 	return new Elysia().use(initSalesTypeRoute(s.salesType))
 }
 
-export * from './sales-type.dto'
+export type { SalesTypeSchema, SalesTypeFilterSchema, SalesTypeCreateSchema, SalesTypeUpdateSchema }
 export type { SalesTypeService } from './sales-type.service'
