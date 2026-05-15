@@ -20,11 +20,5 @@ export function createLocationRouteModule(s: LocationServiceModule) {
 	return new Elysia({ prefix: '/location' }).use(createLocationRoute(s.location))
 }
 
-export {
-	LocationSchema,
-	LocationMutationSchema,
-	LocationFilterSchema,
-	LocationTypeSchema,
-	type LocationSchema as LocationTypeSchemaType,
-} from './location.schema'
-export { LocationService } from './location.service'
+export type { LocationService } from './location.service'
+export * from './location.schema'

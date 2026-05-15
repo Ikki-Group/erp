@@ -106,3 +106,4 @@ export class LocationRepo {
 
 		return res
 	}
+}
