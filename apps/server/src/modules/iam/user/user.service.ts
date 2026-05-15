@@ -2,23 +2,32 @@ import { record } from '@elysiajs/opentelemetry'
 import { merge } from 'es-toolkit'
 
 import { resolveAudit } from '@/core/audit'
-import { CacheService, type CacheClient } from '@/core/cache'
-import * as core from '@/core/database'
-import type { RelationMap } from '@/core/utils/relation-map'
+import { CacheServiceV2, type CacheClient } from '@/core/cache'
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
+import { RelationMap } from '@/core/utils/relation-map'
 
 import { usersTable } from '@/db/schema'
 
-import type { LocationDto, LocationServiceModule } from '@/modules/location'
+import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
+
+import type { ActorId, EntityRef } from '@/types/utils'
+
+import type { LocationSchema, LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
-import { UserErrors } from '../errors'
-import type { RoleDto } from '../role/role.dto'
+import type { RoleSchema } from '../role/role.schema'
 import type { RoleService } from '../role/role.service'
-import * as dto from './user.dto'
-import type { UserRepo } from './user.repo'
-import type { AuditResolved } from '@ikki/api-contract'
+import { UserRepo } from './user.repo'
+import type {
+	UserSchema,
+	UserFilterSchema,
+	UserCreateSchema,
+	UserUpdateSchema,
+	UserChangePasswordSchema,
+	UserAdminUpdatePasswordSchema,
+} from './user.schema'
 
-const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
+const userConflictFields: ConflictField<'email' | 'username'>[] = [
 	{
 		field: 'email',
 		column: usersTable.email,
@@ -33,6 +42,15 @@ const userConflictFields: core.ConflictField<'email' | 'username'>[] = [
 	},
 ]
 
+const err = {
+	notFound: (id: number) =>
+		new NotFoundError('User not found', { code: 'USER_NOT_FOUND', meta: { id } }),
+	createFailed: () =>
+		new InternalServerError('User creation failed', { code: 'USER_CREATE_FAILED' }),
+	passwordMismatch: () =>
+		new BadRequestError('Old password does not match', { code: 'USER_PASSWORD_MISMATCH' }),
+}
+
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
@@ -40,30 +58,30 @@ interface ServiceDeps {
 }
 
 export class UserService {
-	private readonly cache: CacheService
+	private readonly cache: CacheServiceV2
 
 	constructor(
 		private readonly s: ServiceDeps,
 		private readonly r: UserRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'iam.user', client: cacheClient })
+		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'iam.user')
 	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
 
 	private async buildUserAssignments(
-		user: dto.UserDto,
-		roleMapper?: RelationMap<number, RoleDto>,
-		locationMapper?: RelationMap<number, LocationDto>,
-	): Promise<dto.UserAssignmentDetailDto[]> {
-		const assignments: dto.UserAssignmentDetailDto[] = []
+		user: UserSchema,
+		roleMapper?: RelationMap<number, RoleSchema>,
+		locationMapper?: RelationMap<number, LocationSchema>,
+	): Promise<any[]> {
+		const assignments: any[] = []
 		const { id: userId, isRoot, defaultLocationId } = user
 
 		if (isRoot) {
 			const [superadmin, locations] = await Promise.all([
 				this.s.role.getSuperadmin(),
-				this.s.location.master.getList(),
+				this.s.location.location.getListAll(),
 			])
 			const defaultAssignment = this.s.assignment.getDefaultAssignmentForSuperadmin()
 			for (const location of locations) {
@@ -73,11 +91,11 @@ export class UserService {
 			const [rawAssignments, roleMap, locationMap] = await Promise.all([
 				this.s.assignment.findByUserId(userId),
 				roleMapper ?? this.s.role.getRelationMap(),
-				locationMapper ?? this.s.location.master.getRelationMap(),
+				locationMapper ?? this.s.location.location.getRelationMap(),
 			])
 
 			assignments.push(
-				...rawAssignments.map((a) => ({
+				...rawAssignments.map((a: any) => ({
 					...a,
 					isDefault: false,
 					role: roleMap.getRequired(a.roleId),
@@ -93,30 +111,49 @@ export class UserService {
 		return assignments
 	}
 
-	/* --------------------------------- PUBLIC --------------------------------- */
+	/* --------------------------------- PUBLIC -------------------------------- */
 
-	async getList(): Promise<dto.UserDto[]> {
-		return record('UserService.getList', async () => {
-			return this.cache.getOrSet({
-				key: 'list',
+	async getListAll(): Promise<UserSchema[]> {
+		return record('UserService.getListAll', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.list,
 				factory: () => this.r.getList(),
-			})
+			}),
+		)
+	}
+
+	async getRelationMap(): Promise<RelationMap<number, UserSchema>> {
+		return record('UserService.getRelationMap', async () =>
+			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
+		)
+	}
+
+	async seed(
+		data: (UserCreateSchema & { passwordHash: string; createdBy: ActorId; isRoot?: boolean })[],
+	): Promise<void> {
+		return record('UserService.seed', async () => {
+			for (const d of data) {
+				const existing = await this.getByIdentifier(d.email)
+				if (existing) continue
+
+				await this.create(d, d.createdBy)
+			}
 		})
 	}
 
-	async getById(id: number): Promise<dto.UserDto | undefined> {
-		return record('UserService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
+	async getById(id: number): Promise<UserSchema | undefined> {
+		return record('UserService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
 				factory: () => this.r.getById(id),
-			})
-		})
+			}),
+		)
 	}
 
-	async getDetailById(id: number): Promise<dto.UserDetailDto> {
+	async getDetailById(id: number): Promise<any> {
 		return record('UserService.getDetailById', async () => {
 			const user = await this.getById(id)
-			if (!user) throw UserErrors.notFound(id)
+			if (!user) throw err.notFound(id)
 			const assignments = await this.buildUserAssignments(user)
 			return merge(user, { assignments })
 		})
@@ -124,38 +161,132 @@ export class UserService {
 
 	async getByIdentifier(
 		identifier: string,
-	): Promise<(dto.UserDto & { passwordHash: string }) | null> {
+	): Promise<(UserSchema & { passwordHash: string }) | null> {
 		return this.r.getByIdentifier(identifier)
 	}
 
-	async count(): Promise<number> {
-		return record('UserService.count', async () => {
-			return this.cache.getOrSet({
-				key: 'count',
-				factory: () => this.r.count(),
+	async create(
+		data: UserCreateSchema & { passwordHash: string },
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.create', async () => {
+			const { assignments, isRoot } = data
+
+			await checkConflict({
+				table: usersTable,
+				pkColumn: usersTable.id,
+				fields: userConflictFields,
+				input: data,
 			})
+
+			const result = await this.r.create(data, actorId)
+			if (!result) throw err.createFailed()
+
+			if (assignments && assignments.length > 0 && !isRoot) {
+				await this.s.assignment.handleReplaceBulkByUserId(
+					result.id,
+					assignments.map((a) => ({
+						userId: result.id,
+						roleId: a.roleId,
+						locationId: a.locationId,
+					})),
+					actorId,
+				)
+			}
+
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+
+			return result
 		})
 	}
 
-	async seed(
-		data: (dto.UserCreateDto & { passwordHash: string; createdBy: number; isRoot?: boolean })[],
-	): Promise<void> {
-		await record('UserService.seed', async () => {
-			await this.r.seed(data)
+	async update(
+		id: number,
+		data: UserUpdateSchema & { passwordHash?: string },
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.update', async () => {
+			const { assignments, isRoot } = data
+
+			const existing = await this.getById(id)
+			if (!existing) throw err.notFound(id)
+
+			await checkConflict({
+				table: usersTable,
+				pkColumn: usersTable.id,
+				fields: userConflictFields,
+				input: data,
+				existing,
+			})
+
+			const result = await this.r.update(id, data, actorId)
+			if (!result) throw err.notFound(id)
+
+			if (assignments && assignments.length >= 0 && !isRoot) {
+				await this.s.assignment.handleReplaceBulkByUserId(
+					id,
+					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
+					actorId,
+				)
+			}
+
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
+
+			return result
+		})
+	}
+
+	async handleChangePassword(
+		id: number,
+		data: UserChangePasswordSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.handleChangePassword', async () => {
+			const passwordHash = await this.r.getPasswordHash(id)
+			if (!passwordHash) throw err.notFound(id)
+
+			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
+			if (!isMatch) throw err.passwordMismatch()
+
+			const newPasswordHash = await Bun.password.hash(data.newPassword)
+			const result = await this.r.updatePassword(id, newPasswordHash, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
+
+			return result
+		})
+	}
+
+	async handleAdminUpdatePassword(
+		data: UserAdminUpdatePasswordSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.handleAdminUpdatePassword', async () => {
+			const { id, password } = data
+			const passwordHash = await Bun.password.hash(password)
+			const result = await this.r.updatePassword(id, passwordHash, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
+
+			return result
 		})
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(
-		filter: dto.UserFilterDto,
-	): Promise<core.WithPaginationResult<dto.UserDetailDto>> {
+	async handleList(filter: UserFilterSchema): Promise<WithPaginationResult<any>> {
 		return record('UserService.handleList', async () => {
 			const p = await this.r.getListPaginated(filter)
 
 			const [roleMap, locationMap] = await Promise.all([
 				this.s.role.getRelationMap(),
-				this.s.location.master.getRelationMap(),
+				this.s.location.location.getRelationMap(),
 			])
 
 			const data = await Promise.all(
@@ -169,128 +300,53 @@ export class UserService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<dto.UserDetailDto & AuditResolved> {
+	async handleDetail(id: number): Promise<any> {
 		return record('UserService.handleDetail', async () => {
 			const user = await this.getById(id)
-			if (!user) throw UserErrors.notFound(id)
+			if (!user) throw err.notFound(id)
 			const assignments = await this.buildUserAssignments(user)
 			return resolveAudit({ ...user, assignments })
 		})
 	}
 
-	async handleCreate(data: dto.UserCreateDto, actorId: number): Promise<{ id: number }> {
+	async handleCreate(data: UserCreateSchema, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleCreate', async () => {
-			const { password, assignments, isRoot } = data
+			const { password } = data
 			const passwordHash = await Bun.password.hash(password)
 
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
-			})
-
-			const insertedId = await this.r.create({ ...data, passwordHash }, actorId)
-			if (!insertedId) throw UserErrors.createFailed()
-
-			if (assignments && assignments.length > 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
-					insertedId,
-					assignments.map((a) => ({
-						userId: insertedId,
-						roleId: a.roleId,
-						locationId: a.locationId,
-					})),
-					actorId,
-				)
-			}
-
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
-
-			return { id: insertedId }
+			return this.create({ ...data, passwordHash }, actorId)
 		})
 	}
 
-	async handleUpdate(
-		id: number,
-		data: dto.UserUpdateDto,
-		actorId: number,
-	): Promise<{ id: number }> {
+	async handleUpdate(id: number, data: UserUpdateSchema, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleUpdate', async () => {
-			const { assignments, password, isRoot } = data
+			const { password } = data
 
 			const existing = await this.getById(id)
-			if (!existing) throw UserErrors.notFound(id)
-
-			await core.checkConflict({
-				table: usersTable,
-				pkColumn: usersTable.id,
-				fields: userConflictFields,
-				input: data,
-				existing,
-			})
+			if (!existing) throw err.notFound(id)
 
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
-			await this.r.update({ ...data, id, ...(passwordHash ? { passwordHash } : {}) }, actorId)
-
-			if (assignments && assignments.length >= 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
-					id,
-					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
-					actorId,
-				)
-			}
-
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-
-			return { id }
+			const result = await this.update(
+				id,
+				{ ...data, ...(passwordHash ? { passwordHash } : {}) },
+				actorId,
+			)
+			return result
 		})
 	}
 
-	async handleChangePassword(
-		id: number,
-		data: dto.UserChangePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getPasswordHash(id)
-			if (!passwordHash) throw UserErrors.notFound(id)
-
-			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw UserErrors.passwordMismatch()
-
-			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			await this.r.updatePassword(id, newPasswordHash, actorId)
-
-			await this.cache.deleteMany({ keys: [`byId:${id}`] })
-
-			return { id }
-		})
-	}
-
-	async handleAdminUpdatePassword(
-		data: dto.UserAdminUpdatePasswordDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('UserService.handleAdminUpdatePassword', async () => {
-			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
-			await this.r.updatePassword(id, passwordHash, actorId)
-
-			await this.cache.deleteMany({ keys: [`byId:${id}`] })
-
-			return { id }
-		})
-	}
-
-	async handleRemove(id: number): Promise<{ id: number }> {
+	async handleRemove(id: number): Promise<EntityRef> {
 		return record('UserService.handleRemove', async () => {
 			const result = await this.r.remove(id)
-			if (!result) throw UserErrors.notFound(id)
+			if (!result) throw err.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
 
-			return { id: result }
+			return result
 		})
 	}
 }

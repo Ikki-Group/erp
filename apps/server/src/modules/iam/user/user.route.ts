@@ -1,98 +1,78 @@
+import { Elysia } from 'elysia'
+import { z } from 'zod'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
+
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@ikki/api-contract/validation'
-import Elysia from 'elysia'
+} from '@/shared/validation'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
-import * as dto from './user.dto'
+import {
+	UserFilterSchema,
+	UserCreateSchema,
+	UserUpdateSchema,
+	UserChangePasswordSchema,
+	UserAdminUpdatePasswordSchema,
+} from './user.schema'
 import type { UserService } from './user.service'
 
-export function initUserRoute(service: UserService) {
+export function createUserRoute(svc: UserService) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.UserFilterDto,
-				response: createPaginatedResponseSchema(dto.UserDetailDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
-				return res.ok(result)
-			},
-			{
-				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.UserDetailResolvedDto),
-				auth: true,
-			},
-		)
+		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
+			query: UserFilterSchema,
+			response: createPaginatedResponseSchema(z.any()),
+			auth: true,
+		})
+		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(z.any()),
+			auth: true,
+		})
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.created(result)
-			},
+			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
 			{
-				body: dto.UserCreateDto,
+				body: UserCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body.id, body, auth.userId)
-				return res.ok(result)
-			},
+			async ({ body, auth }) => res.ok(await svc.handleUpdate(body.id, body, auth.userId)),
 			{
-				body: dto.UserUpdateDto,
+				body: z.object({ ...zc.RecordId.shape, ...UserUpdateSchema.shape }),
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.post(
 			'/change-password',
-			async function changePassword({ body, auth }) {
-				const result = await service.handleChangePassword(auth.userId, body, auth.userId)
-				return res.ok(result)
-			},
+			async ({ body, auth }) =>
+				res.ok(await svc.handleChangePassword(auth.userId, body, auth.userId)),
 			{
-				body: dto.UserChangePasswordDto,
+				body: UserChangePasswordSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
 		.post(
 			'/admin/password-reset',
-			async function adminUpdatePassword({ body, auth }) {
-				const result = await service.handleAdminUpdatePassword(body, auth.userId)
-				return res.ok(result)
-			},
+			async ({ body, auth }) => res.ok(await svc.handleAdminUpdatePassword(body, auth.userId)),
 			{
-				body: dto.UserAdminUpdatePasswordDto,
+				body: UserAdminUpdatePasswordSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
-		.delete(
-			'/remove',
-			async function remove({ query }) {
-				const result = await service.handleRemove(query.id)
-				return res.ok(result)
-			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-		)
+		.delete('/remove', async ({ query }) => res.ok(await svc.handleRemove(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(zc.RecordId),
+			auth: true,
+		})
 }

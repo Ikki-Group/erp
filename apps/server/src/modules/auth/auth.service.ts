@@ -1,7 +1,7 @@
 import { verifyPassword } from '@/core/auth'
 import { UnauthorizedError } from '@/core/http/errors'
 
-import type { UserDetailDto, UserDto, UserService } from '@/modules/iam'
+import type { UserSchema, UserService } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
 import type { AuthOutputDto, AuthLoginDto } from './auth.dto'
@@ -37,7 +37,7 @@ export class AuthService {
 		return { user: userDetail, token: session.token }
 	}
 
-	async verifyToken(token: string): Promise<UserDto> {
+	async verifyToken(token: string): Promise<UserSchema> {
 		const session = await this.sessionSvc.verifySession(token)
 		if (!session) {
 			throw err.invalidCredentials()
@@ -46,7 +46,7 @@ export class AuthService {
 		return this.userSvc.getDetailById(session.userId)
 	}
 
-	async getById(userId: number): Promise<UserDetailDto> {
+	async getById(userId: number): Promise<UserSchema> {
 		return this.userSvc.getDetailById(userId)
 	}
 }

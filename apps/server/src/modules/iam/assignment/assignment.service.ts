@@ -1,16 +1,17 @@
-import { record } from '@elysiajs/opentelemetry'
+import type { OmitPaginationQuery } from '@/types/utils'
+import type { ActorId } from '@/types/utils'
 
 import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
-import * as dto from './assignment.dto'
 import { UserAssignmentRepo } from './assignment.repo'
-import type { OmitPaginationQuery } from '@/types/utils'
+import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
+import type { UserAssignmentFilterSchema } from './assignment.schema'
 
 export class UserAssignmentService {
 	constructor(private readonly repo = new UserAssignmentRepo()) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	getDefaultAssignmentForSuperadmin(): dto.UserAssignmentDto {
+	getDefaultAssignmentForSuperadmin(): UserAssignmentSchema {
 		const now = new Date()
 		return {
 			id: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
@@ -26,24 +27,18 @@ export class UserAssignmentService {
 	 * Get assignments for a single user — cached.
 	 * Used internally by UserService and externally by router.
 	 */
-	async findByUserId(userId: number): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentService.findByUserId', async () => {
-			return this.repo.getList({ userId })
-		})
+	async findByUserId(userId: number): Promise<UserAssignmentSchema[]> {
+		return this.repo.getList({ userId })
 	}
 
 	async handleGetList(
-		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
-	): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentService.handleGetList', async () => {
-			return this.repo.getList(filter)
-		})
+		filter: OmitPaginationQuery<UserAssignmentFilterSchema>,
+	): Promise<UserAssignmentSchema[]> {
+		return this.repo.getList(filter)
 	}
 
-	async handleGetListPaginated(filter: dto.UserAssignmentFilterDto) {
-		return record('UserAssignmentService.handleGetListPaginated', async () => {
-			return this.repo.getListPaginated(filter)
-		})
+	async handleGetListPaginated(filter: UserAssignmentFilterSchema) {
+		return this.repo.getListPaginated(filter)
 	}
 
 	/* ========================================================================== */
@@ -52,57 +47,49 @@ export class UserAssignmentService {
 
 	async handleReplaceBulkByUserId(
 		userId: number,
-		assignments: dto.UserAssignmentUpsertDto[],
-		actorId: number,
+		assignments: UserAssignmentUpsertSchema[],
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentService.handleReplaceBulkByUserId', async () => {
-			await this.repo.replaceBulkByUserId(userId, assignments, actorId)
-		})
+		await this.repo.replaceBulkByUserId(userId, assignments, actorId)
 	}
 
 	async handleAssignToLocation(
-		data: Omit<dto.UserAssignmentUpsertDto, 'isDefault'>,
-		actorId: number,
+		data: Omit<UserAssignmentUpsertSchema, 'isDefault'>,
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentService.handleAssignToLocation', async () => {
-			const existingAssignments = await this.repo.getList({ userId: data.userId })
-			const existingIndex = existingAssignments.findIndex((a) => a.locationId === data.locationId)
+		const existingAssignments = await this.repo.getList({ userId: data.userId })
+		const existingIndex = existingAssignments.findIndex((a) => a.locationId === data.locationId)
 
-			const newAssignments: dto.UserAssignmentUpsertDto[] = existingAssignments.map((a) => ({
-				userId: a.userId,
-				roleId: a.roleId,
-				locationId: a.locationId,
-			}))
+		const newAssignments: UserAssignmentUpsertSchema[] = existingAssignments.map((a) => ({
+			userId: a.userId,
+			roleId: a.roleId,
+			locationId: a.locationId,
+		}))
 
-			if (existingIndex === -1) {
-				newAssignments.push({
-					userId: data.userId,
-					roleId: data.roleId,
-					locationId: data.locationId,
-				})
-			} else {
-				newAssignments[existingIndex] = {
-					userId: data.userId,
-					roleId: data.roleId,
-					locationId: data.locationId,
-				}
+		if (existingIndex === -1) {
+			newAssignments.push({
+				userId: data.userId,
+				roleId: data.roleId,
+				locationId: data.locationId,
+			})
+		} else {
+			newAssignments[existingIndex] = {
+				userId: data.userId,
+				roleId: data.roleId,
+				locationId: data.locationId,
 			}
+		}
 
-			await this.repo.replaceBulkByUserId(data.userId, newAssignments, actorId)
-		})
+		await this.repo.replaceBulkByUserId(data.userId, newAssignments, actorId)
 	}
 
 	async handleRemoveFromLocation(userId: number, locationId: number): Promise<void> {
-		return record('UserAssignmentService.handleRemoveFromLocation', async () => {
-			await this.repo.removeByUserAndLocation(userId, locationId)
-		})
+		await this.repo.removeByUserAndLocation(userId, locationId)
 	}
 
 	/** Remove multiple users from a location with single query */
 	async handleRemoveUsersFromLocation(userIds: number[], locationId: number): Promise<void> {
-		return record('UserAssignmentService.handleRemoveUsersFromLocation', async () => {
-			await this.repo.removeUsersBulkFromLocation(userIds, locationId)
-		})
+		await this.repo.removeUsersBulkFromLocation(userIds, locationId)
 	}
 
 	/** Assign multiple users to a location with same role */
@@ -110,31 +97,29 @@ export class UserAssignmentService {
 		userIds: number[],
 		locationId: number,
 		roleId: number,
-		actorId: number,
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentService.handleAssignUsersToLocation', async () => {
-			const existingAssignments = await this.repo.getListByUserIds(userIds)
+		const existingAssignments = await this.repo.getListByUserIds(userIds)
 
-			const assignmentsByUserId = new Map<number, dto.UserAssignmentUpsertDto[]>()
-			for (const userId of userIds) {
-				const userAssignments = existingAssignments.filter((a) => a.userId === userId)
-				const hasLocationAssignment = userAssignments.some((a) => a.locationId === locationId)
+		const assignmentsByUserId = new Map<number, UserAssignmentUpsertSchema[]>()
+		for (const userId of userIds) {
+			const userAssignments = existingAssignments.filter((a) => a.userId === userId)
+			const hasLocationAssignment = userAssignments.some((a) => a.locationId === locationId)
 
-				const newAssignments: dto.UserAssignmentUpsertDto[] = userAssignments.map((a) => ({
-					userId: a.userId,
-					roleId: a.roleId,
-					locationId: a.locationId,
-				}))
+			const newAssignments: UserAssignmentUpsertSchema[] = userAssignments.map((a) => ({
+				userId: a.userId,
+				roleId: a.roleId,
+				locationId: a.locationId,
+			}))
 
-				if (!hasLocationAssignment) {
-					newAssignments.push({ userId, roleId, locationId })
-				}
-
-				assignmentsByUserId.set(userId, newAssignments)
+			if (!hasLocationAssignment) {
+				newAssignments.push({ userId, roleId, locationId })
 			}
 
-			await this.repo.replaceBulkByUserIds(userIds, assignmentsByUserId, actorId)
-		})
+			assignmentsByUserId.set(userId, newAssignments)
+		}
+
+		await this.repo.replaceBulkByUserIds(userIds, assignmentsByUserId, actorId)
 	}
 
 	/** Update role for multiple users in a location with single query */
@@ -142,10 +127,8 @@ export class UserAssignmentService {
 		userIds: number[],
 		locationId: number,
 		roleId: number,
-		actorId: number,
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentService.handleUpdateRoleForUsersInLocation', async () => {
-			await this.repo.updateRoleBulkByLocation(userIds, locationId, roleId, actorId)
-		})
+		await this.repo.updateRoleBulkByLocation(userIds, locationId, roleId, actorId)
 	}
 }

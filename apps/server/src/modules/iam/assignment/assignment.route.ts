@@ -1,43 +1,44 @@
-import { createPaginatedResponseSchema, successNoDataSchema } from '@ikki/api-contract/validation'
-import Elysia from 'elysia'
+import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './assignment.dto'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@/shared/validation'
+
+import {
+	UserAssignmentFilterSchema,
+	UserAssignmentSchema,
+	UserAssignmentUpsertSchema,
+	AssignmentBulkBodySchema,
+	AssignmentRemoveBodySchema,
+	AssignmentRemoveBulkBodySchema,
+} from './assignment.schema'
 import type { UserAssignmentService } from './assignment.service'
 
-export function initAssignmentRoute(service: UserAssignmentService) {
+export function createAssignmentRoute(svc: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })
 		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleGetListPaginated(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.UserAssignmentFilterDto,
-				response: createPaginatedResponseSchema(dto.UserAssignmentDto),
-				auth: true,
-			},
-		)
+		.get('/list', async ({ query }) => res.paginated(await svc.handleGetListPaginated(query)), {
+			query: UserAssignmentFilterSchema,
+			response: createPaginatedResponseSchema(UserAssignmentSchema),
+			auth: true,
+		})
 		.post(
 			'/assign',
-			async function assign({ body, auth }) {
-				await service.handleAssignToLocation(body, auth.userId)
+			async ({ body, auth }) => {
+				await svc.handleAssignToLocation(body, auth.userId)
 				return res.noData()
 			},
 			{
-				body: dto.UserAssignmentUpsertDto,
+				body: UserAssignmentUpsertSchema,
 				response: successNoDataSchema,
 				auth: true,
 			},
 		)
 		.post(
 			'/assign-bulk',
-			async function assignBulk({ body, auth }) {
-				await service.handleAssignUsersToLocation(
+			async ({ body, auth }) => {
+				await svc.handleAssignUsersToLocation(
 					body.userIds,
 					body.locationId,
 					body.roleId,
@@ -46,15 +47,15 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 				return res.noData()
 			},
 			{
-				body: dto.AssignmentBulkBodyDto,
+				body: AssignmentBulkBodySchema,
 				response: successNoDataSchema,
 				auth: true,
 			},
 		)
 		.post(
 			'/update-role-bulk',
-			async function updateRoleBulk({ body, auth }) {
-				await service.handleUpdateRoleForUsersInLocation(
+			async ({ body, auth }) => {
+				await svc.handleUpdateRoleForUsersInLocation(
 					body.userIds,
 					body.locationId,
 					body.roleId,
@@ -63,31 +64,31 @@ export function initAssignmentRoute(service: UserAssignmentService) {
 				return res.noData()
 			},
 			{
-				body: dto.AssignmentBulkBodyDto,
+				body: AssignmentBulkBodySchema,
 				response: successNoDataSchema,
 				auth: true,
 			},
 		)
 		.delete(
 			'/remove',
-			async function remove({ body }) {
-				await service.handleRemoveFromLocation(body.userId, body.locationId)
+			async ({ body }) => {
+				await svc.handleRemoveFromLocation(body.userId, body.locationId)
 				return res.noData()
 			},
 			{
-				body: dto.AssignmentRemoveBodyDto,
+				body: AssignmentRemoveBodySchema,
 				response: successNoDataSchema,
 				auth: true,
 			},
 		)
 		.delete(
 			'/remove-bulk',
-			async function removeBulk({ body }) {
-				await service.handleRemoveUsersFromLocation(body.userIds, body.locationId)
+			async ({ body }) => {
+				await svc.handleRemoveUsersFromLocation(body.userIds, body.locationId)
 				return res.noData()
 			},
 			{
-				body: dto.AssignmentRemoveBulkBodyDto,
+				body: AssignmentRemoveBulkBodySchema,
 				response: successNoDataSchema,
 				auth: true,
 			},

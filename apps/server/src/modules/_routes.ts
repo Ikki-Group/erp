@@ -6,7 +6,7 @@ import { initCrmRouteModule } from './crm'
 import { initDashboardRouteModule } from './dashboard'
 import { initFinanceRouteModule } from './finance'
 import { initHRRouteModule } from './hr'
-import { initIamRouteModule } from './iam'
+import { createIamRouteModule } from './iam'
 import { initInventoryRouteModule } from './inventory'
 import { initLocationRouteModule } from './location'
 import { initMaterialRoutes } from './material'
@@ -25,7 +25,7 @@ import type Elysia from 'elysia'
 export function initRoutes(m: Modules) {
 	const routes = [
 		initAuthRouteModule(m.auth),
-		initIamRouteModule(m.iam),
+		createIamRouteModule(m.iam),
 		initDashboardRouteModule(m.dashboard),
 		initInventoryRouteModule(m.inventory),
 		initLocationRouteModule(m.location),

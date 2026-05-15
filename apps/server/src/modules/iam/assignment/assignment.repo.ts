@@ -1,19 +1,25 @@
-import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { paginate, sortBy, type WithPaginationResult } from '@/core/database'
+import { paginate, sortBy } from '@/core/database'
+import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { db } from '@/db'
 import { userAssignmentsTable } from '@/db/schema'
 
-import * as dto from './assignment.dto'
+import type { ActorId } from '@/types/utils'
 import type { OmitPaginationQuery } from '@/types/utils'
+
+import type {
+	UserAssignmentFilterSchema,
+	UserAssignmentSchema,
+	UserAssignmentUpsertSchema,
+} from './assignment.schema'
 
 export class UserAssignmentRepo {
 	/* --------------------------------- PRIVATE -------------------------------- */
 
 	#buildWhereClause(
-		filter: Partial<Pick<dto.UserAssignmentFilterDto, 'userId' | 'roleId' | 'locationId'>>,
+		filter: Partial<Pick<UserAssignmentFilterSchema, 'userId' | 'roleId' | 'locationId'>>,
 	) {
 		const { userId, roleId, locationId } = filter
 		return and(
@@ -26,96 +32,83 @@ export class UserAssignmentRepo {
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getListPaginated(
-		filter: dto.UserAssignmentFilterDto,
-	): Promise<WithPaginationResult<dto.UserAssignmentDto>> {
-		return record('UserAssignmentRepo.getListPaginated', async () => {
-			const where = this.#buildWhereClause(filter)
-			const { page, limit } = filter
+		filter: UserAssignmentFilterSchema,
+	): Promise<WithPaginationResult<UserAssignmentSchema>> {
+		const where = this.#buildWhereClause(filter)
 
-			return paginate<dto.UserAssignmentDto>({
-				data: ({ limit: l, offset }) =>
-					db
-						.select()
-						.from(userAssignmentsTable)
-						.where(where)
-						.orderBy(sortBy(userAssignmentsTable.addedAt, 'desc'))
-						.limit(l)
-						.offset(offset),
-				pq: { page, limit },
-				countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
-			})
+		return paginate<UserAssignmentSchema>({
+			data: ({ limit, offset }) =>
+				db
+					.select()
+					.from(userAssignmentsTable)
+					.where(where)
+					.orderBy(sortBy(userAssignmentsTable.addedAt, 'desc'))
+					.limit(limit)
+					.offset(offset),
+			pq: filter,
+			countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
 		})
 	}
 
 	async getList(
-		filter: OmitPaginationQuery<dto.UserAssignmentFilterDto>,
-	): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getList', async () => {
-			return db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
-		})
+		filter: OmitPaginationQuery<UserAssignmentFilterSchema>,
+	): Promise<UserAssignmentSchema[]> {
+		return db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
 	}
 
 	/** Get assignments for multiple users in a single query */
-	async getListByUserIds(userIds: number[]): Promise<dto.UserAssignmentDto[]> {
-		return record('UserAssignmentRepo.getListByUserIds', async () => {
-			return db
-				.select()
-				.from(userAssignmentsTable)
-				.where(inArray(userAssignmentsTable.userId, userIds))
-		})
+	async getListByUserIds(userIds: number[]): Promise<UserAssignmentSchema[]> {
+		return db
+			.select()
+			.from(userAssignmentsTable)
+			.where(inArray(userAssignmentsTable.userId, userIds))
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
 	async replaceBulkByUserId(
 		userId: number,
-		assignments: dto.UserAssignmentUpsertDto[],
-		actorId: number,
+		assignments: UserAssignmentUpsertSchema[],
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentRepo.replaceBulkByUserId', async () => {
-			await db.transaction(async (tx) => {
-				await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
+		await db.transaction(async (tx) => {
+			await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
 
-				if (assignments.length > 0) {
-					await tx.insert(userAssignmentsTable).values(
-						assignments.map((a) => ({
-							userId,
-							roleId: a.roleId,
-							locationId: a.locationId,
-							addedAt: new Date(),
-							addedBy: actorId,
-						})),
-					)
-				}
-			})
+			if (assignments.length > 0) {
+				await tx.insert(userAssignmentsTable).values(
+					assignments.map((a) => ({
+						userId,
+						roleId: a.roleId,
+						locationId: a.locationId,
+						addedAt: new Date(),
+						addedBy: actorId,
+					})),
+				)
+			}
 		})
 	}
 
 	async removeByUserAndLocation(userId: number, locationId: number): Promise<void> {
-		return record('UserAssignmentRepo.removeByUserAndLocation', async () => {
-			await db
-				.delete(userAssignmentsTable)
-				.where(
-					and(
-						eq(userAssignmentsTable.userId, userId),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
+		await db
+			.delete(userAssignmentsTable)
+			.where(
+				and(
+					eq(userAssignmentsTable.userId, userId),
+					eq(userAssignmentsTable.locationId, locationId),
+				),
+			)
 	}
 
 	/** Remove multiple users from a location in a single query */
 	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
-		return record('UserAssignmentRepo.removeUsersBulkFromLocation', async () => {
-			await db
-				.delete(userAssignmentsTable)
-				.where(
-					and(
-						inArray(userAssignmentsTable.userId, userIds),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
+		await db
+			.delete(userAssignmentsTable)
+			.where(
+				and(
+					inArray(userAssignmentsTable.userId, userIds),
+					eq(userAssignmentsTable.locationId, locationId),
+				),
+			)
 	}
 
 	/** Update role for multiple users in a location in a single query */
@@ -123,22 +116,20 @@ export class UserAssignmentRepo {
 		userIds: number[],
 		locationId: number,
 		roleId: number,
-		actorId: number,
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentRepo.updateRoleBulkByLocation', async () => {
-			await db
-				.update(userAssignmentsTable)
-				.set({
-					roleId,
-					addedBy: actorId,
-				})
-				.where(
-					and(
-						inArray(userAssignmentsTable.userId, userIds),
-						eq(userAssignmentsTable.locationId, locationId),
-					),
-				)
-		})
+		await db
+			.update(userAssignmentsTable)
+			.set({
+				roleId,
+				addedBy: actorId,
+			})
+			.where(
+				and(
+					inArray(userAssignmentsTable.userId, userIds),
+					eq(userAssignmentsTable.locationId, locationId),
+				),
+			)
 	}
 
 	/**
@@ -147,31 +138,29 @@ export class UserAssignmentRepo {
 	 */
 	async replaceBulkByUserIds(
 		userIds: number[],
-		assignmentsByUserId: Map<number, dto.UserAssignmentUpsertDto[]>,
-		actorId: number,
+		assignmentsByUserId: Map<number, UserAssignmentUpsertSchema[]>,
+		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentRepo.replaceBulkByUserIds', async () => {
-			await db.transaction(async (tx) => {
-				await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
+		await db.transaction(async (tx) => {
+			await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
 
-				const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
-				for (const userId of userIds) {
-					const assignments = assignmentsByUserId.get(userId) ?? []
-					for (const a of assignments) {
-						valuesToInsert.push({
-							userId,
-							roleId: a.roleId,
-							locationId: a.locationId,
-							addedAt: new Date(),
-							addedBy: actorId,
-						})
-					}
+			const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
+			for (const userId of userIds) {
+				const assignments = assignmentsByUserId.get(userId) ?? []
+				for (const a of assignments) {
+					valuesToInsert.push({
+						userId,
+						roleId: a.roleId,
+						locationId: a.locationId,
+						addedAt: new Date(),
+						addedBy: actorId,
+					})
 				}
+			}
 
-				if (valuesToInsert.length > 0) {
-					await tx.insert(userAssignmentsTable).values(valuesToInsert)
-				}
-			})
+			if (valuesToInsert.length > 0) {
+				await tx.insert(userAssignmentsTable).values(valuesToInsert)
+			}
 		})
 	}
 }

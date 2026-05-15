@@ -5,13 +5,13 @@ import type { DbClient } from '@/core/database'
 
 import type { LocationServiceModule } from '@/modules/location'
 
-import { initAssignmentRoute } from './assignment/assignment.route'
+import { createAssignmentRoute } from './assignment/assignment.route'
 import { UserAssignmentService } from './assignment/assignment.service'
 import { RoleRepo } from './role/role.repo'
-import { initRoleRoute } from './role/role.route'
+import { createRoleRoute } from './role/role.route'
 import { RoleService } from './role/role.service'
 import { UserRepo } from './user/user.repo'
-import { initUserRoute } from './user/user.route'
+import { createUserRoute } from './user/user.route'
 import { UserService } from './user/user.service'
 
 interface IamServiceModuleDeps {
@@ -44,14 +44,16 @@ export class IamServiceModule {
 	}
 }
 
-export function initIamRouteModule(s: IamServiceModule) {
+export function createIamRouteModule(s: IamServiceModule) {
 	return new Elysia({ prefix: '/iam' })
-		.use(initRoleRoute(s.role))
-		.use(initAssignmentRoute(s.assignment))
-		.use(initUserRoute(s.user))
+		.use(createRoleRoute(s.role))
+		.use(createAssignmentRoute(s.assignment))
+		.use(createUserRoute(s.user))
 }
 
-export { UserDto, UserDetailDto } from './user/user.dto'
-export { RoleDto, RoleCreateDto, RoleUpdateDto, RoleFilterDto } from './role/role.dto'
-export type { UserService } from './user/user.service'
+export * from './role/role.schema'
+export * from './user/user.schema'
+export * from './assignment/assignment.schema'
 export type { RoleService } from './role/role.service'
+export type { UserService } from './user/user.service'
+export type { UserAssignmentService } from './assignment/assignment.service'

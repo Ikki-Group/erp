@@ -57,8 +57,8 @@ describe('services/iam', () => {
 
 		test.serial('update', async () => {
 			const res = await roleSvc.handleUpdate(
+				createdRoleId,
 				{
-					id: createdRoleId,
 					...mockRole,
 					name: `${mockRole.name}_updated`,
 				},

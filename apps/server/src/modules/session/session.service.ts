@@ -4,11 +4,12 @@ import jwt from 'jsonwebtoken'
 import { CacheService, type CacheClient } from '@/core/cache'
 import { logger } from '@/core/logger'
 
-import type { UserDto } from '@/modules/iam'
+import { env } from '@/config/env'
+
+import type { UserSchema } from '@/modules/iam'
 
 import { SessionPayloadDto, type SessionDto } from './session.dto'
 import { SessionRepo } from './session.repo'
-import { env } from '@/config/env'
 
 export class SessionService {
 	private readonly cache: CacheService
@@ -35,7 +36,7 @@ export class SessionService {
 	/**
 	 * Creates a new session and returns the signed JWT token.
 	 */
-	async createSession(user: UserDto): Promise<{ session: SessionDto; token: string }> {
+	async createSession(user: UserSchema): Promise<{ session: SessionDto; token: string }> {
 		return record('SessionService.createSession', async () => {
 			const createdAt = new Date()
 			const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)

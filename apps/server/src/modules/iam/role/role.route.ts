@@ -1,66 +1,53 @@
+import { Elysia } from 'elysia'
+import { z } from 'zod'
+
+import { authPluginMacro } from '@/core/http/auth-macro'
+import { res } from '@/core/http/response'
+
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
 	zc,
 	zq,
-} from '@ikki/api-contract/validation'
-import { Elysia } from 'elysia'
+} from '@/shared/validation'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
-import { res } from '@/core/http/response'
-
-import * as dto from './role.dto'
+import { RoleFilterSchema, RoleMutationSchema, RoleSchema } from './role.schema'
 import type { RoleService } from './role.service'
 
-export function initRoleRoute(service: RoleService) {
+export function createRoleRoute(svc: RoleService) {
 	return new Elysia({ prefix: '/role' })
 		.use(authPluginMacro)
-		.get(
-			'/list',
-			async function list({ query }) {
-				const result = await service.handleList(query)
-				return res.paginated(result)
-			},
-			{
-				query: dto.RoleFilterDto,
-				response: createPaginatedResponseSchema(dto.RoleDto),
-				auth: true,
-			},
-		)
-		.get(
-			'/detail',
-			async function detail({ query }) {
-				const result = await service.handleDetail(query.id)
-				return res.ok(result)
-			},
-			{
-				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.RoleDto),
-				auth: true,
-			},
-		)
+		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
+			query: RoleFilterSchema,
+			response: createPaginatedResponseSchema(RoleSchema),
+			auth: true,
+		})
+		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(RoleSchema),
+			auth: true,
+		})
 		.post(
 			'/create',
-			async function create({ body, auth }) {
-				const result = await service.handleCreate(body, auth.userId)
-				return res.ok(result)
+			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
+			{
+				body: RoleMutationSchema,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
 			},
-			{ body: dto.RoleCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
-			async function update({ body, auth }) {
-				const result = await service.handleUpdate(body, auth.userId)
-				return res.ok(result)
+			async ({ body, auth }) => res.ok(await svc.handleUpdate(body.id, body, auth.userId)),
+			{
+				body: z.object({ ...zc.RecordId.shape, ...RoleMutationSchema.shape }),
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
 			},
-			{ body: dto.RoleUpdateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
-		.delete(
-			'/remove',
-			async function remove({ query }) {
-				const result = await service.handleRemove(query.id)
-				return res.ok(result)
-			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
-		)
+		.delete('/remove', async ({ query }) => res.ok(await svc.handleRemove(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(zc.RecordId),
+			auth: true,
+		})
 }

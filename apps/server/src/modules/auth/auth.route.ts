@@ -4,7 +4,7 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { UserDetailDto } from '@/modules/iam'
+import { UserSchema } from '@/modules/iam'
 
 import { AuthLoginDto, AuthOutputDto } from './auth.dto'
 import type { AuthService } from './auth.service'
@@ -26,6 +26,6 @@ export function initAuthRoute(svc: AuthService) {
 				const userWithDetails = await svc.getById(auth.user!.id)
 				return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
 			},
-			{ response: createSuccessResponseSchema(UserDetailDto), auth: true },
+			{ response: createSuccessResponseSchema(UserSchema), auth: true },
 		)
 }
