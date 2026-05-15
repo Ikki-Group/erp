@@ -113,12 +113,8 @@
 						{
 							"groupName": "lib",
 							"elementNamePattern": [
-								"@/lib/**"
-							]
-						},
-						{
-							"groupName": "shared",
-							"elementNamePattern": [
+								"@/lib/**",
+								"@/config/**",
 								"@/shared/**"
 							]
 						},
@@ -140,7 +136,6 @@
 						"core",
 						"db",
 						"lib",
-						"shared",
 						"types",
 						"internal-modules",
 						"unknown"

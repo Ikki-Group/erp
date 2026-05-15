@@ -3,17 +3,19 @@ import { treeifyError, ZodError } from 'zod'
 
 import { logger } from '@/core/logger'
 
-import { HttpError } from './errors'
 import { env } from '@/config/env'
+import { HttpError as NewHttpError } from '@/shared/errors/http-error'
+
+import { HttpError } from './errors'
 
 const isDev = env.NODE_ENV === 'development'
 
-function buildErrorResponse(code: string, message: string, details?: unknown, stack?: string) {
+function buildErrorResponse(code: string, message: string, meta?: unknown, stack?: string) {
 	return {
 		success: false,
 		code,
 		message,
-		...(details !== undefined && { details }),
+		...(meta !== undefined && { meta }),
 		...(isDev && stack && { stack }),
 	}
 }
@@ -64,6 +66,11 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
 		if (error instanceof HttpError) {
 			set.status = error.statusCode
 			return buildErrorResponse(error.code, error.message, error.details, error.stack)
+		}
+
+		if (error instanceof NewHttpError) {
+			set.status = error.statusCode
+			return buildErrorResponse(error.code, error.message, error.meta, error.stack)
 		}
 
 		set.status = 500
