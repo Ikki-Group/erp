@@ -36,10 +36,12 @@ const UserMutationSchema = z.object({
 	),
 })
 
-export const UserCreateSchema = z.object({
-	...UserMutationSchema.shape,
-	password: zc.password,
-})
+export const UserCreateSchema = z
+	.object({
+		...UserMutationSchema.shape,
+		password: zc.password,
+	})
+	.strict()
 export type UserCreateSchema = z.infer<typeof UserCreateSchema>
 
 export const UserUpdateSchema = z.object({

@@ -10,7 +10,7 @@ import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/er
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import { SYSTEM_ROLES } from '../constants'
+import { SYSTEM_ROLES } from './constants'
 import { RoleRepo } from './role.repo'
 import type { RoleSchema, RoleMutationSchema, RoleFilterSchema } from './role.schema'
 
