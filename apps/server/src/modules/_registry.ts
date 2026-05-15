@@ -1,4 +1,4 @@
-import { createCache } from '@/core/cache'
+import { type CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { AuditServiceModule } from './audit'
@@ -55,9 +55,7 @@ export interface Modules {
 	reporting: ReportingServiceModule
 }
 
-export function initModules(db: DbClient): Modules {
-	const cacheClient = createCache()
-
+export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	// Layer 0 — Core
 	const location = new LocationServiceModule(db, cacheClient)
 	const product = new ProductServiceModule(db, cacheClient)
@@ -131,5 +129,3 @@ export function initModules(db: DbClient): Modules {
 		reporting,
 	}
 }
-
-export const createModules = initModules

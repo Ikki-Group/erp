@@ -14,9 +14,9 @@ import type { ActorId, EntityRef } from '@/types/utils'
 
 import type { LocationSchema, LocationServiceModule } from '@/modules/location'
 
-import type { UserAssignmentService } from '../assignment/assignment.service'
-import type { RoleSchema } from '../role/role.schema'
-import type { RoleService } from '../role/role.service'
+import type { UserAssignmentService } from './assignment.service'
+import type { RoleSchema } from './role.schema'
+import type { RoleService } from './role.service'
 import { UserRepo } from './user.repo'
 import type {
 	UserSchema,
@@ -95,7 +95,7 @@ export class UserService {
 			])
 
 			assignments.push(
-				...rawAssignments.map((a: any) => ({
+				...rawAssignments.map((a) => ({
 					...a,
 					isDefault: false,
 					role: roleMap.getRequired(a.roleId),

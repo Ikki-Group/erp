@@ -5,14 +5,14 @@ import type { DbClient } from '@/core/database'
 
 import type { LocationServiceModule } from '@/modules/location'
 
-import { createAssignmentRoute } from './assignment/assignment.route'
-import { UserAssignmentService } from './assignment/assignment.service'
-import { RoleRepo } from './role/role.repo'
-import { createRoleRoute } from './role/role.route'
-import { RoleService } from './role/role.service'
-import { UserRepo } from './user/user.repo'
-import { createUserRoute } from './user/user.route'
-import { UserService } from './user/user.service'
+import { createAssignmentRoute } from './assignment.route'
+import { UserAssignmentService } from './assignment.service'
+import { RoleRepo } from './role.repo'
+import { createRoleRoute } from './role.route'
+import { RoleService } from './role.service'
+import { UserRepo } from './user.repo'
+import { createUserRoute } from './user.route'
+import { UserService } from './user.service'
 
 interface IamServiceModuleDeps {
 	location: LocationServiceModule
@@ -23,23 +23,20 @@ export class IamServiceModule {
 	public readonly assignment: UserAssignmentService
 	public readonly user: UserService
 
-	constructor(
-		private readonly db: DbClient,
-		private readonly cacheClient: CacheClient,
-		private readonly deps: IamServiceModuleDeps,
-	) {
-		const roleRepo = new RoleRepo(this.db)
-		this.role = new RoleService(roleRepo, this.cacheClient)
+	constructor(db: DbClient, cacheClient: CacheClient, deps: IamServiceModuleDeps) {
+		const roleRepo = new RoleRepo(db)
+		const userRepo = new UserRepo(db)
 
+		this.role = new RoleService(roleRepo, cacheClient)
 		this.assignment = new UserAssignmentService()
 		this.user = new UserService(
 			{
-				location: this.deps.location,
+				location: deps.location,
 				assignment: this.assignment,
 				role: this.role,
 			},
-			new UserRepo(this.db),
-			this.cacheClient,
+			userRepo,
+			cacheClient,
 		)
 	}
 }
@@ -51,9 +48,9 @@ export function createIamRouteModule(s: IamServiceModule) {
 		.use(createUserRoute(s.user))
 }
 
-export * from './role/role.schema'
-export * from './user/user.schema'
-export * from './assignment/assignment.schema'
-export type { RoleService } from './role/role.service'
-export type { UserService } from './user/user.service'
-export type { UserAssignmentService } from './assignment/assignment.service'
+export * from './role.schema'
+export * from './user.schema'
+export * from './assignment.schema'
+export type { RoleService } from './role.service'
+export type { UserService } from './user.service'
+export type { UserAssignmentService } from './assignment.service'

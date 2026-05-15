@@ -1,17 +1,19 @@
 // oxlint-disable import/no-unassigned-import
 
 import '@/core/otel'
+import { createCache } from '@/core/cache'
 import { logger } from '@/core/logger'
 
 import { env } from '@/config/env'
 
-import { initModules } from '@/modules/_registry'
+import { createModules } from '@/modules/_registry'
 import { createRoutes } from '@/modules/_routes'
 
 import { db } from './db'
 import { createApp } from '@/app'
 
-const modules = initModules(db)
+const cacheClient = createCache()
+const modules = createModules(db, cacheClient)
 const routes = createRoutes(modules)
 
 const app = createApp(modules)
