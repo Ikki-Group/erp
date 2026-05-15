@@ -1,16 +1,21 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheServiceV2, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField } from '@/core/database'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { RelationMap } from '@/core/utils/relation-map'
 
 import { uomsTable } from '@/db/schema'
 
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import { MaterialUomRepo } from './material-uom.repo'
-import type { MaterialUomSchema, MaterialUomMutationSchema } from './material-uom.schema'
+import type {
+	MaterialUomSchema,
+	MaterialUomMutationSchema,
+	MaterialUomFilterSchema,
+} from './material-uom.schema'
 
 const uniqueFields: ConflictField<'code'>[] = [
 	{
@@ -22,8 +27,9 @@ const uniqueFields: ConflictField<'code'>[] = [
 ]
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`UOM with ID ${id} not found`, 'UOM_NOT_FOUND'),
-	createFailed: () => new InternalServerError('UOM creation failed', 'UOM_CREATE_FAILED'),
+	notFound: (id: number) =>
+		new NotFoundError(`UOM not found`, { code: 'UOM_NOT_FOUND', meta: { id } }),
+	createFailed: () => new InternalServerError('UOM creation failed', { code: 'UOM_CREATE_FAILED' }),
 }
 
 export class MaterialUomService {
@@ -36,14 +42,6 @@ export class MaterialUomService {
 		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'material.uom')
 	}
 
-	async getById(id: number): Promise<MaterialUomSchema | undefined> {
-		return record('MaterialUomService.getById', async () =>
-			this.cache.getOrSetSkipUndefined(this.cache.keys.byId(id), {
-				factory: () => this.repo.getById(id),
-			}),
-		)
-	}
-
 	async getListAll(): Promise<MaterialUomSchema[]> {
 		return record('MaterialUomService.getListAll', async () =>
 			this.cache.getOrSet(this.cache.keys.list, {
@@ -54,7 +52,15 @@ export class MaterialUomService {
 
 	async getRelationMap(): Promise<RelationMap<number, MaterialUomSchema>> {
 		return record('MaterialUomService.getRelationMap', async () =>
-			RelationMap.fromArray(await this.repo.getList(), (v) => v.id),
+			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
+		)
+	}
+
+	async getById(id: number): Promise<MaterialUomSchema | undefined> {
+		return record('MaterialUomService.getById', async () =>
+			this.cache.getOrSetSkipUndefined(this.cache.keys.byId(id), {
+				factory: () => this.repo.getById(id),
+			}),
 		)
 	}
 
@@ -117,6 +123,47 @@ export class MaterialUomService {
 			])
 
 			return result
+		})
+	}
+
+	/* --------------------------------- HANDLER -------------------------------- */
+
+	async handleList(
+		filter: MaterialUomFilterSchema,
+	): Promise<WithPaginationResult<MaterialUomSchema>> {
+		return record('MaterialUomService.handleList', async () => {
+			const result = await this.repo.getListPaginated(filter)
+			return result
+		})
+	}
+
+	async handleDetail(id: number): Promise<MaterialUomSchema> {
+		return record('MaterialUomService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
+
+	async handleCreate(data: MaterialUomMutationSchema, actorId: ActorId): Promise<EntityRef> {
+		return record('MaterialUomService.handleCreate', async () => {
+			return this.create(data, actorId)
+		})
+	}
+
+	async handleUpdate(
+		id: number,
+		data: MaterialUomMutationSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('MaterialUomService.handleUpdate', async () => {
+			return this.update(id, data, actorId)
+		})
+	}
+
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('MaterialUomService.handleRemove', async () => {
+			return this.remove(id)
 		})
 	}
 }
