@@ -2,6 +2,7 @@ import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
 import { SessionRepo } from './session.repo'
+import type { SessionSchema, SessionPayloadSchema } from './session.schema'
 import { SessionService } from './session.service'
 
 export class SessionServiceModule {
@@ -16,5 +17,5 @@ export class SessionServiceModule {
 	}
 }
 
-export * from './session.dto'
+export type { SessionSchema, SessionPayloadSchema }
 export * from './session.service'
