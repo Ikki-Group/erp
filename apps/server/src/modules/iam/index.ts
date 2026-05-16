@@ -10,6 +10,8 @@ import { UserAssignmentService } from './assignment.service'
 import { RoleRepo } from './role.repo'
 import { createRoleRoute } from './role.route'
 import { RoleService } from './role.service'
+import { createUserReadRoute } from './user-read.route'
+import { UserReadService } from './user-read.service'
 import { UserRepo } from './user.repo'
 import { createUserRoute } from './user.route'
 import { UserService } from './user.service'
@@ -22,6 +24,7 @@ export class IamServiceModule {
 	public readonly role: RoleService
 	public readonly assignment: UserAssignmentService
 	public readonly user: UserService
+	public readonly userRead: UserReadService
 
 	constructor(db: DbClient, cacheClient: CacheClient, deps: IamServiceModuleDeps) {
 		const roleRepo = new RoleRepo(db)
@@ -38,6 +41,14 @@ export class IamServiceModule {
 			userRepo,
 			cacheClient,
 		)
+		this.userRead = new UserReadService({
+			svc: {
+				role: this.role,
+				assignment: this.assignment,
+				user: this.user,
+				location: deps.location.location,
+			},
+		})
 	}
 }
 
@@ -46,6 +57,7 @@ export function createIamRouteModule(s: IamServiceModule) {
 		.use(createRoleRoute(s.role))
 		.use(createAssignmentRoute(s.assignment))
 		.use(createUserRoute(s.user))
+		.use(createUserReadRoute(s.userRead))
 }
 
 export * from './role.schema'

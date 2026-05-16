@@ -1,3 +1,5 @@
+import { record } from '@elysiajs/opentelemetry'
+
 import type { OmitPaginationQuery } from '@/types/utils'
 import type { ActorId } from '@/types/utils'
 
@@ -39,6 +41,18 @@ export class UserAssignmentService {
 
 	async handleGetListPaginated(filter: UserAssignmentFilterSchema) {
 		return this.repo.getListPaginated(filter)
+	}
+
+	async getListByUserIds(userIds: number[]): Promise<Record<number, UserAssignmentSchema[]>> {
+		return record('UserAssignmentService.getListByUserIds', async () => {
+			if (userIds.length === 0) return {}
+			const assignments = await this.repo.getListByUserIds(userIds)
+			return assignments.reduce<Record<number, UserAssignmentSchema[]>>((acc, a) => {
+				acc[a.userId] ??= acc[a.userId] ?? []
+				acc[a.userId]!.push(a)
+				return acc
+			}, {})
+		})
 	}
 
 	/* ========================================================================== */

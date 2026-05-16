@@ -113,6 +113,10 @@ export class UserService {
 
 	/* --------------------------------- PUBLIC -------------------------------- */
 
+	async getListPaginated(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
+		return record('UserService.getListPaginated', async () => this.r.getListPaginated(filter))
+	}
+
 	async getListAll(): Promise<UserSchema[]> {
 		return record('UserService.getListAll', async () =>
 			this.cache.getOrSet({
@@ -280,23 +284,9 @@ export class UserService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: UserFilterSchema): Promise<WithPaginationResult<any>> {
+	async handleList(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
 		return record('UserService.handleList', async () => {
-			const p = await this.r.getListPaginated(filter)
-
-			const [roleMap, locationMap] = await Promise.all([
-				this.s.role.getRelationMap(),
-				this.s.location.location.getRelationMap(),
-			])
-
-			const data = await Promise.all(
-				p.data.map(async (user) => {
-					const assignments = await this.buildUserAssignments(user, roleMap, locationMap)
-					return { ...user, assignments }
-				}),
-			)
-
-			return { ...p, data }
+			return this.r.getListPaginated(filter)
 		})
 	}
 

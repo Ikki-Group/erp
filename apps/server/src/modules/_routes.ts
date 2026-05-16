@@ -6,9 +6,9 @@ import type Elysia from 'elysia'
 
 export function createRoutes(m: Modules) {
 	const routes = [
-		createAuthRouteModule(m.auth),
-		createIamRouteModule(m.iam),
 		createLocationRouteModule(m.location),
+		createIamRouteModule(m.iam),
+		createAuthRouteModule(m.auth),
 		// initDashboardRouteModule(m.dashboard),
 		// initInventoryRouteModule(m.inventory),
 		// initMaterialRoutes(m.material),

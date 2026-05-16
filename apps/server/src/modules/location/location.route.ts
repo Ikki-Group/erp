@@ -15,7 +15,7 @@ import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './
 import type { LocationService } from './location.service'
 
 export function createLocationRoute(svc: LocationService) {
-	return new Elysia({ prefix: '/location' })
+	return new Elysia()
 		.use(authPluginMacro)
 		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
 			query: LocationFilterSchema,
@@ -45,8 +45,8 @@ export function createLocationRoute(svc: LocationService) {
 				auth: true,
 			},
 		)
-		.delete('/remove', async ({ query }) => res.ok(await svc.handleRemove(query.id)), {
-			query: zq.recordId,
+		.delete('/remove', async ({ body }) => res.ok(await svc.handleRemove(body.id)), {
+			body: zc.RecordId,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,
 		})
