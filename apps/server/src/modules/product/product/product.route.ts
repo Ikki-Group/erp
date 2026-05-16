@@ -9,11 +9,11 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import {
-	ProductFilterDto,
-	ProductCreateDto,
-	ProductUpdateDto,
-	ProductSelectDto,
-} from './product.dto'
+	ProductFilterSchema,
+	ProductCreateSchema,
+	ProductUpdateSchema,
+	ProductSelectSchema,
+} from './product.schema'
 import type { ProductService } from './product.service'
 
 export function initProductRoute(s: ProductService) {
@@ -26,8 +26,8 @@ export function initProductRoute(s: ProductService) {
 				return res.paginated(result)
 			},
 			{
-				query: ProductFilterDto,
-				response: createPaginatedResponseSchema(ProductSelectDto),
+				query: ProductFilterSchema,
+				response: createPaginatedResponseSchema(ProductSelectSchema),
 				auth: true,
 			},
 		)
@@ -39,7 +39,7 @@ export function initProductRoute(s: ProductService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(ProductSelectDto),
+				response: createSuccessResponseSchema(ProductSelectSchema),
 				auth: true,
 			},
 		)
@@ -50,7 +50,7 @@ export function initProductRoute(s: ProductService) {
 				return res.created({ id })
 			},
 			{
-				body: ProductCreateDto,
+				body: ProductCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -62,7 +62,7 @@ export function initProductRoute(s: ProductService) {
 				return res.ok({ id })
 			},
 			{
-				body: ProductUpdateDto,
+				body: ProductUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

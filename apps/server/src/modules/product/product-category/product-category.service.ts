@@ -1,16 +1,16 @@
-import { record } from '@elysiajs/opentelemetry'
-
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { NotFoundError } from '@/core/http/errors'
 
-import {
-	ProductCategoryDto,
-	ProductCategoryFilterDto,
-	ProductCategoryCreateDto,
-	ProductCategoryUpdateDto,
-} from './product-category.dto'
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import { ProductCategoryRepo } from './product-category.repo'
+import type {
+	ProductCategorySchema,
+	ProductCategoryFilterSchema,
+	ProductCategoryCreateSchema,
+	ProductCategoryUpdateSchema,
+} from './product-category.schema'
 
 export class ProductCategoryService {
 	private readonly cache: CacheService
@@ -24,100 +24,84 @@ export class ProductCategoryService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductCategoryDto | undefined> {
-		return record('ProductCategoryService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
-				factory: () => this.repo.getById(id),
-			})
+	async getById(id: number): Promise<ProductCategorySchema | undefined> {
+		return this.cache.getOrSetSkipUndefined({
+			key: `byId:${id}`,
+			factory: () => this.repo.getById(id),
 		})
 	}
 
-	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
-		return record('ProductCategoryService.getAll', async () => {
-			const cacheKey = locationId ? `list:location:${locationId}` : 'list'
-			return this.cache.getOrSet({
-				key: cacheKey,
-				factory: () => this.repo.getAll(locationId),
-			})
+	async getAll(locationId?: number): Promise<ProductCategorySchema[]> {
+		const cacheKey = locationId ? `list:location:${locationId}` : 'list'
+		return this.cache.getOrSet({
+			key: cacheKey,
+			factory: () => this.repo.getAll(locationId),
 		})
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(
-		filter: ProductCategoryFilterDto,
-	): Promise<WithPaginationResult<ProductCategoryDto>> {
-		return record('ProductCategoryService.handleList', async () => {
-			return this.repo.getListPaginated(filter)
-		})
+		filter: ProductCategoryFilterSchema,
+	): Promise<WithPaginationResult<ProductCategorySchema>> {
+		return this.repo.getListPaginated(filter)
 	}
 
-	async handleDetail(id: number): Promise<ProductCategoryDto> {
-		return record('ProductCategoryService.handleDetail', async () => {
-			const result = await this.getById(id)
-			if (!result)
-				throw new NotFoundError(
-					`Product category with ID ${id} not found`,
-					'PRODUCT_CATEGORY_NOT_FOUND',
-				)
-			return result
-		})
+	async handleDetail(id: number): Promise<ProductCategorySchema> {
+		const result = await this.getById(id)
+		if (!result)
+			throw new NotFoundError(
+				`Product category with ID ${id} not found`,
+				'PRODUCT_CATEGORY_NOT_FOUND',
+			)
+		return result
 	}
 
-	async handleCreate(data: ProductCategoryCreateDto, actorId: number): Promise<{ id: number }> {
-		return record('ProductCategoryService.handleCreate', async () => {
-			const result = await this.repo.create(data, actorId)
+	async handleCreate(data: ProductCategoryCreateSchema, actorId: ActorId): Promise<EntityRef> {
+		const result = await this.repo.create(data, actorId)
 
-			await this.cache.deleteMany({ keys: ['list', `list:location:${data.locationId}`, 'count'] })
+		await this.cache.deleteMany({ keys: ['list', `list:location:${data.locationId}`, 'count'] })
 
-			return result
-		})
+		return result
 	}
 
 	async handleUpdate(
 		id: number,
-		data: ProductCategoryUpdateDto,
-		actorId: number,
-	): Promise<{ id: number }> {
-		return record('ProductCategoryService.handleUpdate', async () => {
-			const existing = await this.getById(id)
-			if (!existing)
-				throw new NotFoundError(
-					`Product category with ID ${id} not found`,
-					'PRODUCT_CATEGORY_NOT_FOUND',
-				)
+		data: ProductCategoryUpdateSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		const existing = await this.getById(id)
+		if (!existing)
+			throw new NotFoundError(
+				`Product category with ID ${id} not found`,
+				'PRODUCT_CATEGORY_NOT_FOUND',
+			)
 
-			await this.repo.update(id, data, actorId)
+		await this.repo.update(id, data, actorId)
 
-			const cacheKeys = ['list', 'count', `byId:${id}`]
-			if (data.locationId) {
-				cacheKeys.push(`list:location:${data.locationId}`)
-				cacheKeys.push(`list:location:${existing.locationId}`)
-			}
-			await this.cache.deleteMany({ keys: cacheKeys })
+		const cacheKeys = ['list', 'count', `byId:${id}`]
+		if (data.locationId) {
+			cacheKeys.push(`list:location:${data.locationId}`)
+			cacheKeys.push(`list:location:${existing.locationId}`)
+		}
+		await this.cache.deleteMany({ keys: cacheKeys })
 
-			return { id }
-		})
+		return { id }
 	}
 
-	async handleRemove(id: number): Promise<{ id: number }> {
-		return record('ProductCategoryService.handleRemove', async () => {
-			const result = await this.repo.softDelete(id)
+	async handleRemove(id: number): Promise<EntityRef> {
+		const result = await this.repo.softDelete(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
-			return result
-		})
+		return result
 	}
 
-	async handleHardRemove(id: number): Promise<{ id: number }> {
-		return record('ProductCategoryService.handleHardRemove', async () => {
-			const result = await this.repo.hardDelete(id)
+	async handleHardRemove(id: number): Promise<EntityRef> {
+		const result = await this.repo.hardDelete(id)
 
-			await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
+		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
 
-			return result
-		})
+		return result
 	}
 }

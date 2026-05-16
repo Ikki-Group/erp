@@ -1,4 +1,3 @@
-import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, inArray, not, or } from 'drizzle-orm'
 
 import {
@@ -11,6 +10,8 @@ import {
 } from '@/core/database'
 import { ConflictError, NotFoundError } from '@/core/http/errors'
 
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import {
 	productPricesTable,
 	productsTable,
@@ -19,13 +20,13 @@ import {
 } from '@/db/schema'
 
 import {
-	ProductDto,
-	ProductFilterDto,
-	ProductMutationDto,
-	ProductPriceDto,
-	ProductVariantDto,
-	VariantPriceDto,
-} from './product.dto'
+	ProductSchema,
+	type ProductFilterSchema,
+	type ProductMutationSchema,
+	ProductPriceSchema,
+	ProductVariantSchema,
+	VariantPriceSchema,
+} from './product.schema'
 
 const DEFAULT_VARIANT_NAME = 'Default'
 
@@ -33,14 +34,14 @@ export class ProductRepo {
 	constructor(private readonly db: DbClient) {}
 
 	async #getProductPricesBatch(productIds: number[]) {
-		if (productIds.length === 0) return new Map<number, ProductPriceDto[]>()
+		if (productIds.length === 0) return new Map<number, ProductPriceSchema[]>()
 
 		const prices = await this.db
 			.select()
 			.from(productPricesTable)
 			.where(inArray(productPricesTable.productId, productIds))
 
-		const map = new Map<number, ProductPriceDto[]>()
+		const map = new Map<number, ProductPriceSchema[]>()
 		for (const id of productIds) map.set(id, [])
 		for (const p of prices) {
 			map.get(p.productId)!.push({ ...p, price: p.price })
@@ -49,7 +50,7 @@ export class ProductRepo {
 	}
 
 	async #getVariantsBatch(productIds: number[]) {
-		if (productIds.length === 0) return new Map<number, ProductVariantDto[]>()
+		if (productIds.length === 0) return new Map<number, ProductVariantSchema[]>()
 		const variants = await this.db
 			.select()
 			.from(productVariantsTable)
@@ -64,14 +65,14 @@ export class ProductRepo {
 						.where(inArray(variantPricesTable.variantId, variantIds))
 				: []
 
-		const pricesByVariant = new Map<number, VariantPriceDto[]>()
+		const pricesByVariant = new Map<number, VariantPriceSchema[]>()
 		for (const p of prices) {
 			const list = pricesByVariant.get(p.variantId) ?? []
 			list.push({ ...p, price: p.price })
 			pricesByVariant.set(p.variantId, list)
 		}
 
-		const map = new Map<number, ProductVariantDto[]>()
+		const map = new Map<number, ProductVariantSchema[]>()
 		for (const id of productIds) map.set(id, [])
 		for (const v of variants) {
 			map.get(v.productId)!.push({
@@ -83,88 +84,69 @@ export class ProductRepo {
 		return map
 	}
 
-	// async #getProductExternalMappingsBatch(
-	// 	productIds: number[],
-	// ): Promise<Map<number, ProductExternalMappingDto[]>> {
-	// 	if (productIds.length === 0) return new Map()
-	// 	const mappings = await this.db
-	// 		.select()
-	// 		.from(productExternalMappingsTable)
-	// 		.where(inArray(productExternalMappingsTable.productId, productIds))
-
-	// 	const map = new Map<number, ProductExternalMappingDto[]>()
-	// 	for (const id of productIds) map.set(id, [])
-	// 	for (const m of mappings) map.get(m.productId)!.push(m)
-	// 	return map
-	// }
-
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<ProductDto | undefined> {
-		return record('ProductRepo.getById', async () => {
-			const [product] = await this.db
-				.select()
-				.from(productsTable)
-				.where(eq(productsTable.id, id))
-				.limit(1)
+	async getById(id: number): Promise<ProductSchema | undefined> {
+		const [product] = await this.db
+			.select()
+			.from(productsTable)
+			.where(eq(productsTable.id, id))
+			.limit(1)
 
-			if (!product) return undefined
+		if (!product) return undefined
 
-			const [variantsMap, pricesMap] = await Promise.all([
-				this.#getVariantsBatch([id]),
-				this.#getProductPricesBatch([id]),
-			])
+		const [variantsMap, pricesMap] = await Promise.all([
+			this.#getVariantsBatch([id]),
+			this.#getProductPricesBatch([id]),
+		])
 
-			return {
-				...product,
-				basePrice: product.basePrice,
-				variants: variantsMap.get(id) ?? [],
-				prices: pricesMap.get(id) ?? [],
-				externalMappings: [],
-			}
-		})
+		return {
+			...product,
+			basePrice: product.basePrice,
+			variants: variantsMap.get(id) ?? [],
+			prices: pricesMap.get(id) ?? [],
+			externalMappings: [],
+		}
 	}
 
-	async getListPaginated(filter: ProductFilterDto): Promise<WithPaginationResult<ProductDto>> {
-		return record('ProductRepo.getListPaginated', async () => {
-			const { search, status, categoryId, locationId, page, limit } = filter
+	async getListPaginated(filter: ProductFilterSchema): Promise<WithPaginationResult<ProductSchema>> {
+		const { search, status, categoryId, locationId, page, limit } = filter
 
-			const conditions = [
-				search
-					? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
-					: undefined,
-				status ? eq(productsTable.status, status) : undefined,
-				categoryId ? eq(productsTable.categoryId, categoryId) : undefined,
-				locationId ? eq(productsTable.locationId, locationId) : undefined,
-			].filter((c): c is NonNullable<typeof c> => c !== undefined)
+		const conditions = [
+			search
+				? or(ilike(productsTable.name, `%${search}%`), ilike(productsTable.sku, `%${search}%`))
+				: undefined,
+			status ? eq(productsTable.status, status) : undefined,
+			categoryId ? eq(productsTable.categoryId, categoryId) : undefined,
+			locationId ? eq(productsTable.locationId, locationId) : undefined,
+		].filter((c): c is NonNullable<typeof c> => c !== undefined)
 
-			const where = conditions.length > 0 ? and(...conditions) : undefined
+		const where = conditions.length > 0 ? and(...conditions) : undefined
 
-			const result = await paginate({
-				data: async ({ limit: l, offset }) => {
-					const rows = await this.db
-						.select()
-						.from(productsTable)
-						.where(where)
-						.orderBy(sortBy(productsTable.updatedAt, 'desc'))
-						.limit(l)
-						.offset(offset)
-					return rows.map((r) =>
-						ProductDto.parse({
-							...r,
-							basePrice: r.basePrice,
-							variants: [],
-							prices: [],
-							externalMappings: [],
-						}),
-					)
-				},
-				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
-			})
-
-			return result
+		const result = await paginate({
+			data: async ({ limit: l, offset }) => {
+				const rows = await this.db
+					.select()
+					.from(productsTable)
+					.where(where)
+					.orderBy(sortBy(productsTable.updatedAt, 'desc'))
+					.limit(l)
+					.offset(offset)
+				return rows.map((r) =>
+					ProductSchema.parse({
+						...r,
+						basePrice: r.basePrice,
+						variants: [],
+						prices: [],
+						externalMappings: [],
+					}),
+				)
+			},
+			pq: { page, limit },
+			countQuery: this.db.select({ count: count() }).from(productsTable).where(where),
 		})
+
+		return result
 	}
 
 	async checkScopedConflict(
@@ -200,63 +182,125 @@ export class ProductRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async create(data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
-		return record('ProductRepo.create', async () => {
-			const meta = stampCreate(actorId)
-			return this.db.transaction(async (tx) => {
-				const [product] = await tx
-					.insert(productsTable)
+	async create(data: ProductMutationSchema, actorId: ActorId): Promise<EntityRef> {
+		const meta = stampCreate(actorId)
+		return this.db.transaction(async (tx) => {
+			const [product] = await tx
+				.insert(productsTable)
+				.values({
+					name: data.name,
+					description: data.description,
+					sku: data.sku,
+					locationId: data.locationId,
+					categoryId: data.categoryId,
+					status: data.status,
+					basePrice: (data.basePrice ?? 0).toString(),
+					hasVariants: data.hasVariants,
+					hasSalesTypePricing: data.hasSalesTypePricing,
+					...meta,
+				})
+				.returning({ id: productsTable.id })
+
+			if (!product) throw new Error('Create product failed')
+
+			if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
+				await tx.insert(productPricesTable).values(
+					data.prices.map((p) => ({
+						productId: product.id,
+						salesTypeId: p.salesTypeId,
+						price: p.price.toString(),
+						...meta,
+					})),
+				)
+			}
+
+			const inputVariants = data.hasVariants
+				? data.variants && data.variants.length > 0
+					? data.variants
+					: [
+							{
+								name: DEFAULT_VARIANT_NAME,
+								isDefault: true,
+								prices: [],
+								basePrice: '0',
+								sku: data.sku,
+							},
+						]
+				: []
+
+			for (const variant of inputVariants) {
+				const [insertedV] = await tx
+					.insert(productVariantsTable)
 					.values({
-						name: data.name,
-						description: data.description,
-						sku: data.sku,
-						locationId: data.locationId,
-						categoryId: data.categoryId,
-						status: data.status,
-						basePrice: (data.basePrice ?? 0).toString(),
-						hasVariants: data.hasVariants,
-						hasSalesTypePricing: data.hasSalesTypePricing,
+						productId: product.id,
+						name: variant.name.trim(),
+						sku: variant.sku?.trim() ?? '',
+						isDefault: variant.isDefault ?? false,
+						basePrice: (variant.basePrice ?? 0).toString(),
 						...meta,
 					})
-					.returning({ id: productsTable.id })
+					.returning({ id: productVariantsTable.id })
 
-				if (!product) throw new Error('Create product failed')
-
-				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx.insert(productPricesTable).values(
-						data.prices.map((p) => ({
-							productId: product.id,
+				if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
+					await tx.insert(variantPricesTable).values(
+						variant.prices.map((p) => ({
+							variantId: insertedV.id,
 							salesTypeId: p.salesTypeId,
 							price: p.price.toString(),
 							...meta,
 						})),
 					)
 				}
+			}
+			return { id: product.id }
+		})
+	}
 
-				const inputVariants = data.hasVariants
-					? data.variants && data.variants.length > 0
-						? data.variants
-						: [
-								{
-									name: DEFAULT_VARIANT_NAME,
-									isDefault: true,
-									prices: [],
-									basePrice: '0',
-									sku: data.sku,
-								},
-							]
-					: []
+	async update(id: number, data: ProductMutationSchema, actorId: ActorId): Promise<EntityRef> {
+		const updateMeta = stampUpdate(actorId)
+		const createMeta = stampCreate(actorId)
 
-				for (const variant of inputVariants) {
+		await this.db.transaction(async (tx) => {
+			await tx
+				.update(productsTable)
+				.set({
+					name: data.name,
+					description: data.description,
+					sku: data.sku,
+					locationId: data.locationId,
+					categoryId: data.categoryId,
+					status: data.status,
+					basePrice: (data.basePrice ?? 0).toString(),
+					hasVariants: data.hasVariants,
+					hasSalesTypePricing: data.hasSalesTypePricing,
+					...updateMeta,
+				})
+				.where(eq(productsTable.id, id))
+
+			await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
+			if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
+				await tx.insert(productPricesTable).values(
+					data.prices.map((p) => ({
+						productId: id,
+						salesTypeId: p.salesTypeId,
+						price: p.price.toString(),
+						...createMeta,
+					})),
+				)
+			}
+
+			if (data.hasVariants && data.variants) {
+				await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
+				for (const variant of data.variants) {
 					const [insertedV] = await tx
 						.insert(productVariantsTable)
 						.values({
-							productId: product.id,
+							productId: id,
 							name: variant.name.trim(),
 							sku: variant.sku?.trim() ?? '',
 							isDefault: variant.isDefault ?? false,
 							basePrice: (variant.basePrice ?? 0).toString(),
-							...meta,
+							...createMeta,
 						})
 						.returning({ id: productVariantsTable.id })
 
@@ -266,103 +310,33 @@ export class ProductRepo {
 								variantId: insertedV.id,
 								salesTypeId: p.salesTypeId,
 								price: p.price.toString(),
-								...meta,
+								...createMeta,
 							})),
 						)
 					}
 				}
-				return product
-			})
+			} else if (!data.hasVariants) {
+				await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
+			}
 		})
+		return { id }
 	}
 
-	async update(id: number, data: ProductMutationDto, actorId: number): Promise<{ id: number }> {
-		return record('ProductRepo.update', async () => {
-			const updateMeta = stampUpdate(actorId)
-			const createMeta = stampCreate(actorId)
-
-			await this.db.transaction(async (tx) => {
-				await tx
-					.update(productsTable)
-					.set({
-						name: data.name,
-						description: data.description,
-						sku: data.sku,
-						locationId: data.locationId,
-						categoryId: data.categoryId,
-						status: data.status,
-						basePrice: (data.basePrice ?? 0).toString(),
-						hasVariants: data.hasVariants,
-						hasSalesTypePricing: data.hasSalesTypePricing,
-						...updateMeta,
-					})
-					.where(eq(productsTable.id, id))
-
-				await tx.delete(productPricesTable).where(eq(productPricesTable.productId, id))
-				if (!data.hasVariants && data.hasSalesTypePricing && data.prices?.length) {
-					await tx.insert(productPricesTable).values(
-						data.prices.map((p) => ({
-							productId: id,
-							salesTypeId: p.salesTypeId,
-							price: p.price.toString(),
-							...createMeta,
-						})),
-					)
-				}
-
-				if (data.hasVariants && data.variants) {
-					await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
-					for (const variant of data.variants) {
-						const [insertedV] = await tx
-							.insert(productVariantsTable)
-							.values({
-								productId: id,
-								name: variant.name.trim(),
-								sku: variant.sku?.trim() ?? '',
-								isDefault: variant.isDefault ?? false,
-								basePrice: (variant.basePrice ?? 0).toString(),
-								...createMeta,
-							})
-							.returning({ id: productVariantsTable.id })
-
-						if (insertedV && data.hasSalesTypePricing && variant.prices?.length) {
-							await tx.insert(variantPricesTable).values(
-								variant.prices.map((p) => ({
-									variantId: insertedV.id,
-									salesTypeId: p.salesTypeId,
-									price: p.price.toString(),
-									...createMeta,
-								})),
-							)
-						}
-					}
-				} else if (!data.hasVariants) {
-					await tx.delete(productVariantsTable).where(eq(productVariantsTable.productId, id))
-				}
-			})
-			return { id }
-		})
+	async softDelete(id: number): Promise<EntityRef> {
+		const [result] = await this.db
+			.delete(productsTable)
+			.where(eq(productsTable.id, id))
+			.returning({ id: productsTable.id })
+		if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+		return { id: result.id }
 	}
 
-	async softDelete(id: number): Promise<{ id: number }> {
-		return record('ProductRepo.softDelete', async () => {
-			const [result] = await this.db
-				.delete(productsTable)
-				.where(eq(productsTable.id, id))
-				.returning({ id: productsTable.id })
-			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			return result
-		})
-	}
-
-	async hardDelete(id: number): Promise<{ id: number }> {
-		return record('ProductRepo.hardDelete', async () => {
-			const [result] = await this.db
-				.delete(productsTable)
-				.where(eq(productsTable.id, id))
-				.returning({ id: productsTable.id })
-			if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
-			return result
-		})
+	async hardDelete(id: number): Promise<EntityRef> {
+		const [result] = await this.db
+			.delete(productsTable)
+			.where(eq(productsTable.id, id))
+			.returning({ id: productsTable.id })
+		if (!result) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+		return { id: result.id }
 	}
 }

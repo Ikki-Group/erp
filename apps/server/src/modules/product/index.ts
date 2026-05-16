@@ -5,9 +5,26 @@ import type { DbClient } from '@/core/database'
 
 import { ProductCategoryRepo } from './product-category/product-category.repo'
 import { initProductCategoryRoute } from './product-category/product-category.route'
+import type {
+	ProductCategorySchema,
+	ProductCategoryCreateSchema,
+	ProductCategoryUpdateSchema,
+	ProductCategoryFilterSchema,
+} from './product-category/product-category.schema'
 import { ProductCategoryService } from './product-category/product-category.service'
 import { ProductRepo } from './product/product.repo'
 import { initProductRoute } from './product/product.route'
+import type {
+	ProductSchema,
+	ProductSelectSchema,
+	ProductFilterSchema,
+	ProductCreateSchema,
+	ProductUpdateSchema,
+	ProductVariantSchema,
+	ProductPriceSchema,
+	VariantPriceSchema,
+	ProductExternalMappingSchema,
+} from './product/product.schema'
 import { ProductService } from './product/product.service'
 
 export class ProductServiceModule {
@@ -32,21 +49,20 @@ export function initProductRouteModule(s: ProductServiceModule) {
 		.use(initProductRoute(s.product))
 }
 
-export {
-	ProductCategoryDto,
-	ProductCategoryCreateDto,
-	ProductCategoryUpdateDto,
-	ProductCategoryFilterDto,
-} from './product-category/product-category.dto'
-export {
-	ProductDto,
-	ProductSelectDto,
-	ProductFilterDto,
-	ProductMutationDto,
-	ProductVariantDto,
-	ProductPriceDto,
-	VariantPriceDto,
-	ProductExternalMappingDto,
-} from './product/product.dto'
+export type {
+	ProductCategorySchema,
+	ProductCategoryCreateSchema,
+	ProductCategoryUpdateSchema,
+	ProductCategoryFilterSchema,
+	ProductSchema,
+	ProductSelectSchema,
+	ProductFilterSchema,
+	ProductCreateSchema,
+	ProductUpdateSchema,
+	ProductVariantSchema,
+	ProductPriceSchema,
+	VariantPriceSchema,
+	ProductExternalMappingSchema,
+}
 export type { ProductCategoryService } from './product-category/product-category.service'
 export type { ProductService } from './product/product.service'

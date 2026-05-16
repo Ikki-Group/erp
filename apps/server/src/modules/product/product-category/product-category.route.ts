@@ -10,11 +10,11 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import {
-	ProductCategoryFilterDto,
-	ProductCategoryCreateDto,
-	ProductCategoryUpdateDto,
-	ProductCategoryDto,
-} from './product-category.dto'
+	ProductCategoryFilterSchema,
+	ProductCategoryCreateSchema,
+	ProductCategoryUpdateSchema,
+	ProductCategorySchema,
+} from './product-category.schema'
 import type { ProductCategoryService } from './product-category.service'
 
 export function initProductCategoryRoute(s: ProductCategoryService) {
@@ -27,8 +27,8 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.paginated(result)
 			},
 			{
-				query: ProductCategoryFilterDto,
-				response: createPaginatedResponseSchema(ProductCategoryDto),
+				query: ProductCategoryFilterSchema,
+				response: createPaginatedResponseSchema(ProductCategorySchema),
 				auth: true,
 			},
 		)
@@ -40,7 +40,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(ProductCategoryDto),
+				response: createSuccessResponseSchema(ProductCategorySchema),
 				auth: true,
 			},
 		)
@@ -51,7 +51,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.created({ id })
 			},
 			{
-				body: ProductCategoryCreateDto,
+				body: ProductCategoryCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -63,7 +63,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				return res.ok({ id })
 			},
 			{
-				body: ProductCategoryUpdateDto,
+				body: ProductCategoryUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -74,7 +74,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				await s.handleRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.delete(
 			'/hard-remove',
@@ -82,6 +82,6 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 				await s.handleHardRemove(query.id)
 				return res.ok({ id: query.id })
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 }
