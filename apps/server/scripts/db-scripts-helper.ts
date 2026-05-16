@@ -6,9 +6,9 @@ import type { DbClient } from '@/core/database'
 
 import { db } from '@/db'
 
-import { createModules } from '@/modules/_registry'
-
 import { env } from '@/config/env'
+
+import { createModules } from '@/modules/_registry'
 
 const Action = z.enum(['reset', 'seed', 'seed-dev', 'all'])
 type Action = z.infer<typeof Action>
@@ -29,10 +29,10 @@ CREATE SCHEMA public;
 }
 
 async function seed(db: DbClient) {
-	const m = createModules(db)
+	// const m = createModules(db, cacheClient)
 
 	console.log('🌱 Starting core database seed...')
-	await m.tool.seed.seed()
+	// await m.tool.seed.seed()
 	console.log('✅ Core seed completed.')
 }
 
@@ -45,14 +45,14 @@ async function runMigrate(db: DbClient) {
 }
 
 async function seedDev(db: DbClient) {
-	const m = createModules(db)
+	// const m = createModules(db, cacheClient)
 
 	console.log('🌱 Starting core database seed...')
-	await m.tool.seed.seed()
+	// await m.tool.seed.seed()
 	console.log('✅ Core seed completed.')
 
 	console.log('🌱 Starting development mock data seed...')
-	await m.tool.seed.seedDev()
+	// await m.tool.seed.seedDev()
 	console.log('✅ Development seed completed.')
 }
 

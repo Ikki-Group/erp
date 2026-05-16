@@ -8,9 +8,9 @@ export function createRoutes(m: Modules) {
 	const routes = [
 		createAuthRouteModule(m.auth),
 		createIamRouteModule(m.iam),
+		createLocationRouteModule(m.location),
 		// initDashboardRouteModule(m.dashboard),
 		// initInventoryRouteModule(m.inventory),
-		createLocationRouteModule(m.location),
 		// initMaterialRoutes(m.material),
 		// initProductRouteModule(m.product),
 		// initRecipeRouteModule(m.recipe),

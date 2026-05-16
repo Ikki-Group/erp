@@ -22,7 +22,6 @@ import { SalesServiceModule } from './sales'
 import { SalesTypeServiceModule } from './sales-type'
 import { SessionServiceModule } from './session'
 import { SupplierServiceModule } from './supplier'
-import { ToolServiceModule } from './tool'
 
 export interface Modules {
 	location: LocationServiceModule
@@ -50,7 +49,6 @@ export interface Modules {
 
 	production: ProductionServiceModule
 	dashboard: DashboardServiceModule
-	tool: ToolServiceModule
 	payment: PaymentServiceModule
 	reporting: ReportingServiceModule
 }

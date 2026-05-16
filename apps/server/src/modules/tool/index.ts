@@ -4,22 +4,22 @@ import type { DbClient } from '@/core/database'
 
 import type { RoleService } from '@/modules/iam'
 import type { UserService } from '@/modules/iam'
-import type { LocationMasterService } from '@/modules/location'
-import type { MaterialCategoryService } from '@/modules/material'
-import type { MaterialService } from '@/modules/material'
-import type { UomService } from '@/modules/material'
+// import type { LocationMasterService } from '@/modules/location'
+// import type { MaterialCategoryService } from '@/modules/material'
+// import type { MaterialService } from '@/modules/material'
+// import type { UomService } from '@/modules/material'
 import type { SalesTypeService } from '@/modules/sales-type'
 
-import { initSeedRoute } from './seed/seed.route'
-import { SeedService } from './seed/seed.service'
+import { initSeedRoute } from './seed.route'
+import { SeedService } from './seed.service'
 
 interface ToolServiceModuleDeps {
 	iamRole: RoleService
 	iamUser: UserService
-	locationMaster: LocationMasterService
-	materialCategory: MaterialCategoryService
-	materialMaster: MaterialService
-	materialUom: UomService
+	// locationMaster: LocationMasterService
+	// materialCategory: MaterialCategoryService
+	// materialMaster: MaterialService
+	// materialUom: UomService
 	salesType: SalesTypeService
 }
 
@@ -34,10 +34,10 @@ export class ToolServiceModule {
 			this.db,
 			this.deps.iamRole,
 			this.deps.iamUser,
-			this.deps.locationMaster,
-			this.deps.materialCategory,
-			this.deps.materialMaster,
-			this.deps.materialUom,
+			// this.deps.locationMaster,
+			// this.deps.materialCategory,
+			// this.deps.materialMaster,
+			// this.deps.materialUom,
 			this.deps.salesType,
 		)
 	}
@@ -47,4 +47,4 @@ export function initToolRouteModule(module: ToolServiceModule) {
 	return new Elysia({ prefix: '/tool', detail: { tags: ['Tool'] } }).use(initSeedRoute(module.seed))
 }
 
-export type { SeedService } from './seed/seed.service'
+export type { SeedService } from './seed.service'
