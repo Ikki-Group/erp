@@ -4,8 +4,8 @@ import { ConflictError, NotFoundError } from '@/core/http/errors'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import type { ProductCategorySchema } from '../product-category/product-category.schema'
-import type { ProductCategoryService } from '../product-category/product-category.service'
+import type { ProductCategorySchema } from './category.schema'
+import type { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
 import type {
 	ProductSchema,

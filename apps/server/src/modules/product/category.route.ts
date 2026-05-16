@@ -14,8 +14,8 @@ import {
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
 	ProductCategorySchema,
-} from './product-category.schema'
-import type { ProductCategoryService } from './product-category.service'
+} from './category.schema'
+import type { ProductCategoryService } from './category.service'
 
 export function initProductCategoryRoute(s: ProductCategoryService) {
 	return new Elysia({ prefix: '/category' })

@@ -3,17 +3,17 @@ import { Elysia } from 'elysia'
 import type { CacheClient } from '@/core/cache'
 import type { DbClient } from '@/core/database'
 
-import { ProductCategoryRepo } from './product-category/product-category.repo'
-import { initProductCategoryRoute } from './product-category/product-category.route'
+import { ProductCategoryRepo } from './category.repo'
+import { initProductCategoryRoute } from './category.route'
 import type {
 	ProductCategorySchema,
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
 	ProductCategoryFilterSchema,
-} from './product-category/product-category.schema'
-import { ProductCategoryService } from './product-category/product-category.service'
-import { ProductRepo } from './product/product.repo'
-import { initProductRoute } from './product/product.route'
+} from './category.schema'
+import { ProductCategoryService } from './category.service'
+import { ProductRepo } from './product.repo'
+import { initProductRoute } from './product.route'
 import type {
 	ProductSchema,
 	ProductSelectSchema,
@@ -24,8 +24,8 @@ import type {
 	ProductPriceSchema,
 	VariantPriceSchema,
 	ProductExternalMappingSchema,
-} from './product/product.schema'
-import { ProductService } from './product/product.service'
+} from './product.schema'
+import { ProductService } from './product.service'
 
 export class ProductServiceModule {
 	public readonly category: ProductCategoryService
@@ -64,5 +64,5 @@ export type {
 	VariantPriceSchema,
 	ProductExternalMappingSchema,
 }
-export type { ProductCategoryService } from './product-category/product-category.service'
-export type { ProductService } from './product/product.service'
+export type { ProductCategoryService } from './category.service'
+export type { ProductService } from './product.service'

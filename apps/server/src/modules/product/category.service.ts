@@ -4,13 +4,13 @@ import { NotFoundError } from '@/core/http/errors'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import { ProductCategoryRepo } from './product-category.repo'
+import { ProductCategoryRepo } from './category.repo'
 import type {
 	ProductCategorySchema,
 	ProductCategoryFilterSchema,
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
-} from './product-category.schema'
+} from './category.schema'
 
 export class ProductCategoryService {
 	private readonly cache: CacheService

@@ -11,16 +11,16 @@ import {
 } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import type { ActorId, EntityRef } from '@/types/utils'
-
 import { productCategoriesTable } from '@/db/schema'
+
+import type { ActorId, EntityRef } from '@/types/utils'
 
 import {
 	ProductCategorySchema,
 	type ProductCategoryFilterSchema,
 	type ProductCategoryCreateSchema,
 	type ProductCategoryUpdateSchema,
-} from './product-category.schema'
+} from './category.schema'
 
 export class ProductCategoryRepo {
 	constructor(private readonly db: DbClient) {}

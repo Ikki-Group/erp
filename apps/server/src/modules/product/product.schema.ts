@@ -1,6 +1,6 @@
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
-import { ProductCategorySchema } from '../product-category/product-category.schema'
+import { ProductCategorySchema } from './category.schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
