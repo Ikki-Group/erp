@@ -5,6 +5,7 @@ import type { DbClient } from '@/core/database'
 
 import { CustomerRepo } from './customer.repo'
 import { initCustomerRoute } from './customer.route'
+import type { CustomerSchema, CustomerLoyaltyTransactionSchema } from './customer.schema'
 import { CustomerService } from './customer.service'
 
 export class CrmServiceModule {
@@ -22,5 +23,5 @@ export function initCrmRouteModule(service: CrmServiceModule) {
 	return new Elysia({ prefix: '/crm' }).use(customerRouter)
 }
 
-export { CustomerDto, CustomerLoyaltyTransactionDto } from './customer.dto'
-export { CustomerService } from './customer.service'
+export type { CustomerSchema, CustomerLoyaltyTransactionSchema }
+export type { CustomerService } from './customer.service'
