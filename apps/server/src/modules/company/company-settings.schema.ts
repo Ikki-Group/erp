@@ -2,7 +2,7 @@
 
 import { z, zc, zp } from '@ikki/api-contract/validation'
 
-export const CompanySettingsDto = z.object({
+export const CompanySettingsSchema = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
 	address: zp.strNullable,
@@ -18,9 +18,9 @@ export const CompanySettingsDto = z.object({
 	settings: z.json().nullable(),
 	...zc.AuditBasic.shape,
 })
-export type CompanySettingsDto = z.infer<typeof CompanySettingsDto>
+export type CompanySettingsSchema = z.infer<typeof CompanySettingsSchema>
 
-export const CompanySettingsCreateDto = z.object({
+const CompanySettingsMutationSchema = z.object({
 	name: zc.strTrim.min(2).max(255),
 	address: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
 	phone: zc.strTrim.min(10).max(20).optional().or(z.literal('')),
@@ -38,9 +38,11 @@ export const CompanySettingsCreateDto = z.object({
 	currencySymbol: zc.strTrim.min(1).max(3).default('Rp'),
 	settings: z.json().optional(),
 })
-export type CompanySettingsCreateDto = z.infer<typeof CompanySettingsCreateDto>
 
-export const CompanySettingsUpdateDto = z.object({
+export const CompanySettingsCreateSchema = CompanySettingsMutationSchema
+export type CompanySettingsCreateSchema = z.infer<typeof CompanySettingsCreateSchema>
+
+export const CompanySettingsUpdateSchema = CompanySettingsMutationSchema.extend({
 	...zc.RecordId.shape,
 	name: zc.strTrim.min(2).max(255).optional(),
 	address: zc.strTrim.min(5).max(500).optional().or(z.literal('')),
@@ -59,4 +61,4 @@ export const CompanySettingsUpdateDto = z.object({
 	currencySymbol: zc.strTrim.min(1).max(3).optional(),
 	settings: z.json().optional(),
 })
-export type CompanySettingsUpdateDto = z.infer<typeof CompanySettingsUpdateDto>
+export type CompanySettingsUpdateSchema = z.infer<typeof CompanySettingsUpdateSchema>

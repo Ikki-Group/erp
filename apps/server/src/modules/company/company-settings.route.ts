@@ -4,7 +4,11 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './company-settings.dto'
+import {
+	CompanySettingsSchema,
+	CompanySettingsCreateSchema,
+	CompanySettingsUpdateSchema,
+} from './company-settings.schema'
 import type { CompanySettingsService } from './company-settings.service'
 
 export function initCompanySettingsRoute(service: CompanySettingsService) {
@@ -17,7 +21,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.ok(result)
 			},
 			{
-				response: createSuccessResponseSchema(dto.CompanySettingsDto),
+				response: createSuccessResponseSchema(CompanySettingsSchema),
 				auth: true,
 			},
 		)
@@ -29,7 +33,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.CompanySettingsDto),
+				response: createSuccessResponseSchema(CompanySettingsSchema),
 				auth: true,
 			},
 		)
@@ -40,7 +44,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.created(result)
 			},
 			{
-				body: dto.CompanySettingsCreateDto,
+				body: CompanySettingsCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -52,7 +56,7 @@ export function initCompanySettingsRoute(service: CompanySettingsService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.CompanySettingsUpdateDto,
+				body: CompanySettingsUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
