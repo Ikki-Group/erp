@@ -2,13 +2,13 @@ import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 /** Audit action types */
 const auditActionValues = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'OTHER'] as const
-export const AuditActionDto = z.enum(auditActionValues)
-export type AuditActionDto = z.infer<typeof AuditActionDto>
+export const AuditActionSchema = z.enum(auditActionValues)
+export type AuditActionSchema = z.infer<typeof AuditActionSchema>
 
-export const AuditLogDto = z.object({
+export const AuditLogSchema = z.object({
 	...zc.RecordId.shape,
 	userId: zp.id,
-	action: AuditActionDto,
+	action: AuditActionSchema,
 	entityType: zp.str,
 	entityId: zp.strNullable,
 	description: zp.str,
@@ -19,11 +19,11 @@ export const AuditLogDto = z.object({
 	actionAt: zp.date,
 	...zc.AuditBasic.shape,
 })
-export type AuditLogDto = z.infer<typeof AuditLogDto>
+export type AuditLogSchema = z.infer<typeof AuditLogSchema>
 
-export const AuditLogCreateDto = z.object({
+export const AuditLogCreateSchema = z.object({
 	userId: zp.id,
-	action: AuditActionDto,
+	action: AuditActionSchema,
 	entityType: zc.strTrim.min(2).max(100),
 	entityId: zc.strTrim.max(50).optional(),
 	description: zc.strTrim.min(5).max(500),
@@ -32,9 +32,9 @@ export const AuditLogCreateDto = z.object({
 	ipAddress: zc.strTrim.max(45).optional().or(z.literal('')),
 	userAgent: zc.strTrim.max(500).optional().or(z.literal('')),
 })
-export type AuditLogCreateDto = z.infer<typeof AuditLogCreateDto>
+export type AuditLogCreateSchema = z.infer<typeof AuditLogCreateSchema>
 
-export const AuditLogFilterDto = z.object({
+export const AuditLogFilterSchema = z.object({
 	q: zq.search,
 	action: z.enum(auditActionValues).nullish(),
 	entityType: zp.str.optional(),
@@ -43,4 +43,4 @@ export const AuditLogFilterDto = z.object({
 	toDate: zp.date.optional(),
 	...zq.pagination.shape,
 })
-export type AuditLogFilterDto = z.infer<typeof AuditLogFilterDto>
+export type AuditLogFilterSchema = z.infer<typeof AuditLogFilterSchema>

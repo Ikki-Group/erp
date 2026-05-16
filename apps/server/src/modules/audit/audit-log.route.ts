@@ -9,7 +9,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './audit-log.dto'
+import { AuditLogSchema, AuditLogFilterSchema, AuditLogCreateSchema } from './audit-log.schema'
 import type { AuditLogService } from './audit-log.service'
 
 export function initAuditLogRoute(service: AuditLogService) {
@@ -22,8 +22,8 @@ export function initAuditLogRoute(service: AuditLogService) {
 				return res.paginated(result)
 			},
 			{
-				query: dto.AuditLogFilterDto,
-				response: createPaginatedResponseSchema(dto.AuditLogDto),
+				query: AuditLogFilterSchema,
+				response: createPaginatedResponseSchema(AuditLogSchema),
 				auth: true,
 			},
 		)
@@ -35,7 +35,7 @@ export function initAuditLogRoute(service: AuditLogService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(dto.AuditLogDto),
+				response: createSuccessResponseSchema(AuditLogSchema),
 				auth: true,
 			},
 		)
@@ -46,7 +46,7 @@ export function initAuditLogRoute(service: AuditLogService) {
 				return res.created(result)
 			},
 			{
-				body: dto.AuditLogCreateDto,
+				body: AuditLogCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

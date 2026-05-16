@@ -1,12 +1,11 @@
-import { record } from '@elysiajs/opentelemetry'
-
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database'
 import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
-import * as dto from './audit-log.dto'
+import type { ActorId, EntityRef } from '@/types/utils'
+
 import { AuditLogRepo } from './audit-log.repo'
-import type { RecordId } from '@ikki/api-contract'
+import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from './audit-log.schema'
 
 const err = {
 	notFound: (id: number) =>
@@ -27,46 +26,35 @@ export class AuditLogService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<dto.AuditLogDto | undefined> {
-		return record('AuditLogService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: `byId:${id}`,
-				factory: () => this.repo.getById(id),
-			})
+	async getById(id: number): Promise<AuditLogSchema | undefined> {
+		return this.cache.getOrSetSkipUndefined({
+			key: `byId:${id}`,
+			factory: () => this.repo.getById(id),
 		})
 	}
 
-	async log(data: dto.AuditLogCreateDto, actorId: number): Promise<number | undefined> {
-		return record('AuditLogService.log', async () => {
-			return this.repo.create(data, actorId)
-		})
+	async log(data: AuditLogCreateSchema, actorId: ActorId): Promise<EntityRef> {
+		return this.repo.create(data, actorId)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: dto.AuditLogFilterDto): Promise<WithPaginationResult<dto.AuditLogDto>> {
-		return record('AuditLogService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return result
-		})
+	async handleList(filter: AuditLogFilterSchema): Promise<WithPaginationResult<AuditLogSchema>> {
+		const result = await this.repo.getListPaginated(filter)
+		return result
 	}
 
-	async handleDetail(id: number): Promise<dto.AuditLogDto> {
-		return record('AuditLogService.handleDetail', async () => {
-			const result = await this.repo.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
-		})
+	async handleDetail(id: number): Promise<AuditLogSchema> {
+		const result = await this.repo.getById(id)
+		if (!result) throw err.notFound(id)
+		return result
 	}
 
-	async handleCreate(data: dto.AuditLogCreateDto, actorId: number): Promise<RecordId> {
-		return record('AuditLogService.handleCreate', async () => {
-			const result = await this.repo.create(data, actorId)
-			if (!result) throw err.createFailed()
+	async handleCreate(data: AuditLogCreateSchema, actorId: ActorId): Promise<EntityRef> {
+		const result = await this.repo.create(data, actorId)
 
-			await this.cache.deleteMany({ keys: ['list', 'count'] })
+		await this.cache.deleteMany({ keys: ['list', 'count'] })
 
-			return { id: result }
-		})
+		return result
 	}
 }
