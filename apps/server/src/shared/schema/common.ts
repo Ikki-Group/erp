@@ -44,19 +44,16 @@ const SyncMeta = z.object({
 	syncAt: zp.date.nullable(),
 })
 
-/** Timestamp + actor — untuk entity ringan tanpa soft delete */
 const AuditBasic = z.object({
 	...Timestamps.shape,
 	...Actors.shape,
 })
 
-/** AuditBasic + soft delete — paling umum dipakai */
 const AuditFull = z.object({
 	...AuditBasic.shape,
 	...SoftDelete.shape,
 })
 
-/** AuditFull + syncAt — untuk entity yang disync dari external system */
 const AuditSync = z.object({
 	...AuditFull.shape,
 	...SyncMeta.shape,
@@ -106,6 +103,4 @@ export const zc = {
 	UserSnippet,
 	PaginationMeta,
 	withAuditResolved,
-	zEmail: email,
-	zPassword: password,
 } as const
