@@ -1,13 +1,14 @@
 import { createCache } from '@/core/cache'
 import { logger } from '@/core/logger'
 
+import { db } from '@/db'
+
 import { env } from '@/config/env'
 
 import { createModules } from '@/modules/_registry'
 import { createRoutes } from '@/modules/_routes'
 
-import { db } from './db'
-import { createApp } from '@/app'
+import { createApp } from './app'
 
 const cacheClient = createCache()
 const modules = createModules(db, cacheClient)
