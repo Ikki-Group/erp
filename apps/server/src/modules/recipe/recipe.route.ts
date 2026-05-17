@@ -1,7 +1,5 @@
 import {
-	z,
 	zc,
-	zq,
 	createSuccessResponseSchema,
 	createPaginatedResponseSchema,
 } from '@ikki/api-contract/validation'
@@ -10,7 +8,13 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { RecipeCreateDto, RecipeFilterDto, RecipeSelectDto, RecipeUpdateDto } from './recipe.dto'
+import {
+	RecipeCreateSchema,
+	RecipeFilterSchema,
+	RecipeSelectSchema,
+	RecipeUpdateSchema,
+	RecipeCostSchema,
+} from './recipe.schema'
 import type { RecipeService } from './recipe.service'
 
 export function initRecipeRoute(service: RecipeService) {
@@ -23,8 +27,8 @@ export function initRecipeRoute(service: RecipeService) {
 				return res.paginated(result)
 			},
 			{
-				query: z.object({ ...RecipeFilterDto.shape, ...zq.pagination.shape }),
-				response: createPaginatedResponseSchema(RecipeSelectDto),
+				query: RecipeFilterSchema,
+				response: createPaginatedResponseSchema(RecipeSelectSchema),
 				auth: true,
 			},
 		)
@@ -34,7 +38,7 @@ export function initRecipeRoute(service: RecipeService) {
 				const recipe = await service.handleDetail(query.id)
 				return res.ok(recipe)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeSelectDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeSelectSchema), auth: true },
 		)
 		.post(
 			'/create',
@@ -42,7 +46,7 @@ export function initRecipeRoute(service: RecipeService) {
 				const { id } = await service.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
-			{ body: RecipeCreateDto, response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{ body: RecipeCreateSchema, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.put(
 			'/update',
@@ -51,7 +55,7 @@ export function initRecipeRoute(service: RecipeService) {
 				return res.ok({ id })
 			},
 			{
-				body: RecipeUpdateDto,
+				body: RecipeUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -78,6 +82,6 @@ export function initRecipeRoute(service: RecipeService) {
 				const result = await service.handleCalculateCost(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(z.any()), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeCostSchema), auth: true },
 		)
 }
