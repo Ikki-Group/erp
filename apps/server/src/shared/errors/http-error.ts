@@ -2,52 +2,56 @@ import type { PrimitiveId } from '@/types/utils'
 
 import { AppError, type AppErrorOptions } from './app-error'
 
+interface HttpErrorOptions extends AppErrorOptions {
+	code?: string
+}
+
 export abstract class HttpError extends AppError {
 	protected constructor(
+		/** HTTP status code */
 		public readonly statusCode: number,
 		message: string,
-		options?: AppErrorOptions,
+		options: HttpErrorOptions,
 	) {
-		super(message, options)
+		super(message, options.code ?? 'HTTP_ERROR', {
+			cause: options.cause,
+			context: options.context,
+		})
 	}
 }
 
 export class BadRequestError extends HttpError {
-	constructor(message = 'Bad request', options?: AppErrorOptions) {
+	constructor(message = 'Bad request', options?: HttpErrorOptions) {
 		super(400, message, {
+			...options,
 			code: options?.code ?? 'BAD_REQUEST',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 }
 
 export class UnauthorizedError extends HttpError {
-	constructor(message = 'Unauthorized', options?: AppErrorOptions) {
+	constructor(message = 'Unauthorized', options?: HttpErrorOptions) {
 		super(401, message, {
+			...options,
 			code: options?.code ?? 'UNAUTHORIZED',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 }
 
 export class ForbiddenError extends HttpError {
-	constructor(message = 'Forbidden', options?: AppErrorOptions) {
+	constructor(message = 'Forbidden', options?: HttpErrorOptions) {
 		super(403, message, {
+			...options,
 			code: options?.code ?? 'FORBIDDEN',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 }
 
 export class NotFoundError extends HttpError {
-	constructor(message = 'Resource not found', options?: AppErrorOptions) {
+	constructor(message = 'Resource not found', options?: HttpErrorOptions) {
 		super(404, message, {
+			...options,
 			code: options?.code ?? 'NOT_FOUND',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 
@@ -56,27 +60,25 @@ export class NotFoundError extends HttpError {
 		const code = `${entity.toUpperCase().replace(/\s+/g, '_')}_NOT_FOUND`
 		return new NotFoundError(`Resource with ID ${id} not found`, {
 			code,
-			meta: { entity, id },
+			context: { entity, id },
 		})
 	}
 }
 
 export class ConflictError extends HttpError {
-	constructor(message = 'Conflict', options?: AppErrorOptions) {
+	constructor(message = 'Conflict', options?: HttpErrorOptions) {
 		super(409, message, {
+			...options,
 			code: options?.code ?? 'CONFLICT',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 }
 
 export class InternalServerError extends HttpError {
-	constructor(message = 'Internal server error', options?: AppErrorOptions) {
+	constructor(message = 'Internal server error', options?: HttpErrorOptions) {
 		super(500, message, {
+			...options,
 			code: options?.code ?? 'INTERNAL_SERVER_ERROR',
-			meta: options?.meta,
-			cause: options?.cause,
 		})
 	}
 }

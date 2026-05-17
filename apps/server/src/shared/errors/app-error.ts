@@ -1,23 +1,20 @@
-export type ErrorMeta = Record<string, unknown>
+export type ErrorContext = Record<string, unknown>
 
 export interface AppErrorOptions {
-	code?: string
-	meta?: ErrorMeta | undefined
+	context?: ErrorContext | undefined
 	cause?: unknown
 }
 
 export abstract class AppError extends Error {
 	public readonly code: string
-	public readonly meta: ErrorMeta | undefined
+	public readonly context: ErrorContext | undefined
 
-	protected constructor(message: string, options?: AppErrorOptions) {
-		super(message, {
-			cause: options?.cause,
-		})
+	protected constructor(message: string, code: string, options?: AppErrorOptions) {
+		super(message, { cause: options?.cause })
 
 		this.name = new.target.name
-		this.code = options?.code ?? 'APP_ERROR'
-		this.meta = options?.meta
+		this.code = code
+		this.context = options?.context
 
 		Error.captureStackTrace?.(this, new.target)
 	}
@@ -26,7 +23,7 @@ export abstract class AppError extends Error {
 		return {
 			code: this.code,
 			message: this.message,
-			meta: this.meta,
+			context: this.context,
 		}
 	}
 }
