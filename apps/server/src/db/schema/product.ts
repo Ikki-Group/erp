@@ -14,7 +14,7 @@ import {
 import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location.ts'
 import { salesTypesTable } from './sales-type.ts'
-import { taxesTable } from './tax.ts'
+// import { taxesTable } from './tax.ts'
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived'])
 
@@ -115,7 +115,7 @@ export const productsTable = pgTable(
 		hasVariants: boolean('has_variants').notNull().default(false),
 		hasSalesTypePricing: boolean('has_sales_type_pricing').notNull().default(false),
 		basePrice: numeric('base_price', { precision: 18, scale: 6 }).notNull().default('0'),
-		taxId: integer('tax_id').references(() => taxesTable.id, { onDelete: 'set null' }),
+		// taxId: integer('tax_id').references(() => taxesTable.id, { onDelete: 'set null' }),
 		...auditBasicColumns,
 	},
 	(t) => [
@@ -126,7 +126,7 @@ export const productsTable = pgTable(
 		index('products_location_status_idx').on(t.locationId, t.status),
 
 		index('products_category_idx').on(t.categoryId),
-		index('products_tax_idx').on(t.taxId),
+		// index('products_tax_idx').on(t.taxId),
 
 		// basePrice must be non-negative in all modes
 		check('products_base_price_chk', sql`base_price >= 0`),

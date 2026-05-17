@@ -1,239 +1,239 @@
-import {
-	index,
-	integer,
-	jsonb,
-	numeric,
-	pgTable,
-	text,
-	timestamp,
-	uniqueIndex,
-} from 'drizzle-orm/pg-core'
+// import {
+// 	index,
+// 	integer,
+// 	jsonb,
+// 	numeric,
+// 	pgTable,
+// 	text,
+// 	timestamp,
+// 	uniqueIndex,
+// } from 'drizzle-orm/pg-core'
 
-import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
-import { auditBasicColumns, pk } from './_helpers.ts'
-import { customersTable } from './customer'
-import { usersTable } from './iam'
-import { locationsTable } from './location'
-import { productsTable, productVariantsTable } from './product'
-import { salesTypesTable } from './sales-type'
+// import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
+// import { auditBasicColumns, pk } from './_helpers.ts'
+// import { customersTable } from './customer'
+// import { usersTable } from './iam'
+// import { locationsTable } from './location'
+// import { productsTable, productVariantsTable } from './product'
+// import { salesTypesTable } from './sales-type'
 
-// ─── Sales Orders ─────────────────────────────────────────────────────────────
+// // ─── Sales Orders ─────────────────────────────────────────────────────────────
 
-export const salesOrdersTable = pgTable(
-	'sales_orders',
-	{
-		...pk,
-		locationId: integer()
-			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
-		// CRM Integration
-		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
-		salesTypeId: integer()
-			.notNull()
-			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
-		source: salesOrderSourceEnum().notNull().default('web'),
-		status: salesOrderStatusEnum().notNull().default('open'),
+// export const salesOrdersTable = pgTable(
+// 	'sales_orders',
+// 	{
+// 		...pk,
+// 		locationId: integer()
+// 			.notNull()
+// 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+// 		// CRM Integration
+// 		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
+// 		salesTypeId: integer()
+// 			.notNull()
+// 			.references(() => salesTypesTable.id, { onDelete: 'restrict' }),
+// 		source: salesOrderSourceEnum().notNull().default('web'),
+// 		status: salesOrderStatusEnum().notNull().default('open'),
 
-		transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+// 		transactionDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
 
-		// Financial numbers
-		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		gratuityAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		refundAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		// Financial numbers
+// 		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		gratuityAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		refundAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
-		metadata: jsonb(),
+// 		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
+// 		metadata: jsonb(),
 
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_orders_location_idx').on(t.locationId),
-		index('sales_orders_source_idx').on(t.source),
-		index('sales_orders_status_idx').on(t.status),
-		index('sales_orders_transaction_date_idx').on(t.transactionDate),
-		index('sales_orders_customer_idx').on(t.customerId),
-	],
-)
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		index('sales_orders_location_idx').on(t.locationId),
+// 		index('sales_orders_source_idx').on(t.source),
+// 		index('sales_orders_status_idx').on(t.status),
+// 		index('sales_orders_transaction_date_idx').on(t.transactionDate),
+// 		index('sales_orders_customer_idx').on(t.customerId),
+// 	],
+// )
 
-// ─── Sales Order Batches ──────────────────────────────────────────────────────
+// // ─── Sales Order Batches ──────────────────────────────────────────────────────
 
-export const salesOrderBatchesTable = pgTable(
-	'sales_order_batches',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		batchNumber: numeric({ precision: 5, scale: 0 }).notNull(),
-		// E.g., pending, prepared, delivered
-		status: text().notNull().default('pending'),
-		...auditBasicColumns,
-	},
-	(t) => [index('sales_order_batches_order_idx').on(t.orderId)],
-)
+// export const salesOrderBatchesTable = pgTable(
+// 	'sales_order_batches',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+// 		batchNumber: numeric({ precision: 5, scale: 0 }).notNull(),
+// 		// E.g., pending, prepared, delivered
+// 		status: text().notNull().default('pending'),
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [index('sales_order_batches_order_idx').on(t.orderId)],
+// )
 
-// ─── Sales Order Items ────────────────────────────────────────────────────────
+// // ─── Sales Order Items ────────────────────────────────────────────────────────
 
-export const salesOrderItemsTable = pgTable(
-	'sales_order_items',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		batchId: integer().references(() => salesOrderBatchesTable.id, { onDelete: 'set null' }),
+// export const salesOrderItemsTable = pgTable(
+// 	'sales_order_items',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+// 		batchId: integer().references(() => salesOrderBatchesTable.id, { onDelete: 'set null' }),
 
-		// Custom Items: products/variants optional
-		productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
-		variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
+// 		// Custom Items: products/variants optional
+// 		productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
+// 		variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
 
-		// Immutable History: Item name must always be stored
-		itemName: text().notNull(),
+// 		// Immutable History: Item name must always be stored
+// 		itemName: text().notNull(),
 
-		// Qty keeps scale 4 for fractional cases
-		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
+// 		// Qty keeps scale 4 for fractional cases
+// 		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
 
-		// Immutable Financial History (scale 2)
-		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		// Immutable Financial History (scale 2)
+// 		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_order_items_order_idx').on(t.orderId),
-		index('sales_order_items_product_idx').on(t.productId),
-		index('sales_order_items_variant_idx').on(t.variantId),
-		index('sales_order_items_batch_idx').on(t.batchId),
-	],
-)
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		index('sales_order_items_order_idx').on(t.orderId),
+// 		index('sales_order_items_product_idx').on(t.productId),
+// 		index('sales_order_items_variant_idx').on(t.variantId),
+// 		index('sales_order_items_batch_idx').on(t.batchId),
+// 	],
+// )
 
-// ─── Sales Invoices ───────────────────────────────────────────────────────────
+// // ─── Sales Invoices ───────────────────────────────────────────────────────────
 
-export const salesInvoicesTable = pgTable(
-	'sales_invoices',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
-		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
-		locationId: integer()
-			.notNull()
-			.references(() => locationsTable.id, { onDelete: 'restrict' }),
+// export const salesInvoicesTable = pgTable(
+// 	'sales_invoices',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'restrict' }),
+// 		customerId: integer().references(() => customersTable.id, { onDelete: 'set null' }),
+// 		locationId: integer()
+// 			.notNull()
+// 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 
-		status: invoiceStatusEnum().notNull().default('draft'),
-		invoiceDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
-		dueDate: timestamp({ mode: 'date', withTimezone: true }),
+// 		status: invoiceStatusEnum().notNull().default('draft'),
+// 		invoiceDate: timestamp({ mode: 'date', withTimezone: true }).notNull().defaultNow(),
+// 		dueDate: timestamp({ mode: 'date', withTimezone: true }),
 
-		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		totalAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		notes: text(),
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_invoices_order_idx').on(t.orderId),
-		index('sales_invoices_customer_idx').on(t.customerId),
-		index('sales_invoices_status_idx').on(t.status),
-	],
-)
+// 		notes: text(),
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		index('sales_invoices_order_idx').on(t.orderId),
+// 		index('sales_invoices_customer_idx').on(t.customerId),
+// 		index('sales_invoices_status_idx').on(t.status),
+// 	],
+// )
 
-// ─── Sales Invoice Items ──────────────────────────────────────────────────────
+// // ─── Sales Invoice Items ──────────────────────────────────────────────────────
 
-export const salesInvoiceItemsTable = pgTable(
-	'sales_invoice_items',
-	{
-		...pk,
-		invoiceId: integer()
-			.notNull()
-			.references(() => salesInvoicesTable.id, { onDelete: 'cascade' }),
-		salesOrderItemId: integer().references(() => salesOrderItemsTable.id, {
-			onDelete: 'set null',
-		}),
-		productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
-		variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
+// export const salesInvoiceItemsTable = pgTable(
+// 	'sales_invoice_items',
+// 	{
+// 		...pk,
+// 		invoiceId: integer()
+// 			.notNull()
+// 			.references(() => salesInvoicesTable.id, { onDelete: 'cascade' }),
+// 		salesOrderItemId: integer().references(() => salesOrderItemsTable.id, {
+// 			onDelete: 'set null',
+// 		}),
+// 		productId: integer().references(() => productsTable.id, { onDelete: 'set null' }),
+// 		variantId: integer().references(() => productVariantsTable.id, { onDelete: 'set null' }),
 
-		itemName: text().notNull(),
-		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
-		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		itemName: text().notNull(),
+// 		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+// 		unitPrice: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
+// 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
-		index('sales_invoice_items_so_item_idx').on(t.salesOrderItemId),
-	],
-)
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
+// 		index('sales_invoice_items_so_item_idx').on(t.salesOrderItemId),
+// 	],
+// )
 
-// ─── Sales Voids ──────────────────────────────────────────────────────────────
+// // ─── Sales Voids ──────────────────────────────────────────────────────────────
 
-export const salesVoidsTable = pgTable(
-	'sales_voids',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		// If itemId is null, it means the whole order is voided
-		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
-		reason: text(),
-		voidedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
-		metadata: jsonb(),
-		...auditBasicColumns,
-	},
-	(t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
-)
+// export const salesVoidsTable = pgTable(
+// 	'sales_voids',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+// 		// If itemId is null, it means the whole order is voided
+// 		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
+// 		reason: text(),
+// 		voidedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
+// 		metadata: jsonb(),
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
+// )
 
-// ─── Sales Refunds ────────────────────────────────────────────────────────────
+// // ─── Sales Refunds ────────────────────────────────────────────────────────────
 
-export const salesRefundsTable = pgTable(
-	'sales_refunds',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		// If itemId is null, it's an order-level refund
-		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
-		amount: numeric({ precision: 18, scale: 2 }).notNull(),
-		reason: text(),
-		refundedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
-		refundedAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
-		metadata: jsonb(),
-		...auditBasicColumns,
-	},
-	(t) => [
-		index('sales_refunds_order_idx').on(t.orderId),
-		index('sales_refunds_item_idx').on(t.itemId),
-		index('sales_refunds_date_idx').on(t.refundedAt),
-	],
-)
+// export const salesRefundsTable = pgTable(
+// 	'sales_refunds',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+// 		// If itemId is null, it's an order-level refund
+// 		itemId: integer().references(() => salesOrderItemsTable.id, { onDelete: 'cascade' }),
+// 		amount: numeric({ precision: 18, scale: 2 }).notNull(),
+// 		reason: text(),
+// 		refundedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
+// 		refundedAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
+// 		metadata: jsonb(),
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		index('sales_refunds_order_idx').on(t.orderId),
+// 		index('sales_refunds_item_idx').on(t.itemId),
+// 		index('sales_refunds_date_idx').on(t.refundedAt),
+// 	],
+// )
 
-// ─── Sales External Refs ──────────────────────────────────────────────────────
+// // ─── Sales External Refs ──────────────────────────────────────────────────────
 
-export const salesExternalRefsTable = pgTable(
-	'sales_external_refs',
-	{
-		...pk,
-		orderId: integer()
-			.notNull()
-			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
-		// 'Grab', 'Shopee', 'Moka', etc.
-		externalSource: text().notNull(),
-		externalOrderId: text().notNull(),
-		rawPayload: jsonb(),
-		...auditBasicColumns,
-	},
-	(t) => [
-		uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),
-		index('sales_external_refs_order_idx').on(t.orderId),
-	],
-)
+// export const salesExternalRefsTable = pgTable(
+// 	'sales_external_refs',
+// 	{
+// 		...pk,
+// 		orderId: integer()
+// 			.notNull()
+// 			.references(() => salesOrdersTable.id, { onDelete: 'cascade' }),
+// 		// 'Grab', 'Shopee', 'Moka', etc.
+// 		externalSource: text().notNull(),
+// 		externalOrderId: text().notNull(),
+// 		rawPayload: jsonb(),
+// 		...auditBasicColumns,
+// 	},
+// 	(t) => [
+// 		uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),
+// 		index('sales_external_refs_order_idx').on(t.orderId),
+// 	],
+// )

@@ -1,5 +1,5 @@
-export { sessionsTable } from './session'
 export { locationTypeEnum, locationsTable } from './location'
+export { sessionsTable } from './session'
 export { uomsTable } from './uom'
 export { salesTypesTable } from './sales-type'
 
@@ -68,21 +68,7 @@ export { recipesTable, recipeItemsTable } from './recipe'
 // 	transferStatusEnum,
 // } from './inventory_transfer'
 // export { locationsTable } from './location'
-// export {
-// 	materialCategoriesTable,
-// 	materialConversionsTable,
-// 	materialLocationsTable,
-// 	materialsTable,
-// } from './material'
-// export {
-// 	productCategoriesTable,
-// 	productPricesTable,
-// 	productsTable,
-// 	productVariantsTable,
-// 	variantPricesTable,
-// } from './product'
 // export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
-// export { recipeItemsTable, recipesTable } from './recipe'
 // export {
 // 	salesExternalRefsTable,
 // 	salesOrderBatchesTable,
@@ -128,8 +114,6 @@ export { recipesTable, recipeItemsTable } from './recipe'
 // 	purchaseInvoiceItemsTable,
 // } from './purchasing'
 // export { workOrdersTable } from './production'
-// export { salesTypesTable } from './sales-type'
-// export { uomsTable } from './uom'
 
 // // ─── Re-export Relations ──────────────────────────────────────────────────────
 
