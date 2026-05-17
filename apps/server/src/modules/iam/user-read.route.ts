@@ -1,11 +1,11 @@
 import { Elysia } from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { createPaginatedResponseSchema } from '@/shared/validation'
+import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/shared/validation'
 
+import { UserReadDetailSchema } from '@/modules/iam/user-read.schema'
 import type { UserReadService } from '@/modules/iam/user-read.service'
 import { UserFilterSchema } from '@/modules/iam/user.schema'
 
@@ -14,12 +14,12 @@ export function createUserReadRoute(svc: UserReadService) {
 		.use(authPluginMacro)
 		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
 			query: UserFilterSchema,
-			response: createPaginatedResponseSchema(z.any()),
+			response: createPaginatedResponseSchema(UserReadDetailSchema),
 			auth: true,
 		})
-	// .get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
-	// 	query: zq.recordId,
-	// 	response: createSuccessResponseSchema(z.any()),
-	// 	auth: true,
-	// })
+		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
+			query: zq.recordId,
+			response: createSuccessResponseSchema(UserReadDetailSchema),
+			auth: true,
+		})
 }

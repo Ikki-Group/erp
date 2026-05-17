@@ -64,11 +64,15 @@ const DEFAULT_KEYS = {
 } satisfies CacheKeys
 
 export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
+	public readonly cache: CacheProvider
+
 	constructor(
-		public readonly client: CacheClient,
+		readonly client: CacheClient,
 		public readonly ns: ConfigNamespace,
 		public readonly keys: T,
-	) {}
+	) {
+		this.cache = client.namespace(ns)
+	}
 
 	static readonly DEFAULT_KEYS = DEFAULT_KEYS
 
@@ -83,7 +87,7 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	async getOrSet<T>({ key, ...options }: GetOrSetOptionsWithKey<T>): Promise<T> {
 		return record('CacheService.getOrSet', (s) => {
 			s.setAttribute('cache.namespace', this.ns)
-			return this.client.getOrSet({
+			return this.cache.getOrSet({
 				key: this.#buildKey(key),
 				...options,
 			})
@@ -96,7 +100,7 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	}: GetOrSetOptionsWithKey<T>): Promise<T | undefined> {
 		return record('CacheService.getOrSetWithSkip', (s) => {
 			s.setAttribute('cache.namespace', this.ns)
-			return this.client.getOrSet({
+			return this.cache.getOrSet({
 				key: this.#buildKey(key),
 				...options,
 				factory: async (ctx) => {
@@ -122,7 +126,7 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 				return acc
 			}, [])
 			if (filteredKeys.length === 0) return false
-			return this.client.deleteMany({ keys: filteredKeys, ...options })
+			return this.cache.deleteMany({ keys: filteredKeys, ...options })
 		})
 	}
 

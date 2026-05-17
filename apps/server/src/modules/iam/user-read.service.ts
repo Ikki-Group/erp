@@ -2,6 +2,8 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { WithPaginationResult } from '@/core/database'
 
+import { NotFoundError } from '@/shared/errors/http-error'
+
 import type { LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from './assignment.service'
@@ -79,7 +81,14 @@ export class UserReadService {
 		if (rawUsers.length === 0) return []
 		const userIds = Array.from(new Set(rawUsers.map((u) => u.id)))
 		const relations = await this.#loadUserRelations(userIds)
+
 		return rawUsers.map((u) => this.#mapUserDetail(u, relations))
+	}
+
+	async getDetailById(id: number): Promise<UserReadDetailSchema> {
+		const user = await this.deps.svc.user.getById(id)
+		if (!user) throw NotFoundError.fromEntity('User', id)
+		return this.#mapUserDetail(user, await this.#loadUserRelations([user.id]))
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
@@ -89,6 +98,12 @@ export class UserReadService {
 			const { data, meta } = await this.deps.svc.user.getListPaginated(filter)
 			const users = await this.#enrichUsers(data)
 			return { meta, data: users }
+		})
+	}
+
+	async handleDetail(id: number): Promise<UserReadDetailSchema> {
+		return record('UserReadService.handleDetail', async () => {
+			return this.getDetailById(id)
 		})
 	}
 }
