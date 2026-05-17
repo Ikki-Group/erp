@@ -21,6 +21,8 @@ export {
 	productVariantPricesTable,
 } from './product'
 
+export { recipesTable, recipeItemsTable } from './recipe'
+
 // // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
 // export {
