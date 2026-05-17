@@ -1,5 +1,7 @@
 export { sessionsTable } from './session'
 export { locationTypeEnum, locationsTable } from './location'
+export { uomsTable } from './uom'
+
 export { rolesTable, usersTable, userAssignmentsTable } from './iam'
 export {
 	materialTypeEnum,
