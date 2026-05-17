@@ -1,8 +1,7 @@
 import { index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
-import { paymentMethodEnum, paymentTypeEnum } from './_helpers'
+import { paymentMethodEnum, paymentTypeEnum } from './_enums'
+import { auditBasicColumns, pk } from './_helpers'
 import { accountsTable } from './finance'
 import { purchaseInvoicesTable } from './purchasing'
 import { salesInvoicesTable } from './sales'
@@ -33,7 +32,7 @@ export const paymentsTable = pgTable(
 		amount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('payments_date_idx').on(t.date),
@@ -66,7 +65,7 @@ export const paymentInvoicesTable = pgTable(
 		/** Amount allocated to this specific invoice */
 		amount: numeric({ precision: 18, scale: 2 }).notNull(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('payment_invoices_payment_idx').on(t.paymentId),

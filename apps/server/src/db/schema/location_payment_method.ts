@@ -1,7 +1,6 @@
 import { index, integer, pgTable, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { paymentMethodsTable } from './payment_methods'
 import { paymentProvidersTable } from './payment_provider'
@@ -61,7 +60,7 @@ export const locationPaymentMethodsTable = pgTable(
 		/** When this payment method was enabled for this location */
 		enabledAt: timestamp('enabled_at'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('location_payment_methods_location_id_idx').on(t.locationId),

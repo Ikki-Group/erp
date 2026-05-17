@@ -1,8 +1,7 @@
 import { boolean, index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from '@/core/database/schema'
-
 import { productStatusEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { salesTypesTable } from './sales-type'
 import { taxesTable } from './tax'
@@ -123,7 +122,7 @@ export const variantPricesTable = pgTable(
 // 		externalId: text().notNull(),
 // 		externalData: jsonb(),
 // 		lastSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
-// 		...auditColumns,
+// 		...auditBasicColumns,
 // 	},
 // 	(t) => [
 // 		uniqueIndex('product_ext_map_provider_ext_id_idx').on(t.provider, t.externalId),
@@ -148,7 +147,7 @@ export const variantPricesTable = pgTable(
 // 		externalId: text().notNull(),
 // 		externalData: jsonb(),
 // 		lastSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
-// 		...auditColumns,
+// 		...auditBasicColumns,
 // 	},
 // 	(t) => [
 // 		uniqueIndex('category_ext_map_provider_ext_id_idx').on(t.provider, t.externalId),

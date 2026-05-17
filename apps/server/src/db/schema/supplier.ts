@@ -1,7 +1,7 @@
 import { isNull } from 'drizzle-orm'
 import { pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from './_helpers.ts'
 
 export const suppliersTable = pgTable(
 	'suppliers',
@@ -13,7 +13,7 @@ export const suppliersTable = pgTable(
 		phone: text(),
 		address: text(),
 		taxId: text('tax_id'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('suppliers_code_idx').on(t.code).where(isNull(t.deletedAt)),

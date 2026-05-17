@@ -1,8 +1,7 @@
 import { isNull } from 'drizzle-orm'
 import { integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { accountsTable } from './finance'
 
 /**
@@ -21,7 +20,7 @@ export const taxesTable = pgTable(
 		/** Accounting mapping: Where to record the tax liability/asset */
 		accountId: integer('account_id').references(() => accountsTable.id, { onDelete: 'restrict' }),
 		description: text('description'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('taxes_code_idx').on(t.code).where(isNull(t.deletedAt))],
 )

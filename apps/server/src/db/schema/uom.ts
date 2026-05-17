@@ -1,6 +1,6 @@
 import { pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from './_helpers.ts'
 
 export const uomsTable = pgTable(
 	'uoms',

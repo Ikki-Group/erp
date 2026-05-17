@@ -1,8 +1,7 @@
 import { integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import { workOrderStatusEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { recipesTable } from './recipe'
 
@@ -30,7 +29,7 @@ export const workOrdersTable = pgTable('work_orders', {
 	startedAt: timestamp(),
 	completedAt: timestamp(),
 
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export type WorkOrder = typeof workOrdersTable.$inferSelect

@@ -1,8 +1,7 @@
 import { index, integer, numeric, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from '@/core/database/schema'
-
 import { materialTypeEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { uomsTable } from './uom'
 

@@ -1,6 +1,6 @@
 import { pgTable, text, numeric, jsonb } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from './_helpers.ts'
 
 /**
  * Company Settings Table
@@ -33,5 +33,5 @@ export const companySettingsTable = pgTable('company_settings', {
 	currencySymbol: text('currency_symbol').default('Rp').notNull(),
 	/** Additional settings stored as JSON */
 	settings: jsonb('settings'),
-	...auditColumns,
+	...auditBasicColumns,
 })

@@ -9,9 +9,8 @@ import {
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import { invoiceStatusEnum, salesOrderSourceEnum, salesOrderStatusEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { customersTable } from './customer'
 import { usersTable } from './iam'
 import { locationsTable } from './location'
@@ -47,7 +46,7 @@ export const salesOrdersTable = pgTable(
 		// Moka / third-party sync metadata (split_payment_details, payment_type, etc.)
 		metadata: jsonb(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('sales_orders_location_idx').on(t.locationId),
@@ -70,7 +69,7 @@ export const salesOrderBatchesTable = pgTable(
 		batchNumber: numeric({ precision: 5, scale: 0 }).notNull(),
 		// E.g., pending, prepared, delivered
 		status: text().notNull().default('pending'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [index('sales_order_batches_order_idx').on(t.orderId)],
 )
@@ -102,7 +101,7 @@ export const salesOrderItemsTable = pgTable(
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('sales_order_items_order_idx').on(t.orderId),
@@ -135,7 +134,7 @@ export const salesInvoicesTable = pgTable(
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('sales_invoices_order_idx').on(t.orderId),
@@ -166,7 +165,7 @@ export const salesInvoiceItemsTable = pgTable(
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('sales_invoice_items_invoice_idx').on(t.invoiceId),
@@ -188,7 +187,7 @@ export const salesVoidsTable = pgTable(
 		reason: text(),
 		voidedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
 		metadata: jsonb(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [index('sales_voids_order_idx').on(t.orderId), index('sales_voids_item_idx').on(t.itemId)],
 )
@@ -209,7 +208,7 @@ export const salesRefundsTable = pgTable(
 		refundedBy: integer().references(() => usersTable.id, { onDelete: 'set null' }),
 		refundedAt: timestamp({ mode: 'date', withTimezone: true }).notNull(),
 		metadata: jsonb(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('sales_refunds_order_idx').on(t.orderId),
@@ -231,7 +230,7 @@ export const salesExternalRefsTable = pgTable(
 		externalSource: text().notNull(),
 		externalOrderId: text().notNull(),
 		rawPayload: jsonb(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('sales_external_refs_source_ext_id_idx').on(t.externalSource, t.externalOrderId),

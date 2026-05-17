@@ -28,7 +28,7 @@ export {
 	purchaseOrderStatusEnum,
 	goodsReceiptStatusEnum,
 	paymentMethodCategoryEnum,
-} from './_helpers'
+} from './_enums'
 export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
 export {
 	stockSummariesTable,

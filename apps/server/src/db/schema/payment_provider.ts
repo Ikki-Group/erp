@@ -1,6 +1,6 @@
 import { index, pgTable, text, boolean } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from './_helpers.ts'
 
 /**
  * Payment Providers Table
@@ -31,7 +31,7 @@ export const paymentProvidersTable = pgTable(
 		/** Whether this provider is a system default */
 		isSystem: boolean('is_system').notNull().default(false),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('payment_providers_code_idx').on(t.code),

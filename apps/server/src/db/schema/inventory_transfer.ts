@@ -1,7 +1,6 @@
 import { index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 
@@ -43,7 +42,7 @@ export const stockTransfersTable = pgTable(
 		notes: text(),
 		rejectionReason: text('rejection_reason'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_transfers_source_idx').on(t.sourceLocationId),
@@ -75,7 +74,7 @@ export const stockTransferItemsTable = pgTable(
 		totalCost: numeric({ precision: 18, scale: 2 }).notNull(),
 
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_transfer_items_transfer_idx').on(t.transferId),

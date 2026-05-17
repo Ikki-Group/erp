@@ -9,14 +9,13 @@ import {
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import {
 	integrationProviderEnum,
 	mokaScrapStatusEnum,
 	mokaScrapTypeEnum,
 	mokaSyncTriggerModeEnum,
 } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
@@ -41,7 +40,7 @@ export const mokaConfigurationsTable = pgTable(
 		lastSalesSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
 		lastProductSyncedAt: timestamp({ mode: 'date', withTimezone: true }),
 		lastCategorySyncedAt: timestamp({ mode: 'date', withTimezone: true }),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('moka_config_provider_location_idx').on(t.provider, t.locationId),
@@ -70,7 +69,7 @@ export const mokaScrapHistoriesTable = pgTable(
 		rawPath: text(),
 		errorMessage: text(),
 		metadata: jsonb(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('moka_scrap_history_config_idx').on(t.mokaConfigurationId),
@@ -94,7 +93,7 @@ export const mokaSyncCursorsTable = pgTable(
 		cursorDate: timestamp({ mode: 'date', withTimezone: true }),
 		cursorToken: text(),
 		lastHistoryId: integer().references(() => mokaScrapHistoriesTable.id, { onDelete: 'set null' }),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('moka_sync_cursor_config_type_idx').on(t.mokaConfigurationId, t.type),

@@ -1,62 +1,20 @@
 import { sql } from 'drizzle-orm'
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from '@/core/database/schema'
-
-import { locationsTable } from './location'
-
-/**
- * Users Table (Layer 1)
- *
- * Core Identity entity. Includes primary authentication attributes.
- * Linked to a set of locations and roles via UserAssignments.
- */
-export const usersTable = pgTable(
-	'users',
-	{
-		...pk,
-		email: text('email').notNull(),
-		username: text('username').notNull(),
-		fullname: text('fullname').notNull(),
-		passwordHash: text('password_hash').notNull(),
-		/** Optional for fast POS terminal logins */
-		pinCode: text('pin_code'),
-		isRoot: boolean('is_root').notNull().default(false),
-		isSystem: boolean('is_system').notNull().default(false),
-		isActive: boolean('is_active').notNull().default(true),
-
-		/**
-		 * Default active location untuk session awal login.
-		 *
-		 * Root user   → nullable; null = belum pernah set preferensi.
-		 *               Bisa di-set ke lokasi manapun (akses root implicit ke semua).
-		 *               Diatur manual via setDefaultLocation(), TIDAK auto-sync.
-		 *
-		 * Non-root    → auto-managed oleh UserAssignmentRepo:
-		 *               - Auto-set ke lokasi pertama saat assignment pertama dibuat.
-		 *               - Auto-promote ke assignment tertua jika default-nya dihapus.
-		 *               - Di-clear (null) jika semua assignment dihapus.
-		 *
-		 * onDelete: 'set null' — jika lokasi di-hard-delete, null dulu;
-		 * jangan blokir delete lokasi hanya karena ada user yang default ke sana.
-		 * Caller wajib handle null defaultLocationId saat login.
-		 */
-		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {
-			onDelete: 'set null',
-		}),
-		...auditBasicColumns,
-	},
-	(t) => [
-		uniqueIndex('users_email_idx').on(t.email),
-		uniqueIndex('users_username_idx').on(t.username),
-		index('users_default_location_idx').on(t.defaultLocationId),
-	],
-)
+import { auditBasicColumns, pk } from './_helpers.ts'
+import { locationsTable } from './location.ts'
 
 /**
- * Roles Table (Layer 1)
+ * Roles Table
  *
- * Defines a set of permissions. Roles are assigned to users per location.
+ * Defines a named permission set assignable to users per location.
+ *
+ * `code`      — stable, normalized (slug-like) machine identifier derived from
+ *               `name`. Used in application logic and seeding. Never changes
+ *               after creation.
+ *
+ * `isBuiltIn` — true for roles created by the system seeder. Built-in roles
+ *               are protected from mutation and deletion by the service layer.
  */
 export const rolesTable = pgTable(
 	'roles',
@@ -69,24 +27,113 @@ export const rolesTable = pgTable(
 			.array()
 			.notNull()
 			.default(sql`'{}'::text[]`),
-		isSystem: boolean('is_system').notNull().default(false),
+		isBuiltIn: boolean('is_built_in').notNull().default(false),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('roles_code_idx').on(t.code)],
 )
 
 /**
- * Join table: User ←→ Role ←→ Location  (LBAC).
+ * Users Table
  *
- * Aturan bisnis:
- *   - Root user  : akses implicit ke semua lokasi sebagai superadmin.
- *                  Rows di sini bersifat OPSIONAL — hanya dibuat jika root
- *                  membutuhkan role non-superadmin di lokasi tertentu.
- *   - Non-root   : HANYA bisa akses lokasi yang ada row-nya di sini.
- *   - Satu user  : tepat satu role per lokasi
- *                  (unique constraint userId + locationId).
- *   - isDefault  : DIPINDAH ke usersTable.defaultLocationId — lebih atomic,
- *                  tidak butuh 2-row update, dan cover root user.
+ * Core identity entity. Covers both human operators and built-in service
+ * accounts (seeded by the system).
+ *
+ * `isRoot`     — grants implicit superadmin access to all locations.
+ *                Root users bypass assignment checks entirely.
+ *
+ * `isBuiltIn`  — true for accounts created by the system seeder (e.g. the
+ *                default superadmin). Not operator-created. Protected from
+ *                deletion by the service layer.
+ *
+ * `isActive`   — soft-disable without deletion. Inactive users must be
+ *                rejected at the session/auth layer on every request.
+ *
+ * `defaultLocationId`
+ *   Root users   → optional preference. Null = no preference set.
+ *                  Can be set to any location (implicit access everywhere).
+ *                  Only updated via explicit setDefaultLocation() call.
+ *
+ *   Non-root     → auto-managed by UserAssignmentRepo:
+ *                  - Set to first location on first assignment.
+ *                  - Promoted to oldest remaining assignment when default is removed.
+ *                  - Cleared (null) when all assignments are removed.
+ *                  Can also be set explicitly (validated against assignments).
+ *
+ *   onDelete: 'set null' — location hard-delete must not be blocked by user
+ *   preference. Caller must handle null defaultLocationId at login.
+ *
+ * Constraint: `is_root` and `is_built_in` are not mutually exclusive —
+ * a seeded root account is both. But a root user is never a regular operator,
+ * so no check constraint is needed between those two flags.
+ */
+export const usersTable = pgTable(
+	'users',
+	{
+		...pk,
+		email: text('email').notNull(),
+		username: text('username').notNull(),
+		fullname: text('fullname').notNull(),
+
+		/**
+		 * Null for isBuiltIn service accounts that authenticate via other means
+		 * (e.g. API tokens). Always set for human operator accounts.
+		 */
+		passwordHash: text('password_hash'),
+
+		isRoot: boolean('is_root').notNull().default(false),
+		isBuiltIn: boolean('is_built_in').notNull().default(false),
+		isActive: boolean('is_active').notNull().default(true),
+
+		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {
+			onDelete: 'set null',
+		}),
+
+		lastLoginAt: timestamp('last_login_at', { mode: 'date', withTimezone: true }),
+
+		...auditBasicColumns,
+	},
+	(t) => [
+		uniqueIndex('users_email_idx').on(t.email),
+		uniqueIndex('users_username_idx').on(t.username),
+		index('users_default_location_idx').on(t.defaultLocationId),
+
+		// // Root users are never built-in service accounts (and vice versa).
+		// // A seeded root admin is isRoot=true, isBuiltIn=true — that's valid.
+		// // What's invalid: a non-human service account having root privileges.
+		// check(
+		// 	'users_root_not_service_chk',
+		// 	sql`NOT (is_root AND NOT is_built_in AND password_hash IS NULL)`,
+		// ),
+	],
+)
+
+/**
+ * User Assignments Table  (LBAC join: User ↔ Role ↔ Location)
+ *
+ * Grants a user a specific role at a specific location.
+ *
+ * Business rules:
+ *   - Root users  : assignments are optional. Root has implicit superadmin
+ *                   access to all locations. A row here only exists when a
+ *                   root user needs a non-superadmin role at a specific location.
+ *   - Non-root    : access is strictly limited to locations with a row here.
+ *   - One role per user per location (unique on userId + locationId).
+ *
+ * `effectiveTo`   — optional expiry for time-bounded access (contractors,
+ *                   temporary grants). Null = indefinite. A background job or
+ *                   session-validation layer must enforce this.
+ *
+ * `addedBy`       — audit trail for who created the assignment.
+ *                   onDelete: 'set null' so deleting a user does not block
+ *                   or cascade-destroy assignments they previously created.
+ *
+ * onDelete behaviour:
+ *   userId     → cascade  : user gone, assignments gone.
+ *   roleId     → restrict : cannot delete a role in active use.
+ *   locationId → restrict : cannot delete a location with active assignments.
+ *                           Service layer must clear assignments before retiring
+ *                           a location.
  */
 export const userAssignmentsTable = pgTable(
 	'user_assignments',
@@ -103,44 +150,16 @@ export const userAssignmentsTable = pgTable(
 			.references(() => locationsTable.id, { onDelete: 'restrict' }),
 
 		addedAt: timestamp('added_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
-
-		/**
-		 * Siapa yang menambahkan assignment ini.
-		 * set null (bukan restrict) agar delete user tidak diblokir
-		 * karena dia pernah assign orang lain.
-		 */
-		addedBy: integer('added_by').references(() => usersTable.id, { onDelete: 'set null' }),
+		addedBy: integer('added_by').references(() => usersTable.id, {
+			onDelete: 'set null',
+		}),
 	},
 	(t) => [
 		index('user_assignments_user_idx').on(t.userId),
 		index('user_assignments_role_idx').on(t.roleId),
 		index('user_assignments_location_idx').on(t.locationId),
 
-		// Satu role per lokasi per user — natural key table ini.
+		// One role per location per user — natural key of this table.
 		uniqueIndex('user_assignments_user_location_idx').on(t.userId, t.locationId),
-	],
-)
-
-// ─── Sessions ─────────────────────────────────────────────────────────────────
-
-/**
- * Sessions Table (Layer 1)
- *
- * Active authentication sessions. Linked to a User.
- * Does not use auditColumns as it is transient/high-churn.
- */
-export const sessionsTable = pgTable(
-	'sessions',
-	{
-		...pk,
-		userId: integer('user_id')
-			.notNull()
-			.references(() => usersTable.id, { onDelete: 'cascade' }),
-		createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).notNull().defaultNow(),
-		expiredAt: timestamp('expired_at', { mode: 'date', withTimezone: true }).notNull(),
-	},
-	(t) => [
-		index('sessions_user_idx').on(t.userId),
-		index('sessions_expired_at_idx').on(t.expiredAt),
 	],
 )

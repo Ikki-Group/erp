@@ -2,8 +2,7 @@ import { boolean, integer, pgTable, text } from 'drizzle-orm/pg-core'
 import { unique } from 'drizzle-orm/pg-core'
 import { index } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 
 export const salesTypesTable = pgTable(

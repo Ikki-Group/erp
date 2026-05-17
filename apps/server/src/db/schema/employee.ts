@@ -1,8 +1,6 @@
-import { isNull } from 'drizzle-orm'
 import { integer, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { usersTable } from './iam'
 
 export const employeesTable = pgTable(
@@ -26,7 +24,7 @@ export const employeesTable = pgTable(
 		terminationDate: timestamp('termination_date', { mode: 'date' }),
 		emergencyContact: text('emergency_contact'),
 		userId: integer('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
-		...auditColumns,
+		...auditBasicColumns,
 	},
-	(t) => [uniqueIndex('employees_code_idx').on(t.code).where(isNull(t.deletedAt))],
+	(t) => [uniqueIndex('employees_code_idx').on(t.code)],
 )

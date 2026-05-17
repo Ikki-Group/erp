@@ -1,7 +1,5 @@
 import { integer, numeric, pgTable, text, timestamp, time } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import {
 	attendanceStatusEnum,
 	leaveStatusEnum,
@@ -9,6 +7,7 @@ import {
 	payrollAdjustmentTypeEnum,
 	payrollStatusEnum,
 } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { employeesTable } from './employee'
 import { locationsTable } from './location'
 
@@ -18,7 +17,7 @@ export const shiftsTable = pgTable('shifts', {
 	startTime: time('start_time').notNull(),
 	endTime: time('end_time').notNull(),
 	note: text(),
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export const attendancesTable = pgTable('attendances', {
@@ -38,7 +37,7 @@ export const attendancesTable = pgTable('attendances', {
 	status: attendanceStatusEnum().notNull().default('present'),
 	note: text(),
 
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export const payrollBatchesTable = pgTable('payroll_batches', {
@@ -49,7 +48,7 @@ export const payrollBatchesTable = pgTable('payroll_batches', {
 	status: payrollStatusEnum().notNull().default('draft'),
 	totalAmount: numeric('total_amount').notNull().default('0'),
 	note: text(),
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export const payrollItemsTable = pgTable('payroll_items', {
@@ -67,7 +66,7 @@ export const payrollItemsTable = pgTable('payroll_items', {
 	totalAmount: numeric('total_amount').notNull().default('0'),
 
 	note: text(),
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
@@ -78,7 +77,7 @@ export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
 	type: payrollAdjustmentTypeEnum().notNull(),
 	amount: numeric('amount').notNull().default('0'),
 	reason: text().notNull(),
-	...auditColumns,
+	...auditBasicColumns,
 })
 
 export const leaveRequestsTable = pgTable('leave_requests', {
@@ -92,5 +91,5 @@ export const leaveRequestsTable = pgTable('leave_requests', {
 	dateEnd: timestamp('date_end', { mode: 'date' }).notNull(),
 	reason: text().notNull(),
 	note: text(),
-	...auditColumns,
+	...auditBasicColumns,
 })

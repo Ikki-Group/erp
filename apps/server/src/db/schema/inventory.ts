@@ -10,9 +10,8 @@ import {
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import { stockAdjustmentTypeEnum, transactionTypeEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 
@@ -33,7 +32,7 @@ export const stockBatchesTable = pgTable(
 		expiryDate: timestamp('expiry_date', { mode: 'date' }),
 		productionDate: timestamp('production_date', { mode: 'date' }),
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_batches_material_idx').on(t.materialId),
@@ -62,7 +61,7 @@ export const stockAdjustmentsTable = pgTable(
 			.defaultNow(),
 		reason: text(),
 		referenceNo: text('reference_no'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_adjustments_location_idx').on(t.locationId),
@@ -88,7 +87,7 @@ export const stockAdjustmentItemsTable = pgTable(
 		unitCost: numeric({ precision: 18, scale: 2 }).notNull(),
 
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_adj_items_header_idx').on(t.adjustmentId),
@@ -137,7 +136,7 @@ export const stockTransactionsTable = pgTable(
 		runningQty: numeric({ precision: 18, scale: 4 }).notNull(),
 		runningAvgCost: numeric({ precision: 18, scale: 2 }).notNull(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('stock_txn_material_location_date_idx').on(t.materialId, t.locationId, t.date),
@@ -191,7 +190,7 @@ export const stockSummariesTable = pgTable(
 		closingAvgCost: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		closingValue: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		uniqueIndex('stock_summaries_material_location_date_idx')

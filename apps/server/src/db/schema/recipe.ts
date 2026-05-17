@@ -10,8 +10,7 @@ import {
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { materialsTable } from './material'
 import { productsTable, productVariantsTable } from './product'
 import { uomsTable } from './uom'
@@ -31,7 +30,7 @@ export const recipesTable = pgTable(
 		// Optional preparation instructions for the whole recipe
 		instructions: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		// Ensure a material can have at most one recipe
@@ -83,7 +82,7 @@ export const recipeItemsTable = pgTable(
 		// Allows ordering of components if the recipe has steps
 		sortOrder: numeric({ precision: 5, scale: 0 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		// A material should only appear once per recipe

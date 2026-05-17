@@ -1,6 +1,6 @@
 import { pgEnum, pgTable, text, integer, timestamp, jsonb } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { pk } from './_helpers.ts'
 
 export const auditActionEnum = pgEnum('audit_action', [
 	'CREATE',
@@ -38,5 +38,4 @@ export const auditLogsTable = pgTable('audit_logs', {
 	userAgent: text('user_agent'),
 	/** Timestamp when the action occurred */
 	actionAt: timestamp('action_at').defaultNow().notNull(),
-	...auditColumns,
 })

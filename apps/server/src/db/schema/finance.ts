@@ -11,9 +11,8 @@ import {
 	type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import { accountTypeEnum, expenditureStatusEnum, expenditureTypeEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { suppliersTable } from './supplier'
 
@@ -28,7 +27,7 @@ export const accountsTable = pgTable(
 		parentId: integer('parent_id').references((): AnyPgColumn => accountsTable.id, {
 			onDelete: 'restrict',
 		}),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('accounts_code_idx').on(t.code).where(isNull(t.deletedAt))],
 )
@@ -42,7 +41,7 @@ export const journalEntriesTable = pgTable(
 		sourceType: text('source_type').notNull(), // 'sales', 'payroll', 'purchasing', 'production'
 		sourceId: integer('source_id').notNull(),
 		note: text('note'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('journal_entries_date_idx').on(t.date),
@@ -62,7 +61,7 @@ export const journalItemsTable = pgTable(
 			.references(() => accountsTable.id),
 		debit: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		credit: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('journal_items_entry_idx').on(t.journalEntryId),
@@ -100,7 +99,7 @@ export const expendituresTable = pgTable(
 			.references(() => locationsTable.id),
 
 		isInstallment: boolean('is_installment').notNull().default(false),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('expenditures_date_idx').on(t.date),

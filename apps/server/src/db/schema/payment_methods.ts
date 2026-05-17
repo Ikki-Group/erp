@@ -1,8 +1,7 @@
 import { boolean, index, integer, pgTable, text } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import { paymentMethodCategoryEnum, paymentMethodEnum } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { paymentProvidersTable } from './payment_provider'
 
 /**
@@ -38,7 +37,7 @@ export const paymentMethodsTable = pgTable(
 			onDelete: 'set null',
 		}),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('payment_methods_type_idx').on(t.type),

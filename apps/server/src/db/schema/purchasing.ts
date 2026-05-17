@@ -1,13 +1,12 @@
 import { index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
-
 import {
 	goodsReceiptStatusEnum,
 	invoiceStatusEnum,
 	purchaseOrderStatusEnum,
 	purchaseRequestStatusEnum,
 } from './_helpers'
+import { auditBasicColumns, pk } from './_helpers.ts'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 import { suppliersTable } from './supplier'
@@ -29,7 +28,7 @@ export const purchaseRequestsTable = pgTable(
 		expectedDate: timestamp({ mode: 'date', withTimezone: true }),
 		notes: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_requests_location_idx').on(t.locationId),
@@ -52,7 +51,7 @@ export const purchaseRequestItemsTable = pgTable(
 		quantity: numeric({ precision: 18, scale: 4 }).notNull().default('1'),
 		notes: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_request_items_request_idx').on(t.requestId),
@@ -86,7 +85,7 @@ export const purchaseOrdersTable = pgTable(
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		notes: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_orders_location_idx').on(t.locationId),
@@ -123,7 +122,7 @@ export const purchaseOrderItemsTable = pgTable(
 		taxAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_order_items_order_idx').on(t.orderId),
@@ -153,7 +152,7 @@ export const goodsReceiptNotesTable = pgTable(
 		referenceNumber: text(),
 		notes: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('goods_receipt_notes_order_idx').on(t.orderId),
@@ -183,7 +182,7 @@ export const goodsReceiptNoteItemsTable = pgTable(
 
 		notes: text(),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('goods_receipt_note_items_grn_idx').on(t.grnId),
@@ -220,7 +219,7 @@ export const purchaseInvoicesTable = pgTable(
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
 		notes: text(),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_invoices_order_idx').on(t.orderId),
@@ -250,7 +249,7 @@ export const purchaseInvoiceItemsTable = pgTable(
 		discountAmount: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 		subtotal: numeric({ precision: 18, scale: 2 }).notNull().default('0'),
 
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
 		index('purchase_invoice_items_invoice_idx').on(t.invoiceId),

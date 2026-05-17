@@ -1,7 +1,6 @@
-import { isNull } from 'drizzle-orm'
 import { pgEnum, pgTable, text, integer, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditColumns, pk } from '@/core/database/schema'
+import { auditBasicColumns, pk } from './_helpers.ts'
 
 export const customerTierEnum = pgEnum('customer_tier', ['bronze', 'silver', 'gold', 'platinum'])
 
@@ -40,11 +39,11 @@ export const customersTable = pgTable(
 		registeredAt: timestamp('registered_at').defaultNow(),
 		/** Last visit date */
 		lastVisitAt: timestamp('last_visit_at'),
-		...auditColumns,
+		...auditBasicColumns,
 	},
 	(t) => [
-		uniqueIndex('customers_code_idx').on(t.code).where(isNull(t.deletedAt)),
-		uniqueIndex('customers_name_idx').on(t.name).where(isNull(t.deletedAt)),
+		uniqueIndex('customers_code_idx').on(t.code),
+		uniqueIndex('customers_name_idx').on(t.name),
 	],
 )
 
@@ -66,5 +65,5 @@ export const customerLoyaltyTransactionsTable = pgTable('customer_loyalty_transa
 	referenceType: text('reference_type'),
 	referenceId: integer('reference_id'),
 	description: text('description'),
-	...auditColumns,
+	...auditBasicColumns,
 })
