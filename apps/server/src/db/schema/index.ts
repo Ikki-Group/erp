@@ -9,6 +9,7 @@ export {
 	materialLocationsTable,
 	materialStockSnapshotsTable,
 } from './material'
+export { productStatusEnum, productCategoriesTable, productsTable } from './product'
 
 // // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
 
