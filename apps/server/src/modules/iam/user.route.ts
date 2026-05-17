@@ -42,15 +42,11 @@ export function createUserRoute(svc: UserService) {
 				auth: true,
 			},
 		)
-		.put(
-			'/update',
-			async ({ body, auth }) => res.ok(await svc.handleUpdate(body.id, body, auth.userId)),
-			{
-				body: z.object({ ...zc.RecordId.shape, ...UserUpdateSchema.shape }),
-				response: createSuccessResponseSchema(zc.RecordId),
-				auth: true,
-			},
-		)
+		.put('/update', async ({ body, auth }) => res.ok(await svc.handleUpdate(body, auth.userId)), {
+			body: z.object({ ...zc.RecordId.shape, ...UserUpdateSchema.shape }),
+			response: createSuccessResponseSchema(zc.RecordId),
+			auth: true,
+		})
 		.post(
 			'/change-password',
 			async ({ body, auth }) =>

@@ -98,7 +98,7 @@ export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<v
 		const conflictRecord = conflict as Record<string, unknown>
 		for (const f of changedFields) {
 			if (conflictRecord[f.field] === input[f.field]) {
-				logger.warn("Conflict field '%s' matches input value", {
+				logger.warn('Conflict field {field} matches input value', {
 					field: f.field,
 					value: input[f.field],
 				})

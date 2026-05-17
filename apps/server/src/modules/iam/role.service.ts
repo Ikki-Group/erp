@@ -123,7 +123,7 @@ export class RoleService {
 
 	async update(id: number, data: RoleMutationSchema, actorId: ActorId): Promise<{ id: number }> {
 		return record('RoleService.update', async () => {
-			const existing = await this.getById(id)
+			const existing = await this.repo.getById(id)
 			if (!existing) throw err.notFound(id)
 			if (existing.isSystem) throw err.updateSystemRole()
 

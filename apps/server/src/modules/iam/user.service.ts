@@ -212,8 +212,10 @@ export class UserService {
 		return record('UserService.update', async () => {
 			const { assignments, isRoot } = data
 
-			const existing = await this.getById(id)
+			const existing = await this.r.getById(id)
 			if (!existing) throw err.notFound(id)
+
+			console.debug({ existing })
 
 			await checkConflict({
 				table: usersTable,
@@ -308,9 +310,9 @@ export class UserService {
 		})
 	}
 
-	async handleUpdate(id: number, data: UserUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: UserUpdateSchema, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleUpdate', async () => {
-			const { password } = data
+			const { password, id } = data
 
 			const existing = await this.getById(id)
 			if (!existing) throw err.notFound(id)

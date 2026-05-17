@@ -39,7 +39,9 @@ describe('services/iam', () => {
 	})
 
 	test('role CRUD', async () => {
-		const created = await roleSvc.handleCreate(createMockRole('crud'), 1)
+		const mockRole = createMockRole('crud')
+
+		const created = await roleSvc.handleCreate(mockRole, 1)
 		expect(created.id).toBeDefined()
 
 		const detail = await roleSvc.handleDetail(created.id)
@@ -48,8 +50,8 @@ describe('services/iam', () => {
 		const updated = await roleSvc.handleUpdate(
 			created.id,
 			{
-				...createMockRole('crud'),
-				name: `${detail.name} updated`,
+				...mockRole,
+				name: `${mockRole.name} updated`,
 			},
 			1,
 		)
@@ -70,22 +72,23 @@ describe('services/iam', () => {
 	})
 
 	test('user - crud isRoot', async () => {
-		const mockUser = createMockUser('crud-isroot')
+		const mockUser = createMockUser('crud-isroot-001')
 
 		const created = await userSvc.handleCreate(mockUser, 1)
 		expect(created.id).toBeDefined()
 
 		const detail = await userSvc.handleDetail(created.id)
 		expect(detail.id).toBe(created.id)
-		// const updated = await userSvc.handleUpdate(
-		// 	created.id,
-		// 	{
-		// 		...mockUser,
-		// 		fullname: `${detail.fullname} updated`,
-		// 	},
-		// 	1,
-		// )
-		// expect(updated.id).toBe(created.id)
+
+		const updated = await userSvc.handleUpdate(
+			{
+				id: detail.id,
+				...mockUser,
+				fullname: `${detail.fullname} updated`,
+			},
+			1,
+		)
+		expect(updated.id).toBe(created.id)
 		// const list = await userSvc.handleList({
 		// 	q: detail.email,
 		// 	limit: 10,
