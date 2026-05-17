@@ -2,11 +2,6 @@ import { pgEnum } from 'drizzle-orm/pg-core'
 
 // ─── Shared Enums ─────────────────────────────────────────────────────────────
 
-export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
-
-// Enforced strictly: raw (e.g. Beans), semi (e.g. Pre-made sauces), packaging (e.g. Cups)
-export const materialTypeEnum = pgEnum('material_type', ['raw', 'semi', 'packaging'])
-
 export const transactionTypeEnum = pgEnum('transaction_type', [
 	'purchase',
 	'transfer_in',
