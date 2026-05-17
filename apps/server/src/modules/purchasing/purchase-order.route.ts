@@ -8,7 +8,16 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './purchase-order.dto'
+import {
+	PurchaseOrderFilterSchema,
+	PurchaseOrderSelectSchema,
+	PurchaseOrderSchema,
+	PurchaseOrderCreateSchema,
+	PurchaseOrderUpdateSchema,
+	PurchaseOrderSubmitForApprovalSchema,
+	PurchaseOrderApproveSchema,
+	PurchaseOrderRejectSchema,
+} from './purchase-order.schema'
 import type { PurchaseOrderService } from './purchase-order.service'
 
 export function initPurchaseOrderRoute(service: PurchaseOrderService) {
@@ -21,8 +30,8 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.paginated(result)
 			},
 			{
-				query: dto.PurchaseOrderFilterDto,
-				response: createPaginatedResponseSchema(dto.PurchaseOrderSelectDto),
+				query: PurchaseOrderFilterSchema,
+				response: createPaginatedResponseSchema(PurchaseOrderSelectSchema),
 				auth: true,
 			},
 		)
@@ -34,7 +43,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(dto.PurchaseOrderDto),
+				response: createSuccessResponseSchema(PurchaseOrderSchema),
 				auth: true,
 			},
 		)
@@ -45,7 +54,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PurchaseOrderCreateDto,
+				body: PurchaseOrderCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -57,7 +66,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PurchaseOrderUpdateDto,
+				body: PurchaseOrderUpdateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -85,7 +94,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PurchaseOrderSubmitForApprovalDto,
+				body: PurchaseOrderSubmitForApprovalSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -97,7 +106,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PurchaseOrderApproveDto,
+				body: PurchaseOrderApproveSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -109,7 +118,7 @@ export function initPurchaseOrderRoute(service: PurchaseOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.PurchaseOrderRejectDto,
+				body: PurchaseOrderRejectSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

@@ -5,12 +5,12 @@ import type { DbClient } from '@/core/database'
 
 import type { InventoryServiceModule } from '@/modules/inventory'
 
-import { GoodsReceiptRepo } from './goods-receipt/goods-receipt.repo'
-import { initGoodsReceiptRoute } from './goods-receipt/goods-receipt.route'
-import { GoodsReceiptService } from './goods-receipt/goods-receipt.service'
-import { PurchaseOrderRepo } from './purchase-order/purchase-order.repo'
-import { initPurchaseOrderRoute } from './purchase-order/purchase-order.route'
-import { PurchaseOrderService } from './purchase-order/purchase-order.service'
+import { GoodsReceiptRepo } from './goods-receipt.repo'
+import { initGoodsReceiptRoute } from './goods-receipt.route'
+import { GoodsReceiptService } from './goods-receipt.service'
+import { PurchaseOrderRepo } from './purchase-order.repo'
+import { initPurchaseOrderRoute } from './purchase-order.route'
+import { PurchaseOrderService } from './purchase-order.service'
 
 export class PurchasingServiceModule {
 	public readonly purchaseOrder: PurchaseOrderService
@@ -41,20 +41,20 @@ export function initPurchasingRouteModule(s: PurchasingServiceModule) {
 }
 
 export {
-	PurchaseOrderDto,
-	PurchaseOrderCreateDto,
-	PurchaseOrderUpdateDto,
-	PurchaseOrderFilterDto,
+	PurchaseOrderSchema,
+	PurchaseOrderCreateSchema,
+	PurchaseOrderUpdateSchema,
+	PurchaseOrderFilterSchema,
 	PurchaseOrderStatusEnum,
 	type PurchaseOrderStatus,
-} from './purchase-order/purchase-order.dto'
+} from './purchase-order.schema'
 export {
-	GoodsReceiptNoteDto,
-	GoodsReceiptNoteCreateDto,
-	GoodsReceiptNoteUpdateDto,
-	GoodsReceiptNoteFilterDto,
+	GoodsReceiptNoteSchema,
+	GoodsReceiptNoteCreateSchema,
+	GoodsReceiptNoteUpdateSchema,
+	GoodsReceiptNoteFilterSchema,
 	GoodsReceiptStatusEnum,
 	type GoodsReceiptStatus,
-} from './goods-receipt/goods-receipt.dto'
-export type { PurchaseOrderService } from './purchase-order/purchase-order.service'
-export type { GoodsReceiptService } from './goods-receipt/goods-receipt.service'
+} from './goods-receipt.schema'
+export type { PurchaseOrderService } from './purchase-order.service'
+export type { GoodsReceiptService } from './goods-receipt.service'

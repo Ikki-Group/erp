@@ -7,7 +7,7 @@ export type GoodsReceiptStatus = z.infer<typeof GoodsReceiptStatusEnum>
 
 /* ---------------------------------- ITEM ---------------------------------- */
 
-export const GoodsReceiptNoteItemDto = z.object({
+export const GoodsReceiptNoteItemSchema = z.object({
 	...zc.RecordId.shape,
 	grnId: zp.id,
 	purchaseOrderItemId: zp.id,
@@ -17,11 +17,11 @@ export const GoodsReceiptNoteItemDto = z.object({
 	notes: zp.strNullable,
 	...zc.AuditBasic.shape,
 })
-export type GoodsReceiptNoteItemDto = z.infer<typeof GoodsReceiptNoteItemDto>
+export type GoodsReceiptNoteItemSchema = z.infer<typeof GoodsReceiptNoteItemSchema>
 
-/* ---------------------------------- ENTITY --------------------------------- */
+/* ---------------------------------- ENTITY ---------------------------------- */
 
-export const GoodsReceiptNoteDto = z.object({
+export const GoodsReceiptNoteSchema = z.object({
 	...zc.RecordId.shape,
 	orderId: zp.id,
 	locationId: zp.id,
@@ -30,16 +30,16 @@ export const GoodsReceiptNoteDto = z.object({
 	status: GoodsReceiptStatusEnum,
 	referenceNumber: zp.strNullable,
 	notes: zp.strNullable,
-	items: z.array(GoodsReceiptNoteItemDto),
+	items: z.array(GoodsReceiptNoteItemSchema),
 	...zc.AuditBasic.shape,
 })
-export type GoodsReceiptNoteDto = z.infer<typeof GoodsReceiptNoteDto>
-export const GoodsReceiptNoteSelectDto = GoodsReceiptNoteDto.omit({ items: true })
-export type GoodsReceiptNoteSelectDto = z.infer<typeof GoodsReceiptNoteSelectDto>
+export type GoodsReceiptNoteSchema = z.infer<typeof GoodsReceiptNoteSchema>
+export const GoodsReceiptNoteSelectSchema = GoodsReceiptNoteSchema.omit({ items: true })
+export type GoodsReceiptNoteSelectSchema = z.infer<typeof GoodsReceiptNoteSelectSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const GoodsReceiptNoteItemMutationDto = z.object({
+const GoodsReceiptNoteItemMutationSchema = z.object({
 	purchaseOrderItemId: zp.id,
 	materialId: zp.id.optional().nullable(),
 	itemName: zc.strTrim.min(1).max(255),
@@ -47,7 +47,7 @@ const GoodsReceiptNoteItemMutationDto = z.object({
 	notes: zc.strTrimNullable,
 })
 
-const GoodsReceiptNoteMutationDto = z.object({
+const GoodsReceiptNoteMutationSchema = z.object({
 	orderId: zp.id,
 	locationId: zp.id,
 	supplierId: zp.id,
@@ -55,20 +55,20 @@ const GoodsReceiptNoteMutationDto = z.object({
 	status: GoodsReceiptStatusEnum.default('open'),
 	referenceNumber: zc.strTrimNullable,
 	notes: zc.strTrimNullable,
-	items: z.array(GoodsReceiptNoteItemMutationDto).min(1),
+	items: z.array(GoodsReceiptNoteItemMutationSchema).min(1),
 })
 
-export const GoodsReceiptNoteCreateDto = GoodsReceiptNoteMutationDto
-export type GoodsReceiptNoteCreateDto = z.infer<typeof GoodsReceiptNoteCreateDto>
+export const GoodsReceiptNoteCreateSchema = GoodsReceiptNoteMutationSchema
+export type GoodsReceiptNoteCreateSchema = z.infer<typeof GoodsReceiptNoteCreateSchema>
 
-export const GoodsReceiptNoteUpdateDto = GoodsReceiptNoteMutationDto.extend({
+export const GoodsReceiptNoteUpdateSchema = GoodsReceiptNoteMutationSchema.extend({
 	...zc.RecordId.shape,
 })
-export type GoodsReceiptNoteUpdateDto = z.infer<typeof GoodsReceiptNoteUpdateDto>
+export type GoodsReceiptNoteUpdateSchema = z.infer<typeof GoodsReceiptNoteUpdateSchema>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const GoodsReceiptNoteFilterDto = z.object({
+export const GoodsReceiptNoteFilterSchema = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	status: GoodsReceiptStatusEnum.optional(),
@@ -76,4 +76,4 @@ export const GoodsReceiptNoteFilterDto = z.object({
 	locationId: zq.id.optional(),
 	supplierId: zq.id.optional(),
 })
-export type GoodsReceiptNoteFilterDto = z.infer<typeof GoodsReceiptNoteFilterDto>
+export type GoodsReceiptNoteFilterSchema = z.infer<typeof GoodsReceiptNoteFilterSchema>

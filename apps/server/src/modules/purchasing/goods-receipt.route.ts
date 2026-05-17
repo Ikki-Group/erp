@@ -8,7 +8,12 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import * as dto from './goods-receipt.dto'
+import {
+	GoodsReceiptNoteFilterSchema,
+	GoodsReceiptNoteSelectSchema,
+	GoodsReceiptNoteSchema,
+	GoodsReceiptNoteCreateSchema,
+} from './goods-receipt.schema'
 import type { GoodsReceiptService } from './goods-receipt.service'
 
 export function initGoodsReceiptRoute(service: GoodsReceiptService) {
@@ -21,8 +26,8 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				return res.paginated(result)
 			},
 			{
-				query: dto.GoodsReceiptNoteFilterDto,
-				response: createPaginatedResponseSchema(dto.GoodsReceiptNoteSelectDto),
+				query: GoodsReceiptNoteFilterSchema,
+				response: createPaginatedResponseSchema(GoodsReceiptNoteSelectSchema),
 				auth: true,
 			},
 		)
@@ -34,7 +39,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 			},
 			{
 				query: zc.RecordId,
-				response: createSuccessResponseSchema(dto.GoodsReceiptNoteDto),
+				response: createSuccessResponseSchema(GoodsReceiptNoteSchema),
 				auth: true,
 			},
 		)
@@ -45,7 +50,7 @@ export function initGoodsReceiptRoute(service: GoodsReceiptService) {
 				return res.ok(result)
 			},
 			{
-				body: dto.GoodsReceiptNoteCreateDto,
+				body: GoodsReceiptNoteCreateSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
