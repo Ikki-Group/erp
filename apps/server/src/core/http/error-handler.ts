@@ -10,12 +10,12 @@ import { HttpError } from './errors'
 
 const isDev = env.NODE_ENV === 'development'
 
-function buildErrorResponse(code: string, message: string, meta?: unknown, stack?: string) {
+function buildErrorResponse(code: string, message: string, context?: unknown, stack?: string) {
 	return {
 		success: false,
 		code,
 		message,
-		...(meta !== undefined && { meta }),
+		...(context !== undefined && { context }),
 		...(isDev && stack && { stack }),
 	}
 }
@@ -70,7 +70,7 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
 
 		if (error instanceof NewHttpError) {
 			set.status = error.statusCode
-			return buildErrorResponse(error.code, error.message, error.meta, error.stack)
+			return buildErrorResponse(error.code, error.message, error.context, error.stack)
 		}
 
 		set.status = 500

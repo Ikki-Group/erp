@@ -41,7 +41,7 @@ const userConflictFields: ConflictField<'email' | 'username'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError('User not found', { code: 'USER_NOT_FOUND', meta: { id } }),
+		new NotFoundError('User not found', { code: 'USER_NOT_FOUND', context: { id } }),
 	createFailed: () =>
 		new InternalServerError('User creation failed', { code: 'USER_CREATE_FAILED' }),
 	passwordMismatch: () =>
