@@ -24,15 +24,16 @@ logger.info(`${env.APP_NAME} is running at http://${env.HOST}:${env.PORT}`, {
 	env: env.NODE_ENV,
 })
 
-// async function shutdown() {
-//   logger.info('Shutting down')
+async function shutdown() {
+	logger.info('Shutting down')
 
-//   await server.stop()
-//   await closeDatabase()
-//   logger.info('Shutdown complete')
+	await app.stop()
+	logger.info('Shutdown complete')
 
-//   process.exit(0)
-// }
+	process.exit(0)
+}
 
-// process.on('SIGINT', shutdown)
-// process.on('SIGTERM', shutdown)
+// oxlint-disable-next-line typescript/no-misused-promises
+process.on('SIGINT', shutdown)
+// oxlint-disable-next-line typescript/no-misused-promises
+process.on('SIGTERM', shutdown)

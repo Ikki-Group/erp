@@ -1,7 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
-import { merge } from 'es-toolkit'
 
-import { resolveAudit } from '@/core/audit'
 import { CacheServiceV2, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { RelationMap } from '@/core/utils/relation-map'
@@ -12,10 +10,9 @@ import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/er
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import type { LocationSchema, LocationServiceModule } from '@/modules/location'
+import type { LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from './assignment.service'
-import type { RoleSchema } from './role.schema'
 import type { RoleService } from './role.service'
 import { UserRepo } from './user.repo'
 import type {
@@ -68,49 +65,6 @@ export class UserService {
 		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'iam.user')
 	}
 
-	/* --------------------------------- PRIVATE -------------------------------- */
-
-	private async buildUserAssignments(
-		user: UserSchema,
-		roleMapper?: RelationMap<number, RoleSchema>,
-		locationMapper?: RelationMap<number, LocationSchema>,
-	): Promise<any[]> {
-		const assignments: any[] = []
-		const { id: userId, isRoot, defaultLocationId } = user
-
-		if (isRoot) {
-			const [superadmin, locations] = await Promise.all([
-				this.s.role.getSuperadmin(),
-				this.s.location.location.getListAll(),
-			])
-			const defaultAssignment = this.s.assignment.getDefaultAssignmentForSuperadmin()
-			for (const location of locations) {
-				assignments.push({ ...defaultAssignment, isDefault: false, role: superadmin, location })
-			}
-		} else {
-			const [rawAssignments, roleMap, locationMap] = await Promise.all([
-				this.s.assignment.findByUserId(userId),
-				roleMapper ?? this.s.role.getRelationMap(),
-				locationMapper ?? this.s.location.location.getRelationMap(),
-			])
-
-			assignments.push(
-				...rawAssignments.map((a) => ({
-					...a,
-					isDefault: false,
-					role: roleMap.getRequired(a.roleId),
-					location: locationMap.getRequired(a.locationId),
-				})),
-			)
-		}
-
-		if (assignments.length > 0 && defaultLocationId === null && assignments[0]) {
-			assignments[0].isDefault = true
-		}
-
-		return assignments
-	}
-
 	/* --------------------------------- PUBLIC -------------------------------- */
 
 	async getListPaginated(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
@@ -152,15 +106,6 @@ export class UserService {
 				factory: () => this.r.getById(id),
 			}),
 		)
-	}
-
-	async getDetailById(id: number): Promise<any> {
-		return record('UserService.getDetailById', async () => {
-			const user = await this.getById(id)
-			if (!user) throw err.notFound(id)
-			const assignments = await this.buildUserAssignments(user)
-			return merge(user, { assignments })
-		})
 	}
 
 	async getByIdentifier(
@@ -246,60 +191,7 @@ export class UserService {
 		})
 	}
 
-	async handleChangePassword(
-		id: number,
-		data: UserChangePasswordSchema,
-		actorId: ActorId,
-	): Promise<EntityRef> {
-		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getPasswordHash(id)
-			if (!passwordHash) throw err.notFound(id)
-
-			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw err.passwordMismatch()
-
-			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			const result = await this.r.updatePassword(id, newPasswordHash, actorId)
-			if (!result) throw err.notFound(id)
-
-			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
-
-			return result
-		})
-	}
-
-	async handleAdminUpdatePassword(
-		data: UserAdminUpdatePasswordSchema,
-		actorId: ActorId,
-	): Promise<EntityRef> {
-		return record('UserService.handleAdminUpdatePassword', async () => {
-			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
-			const result = await this.r.updatePassword(id, passwordHash, actorId)
-			if (!result) throw err.notFound(id)
-
-			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
-
-			return result
-		})
-	}
-
 	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
-		return record('UserService.handleList', async () => {
-			return this.r.getListPaginated(filter)
-		})
-	}
-
-	async handleDetail(id: number): Promise<any> {
-		return record('UserService.handleDetail', async () => {
-			const user = await this.getById(id)
-			if (!user) throw err.notFound(id)
-			const assignments = await this.buildUserAssignments(user)
-			return resolveAudit({ ...user, assignments })
-		})
-	}
 
 	async handleCreate(data: UserCreateSchema, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleCreate', async () => {
@@ -337,6 +229,44 @@ export class UserService {
 				this.cache.keys.count,
 				this.cache.keys.byId(id),
 			])
+
+			return result
+		})
+	}
+
+	async handleChangePassword(
+		id: number,
+		data: UserChangePasswordSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.handleChangePassword', async () => {
+			const passwordHash = await this.r.getPasswordHash(id)
+			if (!passwordHash) throw err.notFound(id)
+
+			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
+			if (!isMatch) throw err.passwordMismatch()
+
+			const newPasswordHash = await Bun.password.hash(data.newPassword)
+			const result = await this.r.updatePassword(id, newPasswordHash, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
+
+			return result
+		})
+	}
+
+	async handleAdminUpdatePassword(
+		data: UserAdminUpdatePasswordSchema,
+		actorId: ActorId,
+	): Promise<EntityRef> {
+		return record('UserService.handleAdminUpdatePassword', async () => {
+			const { id, password } = data
+			const passwordHash = await Bun.password.hash(password)
+			const result = await this.r.updatePassword(id, passwordHash, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
 
 			return result
 		})

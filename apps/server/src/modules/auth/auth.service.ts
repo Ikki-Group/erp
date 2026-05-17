@@ -1,7 +1,7 @@
 import { verifyPassword } from '@/core/auth'
 import { UnauthorizedError } from '@/core/http/errors'
 
-import type { UserSchema, UserService } from '@/modules/iam'
+import type { IamServiceModule, UserSchema } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
 import type { AuthOutputSchema, AuthLoginSchema } from './auth.schema'
@@ -14,13 +14,13 @@ const err = {
 
 export class AuthService {
 	constructor(
-		private readonly userSvc: UserService,
+		private readonly iam: IamServiceModule,
 		private readonly sessionSvc: SessionService,
 	) {}
 
 	async login(input: AuthLoginSchema): Promise<AuthOutputSchema> {
 		const { identifier, password } = input
-		const targetUser = await this.userSvc.getByIdentifier(identifier)
+		const targetUser = await this.iam.user.getByIdentifier(identifier)
 
 		if (!targetUser || !targetUser.isActive) {
 			throw err.userNotFound()
@@ -32,7 +32,7 @@ export class AuthService {
 		}
 
 		const session = await this.sessionSvc.createSession(targetUser)
-		const userDetail = await this.userSvc.getDetailById(targetUser.id)
+		const userDetail = await this.iam.userRead.getDetailById(targetUser.id)
 
 		return { user: userDetail, token: session.token }
 	}
@@ -43,10 +43,10 @@ export class AuthService {
 			throw err.invalidCredentials()
 		}
 
-		return this.userSvc.getDetailById(session.userId)
+		return this.iam.userRead.getDetailById(session.userId)
 	}
 
-	async getById(userId: number): Promise<UserSchema> {
-		return this.userSvc.getDetailById(userId)
+	async getById(userId: number): Promise<UserSchema | undefined> {
+		return this.iam.userRead.getDetailById(userId)
 	}
 }

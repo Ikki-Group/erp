@@ -4,15 +4,9 @@ import { z } from 'zod'
 import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zq,
-} from '@/shared/validation'
+import { createSuccessResponseSchema, zc, zq } from '@/shared/validation'
 
 import {
-	UserFilterSchema,
 	UserCreateSchema,
 	UserUpdateSchema,
 	UserChangePasswordSchema,
@@ -23,16 +17,6 @@ import type { UserService } from './user.service'
 export function createUserRoute(svc: UserService) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
-		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
-			query: UserFilterSchema,
-			response: createPaginatedResponseSchema(z.any()),
-			auth: true,
-		})
-		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
-			query: zq.recordId,
-			response: createSuccessResponseSchema(z.any()),
-			auth: true,
-		})
 		.post(
 			'/create',
 			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
