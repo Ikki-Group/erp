@@ -58,8 +58,6 @@ export const productCategoriesTable = pgTable(
 	],
 )
 
-// ─── Products ─────────────────────────────────────────────────────────────────
-
 /**
  * Products Table
  *
@@ -135,8 +133,6 @@ export const productsTable = pgTable(
 	],
 )
 
-// ─── Product Prices (Sales Type) ──────────────────────────────────────────────
-
 /**
  * Product Prices Table
  *
@@ -167,8 +163,6 @@ export const productPricesTable = pgTable(
 	(t) => [
 		uniqueIndex('product_prices_product_sales_type_idx').on(t.productId, t.salesTypeId),
 		index('product_prices_sales_type_idx').on(t.salesTypeId),
-
-		check('product_prices_price_chk', sql`price >= 0`),
 	],
 )
 
@@ -219,12 +213,8 @@ export const productVariantsTable = pgTable(
 		uniqueIndex('product_variants_default_idx')
 			.on(t.productId)
 			.where(sql`is_default = TRUE`),
-
-		check('product_variants_base_price_chk', sql`base_price >= 0`),
 	],
 )
-
-// ─── Variant Prices (Sales Type) ─────────────────────────────────────────────
 
 /**
  * Variant Prices Table
@@ -239,8 +229,8 @@ export const productVariantsTable = pgTable(
  *
  * onDelete: 'restrict' from salesType — mirrors productPricesTable behaviour.
  */
-export const variantPricesTable = pgTable(
-	'variant_prices',
+export const productVariantPricesTable = pgTable(
+	'product_variant_prices',
 	{
 		...pk,
 		variantId: integer('variant_id')
@@ -255,7 +245,5 @@ export const variantPricesTable = pgTable(
 	(t) => [
 		uniqueIndex('variant_prices_variant_sales_type_idx').on(t.variantId, t.salesTypeId),
 		index('variant_prices_sales_type_idx').on(t.salesTypeId),
-
-		check('variant_prices_price_chk', sql`price >= 0`),
 	],
 )
