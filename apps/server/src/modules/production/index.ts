@@ -11,9 +11,9 @@ interface ProductionServiceModuleDeps {
 	stockTransaction: StockTransactionService
 }
 
-import { WorkOrderRepo } from './work-order/work-order.repo'
-import { initWorkOrderRoute } from './work-order/work-order.route'
-import { WorkOrderService } from './work-order/work-order.service'
+import { WorkOrderRepo } from './work-order.repo'
+import { initWorkOrderRoute } from './work-order.route'
+import { WorkOrderService } from './work-order.service'
 
 export class ProductionServiceModule {
 	public readonly workOrder: WorkOrderService
@@ -38,5 +38,13 @@ export function initProductionRouteModule(s: ProductionServiceModule) {
 	return new Elysia({ prefix: '/production' }).use(initWorkOrderRoute(s.workOrder))
 }
 
-export * from './work-order/work-order.dto'
-export type { WorkOrderService } from './work-order/work-order.service'
+export {
+	WorkOrderSchema,
+	WorkOrderCreateSchema,
+	WorkOrderUpdateSchema,
+	WorkOrderFilterSchema,
+	WorkOrderCompleteSchema,
+	WorkOrderStatusEnum,
+	type WorkOrderStatus,
+} from './work-order.schema'
+export type { WorkOrderService } from './work-order.service'

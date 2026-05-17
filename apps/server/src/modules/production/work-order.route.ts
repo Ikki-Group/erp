@@ -9,12 +9,12 @@ import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
 import {
-	WorkOrderCompleteDto,
-	WorkOrderCreateDto,
-	WorkOrderFilterDto,
-	WorkOrderDto,
-	WorkOrderSelectDto,
-} from './work-order.dto'
+	WorkOrderCompleteSchema,
+	WorkOrderCreateSchema,
+	WorkOrderFilterSchema,
+	WorkOrderSchema,
+	WorkOrderSelectSchema,
+} from './work-order.schema'
 import type { WorkOrderService } from './work-order.service'
 
 export function initWorkOrderRoute(service: WorkOrderService) {
@@ -27,8 +27,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.paginated(result)
 			},
 			{
-				query: WorkOrderFilterDto,
-				response: createPaginatedResponseSchema(WorkOrderSelectDto),
+				query: WorkOrderFilterSchema,
+				response: createPaginatedResponseSchema(WorkOrderSelectSchema),
 				auth: true,
 			},
 		)
@@ -38,7 +38,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				const wo = await service.handleDetail(query.id)
 				return res.ok(wo)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderSchema), auth: true },
 		)
 		.post(
 			'/create',
@@ -47,8 +47,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.created(result)
 			},
 			{
-				body: WorkOrderCreateDto,
-				response: createSuccessResponseSchema(WorkOrderDto),
+				body: WorkOrderCreateSchema,
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
@@ -58,7 +58,7 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				const result = await service.handleStart(query.id, auth.userId)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(WorkOrderDto), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(zc.RecordId), auth: true },
 		)
 		.post(
 			'/complete',
@@ -67,8 +67,8 @@ export function initWorkOrderRoute(service: WorkOrderService) {
 				return res.ok(result)
 			},
 			{
-				body: WorkOrderCompleteDto,
-				response: createSuccessResponseSchema(WorkOrderDto),
+				body: WorkOrderCompleteSchema,
+				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
