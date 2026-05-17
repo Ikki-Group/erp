@@ -63,6 +63,8 @@ export function createIamRouteModule(s: IamServiceModule) {
 export * from './role.schema'
 export * from './user.schema'
 export * from './assignment.schema'
+export * from './user-read.schema'
+
 export type { RoleService } from './role.service'
 export type { UserService } from './user.service'
 export type { UserAssignmentService } from './assignment.service'

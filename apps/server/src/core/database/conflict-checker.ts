@@ -2,6 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, or, type SQL } from 'drizzle-orm'
 
 import { ConflictError } from '@/core/http/errors'
+import { logger } from '@/core/logger'
 
 import { db } from '@/db'
 
@@ -97,6 +98,10 @@ export async function checkConflict<T>(opts: CheckConflictOptions<T>): Promise<v
 		const conflictRecord = conflict as Record<string, unknown>
 		for (const f of changedFields) {
 			if (conflictRecord[f.field] === input[f.field]) {
+				logger.warn("Conflict field '%s' matches input value", {
+					field: f.field,
+					value: input[f.field],
+				})
 				throw new ConflictError(f.message, f.code)
 			}
 		}

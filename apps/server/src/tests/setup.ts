@@ -1,7 +1,10 @@
+import { createCache } from '@/core/cache'
+
 import { db } from '@/db'
 
-import { initModules, type Modules } from '@/modules/_registry'
-import { initRoutes } from '@/modules/_routes'
+import { env } from '@/config/env'
+
+import { createModules, type Modules } from '@/modules/_registry'
 
 import { TestClient } from './helpers/test-client'
 import { TokenStore } from './helpers/token-store'
@@ -27,11 +30,13 @@ export let testCtx: TestContext
  * Initializes app, routes, and test client once before all tests.
  */
 beforeAll(() => {
-	const modules = initModules(db)
+	const modules = createModules(db, createCache())
 	const app = createApp(modules)
-	initRoutes(modules).register(app)
-
 	const tokens = new TokenStore()
+
+	console.debug({
+		DATABASE_URL: env.DATABASE_URL,
+	})
 
 	testCtx = {
 		app,

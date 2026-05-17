@@ -1,6 +1,3 @@
-// oxlint-disable import/no-unassigned-import
-
-import '@/core/otel'
 import { createCache } from '@/core/cache'
 import { logger } from '@/core/logger'
 
