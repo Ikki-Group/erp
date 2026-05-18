@@ -1,5 +1,7 @@
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 
+import { workOrdersTable } from '@/db/schema/production'
+
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
 import {
 	paginate,
@@ -7,9 +9,7 @@ import {
 	stampUpdate,
 	type WithPaginationResult,
 	type DbClient,
-} from '@/core/database'
-
-import { workOrdersTable } from '@/db/schema/production'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

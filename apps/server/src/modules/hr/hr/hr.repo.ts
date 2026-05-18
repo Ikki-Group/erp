@@ -2,15 +2,15 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, gte, ilike, isNull, lte, or } from 'drizzle-orm'
 
+import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@/db/schema'
+
 import {
 	paginate,
 	stampCreate,
 	stampUpdate,
 	type WithPaginationResult,
 	type DbClient,
-} from '@/core/database'
-
-import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type {
 	AttendanceDto,

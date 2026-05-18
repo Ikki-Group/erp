@@ -3,10 +3,9 @@ import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { paginate, takeFirst, type DbClient, type WithPaginationResult } from '@/core/database'
-
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
+import { paginate, takeFirst, type DbClient, type WithPaginationResult } from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
 
 import type {

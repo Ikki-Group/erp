@@ -1,5 +1,7 @@
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
+import { suppliersTable } from '@/db/schema/supplier'
+
 import {
 	paginate,
 	sortBy,
@@ -8,9 +10,7 @@ import {
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { suppliersTable } from '@/db/schema/supplier'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

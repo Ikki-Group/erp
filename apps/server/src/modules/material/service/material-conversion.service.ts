@@ -1,11 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbClient, DbTx } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 
-import { MATERIAL_CACHE_NS } from '../material.constants'
-import { ConversionErrors } from '../material.errors'
+import type { DbClient, DbTx } from '@/infra/database'
+
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type {
 	ConversionFilter,
@@ -13,6 +12,8 @@ import type {
 	ConversionUpdateData,
 	IMaterialConversionRepo,
 } from '../domain/ports'
+import { MATERIAL_CACHE_NS } from '../material.constants'
+import { ConversionErrors } from '../material.errors'
 import type { RecordId } from '@ikki/api-contract'
 
 export class MaterialConversionService {
@@ -58,9 +59,7 @@ export class MaterialConversionService {
 		tx?: DbTx,
 	): Promise<void> {
 		return record('MaterialConversionService.batchCreate', () => {
-			return this.deps.repo.batchCreate(
-				materialId, conversions, actorId, tx ?? this.deps.db,
-			)
+			return this.deps.repo.batchCreate(materialId, conversions, actorId, tx ?? this.deps.db)
 		})
 	}
 
@@ -71,9 +70,7 @@ export class MaterialConversionService {
 		tx?: DbTx,
 	): Promise<void> {
 		return record('MaterialConversionService.batchReplace', () => {
-			return this.deps.repo.batchReplace(
-				materialId, conversions, actorId, tx ?? this.deps.db,
-			)
+			return this.deps.repo.batchReplace(materialId, conversions, actorId, tx ?? this.deps.db)
 		})
 	}
 
@@ -95,9 +92,7 @@ export class MaterialConversionService {
 
 	async create(data: ConversionInsertData, actorId: number): Promise<RecordId> {
 		return record('MaterialConversionService.create', async () => {
-			const existing = await this.deps.repo.getByMaterialAndUom(
-				data.materialId, data.uomId,
-			)
+			const existing = await this.deps.repo.getByMaterialAndUom(data.materialId, data.uomId)
 			if (existing) throw ConversionErrors.uomAlreadyExists()
 
 			const result = await this.deps.repo.create(data, actorId)
@@ -114,9 +109,7 @@ export class MaterialConversionService {
 			if (!current) throw ConversionErrors.notFound(data.id)
 
 			if (current.materialId !== data.materialId || current.uomId !== data.uomId) {
-				const dup = await this.deps.repo.getByMaterialAndUom(
-					data.materialId, data.uomId,
-				)
+				const dup = await this.deps.repo.getByMaterialAndUom(data.materialId, data.uomId)
 				if (dup && dup.id !== data.id) throw ConversionErrors.uomAlreadyExists()
 			}
 

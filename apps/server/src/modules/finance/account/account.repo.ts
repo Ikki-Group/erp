@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
-import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/core/database'
-
 import { accountsTable } from '@/db/schema/finance'
+
+import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/infra/database'
 
 import type { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.dto'
 

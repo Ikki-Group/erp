@@ -1,5 +1,7 @@
 import { and, count, eq, not } from 'drizzle-orm'
 
+import { productCategoriesTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -8,10 +10,7 @@ import {
 	stampUpdate,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { productCategoriesTable } from '@/db/schema'
-
+} from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

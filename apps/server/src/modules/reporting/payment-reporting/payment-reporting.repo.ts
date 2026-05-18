@@ -1,8 +1,8 @@
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import { accountsTable, paymentsTable } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type { PaymentReportRequestDto } from './payment-reporting.dto'
 

@@ -8,7 +8,9 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+
+import type { DbClient } from '@/infra/database'
+
 import type { LocationMasterService } from '@/modules/location'
 
 import { MaterialCategoryRepo } from './repo/material-category.repo'
@@ -16,14 +18,6 @@ import { MaterialConversionRepo } from './repo/material-conversion.repo'
 import { MaterialLocationRepo } from './repo/material-location.repo'
 import { MaterialRepo } from './repo/material.repo'
 import { UomRepo } from './repo/uom.repo'
-
-import { MaterialCategoryService } from './service/material-category.service'
-import { MaterialConversionService } from './service/material-conversion.service'
-import { MaterialLocationService } from './service/material-location.service'
-import { MaterialQueryService } from './service/material-query.service'
-import { MaterialService } from './service/material.service'
-import { UomService } from './service/uom.service'
-
 import {
 	initMaterialCategoryRoute,
 	initMaterialConversionRoute,
@@ -32,6 +26,12 @@ import {
 	initMaterialQueryRoute,
 	initMaterialUomRoute,
 } from './route'
+import { MaterialCategoryService } from './service/material-category.service'
+import { MaterialConversionService } from './service/material-conversion.service'
+import { MaterialLocationService } from './service/material-location.service'
+import { MaterialQueryService } from './service/material-query.service'
+import { MaterialService } from './service/material.service'
+import { UomService } from './service/uom.service'
 
 /* ----------------------------- MODULE DEPS -------------------------------- */
 

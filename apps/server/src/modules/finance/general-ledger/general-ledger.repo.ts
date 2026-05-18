@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
-import { stampCreate, type DbClient } from '@/core/database'
-
 import { journalEntriesTable, journalItemsTable } from '@/db/schema/finance'
+
+import { stampCreate, type DbClient } from '@/infra/database'
 
 export type JournalEntry = typeof journalEntriesTable.$inferSelect
 export type JournalItem = typeof journalItemsTable.$inferSelect

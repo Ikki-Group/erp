@@ -2,15 +2,15 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, desc, eq, isNull, or } from 'drizzle-orm'
 
+import { expendituresTable } from '@/db/schema/finance'
+
 import {
 	paginate,
 	searchFilter,
 	stampCreate,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { expendituresTable } from '@/db/schema/finance'
+} from '@/infra/database'
 
 import type { ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto } from './expenditure.dto'
 

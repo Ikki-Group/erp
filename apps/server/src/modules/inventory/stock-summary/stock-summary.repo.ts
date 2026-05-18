@@ -17,10 +17,11 @@ import {
 	sum,
 } from 'drizzle-orm'
 
-import { paginate, type WithPaginationResult, type DbClient } from '@/core/database'
 import { toWibDateKey } from '@/core/utils/date'
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
+
+import { paginate, type WithPaginationResult, type DbClient } from '@/infra/database'
 
 import type {
 	StockLedgerFilterDto,

@@ -1,16 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { RelationMap } from '@/core/utils'
 
 import { materialCategoriesTable } from '@/db/schema'
 
-import { CACHE_KEY, MATERIAL_CACHE_NS } from '../material.constants'
-import { CategoryErrors } from '../material.errors'
+import { checkConflict, type ConflictField } from '@/infra/database'
+
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'
+import { CACHE_KEY, MATERIAL_CACHE_NS } from '../material.constants'
+import { CategoryErrors } from '../material.errors'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
@@ -90,7 +91,14 @@ export class MaterialCategoryService {
 		})
 	}
 
-	async create(data: { name: string; description?: string | null | undefined; parentId?: number | null | undefined }, actorId: number): Promise<{ id: number }> {
+	async create(
+		data: {
+			name: string
+			description?: string | null | undefined
+			parentId?: number | null | undefined
+		},
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('MaterialCategoryService.create', async () => {
 			const name = data.name.trim()
 
@@ -108,7 +116,15 @@ export class MaterialCategoryService {
 		})
 	}
 
-	async update(id: number, data: Partial<{ name: string; description?: string | null | undefined; parentId?: number | null | undefined }>, actorId: number): Promise<{ id: number }> {
+	async update(
+		id: number,
+		data: Partial<{
+			name: string
+			description?: string | null | undefined
+			parentId?: number | null | undefined
+		}>,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('MaterialCategoryService.update', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw CategoryErrors.notFound(id)

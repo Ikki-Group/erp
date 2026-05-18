@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 
 import type { RoleService } from '@/modules/iam'
 import type { UserService } from '@/modules/iam'

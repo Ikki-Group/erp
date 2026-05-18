@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq } from 'drizzle-orm'
 
-import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
-
 import { mokaConfigurationsTable } from '@/db/schema'
+
+import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/infra/database'
 
 import { type MokaProvider, type MokaScrapType } from '../shared.dto'
 import * as dto from './configuration.dto'

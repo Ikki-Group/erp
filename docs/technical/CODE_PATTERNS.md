@@ -73,7 +73,7 @@ import {
 	stampUpdate,
 	takeFirst,
 	type DbClient,
-} from '@/core/database'
+} from '@/infra/database'
 import { entityTable } from '@/db/schema'
 import * as dto from './entity.dto'
 
@@ -141,7 +141,7 @@ export class EntityRepo {
 // src/modules/feature/entity.service.ts (co-located)
 import { record } from '@elysiajs/opentelemetry'
 import { CacheService, type CacheClient } from '@/lib/cache'
-import * as core from '@/core/database'
+import * as core from '@/infra/database'
 import { entityTable } from '@/db/schema'
 import * as dto from './entity.dto'
 import { EntityErrors } from './errors'
@@ -313,7 +313,7 @@ export function initEntityRoute(service: EntityService) {
 ```typescript
 // src/modules/feature/index.ts
 import { Elysia } from 'elysia'
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 import type { CacheClient } from '@/lib/cache'
 
 import { EntityRepo } from './entity.repo'
@@ -343,7 +343,7 @@ export { EntityService } from './entity.service'
 ```typescript
 // src/modules/feature/index.ts
 import { Elysia } from 'elysia'
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 import type { CacheClient } from '@/lib/cache'
 
 import { FeatureAService } from './feature-a/feature-a.service'

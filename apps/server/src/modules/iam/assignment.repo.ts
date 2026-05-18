@@ -1,10 +1,11 @@
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { paginate, sortBy } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { db } from '@/db'
 import { userAssignmentsTable } from '@/db/schema'
+
+import { paginate, sortBy } from '@/infra/database'
 
 import type { ActorId } from '@/types/utils'
 import type { OmitPaginationQuery } from '@/types/utils'

@@ -1,5 +1,9 @@
 import { and, count, eq } from 'drizzle-orm'
 
+import type { WithPaginationResult } from '@/core/database/pagination'
+
+import { materialConversionsTable } from '@/db/schema'
+
 import {
 	paginate,
 	sortBy,
@@ -7,10 +11,7 @@ import {
 	stampUpdate,
 	takeFirst,
 	type DbClient,
-} from '@/core/database'
-import type { WithPaginationResult } from '@/core/database/pagination'
-
-import { materialConversionsTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

@@ -1,5 +1,7 @@
 import { and, count, desc, eq, or } from 'drizzle-orm'
 
+import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -8,9 +10,7 @@ import {
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

@@ -2,14 +2,14 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
-import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/core/database'
-
 import {
 	employeesTable,
 	payrollAdjustmentsTable,
 	payrollBatchesTable,
 	payrollItemsTable,
 } from '@/db/schema'
+
+import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/infra/database'
 
 import type {
 	PayrollBatchCreateDto,

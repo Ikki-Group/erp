@@ -1,15 +1,21 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbTx } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
+
+import type { DbTx } from '@/infra/database'
 
 import type { LocationMasterService } from '@/modules/location'
 
+import type { MaterialLocation } from '../domain/material-location.entity'
+import type {
+	IMaterialLocationRepo,
+	LocationStockFilter,
+	MaterialLocationStock,
+	MaterialLocationWithLocation,
+} from '../domain/ports'
 import { MATERIAL_CACHE_NS } from '../material.constants'
 import { LocationErrors } from '../material.errors'
-import type { MaterialLocation } from '../domain/material-location.entity'
-import type { IMaterialLocationRepo, LocationStockFilter, MaterialLocationStock, MaterialLocationWithLocation } from '../domain/ports'
 import type { MaterialService } from './material.service'
 
 export class MaterialLocationService {
@@ -37,21 +43,32 @@ export class MaterialLocationService {
 	}
 
 	async findByMaterialId(materialId: number): Promise<MaterialLocation[]> {
-		return record('MaterialLocationService.findByMaterialId', () => this.deps.repo.getByMaterialId(materialId))
+		return record('MaterialLocationService.findByMaterialId', () =>
+			this.deps.repo.getByMaterialId(materialId),
+		)
 	}
 
 	async findByLocationId(locationId: number): Promise<MaterialLocation[]> {
-		return record('MaterialLocationService.findByLocationId', () => this.deps.repo.getByLocationId(locationId))
+		return record('MaterialLocationService.findByLocationId', () =>
+			this.deps.repo.getByLocationId(locationId),
+		)
 	}
 
 	/* ======================== USE CASES ======================== */
 
-	async assign(data: { locationIds: number[]; materialIds: number[] }, actorId: number): Promise<{ assignedCount: number }> {
+	async assign(
+		data: { locationIds: number[]; materialIds: number[] },
+		actorId: number,
+	): Promise<{ assignedCount: number }> {
 		return record('MaterialLocationService.assign', async () => {
 			for (const locId of data.locationIds) await this.deps.location.getById(locId)
 			for (const mId of data.materialIds) await this.deps.master.findById(mId)
 
-			const assignedCount = await this.deps.repo.batchAssign(data.materialIds, data.locationIds, actorId)
+			const assignedCount = await this.deps.repo.batchAssign(
+				data.materialIds,
+				data.locationIds,
+				actorId,
+			)
 			await this.invalidateKeys(data.materialIds, data.locationIds)
 			return { assignedCount }
 		})
@@ -74,14 +91,24 @@ export class MaterialLocationService {
 		})
 	}
 
-	async stockByLocation(filter: LocationStockFilter): Promise<WithPaginationResult<MaterialLocationStock>> {
+	async stockByLocation(
+		filter: LocationStockFilter,
+	): Promise<WithPaginationResult<MaterialLocationStock>> {
 		return record('MaterialLocationService.stockByLocation', async () => {
 			await this.deps.location.getById(filter.locationId)
 			return this.deps.repo.getStockByLocationPaginated(filter)
 		})
 	}
 
-	async updateConfig(data: { id: number; minStock?: number | undefined; maxStock?: number | null | undefined; reorderPoint?: number | undefined }, actorId: number): Promise<{ id: number }> {
+	async updateConfig(
+		data: {
+			id: number
+			minStock?: number | undefined
+			maxStock?: number | null | undefined
+			reorderPoint?: number | undefined
+		},
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('MaterialLocationService.updateConfig', async () => {
 			const { id, ...update } = data
 			const resultId = await this.deps.repo.updateConfig(id, update, actorId)

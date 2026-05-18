@@ -1,16 +1,31 @@
 import { and, count, eq } from 'drizzle-orm'
 
-import { paginate, stampCreate, stampUpdate, takeFirst, type DbClient, type DbTx, type WithPaginationResult } from '@/core/database'
-
 import { materialConversionsTable } from '@/db/schema'
 
+import {
+	paginate,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type DbClient,
+	type DbTx,
+	type WithPaginationResult,
+} from '@/infra/database'
+
 import type { MaterialConversion } from '../domain/material-conversion.entity'
-import type { ConversionFilter, ConversionInsertData, ConversionUpdateData, IMaterialConversionRepo } from '../domain/ports'
+import type {
+	ConversionFilter,
+	ConversionInsertData,
+	ConversionUpdateData,
+	IMaterialConversionRepo,
+} from '../domain/ports'
 
 export class MaterialConversionRepo implements IMaterialConversionRepo {
 	constructor(private readonly db: DbClient) {}
 
-	async getListPaginated(filter: ConversionFilter): Promise<WithPaginationResult<MaterialConversion>> {
+	async getListPaginated(
+		filter: ConversionFilter,
+	): Promise<WithPaginationResult<MaterialConversion>> {
 		const { page, limit, materialId, uomId } = filter
 		const where = and(
 			materialId === undefined ? undefined : eq(materialConversionsTable.materialId, materialId),
@@ -46,7 +61,10 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			.then(takeFirst)
 	}
 
-	async getByMaterialAndUom(materialId: number, uomId: number): Promise<MaterialConversion | undefined> {
+	async getByMaterialAndUom(
+		materialId: number,
+		uomId: number,
+	): Promise<MaterialConversion | undefined> {
 		return this.db
 			.select()
 			.from(materialConversionsTable)

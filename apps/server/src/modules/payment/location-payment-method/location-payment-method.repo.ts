@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
+import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
+
 import {
 	paginate,
 	sortBy,
@@ -8,10 +10,7 @@ import {
 	stampUpdate,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
-
+} from '@/infra/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {

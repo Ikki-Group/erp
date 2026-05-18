@@ -1,7 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { WithPaginationResult } from '@/core/database'
-
+import type { WithPaginationResult } from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
 
 import type { LocationServiceModule } from '@/modules/location'

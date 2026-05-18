@@ -1,6 +1,5 @@
-import type { DbClient } from '@/core/database'
-
 import { SEED_CONFIG } from '@/config/seed-config'
+import type { DbClient } from '@/infra/database'
 
 import type { RoleService } from '@/modules/iam'
 import type { UserService } from '@/modules/iam'

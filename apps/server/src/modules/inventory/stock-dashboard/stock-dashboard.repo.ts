@@ -1,9 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import { materialLocationsTable, materialsTable } from '@/db/schema/material'
+
+import type { DbClient } from '@/infra/database'
 
 import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
 

@@ -4,15 +4,6 @@ import Decimal from 'decimal.js'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
 import {
-	paginate,
-	stampCreate,
-	stampUpdate,
-	takeFirstOrThrow,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/core/database'
-
-import {
 	salesExternalRefsTable,
 	salesOrderBatchesTable,
 	salesOrderItemsTable,
@@ -20,6 +11,14 @@ import {
 	salesVoidsTable,
 } from '@/db/schema/sales'
 
+import {
+	paginate,
+	stampCreate,
+	stampUpdate,
+	takeFirstOrThrow,
+	type WithPaginationResult,
+	type DbClient,
+} from '@/infra/database'
 import { BadRequestError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {

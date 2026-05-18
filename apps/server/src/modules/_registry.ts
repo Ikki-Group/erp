@@ -1,5 +1,6 @@
 import { type CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+
+import type { DbClient } from '@/infra/database'
 
 import { LocationServiceModule } from './location'
 

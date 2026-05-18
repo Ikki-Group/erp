@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { count, eq } from 'drizzle-orm'
 
+import { paymentProvidersTable } from '@/db/schema'
+
 import {
 	checkConflict,
 	paginate,
@@ -11,10 +13,7 @@ import {
 	type ConflictField,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { paymentProvidersTable } from '@/db/schema'
-
+} from '@/infra/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {

@@ -2,6 +2,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
+import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -10,9 +12,7 @@ import {
 	stampUpdate,
 	type WithPaginationResult,
 	type DbClient,
-} from '@/core/database'
-
-import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
+} from '@/infra/database'
 
 import {
 	StockTransferCreateDto,

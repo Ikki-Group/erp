@@ -1,5 +1,9 @@
 import { and, count, eq, exists, or } from 'drizzle-orm'
 
+import type { WithPaginationResult } from '@/core/database/pagination'
+
+import { userAssignmentsTable, usersTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -8,10 +12,7 @@ import {
 	stampUpdate,
 	takeFirst,
 	type DbClient,
-} from '@/core/database'
-import type { WithPaginationResult } from '@/core/database/pagination'
-
-import { userAssignmentsTable, usersTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

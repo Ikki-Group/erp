@@ -1,8 +1,8 @@
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type { CrmReportRequestDto } from './crm-reporting.dto'
 

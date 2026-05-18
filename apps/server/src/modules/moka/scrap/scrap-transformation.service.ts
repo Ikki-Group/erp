@@ -1,8 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
-import { stampCreate, takeFirst, type DbClient, type DbTx } from '@/core/database'
-
 import {
 	productCategoriesTable,
 	productPricesTable,
@@ -15,6 +13,8 @@ import {
 	salesVoidsTable,
 	variantPricesTable,
 } from '@/db/schema'
+
+import { stampCreate, takeFirst, type DbClient, type DbTx } from '@/infra/database'
 
 import type { AccountService } from '@/modules/finance'
 import type { GeneralLedgerService } from '@/modules/finance'

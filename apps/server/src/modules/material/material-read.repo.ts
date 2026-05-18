@@ -4,7 +4,6 @@
 
 import { eq, and, ilike, inArray, isNull } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 
 import {
@@ -15,6 +14,8 @@ import {
 	uomsTable,
 	locationsTable,
 } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type {
 	MaterialReadFilterSchema,

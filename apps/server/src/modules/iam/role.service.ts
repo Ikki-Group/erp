@@ -1,11 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheServiceV2, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 import { RelationMap } from '@/core/utils/relation-map'
 
 import { rolesTable } from '@/db/schema'
 
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

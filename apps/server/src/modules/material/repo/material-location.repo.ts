@@ -1,11 +1,24 @@
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { paginate, sortBy, stampCreate, stampUpdate, type DbClient, type DbTx, type WithPaginationResult } from '@/core/database'
-
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type DbClient,
+	type DbTx,
+	type WithPaginationResult,
+} from '@/infra/database'
+
 import type { MaterialLocation } from '../domain/material-location.entity'
-import type { IMaterialLocationRepo, LocationStockFilter, MaterialLocationStock, MaterialLocationWithLocation } from '../domain/ports'
+import type {
+	IMaterialLocationRepo,
+	LocationStockFilter,
+	MaterialLocationStock,
+	MaterialLocationWithLocation,
+} from '../domain/ports'
 
 export class MaterialLocationRepo implements IMaterialLocationRepo {
 	constructor(private readonly db: DbClient) {}
@@ -114,7 +127,11 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async batchAssign(materialIds: number[], locationIds: number[], actorId: number): Promise<number> {
+	async batchAssign(
+		materialIds: number[],
+		locationIds: number[],
+		actorId: number,
+	): Promise<number> {
 		const existing = await this.db
 			.select({
 				materialId: materialLocationsTable.materialId,
@@ -162,7 +179,11 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 
 	async updateConfig(
 		id: number,
-		data: { minStock?: number | undefined; maxStock?: number | null | undefined; reorderPoint?: number | undefined },
+		data: {
+			minStock?: number | undefined
+			maxStock?: number | null | undefined
+			reorderPoint?: number | undefined
+		},
 		actorId: number,
 	): Promise<number | undefined> {
 		const [result] = await this.db

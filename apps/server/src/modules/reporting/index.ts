@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 
 import { initBusinessInsightsRoute } from './business-insights/business-insights.route'
 import { BusinessInsightsService } from './business-insights/business-insights.service'

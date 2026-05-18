@@ -1,11 +1,20 @@
 import { and, count, eq } from 'drizzle-orm'
 
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, type DbClient, type WithPaginationResult } from '@/core/database'
-
 import { uomsTable } from '@/db/schema'
 
-import type { Uom } from '../domain/uom.entity'
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type DbClient,
+	type WithPaginationResult,
+} from '@/infra/database'
+
 import type { IUomRepo, UomFilter } from '../domain/ports'
+import type { Uom } from '../domain/uom.entity'
 
 export class UomRepo implements IUomRepo {
 	constructor(private readonly db: DbClient) {}

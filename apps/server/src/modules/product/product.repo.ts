@@ -1,21 +1,20 @@
 import { and, count, eq, ilike, inArray, not, or } from 'drizzle-orm'
 
 import {
-	paginate,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/core/database'
-
-import {
 	productPricesTable,
 	productsTable,
 	productVariantsTable,
 	variantPricesTable,
 } from '@/db/schema'
 
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type DbClient,
+	type WithPaginationResult,
+} from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

@@ -1,8 +1,8 @@
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type { SalesReportRequestDto } from './sales-reporting.dto'
 

@@ -2,11 +2,10 @@ import { sql } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/bun-sql/migrator'
 import { z } from 'zod'
 
-import type { DbClient } from '@/core/database'
-
 import { db } from '@/db'
 
 import { env } from '@/config/env'
+import type { DbClient } from '@/infra/database'
 
 import { createModules } from '@/modules/_registry'
 

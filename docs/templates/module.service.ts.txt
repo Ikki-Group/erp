@@ -3,9 +3,9 @@ import { and, eq, ilike } from 'drizzle-orm'
 
 import { CACHE_KEY_DEFAULT, type CacheClient, type CacheProvider } from '@/core/cache'
 import { logger } from '@/core/logger'
-import * as core from '@/core/database'
+import * as core from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 import { db } from '@/db'
 import { myEntityTable } from '@/db/schema' // Replace with your table
 

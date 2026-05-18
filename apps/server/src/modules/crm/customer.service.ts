@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
 
 import { customersTable } from '@/db/schema'
 
+import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

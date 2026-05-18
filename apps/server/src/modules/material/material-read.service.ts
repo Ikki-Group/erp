@@ -5,7 +5,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+
+import type { DbClient } from '@/infra/database'
 
 import { MaterialReadRepository } from './material-read.repo'
 import type {

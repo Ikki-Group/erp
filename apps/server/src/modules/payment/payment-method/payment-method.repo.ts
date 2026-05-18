@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq } from 'drizzle-orm'
 
+import { paymentMethodsTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -9,9 +11,7 @@ import {
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { paymentMethodsTable } from '@/db/schema'
+} from '@/infra/database'
 
 import * as dto from './payment-method.dto'
 

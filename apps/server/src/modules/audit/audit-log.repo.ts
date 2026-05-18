@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 
+import { auditLogsTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -8,9 +10,7 @@ import {
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { auditLogsTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

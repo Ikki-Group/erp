@@ -7,13 +7,14 @@
  */
 
 import type { WithPaginationResult } from '@/core/database/pagination'
-import type { DbClient, DbTx } from '@/core/database'
 
-import type { Material, MaterialType } from './material.entity'
+import type { DbClient, DbTx } from '@/infra/database'
+
 import type { MaterialCategory } from './material-category.entity'
-import type { Uom } from './uom.entity'
 import type { MaterialConversion } from './material-conversion.entity'
 import type { MaterialLocation } from './material-location.entity'
+import type { Material, MaterialType } from './material.entity'
+import type { Uom } from './uom.entity'
 
 /* -------------------------------- MATERIAL -------------------------------- */
 
@@ -169,7 +170,11 @@ export interface IMaterialLocationRepo {
 	unassign(materialId: number, locationId: number): Promise<number | undefined>
 	updateConfig(
 		id: number,
-		data: { minStock?: number | undefined; maxStock?: number | null | undefined; reorderPoint?: number | undefined },
+		data: {
+			minStock?: number | undefined
+			maxStock?: number | null | undefined
+			reorderPoint?: number | undefined
+		},
 		actorId: number,
 	): Promise<number | undefined>
 	updateCurrentStock(

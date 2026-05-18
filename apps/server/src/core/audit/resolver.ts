@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
 
 import { usersTable } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type { AuditResolved, UserSnippet } from '@ikki/api-contract'
 

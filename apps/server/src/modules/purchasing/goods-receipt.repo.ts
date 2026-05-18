@@ -1,5 +1,7 @@
 import { and, count, eq, isNull, or } from 'drizzle-orm'
 
+import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
+
 import {
 	paginate,
 	searchFilter,
@@ -8,9 +10,7 @@ import {
 	stampUpdate,
 	type WithPaginationResult,
 	type DbClient,
-} from '@/core/database'
-
-import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

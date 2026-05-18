@@ -1,16 +1,17 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import { checkConflict, type ConflictField } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 import { RelationMap } from '@/core/utils'
 
 import { uomsTable } from '@/db/schema'
 
+import { checkConflict, type ConflictField } from '@/infra/database'
+
+import type { IUomRepo, UomFilter } from '../domain/ports'
+import type { Uom } from '../domain/uom.entity'
 import { CACHE_KEY, MATERIAL_CACHE_NS } from '../material.constants'
 import { UomErrors } from '../material.errors'
-import type { Uom } from '../domain/uom.entity'
-import type { IUomRepo, UomFilter } from '../domain/ports'
 import type { RecordId } from '@ikki/api-contract'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
@@ -112,7 +113,11 @@ export class UomService {
 		})
 	}
 
-	async update(id: number, data: Partial<{ code: string }>, actorId: number): Promise<{ id: number }> {
+	async update(
+		id: number,
+		data: Partial<{ code: string }>,
+		actorId: number,
+	): Promise<{ id: number }> {
 		return record('UomService.update', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw UomErrors.notFound(id)

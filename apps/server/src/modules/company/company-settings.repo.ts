@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-argument */
 import { eq } from 'drizzle-orm'
 
-import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/core/database'
-
 import { companySettingsTable } from '@/db/schema'
+
+import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

@@ -1,7 +1,5 @@
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import {
 	locationsTable,
 	materialLocationsTable,
@@ -11,6 +9,8 @@ import {
 	salesOrdersTable,
 } from '@/db/schema'
 import { stockTransactionsTable } from '@/db/schema/inventory'
+
+import type { DbClient } from '@/infra/database'
 
 import type { BusinessInsightsRequestDto } from './business-insights.dto'
 

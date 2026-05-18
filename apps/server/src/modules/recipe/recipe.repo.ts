@@ -2,21 +2,21 @@
 import { and, count, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
 import {
-	paginate,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/core/database'
-
-import {
 	materialLocationsTable,
 	materialsTable,
 	recipeItemsTable,
 	recipesTable,
 	uomsTable,
 } from '@/db/schema'
+
+import {
+	paginate,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	type WithPaginationResult,
+	type DbClient,
+} from '@/infra/database'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

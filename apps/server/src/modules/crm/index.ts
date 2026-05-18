@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+
+import type { DbClient } from '@/infra/database'
 
 import { CustomerRepo } from './customer.repo'
 import { initCustomerRoute } from './customer.route'

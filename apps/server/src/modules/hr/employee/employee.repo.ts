@@ -1,6 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
+import { employeesTable } from '@/db/schema/employee'
+
 import {
 	paginate,
 	sortBy,
@@ -9,9 +11,7 @@ import {
 	takeFirst,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { employeesTable } from '@/db/schema/employee'
+} from '@/infra/database'
 
 import type {
 	EmployeeCreateDto,

@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { DbClient } from '@/core/database'
+import type { DbClient } from '@/infra/database'
 
 import * as dto from './finance-reporting.dto'
 import { FinanceReportingRepo } from './finance-reporting.repo'

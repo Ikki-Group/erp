@@ -1,9 +1,9 @@
 import Decimal from 'decimal.js'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
 import type { WithPaginationResult } from '@/core/database/pagination'
 
+import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

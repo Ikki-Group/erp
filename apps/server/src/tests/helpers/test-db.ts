@@ -1,9 +1,9 @@
 import { SQL } from 'bun'
 import { drizzle } from 'drizzle-orm/bun-sql'
 
-import type { DbClient } from '@/core/database'
-
 import { relations } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 export interface TestContext {
 	db: DbClient

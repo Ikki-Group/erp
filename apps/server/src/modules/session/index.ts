@@ -1,5 +1,6 @@
 import type { CacheClient } from '@/core/cache'
-import type { DbClient } from '@/core/database'
+
+import type { DbClient } from '@/infra/database'
 
 import { SessionRepo } from './session.repo'
 import type { SessionSchema, SessionPayloadSchema } from './session.schema'

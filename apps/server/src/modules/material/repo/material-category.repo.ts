@@ -1,11 +1,25 @@
 import { and, count, eq } from 'drizzle-orm'
 
-import { paginate, searchFilter, sortBy, stampCreate, stampUpdate, takeFirst, type DbClient, type WithPaginationResult } from '@/core/database'
-
 import { materialCategoriesTable } from '@/db/schema'
 
+import {
+	paginate,
+	searchFilter,
+	sortBy,
+	stampCreate,
+	stampUpdate,
+	takeFirst,
+	type DbClient,
+	type WithPaginationResult,
+} from '@/infra/database'
+
 import type { MaterialCategory } from '../domain/material-category.entity'
-import type { CategoryFilter, CategoryInsertData, CategoryUpdateData, IMaterialCategoryRepo } from '../domain/ports'
+import type {
+	CategoryFilter,
+	CategoryInsertData,
+	CategoryUpdateData,
+	IMaterialCategoryRepo,
+} from '../domain/ports'
 
 export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 	constructor(private readonly db: DbClient) {}

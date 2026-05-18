@@ -2,10 +2,10 @@
 import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
-import { stampCreate, type DbTx } from '@/core/database'
-
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
+
+import { stampCreate, type DbTx } from '@/infra/database'
 
 import type {
 	PurchaseTransactionDto,

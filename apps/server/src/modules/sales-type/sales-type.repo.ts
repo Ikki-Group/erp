@@ -1,5 +1,7 @@
 import { count, eq } from 'drizzle-orm'
 
+import { salesTypesTable } from '@/db/schema'
+
 import {
 	checkConflict,
 	paginate,
@@ -10,10 +12,7 @@ import {
 	type ConflictField,
 	type DbClient,
 	type WithPaginationResult,
-} from '@/core/database'
-
-import { salesTypesTable } from '@/db/schema'
-
+} from '@/infra/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'

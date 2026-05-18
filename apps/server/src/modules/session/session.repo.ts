@@ -1,8 +1,8 @@
 import { eq, lte } from 'drizzle-orm'
 
-import { takeFirst, type DbClient } from '@/core/database'
-
 import { sessionsTable } from '@/db/schema'
+
+import { takeFirst, type DbClient } from '@/infra/database'
 
 import type { SessionSchema } from './session.schema'
 

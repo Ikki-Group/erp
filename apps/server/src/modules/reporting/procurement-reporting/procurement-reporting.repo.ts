@@ -1,7 +1,5 @@
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
-import type { DbClient } from '@/core/database'
-
 import {
 	locationsTable,
 	materialsTable,
@@ -11,6 +9,8 @@ import {
 	stockTransfersTable,
 	suppliersTable,
 } from '@/db/schema'
+
+import type { DbClient } from '@/infra/database'
 
 import type { ProcurementReportRequestDto } from './procurement-reporting.dto'
 
