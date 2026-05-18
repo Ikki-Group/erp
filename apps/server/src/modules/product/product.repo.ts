@@ -8,9 +8,6 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
-
-import type { ActorId, EntityRef } from '@/types/utils'
 
 import {
 	productPricesTable,
@@ -18,6 +15,10 @@ import {
 	productVariantsTable,
 	variantPricesTable,
 } from '@/db/schema'
+
+import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
+
+import type { ActorId, EntityRef } from '@/types/utils'
 
 import {
 	ProductSchema,
@@ -109,7 +110,9 @@ export class ProductRepo {
 		}
 	}
 
-	async getListPaginated(filter: ProductFilterSchema): Promise<WithPaginationResult<ProductSchema>> {
+	async getListPaginated(
+		filter: ProductFilterSchema,
+	): Promise<WithPaginationResult<ProductSchema>> {
 		const { search, status, categoryId, locationId, page, limit } = filter
 
 		const conditions = [

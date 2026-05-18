@@ -1,5 +1,6 @@
 import { CacheService, type CacheClient } from '@/core/cache'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
+
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

@@ -582,7 +582,7 @@ Located in `src/tests/helpers/`:
 
 ```typescript
 // errors.ts
-import { NotFoundError, InternalServerError, BadRequestError } from '@/core/http/errors'
+import { NotFoundError, InternalServerError, BadRequestError } from '@/shared/errors/http-error'
 
 export const EntityErrors = {
 	notFound: (id: number) => new NotFoundError(`Entity ${id} not found`, 'ENTITY_NOT_FOUND'),

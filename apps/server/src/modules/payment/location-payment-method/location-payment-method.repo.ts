@@ -9,9 +9,10 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { locationPaymentMethodsTable, locationsTable, paymentMethodsTable } from '@/db/schema'
+
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	LocationPaymentMethodCreateDto,

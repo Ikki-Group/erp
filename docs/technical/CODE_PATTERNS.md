@@ -52,7 +52,7 @@ export type EntityFilterDto = z.infer<typeof EntityFilterDto>
 ```typescript
 // constants.ts — use CACHE_KEY_DEFAULT instead
 // errors.ts
-import { NotFoundError, InternalServerError } from '@/core/http/errors'
+import { NotFoundError, InternalServerError } from '@/shared/errors/http-error'
 
 export const EntityErrors = {
 	notFound: (id: number) => new NotFoundError(`Entity ${id} not found`, 'ENTITY_NOT_FOUND'),
@@ -519,7 +519,7 @@ Test helpers: `src/tests/helpers/` — auth.ts, http.ts, response.ts
 throw EntityErrors.notFound(id)
 throw EntityErrors.createFailed()
 
-// Custom errors from @/core/http/errors
+// Custom errors from @/shared/errors/http-error
 throw new NotFoundError('message', 'DOMAIN_CODE')
 throw new ConflictError('message', 'DOMAIN_CODE')
 throw new BadRequestError('message', 'DOMAIN_CODE')

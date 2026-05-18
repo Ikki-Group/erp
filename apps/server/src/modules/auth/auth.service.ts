@@ -1,5 +1,4 @@
-import { UnauthorizedError } from '@/core/http/errors'
-
+import { UnauthorizedError } from '@/shared/errors/http-error'
 import { verifyPassword } from '@/shared/utils/password'
 
 import type { IamServiceModule, UserSchema } from '@/modules/iam'

@@ -1,10 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, type SQL } from 'drizzle-orm'
 
-import { ConflictError } from '@/core/http/errors'
 import { logger } from '@/core/logger'
 
 import { db } from '@/db'
+
+import { ConflictError } from '@/shared/errors/http-error'
 
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 

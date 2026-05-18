@@ -4,9 +4,10 @@ import { and, count, desc, eq, ilike, isNull, lte, or, gte, inArray } from 'driz
 import { z } from 'zod'
 
 import { paginate, takeFirst, type DbClient, type WithPaginationResult } from '@/core/database'
-import { NotFoundError } from '@/core/http/errors'
 
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
+
+import { NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	StockTransactionFilterDto,

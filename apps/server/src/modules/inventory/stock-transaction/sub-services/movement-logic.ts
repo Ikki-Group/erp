@@ -3,10 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import Decimal from 'decimal.js'
 
 import { stampCreate, type DbTx } from '@/core/database'
-import { BadRequestError } from '@/core/http/errors'
 
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
+
+import { BadRequestError } from '@/shared/errors/http-error'
 
 import type { MaterialLocationService } from '@/modules/material'
 

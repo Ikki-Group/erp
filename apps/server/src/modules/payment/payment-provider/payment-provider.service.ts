@@ -2,7 +2,8 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database/pagination'
-import { NotFoundError } from '@/core/http/errors'
+
+import { NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	PaymentProviderCreateDto,

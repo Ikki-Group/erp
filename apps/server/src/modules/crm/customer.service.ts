@@ -2,9 +2,10 @@
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { customersTable } from '@/db/schema'
+
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

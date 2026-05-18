@@ -3,7 +3,8 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { PaginationQuery, WithPaginationResult } from '@/core/database/pagination'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+
+import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	AttendanceDto,

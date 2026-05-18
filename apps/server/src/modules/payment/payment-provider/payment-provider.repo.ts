@@ -12,9 +12,10 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { paymentProvidersTable } from '@/db/schema'
+
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	PaymentProviderCreateDto,
@@ -63,7 +64,7 @@ export class PaymentProviderRepo {
 		filter: PaymentProviderFilterDto,
 	): Promise<WithPaginationResult<PaymentProviderDto>> {
 		return record('PaymentProviderRepo.getListPaginated', async () => {
-			const { q, page, limit, } = filter
+			const { q, page, limit } = filter
 			const where = searchFilter(paymentProvidersTable.name, q)
 
 			return paginate({

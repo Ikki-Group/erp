@@ -11,9 +11,10 @@ import {
 	type DbClient,
 	type WithPaginationResult,
 } from '@/core/database'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { salesTypesTable } from '@/db/schema'
+
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

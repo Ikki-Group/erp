@@ -2,9 +2,10 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
 import { checkConflict, type ConflictField, type WithPaginationResult } from '@/core/database'
-import { InternalServerError, NotFoundError } from '@/core/http/errors'
 
 import { employeesTable } from '@/db/schema/employee'
+
+import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	EmployeeCreateDto,

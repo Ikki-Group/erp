@@ -11,7 +11,6 @@ import {
 	type WithPaginationResult,
 	type DbClient,
 } from '@/core/database'
-import { BadRequestError, NotFoundError } from '@/core/http/errors'
 
 import {
 	salesExternalRefsTable,
@@ -20,6 +19,8 @@ import {
 	salesOrdersTable,
 	salesVoidsTable,
 } from '@/db/schema/sales'
+
+import { BadRequestError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	SalesOrderAddBatchDto,

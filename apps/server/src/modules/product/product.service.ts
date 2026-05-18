@@ -1,6 +1,7 @@
 import { CacheService, type CacheClient } from '@/core/cache'
 import type { WithPaginationResult } from '@/core/database/pagination'
-import { ConflictError, NotFoundError } from '@/core/http/errors'
+
+import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 

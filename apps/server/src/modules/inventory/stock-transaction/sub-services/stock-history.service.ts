@@ -2,7 +2,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import type { WithPaginationResult } from '@/core/database/pagination'
-import { NotFoundError } from '@/core/http/errors'
+
+import { NotFoundError } from '@/shared/errors/http-error'
 
 import type {
 	StockTransactionFilterDto,

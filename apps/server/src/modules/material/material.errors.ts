@@ -10,7 +10,7 @@ import {
 	ConflictError,
 	InternalServerError,
 	NotFoundError,
-} from '@/core/http/errors'
+} from '@/shared/errors/http-error'
 
 import { ERROR_CODES } from './material.constants'
 
@@ -67,8 +67,7 @@ export const UomErrors = {
 	notFoundByCode: (code: string) =>
 		new NotFoundError(`UOM with code "${code}" not found`, ERROR_CODES.UOM_NOT_FOUND),
 
-	createFailed: () =>
-		new InternalServerError('UOM creation failed', ERROR_CODES.UOM_CREATE_FAILED),
+	createFailed: () => new InternalServerError('UOM creation failed', ERROR_CODES.UOM_CREATE_FAILED),
 
 	codeAlreadyExists: (code: string) =>
 		new ConflictError(`UOM code "${code}" already exists`, ERROR_CODES.UOM_CODE_ALREADY_EXISTS),
