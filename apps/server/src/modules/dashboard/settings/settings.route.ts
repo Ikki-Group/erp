@@ -1,7 +1,7 @@
 import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { res } from '@/core/http/response'
+import { res } from '@/shared/http/response'
 
 import { SettingsSummaryDto } from './settings.dto'
 import type { SettingsService } from './settings.service'

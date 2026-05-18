@@ -1,8 +1,7 @@
 import { Elysia } from 'elysia'
 
-import { res } from '@/core/http/response'
-
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { res } from '@/shared/http/response'
 
 import * as dto from './analytics.dto'
 import type { AnalyticsService } from './analytics.service'

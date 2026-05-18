@@ -1,9 +1,8 @@
 import { z, zc, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { res } from '@/core/http/response'
-
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { res } from '@/shared/http/response'
 
 import { MaterialCreateDto } from '../dto/material.dto'
 import type { MaterialService } from '../service/material.service'

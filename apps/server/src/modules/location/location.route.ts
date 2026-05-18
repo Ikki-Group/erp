@@ -1,9 +1,8 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
-import { res } from '@/core/http/response'
-
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
 import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './location.schema'

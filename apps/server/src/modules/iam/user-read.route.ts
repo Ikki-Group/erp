@@ -1,8 +1,7 @@
 import { Elysia } from 'elysia'
 
-import { res } from '@/core/http/response'
-
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zq } from '@/shared/schema'
 
 import { UserReadDetailSchema } from '@/modules/iam/user-read.schema'

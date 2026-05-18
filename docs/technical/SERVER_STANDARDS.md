@@ -307,7 +307,7 @@ export class EntityRepo {
 ```typescript
 import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
-import { res } from '@/core/http/response'
+import { res } from '@/shared/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
