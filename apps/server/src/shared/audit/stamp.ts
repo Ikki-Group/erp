@@ -11,18 +11,32 @@
 interface StampOptions {
 	/** If true, sets `syncAt` to the current timestamp as well. */
 	withSync?: boolean
-
-	/** If provided, uses this timestamp instead of the current time. */
 	now?: Date
 }
 
-/* ----------------------------- IMMUTABLE (SPREAD) ----------------------------- */
+interface CreateStamp {
+	createdBy: number
+	updatedBy: number
+	createdAt: Date
+	updatedAt: Date
+	syncAt?: Date
+}
+
+interface UpdateStamp {
+	updatedBy: number
+	updatedAt: Date
+	syncAt?: Date
+}
+
+function resolveNow(options?: StampOptions): Date {
+	return options?.now ?? new Date()
+}
 
 /**
  * Returns metadata fields for a **CREATE** operation.
  */
-export function stampCreate(actorId: number, options?: StampOptions) {
-	const now = options?.now ?? new Date()
+export function stampCreate(actorId: number, options?: StampOptions): CreateStamp {
+	const now = resolveNow(options)
 	return {
 		createdBy: actorId,
 		updatedBy: actorId,
@@ -35,7 +49,11 @@ export function stampCreate(actorId: number, options?: StampOptions) {
 /**
  * Returns metadata fields for an **UPDATE** operation.
  */
-export function stampUpdate(actorId: number, options?: StampOptions) {
-	const now = options?.now ?? new Date()
-	return { updatedBy: actorId, updatedAt: now, ...(options?.withSync && { syncAt: now }) }
+export function stampUpdate(actorId: number, options?: StampOptions): UpdateStamp {
+	const now = resolveNow(options)
+	return {
+		updatedBy: actorId,
+		updatedAt: now,
+		...(options?.withSync && { syncAt: now }),
+	}
 }
