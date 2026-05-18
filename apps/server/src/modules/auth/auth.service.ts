@@ -1,5 +1,6 @@
-import { verifyPassword } from '@/core/auth'
 import { UnauthorizedError } from '@/core/http/errors'
+
+import { verifyPassword } from '@/shared/utils/password'
 
 import type { IamServiceModule, UserSchema } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
