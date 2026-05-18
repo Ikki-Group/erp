@@ -4,7 +4,7 @@
 
 import { z, zp } from 'zod'
 
-import { zc } from '@/shared/validation'
+import { zc } from '@/shared/schema'
 
 /* -------------------------------- BASE -------------------------------- */
 

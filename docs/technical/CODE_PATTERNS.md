@@ -256,7 +256,7 @@ export class EntityService {
 ```typescript
 // src/modules/feature/entity.route.ts (co-located)
 import { Elysia } from 'elysia'
-import { authPluginMacro } from '@/core/http/auth-macro'
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/core/http/response'
 import {
 	createPaginatedResponseSchema,

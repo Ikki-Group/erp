@@ -1,10 +1,21 @@
-import { zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
+import {
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { MaterialConversionCreateDto, MaterialConversionDto, MaterialConversionFilterDto, MaterialConversionUpdateDto } from '../dto/material-conversion.dto'
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
+
+import {
+	MaterialConversionCreateDto,
+	MaterialConversionDto,
+	MaterialConversionFilterDto,
+	MaterialConversionUpdateDto,
+} from '../dto/material-conversion.dto'
 import type { MaterialConversionService } from '../service/material-conversion.service'
 
 export function initMaterialConversionRoute(s: MaterialConversionService) {

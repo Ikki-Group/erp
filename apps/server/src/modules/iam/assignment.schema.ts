@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zp, zq } from '@/shared/validation'
+import { zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- BASE ---------------------------------- */
 

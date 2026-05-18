@@ -1,8 +1,9 @@
 import { z, zc, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
 
 import { MaterialCreateDto } from '../dto/material.dto'
 import type { MaterialService } from '../service/material.service'
@@ -40,6 +41,10 @@ export function initMaterialMasterRoute(s: MaterialService) {
 				const { id } = await s.remove(query.id)
 				return res.ok({ id })
 			},
-			{ query: z.object({ id: z.coerce.number().int().positive() }), response: createSuccessResponseSchema(zc.RecordId), auth: true },
+			{
+				query: z.object({ id: z.coerce.number().int().positive() }),
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
 		)
 }

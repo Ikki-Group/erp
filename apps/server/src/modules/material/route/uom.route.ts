@@ -1,8 +1,15 @@
-import { z, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
 
 import { UomDto, UomFilterDto, UomMutationDto } from '../dto/uom.dto'
 import type { UomService } from '../service/uom.service'

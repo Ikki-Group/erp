@@ -1,8 +1,15 @@
-import { z, zc, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
+import {
+	z,
+	zc,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
 
 import {
 	MaterialLocationAssignDto,
@@ -42,7 +49,12 @@ export function initMaterialLocationRoute(s: MaterialLocationService) {
 				const data = {
 					id: body.id,
 					minStock: body.minStock !== undefined ? Number(body.minStock) : undefined,
-					maxStock: body.maxStock !== undefined ? (body.maxStock !== null ? Number(body.maxStock) : null) : undefined,
+					maxStock:
+						body.maxStock !== undefined
+							? body.maxStock !== null
+								? Number(body.maxStock)
+								: null
+							: undefined,
 					reorderPoint: body.reorderPoint !== undefined ? Number(body.reorderPoint) : undefined,
 				}
 				return res.ok(await s.updateConfig(data, auth.userId))

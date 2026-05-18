@@ -1,8 +1,14 @@
-import { z, zq, createSuccessResponseSchema, createPaginatedResponseSchema } from '@ikki/api-contract/validation'
+import {
+	z,
+	zq,
+	createSuccessResponseSchema,
+	createPaginatedResponseSchema,
+} from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
+
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
 
 import { MaterialQueryFilterDto } from '../dto/material-query.dto'
 import type { MaterialQueryService } from '../service/material-query.service'

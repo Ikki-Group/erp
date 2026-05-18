@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia'
 
-import { authPluginMacro } from '@/core/http/auth-macro'
 import { res } from '@/core/http/response'
 
-import { createPaginatedResponseSchema, successNoDataSchema } from '@/shared/validation'
+import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { createPaginatedResponseSchema, successNoDataSchema } from '@/shared/schema'
 
 import {
 	UserAssignmentFilterSchema,
