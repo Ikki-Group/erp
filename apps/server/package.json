@@ -31,7 +31,6 @@
 		"@axiomhq/pino": "^1.6.0",
 		"@elysiajs/cors": "^1.4.2",
 		"@elysiajs/opentelemetry": "^1.4.11",
-		"@ikki/api-contract": "workspace:*",
 		"@logtape/logtape": "^2.0.7",
 		"@logtape/otel": "^2.0.7",
 		"@logtape/pretty": "^2.0.7",

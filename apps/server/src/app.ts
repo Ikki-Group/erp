@@ -1,13 +1,12 @@
 import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
-import { createAuthPlugin } from '@/core/http/auth-plugin'
 import { errorHandler } from '@/core/http/error-handler'
 import { requestIdPlugin } from '@/core/http/request-id'
-import { otel } from '@/core/otel'
 
-import { logger } from './core/logger'
 import type { Modules } from './modules/_registry'
+import { logger } from '@/infra/logger'
+import { otel } from '@/infra/otel/otel'
 
 export function createApp(m: Modules): Elysia {
 	const app = new Elysia({ precompile: true })
@@ -17,7 +16,7 @@ export function createApp(m: Modules): Elysia {
 		.use(otel)
 		.use(requestIdPlugin())
 		.use(cors())
-		.use(createAuthPlugin(m.auth))
+		// .use(createAuthPlugin(m.auth))
 		.get('/', () => {
 			logger.info('Ikki ERP API is running')
 			return { status: 'ok', name: 'Ikki ERP API' }

@@ -11,7 +11,7 @@ import { env } from '@/config/env'
 
 await configure({
 	sinks: {
-		console: getConsoleSink(),
+		meta: getConsoleSink(),
 		main: getConsoleSink({
 			formatter:
 				env.LOG_FORMAT === 'pretty'
@@ -25,15 +25,13 @@ await configure({
 						})
 					: jsonLinesFormatter,
 		}),
-		// otel: getOpenTelemetrySink({
-		// 	diagnostics: true,
-		// 	loggerProvider,
-		// }),
+		// TODO: enable once loggerProvider is stable
+		// otel: getOpenTelemetrySink({ diagnostics: true, loggerProvider }),
 	},
 	loggers: [
-		{ category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'error' },
+		{ category: ['logtape', 'meta'], sinks: ['meta'], lowestLevel: 'error' },
 		// { category: ['otel'], sinks: ['otel'], lowestLevel: 'debug' },
-		{ category: [], sinks: ['main'], lowestLevel: 'debug' },
+		{ category: [], sinks: ['main'] },
 	],
 })
 

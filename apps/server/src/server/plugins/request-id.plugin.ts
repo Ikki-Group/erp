@@ -3,12 +3,13 @@ import Elysia from 'elysia'
 
 export function requestIdPlugin() {
 	return new Elysia({ name: 'request-id' })
-		.derive(({ set }) => {
+		.derive(({ request, set }) => {
+			const upstreamId = request.headers.get('x-request-id')
 			const span = trace.getSpan(context.active())
-			const requestId = span?.spanContext().traceId ?? ''
+			const requestId = upstreamId ?? span?.spanContext().traceId ?? crypto.randomUUID()
 
-			// Set the header in the response context
 			set.headers['X-Request-Id'] = requestId
+			return { requestId }
 		})
 		.as('global')
 }

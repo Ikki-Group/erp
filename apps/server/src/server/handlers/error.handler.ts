@@ -1,12 +1,10 @@
 import Elysia from 'elysia'
 import { treeifyError, ZodError } from 'zod'
 
-import { logger } from '@/core/logger'
-
 import { env } from '@/config/env'
-import { HttpError as NewHttpError } from '@/shared/errors/http-error'
+import { HttpError } from '@/shared/errors/http-error'
 
-import { HttpError } from './errors'
+import { logger } from '@/infra/logger'
 
 const isDev = env.NODE_ENV === 'development'
 
@@ -22,9 +20,9 @@ function buildErrorResponse(code: string, message: string, context?: unknown, st
 
 export const errorHandler = new Elysia({ name: 'error-handler' })
 	.onError(({ error, code, set, path }) => {
-		logger.error('Request error', { err: error, path, code })
 		if (error instanceof ZodError) {
 			set.status = 422
+			logger.warn('Validation error on {path}', { path, code })
 			return buildErrorResponse(
 				'VALIDATION_ERROR',
 				'Validation failed',
@@ -50,6 +48,7 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
 
 		if (code === 'PARSE') {
 			set.status = 400
+			logger.warn('Parse error on {path}', { path })
 			return buildErrorResponse(
 				'PARSE_ERROR',
 				'Failed to parse request body',
@@ -65,23 +64,15 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
 
 		if (error instanceof HttpError) {
 			set.status = error.statusCode
-			return buildErrorResponse(error.code, error.message, error.details, error.stack)
-		}
-
-		if (error instanceof NewHttpError) {
-			set.status = error.statusCode
+			logger.warn('HTTP error {code} on {path}', { code: error.code, path })
 			return buildErrorResponse(error.code, error.message, error.context, error.stack)
 		}
 
 		set.status = 500
-		let msg = 'Unhandled error'
-		let stack = ''
+		logger.error('Unhandled error on {path}', { err: error, path })
+		const msg = isDev && error instanceof Error ? error.message : 'Internal server error'
+		const stack = error instanceof Error ? error.stack : undefined
 
-		if (error instanceof Error) {
-			msg = error.message
-			stack = error.stack ?? ''
-		}
-
-		return buildErrorResponse('INTERNAL_SERVER_ERROR', msg, {}, stack)
+		return buildErrorResponse('INTERNAL_SERVER_ERROR', msg, undefined, stack)
 	})
 	.as('global')

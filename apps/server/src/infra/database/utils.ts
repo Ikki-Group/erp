@@ -1,4 +1,4 @@
-import { NotFoundError } from '@/core/http/errors'
+import { NotFoundError } from '@/shared/errors/http-error'
 
 /**
  * Extracts the first result from an array, or returns undefined.
@@ -24,8 +24,8 @@ export function takeFirst<T>(results: T[]): T | undefined {
 export function takeFirstOrThrow<T>(
 	results: T[],
 	message = 'Resource not found',
-	code?: string,
+	code = 'NOT_FOUND',
 ): T {
-	if (!results.length) throw new NotFoundError(message, code)
+	if (!results.length) throw new NotFoundError(message, { code })
 	return results[0]!
 }
