@@ -14,17 +14,21 @@ import { env } from '@/config/env'
 
 const spanProcessors: SpanProcessor[] = []
 
+const axiomHeaders = env.AXIOM_URL
+	? {
+			Authorization: `Bearer ${env.AXIOM_TOKEN}`,
+			'X-Axiom-Dataset': env.AXIOM_DATASET!,
+		}
+	: undefined
+
 let logExporter: OTLPLogExporter = new OTLPLogExporter()
 
-if (env.AXIOM_URL && env.AXIOM_TOKEN && env.AXIOM_DATASET) {
+if (axiomHeaders && env.AXIOM_URL) {
 	spanProcessors.push(
 		new BatchSpanProcessor(
 			new OTLPTraceExporter({
 				url: env.AXIOM_URL,
-				headers: {
-					Authorization: `Bearer ${env.AXIOM_TOKEN}`,
-					'X-Axiom-Dataset': env.AXIOM_DATASET,
-				},
+				headers: axiomHeaders,
 			}),
 			{
 				maxQueueSize: 2048,
@@ -36,10 +40,7 @@ if (env.AXIOM_URL && env.AXIOM_TOKEN && env.AXIOM_DATASET) {
 
 	logExporter = new OTLPLogExporter({
 		url: env.AXIOM_URL,
-		headers: {
-			Authorization: `Bearer ${env.AXIOM_TOKEN}`,
-			'X-Axiom-Dataset': env.AXIOM_DATASET,
-		},
+		headers: axiomHeaders,
 	})
 }
 
