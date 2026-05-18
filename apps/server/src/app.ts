@@ -1,12 +1,12 @@
 import { cors } from '@elysiajs/cors'
 import { Elysia } from 'elysia'
 
-import { errorHandler } from '@/core/http/error-handler'
-import { requestIdPlugin } from '@/core/http/request-id'
-
-import type { Modules } from './modules/_registry'
 import { logger } from '@/infra/logger'
 import { otel } from '@/infra/otel/otel'
+import { errorHandler } from '@/server/handlers/error.handler'
+import { requestIdPlugin } from '@/server/plugins/request-id.plugin'
+
+import type { Modules } from './modules/_registry'
 
 export function createApp(m: Modules): Elysia {
 	const app = new Elysia({ precompile: true })
