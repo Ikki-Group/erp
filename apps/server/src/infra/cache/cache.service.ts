@@ -15,7 +15,7 @@ const DEFAULT_KEYS = {
 	byId: (id: number | string) => `byId:${id}`,
 } satisfies CacheKeys
 
-export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
+export class CacheService<T extends CacheKeys = typeof DEFAULT_KEYS> {
 	public readonly cache: CacheProvider
 
 	constructor(
@@ -28,8 +28,8 @@ export class CacheServiceV2<T extends CacheKeys = typeof DEFAULT_KEYS> {
 
 	static readonly DEFAULT_KEYS = DEFAULT_KEYS
 
-	static createWithDefaultKeys(client: CacheClient, ns: ConfigNamespace): CacheServiceV2 {
-		return new CacheServiceV2(client, ns, DEFAULT_KEYS)
+	static createWithDefaultKeys(client: CacheClient, ns: ConfigNamespace): CacheService {
+		return new CacheService(client, ns, DEFAULT_KEYS)
 	}
 
 	#buildKey(key: KeyFactory): string {

@@ -15,7 +15,7 @@ export type LocationTypeEnum = z.infer<typeof LocationTypeEnum>
 
 export const LocationSchema = z.object({
 	id: zp.id,
-	code: zp.str.nullable(),
+	code: zp.str,
 	name: zp.str,
 	type: LocationTypeEnum,
 	description: zp.str.nullable(),
@@ -29,7 +29,7 @@ export type LocationSchema = z.infer<typeof LocationSchema>
 /* -------------------------------- MUTATION -------------------------------- */
 
 export const LocationMutationSchema = z.object({
-	code: zc.strTrimNullable.optional(),
+	code: zc.strTrim,
 	name: zc.strTrim.min(3).max(100),
 	type: LocationTypeEnum,
 	description: zc.strTrimNullable,

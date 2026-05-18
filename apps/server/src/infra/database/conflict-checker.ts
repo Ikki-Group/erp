@@ -1,10 +1,9 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, ne, type SQL } from 'drizzle-orm'
 
-import { logger } from '@/core/logger'
-
 import { db } from '@/db'
 
+import { logger } from '@/infra/logger'
 import { ConflictError } from '@/shared/errors/http-error'
 
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
@@ -96,7 +95,7 @@ export async function checkConflict<T extends Record<string, unknown>>(
 					field: f.field,
 					value: input[f.field],
 				})
-				throw new ConflictError(f.message, f.code)
+				throw new ConflictError(f.message, { code: f.code ?? 'CONFLICT_FIELD' })
 			}
 		}
 	})

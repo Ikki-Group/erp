@@ -1,13 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheServiceV2, type CacheClient } from '@/core/cache'
-import { RelationMap } from '@/core/utils/relation-map'
-
 import { locationsTable } from '@/db/schema'
 
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { RelationMap } from '@/shared/utils'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import { LocationRepo } from './location.repo'
@@ -17,7 +17,7 @@ import type {
 	LocationFilterSchema,
 } from './location.schema'
 
-const uniqueFields: ConflictField<'name'>[] = [
+const uniqueFields: ConflictField<{ name: string }>[] = [
 	{
 		field: 'name',
 		column: locationsTable.name,
@@ -28,19 +28,19 @@ const uniqueFields: ConflictField<'name'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', meta: { id } }),
+		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', context: { id } }),
 	createFailed: () =>
 		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
 }
 
 export class LocationService {
-	private readonly cache: CacheServiceV2
+	private readonly cache: CacheService
 
 	constructor(
 		private readonly repo: LocationRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'location')
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
 	}
 
 	async getListAll(): Promise<LocationSchema[]> {

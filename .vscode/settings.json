@@ -36,7 +36,7 @@
 	"[jsonc]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
 	},
-	"js/ts.experimental.useTsgo": true,
+	"js/ts.experimental.useTsgo": false,
 	"js/ts.tsserver.tracing.enabled": false,
 	"js/ts.tsserver.maxMemory": 4096,
 	"js/ts.suggest.autoImports": true,
