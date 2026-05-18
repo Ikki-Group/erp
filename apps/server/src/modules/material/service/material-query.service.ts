@@ -1,10 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
+import type { WithPaginationResult } from '@/types/pagination'
+
 import type { LocationMasterService } from '@/modules/location'
 
-import type { MaterialLocation } from '../domain/material-location.entity'
 import type { MaterialConversion } from '../domain/material-conversion.entity'
+import type { MaterialLocation } from '../domain/material-location.entity'
 import type { MaterialListFilter } from '../domain/ports'
 import type { MaterialQueryDetailDto } from '../dto/material-query.dto'
 import type { MaterialCategoryService } from './material-category.service'
@@ -40,7 +41,9 @@ export class MaterialQueryService {
 							this.deps.materialLocation.findByMaterialId(m.id),
 						])
 
-					const locationIds: number[] = materialLocations.map((ml: MaterialLocation) => ml.locationId)
+					const locationIds: number[] = materialLocations.map(
+						(ml: MaterialLocation) => ml.locationId,
+					)
 
 					return {
 						...m,

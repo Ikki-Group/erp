@@ -1,9 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type * as dto from './stock-transfer.dto'
 import { StockTransferRepo } from './stock-transfer.repo'

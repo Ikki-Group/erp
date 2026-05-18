@@ -1,9 +1,10 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import type { DbClient, DbTx } from '@/infra/database'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type {

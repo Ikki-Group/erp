@@ -1,12 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database/pagination'
 import { RelationMap } from '@/core/utils'
 
 import { uomsTable } from '@/db/schema'
 
 import { checkConflict, type ConflictField } from '@/infra/database'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { IUomRepo, UomFilter } from '../domain/ports'
 import type { Uom } from '../domain/uom.entity'

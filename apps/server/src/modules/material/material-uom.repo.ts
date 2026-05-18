@@ -1,7 +1,5 @@
 import { count, eq } from 'drizzle-orm'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
-
 import { uomsTable } from '@/db/schema'
 
 import {
@@ -14,6 +12,7 @@ import {
 	type DbClient,
 } from '@/infra/database'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type {

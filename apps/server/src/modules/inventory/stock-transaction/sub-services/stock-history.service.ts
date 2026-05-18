@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { record } from '@elysiajs/opentelemetry'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
-
 import { NotFoundError } from '@/shared/errors/http-error'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type {
 	StockTransactionFilterDto,

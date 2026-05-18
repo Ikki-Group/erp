@@ -1,19 +1,11 @@
 import { and, count, eq, or } from 'drizzle-orm'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
-
 import { locationsTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	takeFirst,
-	type DbClient,
-} from '@/infra/database'
+import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type {
@@ -52,7 +44,7 @@ export class LocationRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: this.db.select({ count: count() }).from(locationsTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(locationsTable).where(where),
 		})
 	}
 

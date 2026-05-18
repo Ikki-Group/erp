@@ -1,8 +1,8 @@
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database/pagination'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import { ProductCategoryRepo } from './category.repo'

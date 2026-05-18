@@ -1,7 +1,5 @@
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import type { WithPaginationResult } from '@/core/database/pagination'
-
 import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import {
@@ -13,6 +11,8 @@ import {
 	takeFirst,
 	type DbClient,
 } from '@/infra/database'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type {
 	MaterialLocationFilterSchema,

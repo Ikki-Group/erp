@@ -1,12 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/core/cache'
-import type { WithPaginationResult } from '@/core/database/pagination'
 import { RelationMap } from '@/core/utils'
 
 import { materialCategoriesTable } from '@/db/schema'
 
 import { checkConflict, type ConflictField } from '@/infra/database'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'
