@@ -115,7 +115,9 @@
 							"elementNamePattern": [
 								"@/lib/**",
 								"@/config/**",
-								"@/shared/**"
+								"@/shared/**",
+								"@/server/**",
+								"@/infra/**"
 							]
 						},
 						{
