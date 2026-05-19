@@ -1,6 +1,6 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { WithPaginationResult } from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -10,9 +10,9 @@ import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from 
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Audit log with ID ${id} not found`, 'AUDIT_LOG_NOT_FOUND'),
+		new NotFoundError(`Audit log with ID ${id} not found`, { code: 'AUDIT_LOG_NOT_FOUND' }),
 	createFailed: () =>
-		new InternalServerError('Audit log creation failed', 'AUDIT_LOG_CREATE_FAILED'),
+		new InternalServerError('Audit log creation failed', { code: 'AUDIT_LOG_CREATE_FAILED' }),
 }
 
 export class AuditLogService {
@@ -22,13 +22,13 @@ export class AuditLogService {
 		private readonly repo: AuditLogRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'audit-log', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'audit-log')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<AuditLogSchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
+		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
