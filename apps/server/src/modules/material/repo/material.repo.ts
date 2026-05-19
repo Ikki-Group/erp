@@ -90,7 +90,7 @@ export class MaterialRepo implements IMaterialRepo {
 			locationExclude,
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: ({ limit, offset }) =>
 				this.db
 					.select()

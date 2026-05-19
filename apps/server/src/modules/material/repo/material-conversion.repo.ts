@@ -32,7 +32,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			uomId === undefined ? undefined : eq(materialConversionsTable.uomId, uomId),
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: ({ limit, offset }) =>
 				this.db
 					.select()
