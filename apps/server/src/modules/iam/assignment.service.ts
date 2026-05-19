@@ -9,7 +9,7 @@ import type { UserAssignmentFilterSchema } from './assignment.schema'
 import { IAM_CONFIG, SYSTEM_ROLES } from './constants'
 
 export class UserAssignmentService {
-	constructor(private readonly repo = new UserAssignmentRepo()) {}
+	constructor(private readonly repo: UserAssignmentRepo) {}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 

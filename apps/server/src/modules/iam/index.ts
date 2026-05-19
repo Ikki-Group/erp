@@ -1,11 +1,12 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
+import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
 import type { LocationServiceModule } from '@/modules/location'
 
+import { UserAssignmentRepo } from './assignment.repo'
 import { createAssignmentRoute } from './assignment.route'
 import { UserAssignmentService } from './assignment.service'
 import { RoleRepo } from './role.repo'
@@ -30,9 +31,10 @@ export class IamServiceModule {
 	constructor(db: DbClient, cacheClient: CacheClient, deps: IamServiceModuleDeps) {
 		const roleRepo = new RoleRepo(db)
 		const userRepo = new UserRepo(db)
+		const assignmentRepo = new UserAssignmentRepo(db)
 
 		this.role = new RoleService(roleRepo, cacheClient)
-		this.assignment = new UserAssignmentService()
+		this.assignment = new UserAssignmentService(assignmentRepo)
 		this.user = new UserService(
 			{
 				location: deps.location,
@@ -69,3 +71,4 @@ export * from './user-read.schema'
 export type { RoleService } from './role.service'
 export type { UserService } from './user.service'
 export type { UserAssignmentService } from './assignment.service'
+export type { UserReadService } from './user-read.service'

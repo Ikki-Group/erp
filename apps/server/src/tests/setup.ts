@@ -1,4 +1,4 @@
-import { createCache } from '@/core/cache'
+import { createCache } from '@/infra/cache'
 
 import { db } from '@/db'
 

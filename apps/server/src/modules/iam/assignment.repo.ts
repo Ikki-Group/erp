@@ -1,9 +1,8 @@
 import { and, count, eq, inArray } from 'drizzle-orm'
 
-import { db } from '@/db'
 import { userAssignmentsTable } from '@/db/schema'
 
-import { paginate, sortBy } from '@/infra/database'
+import { paginate, sortBy, type DbClient } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId } from '@/types/utils'
@@ -16,6 +15,8 @@ import type {
 } from './assignment.schema'
 
 export class UserAssignmentRepo {
+	constructor(private readonly db: DbClient) {}
+
 	/* --------------------------------- PRIVATE -------------------------------- */
 
 	#buildWhereClause(
@@ -38,7 +39,7 @@ export class UserAssignmentRepo {
 
 		return paginate<UserAssignmentSchema>({
 			data: ({ limit, offset }) =>
-				db
+				this.db
 					.select()
 					.from(userAssignmentsTable)
 					.where(where)
@@ -46,19 +47,19 @@ export class UserAssignmentRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: db.select({ count: count() }).from(userAssignmentsTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(userAssignmentsTable).where(where),
 		})
 	}
 
 	async getList(
 		filter: OmitPaginationQuery<UserAssignmentFilterSchema>,
 	): Promise<UserAssignmentSchema[]> {
-		return db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
+		return this.db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
 	}
 
 	/** Get assignments for multiple users in a single query */
 	async getListByUserIds(userIds: number[]): Promise<UserAssignmentSchema[]> {
-		return db
+		return this.db
 			.select()
 			.from(userAssignmentsTable)
 			.where(inArray(userAssignmentsTable.userId, userIds))
@@ -71,7 +72,7 @@ export class UserAssignmentRepo {
 		assignments: UserAssignmentUpsertSchema[],
 		actorId: ActorId,
 	): Promise<void> {
-		await db.transaction(async (tx) => {
+		await this.db.transaction(async (tx) => {
 			await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
 
 			if (assignments.length > 0) {
@@ -89,7 +90,7 @@ export class UserAssignmentRepo {
 	}
 
 	async removeByUserAndLocation(userId: number, locationId: number): Promise<void> {
-		await db
+		await this.db
 			.delete(userAssignmentsTable)
 			.where(
 				and(
@@ -101,7 +102,7 @@ export class UserAssignmentRepo {
 
 	/** Remove multiple users from a location in a single query */
 	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
-		await db
+		await this.db
 			.delete(userAssignmentsTable)
 			.where(
 				and(
@@ -118,7 +119,7 @@ export class UserAssignmentRepo {
 		roleId: number,
 		actorId: ActorId,
 	): Promise<void> {
-		await db
+		await this.db
 			.update(userAssignmentsTable)
 			.set({
 				roleId,
@@ -141,7 +142,7 @@ export class UserAssignmentRepo {
 		assignmentsByUserId: Map<number, UserAssignmentUpsertSchema[]>,
 		actorId: ActorId,
 	): Promise<void> {
-		await db.transaction(async (tx) => {
+		await this.db.transaction(async (tx) => {
 			await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
 
 			const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []

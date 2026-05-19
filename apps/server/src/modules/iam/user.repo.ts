@@ -6,11 +6,10 @@ import {
 	paginate,
 	searchFilter,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
 	type DbClient,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -64,7 +63,7 @@ export class UserRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: this.db.select({ count: count() }).from(usersTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(usersTable).where(where),
 		})
 	}
 
@@ -86,8 +85,11 @@ export class UserRepo {
 			.limit(1)
 			.then(takeFirst)
 
-		if (!user) return null
-		return user
+		if (!user || !user.passwordHash) return null
+		return {
+			...user,
+			passwordHash: user.passwordHash,
+		}
 	}
 
 	async getPasswordHash(id: number): Promise<string | null> {

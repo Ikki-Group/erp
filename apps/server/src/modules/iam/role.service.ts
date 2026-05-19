@@ -1,20 +1,21 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheServiceV2, type CacheClient } from '@/core/cache'
-import { RelationMap } from '@/core/utils/relation-map'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { RelationMap } from '@/shared/utils'
 
 import { rolesTable } from '@/db/schema'
 
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import { SYSTEM_ROLES } from './constants'
 import { RoleRepo } from './role.repo'
 import type { RoleSchema, RoleMutationSchema, RoleFilterSchema } from './role.schema'
 
-const roleConflictFields: ConflictField<'code' | 'name'>[] = [
+const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
 	{
 		field: 'code',
 		column: rolesTable.code,
@@ -31,7 +32,7 @@ const roleConflictFields: ConflictField<'code' | 'name'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError('Role not found', { code: 'ROLE_NOT_FOUND', meta: { id } }),
+		new NotFoundError('Role not found', { code: 'ROLE_NOT_FOUND', context: { id } }),
 	createFailed: () =>
 		new InternalServerError('Role creation failed', { code: 'ROLE_CREATE_FAILED' }),
 	updateSystemRole: () =>
@@ -45,13 +46,13 @@ const err = {
 }
 
 export class RoleService {
-	private readonly cache: CacheServiceV2
+	private readonly cache: CacheService
 
 	constructor(
 		private readonly repo: RoleRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'iam.role')
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.role')
 	}
 
 	async getListAll(): Promise<RoleSchema[]> {

@@ -6,11 +6,10 @@ import {
 	paginate,
 	searchFilter,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
 	type DbClient,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -36,7 +35,7 @@ export class RoleRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: this.db.select({ count: count() }).from(rolesTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(rolesTable).where(where),
 		})
 	}
 

@@ -27,7 +27,7 @@ export const rolesTable = pgTable(
 			.array()
 			.notNull()
 			.default(sql`'{}'::text[]`),
-		isBuiltIn: boolean('is_built_in').notNull().default(false),
+		isSystem: boolean('is_built_in').notNull().default(false),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('roles_code_idx').on(t.code)],
@@ -74,6 +74,7 @@ export const usersTable = pgTable(
 		email: text('email').notNull(),
 		username: text('username').notNull(),
 		fullname: text('fullname').notNull(),
+		pinCode: text('pin_code'),
 
 		/**
 		 * Null for isBuiltIn service accounts that authenticate via other means
@@ -82,7 +83,7 @@ export const usersTable = pgTable(
 		passwordHash: text('password_hash'),
 
 		isRoot: boolean('is_root').notNull().default(false),
-		isBuiltIn: boolean('is_built_in').notNull().default(false),
+		isSystem: boolean('is_built_in').notNull().default(false),
 		isActive: boolean('is_active').notNull().default(true),
 
 		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {

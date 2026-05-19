@@ -1,4 +1,4 @@
-import type { IamServiceModule, RoleService, UserService } from '@/modules/iam'
+import type { IamServiceModule, RoleService, UserService, UserReadService } from '@/modules/iam'
 
 import { testCtx } from '../setup'
 import { describe, test, expect, beforeAll } from 'bun:test'
@@ -31,11 +31,13 @@ describe('services/iam', () => {
 	let iamSvc: IamServiceModule
 	let roleSvc: RoleService
 	let userSvc: UserService
+	let userReadSvc: UserReadService
 
 	beforeAll(async () => {
 		iamSvc = testCtx.m.iam
 		roleSvc = iamSvc.role
 		userSvc = iamSvc.user
+		userReadSvc = iamSvc.userRead
 	})
 
 	test('role CRUD', async () => {
@@ -77,7 +79,7 @@ describe('services/iam', () => {
 		const created = await userSvc.handleCreate(mockUser, 1)
 		expect(created.id).toBeDefined()
 
-		const detail = await userSvc.handleDetail(created.id)
+		const detail = await userReadSvc.handleDetail(created.id)
 		expect(detail.id).toBe(created.id)
 
 		const updated = await userSvc.handleUpdate(

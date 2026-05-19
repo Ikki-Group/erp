@@ -1,13 +1,14 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheServiceV2, type CacheClient } from '@/core/cache'
-import { RelationMap } from '@/core/utils/relation-map'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { RelationMap } from '@/shared/utils'
 
 import { usersTable } from '@/db/schema'
 
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type { LocationServiceModule } from '@/modules/location'
@@ -24,7 +25,7 @@ import type {
 	UserAdminUpdatePasswordSchema,
 } from './user.schema'
 
-const userConflictFields: ConflictField<'email' | 'username'>[] = [
+const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
 	{
 		field: 'email',
 		column: usersTable.email,
@@ -55,14 +56,14 @@ interface ServiceDeps {
 }
 
 export class UserService {
-	private readonly cache: CacheServiceV2
+	private readonly cache: CacheService
 
 	constructor(
 		private readonly s: ServiceDeps,
 		private readonly r: UserRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = CacheServiceV2.createWithDefaultKeys(cacheClient, 'iam.user')
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user')
 	}
 
 	/* --------------------------------- PUBLIC -------------------------------- */
