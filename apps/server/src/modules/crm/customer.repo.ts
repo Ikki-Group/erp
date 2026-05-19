@@ -5,12 +5,10 @@ import { customersTable, customerLoyaltyTransactionsTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -41,7 +39,7 @@ export class CustomerRepo {
 			phone === undefined ? undefined : eq(customersTable.phone, phone),
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: ({ limit, offset }) =>
 				this.db
 					.select()
@@ -52,7 +50,7 @@ export class CustomerRepo {
 					.offset(offset)
 					.then((rows) => rows.map((r) => CustomerSchema.parse(r))),
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(customersTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(customersTable).where(where),
 		})
 	}
 
