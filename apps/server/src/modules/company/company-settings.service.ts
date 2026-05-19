@@ -1,4 +1,4 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -13,11 +13,11 @@ import type {
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Company settings with ID ${id} not found`, 'COMPANY_SETTINGS_NOT_FOUND'),
+		new NotFoundError(`Company settings with ID ${id} not found`, { code: 'COMPANY_SETTINGS_NOT_FOUND' }),
 	notConfigured: () =>
-		new InternalServerError('Company settings not configured', 'COMPANY_SETTINGS_NOT_CONFIGURED'),
+		new InternalServerError('Company settings not configured', { code: 'COMPANY_SETTINGS_NOT_CONFIGURED' }),
 	createFailed: () =>
-		new InternalServerError('Company settings creation failed', 'COMPANY_SETTINGS_CREATE_FAILED'),
+		new InternalServerError('Company settings creation failed', { code: 'COMPANY_SETTINGS_CREATE_FAILED' }),
 }
 
 export class CompanySettingsService {
@@ -27,13 +27,13 @@ export class CompanySettingsService {
 		private readonly repo: CompanySettingsRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'company-settings', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'company-settings')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async get(): Promise<CompanySettingsSchema> {
-		const result = await this.cache.getOrSetSkipUndefined({
+		const result = await this.cache.getOrSetWithSkip({
 			key: 'list',
 			factory: () => this.repo.get(),
 		})
@@ -42,7 +42,7 @@ export class CompanySettingsService {
 	}
 
 	async getById(id: number): Promise<CompanySettingsSchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
+		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
@@ -66,8 +66,7 @@ export class CompanySettingsService {
 		if (existing) {
 			throw new InternalServerError(
 				'Company settings already exist. Use update instead.',
-				'COMPANY_SETTINGS_ALREADY_EXISTS',
-			)
+				{ code: 'COMPANY_SETTINGS_ALREADY_EXISTS' })
 		}
 
 		const result = await this.repo.create(data, actorId)

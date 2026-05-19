@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm'
 
 import { companySettingsTable } from '@/db/schema'
 
-import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/infra/database'
+import { takeFirst, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
