@@ -2,6 +2,7 @@ import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
+import { UnauthorizedError } from '@/shared/errors/http-error'
 import { res } from '@/shared/http/response'
 
 import { UserSchema } from '@/modules/iam'
@@ -24,6 +25,9 @@ export function initAuthRoute(svc: AuthService) {
 			'/me',
 			async function me({ auth }) {
 				const userWithDetails = await svc.getById(auth.user!.id)
+				if (!userWithDetails) {
+					throw new UnauthorizedError('User not found', { code: 'AUTH_USER_NOT_FOUND' })
+				}
 				return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
 			},
 			{ response: createSuccessResponseSchema(UserSchema), auth: true },

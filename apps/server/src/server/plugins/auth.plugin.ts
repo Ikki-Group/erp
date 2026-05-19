@@ -1,4 +1,5 @@
 import { record } from '@elysiajs/opentelemetry'
+import { context, trace } from '@opentelemetry/api'
 import { Elysia } from 'elysia'
 
 import { UnauthorizedError } from '@/shared/errors/http-error'
@@ -34,13 +35,13 @@ export function createAuthPlugin(authService: AuthServiceModule) {
 					const token = rawToken.replace(/^Bearer\s+/i, '')
 					if (!token) return { auth }
 
-					// const user = await authService.auth.verifyToken(token).catch(() => null)
-					// if (user) {
-					// 	auth = new AuthContext(user)
-					// 	const userId = user.id.toString()
-					// 	set.headers['X-User-Id'] = userId
-					// 	getCurrentSpan()?.setAttribute('enduser.id', userId)
-					// }
+					const user = await authService.auth.verifyToken(token).catch(() => null)
+					if (user) {
+						auth = new AuthContext(user)
+						const userId = user.id.toString()
+						set.headers['X-User-Id'] = userId
+						trace.getSpan(context.active())?.setAttribute('enduser.id', userId)
+					}
 				}
 
 				return { auth }

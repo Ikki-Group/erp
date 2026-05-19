@@ -2,7 +2,7 @@ import Elysia from 'elysia'
 
 import type { SessionServiceModule } from '@/modules/session'
 
-import type { UserService } from '../iam'
+import type { IamServiceModule } from '../iam'
 import { initAuthRoute } from './auth.route'
 import type { AuthLoginSchema, AuthOutputSchema } from './auth.schema'
 import { AuthService } from './auth.service'
@@ -11,14 +11,14 @@ export type { AuthLoginSchema, AuthOutputSchema }
 
 interface AuthServiceModuleDeps {
 	session: SessionServiceModule
-	user: UserService
+	iam: IamServiceModule
 }
 
 export class AuthServiceModule {
 	public readonly auth: AuthService
 
 	constructor(private readonly deps: AuthServiceModuleDeps) {
-		this.auth = new AuthService(this.deps.user, this.deps.session.session)
+		this.auth = new AuthService(this.deps.iam, this.deps.session.session)
 	}
 }
 

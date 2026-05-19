@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { logger } from '@/core/logger'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { logger } from '@/infra/logger'
 
 import { env } from '@/config/env'
 
@@ -18,15 +18,15 @@ export class SessionService {
 		private readonly repo: SessionRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'session', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'session')
 	}
 
 	/**
 	 * Finds a single session by its ID. Cached.
 	 */
 	async getById(id: number): Promise<SessionSchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
-			key: `byId:${id}`,
+		return this.cache.getOrSetWithSkip({
+			key: this.cache.keys.byId(id),
 			factory: () => this.repo.getById(id),
 		})
 	}
@@ -85,7 +85,7 @@ export class SessionService {
 	 */
 	async deleteSession(id: number): Promise<void> {
 		await this.repo.invalidate(id)
-		await this.cache.deleteMany({ keys: [`byId:${id}`] })
+		await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
 	}
 
 	/**

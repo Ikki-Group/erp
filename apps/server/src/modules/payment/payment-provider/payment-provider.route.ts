@@ -43,8 +43,8 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const { id } = await service.handleCreate(body, auth.userId)
-				return res.created({ id })
+				const { id } = await service.handleCreate(body, auth.userId.toString())
+				return res.created({ id: Number(id) })
 			},
 			{
 				body: PaymentProviderCreateDto,
@@ -55,8 +55,8 @@ export function initPaymentProviderRoute(service: PaymentProviderService) {
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id } = await service.handleUpdate(body.id, body, auth.userId)
-				return res.ok({ id })
+				const { id } = await service.handleUpdate(body.id, body, auth.userId.toString())
+				return res.ok({ id: Number(id) })
 			},
 			{
 				body: PaymentProviderUpdateDto,
