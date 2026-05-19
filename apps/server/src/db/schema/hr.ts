@@ -1,95 +1,89 @@
-// import { integer, numeric, pgTable, text, timestamp, time } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, timestamp, time } from 'drizzle-orm/pg-core'
 
-// import {
-// 	attendanceStatusEnum,
-// 	leaveStatusEnum,
-// 	leaveTypeEnum,
-// 	payrollAdjustmentTypeEnum,
-// 	payrollStatusEnum,
-// } from './_helpers'
-// import { auditBasicColumns, pk } from './_helpers.ts'
-// import { employeesTable } from './employee'
-// import { locationsTable } from './location'
+import { attendanceStatusEnum, leaveStatusEnum, leaveTypeEnum, payrollAdjustmentTypeEnum, payrollStatusEnum } from './_enums'
+import { auditFullColumns, pk } from './_helpers'
+import { employeesTable } from './employee'
+import { locationsTable } from './location'
 
-// export const shiftsTable = pgTable('shifts', {
-// 	...pk,
-// 	name: text().notNull(), // e.g., 'Morning Shift', 'Night Shift'
-// 	startTime: time('start_time').notNull(),
-// 	endTime: time('end_time').notNull(),
-// 	note: text(),
-// 	...auditBasicColumns,
-// })
+export const shiftsTable = pgTable('shifts', {
+	...pk,
+	name: text().notNull(), // e.g., 'Morning Shift', 'Night Shift'
+	startTime: time('start_time').notNull(),
+	endTime: time('end_time').notNull(),
+	note: text(),
+	...auditFullColumns,
+})
 
-// export const attendancesTable = pgTable('attendances', {
-// 	...pk,
-// 	employeeId: integer('employee_id')
-// 		.notNull()
-// 		.references(() => employeesTable.id),
-// 	locationId: integer('location_id')
-// 		.notNull()
-// 		.references(() => locationsTable.id),
-// 	shiftId: integer('shift_id').references(() => shiftsTable.id),
+export const attendancesTable = pgTable('attendances', {
+	...pk,
+	employeeId: integer('employee_id')
+		.notNull()
+		.references(() => employeesTable.id),
+	locationId: integer('location_id')
+		.notNull()
+		.references(() => locationsTable.id),
+	shiftId: integer('shift_id').references(() => shiftsTable.id),
 
-// 	date: timestamp({ mode: 'date' }).notNull().defaultNow(),
-// 	clockIn: timestamp('clock_in', { mode: 'date' }),
-// 	clockOut: timestamp('clock_out', { mode: 'date' }),
+	date: timestamp({ mode: 'date' }).notNull().defaultNow(),
+	clockIn: timestamp('clock_in', { mode: 'date' }),
+	clockOut: timestamp('clock_out', { mode: 'date' }),
 
-// 	status: attendanceStatusEnum().notNull().default('present'),
-// 	note: text(),
+	status: attendanceStatusEnum().notNull().default('present'),
+	note: text(),
 
-// 	...auditBasicColumns,
-// })
+	...auditFullColumns,
+})
 
-// export const payrollBatchesTable = pgTable('payroll_batches', {
-// 	...pk,
-// 	name: text().notNull(), // e.g., 'March 2024 Payroll'
-// 	periodMonth: integer('period_month').notNull(),
-// 	periodYear: integer('period_year').notNull(),
-// 	status: payrollStatusEnum().notNull().default('draft'),
-// 	totalAmount: numeric('total_amount').notNull().default('0'),
-// 	note: text(),
-// 	...auditBasicColumns,
-// })
+export const payrollBatchesTable = pgTable('payroll_batches', {
+	...pk,
+	name: text().notNull(), // e.g., 'March 2024 Payroll'
+	periodMonth: integer('period_month').notNull(),
+	periodYear: integer('period_year').notNull(),
+	status: payrollStatusEnum().notNull().default('draft'),
+	totalAmount: numeric('total_amount').notNull().default('0'),
+	note: text(),
+	...auditFullColumns,
+})
 
-// export const payrollItemsTable = pgTable('payroll_items', {
-// 	...pk,
-// 	batchId: integer('batch_id')
-// 		.notNull()
-// 		.references(() => payrollBatchesTable.id),
-// 	employeeId: integer('employee_id')
-// 		.notNull()
-// 		.references(() => employeesTable.id),
+export const payrollItemsTable = pgTable('payroll_items', {
+	...pk,
+	batchId: integer('batch_id')
+		.notNull()
+		.references(() => payrollBatchesTable.id),
+	employeeId: integer('employee_id')
+		.notNull()
+		.references(() => employeesTable.id),
 
-// 	baseSalary: numeric('base_salary').notNull().default('0'),
-// 	adjustmentsAmount: numeric('adjustments_amount').notNull().default('0'),
-// 	serviceChargeAmount: numeric('service_charge_amount').notNull().default('0'),
-// 	totalAmount: numeric('total_amount').notNull().default('0'),
+	baseSalary: numeric('base_salary').notNull().default('0'),
+	adjustmentsAmount: numeric('adjustments_amount').notNull().default('0'),
+	serviceChargeAmount: numeric('service_charge_amount').notNull().default('0'),
+	totalAmount: numeric('total_amount').notNull().default('0'),
 
-// 	note: text(),
-// 	...auditBasicColumns,
-// })
+	note: text(),
+	...auditFullColumns,
+})
 
-// export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
-// 	...pk,
-// 	payrollItemId: integer('payroll_item_id')
-// 		.notNull()
-// 		.references(() => payrollItemsTable.id),
-// 	type: payrollAdjustmentTypeEnum().notNull(),
-// 	amount: numeric('amount').notNull().default('0'),
-// 	reason: text().notNull(),
-// 	...auditBasicColumns,
-// })
+export const payrollAdjustmentsTable = pgTable('payroll_adjustments', {
+	...pk,
+	payrollItemId: integer('payroll_item_id')
+		.notNull()
+		.references(() => payrollItemsTable.id),
+	type: payrollAdjustmentTypeEnum().notNull(),
+	amount: numeric('amount').notNull().default('0'),
+	reason: text().notNull(),
+	...auditFullColumns,
+})
 
-// export const leaveRequestsTable = pgTable('leave_requests', {
-// 	...pk,
-// 	employeeId: integer('employee_id')
-// 		.notNull()
-// 		.references(() => employeesTable.id, { onDelete: 'cascade' }),
-// 	type: leaveTypeEnum().notNull(),
-// 	status: leaveStatusEnum().notNull().default('pending'),
-// 	dateStart: timestamp('date_start', { mode: 'date' }).notNull(),
-// 	dateEnd: timestamp('date_end', { mode: 'date' }).notNull(),
-// 	reason: text().notNull(),
-// 	note: text(),
-// 	...auditBasicColumns,
-// })
+export const leaveRequestsTable = pgTable('leave_requests', {
+	...pk,
+	employeeId: integer('employee_id')
+		.notNull()
+		.references(() => employeesTable.id, { onDelete: 'cascade' }),
+	type: leaveTypeEnum().notNull(),
+	status: leaveStatusEnum().notNull().default('pending'),
+	dateStart: timestamp('date_start', { mode: 'date' }).notNull(),
+	dateEnd: timestamp('date_end', { mode: 'date' }).notNull(),
+	reason: text().notNull(),
+	note: text(),
+	...auditFullColumns,
+})

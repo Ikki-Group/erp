@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from './_helpers.ts'
+import { auditBasicColumns, pk } from './_helpers'
 import { locationsTable } from './location.ts'
 
 /**

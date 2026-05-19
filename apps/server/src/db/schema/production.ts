@@ -1,36 +1,36 @@
-// import { integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-// import { workOrderStatusEnum } from './_helpers'
-// import { auditBasicColumns, pk } from './_helpers.ts'
-// import { locationsTable } from './location'
-// import { recipesTable } from './recipe'
+import { workOrderStatusEnum } from './_enums'
+import { auditFullColumns, pk } from './_helpers'
+import { locationsTable } from './location'
+import { recipesTable } from './recipe'
 
-// export const workOrdersTable = pgTable('work_orders', {
-// 	...pk,
-// 	recipeId: integer()
-// 		.notNull()
-// 		.references(() => recipesTable.id),
-// 	locationId: integer()
-// 		.notNull()
-// 		.references(() => locationsTable.id),
+export const workOrdersTable = pgTable('work_orders', {
+	...pk,
+	recipeId: integer()
+		.notNull()
+		.references(() => recipesTable.id),
+	locationId: integer()
+		.notNull()
+		.references(() => locationsTable.id),
 
-// 	status: workOrderStatusEnum().notNull().default('draft'),
+	status: workOrderStatusEnum().notNull().default('draft'),
 
-// 	// Quantity we expect to produce
-// 	expectedQty: numeric({ precision: 18, scale: 4 }).notNull(),
-// 	// Quantity actually produced (recorded on completion)
-// 	actualQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+	// Quantity we expect to produce
+	expectedQty: numeric({ precision: 18, scale: 4 }).notNull(),
+	// Quantity actually produced (recorded on completion)
+	actualQty: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
 
-// 	note: text(),
+	note: text(),
 
-// 	// Total cost of all materials used (valued at completion time)
-// 	totalCost: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
+	// Total cost of all materials used (valued at completion time)
+	totalCost: numeric({ precision: 18, scale: 4 }).notNull().default('0'),
 
-// 	startedAt: timestamp(),
-// 	completedAt: timestamp(),
+	startedAt: timestamp(),
+	completedAt: timestamp(),
 
-// 	...auditBasicColumns,
-// })
+	...auditFullColumns,
+})
 
-// export type WorkOrder = typeof workOrdersTable.$inferSelect
-// export type NewWorkOrder = typeof workOrdersTable.$inferInsert
+export type WorkOrder = typeof workOrdersTable.$inferSelect
+export type NewWorkOrder = typeof workOrdersTable.$inferInsert

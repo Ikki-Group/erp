@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { stockAdjustmentTypeEnum, transactionTypeEnum } from './_enums'
-import { auditFullColumns, pk } from './_helpers.ts'
+import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 

@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from './_helpers.ts'
+import { auditBasicColumns, pk } from './_helpers'
 
 /**
  * Units of Measure Table

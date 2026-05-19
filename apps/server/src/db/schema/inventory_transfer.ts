@@ -1,6 +1,6 @@
 import { index, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { auditFullColumns, pk } from './_helpers.ts'
+import { auditFullColumns, pk } from './_helpers'
 import { locationsTable } from './location'
 import { materialsTable } from './material'
 

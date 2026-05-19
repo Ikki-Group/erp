@@ -1,120 +1,27 @@
-export { locationTypeEnum, locationsTable } from './location'
-export { sessionsTable } from './session'
-export { uomsTable } from './uom'
-export { salesTypesTable } from './sales-type'
-
-export { rolesTable, usersTable, userAssignmentsTable } from './iam'
-export {
-	materialTypeEnum,
-	materialCategoriesTable,
-	materialsTable,
-	materialConversionsTable,
-	materialLocationsTable,
-	materialStockSnapshotsTable,
-} from './material'
-export {
-	productStatusEnum,
-	productCategoriesTable,
-	productsTable,
-	productPricesTable,
-	productVariantsTable,
-	productVariantPricesTable,
-} from './product'
-
-export { recipesTable, recipeItemsTable } from './recipe'
-
-// // ─── Re-export Tables & Enums ─────────────────────────────────────────────────
-
-// export {
-// 	locationTypeEnum,
-// 	materialTypeEnum,
-// 	productStatusEnum,
-// 	transactionTypeEnum,
-// 	invoiceStatusEnum,
-// 	paymentMethodEnum,
-// 	paymentTypeEnum,
-// 	stockAdjustmentTypeEnum,
-// 	leaveStatusEnum,
-// 	leaveTypeEnum,
-// 	accountTypeEnum,
-// 	expenditureTypeEnum,
-// 	expenditureStatusEnum,
-// 	attendanceStatusEnum,
-// 	payrollStatusEnum,
-// 	payrollAdjustmentTypeEnum,
-// 	salesOrderStatusEnum,
-// 	salesOrderSourceEnum,
-// 	workOrderStatusEnum,
-// 	mokaScrapTypeEnum,
-// 	mokaScrapStatusEnum,
-// 	integrationProviderEnum,
-// 	mokaSyncTriggerModeEnum,
-// 	purchaseRequestStatusEnum,
-// 	purchaseOrderStatusEnum,
-// 	goodsReceiptStatusEnum,
-// 	paymentMethodCategoryEnum,
-// } from './_enums'
-// export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-export {
-	stockSummariesTable,
-	stockTransactionsTable,
-	stockBatchesTable,
-	stockAdjustmentsTable,
-	stockAdjustmentItemsTable,
-} from './inventory'
-export {
-	stockTransfersTable,
-	stockTransferItemsTable,
-	transferStatusEnum,
-} from './inventory_transfer'
-// export { locationsTable } from './location'
-// export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
-// export {
-// 	salesExternalRefsTable,
-// 	salesOrderBatchesTable,
-// 	salesOrderItemsTable,
-// 	salesOrdersTable,
-// 	salesVoidsTable,
-// 	salesRefundsTable,
-// 	salesInvoicesTable,
-// 	salesInvoiceItemsTable,
-// } from './sales'
-// export { suppliersTable } from './supplier'
-// export {
-// 	customersTable,
-// 	customerLoyaltyTransactionsTable,
-// 	customerTierEnum,
-// 	loyaltyTransactionTypeEnum,
-// } from './customer'
-// export { companySettingsTable } from './company'
-// export { employeesTable } from './employee'
-// export { taxesTable } from './tax'
-// export { paymentsTable, paymentInvoicesTable } from './finance_payment'
-// export { paymentMethodsTable } from './payment_methods'
-// export { paymentProvidersTable } from './payment_provider'
-// export { locationPaymentMethodsTable } from './location_payment_method'
-// export { accountsTable, expendituresTable, journalEntriesTable, journalItemsTable } from './finance'
-// export { auditLogsTable, auditActionEnum } from './audit'
-// export {
-// 	attendancesTable,
-// 	payrollAdjustmentsTable,
-// 	payrollBatchesTable,
-// 	payrollItemsTable,
-// 	shiftsTable,
-// 	leaveRequestsTable,
-// } from './hr'
-// export {
-// 	goodsReceiptNoteItemsTable,
-// 	goodsReceiptNotesTable,
-// 	purchaseOrderItemsTable,
-// 	purchaseOrdersTable,
-// 	purchaseRequestItemsTable,
-// 	purchaseRequestsTable,
-// 	purchaseInvoicesTable,
-// 	purchaseInvoiceItemsTable,
-// } from './purchasing'
-// export { workOrdersTable } from './production'
-
-// // ─── Re-export Relations ──────────────────────────────────────────────────────
-
-// export { relations } from './relations'
+export * from './_enums'
+export * from './audit'
+export * from './company'
+export * from './customer'
+export * from './employee'
+export * from './finance'
+export * from './finance_payment'
+export * from './hr'
+export * from './iam'
+export * from './inventory'
+export * from './inventory_transfer'
+export * from './location'
+export * from './location_payment_method'
+export * from './material'
+export * from './moka'
+export * from './payment_methods'
+export * from './payment_provider'
+export * from './product'
+export * from './production'
+export * from './purchasing'
+export * from './recipe'
+export * from './sales-type'
+export * from './sales'
+export * from './session'
+export * from './supplier'
+export * from './tax'
+export * from './uom'

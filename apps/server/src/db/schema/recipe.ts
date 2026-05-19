@@ -10,7 +10,7 @@ import {
 	uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from './_helpers.ts'
+import { auditFullColumns, pk } from './_helpers'
 import { materialsTable } from './material.ts'
 import { productsTable, productVariantsTable } from './product.ts'
 import { uomsTable } from './uom.ts'
@@ -79,7 +79,7 @@ export const recipesTable = pgTable(
 
 		instructions: text('instructions'),
 		isActive: boolean('is_active').notNull().default(true),
-		...auditBasicColumns,
+		...auditFullColumns,
 	},
 	(t) => [
 		// One recipe per material
@@ -164,7 +164,7 @@ export const recipeItemsTable = pgTable(
 		scrapPercentage: numeric('scrap_percentage', { precision: 5, scale: 2 }).notNull().default('0'),
 		sortOrder: integer('sort_order').notNull().default(0),
 		notes: text('notes'),
-		...auditBasicColumns,
+		...auditFullColumns,
 	},
 	(t) => [
 		// No duplicate ingredients within the same recipe

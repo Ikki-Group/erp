@@ -1,6 +1,6 @@
 import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { pk } from './_helpers.ts'
+import { pk } from './_helpers'
 import { usersTable } from './iam.ts'
 
 /**

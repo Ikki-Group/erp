@@ -1,6 +1,6 @@
 import { boolean, pgEnum, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core'
 
-import { auditBasicColumns, pk } from './_helpers.ts'
+import { auditBasicColumns, pk } from './_helpers'
 
 export const locationTypeEnum = pgEnum('location_type', ['store', 'warehouse'])
 
