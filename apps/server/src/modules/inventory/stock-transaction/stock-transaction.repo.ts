@@ -9,11 +9,11 @@ import type { WithPaginationResult } from '@/types/pagination'
 import { paginate, takeFirst, type DbClient } from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
 
-import type {
+import { 
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
-} from './stock-transaction.dto'
+ } from './stock-transaction.dto'
 
 export class StockTransactionRepo {
 	constructor(private readonly db: DbClient) {}
@@ -55,7 +55,7 @@ export class StockTransactionRepo {
 				searchCondition,
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: ({ limit: l, offset }) =>
 					this.db
 						.select({

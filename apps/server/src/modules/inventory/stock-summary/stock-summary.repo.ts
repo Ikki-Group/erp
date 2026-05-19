@@ -24,12 +24,12 @@ import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 import type { WithPaginationResult } from '@/types/pagination'
 import { paginate, type DbClient } from '@/infra/database'
 
-import type {
+import { 
 	StockLedgerFilterDto,
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from './stock-summary.dto'
+ } from './stock-summary.dto'
 
 export class StockSummaryRepo {
 	constructor(private readonly db: DbClient) {}

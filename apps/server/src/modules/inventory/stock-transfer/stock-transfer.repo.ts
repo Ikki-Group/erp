@@ -69,7 +69,7 @@ export class StockTransferRepo {
 				dateTo === undefined ? undefined : lte(stockTransfersTable.transferDate, dateTo),
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await this.db
 						.select()

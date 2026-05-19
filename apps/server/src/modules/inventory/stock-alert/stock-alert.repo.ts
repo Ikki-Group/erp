@@ -11,7 +11,7 @@ import {
 
 import type { DbClient } from '@/infra/database'
 
-import type { StockAlertFilterDto } from './stock-alert.dto'
+import {  StockAlertFilterDto  } from './stock-alert.dto'
 
 export class StockAlertRepo {
 	constructor(private readonly db: DbClient) {}
