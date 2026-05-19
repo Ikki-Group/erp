@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { sql } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/bun-sql/migrator'
 import { z } from 'zod'

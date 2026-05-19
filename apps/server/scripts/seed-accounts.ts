@@ -1,6 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm'
 
-import { stampCreate } from '../src/core/database'
+import { stampCreate } from '@/shared/audit/stamp'
 import { db } from '../src/db'
 import { accountsTable } from '../src/db/schema/finance'
 

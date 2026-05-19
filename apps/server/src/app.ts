@@ -8,7 +8,7 @@ import { requestIdPlugin } from '@/server/plugins/request-id.plugin'
 
 import type { Modules } from './modules/_registry'
 
-export function createApp(m: Modules): Elysia {
+export function createApp(_m: Modules): Elysia {
 	const app = new Elysia({ precompile: true })
 
 	app
