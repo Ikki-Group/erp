@@ -3,14 +3,15 @@ import type { DbClient } from '@/infra/database'
 
 import { LocationServiceModule } from './location'
 import { IamServiceModule } from './iam'
+import { SalesTypeServiceModule } from './sales-type'
 
 export interface Modules {
 	location: LocationServiceModule
 	iam: IamServiceModule
+	salesType: SalesTypeServiceModule
 
 	// location: LocationServiceModule
 	// product: ProductServiceModule
-	// salesType: SalesTypeServiceModule
 	// session: SessionServiceModule
 
 	// // material: MaterialModule
@@ -39,9 +40,11 @@ export interface Modules {
 export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const location = new LocationServiceModule(db, cacheClient)
 	const iam = new IamServiceModule(db, cacheClient, { location })
+	const salesType = new SalesTypeServiceModule(db, cacheClient)
 
 	return {
 		location,
 		iam,
+		salesType,
 	}
 }

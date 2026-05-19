@@ -1,17 +1,37 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { record } from '@elysiajs/opentelemetry'
 
-import { NotFoundError } from '@/shared/errors/http-error'
+import { salesTypesTable } from '@/db/schema'
+
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { checkConflict, type ConflictField } from '@/infra/database'
+import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import { SalesTypeRepo } from './sales-type.repo'
+import type { SalesTypeRepo } from './sales-type.repo'
 import type {
 	SalesTypeCreateSchema,
 	SalesTypeSchema,
 	SalesTypeFilterSchema,
 	SalesTypeUpdateSchema,
 } from './sales-type.schema'
+
+const uniqueFields: ConflictField<{ code: string }>[] = [
+	{
+		field: 'code',
+		column: salesTypesTable.code,
+		message: 'Sales type code already exists',
+		code: 'SALES_TYPE_CODE_ALREADY_EXISTS',
+	},
+]
+
+const err = {
+	notFound: (id: number) =>
+		new NotFoundError('Sales type not found', { code: 'SALES_TYPE_NOT_FOUND', context: { id } }),
+	createFailed: () =>
+		new InternalServerError('Sales type creation failed', { code: 'SALES_TYPE_CREATE_FAILED' }),
+}
 
 export class SalesTypeService {
 	private readonly cache: CacheService
@@ -20,47 +40,64 @@ export class SalesTypeService {
 		private readonly repo: SalesTypeRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'sales-type', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'sales-type')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<SalesTypeSchema> {
-		const key = `byId:${id}`
-		const type = await this.cache.getOrSetSkipUndefined({
-			key,
-			factory: () => this.repo.getById(id),
-		})
-		if (!type) throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
-		return type
+	async getById(id: number): Promise<SalesTypeSchema | undefined> {
+		return record('SalesTypeService.getById', async () =>
+			this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
+				factory: () => this.repo.getById(id),
+			}),
+		)
 	}
 
 	async find(): Promise<SalesTypeSchema[]> {
-		const key = 'list'
-		return this.cache.getOrSet({
-			key,
-			factory: () => this.repo.getAll(),
-		})
+		return record('SalesTypeService.find', async () =>
+			this.cache.getOrSet({
+				key: this.cache.keys.list,
+				factory: () => this.repo.getAll(),
+			}),
+		)
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
 	async handleList(filter: SalesTypeFilterSchema): Promise<WithPaginationResult<SalesTypeSchema>> {
-		const key = `list.${JSON.stringify(filter)}`
-		return this.cache.getOrSet({
-			key,
-			factory: () => this.repo.getListPaginated(filter),
-		})
+		return record('SalesTypeService.handleList', async () =>
+			this.repo.getListPaginated(filter),
+		)
 	}
 
 	async handleDetail(id: number): Promise<SalesTypeSchema> {
-		return this.getById(id)
+		return record('SalesTypeService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
 	}
 
 	async handleCreate(data: SalesTypeCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		const result = await this.repo.create(data, actorId)
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
-		return result
+		return record('SalesTypeService.handleCreate', async () => {
+			const code = data.code.trim().toLowerCase()
+			const name = data.name.trim()
+			const input = { ...data, code, name }
+
+			await checkConflict({
+				table: salesTypesTable,
+				pkColumn: salesTypesTable.id,
+				fields: uniqueFields,
+				input,
+			})
+
+			const result = await this.repo.create(input, actorId)
+			if (!result) throw err.createFailed()
+
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+			return result
+		})
 	}
 
 	async handleUpdate(
@@ -68,21 +105,70 @@ export class SalesTypeService {
 		data: Partial<SalesTypeUpdateSchema>,
 		actorId: ActorId,
 	): Promise<EntityRef> {
-		const result = await this.repo.update(id, data, actorId)
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-		return result
+		return record('SalesTypeService.handleUpdate', async () => {
+			const existing = await this.handleDetail(id)
+			if (existing.isSystem) {
+				throw new BadRequestError('Cannot mutate a system sales type', {
+					code: 'SALES_TYPE_IS_SYSTEM',
+				})
+			}
+
+			const code = data.code ? data.code.trim().toLowerCase() : existing.code
+			const name = data.name ? data.name.trim() : existing.name
+			const input = { ...data, code, name }
+
+			await checkConflict({
+				table: salesTypesTable,
+				pkColumn: salesTypesTable.id,
+				fields: uniqueFields,
+				input,
+				existing,
+			})
+
+			const result = await this.repo.update(id, input, actorId)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
+			return result
+		})
 	}
 
 	async handleRemove(id: number): Promise<EntityRef> {
-		const result = await this.repo.delete(id)
-		await this.cache.deleteMany({ keys: ['list', 'count', `byId:${id}`] })
-		return result
+		return record('SalesTypeService.handleRemove', async () => {
+			const existing = await this.handleDetail(id)
+			if (existing.isSystem) {
+				throw new BadRequestError('Cannot mutate a system sales type', {
+					code: 'SALES_TYPE_IS_SYSTEM',
+				})
+			}
+
+			const result = await this.repo.remove(id)
+			if (!result) throw err.notFound(id)
+
+			await this.cache.deleteFromKeys([
+				this.cache.keys.list,
+				this.cache.keys.count,
+				this.cache.keys.byId(id),
+			])
+			return result
+		})
 	}
 
 	/* --------------------------------- INTERNAL -------------------------------- */
 
 	async seed(data: (SalesTypeCreateSchema & { id?: number; createdBy: ActorId })[]): Promise<void> {
-		await this.repo.seed(data)
-		await this.cache.deleteMany({ keys: ['list', 'count'] })
+		return record('SalesTypeService.seed', async () => {
+			const mappedData = data.map((d) => ({
+				...d,
+				code: d.code.trim().toLowerCase(),
+				name: d.name.trim(),
+			}))
+			await this.repo.seed(mappedData)
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
+		})
 	}
 }

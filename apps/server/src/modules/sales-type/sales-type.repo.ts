@@ -2,36 +2,18 @@ import { count, eq } from 'drizzle-orm'
 
 import { salesTypesTable } from '@/db/schema'
 
-import {
-	checkConflict,
-	paginate,
-	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type ConflictField,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
-import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
+import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
+import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import {
+import type {
 	SalesTypeCreateSchema,
-	SalesTypeSchema,
 	SalesTypeFilterSchema,
+	SalesTypeSchema,
 	SalesTypeUpdateSchema,
 } from './sales-type.schema'
-
-const uniqueFields: ConflictField<'code'>[] = [
-	{
-		field: 'code',
-		column: salesTypesTable.code,
-		message: 'Sales type code already exists',
-		code: 'SALES_TYPE_CODE_ALREADY_EXISTS',
-	},
-]
 
 export class SalesTypeRepo {
 	constructor(private readonly db: DbClient) {}
@@ -39,36 +21,71 @@ export class SalesTypeRepo {
 	/* ---------------------------------- QUERY --------------------------------- */
 
 	async getById(id: number): Promise<SalesTypeSchema | undefined> {
-		const result = await this.db.select().from(salesTypesTable).where(eq(salesTypesTable.id, id))
-		if (result.length === 0) return undefined
-		return SalesTypeSchema.parse(result[0])
+		const row = await this.db
+			.select()
+			.from(salesTypesTable)
+			.where(eq(salesTypesTable.id, id))
+			.limit(1)
+			.then(takeFirst)
+
+		if (!row) return undefined
+
+		return {
+			id: row.id,
+			code: row.code,
+			name: row.name,
+			isSystem: row.isBuiltIn,
+			createdBy: row.createdBy,
+			updatedBy: row.updatedBy,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt,
+		}
 	}
 
 	async getListPaginated(
 		filter: SalesTypeFilterSchema,
 	): Promise<WithPaginationResult<SalesTypeSchema>> {
-		const { q, page, limit } = filter
+		const { q } = filter
 		const where = searchFilter(salesTypesTable.name, q)
 
-		return paginate({
-			data: async ({ limit: l, offset }) => {
+		return paginate<SalesTypeSchema>({
+			data: async ({ limit, offset }) => {
 				const rows = await this.db
 					.select()
 					.from(salesTypesTable)
 					.where(where)
 					.orderBy(sortBy(salesTypesTable.updatedAt, 'desc'))
-					.limit(l)
+					.limit(limit)
 					.offset(offset)
-				return rows.map((r) => SalesTypeSchema.parse(r))
+
+				return rows.map((row) => ({
+					id: row.id,
+					code: row.code,
+					name: row.name,
+					isSystem: row.isBuiltIn,
+					createdBy: row.createdBy,
+					updatedBy: row.updatedBy,
+					createdAt: row.createdAt,
+					updatedAt: row.updatedAt,
+				}))
 			},
-			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(salesTypesTable).where(where),
+			pq: filter,
+			countQuery: () => this.db.select({ count: count() }).from(salesTypesTable).where(where),
 		})
 	}
 
 	async getAll(): Promise<SalesTypeSchema[]> {
 		const rows = await this.db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
-		return rows.map((r) => SalesTypeSchema.parse(r))
+		return rows.map((row) => ({
+			id: row.id,
+			code: row.code,
+			name: row.name,
+			isSystem: row.isBuiltIn,
+			createdBy: row.createdBy,
+			updatedBy: row.updatedBy,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt,
+		}))
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
@@ -76,72 +93,51 @@ export class SalesTypeRepo {
 	async seed(data: (SalesTypeCreateSchema & { id?: number; createdBy: ActorId })[]): Promise<void> {
 		for (const d of data) {
 			const metadata = stampCreate(d.createdBy)
+			const { isSystem, ...rest } = d
 			await this.db
 				.insert(salesTypesTable)
-				.values({ ...d, ...metadata })
+				.values({ ...rest, isBuiltIn: isSystem, ...metadata })
 				.onConflictDoNothing()
 		}
 	}
 
-	async create(data: SalesTypeCreateSchema, actorId: ActorId): Promise<EntityRef> {
-		const code = data.code.trim().toLowerCase()
-		const name = data.name.trim()
-
-		await checkConflict({
-			table: salesTypesTable,
-			pkColumn: salesTypesTable.id,
-			fields: uniqueFields,
-			input: { code },
-		})
-
-		const [inserted] = await this.db
+	async create(data: SalesTypeCreateSchema, actorId: ActorId): Promise<EntityRef | undefined> {
+		const metadata = stampCreate(actorId)
+		const { isSystem, ...rest } = data
+		const [res] = await this.db
 			.insert(salesTypesTable)
-			.values({ ...data, code, name, ...stampCreate(actorId) })
+			.values({ ...rest, isBuiltIn: isSystem, ...metadata })
 			.returning({ id: salesTypesTable.id })
 
-		if (!inserted)
-			throw new InternalServerError('Sales type creation failed', 'SALES_TYPE_CREATE_FAILED')
-
-		return inserted
+		return res
 	}
 
 	async update(
 		id: number,
 		data: Partial<SalesTypeUpdateSchema>,
 		actorId: ActorId,
-	): Promise<EntityRef> {
-		const existing = await this.getById(id)
-		if (!existing)
-			throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
-		if (existing.isSystem)
-			throw new BadRequestError('Cannot mutate a system sales type', 'SALES_TYPE_IS_SYSTEM')
-
-		const code = data.code ? data.code.trim().toLowerCase() : existing.code
-		const name = data.name ? data.name.trim() : existing.name
-
-		await checkConflict({
-			table: salesTypesTable,
-			pkColumn: salesTypesTable.id,
-			fields: uniqueFields,
-			input: { code },
-			existing,
-		})
-
-		await this.db
+	): Promise<EntityRef | undefined> {
+		const metadata = stampUpdate(actorId)
+		const { isSystem, ...rest } = data
+		const [res] = await this.db
 			.update(salesTypesTable)
-			.set({ ...data, code, name, ...stampUpdate(actorId) })
+			.set({
+				...rest,
+				...(isSystem !== undefined ? { isBuiltIn: isSystem } : {}),
+				...metadata,
+			})
 			.where(eq(salesTypesTable.id, id))
+			.returning({ id: salesTypesTable.id })
 
-		return { id }
+		return res
 	}
 
-	async delete(id: number): Promise<EntityRef> {
-		const existing = await this.getById(id)
-		if (!existing)
-			throw new NotFoundError(`Sales type with ID ${id} not found`, 'SALES_TYPE_NOT_FOUND')
+	async remove(id: number): Promise<EntityRef | undefined> {
+		const [res] = await this.db
+			.delete(salesTypesTable)
+			.where(eq(salesTypesTable.id, id))
+			.returning({ id: salesTypesTable.id })
 
-		await this.db.delete(salesTypesTable).where(eq(salesTypesTable.id, id))
-
-		return { id }
+		return res
 	}
 }
