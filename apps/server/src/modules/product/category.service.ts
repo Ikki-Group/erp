@@ -1,4 +1,4 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
@@ -20,13 +20,13 @@ export class ProductCategoryService {
 		private readonly repo: ProductCategoryRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'product-category', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'product-category')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<ProductCategorySchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
+		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
@@ -53,8 +53,7 @@ export class ProductCategoryService {
 		if (!result)
 			throw new NotFoundError(
 				`Product category with ID ${id} not found`,
-				'PRODUCT_CATEGORY_NOT_FOUND',
-			)
+				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
 		return result
 	}
 
@@ -75,8 +74,7 @@ export class ProductCategoryService {
 		if (!existing)
 			throw new NotFoundError(
 				`Product category with ID ${id} not found`,
-				'PRODUCT_CATEGORY_NOT_FOUND',
-			)
+				{ code: 'PRODUCT_CATEGORY_NOT_FOUND' })
 
 		await this.repo.update(id, data, actorId)
 

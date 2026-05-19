@@ -1,4 +1,4 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -23,7 +23,7 @@ export class ProductService {
 		private readonly repo: ProductRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'product', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'product')
 	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
@@ -31,14 +31,14 @@ export class ProductService {
 	private validateDefaultVariant(variants: { isDefault?: boolean; name: string }[]) {
 		const defaults = variants.filter((v) => v.isDefault)
 		if (defaults.length > 1) {
-			throw new ConflictError('Only one variant can be set as default', 'MULTIPLE_DEFAULT_VARIANTS')
+			throw new ConflictError('Only one variant can be set as default', { code: 'MULTIPLE_DEFAULT_VARIANTS' })
 		}
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<ProductSchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
+		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
@@ -71,7 +71,7 @@ export class ProductService {
 
 	async handleDetail(id: number): Promise<ProductSelectSchema> {
 		const product = await this.getById(id)
-		if (!product) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+		if (!product) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 
 		const category = product.categoryId
 			? ((await this.categorySvc.getById(product.categoryId)) ?? null)
@@ -102,7 +102,7 @@ export class ProductService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		const existing = await this.getById(id)
-		if (!existing) throw new NotFoundError(`Product with ID ${id} not found`, 'PRODUCT_NOT_FOUND')
+		if (!existing) throw new NotFoundError(`Product with ID ${id} not found`, { code: 'PRODUCT_NOT_FOUND' })
 
 		const sku = data.sku ? data.sku.trim() : existing.sku
 		const name = data.name ? data.name.trim() : existing.name
