@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { accountsTable, journalItemsTable } from '@/db/schema/finance'
 import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema/sales'
@@ -30,7 +30,7 @@ export class AnalyticsService {
 		private readonly db: DbClient,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'analytics', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'analytics')
 	}
 	async getPnL(startDate: Date, endDate: Date): Promise<PnLData> {
 		return this.cache.getOrSet({
