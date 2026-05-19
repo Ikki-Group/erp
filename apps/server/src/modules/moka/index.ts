@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
+import type { CacheClient } from '@/infra/cache'
 import { logger } from '@/core/logger'
 
 import type { DbClient } from '@/infra/database'

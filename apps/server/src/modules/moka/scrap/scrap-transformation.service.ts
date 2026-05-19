@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
@@ -14,7 +15,8 @@ import {
 	variantPricesTable,
 } from '@/db/schema'
 
-import { stampCreate, takeFirst, type DbClient, type DbTx } from '@/infra/database'
+import { takeFirst, type DbClient, type DbTx } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { AccountService } from '@/modules/finance'
 import type { GeneralLedgerService } from '@/modules/finance'

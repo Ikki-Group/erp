@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -21,7 +21,7 @@ export class MokaConfigurationService {
 		private readonly repo: MokaConfigurationRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'moka.config', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'moka.config')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
@@ -67,7 +67,7 @@ export class MokaConfigurationService {
 	async handleDetail(id: number): Promise<dto.MokaConfigurationOutputDto> {
 		return record('MokaConfigurationService.handleDetail', async () => {
 			const key = `byId:${id}`
-			const result = await this.cache.getOrSetSkipUndefined({
+			const result = await this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.findById(id),
 			})

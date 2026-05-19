@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { MokaProvider, MokaScrapType } from '../shared.dto'
 import { MokaSyncCursorRepo } from './scrap-sync-cursor.repo'
@@ -12,7 +12,7 @@ export class MokaSyncCursorService {
 		private readonly repo: MokaSyncCursorRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'moka.sync-cursor', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'moka.sync-cursor')
 	}
 
 	async getCursor(mokaConfigurationId: number, type: MokaScrapType) {

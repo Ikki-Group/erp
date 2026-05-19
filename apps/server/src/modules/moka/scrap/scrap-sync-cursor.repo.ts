@@ -3,7 +3,8 @@ import { and, eq } from 'drizzle-orm'
 
 import { mokaSyncCursorsTable } from '@/db/schema'
 
-import { stampCreate, stampUpdate, takeFirst, type DbClient } from '@/infra/database'
+import { takeFirst, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { MokaProvider, MokaScrapType } from '../shared.dto'
 

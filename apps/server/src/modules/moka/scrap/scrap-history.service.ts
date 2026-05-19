@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type {
 	MokaProvider,
@@ -18,7 +18,7 @@ export class MokaScrapHistoryService {
 		private readonly repo: MokaScrapHistoryRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'moka.scrap-history', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'moka.scrap-history')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
