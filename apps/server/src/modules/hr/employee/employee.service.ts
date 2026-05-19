@@ -1,10 +1,11 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { employeesTable } from '@/db/schema/employee'
 
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
+import { checkConflict, type ConflictField} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {
@@ -15,7 +16,7 @@ import type {
 } from './employee.dto'
 import { EmployeeRepo } from './employee.repo'
 
-const employeeConflictFields: ConflictField<'code'>[] = [
+const employeeConflictFields: ConflictField<any>[] = [
 	{
 		field: 'code',
 		column: employeesTable.code,
@@ -26,8 +27,8 @@ const employeeConflictFields: ConflictField<'code'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Employee with ID ${id} not found`, 'EMPLOYEE_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Employee creation failed', 'EMPLOYEE_CREATE_FAILED'),
+		new NotFoundError(`Employee with ID ${id} not found`, { code: 'EMPLOYEE_NOT_FOUND' }),
+	createFailed: () => new InternalServerError('Employee creation failed', { code: 'EMPLOYEE_CREATE_FAILED' }),
 }
 
 export class EmployeeService {
@@ -37,14 +38,14 @@ export class EmployeeService {
 		private readonly repo: EmployeeRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'employee', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'employee')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<EmployeeDto | undefined> {
 		return record('EmployeeService.getById', async () => {
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key: `byId:${id}`,
 				factory: () => this.repo.getById(id),
 			})

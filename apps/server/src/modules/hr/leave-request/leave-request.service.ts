@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -11,12 +11,11 @@ import { LeaveRequestRepo } from './leave-request.repo'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Leave request with ID ${id} not found`, 'LEAVE_REQUEST_NOT_FOUND'),
+		new NotFoundError(`Leave request with ID ${id} not found`, { code: 'LEAVE_REQUEST_NOT_FOUND' }),
 	invalidStatus: (currentStatus: string) =>
 		new InternalServerError(
 			`Cannot approve/reject/cancel leave request with status ${currentStatus}`,
-			'INVALID_LEAVE_STATUS',
-		),
+			{ code: 'INVALID_LEAVE_STATUS' }),
 }
 
 export class LeaveRequestService {
@@ -26,7 +25,7 @@ export class LeaveRequestService {
 		private readonly repo: LeaveRequestRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'hr.leave-request', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'hr.leave-request')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
@@ -34,7 +33,7 @@ export class LeaveRequestService {
 	async getById(id: number): Promise<dto.LeaveRequestDto> {
 		return record('LeaveRequestService.getById', async () => {
 			const key = `byId:${id}`
-			const request = await this.cache.getOrSetSkipUndefined({
+			const request = await this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.getById(id),
 			})

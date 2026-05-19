@@ -9,15 +9,16 @@ import {
 	payrollItemsTable,
 } from '@/db/schema'
 
-import { stampCreate, stampUpdate, takeFirstOrThrow, type DbClient } from '@/infra/database'
+import { takeFirstOrThrow, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type {
+import { 
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
 	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
-} from './payroll.dto'
+ } from './payroll.dto'
 
 export class PayrollRepo {
 	constructor(private readonly db: DbClient) {}

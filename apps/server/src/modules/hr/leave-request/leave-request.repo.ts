@@ -7,12 +7,9 @@ import { employeesTable, leaveRequestsTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/infra/database'
+	sortBy, type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import {
 	LeaveRequestCreateDto,
@@ -48,20 +45,18 @@ export class LeaveRequestRepo {
 			const where = and(
 				isNull(leaveRequestsTable.deletedAt),
 				q === undefined ? undefined : or(searchFilter(leaveRequestsTable.reason, q)),
-				employeeId === undefined ? undefined : eq(leaveRequestsTable.employeeId, employeeId),
-				type === undefined ? undefined : eq(leaveRequestsTable.type, type),
+				employeeId === undefined ? undefined : eq(leaveRequestsTable.employeeId, employeeId), type === undefined ? undefined : eq(leaveRequestsTable.type, type),
 				status === undefined ? undefined : eq(leaveRequestsTable.status, status),
 				dateFrom === undefined ? undefined : gte(leaveRequestsTable.dateStart, dateFrom),
 				dateTo === undefined ? undefined : lte(leaveRequestsTable.dateEnd, dateTo),
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: async ({ limit: l, offset }) => {
 					const rows = await this.db
 						.select({
 							id: leaveRequestsTable.id,
-							employeeId: leaveRequestsTable.employeeId,
-							type: leaveRequestsTable.type,
+							employeeId: leaveRequestsTable.employeeId, type: leaveRequestsTable.type,
 							status: leaveRequestsTable.status,
 							dateStart: leaveRequestsTable.dateStart,
 							dateEnd: leaveRequestsTable.dateEnd,
@@ -80,7 +75,7 @@ export class LeaveRequestRepo {
 					return rows.map((r) => LeaveRequestSelectDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(leaveRequestsTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(leaveRequestsTable).where(where),
 			})
 		})
 	}

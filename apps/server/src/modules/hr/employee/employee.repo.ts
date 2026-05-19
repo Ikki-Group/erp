@@ -6,19 +6,17 @@ import { employeesTable } from '@/db/schema/employee'
 import {
 	paginate,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type {
+import { 
 	EmployeeCreateDto,
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
-} from './employee.dto'
+ } from './employee.dto'
 
 export class EmployeeRepo {
 	constructor(private readonly db: DbClient) {}
@@ -45,7 +43,7 @@ export class EmployeeRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(employeesTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(employeesTable).where(where),
 			})
 		})
 	}

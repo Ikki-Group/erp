@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
@@ -27,7 +27,7 @@ export class PayrollService {
 		private readonly db: DbClient,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'hr.payroll', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'hr.payroll')
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
@@ -71,7 +71,7 @@ export class PayrollService {
 		return record('PayrollService.handleFinalizeBatch', async () => {
 			return this.db.transaction(async () => {
 				const batch = await this.repo.getBatchById(batchId)
-				if (!batch) throw new NotFoundError('Payroll batch not found', 'PAYROLL_BATCH_NOT_FOUND')
+				if (!batch) throw new NotFoundError('Payroll batch not found', { code: 'PAYROLL_BATCH_NOT_FOUND' })
 
 				if (batch.status !== 'draft') {
 					throw new ConflictError('Only draft batches can be finalized')
