@@ -4,12 +4,9 @@ import { workOrdersTable } from '@/db/schema/production'
 
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
 import {
-	paginate,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/infra/database'
+	paginate, type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -45,7 +42,7 @@ export class WorkOrderRepo {
 			status ? eq(workOrdersTable.status, status) : undefined,
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: ({ limit: l, offset }) =>
 				this.db
 					.select()
@@ -55,7 +52,7 @@ export class WorkOrderRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(workOrdersTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(workOrdersTable).where(where),
 		}) as unknown as WithPaginationResult<WorkOrderSchema>
 	}
 

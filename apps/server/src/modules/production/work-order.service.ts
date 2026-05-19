@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
@@ -29,18 +29,18 @@ export class WorkOrderService {
 		private readonly stockTransactionSvc: StockTransactionService,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'production.work-order', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'production.work-order')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<WorkOrderSchema> {
 		const key = `byId:${id}`
-		const wo = await this.cache.getOrSetSkipUndefined({
+		const wo = await this.cache.getOrSetWithSkip({
 			key,
 			factory: () => this.repo.getById(id),
 		})
-		if (!wo) throw new NotFoundError(`Work Order with ID ${id} not found`, 'WORK_ORDER_NOT_FOUND')
+		if (!wo) throw new NotFoundError(`Work Order with ID ${id} not found`, { code: 'WORK_ORDER_NOT_FOUND' })
 		return wo
 	}
 
@@ -86,8 +86,7 @@ export class WorkOrderService {
 		if (wo.status !== 'in_progress')
 			throw new ConflictError(
 				`Work Order with ID ${id} is not in progress`,
-				'WORK_ORDER_STATUS_CONFLICT',
-			)
+				{ code: 'WORK_ORDER_STATUS_CONFLICT' })
 
 		const recipe = await this.recipeSvc.getById(wo.recipeId)
 		const actualQty = new Decimal(data.actualQty)
