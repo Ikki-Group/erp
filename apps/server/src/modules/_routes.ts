@@ -1,5 +1,6 @@
 import type { Modules } from './_registry'
 import { createLocationRouteModule } from './location'
+import { initToolRouteModule } from './tool'
 import type Elysia from 'elysia'
 
 export function createRoutes(m: Modules) {
@@ -12,7 +13,7 @@ export function createRoutes(m: Modules) {
 		// initMaterialRoutes(m.material),
 		// initProductRouteModule(m.product),
 		// initRecipeRouteModule(m.recipe),
-		// initToolRouteModule(m.tool),
+		initToolRouteModule(m.tool),
 		// initMokaRouteModule(m.moka),
 		// initSalesRouteModule(m.sales),
 		// initSupplierRouteModule(m.supplier),

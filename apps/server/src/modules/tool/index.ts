@@ -2,25 +2,15 @@ import { Elysia } from 'elysia'
 
 import type { DbClient } from '@/infra/database'
 
-import type { RoleService } from '@/modules/iam'
-import type { UserService } from '@/modules/iam'
-// import type { LocationMasterService } from '@/modules/location'
-// import type { MaterialCategoryService } from '@/modules/material'
-// import type { MaterialService } from '@/modules/material'
-// import type { UomService } from '@/modules/material'
-import type { SalesTypeService } from '@/modules/sales-type'
+import type { IamServiceModule } from '@/modules/iam'
+import type { SalesTypeServiceModule } from '@/modules/sales-type'
 
 import { initSeedRoute } from './seed.route'
 import { SeedService } from './seed.service'
 
 interface ToolServiceModuleDeps {
-	iamRole: RoleService
-	iamUser: UserService
-	// locationMaster: LocationMasterService
-	// materialCategory: MaterialCategoryService
-	// materialMaster: MaterialService
-	// materialUom: UomService
-	salesType: SalesTypeService
+	iam: IamServiceModule
+	salesType: SalesTypeServiceModule
 }
 
 export class ToolServiceModule {
@@ -32,13 +22,9 @@ export class ToolServiceModule {
 	) {
 		this.seed = new SeedService(
 			this.db,
-			this.deps.iamRole,
-			this.deps.iamUser,
-			// this.deps.locationMaster,
-			// this.deps.materialCategory,
-			// this.deps.materialMaster,
-			// this.deps.materialUom,
-			this.deps.salesType,
+			this.deps.iam.role,
+			this.deps.iam.user,
+			this.deps.salesType.salesType,
 		)
 	}
 }

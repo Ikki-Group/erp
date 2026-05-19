@@ -1,12 +1,10 @@
+import { record } from '@elysiajs/opentelemetry'
+
 import { SEED_CONFIG } from '@/config/seed-config'
 import type { DbClient } from '@/infra/database'
 
 import type { RoleService } from '@/modules/iam'
 import type { UserService } from '@/modules/iam'
-// import type { LocationMasterService } from '@/modules/location'
-// import type { MaterialCategoryService } from '@/modules/material'
-// import type { MaterialService } from '@/modules/material'
-// import type { UomService } from '@/modules/material'
 import type { SalesTypeService } from '@/modules/sales-type'
 
 export class SeedService {
@@ -14,158 +12,158 @@ export class SeedService {
 		private readonly db: DbClient,
 		private readonly iamRoleSvc: RoleService,
 		private readonly iamUserSvc: UserService,
-		// private readonly locationMasterSvc: LocationMasterService,
-		// private readonly materialCategorySvc: MaterialCategoryService,
-		// private readonly materialMasterSvc: MaterialService,
-		// private readonly materialUomSvc: UomService,
 		private readonly salesTypeSvc: SalesTypeService,
 	) {}
 
 	async seed(): Promise<void> {
-		// Use Drizzle transaction for the entire seed process
-		await this.db.transaction(async (_db) => {
-			const SYSTEM_ACTOR_ID = 1
+		return record('SeedService.seed', async () => {
+			// Use Drizzle transaction for the entire seed process
+			await this.db.transaction(async (_db) => {
+				const SYSTEM_ACTOR_ID = 1
 
-			// 1. Seed Roles
-			await this.iamRoleSvc.seed([
-				{
-					code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
-					name: 'Administrator',
-					description: 'Super administrator',
-					permissions: ['*'],
-					isSystem: true,
-					createdBy: SYSTEM_ACTOR_ID,
-				},
-				{
-					code: 'MANAGER',
-					name: 'Manager',
-					description: null,
-					permissions: [],
-					isSystem: false,
-					createdBy: SYSTEM_ACTOR_ID,
-				},
-			])
+				// 1. Seed Roles
+				await this.iamRoleSvc.seed([
+					{
+						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
+						name: 'Administrator',
+						description: 'Super administrator',
+						permissions: ['*'],
+						isSystem: true,
+						createdBy: SYSTEM_ACTOR_ID,
+					},
+					{
+						code: 'MANAGER',
+						name: 'Manager',
+						description: null,
+						permissions: [],
+						isSystem: false,
+						createdBy: SYSTEM_ACTOR_ID,
+					},
+				])
 
-			// 2. Seed Users
-			const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
-			await this.iamUserSvc.seed([
-				{
-					email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
-					username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
-					fullname: 'Administrator',
-					password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-					passwordHash: superAdminPasswordHash,
-					isRoot: true,
-					pinCode: null,
-					isActive: true,
-					defaultLocationId: null,
-					createdBy: SYSTEM_ACTOR_ID,
-					assignments: [],
-				},
-			])
+				// 2. Seed Users
+				const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
+				await this.iamUserSvc.seed([
+					{
+						email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
+						username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
+						fullname: 'Administrator',
+						password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
+						passwordHash: superAdminPasswordHash,
+						isRoot: true,
+						pinCode: null,
+						isActive: true,
+						defaultLocationId: null,
+						createdBy: SYSTEM_ACTOR_ID,
+						assignments: [],
+					},
+				])
 
-			// 3. Seed Locations
-			// await this.locationMasterSvc.seed(
-			// 	SEED_CONFIG.LOCATIONS.map((l) => ({
-			// 		code: l.code,
-			// 		name: l.name,
-			// 		type: l.type,
-			// 		address: null,
-			// 		phone: null,
-			// 		isActive: true,
-			// 		description: null,
-			// 		createdBy: SYSTEM_ACTOR_ID,
-			// 	})),
-			// )
+				// 3. Seed Locations
+				// await this.locationMasterSvc.seed(
+				// 	SEED_CONFIG.LOCATIONS.map((l) => ({
+				// 		code: l.code,
+				// 		name: l.name,
+				// 		type: l.type,
+				// 		address: null,
+				// 		phone: null,
+				// 		isActive: true,
+				// 		description: null,
+				// 		createdBy: SYSTEM_ACTOR_ID,
+				// 	})),
+				// )
 
-			// 4. Seed Sales Types
-			await this.salesTypeSvc.seed(
-				SEED_CONFIG.SALES_TYPES.map((st) => ({
-					code: st.code,
-					name: st.name,
-					isSystem: st.isSystem,
-					createdBy: SYSTEM_ACTOR_ID,
-				})),
-			)
+				// 4. Seed Sales Types
+				await this.salesTypeSvc.seed(
+					SEED_CONFIG.SALES_TYPES.map((st) => ({
+						code: st.code,
+						name: st.name,
+						isSystem: st.isSystem,
+						createdBy: SYSTEM_ACTOR_ID,
+					})),
+				)
 
-			// 5. Seed UOMs
-			// await this.materialUomSvc.seed(
-			// 	SEED_CONFIG.UOMS.map((u) => ({ code: u.code, createdBy: SYSTEM_ACTOR_ID })),
-			// )
+				// 5. Seed UOMs
+				// await this.materialUomSvc.seed(
+				// 	SEED_CONFIG.UOMS.map((u) => ({ code: u.code, createdBy: SYSTEM_ACTOR_ID })),
+				// )
+			})
 		})
 	}
 
 	async seedDev(): Promise<void> {
-		// const SYSTEM_ACTOR_ID = 1
-		// const uoms = await this.db.query.uomsTable.findMany()
-		// const getUom = (code: string) => uoms.find((u) => u.code === code)?.id ?? 1
-		// 1. Create categories
-		// const { id: categoryCoffee } = await this.materialCategorySvc.handleCreate(
-		// 	{ name: 'Coffee Beans', description: 'Premium selected coffee beans', parentId: null },
-		// 	SYSTEM_ACTOR_ID,
-		// )
-		// const { id: categoryDairy } = await this.materialCategorySvc.handleCreate(
-		// 	{ name: 'Dairy & Milk', description: 'Milk-based products', parentId: null },
-		// 	SYSTEM_ACTOR_ID,
-		// )
-		// const { id: categoryPackaging } = await this.materialCategorySvc.handleCreate(
-		// 	{ name: 'Packaging', description: 'Product packaging materials', parentId: null },
-		// 	SYSTEM_ACTOR_ID,
-		// )
-		// 2. Create materials
-		// const materialsData = [
-		// 	{
-		// 		name: 'Arabica Beans - Flores',
-		// 		sku: 'RAW-COF-001',
-		// 		type: 'raw' as const,
-		// 		categoryId: categoryCoffee,
-		// 		baseUomId: getUom('GR'),
-		// 	},
-		// 	{
-		// 		name: 'Robusta Beans - Dampit',
-		// 		sku: 'RAW-COF-002',
-		// 		type: 'raw' as const,
-		// 		categoryId: categoryCoffee,
-		// 		baseUomId: getUom('GR'),
-		// 	},
-		// 	{
-		// 		name: 'Fresh Milk',
-		// 		sku: 'RAW-MILK-001',
-		// 		type: 'raw' as const,
-		// 		categoryId: categoryDairy,
-		// 		baseUomId: getUom('ML'),
-		// 	},
-		// 	{
-		// 		name: 'Espresso Shot (House Blend)',
-		// 		sku: 'SEMI-COF-001',
-		// 		type: 'semi' as const,
-		// 		categoryId: categoryCoffee,
-		// 		baseUomId: getUom('ML'),
-		// 	},
-		// 	{
-		// 		name: 'Paper Cup Hot 8oz',
-		// 		sku: 'PCK-CUP-001',
-		// 		type: 'packaging' as const,
-		// 		categoryId: categoryPackaging,
-		// 		baseUomId: getUom('PCS'),
-		// 	},
-		// 	{
-		// 		name: 'Plastic Cup Cold 16oz',
-		// 		sku: 'PCK-CUP-002',
-		// 		type: 'packaging' as const,
-		// 		categoryId: categoryPackaging,
-		// 		baseUomId: getUom('PCS'),
-		// 	},
-		// ]
-		// for (const m of materialsData) {
-		// 	try {
-		// 		await this.materialMasterSvc.handleCreate(
-		// 			{ ...m, conversions: [], description: null, locationIds: [] },
-		// 			SYSTEM_ACTOR_ID,
-		// 		)
-		// 	} catch (error) {
-		// 		console.log(`[SeedDev] Skipped ${m.name}: already exists or error`, error)
-		// 	}
-		// }
+		return record('SeedService.seedDev', async () => {
+			// const SYSTEM_ACTOR_ID = 1
+			// const uoms = await this.db.query.uomsTable.findMany()
+			// const getUom = (code: string) => uoms.find((u) => u.code === code)?.id ?? 1
+			// 1. Create categories
+			// const { id: categoryCoffee } = await this.materialCategorySvc.handleCreate(
+			// 	{ name: 'Coffee Beans', description: 'Premium selected coffee beans', parentId: null },
+			// 	SYSTEM_ACTOR_ID,
+			// )
+			// const { id: categoryDairy } = await this.materialCategorySvc.handleCreate(
+			// 	{ name: 'Dairy & Milk', description: 'Milk-based products', parentId: null },
+			// 	SYSTEM_ACTOR_ID,
+			// )
+			// const { id: categoryPackaging } = await this.materialCategorySvc.handleCreate(
+			// 	{ name: 'Packaging', description: 'Product packaging materials', parentId: null },
+			// 	SYSTEM_ACTOR_ID,
+			// )
+			// 2. Create materials
+			// const materialsData = [
+			// 	{
+			// 		name: 'Arabica Beans - Flores',
+			// 		sku: 'RAW-COF-001',
+			// 		type: 'raw' as const,
+			// 		categoryId: categoryCoffee,
+			// 		baseUomId: getUom('GR'),
+			// 	},
+			// 	{
+			// 		name: 'Robusta Beans - Dampit',
+			// 		sku: 'RAW-COF-002',
+			// 		type: 'raw' as const,
+			// 		categoryId: categoryCoffee,
+			// 		baseUomId: getUom('GR'),
+			// 	},
+			// 	{
+			// 		name: 'Fresh Milk',
+			// 		sku: 'RAW-MILK-001',
+			// 		type: 'raw' as const,
+			// 		categoryId: categoryDairy,
+			// 		baseUomId: getUom('ML'),
+			// 	},
+			// 	{
+			// 		name: 'Espresso Shot (House Blend)',
+			// 		sku: 'SEMI-COF-001',
+			// 		type: 'semi' as const,
+			// 		categoryId: categoryCoffee,
+			// 		baseUomId: getUom('ML'),
+			// 	},
+			// 	{
+			// 		name: 'Paper Cup Hot 8oz',
+			// 		sku: 'PCK-CUP-001',
+			// 		type: 'packaging' as const,
+			// 		categoryId: categoryPackaging,
+			// 		baseUomId: getUom('PCS'),
+			// 	},
+			// 	{
+			// 		name: 'Plastic Cup Cold 16oz',
+			// 		sku: 'PCK-CUP-002',
+			// 		type: 'packaging' as const,
+			// 		categoryId: categoryPackaging,
+			// 		baseUomId: getUom('PCS'),
+			// 	},
+			// ]
+			// for (const m of materialsData) {
+			// 	try {
+			// 		await this.materialMasterSvc.handleCreate(
+			// 			{ ...m, conversions: [], description: null, locationIds: [] },
+			// 			SYSTEM_ACTOR_ID,
+			// 		)
+			// 	} catch (error) {
+			// 		console.log(`[SeedDev] Skipped ${m.name}: already exists or error`, error)
+			// 	}
+			// }
+		})
 	}
 }

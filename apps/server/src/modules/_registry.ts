@@ -6,6 +6,7 @@ import { IamServiceModule } from './iam'
 import { SalesTypeServiceModule } from './sales-type'
 import { SessionServiceModule } from './session'
 import { AuthServiceModule } from './auth'
+import { ToolServiceModule } from './tool'
 
 export interface Modules {
 	location: LocationServiceModule
@@ -13,6 +14,7 @@ export interface Modules {
 	salesType: SalesTypeServiceModule
 	session: SessionServiceModule
 	auth: AuthServiceModule
+	tool: ToolServiceModule
 
 	// location: LocationServiceModule
 	// product: ProductServiceModule
@@ -47,6 +49,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const salesType = new SalesTypeServiceModule(db, cacheClient)
 	const session = new SessionServiceModule(db, cacheClient)
 	const auth = new AuthServiceModule({ session, iam })
+	const tool = new ToolServiceModule(db, { iam, salesType })
 
 	return {
 		location,
@@ -54,5 +57,6 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 		salesType,
 		session,
 		auth,
+		tool,
 	}
 }
