@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
@@ -16,25 +16,25 @@ export class AccountService {
 		private readonly repo: AccountRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'finance.account', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'finance.account')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number) {
 		return record('AccountService.getById', async () => {
-			const account = await this.cache.getOrSetSkipUndefined({
+			const account = await this.cache.getOrSetWithSkip({
 				key: `byId:${id}`,
 				factory: () => this.repo.getById(id),
 			})
-			if (!account) throw new NotFoundError(`Account ${id} not found`, 'ACCOUNT_NOT_FOUND')
+			if (!account) throw new NotFoundError(`Account ${id} not found`, { code: 'ACCOUNT_NOT_FOUND' })
 			return account
 		})
 	}
 
 	async findByCode(code: string) {
 		return record('AccountService.findByCode', async () => {
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key: `code:${code}`,
 				factory: () => this.repo.findByCode(code),
 			})

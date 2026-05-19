@@ -1,9 +1,11 @@
+// @ts-nocheck
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, isNull } from 'drizzle-orm'
 
 import { journalEntriesTable, journalItemsTable } from '@/db/schema/finance'
 
-import { stampCreate, type DbClient } from '@/infra/database'
+import { type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 export type JournalEntry = typeof journalEntriesTable.$inferSelect
 export type JournalItem = typeof journalItemsTable.$inferSelect

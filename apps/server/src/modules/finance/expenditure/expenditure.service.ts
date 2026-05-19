@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
@@ -20,7 +20,7 @@ export class ExpenditureService {
 		private readonly repo: ExpenditureRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'finance.expenditure', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'finance.expenditure')
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */

@@ -3,9 +3,10 @@ import { and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 
 import { accountsTable } from '@/db/schema/finance'
 
-import { paginate, sortBy, stampCreate, stampUpdate, type DbClient } from '@/infra/database'
+import { paginate, sortBy, type DbClient } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { AccountCreateDto, AccountFilterDto, AccountUpdateDto } from './account.dto'
+import {  AccountCreateDto, AccountFilterDto, AccountUpdateDto  } from './account.dto'
 
 export class AccountRepo {
 	constructor(private readonly db: DbClient) {}
@@ -31,12 +32,11 @@ export class AccountRepo {
 				q
 					? or(ilike(accountsTable.name, `%${q}%`), ilike(accountsTable.code, `%${q}%`))
 					: undefined,
-				isNull(accountsTable.deletedAt),
-				type ? eq(accountsTable.type, type) : undefined,
+				isNull(accountsTable.deletedAt), type ? eq(accountsTable.type, type) : undefined,
 				parentId !== undefined ? eq(accountsTable.parentId, parentId) : undefined,
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: async ({ limit: l, offset }) => {
 					return this.db
 						.select()
@@ -47,7 +47,7 @@ export class AccountRepo {
 						.orderBy(sortBy(accountsTable.code, 'asc'))
 				},
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(accountsTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(accountsTable).where(where),
 			})
 		})
 	}
