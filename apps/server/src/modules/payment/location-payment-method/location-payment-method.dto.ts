@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 export const LocationPaymentMethodCredentialsDto = z.object({

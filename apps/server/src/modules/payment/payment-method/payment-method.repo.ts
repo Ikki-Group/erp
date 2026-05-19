@@ -6,12 +6,10 @@ import { paymentMethodsTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import * as dto from './payment-method.dto'
 
@@ -42,7 +40,7 @@ export class PaymentMethodRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(paymentMethodsTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(paymentMethodsTable).where(where),
 			})
 
 			return {

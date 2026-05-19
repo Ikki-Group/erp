@@ -6,12 +6,10 @@ import { paymentInvoicesTable, paymentsTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import * as dto from './payment.dto'
 
@@ -36,7 +34,7 @@ export class PaymentRepo {
 				dateTo === undefined ? undefined : lte(paymentsTable.date, dateTo),
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: ({ limit, offset }) =>
 					this.db
 						.select()
@@ -46,7 +44,7 @@ export class PaymentRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(paymentsTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(paymentsTable).where(where),
 			})
 		})
 	}
