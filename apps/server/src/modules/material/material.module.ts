@@ -7,11 +7,11 @@
 
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
+import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
-import type { LocationMasterService } from '@/modules/location'
+import type { LocationService } from '@/modules/location'
 
 import { MaterialCategoryRepo } from './repo/material-category.repo'
 import { MaterialConversionRepo } from './repo/material-conversion.repo'
@@ -36,7 +36,7 @@ import { UomService } from './service/uom.service'
 /* ----------------------------- MODULE DEPS -------------------------------- */
 
 interface MaterialModuleDeps {
-	location: LocationMasterService
+	location: LocationService
 }
 
 /* ----------------------------- MODULE CLASS -------------------------------- */

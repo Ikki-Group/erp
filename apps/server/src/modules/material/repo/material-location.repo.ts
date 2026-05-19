@@ -1,16 +1,16 @@
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
 
-import { locationsTable, materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
+import { locationsTable, materialLocationsTable, materialStockSnapshotsTable, materialsTable, uomsTable } from '@/db/schema'
 
 import {
 	paginate,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	type DbClient,
 	type DbTx,
-	type WithPaginationResult,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialLocation } from '../domain/material-location.entity'
 import type {
@@ -27,8 +27,18 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 
 	async getOne(materialId: number, locationId: number): Promise<MaterialLocation | null> {
 		const [result] = await this.db
-			.select()
+			.select({
+				config: materialLocationsTable,
+				snapshot: materialStockSnapshotsTable,
+			})
 			.from(materialLocationsTable)
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(
 				and(
 					eq(materialLocationsTable.materialId, materialId),
@@ -38,37 +48,88 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 
 		if (!result) return null
 		return {
-			...result,
-			maxStock: result.maxStock ?? null,
+			...result.config,
+			maxStock: result.config.maxStock ?? null,
+			currentQty: result.snapshot?.currentQty ?? '0',
+			currentAvgCost: result.snapshot?.currentAvgCost ?? '0',
+			currentValue: result.snapshot?.currentValue ?? '0',
 		}
 	}
 
 	async getByMaterialId(materialId: number): Promise<MaterialLocation[]> {
 		const results = await this.db
-			.select()
+			.select({
+				config: materialLocationsTable,
+				snapshot: materialStockSnapshotsTable,
+			})
 			.from(materialLocationsTable)
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(eq(materialLocationsTable.materialId, materialId))
-		return results.map((r) => ({ ...r, maxStock: r.maxStock ?? null }))
+
+		return results.map((r) => ({
+			...r.config,
+			maxStock: r.config.maxStock ?? null,
+			currentQty: r.snapshot?.currentQty ?? '0',
+			currentAvgCost: r.snapshot?.currentAvgCost ?? '0',
+			currentValue: r.snapshot?.currentValue ?? '0',
+		}))
 	}
 
 	async getByLocationId(locationId: number): Promise<MaterialLocation[]> {
 		const results = await this.db
-			.select()
+			.select({
+				config: materialLocationsTable,
+				snapshot: materialStockSnapshotsTable,
+			})
 			.from(materialLocationsTable)
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(eq(materialLocationsTable.locationId, locationId))
-		return results.map((r) => ({ ...r, maxStock: r.maxStock ?? null }))
+
+		return results.map((r) => ({
+			...r.config,
+			maxStock: r.config.maxStock ?? null,
+			currentQty: r.snapshot?.currentQty ?? '0',
+			currentAvgCost: r.snapshot?.currentAvgCost ?? '0',
+			currentValue: r.snapshot?.currentValue ?? '0',
+		}))
 	}
 
 	async getLocationsByMaterial(materialId: number): Promise<MaterialLocationWithLocation[]> {
 		const assignments = await this.db
-			.select({ assignment: materialLocationsTable, location: locationsTable })
+			.select({
+				assignment: materialLocationsTable,
+				location: locationsTable,
+				snapshot: materialStockSnapshotsTable,
+			})
 			.from(materialLocationsTable)
 			.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(eq(materialLocationsTable.materialId, materialId))
 
 		return assignments.map((row) => ({
 			...row.assignment,
 			maxStock: row.assignment.maxStock ?? null,
+			currentQty: row.snapshot?.currentQty ?? '0',
+			currentAvgCost: row.snapshot?.currentAvgCost ?? '0',
+			currentValue: row.snapshot?.currentValue ?? '0',
 			location: row.location,
 		}))
 	}
@@ -97,29 +158,40 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 						minStock: materialLocationsTable.minStock,
 						maxStock: materialLocationsTable.maxStock,
 						reorderPoint: materialLocationsTable.reorderPoint,
-						currentQty: materialLocationsTable.currentQty,
-						currentAvgCost: materialLocationsTable.currentAvgCost,
-						currentValue: materialLocationsTable.currentValue,
+						currentQty: materialStockSnapshotsTable.currentQty,
+						currentAvgCost: materialStockSnapshotsTable.currentAvgCost,
+						currentValue: materialStockSnapshotsTable.currentValue,
 						uom: uomsTable,
 					})
 					.from(materialLocationsTable)
 					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
 					.innerJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+					.leftJoin(
+						materialStockSnapshotsTable,
+						and(
+							eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+							eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+						),
+					)
 					.where(where)
 					.orderBy(sortBy(materialLocationsTable.updatedAt, 'desc'))
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: this.db
-				.select({ count: count() })
-				.from(materialLocationsTable)
-				.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
-				.where(where),
+			countQuery: () =>
+				this.db
+					.select({ count: count() })
+					.from(materialLocationsTable)
+					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+					.where(where),
 		})
 
 		const data = result.data.map((stock) => ({
 			...stock,
 			maxStock: stock.maxStock ?? null,
+			currentQty: stock.currentQty ?? '0',
+			currentAvgCost: stock.currentAvgCost ?? '0',
+			currentValue: stock.currentValue ?? '0',
 		}))
 
 		return { data, meta: result.meta }
@@ -204,22 +276,27 @@ export class MaterialLocationRepo implements IMaterialLocationRepo {
 		materialId: number,
 		locationId: number,
 		stock: { currentQty: number; currentAvgCost: number; currentValue: number },
-		actorId: number,
+		_actorId: number,
 		tx: DbTx | DbClient = this.db,
 	): Promise<void> {
 		await tx
-			.update(materialLocationsTable)
-			.set({
+			.insert(materialStockSnapshotsTable)
+			.values({
+				materialId,
+				locationId,
 				currentQty: stock.currentQty.toString(),
 				currentAvgCost: stock.currentAvgCost.toString(),
 				currentValue: stock.currentValue.toString(),
-				...stampUpdate(actorId),
+				snapshotAt: new Date(),
 			})
-			.where(
-				and(
-					eq(materialLocationsTable.materialId, materialId),
-					eq(materialLocationsTable.locationId, locationId),
-				),
-			)
+			.onConflictDoUpdate({
+				target: [materialStockSnapshotsTable.materialId, materialStockSnapshotsTable.locationId],
+				set: {
+					currentQty: stock.currentQty.toString(),
+					currentAvgCost: stock.currentAvgCost.toString(),
+					currentValue: stock.currentValue.toString(),
+					snapshotAt: new Date(),
+				},
+			})
 	}
 }

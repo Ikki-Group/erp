@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
-import type { LocationMasterService } from '@/modules/location'
+import type { LocationService } from '@/modules/location'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type { MaterialLocation } from '../domain/material-location.entity'
@@ -18,7 +18,7 @@ export class MaterialQueryService {
 		private readonly deps: {
 			master: MaterialService
 			category: MaterialCategoryService
-			location: LocationMasterService
+			location: LocationService
 			conversion: MaterialConversionService
 			materialLocation: MaterialLocationService
 		},

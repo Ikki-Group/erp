@@ -1,12 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DbTx } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
-import type { LocationMasterService } from '@/modules/location'
+import type { LocationService } from '@/modules/location'
 
 import type { MaterialLocation } from '../domain/material-location.entity'
 import type {
@@ -25,12 +25,12 @@ export class MaterialLocationService {
 	constructor(
 		private readonly deps: {
 			master: MaterialService
-			location: LocationMasterService
+			location: LocationService
 			repo: IMaterialLocationRepo
 		},
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: MATERIAL_CACHE_NS.LOCATION, client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, MATERIAL_CACHE_NS.LOCATION)
 	}
 
 	/* ======================== PUBLIC API ======================== */
@@ -115,7 +115,7 @@ export class MaterialLocationService {
 			const resultId = await this.deps.repo.updateConfig(id, update, actorId)
 			if (!resultId) throw LocationErrors.notFound(id)
 
-			await this.cache.deleteMany({ keys: ['by-material:*', 'by-location:*', 'one:*:*'] })
+			await this.cache.deleteFromKeys(['by-material:*', 'by-location:*', 'one:*:*'])
 			return { id: resultId }
 		})
 	}
@@ -140,6 +140,6 @@ export class MaterialLocationService {
 		const keys: string[] = []
 		for (const mid of materialIds) keys.push(`by-material:${mid}`, `locations-by-material:${mid}`)
 		for (const lid of locationIds) keys.push(`by-location:${lid}`)
-		await this.cache.deleteMany({ keys })
+		await this.cache.deleteFromKeys(keys)
 	}
 }

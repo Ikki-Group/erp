@@ -55,18 +55,18 @@ export { recipesTable, recipeItemsTable } from './recipe'
 // 	paymentMethodCategoryEnum,
 // } from './_enums'
 // export { rolesTable, sessionsTable, userAssignmentsTable, usersTable } from './iam'
-// export {
-// 	stockSummariesTable,
-// 	stockTransactionsTable,
-// 	stockBatchesTable,
-// 	stockAdjustmentsTable,
-// 	stockAdjustmentItemsTable,
-// } from './inventory'
-// export {
-// 	stockTransfersTable,
-// 	stockTransferItemsTable,
-// 	transferStatusEnum,
-// } from './inventory_transfer'
+export {
+	stockSummariesTable,
+	stockTransactionsTable,
+	stockBatchesTable,
+	stockAdjustmentsTable,
+	stockAdjustmentItemsTable,
+} from './inventory'
+export {
+	stockTransfersTable,
+	stockTransferItemsTable,
+	transferStatusEnum,
+} from './inventory_transfer'
 // export { locationsTable } from './location'
 // export { mokaConfigurationsTable, mokaScrapHistoriesTable, mokaSyncCursorsTable } from './moka'
 // export {

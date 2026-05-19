@@ -20,7 +20,7 @@ export const MaterialEntity = z.object({
 	description: zp.strNullable,
 	sku: zp.str,
 	type: MaterialTypeSchema,
-	categoryId: zp.id.nullable(),
+	categoryId: zp.id,
 	baseUomId: zp.id,
 	...zc.AuditBasic.shape,
 })

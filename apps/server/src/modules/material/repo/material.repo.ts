@@ -5,12 +5,12 @@ import { materialLocationsTable, materialsTable } from '@/db/schema'
 import {
 	paginate,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
 	type DbClient,
-	type WithPaginationResult,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { Material } from '../domain/material.entity'
 import type {
@@ -100,7 +100,7 @@ export class MaterialRepo implements IMaterialRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: this.db.select({ count: count() }).from(materialsTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(materialsTable).where(where),
 		})
 	}
 
@@ -143,7 +143,7 @@ export class MaterialRepo implements IMaterialRepo {
 				description: data.description,
 				sku: data.sku,
 				type: data.type,
-				categoryId: data.categoryId,
+				categoryId: data.categoryId ?? undefined,
 				baseUomId: data.baseUomId,
 				...metadata,
 			})

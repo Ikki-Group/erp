@@ -1,6 +1,6 @@
 import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 
-import { materialLocationsTable, materialsTable, uomsTable } from '@/db/schema'
+import { materialLocationsTable, materialsTable, uomsTable, materialStockSnapshotsTable } from '@/db/schema'
 import {
 	stockTransactionsTable,
 	stockAdjustmentsTable,
@@ -38,23 +38,37 @@ export class InventoryReportingRepo {
 				productId: materialLocationsTable.materialId,
 				productName: materialsTable.name,
 				sku: materialsTable.sku,
-				currentStock: sql<number>`CAST(${materialLocationsTable.currentQty} AS FLOAT)`,
+				currentStock: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
 				reorderLevel: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT)`,
 				unit: sql<string>`COALESCE(${uomsTable.code}, 'unit')`,
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
 			.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
 			.orderBy(materialsTable.name)
 
 		const summary = await this.db
 			.select({
-				total: sql<number>`COALESCE(SUM(CAST(${materialLocationsTable.currentQty} AS FLOAT)), 0)`,
+				total: sql<number>`COALESCE(SUM(CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)), 0)`,
 				count: sql<number>`cast(count(*) as int)`,
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
 
 		return { data, summary: summary[0] }
@@ -75,22 +89,36 @@ export class InventoryReportingRepo {
 				productId: materialLocationsTable.materialId,
 				productName: materialsTable.name,
 				sku: materialsTable.sku,
-				quantity: sql<number>`CAST(${materialLocationsTable.currentQty} AS FLOAT)`,
-				unitCost: sql<number>`CAST(${materialLocationsTable.currentAvgCost} AS FLOAT)`,
-				totalValue: sql<number>`CAST(${materialLocationsTable.currentValue} AS FLOAT)`,
+				quantity: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
+				unitCost: sql<number>`CAST(${materialStockSnapshotsTable.currentAvgCost} AS FLOAT)`,
+				totalValue: sql<number>`CAST(${materialStockSnapshotsTable.currentValue} AS FLOAT)`,
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
-			.orderBy(sql`${materialLocationsTable.currentValue} DESC`)
+			.orderBy(sql`${materialStockSnapshotsTable.currentValue} DESC`)
 
 		const summary = await this.db
 			.select({
-				total: sql<number>`COALESCE(SUM(CAST(${materialLocationsTable.currentValue} AS FLOAT)), 0)`,
+				total: sql<number>`COALESCE(SUM(CAST(${materialStockSnapshotsTable.currentValue} AS FLOAT)), 0)`,
 				count: sql<number>`cast(count(*) as int)`,
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
 
 		return { rows, summary: summary[0] }
@@ -103,8 +131,8 @@ export class InventoryReportingRepo {
 			locationId ? eq(materialLocationsTable.locationId, locationId) : undefined,
 			productId ? eq(materialLocationsTable.materialId, productId) : undefined,
 			or(
-				lte(materialLocationsTable.currentQty, materialLocationsTable.minStock),
-				lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+				lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
+				lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
 			),
 		]
 
@@ -115,14 +143,21 @@ export class InventoryReportingRepo {
 				productId: materialLocationsTable.materialId,
 				productName: materialsTable.name,
 				sku: materialsTable.sku,
-				currentStock: sql<number>`CAST(${materialLocationsTable.currentQty} AS FLOAT)`,
+				currentStock: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
 				reorderLevel: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT)`,
-				shortage: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT) - CAST(${materialLocationsTable.currentQty} AS FLOAT)`,
+				shortage: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT) - CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
-			.orderBy(sql`${materialLocationsTable.currentQty}`)
+			.orderBy(sql`${materialStockSnapshotsTable.currentQty}`)
 
 		const summary = await this.db
 			.select({
@@ -130,6 +165,13 @@ export class InventoryReportingRepo {
 			})
 			.from(materialLocationsTable)
 			.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(whereClause)
 
 		return { data, summary: summary[0] }

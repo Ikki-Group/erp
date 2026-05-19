@@ -35,7 +35,7 @@ export const MaterialCreateDto = z.object({
 	description: zc.strTrimNullable,
 	sku: zc.strTrim.min(3).max(50).toUpperCase(),
 	type: MaterialTypeSchema,
-	categoryId: zp.id.nullable(),
+	categoryId: zp.id,
 	baseUomId: zp.id,
 	locationIds: z.array(zp.id).default([]),
 	conversions: z

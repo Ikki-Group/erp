@@ -7,6 +7,8 @@ import { SalesTypeServiceModule } from './sales-type'
 import { SessionServiceModule } from './session'
 import { AuthServiceModule } from './auth'
 import { ToolServiceModule } from './tool'
+import { MaterialModule } from './material'
+import { InventoryServiceModule } from './inventory'
 
 export interface Modules {
 	location: LocationServiceModule
@@ -15,6 +17,8 @@ export interface Modules {
 	session: SessionServiceModule
 	auth: AuthServiceModule
 	tool: ToolServiceModule
+	material: MaterialModule
+	inventory: InventoryServiceModule
 
 	// location: LocationServiceModule
 	// product: ProductServiceModule
@@ -50,6 +54,8 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	const session = new SessionServiceModule(db, cacheClient)
 	const auth = new AuthServiceModule({ session, iam })
 	const tool = new ToolServiceModule(db, { iam, salesType })
+	const material = new MaterialModule(db, cacheClient, { location: location.location })
+	const inventory = new InventoryServiceModule(db, cacheClient, { material })
 
 	return {
 		location,
@@ -58,5 +64,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 		session,
 		auth,
 		tool,
+		material,
+		inventory,
 	}
 }

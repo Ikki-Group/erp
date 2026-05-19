@@ -7,6 +7,7 @@ import {
 	purchaseOrderItemsTable,
 	purchaseOrdersTable,
 	salesOrdersTable,
+	materialStockSnapshotsTable,
 } from '@/db/schema'
 import { stockTransactionsTable } from '@/db/schema/inventory'
 
@@ -124,9 +125,16 @@ export class BusinessInsightsRepo {
 		return this.db
 			.select({
 				materialId: materialLocationsTable.materialId,
-				avgStock: sql<number>`COALESCE(AVG(${materialLocationsTable.currentQty}), 0)`,
+				avgStock: sql<number>`COALESCE(AVG(CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)), 0)`,
 			})
 			.from(materialLocationsTable)
+			.leftJoin(
+				materialStockSnapshotsTable,
+				and(
+					eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+					eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+				),
+			)
 			.where(materialId ? eq(materialLocationsTable.materialId, materialId) : undefined)
 			.groupBy(materialLocationsTable.materialId)
 	}

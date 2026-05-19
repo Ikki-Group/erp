@@ -4,13 +4,12 @@ import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 
 import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
 
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import type { WithPaginationResult } from '@/types/pagination'
 import {
 	paginate,
 	searchFilter,
 	sortBy,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
 	type DbClient,
 } from '@/infra/database'
 
@@ -82,7 +81,7 @@ export class StockTransferRepo {
 					return rows.map((r) => StockTransferSelectDto.parse(r))
 				},
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(stockTransfersTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(stockTransfersTable).where(where),
 			})
 		})
 	}

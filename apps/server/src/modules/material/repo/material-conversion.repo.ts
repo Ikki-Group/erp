@@ -4,13 +4,13 @@ import { materialConversionsTable } from '@/db/schema'
 
 import {
 	paginate,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
 	type DbClient,
 	type DbTx,
-	type WithPaginationResult,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type {
@@ -42,7 +42,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(materialConversionsTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(materialConversionsTable).where(where),
 		})
 	}
 

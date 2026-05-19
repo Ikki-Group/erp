@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { RelationMap } from '@/core/utils'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { RelationMap } from '@/shared/utils'
 
 import { uomsTable } from '@/db/schema'
 
@@ -11,13 +11,13 @@ import type { WithPaginationResult } from '@/types/pagination'
 
 import type { IUomRepo, UomFilter } from '../domain/ports'
 import type { Uom } from '../domain/uom.entity'
-import { CACHE_KEY, MATERIAL_CACHE_NS } from '../material.constants'
+import { MATERIAL_CACHE_NS } from '../material.constants'
 import { UomErrors } from '../material.errors'
 import type { RecordId } from '@ikki/api-contract'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const UNIQUE_FIELDS: ConflictField<'code'>[] = [
+const UNIQUE_FIELDS: ConflictField<{ code: string }>[] = [
 	{
 		field: 'code',
 		column: uomsTable.code,
@@ -35,10 +35,7 @@ export class UomService {
 		private readonly deps: { repo: IUomRepo },
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({
-			ns: MATERIAL_CACHE_NS.UOM,
-			client: cacheClient,
-		})
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, MATERIAL_CACHE_NS.UOM)
 	}
 
 	/* ======================== PUBLIC API ======================== */
@@ -46,7 +43,7 @@ export class UomService {
 	async findAll(): Promise<Uom[]> {
 		return record('UomService.findAll', () => {
 			return this.cache.getOrSet({
-				key: CACHE_KEY.LIST,
+				key: this.cache.keys.list,
 				factory: () => this.deps.repo.getList(),
 			})
 		})
@@ -54,8 +51,8 @@ export class UomService {
 
 	async findById(id: number): Promise<Uom | undefined> {
 		return record('UomService.findById', () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: CACHE_KEY.BY_ID(id),
+			return this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
 				factory: () => this.deps.repo.getById(id),
 			})
 		})
@@ -71,7 +68,7 @@ export class UomService {
 	async count(): Promise<number> {
 		return record('UomService.count', () => {
 			return this.cache.getOrSet({
-				key: CACHE_KEY.COUNT,
+				key: this.cache.keys.count,
 				factory: () => this.deps.repo.count(),
 			})
 		})
@@ -109,7 +106,7 @@ export class UomService {
 			const result = await this.deps.repo.create({ code, createdBy: actorId })
 			if (!result) throw UomErrors.createFailed()
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 			return { id: result }
 		})
 	}
@@ -136,7 +133,7 @@ export class UomService {
 			const result = await this.deps.repo.update(id, { code, updatedBy: actorId })
 			if (!result) throw UomErrors.notFound(id)
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT, CACHE_KEY.BY_ID(id)] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
 			return { id }
 		})
 	}
@@ -149,7 +146,7 @@ export class UomService {
 			const result = await this.deps.repo.remove(id)
 			if (!result) throw UomErrors.notFound(id)
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT, CACHE_KEY.BY_ID(id)] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
 			return { id }
 		})
 	}

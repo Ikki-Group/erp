@@ -10,12 +10,12 @@
  * @example 'material:category', 'material:uom'
  */
 export const MATERIAL_CACHE_NS = {
-	CATEGORY: 'material:category',
-	UOM: 'material:uom',
-	MASTER: 'material:master',
-	LOCATION: 'material:location',
-	CONVERSION: 'material:conversion',
-	QUERY: 'material:query',
+	CATEGORY: 'material.category',
+	UOM: 'material.uom',
+	MASTER: 'material.master',
+	LOCATION: 'material.location',
+	CONVERSION: 'material.conversion',
+	QUERY: 'material.query',
 } as const
 
 /**

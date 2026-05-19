@@ -1,6 +1,8 @@
 import type { Modules } from './_registry'
 import { createLocationRouteModule } from './location'
 import { initToolRouteModule } from './tool'
+import { initMaterialRoutes } from './material'
+import { initInventoryRouteModule } from './inventory'
 import type Elysia from 'elysia'
 
 export function createRoutes(m: Modules) {
@@ -9,8 +11,8 @@ export function createRoutes(m: Modules) {
 		// createIamRouteModule(m.iam),
 		// createAuthRouteModule(m.auth),
 		// initDashboardRouteModule(m.dashboard),
-		// initInventoryRouteModule(m.inventory),
-		// initMaterialRoutes(m.material),
+		initInventoryRouteModule(m.inventory),
+		initMaterialRoutes(m.material),
 		// initProductRouteModule(m.product),
 		// initRecipeRouteModule(m.recipe),
 		initToolRouteModule(m.tool),

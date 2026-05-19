@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DbClient, DbTx } from '@/infra/database'
 
@@ -27,10 +27,7 @@ export class MaterialConversionService {
 		},
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({
-			ns: MATERIAL_CACHE_NS.CONVERSION,
-			client: cacheClient,
-		})
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, MATERIAL_CACHE_NS.CONVERSION)
 	}
 
 	/* ======================== PUBLIC API ======================== */
@@ -46,7 +43,7 @@ export class MaterialConversionService {
 
 	async findById(id: number): Promise<MaterialConversion | undefined> {
 		return record('MaterialConversionService.findById', () => {
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key: `byId:${id}`,
 				factory: () => this.deps.repo.getById(id),
 			})
@@ -147,6 +144,6 @@ export class MaterialConversionService {
 			keys.push(`list:${oldMaterialId}`)
 		}
 		if (itemId) keys.push(`byId:${itemId}`)
-		await this.cache.deleteMany({ keys })
+		await this.cache.deleteFromKeys(keys)
 	}
 }

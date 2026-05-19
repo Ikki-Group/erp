@@ -5,7 +5,8 @@ import { z } from 'zod'
 
 import { materialsTable, stockTransactionsTable } from '@/db/schema'
 
-import { paginate, takeFirst, type DbClient, type WithPaginationResult } from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { paginate, takeFirst, type DbClient } from '@/infra/database'
 import { NotFoundError } from '@/shared/errors/http-error'
 
 import type {
@@ -84,11 +85,12 @@ export class StockTransactionRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db
-					.select({ count: count() })
-					.from(stockTransactionsTable)
-					.leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
-					.where(where),
+				countQuery: () =>
+					this.db
+						.select({ count: count() })
+						.from(stockTransactionsTable)
+						.leftJoin(materialsTable, eq(stockTransactionsTable.materialId, materialsTable.id))
+						.where(where),
 			}) as unknown as WithPaginationResult<StockTransactionSelectDto>
 		})
 	}

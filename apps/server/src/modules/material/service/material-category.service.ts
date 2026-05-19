@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { RelationMap } from '@/core/utils'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { RelationMap } from '@/shared/utils'
 
 import { materialCategoriesTable } from '@/db/schema'
 
@@ -11,12 +11,12 @@ import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'
-import { CACHE_KEY, MATERIAL_CACHE_NS } from '../material.constants'
+import { MATERIAL_CACHE_NS } from '../material.constants'
 import { CategoryErrors } from '../material.errors'
 
 /* -------------------------------- CONSTANTS -------------------------------- */
 
-const UNIQUE_FIELDS: ConflictField<'name'>[] = [
+const UNIQUE_FIELDS: ConflictField<{ name: string }>[] = [
 	{
 		field: 'name',
 		column: materialCategoriesTable.name,
@@ -34,10 +34,7 @@ export class MaterialCategoryService {
 		private readonly deps: { repo: IMaterialCategoryRepo },
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({
-			ns: MATERIAL_CACHE_NS.CATEGORY,
-			client: cacheClient,
-		})
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, MATERIAL_CACHE_NS.CATEGORY)
 	}
 
 	/* ======================== PUBLIC API ======================== */
@@ -45,7 +42,7 @@ export class MaterialCategoryService {
 	async findAll(): Promise<MaterialCategory[]> {
 		return record('MaterialCategoryService.findAll', () => {
 			return this.cache.getOrSet({
-				key: CACHE_KEY.LIST,
+				key: this.cache.keys.list,
 				factory: () => this.deps.repo.getList(),
 			})
 		})
@@ -53,8 +50,8 @@ export class MaterialCategoryService {
 
 	async findById(id: number): Promise<MaterialCategory | undefined> {
 		return record('MaterialCategoryService.findById', () => {
-			return this.cache.getOrSetSkipUndefined({
-				key: CACHE_KEY.BY_ID(id),
+			return this.cache.getOrSetWithSkip({
+				key: this.cache.keys.byId(id),
 				factory: () => this.deps.repo.getById(id),
 			})
 		})
@@ -63,7 +60,7 @@ export class MaterialCategoryService {
 	async count(): Promise<number> {
 		return record('MaterialCategoryService.count', () => {
 			return this.cache.getOrSet({
-				key: CACHE_KEY.COUNT,
+				key: this.cache.keys.count,
 				factory: () => this.deps.repo.count(),
 			})
 		})
@@ -112,7 +109,7 @@ export class MaterialCategoryService {
 
 			const result = await this.deps.repo.create({ ...data, name, createdBy: actorId })
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 			return result
 		})
 	}
@@ -142,7 +139,7 @@ export class MaterialCategoryService {
 
 			const result = await this.deps.repo.update(id, { ...data, name, updatedBy: actorId })
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT, CACHE_KEY.BY_ID(id)] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
 			return result
 		})
 	}
@@ -155,7 +152,7 @@ export class MaterialCategoryService {
 			const result = await this.deps.repo.remove(id)
 			if (!result) throw CategoryErrors.notFound(id)
 
-			await this.cache.deleteMany({ keys: [CACHE_KEY.LIST, CACHE_KEY.COUNT, CACHE_KEY.BY_ID(id)] })
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
 			return result
 		})
 	}

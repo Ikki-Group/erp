@@ -4,7 +4,7 @@
 
 import { z, zq } from '@ikki/api-contract/validation'
 
-import { LocationDto } from '@/modules/location'
+import { LocationSchema } from '@/modules/location'
 import { MaterialCategoryEntity } from '../domain/material-category.entity'
 import { MaterialEntity, MaterialTypeSchema } from '../domain/material.entity'
 import { MaterialConversionEntity } from '../domain/material-conversion.entity'
@@ -15,7 +15,7 @@ export const MaterialQueryDetailDto = z.object({
 	...MaterialEntity.shape,
 	category: MaterialCategoryEntity.nullable(),
 	conversions: z.array(MaterialConversionEntity),
-	locations: z.array(LocationDto),
+	locations: z.array(LocationSchema),
 })
 export type MaterialQueryDetailDto = z.infer<typeof MaterialQueryDetailDto>
 

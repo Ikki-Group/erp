@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -11,11 +11,11 @@ import { StockTransferRepo } from './stock-transfer.repo'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Stock transfer with ID ${id} not found`, 'STOCK_TRANSFER_NOT_FOUND'),
+		new NotFoundError(`Stock transfer with ID ${id} not found`, { code: 'STOCK_TRANSFER_NOT_FOUND' }),
 	invalidStatus: (currentStatus: string) =>
 		new InternalServerError(
 			`Cannot approve/reject/cancel transfer with status ${currentStatus}`,
-			'INVALID_TRANSFER_STATUS',
+			{ code: 'INVALID_TRANSFER_STATUS' },
 		),
 }
 
@@ -26,7 +26,7 @@ export class StockTransferService {
 		private readonly repo: StockTransferRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'inventory.stock-transfer', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.stock-transfer')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
@@ -34,7 +34,7 @@ export class StockTransferService {
 	async getById(id: number): Promise<dto.StockTransferDto> {
 		return record('StockTransferService.getById', async () => {
 			const key = `byId:${id}`
-			const transfer = await this.cache.getOrSetSkipUndefined({
+			const transfer = await this.cache.getOrSetWithSkip({
 				key,
 				factory: async () => this.repo.getById(id),
 			})

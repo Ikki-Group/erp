@@ -5,7 +5,8 @@ import Decimal from 'decimal.js'
 import { db } from '@/db'
 import { stockTransactionsTable } from '@/db/schema'
 
-import { stampCreate, type DbTx } from '@/infra/database'
+import { stampCreate } from '@/shared/audit/stamp'
+import type { DbTx } from '@/infra/database'
 import { BadRequestError } from '@/shared/errors/http-error'
 
 import type { MaterialLocationService } from '@/modules/material'

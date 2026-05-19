@@ -5,7 +5,7 @@
 import { z, zc, zp, zq } from '@ikki/api-contract/validation'
 
 import { MaterialLocationEntity } from '../domain/material-location.entity'
-import { LocationDto } from '@/modules/location'
+import { LocationSchema } from '@/modules/location'
 import { UomEntity } from '../domain/uom.entity'
 
 /* -------------------------------- RESPONSE -------------------------------- */
@@ -15,7 +15,7 @@ export type MaterialLocationDto = z.infer<typeof MaterialLocationDto>
 
 /** Enriched view with location details */
 export const MaterialLocationWithLocationDto = MaterialLocationEntity.extend({
-	location: LocationDto,
+	location: LocationSchema,
 })
 export type MaterialLocationWithLocationDto = z.infer<typeof MaterialLocationWithLocationDto>
 

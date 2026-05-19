@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, sql } from 'drizzle-orm'
 
-import { materialLocationsTable, materialsTable } from '@/db/schema/material'
+import { materialLocationsTable, materialsTable, materialStockSnapshotsTable } from '@/db/schema/material'
 
 import type { DbClient } from '@/infra/database'
 
@@ -22,12 +22,19 @@ export class StockDashboardRepo {
 
 			const res = await this.db
 				.select({
-					totalStockValue: sql<number>`COALESCE(SUM(CAST(${materialLocationsTable.currentValue} AS FLOAT)), 0)`,
+					totalStockValue: sql<number>`COALESCE(SUM(CAST(${materialStockSnapshotsTable.currentValue} AS FLOAT)), 0)`,
 					totalActiveSku: sql<number>`COUNT(DISTINCT ${materialLocationsTable.materialId})`,
-					lowStockCount: sql<number>`CAST(SUM(CASE WHEN ${materialLocationsTable.currentQty} <= ${materialLocationsTable.minStock} OR ${materialLocationsTable.currentQty} <= ${materialLocationsTable.reorderPoint} THEN 1 ELSE 0 END) AS INT)`,
+					lowStockCount: sql<number>`CAST(SUM(CASE WHEN CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT) <= CAST(${materialLocationsTable.minStock} AS FLOAT) OR CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT) <= CAST(${materialLocationsTable.reorderPoint} AS FLOAT) THEN 1 ELSE 0 END) AS INT)`,
 				})
 				.from(materialLocationsTable)
 				.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+				.leftJoin(
+					materialStockSnapshotsTable,
+					and(
+						eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+						eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+					),
+				)
 				.where(whereClause)
 
 			const row = res[0]

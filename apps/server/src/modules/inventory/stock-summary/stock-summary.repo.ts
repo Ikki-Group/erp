@@ -17,11 +17,12 @@ import {
 	sum,
 } from 'drizzle-orm'
 
-import { toWibDateKey } from '@/core/utils/date'
+import { toWibDateKey } from '@/shared/utils/date'
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 
-import { paginate, type WithPaginationResult, type DbClient } from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { paginate, type DbClient } from '@/infra/database'
 
 import type {
 	StockLedgerFilterDto,
@@ -83,7 +84,6 @@ export class StockSummaryRepo {
 							updatedAt: stockSummariesTable.updatedAt,
 							createdBy: stockSummariesTable.createdBy,
 							updatedBy: stockSummariesTable.updatedBy,
-							syncAt: stockSummariesTable.syncAt,
 							materialName: materialsTable.name,
 							materialSku: materialsTable.sku,
 						})
@@ -94,11 +94,12 @@ export class StockSummaryRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db
-					.select({ count: count() })
-					.from(stockSummariesTable)
-					.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
-					.where(where),
+				countQuery: () =>
+					this.db
+						.select({ count: count() })
+						.from(stockSummariesTable)
+						.innerJoin(materialsTable, eq(stockSummariesTable.materialId, materialsTable.id))
+						.where(where),
 			})
 
 			return {
@@ -125,7 +126,12 @@ export class StockSummaryRepo {
 					: undefined,
 			)
 
-			const matResult = await paginate({
+			const matResult = await paginate<{
+				id: number
+				name: string
+				sku: string
+				baseUomCode: string
+			}>({
 				data: ({ limit: l, offset }) =>
 					this.db
 						.select({
@@ -141,7 +147,7 @@ export class StockSummaryRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(materialsTable).where(matWhere),
+				countQuery: () => this.db.select({ count: count() }).from(materialsTable).where(matWhere),
 			})
 
 			if (matResult.data.length === 0) {

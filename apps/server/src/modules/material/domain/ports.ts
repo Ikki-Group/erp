@@ -44,7 +44,7 @@ export interface MaterialInsertData {
 	description?: string | null | undefined
 	sku: string
 	type: MaterialType
-	categoryId?: number | null | undefined
+	categoryId: number
 	baseUomId: number
 	createdBy: number
 }
@@ -54,7 +54,7 @@ export interface MaterialUpdateData {
 	description?: string | null | undefined
 	sku?: string | undefined
 	type?: MaterialType | undefined
-	categoryId?: number | null | undefined
+	categoryId?: number | undefined
 	baseUomId?: number | undefined
 	updatedBy: number
 }

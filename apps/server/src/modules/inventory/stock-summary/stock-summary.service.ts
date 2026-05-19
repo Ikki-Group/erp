@@ -2,13 +2,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, gte, inArray, isNull, lt, sql, sum } from 'drizzle-orm'
 
-import { CacheService, type CacheClient } from '@/core/cache'
-import { toWibDateKey, toWibDayBounds } from '@/core/utils/date'
+import { CacheService, type CacheClient } from '@/infra/cache'
+import { toWibDateKey, toWibDayBounds } from '@/shared/utils/date'
 
 import { db } from '@/db'
 import { stockSummariesTable, stockTransactionsTable } from '@/db/schema'
 
-import { stampCreate } from '@/infra/database'
+import { stampCreate } from '@/shared/audit/stamp'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
@@ -31,7 +31,7 @@ export class StockSummaryService {
 		private readonly mLocationSvc: MaterialLocationService,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'inventory.summary', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.summary')
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */

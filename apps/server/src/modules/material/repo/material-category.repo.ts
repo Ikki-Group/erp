@@ -6,12 +6,12 @@ import {
 	paginate,
 	searchFilter,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
 	type DbClient,
-	type WithPaginationResult,
 } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type {
@@ -42,7 +42,7 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(materialCategoriesTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(materialCategoriesTable).where(where),
 		})
 	}
 
@@ -63,9 +63,15 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 
 	async create(data: CategoryInsertData): Promise<{ id: number }> {
 		const metadata = stampCreate(data.createdBy)
+		const code = data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_')
 		const [result] = await this.db
 			.insert(materialCategoriesTable)
-			.values({ ...data, ...metadata })
+			.values({
+				code,
+				name: data.name,
+				description: data.description,
+				...metadata,
+			})
 			.returning({ id: materialCategoriesTable.id })
 
 		if (!result) throw new Error('Failed to create material category')
@@ -74,9 +80,15 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 
 	async update(id: number, data: CategoryUpdateData): Promise<{ id: number }> {
 		const metadata = stampUpdate(data.updatedBy)
+		const code = data.name ? data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_') : undefined
 		await this.db
 			.update(materialCategoriesTable)
-			.set({ ...data, ...metadata })
+			.set({
+				...(code ? { code } : {}),
+				name: data.name,
+				description: data.description,
+				...metadata,
+			})
 			.where(eq(materialCategoriesTable.id, id))
 
 		return { id }

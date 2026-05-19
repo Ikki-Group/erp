@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { StockAlertFilterDto } from './stock-alert.dto'
 import { StockAlertRepo } from './stock-alert.repo'
@@ -12,7 +12,7 @@ export class StockAlertService {
 		private readonly repo: StockAlertRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'inventory.alert', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.alert')
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */

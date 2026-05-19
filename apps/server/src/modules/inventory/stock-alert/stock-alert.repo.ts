@@ -1,7 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 import { and, eq, lte, or, sql } from 'drizzle-orm'
 
-import { materialLocationsTable, materialsTable, uomsTable, locationsTable } from '@/db/schema'
+import {
+	materialLocationsTable,
+	materialsTable,
+	uomsTable,
+	locationsTable,
+	materialStockSnapshotsTable,
+} from '@/db/schema'
 
 import type { DbClient } from '@/infra/database'
 
@@ -19,20 +25,18 @@ export class StockAlertRepo {
 			const offset = (page - 1) * limit
 
 			const conditions = [
-				// isNull(materialLocationsTable.deletedAt),
-				// isNull(materialsTable.deletedAt),
 				filter.locationId ? eq(materialLocationsTable.locationId, filter.locationId) : undefined,
 			]
 
 			if (filter.type === 'below_min') {
-				conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
+				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock))
 			} else if (filter.type === 'below_reorder') {
-				conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint))
 			} else {
 				conditions.push(
 					or(
-						lte(materialLocationsTable.currentQty, materialLocationsTable.minStock),
-						lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
+						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
 					),
 				)
 			}
@@ -48,7 +52,7 @@ export class StockAlertRepo {
 						locationId: locationsTable.id,
 						locationName: locationsTable.name,
 						uomCode: uomsTable.code,
-						currentQty: sql<number>`CAST(${materialLocationsTable.currentQty} AS FLOAT)`,
+						currentQty: sql<number>`CAST(${materialStockSnapshotsTable.currentQty} AS FLOAT)`,
 						minStock: sql<number>`CAST(${materialLocationsTable.minStock} AS FLOAT)`,
 						reorderPoint: sql<number>`CAST(${materialLocationsTable.reorderPoint} AS FLOAT)`,
 					})
@@ -56,14 +60,28 @@ export class StockAlertRepo {
 					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
 					.innerJoin(locationsTable, eq(materialLocationsTable.locationId, locationsTable.id))
 					.leftJoin(uomsTable, eq(materialsTable.baseUomId, uomsTable.id))
+					.leftJoin(
+						materialStockSnapshotsTable,
+						and(
+							eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+							eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+						),
+					)
 					.where(whereClause)
 					.limit(limit)
 					.offset(offset)
-					.orderBy(materialLocationsTable.currentQty),
+					.orderBy(materialStockSnapshotsTable.currentQty),
 				this.db
 					.select({ count: sql<number>`cast(count(*) as int)` })
 					.from(materialLocationsTable)
 					.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+					.leftJoin(
+						materialStockSnapshotsTable,
+						and(
+							eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+							eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+						),
+					)
 					.where(whereClause),
 			])
 
@@ -80,14 +98,14 @@ export class StockAlertRepo {
 			]
 
 			if (filter.type === 'below_min') {
-				conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.minStock))
+				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock))
 			} else if (filter.type === 'below_reorder') {
-				conditions.push(lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint))
+				conditions.push(lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint))
 			} else {
 				conditions.push(
 					or(
-						lte(materialLocationsTable.currentQty, materialLocationsTable.minStock),
-						lte(materialLocationsTable.currentQty, materialLocationsTable.reorderPoint),
+						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.minStock),
+						lte(materialStockSnapshotsTable.currentQty, materialLocationsTable.reorderPoint),
 					),
 				)
 			}
@@ -98,6 +116,13 @@ export class StockAlertRepo {
 				.select({ count: sql<number>`cast(count(*) as int)` })
 				.from(materialLocationsTable)
 				.innerJoin(materialsTable, eq(materialLocationsTable.materialId, materialsTable.id))
+				.leftJoin(
+					materialStockSnapshotsTable,
+					and(
+						eq(materialLocationsTable.materialId, materialStockSnapshotsTable.materialId),
+						eq(materialLocationsTable.locationId, materialStockSnapshotsTable.locationId),
+					),
+				)
 				.where(whereClause)
 
 			return { count: countRes[0]?.count ?? 0 }

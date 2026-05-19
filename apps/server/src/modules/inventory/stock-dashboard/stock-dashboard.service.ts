@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
 import { StockDashboardRepo } from './stock-dashboard.repo'
@@ -12,7 +12,7 @@ export class StockDashboardService {
 		private readonly repo: StockDashboardRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'inventory.dashboard', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'inventory.dashboard')
 	}
 
 	/* --------------------------------- HANDLER -------------------------------- */
