@@ -1,8 +1,9 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { suppliersTable } from '@/db/schema/supplier'
 
-import { checkConflict, type ConflictField, type WithPaginationResult } from '@/infra/database'
+import { checkConflict, type ConflictField} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -15,7 +16,7 @@ import type {
 	SupplierUpdateSchema,
 } from './supplier.schema'
 
-const supplierConflictFields: ConflictField<'code'>[] = [
+const supplierConflictFields: ConflictField<any>[] = [
 	{
 		field: 'code',
 		column: suppliersTable.code,
@@ -26,8 +27,8 @@ const supplierConflictFields: ConflictField<'code'>[] = [
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Supplier with ID ${id} not found`, 'SUPPLIER_NOT_FOUND'),
-	createFailed: () => new InternalServerError('Supplier creation failed', 'SUPPLIER_CREATE_FAILED'),
+		new NotFoundError(`Supplier with ID ${id} not found`, { code: 'SUPPLIER_NOT_FOUND' }),
+	createFailed: () => new InternalServerError('Supplier creation failed', { code: 'SUPPLIER_CREATE_FAILED' }),
 }
 
 export class SupplierService {
@@ -37,13 +38,13 @@ export class SupplierService {
 		private readonly repo: SupplierRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'supplier', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'supplier')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<SupplierSchema | undefined> {
-		return this.cache.getOrSetSkipUndefined({
+		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})

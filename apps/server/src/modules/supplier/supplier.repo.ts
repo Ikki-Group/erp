@@ -5,12 +5,10 @@ import { suppliersTable } from '@/db/schema/supplier'
 import {
 	paginate,
 	sortBy,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -47,7 +45,7 @@ export class SupplierRepo {
 					.limit(l)
 					.offset(offset),
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(suppliersTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(suppliersTable).where(where),
 		})
 	}
 
