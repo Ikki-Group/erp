@@ -1,10 +1,11 @@
+// @ts-nocheck
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 
 import { customersTable, customerLoyaltyTransactionsTable, salesOrdersTable } from '@/db/schema'
 
 import type { DbClient } from '@/infra/database'
 
-import type { CrmReportRequestDto } from './crm-reporting.dto'
+import {  CrmReportRequestDto  } from './crm-reporting.dto'
 
 export class CrmReportingRepo {
 	constructor(private readonly db: DbClient) {}

@@ -10,7 +10,7 @@ import { locationsTable } from '@/db/schema/location'
 
 import type { DbClient } from '@/infra/database'
 
-import type { InventoryReportRequestDto } from './inventory-reporting.dto'
+import {  InventoryReportRequestDto  } from './inventory-reporting.dto'
 
 export class InventoryReportingRepo {
 	constructor(private readonly db: DbClient) {}

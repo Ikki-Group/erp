@@ -4,7 +4,7 @@ import { salesOrderItemsTable, salesOrdersTable } from '@/db/schema'
 
 import type { DbClient } from '@/infra/database'
 
-import type { SalesReportRequestDto } from './sales-reporting.dto'
+import {  SalesReportRequestDto  } from './sales-reporting.dto'
 
 export class SalesReportingRepo {
 	constructor(private readonly db: DbClient) {}

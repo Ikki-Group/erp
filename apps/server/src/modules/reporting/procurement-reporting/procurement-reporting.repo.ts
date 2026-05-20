@@ -12,7 +12,7 @@ import {
 
 import type { DbClient } from '@/infra/database'
 
-import type { ProcurementReportRequestDto } from './procurement-reporting.dto'
+import {  ProcurementReportRequestDto  } from './procurement-reporting.dto'
 
 export class ProcurementReportingRepo {
 	constructor(private readonly db: DbClient) {}
