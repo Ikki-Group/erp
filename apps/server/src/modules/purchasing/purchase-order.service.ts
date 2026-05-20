@@ -1,6 +1,6 @@
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { WithPaginationResult } from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -19,12 +19,11 @@ import type {
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Purchase Order with ID ${id} not found`, 'PURCHASE_ORDER_NOT_FOUND'),
+		new NotFoundError(`Purchase Order with ID ${id} not found`, { code: 'PURCHASE_ORDER_NOT_FOUND' }),
 	invalidStatus: (currentStatus: string) =>
 		new InternalServerError(
 			`Cannot approve/reject PO with status ${currentStatus}`,
-			'INVALID_PO_STATUS',
-		),
+			{ code: 'INVALID_PO_STATUS' }),
 }
 
 export class PurchaseOrderService {
@@ -34,14 +33,14 @@ export class PurchaseOrderService {
 		private readonly repo: PurchaseOrderRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'purchasing.order', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'purchasing.order')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<PurchaseOrderSchema> {
 		const key = `byId:${id}`
-		const order = await this.cache.getOrSetSkipUndefined({
+		const order = await this.cache.getOrSetWithSkip({
 			key,
 			factory: () => this.repo.getById(id),
 		})

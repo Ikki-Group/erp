@@ -1,6 +1,6 @@
 import { and, inArray } from 'drizzle-orm'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { purchaseOrderItemsTable } from '@/db/schema'
 
@@ -29,18 +29,18 @@ export class GoodsReceiptService {
 		private readonly db: DbClient,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'purchasing.receipt', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'purchasing.receipt')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<GoodsReceiptNoteSchema> {
 		const key = `byId:${id}`
-		const grn = await this.cache.getOrSetSkipUndefined({
+		const grn = await this.cache.getOrSetWithSkip({
 			key,
 			factory: () => this.repo.getById(id),
 		})
-		if (!grn) throw new NotFoundError(`GRN with ID ${id} not found`, 'GRN_NOT_FOUND')
+		if (!grn) throw new NotFoundError(`GRN with ID ${id} not found`, { code: 'GRN_NOT_FOUND' })
 		return grn
 	}
 
@@ -70,7 +70,7 @@ export class GoodsReceiptService {
 		return this.db.transaction(async (tx) => {
 			const grn = await this.getById(id)
 			if (grn.status !== 'open') {
-				throw new ConflictError(`GRN is already ${grn.status}`, 'GRN_STATUS_CONFLICT')
+				throw new ConflictError(`GRN is already ${grn.status}`, { code: 'GRN_STATUS_CONFLICT' })
 			}
 
 			const poItemIds = grn.items.map((i) => i.purchaseOrderItemId).filter(Boolean)

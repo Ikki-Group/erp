@@ -5,12 +5,9 @@ import { goodsReceiptNoteItemsTable, goodsReceiptNotesTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/infra/database'
+	sortBy, type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -18,8 +15,7 @@ import {
 	GoodsReceiptNoteCreateSchema,
 	GoodsReceiptNoteSchema,
 	GoodsReceiptNoteFilterSchema,
-	GoodsReceiptNoteSelectSchema,
-	type GoodsReceiptStatus,
+	GoodsReceiptNoteSelectSchema, type GoodsReceiptStatus,
 } from './goods-receipt.schema'
 
 export class GoodsReceiptRepo {
@@ -63,7 +59,7 @@ export class GoodsReceiptRepo {
 			supplierId === undefined ? undefined : eq(goodsReceiptNotesTable.supplierId, supplierId),
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: async ({ limit: l, offset }) => {
 				const rows = await this.db
 					.select()
@@ -75,7 +71,7 @@ export class GoodsReceiptRepo {
 				return rows.map((r) => GoodsReceiptNoteSelectSchema.parse(r))
 			},
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(goodsReceiptNotesTable).where(where),
 		})
 	}
 

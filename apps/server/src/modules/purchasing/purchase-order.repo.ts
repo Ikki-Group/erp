@@ -5,12 +5,9 @@ import { purchaseOrderItemsTable, purchaseOrdersTable } from '@/db/schema'
 import {
 	paginate,
 	searchFilter,
-	sortBy,
-	stampCreate,
-	stampUpdate,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/infra/database'
+	sortBy, type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -18,8 +15,7 @@ import {
 	PurchaseOrderCreateSchema,
 	PurchaseOrderSchema,
 	PurchaseOrderFilterSchema,
-	PurchaseOrderSelectSchema,
-	type PurchaseOrderStatus,
+	PurchaseOrderSelectSchema, type PurchaseOrderStatus,
 	PurchaseOrderUpdateSchema,
 } from './purchase-order.schema'
 
@@ -58,7 +54,7 @@ export class PurchaseOrderRepo {
 			supplierId === undefined ? undefined : eq(purchaseOrdersTable.supplierId, supplierId),
 		)
 
-		return paginate({
+		return paginate<any>({
 			data: async ({ limit: l, offset }) => {
 				const rows = await this.db
 					.select()
@@ -70,7 +66,7 @@ export class PurchaseOrderRepo {
 				return rows.map((r) => PurchaseOrderSelectSchema.parse(r))
 			},
 			pq: { page, limit },
-			countQuery: this.db.select({ count: count() }).from(purchaseOrdersTable).where(where),
+			countQuery: () => this.db.select({ count: count() }).from(purchaseOrdersTable).where(where),
 		})
 	}
 
