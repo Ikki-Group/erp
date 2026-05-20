@@ -13,15 +13,13 @@ import {
 
 import {
 	paginate,
-	stampCreate,
-	stampUpdate,
 	takeFirstOrThrow,
-	type WithPaginationResult,
-	type DbClient,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { BadRequestError, NotFoundError } from '@/shared/errors/http-error'
 
-import type {
+import { 
 	SalesOrderAddBatchDto,
 	SalesOrderBatchDto,
 	SalesOrderCreateDto,
@@ -31,15 +29,15 @@ import type {
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
 	SalesVoidDto,
-} from './sales-order.dto'
+ } from './sales-order.dto'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
+		new NotFoundError(`Sales Order ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' }),
 	itemNotFound: (id: number) =>
-		new NotFoundError(`Sales Order Item ${id} not found`, 'SALES_ORDER_ITEM_NOT_FOUND'),
+		new NotFoundError(`Sales Order Item ${id} not found`, { code: 'SALES_ORDER_ITEM_NOT_FOUND' }),
 	notOpen: (id: number) =>
-		new BadRequestError(`Sales Order ${id} is not open`, 'SALES_ORDER_NOT_OPEN'),
+		new BadRequestError(`Sales Order ${id} is not open`, { code: 'SALES_ORDER_NOT_OPEN' }),
 }
 
 export class SalesOrderRepo {
@@ -145,7 +143,7 @@ export class SalesOrderRepo {
 						.limit(l)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(salesOrdersTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(salesOrdersTable).where(where),
 			})
 
 			return {

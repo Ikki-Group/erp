@@ -6,12 +6,10 @@ import { salesInvoicesTable, salesInvoiceItemsTable, salesOrderItemsTable } from
 import {
 	paginate,
 	searchFilter,
-	stampCreate,
-	stampUpdate,
 	takeFirst,
-	type DbClient,
-	type WithPaginationResult,
-} from '@/infra/database'
+	type DbClient} from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import * as dto from './sales-invoice.dto'
 
@@ -34,7 +32,7 @@ export class SalesInvoiceRepo {
 				toDate === undefined ? undefined : lte(salesInvoicesTable.invoiceDate, toDate),
 			)
 
-			return paginate({
+			return paginate<any>({
 				data: ({ limit, offset }) =>
 					this.db
 						.select()
@@ -44,7 +42,7 @@ export class SalesInvoiceRepo {
 						.limit(limit)
 						.offset(offset),
 				pq: { page, limit },
-				countQuery: this.db.select({ count: count() }).from(salesInvoicesTable).where(where),
+				countQuery: () => this.db.select({ count: count() }).from(salesInvoicesTable).where(where),
 			})
 		})
 	}

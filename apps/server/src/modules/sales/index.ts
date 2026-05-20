@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 
-import type { CacheClient } from '@/core/cache'
+import type { CacheClient } from '@/infra/cache'
 
 import type { DbClient } from '@/infra/database'
 
@@ -30,7 +30,7 @@ export class SalesServiceModule {
 	constructor(
 		private readonly db: DbClient,
 		private readonly cacheClient: CacheClient,
-		private readonly deps: SalesServiceModuleDeps,
+		public readonly deps: SalesServiceModuleDeps,
 	) {
 		const salesOrderRepo = new SalesOrderRepo(this.db)
 		this.order = new SalesOrderService(salesOrderRepo, this.cacheClient, this.deps)

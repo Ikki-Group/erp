@@ -1,8 +1,8 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { WithPaginationResult } from '@/infra/database'
+import type { WithPaginationResult } from '@/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './sales-invoice.dto'
@@ -11,11 +11,11 @@ import type { RecordId } from '@ikki/api-contract'
 
 const err = {
 	notFound: (id: number) =>
-		new NotFoundError(`Sales invoice with ID ${id} not found`, 'SALES_INVOICE_NOT_FOUND'),
+		new NotFoundError(`Sales invoice with ID ${id} not found`, { code: 'SALES_INVOICE_NOT_FOUND' }),
 	orderNotFound: (id: number) =>
-		new NotFoundError(`Sales order with ID ${id} not found`, 'SALES_ORDER_NOT_FOUND'),
+		new NotFoundError(`Sales order with ID ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' }),
 	createFailed: () =>
-		new InternalServerError('Sales invoice creation failed', 'SALES_INVOICE_CREATE_FAILED'),
+		new InternalServerError('Sales invoice creation failed', { code: 'SALES_INVOICE_CREATE_FAILED' }),
 }
 
 export class SalesInvoiceService {
@@ -25,7 +25,7 @@ export class SalesInvoiceService {
 		private readonly repo: SalesInvoiceRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'sales.invoice', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'sales.invoice')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
@@ -33,7 +33,7 @@ export class SalesInvoiceService {
 	async getById(id: number): Promise<dto.SalesInvoiceDto | undefined> {
 		return record('SalesInvoiceService.getById', async () => {
 			const key = `byId:${id}`
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.getById(id),
 			})
@@ -43,7 +43,7 @@ export class SalesInvoiceService {
 	async getWithItems(id: number): Promise<dto.SalesInvoiceWithItemsDto | undefined> {
 		return record('SalesInvoiceService.getWithItems', async () => {
 			const key = `withItems:${id}`
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.getWithItems(id),
 			})
@@ -53,7 +53,7 @@ export class SalesInvoiceService {
 	async getByOrderId(orderId: number): Promise<dto.SalesInvoiceDto | undefined> {
 		return record('SalesInvoiceService.getByOrderId', async () => {
 			const key = `byOrderId:${orderId}`
-			return this.cache.getOrSetSkipUndefined({
+			return this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.getByOrderId(orderId),
 			})
@@ -110,7 +110,7 @@ export class SalesInvoiceService {
 			if (existing) {
 				throw new InternalServerError(
 					'Invoice already exists for this order',
-					'INVOICE_ALREADY_EXISTS',
+					{ code: 'INVOICE_ALREADY_EXISTS' }
 				)
 			}
 
@@ -133,7 +133,7 @@ export class SalesInvoiceService {
 			if (existing.status === 'paid' || existing.status === 'void') {
 				throw new InternalServerError(
 					'Cannot update a paid or voided invoice',
-					'CANNOT_UPDATE_PAID_OR_VOIDED_INVOICE',
+					{ code: 'CANNOT_UPDATE_PAID_OR_VOIDED_INVOICE' }
 				)
 			}
 
@@ -154,7 +154,7 @@ export class SalesInvoiceService {
 			if (existing.status === 'paid' || existing.status === 'open') {
 				throw new InternalServerError(
 					'Cannot delete a paid or open invoice',
-					'CANNOT_DELETE_PAID_OR_OPEN_INVOICE',
+					{ code: 'CANNOT_DELETE_PAID_OR_OPEN_INVOICE' }
 				)
 			}
 

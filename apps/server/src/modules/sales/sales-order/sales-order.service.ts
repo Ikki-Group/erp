@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
@@ -17,10 +17,10 @@ import type {
 import { SalesOrderRepo } from './sales-order.repo'
 
 interface SalesOrderServiceDeps {
-	location: { master: { getById: (id: number) => Promise<any> } }
-	crm: { customer: { getById: (id: number) => Promise<any> } }
-	product: { product: { getById: (id: number) => Promise<any> } }
-	salesType: { salesType: { getById: (id: number) => Promise<any> } }
+	location: import('@/modules/location').LocationServiceModule
+	crm: import('@/modules/crm').CrmServiceModule
+	product: import('@/modules/product').ProductServiceModule
+	salesType: import('../../sales-type').SalesTypeServiceModule
 }
 
 export class SalesOrderService {
@@ -31,16 +31,16 @@ export class SalesOrderService {
 		cacheClient: CacheClient,
 		private readonly deps: SalesOrderServiceDeps,
 	) {
-		this.cache = new CacheService({ ns: 'sales.order', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'sales.order')
 	}
 
 	/* --------------------------------- PRIVATE -------------------------------- */
 
 	private async validateRelatedEntities(data: SalesOrderCreateDto) {
 		// Validate location exists
-		const location = await this.deps.location.master.getById(data.locationId)
+		const location = await this.deps.location.location.getById(data.locationId)
 		if (!location) {
-			throw new NotFoundError(`Location with ID ${data.locationId} not found`, 'LOCATION_NOT_FOUND')
+			throw new NotFoundError(`Location with ID ${data.locationId} not found`, { code: 'LOCATION_NOT_FOUND' })
 		}
 
 		// Validate sales type exists
@@ -48,7 +48,7 @@ export class SalesOrderService {
 		if (!salesType) {
 			throw new NotFoundError(
 				`Sales type with ID ${data.salesTypeId} not found`,
-				'SALES_TYPE_NOT_FOUND',
+				{ code: 'SALES_TYPE_NOT_FOUND' }
 			)
 		}
 
@@ -58,7 +58,7 @@ export class SalesOrderService {
 			if (!customer) {
 				throw new NotFoundError(
 					`Customer with ID ${data.customerId} not found`,
-					'CUSTOMER_NOT_FOUND',
+					{ code: 'CUSTOMER_NOT_FOUND' }
 				)
 			}
 		}
@@ -71,7 +71,7 @@ export class SalesOrderService {
 					if (!product) {
 						throw new NotFoundError(
 							`Product with ID ${item.productId} not found`,
-							'PRODUCT_NOT_FOUND',
+							{ code: 'PRODUCT_NOT_FOUND' }
 						)
 					}
 				}
@@ -84,11 +84,11 @@ export class SalesOrderService {
 	async getById(id: number): Promise<SalesOrderOutputDto> {
 		return record('SalesOrderService.getById', async () => {
 			const key = `byId:${id}`
-			const order = await this.cache.getOrSetSkipUndefined({
+			const order = await this.cache.getOrSetWithSkip({
 				key,
 				factory: () => this.repo.getById(id),
 			})
-			if (!order) throw new NotFoundError(`Sales Order ${id} not found`, 'SALES_ORDER_NOT_FOUND')
+			if (!order) throw new NotFoundError(`Sales Order ${id} not found`, { code: 'SALES_ORDER_NOT_FOUND' })
 			return order
 		})
 	}
