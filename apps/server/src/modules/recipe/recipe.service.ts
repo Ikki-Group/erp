@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { CacheService, type CacheClient } from '@/core/cache'
+import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
@@ -18,11 +18,11 @@ import type {
 } from './recipe.schema'
 
 const err = {
-	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, 'RECIPE_NOT_FOUND'),
+	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, { code: 'RECIPE_NOT_FOUND' }),
 	targetMissing: () =>
-		new ConflictError('Recipe must have exactly one target', 'RECIPE_MISSING_TARGET'),
+		new ConflictError('Recipe must have exactly one target', { code: 'RECIPE_MISSING_TARGET' }),
 	targetExists: () =>
-		new ConflictError('A recipe already exists for this target', 'RECIPE_TARGET_ALREADY_EXISTS'),
+		new ConflictError('A recipe already exists for this target', { code: 'RECIPE_TARGET_ALREADY_EXISTS' }),
 }
 
 export class RecipeService {
@@ -32,14 +32,14 @@ export class RecipeService {
 		private readonly repo: RecipeRepo,
 		cacheClient: CacheClient,
 	) {
-		this.cache = new CacheService({ ns: 'recipe', client: cacheClient })
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'recipe')
 	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
 	async getById(id: number): Promise<RecipeSchema> {
 		const key = `byId:${id}`
-		const recipe = await this.cache.getOrSetSkipUndefined({
+		const recipe = await this.cache.getOrSetWithSkip({
 			key,
 			factory: () => this.repo.getById(id),
 		})
