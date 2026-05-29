@@ -1,8 +1,8 @@
 import type { Modules } from './_registry'
-import { createLocationRouteModule } from './location'
-import { initToolRouteModule } from './tool'
-import { initMaterialRoutes } from './material'
 import { initInventoryRouteModule } from './inventory'
+import { createLocationRouteModule } from './location'
+import { initMaterialRoutes } from './material'
+import { initToolRouteModule } from './tool'
 import type Elysia from 'elysia'
 
 export function createRoutes(m: Modules) {

@@ -17,12 +17,18 @@ import type {
 	LocationFilterSchema,
 } from './location.schema'
 
-const uniqueFields: ConflictField<{ name: string }>[] = [
+const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
 	{
 		field: 'name',
 		column: locationsTable.name,
 		message: 'Location name already exists',
 		code: 'LOCATION_NAME_ALREADY_EXISTS',
+	},
+	{
+		field: 'code',
+		column: locationsTable.code,
+		message: 'Location code already exists',
+		code: 'LOCATION_CODE_ALREADY_EXISTS',
 	},
 ]
 

@@ -38,7 +38,9 @@ for arg in "${ARGS[@]}"; do
 $(find "$arg" -type f \
   -not -path '*/\.*' \
   -not -path '*/node_modules/*' \
-  -not -path '*/dist/*')
+  -not -path '*/dist/*' \
+  -not -path '*.lock'
+)
 EOF
 
   elif [[ -f "$arg" ]]; then
@@ -67,9 +69,9 @@ generate_context() {
 
     clean_path="${file#./}"
 
-    echo "========================================"
+    echo "-------------------"
     echo "FILE: $clean_path"
-    echo "========================================"
+    echo "-------------------"
     echo ""
 
     cat "$file"
@@ -77,9 +79,9 @@ generate_context() {
     echo ""
   done
 
-  echo "========================================"
+  echo "-------------------"
   echo "END OF CONTEXT"
-  echo "========================================"
+  echo "-------------------"
   echo "</context>"
 }
 
