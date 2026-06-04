@@ -24,6 +24,13 @@ const pagination = z.object({
 	limit: z.coerce.number().int().positive().max(100).default(10).catch(10),
 })
 
+function withPagination<T extends z.ZodRawShape>(shape: T) {
+	return z.object({
+		...shape,
+		...pagination.shape,
+	})
+}
+
 export const zq = {
 	id,
 	ids,
@@ -31,4 +38,5 @@ export const zq = {
 	boolean,
 	recordId,
 	pagination,
+	withPagination,
 }

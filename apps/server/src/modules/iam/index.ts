@@ -18,7 +18,7 @@ import { createUserRoute } from './user/user.route'
 import { UserService } from './user/user.service'
 
 interface IamServiceModuleDeps {
-	location: LocationServiceModule
+	location: LocationServiceModule['location']
 }
 
 export class IamServiceModule {
@@ -36,7 +36,7 @@ export class IamServiceModule {
 		this.assignment = new UserAssignmentService(assignmentRepo)
 		this.user = new UserService(
 			{
-				location: deps.location,
+				location: deps,
 				assignment: this.assignment,
 				role: this.role,
 			},
@@ -48,7 +48,7 @@ export class IamServiceModule {
 				role: this.role,
 				assignment: this.assignment,
 				user: this.user,
-				location: deps.location.location,
+				location: deps.location,
 			},
 		})
 	}

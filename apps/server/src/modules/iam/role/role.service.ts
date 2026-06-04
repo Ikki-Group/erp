@@ -69,17 +69,6 @@ export class RoleService {
 		)
 	}
 
-	async seed(data: (RoleMutationSchema & { createdBy: ActorId })[]): Promise<void> {
-		return record('RoleService.seed', async () => {
-			for (const d of data) {
-				const existing = await this.getByIdentifier(d.code)
-				if (existing) continue
-
-				await this.create(d, d.createdBy)
-			}
-		})
-	}
-
 	async getByIdentifier(code: string): Promise<RoleSchema | undefined> {
 		return record('RoleService.getByIdentifier', async () => {
 			const list = await this.getListAll()
@@ -138,12 +127,7 @@ export class RoleService {
 			const result = await this.repo.update(id, data, actorId)
 			if (!result) throw err.notFound(id)
 
-			await this.cache.deleteFromKeys([
-				this.cache.keys.list,
-				this.cache.keys.count,
-				this.cache.keys.byId(id),
-			])
-
+			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.byId(id)])
 			return result
 		})
 	}
@@ -164,6 +148,17 @@ export class RoleService {
 			])
 
 			return result
+		})
+	}
+
+	async seed(data: (RoleMutationSchema & { createdBy: ActorId })[]): Promise<void> {
+		return record('RoleService.seed', async () => {
+			for (const d of data) {
+				const existing = await this.getByIdentifier(d.code)
+				if (existing) continue
+
+				await this.create(d, d.createdBy)
+			}
 		})
 	}
 
