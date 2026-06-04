@@ -4,6 +4,7 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, successNoDataSchema } from '@/shared/schema'
 
+import type { UserAssignmentService } from '../assignment.service'
 import {
 	UserAssignmentFilterSchema,
 	UserAssignmentSchema,
@@ -12,7 +13,6 @@ import {
 	AssignmentRemoveBodySchema,
 	AssignmentRemoveBulkBodySchema,
 } from './assignment.schema'
-import type { UserAssignmentService } from './assignment.service'
 
 export function createAssignmentRoute(svc: UserAssignmentService) {
 	return new Elysia({ prefix: '/assignment' })

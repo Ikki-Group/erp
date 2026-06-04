@@ -1,17 +1,16 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-import { RelationMap } from '@/shared/utils'
-
 import { rolesTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
+import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import { SYSTEM_ROLES } from './constants'
+import { SYSTEM_ROLES } from '../constants'
 import { RoleRepo } from './role.repo'
 import type { RoleSchema, RoleMutationSchema, RoleFilterSchema } from './role.schema'
 

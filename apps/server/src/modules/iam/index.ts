@@ -1,22 +1,21 @@
 import { Elysia } from 'elysia'
 
 import type { CacheClient } from '@/infra/cache'
-
 import type { DbClient } from '@/infra/database'
 
 import type { LocationServiceModule } from '@/modules/location'
 
-import { UserAssignmentRepo } from './assignment.repo'
-import { createAssignmentRoute } from './assignment.route'
-import { UserAssignmentService } from './assignment.service'
-import { RoleRepo } from './role.repo'
-import { createRoleRoute } from './role.route'
-import { RoleService } from './role.service'
-import { createUserReadRoute } from './user-read.route'
-import { UserReadService } from './user-read.service'
-import { UserRepo } from './user.repo'
-import { createUserRoute } from './user.route'
-import { UserService } from './user.service'
+import { UserAssignmentRepo } from './assignment/assignment.repo'
+import { createAssignmentRoute } from './assignment/assignment.route'
+import { UserAssignmentService } from './assignment/assignment.service'
+import { RoleRepo } from './role/role.repo'
+import { createRoleRoute } from './role/role.route'
+import { RoleService } from './role/role.service'
+import { createUserReadRoute } from './user/user-read.route'
+import { UserReadService } from './user/user-read.service'
+import { UserRepo } from './user/user.repo'
+import { createUserRoute } from './user/user.route'
+import { UserService } from './user/user.service'
 
 interface IamServiceModuleDeps {
 	location: LocationServiceModule
@@ -63,12 +62,12 @@ export function createIamRouteModule(s: IamServiceModule) {
 		.use(createUserReadRoute(s.userRead))
 }
 
-export * from './role.schema'
-export * from './user.schema'
-export * from './assignment.schema'
-export * from './user-read.schema'
+export * from './role/role.schema'
+export * from './user/user.schema'
+export * from './assignment/assignment.schema'
+export * from './user/user-read.schema'
 
-export type { RoleService } from './role.service'
-export type { UserService } from './user.service'
-export type { UserAssignmentService } from './assignment.service'
-export type { UserReadService } from './user-read.service'
+export type { RoleService } from './role/role.service'
+export type { UserService } from './user/user.service'
+export type { UserAssignmentService } from './assignment/assignment.service'
+export type { UserReadService } from './user/user-read.service'

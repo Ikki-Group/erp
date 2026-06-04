@@ -1,12 +1,13 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { WithPaginationResult } from '@/types/pagination'
 import { NotFoundError } from '@/shared/errors/http-error'
+
+import type { WithPaginationResult } from '@/types/pagination'
 
 import type { LocationServiceModule } from '@/modules/location'
 
-import type { UserAssignmentService } from './assignment.service'
-import type { RoleService } from './role.service'
+import type { UserAssignmentService } from '../assignment/assignment.service'
+import type { RoleService } from '../role/role.service'
 import type { UserReadDetailSchema } from './user-read.schema'
 import type { UserFilterSchema, UserSchema } from './user.schema'
 import type { UserService } from './user.service'

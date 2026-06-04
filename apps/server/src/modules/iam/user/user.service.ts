@@ -1,21 +1,20 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { CacheService, type CacheClient } from '@/infra/cache'
-import { RelationMap } from '@/shared/utils'
-
 import { usersTable } from '@/db/schema'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
+import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type { LocationServiceModule } from '@/modules/location'
 
-import type { UserAssignmentService } from './assignment.service'
-import type { RoleService } from './role.service'
-import { UserRepo } from './user.repo'
+import type { UserAssignmentService } from '../assignment/assignment.service'
+import type { RoleService } from '../role/role.service'
+import { UserRepo } from '../user.repo'
 import type {
 	UserSchema,
 	UserFilterSchema,

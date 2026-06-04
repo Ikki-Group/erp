@@ -3,10 +3,10 @@ import { record } from '@elysiajs/opentelemetry'
 import type { OmitPaginationQuery } from '@/types/utils'
 import type { ActorId } from '@/types/utils'
 
+import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
 import { UserAssignmentRepo } from './assignment.repo'
 import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
 import type { UserAssignmentFilterSchema } from './assignment.schema'
-import { IAM_CONFIG, SYSTEM_ROLES } from './constants'
 
 export class UserAssignmentService {
 	constructor(private readonly repo: UserAssignmentRepo) {}

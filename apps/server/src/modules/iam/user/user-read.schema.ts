@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 import { LocationSchema } from '@/modules/location'
 
-import { UserAssignmentSchema } from './assignment.schema'
-import { RoleSchema } from './role.schema'
+import { UserAssignmentSchema } from '../assignment/assignment.schema'
+import { RoleSchema } from '../role/role.schema'
 import { UserSchema } from './user.schema'
 
 export const UserReadDetailSchema = z.object({

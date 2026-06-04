@@ -5,8 +5,8 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
+import type { RoleService } from '../role.service'
 import { RoleFilterSchema, RoleMutationSchema, RoleSchema } from './role.schema'
-import type { RoleService } from './role.service'
 
 export function createRoleRoute(svc: RoleService) {
 	return new Elysia({ prefix: '/role' })
