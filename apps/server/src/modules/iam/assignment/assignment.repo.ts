@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { eq, inArray, and, type SQL } from 'drizzle-orm'
 
 import { userAssignmentsTable } from '@/db/schema'
 
@@ -6,126 +6,143 @@ import { type DbClient } from '@/infra/database'
 
 import type { ActorId } from '@/types/utils'
 
-import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
+import type { UserAssignmentSchema } from './assignment.schema'
+
+type GetUserAssignmentListOptions = {
+	userIds?: number | number[]
+	roleIds?: number | number[]
+	locationIds?: number | number[]
+}
+
+type UserAssignmentSyncInput = {
+	id?: number
+	roleId: number
+	locationId: number
+}
 
 export class UserAssignmentRepo {
 	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getList(): Promise<UserAssignmentSchema[]> {
-		return this.db.select().from(userAssignmentsTable)
-	}
+	/**
+	 * List all
+	 * should filter by
+	 * userIds?: Array<number> | number
+	 * roleIds?: Array<number> | number
+	 */
+	async getList(options: GetUserAssignmentListOptions = {}): Promise<UserAssignmentSchema[]> {
+		const conditions: SQL[] = []
 
-	/** Get assignments for multiple users in a single query */
-	async getListByUserIds(userIds: number[]): Promise<UserAssignmentSchema[]> {
+		if (options.userIds) {
+			conditions.push(
+				inArray(
+					userAssignmentsTable.userId,
+					Array.isArray(options.userIds) ? options.userIds : [options.userIds],
+				),
+			)
+		}
+
+		if (options.roleIds) {
+			conditions.push(
+				inArray(
+					userAssignmentsTable.roleId,
+					Array.isArray(options.roleIds) ? options.roleIds : [options.roleIds],
+				),
+			)
+		}
+
+		if (options.locationIds) {
+			conditions.push(
+				inArray(
+					userAssignmentsTable.locationId,
+					Array.isArray(options.locationIds) ? options.locationIds : [options.locationIds],
+				),
+			)
+		}
+
 		return this.db
 			.select()
 			.from(userAssignmentsTable)
-			.where(inArray(userAssignmentsTable.userId, userIds))
+			.where(conditions.length > 0 ? and(...conditions) : undefined)
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
 
-	async replaceByUserId(
+	/**
+	 * Synchronizes all user assignments.
+	 *
+	 * Existing assignments will be created, updated, or removed
+	 * to match the provided assignment list.
+	 */
+	async syncByUserId(
 		userId: number,
-		assignments: ({ id?: number } & Pick<UserAssignmentSchema, 'roleId' | 'locationId'>)[],
-	) {}
-
-	async replaceBulkByUserId(
-		userId: number,
-		assignments: UserAssignmentUpsertSchema[],
+		assignments: UserAssignmentSyncInput[],
 		actorId: ActorId,
 	): Promise<void> {
+		const now = new Date()
 		await this.db.transaction(async (tx) => {
-			await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
+			const currentAssignments = await tx
+				.select()
+				.from(userAssignmentsTable)
+				.where(eq(userAssignmentsTable.userId, userId))
 
-			if (assignments.length > 0) {
+			const currentAssignmentMap = new Map(
+				currentAssignments.map((assignment) => [assignment.id, assignment]),
+			)
+
+			const incomingIds = new Set(
+				assignments
+					.map((assignment) => assignment.id)
+					.filter((id): id is number => id !== undefined),
+			)
+
+			const assignmentIdsToDelete = currentAssignments
+				.filter((assignment) => !incomingIds.has(assignment.id))
+				.map((assignment) => assignment.id)
+
+			if (assignmentIdsToDelete.length > 0) {
+				await tx
+					.delete(userAssignmentsTable)
+					.where(inArray(userAssignmentsTable.id, assignmentIdsToDelete))
+			}
+
+			const assignmentsToCreate = assignments.filter((assignment) => assignment.id === undefined)
+
+			if (assignmentsToCreate.length > 0) {
 				await tx.insert(userAssignmentsTable).values(
-					assignments.map((a) => ({
+					assignmentsToCreate.map((assignment) => ({
 						userId,
-						roleId: a.roleId,
-						locationId: a.locationId,
-						addedAt: new Date(),
-						addedBy: actorId,
+						roleId: assignment.roleId,
+						locationId: assignment.locationId,
+						createdBy: actorId,
+						updatedBy: actorId,
 					})),
 				)
 			}
-		})
-	}
 
-	async removeByUserAndLocation(userId: number, locationId: number): Promise<void> {
-		await this.db
-			.delete(userAssignmentsTable)
-			.where(
-				and(
-					eq(userAssignmentsTable.userId, userId),
-					eq(userAssignmentsTable.locationId, locationId),
-				),
-			)
-	}
+			for (const assignment of assignments) {
+				if (!assignment.id) continue
 
-	/** Remove multiple users from a location in a single query */
-	async removeUsersBulkFromLocation(userIds: number[], locationId: number): Promise<void> {
-		await this.db
-			.delete(userAssignmentsTable)
-			.where(
-				and(
-					inArray(userAssignmentsTable.userId, userIds),
-					eq(userAssignmentsTable.locationId, locationId),
-				),
-			)
-	}
+				const currentAssignment = currentAssignmentMap.get(assignment.id)
 
-	/** Update role for multiple users in a location in a single query */
-	async updateRoleBulkByLocation(
-		userIds: number[],
-		locationId: number,
-		roleId: number,
-		actorId: ActorId,
-	): Promise<void> {
-		await this.db
-			.update(userAssignmentsTable)
-			.set({
-				roleId,
-				addedBy: actorId,
-			})
-			.where(
-				and(
-					inArray(userAssignmentsTable.userId, userIds),
-					eq(userAssignmentsTable.locationId, locationId),
-				),
-			)
-	}
+				if (!currentAssignment) continue
 
-	/**
-	 * Replace assignments for multiple users in a single transaction.
-	 * Deletes all existing assignments for these users, then inserts new ones.
-	 */
-	async replaceBulkByUserIds(
-		userIds: number[],
-		assignmentsByUserId: Map<number, UserAssignmentUpsertSchema[]>,
-		actorId: ActorId,
-	): Promise<void> {
-		await this.db.transaction(async (tx) => {
-			await tx.delete(userAssignmentsTable).where(inArray(userAssignmentsTable.userId, userIds))
+				const hasChanges =
+					currentAssignment.roleId !== assignment.roleId ||
+					currentAssignment.locationId !== assignment.locationId
 
-			const valuesToInsert: (typeof userAssignmentsTable.$inferInsert)[] = []
-			for (const userId of userIds) {
-				const assignments = assignmentsByUserId.get(userId) ?? []
-				for (const a of assignments) {
-					valuesToInsert.push({
-						userId,
-						roleId: a.roleId,
-						locationId: a.locationId,
-						addedAt: new Date(),
+				if (!hasChanges) continue
+
+				await tx
+					.update(userAssignmentsTable)
+					.set({
+						roleId: assignment.roleId,
+						locationId: assignment.locationId,
 						addedBy: actorId,
+						addedAt: now,
 					})
-				}
-			}
-
-			if (valuesToInsert.length > 0) {
-				await tx.insert(userAssignmentsTable).values(valuesToInsert)
+					.where(eq(userAssignmentsTable.id, assignment.id))
 			}
 		})
 	}

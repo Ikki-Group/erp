@@ -1,6 +1,7 @@
 export type ConfigNamespace =
 	| 'location'
 	| 'iam.user'
+	| 'iam.user.assignment'
 	| 'iam.role'
 	| 'iam.session'
 	| 'product-category'

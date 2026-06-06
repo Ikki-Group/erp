@@ -1,5 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
+import { CacheService, type CacheClient } from '@/infra/cache'
+
 import type { OmitPaginationQuery } from '@/types/utils'
 import type { ActorId } from '@/types/utils'
 
@@ -9,7 +11,14 @@ import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignm
 import type { UserAssignmentFilterSchema } from './assignment.schema'
 
 export class UserAssignmentService {
-	constructor(private readonly repo: UserAssignmentRepo) {}
+	private readonly cache: CacheService
+
+	constructor(
+		private readonly repo: UserAssignmentRepo,
+		cacheClient: CacheClient,
+	) {
+		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user.assignment')
+	}
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
@@ -25,33 +34,10 @@ export class UserAssignmentService {
 		}
 	}
 
-	/**
-	 * Get assignments for a single user — cached.
-	 * Used internally by UserService and externally by router.
-	 */
-	async findByUserId(userId: number): Promise<UserAssignmentSchema[]> {
-		return this.repo.getList({ userId })
-	}
-
-	async handleGetList(
-		filter: OmitPaginationQuery<UserAssignmentFilterSchema>,
-	): Promise<UserAssignmentSchema[]> {
-		return this.repo.getList(filter)
-	}
-
-	async handleGetListPaginated(filter: UserAssignmentFilterSchema) {
-		return this.repo.getListPaginated(filter)
-	}
-
-	async getListByUserIds(userIds: number[]): Promise<Record<number, UserAssignmentSchema[]>> {
-		return record('UserAssignmentService.getListByUserIds', async () => {
-			if (userIds.length === 0) return {}
-			const assignments = await this.repo.getListByUserIds(userIds)
-			return assignments.reduce<Record<number, UserAssignmentSchema[]>>((acc, a) => {
-				acc[a.userId] ??= acc[a.userId] ?? []
-				acc[a.userId]!.push(a)
-				return acc
-			}, {})
+	async getByUserId(userId: number): Promise<UserAssignmentSchema[]> {
+		return this.cache.getOrSet({
+			key: this.cache.keys.byId(userId),
+			factory: () => this.repo.getList({ userIds: userId }),
 		})
 	}
 
