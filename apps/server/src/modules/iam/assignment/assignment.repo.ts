@@ -1,60 +1,20 @@
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 
 import { userAssignmentsTable } from '@/db/schema'
 
-import { paginate, sortBy, type DbClient } from '@/infra/database'
+import { type DbClient } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId } from '@/types/utils'
-import type { OmitPaginationQuery } from '@/types/utils'
 
-import type {
-	UserAssignmentFilterSchema,
-	UserAssignmentSchema,
-	UserAssignmentUpsertSchema,
-} from './assignment.schema'
+import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
 
 export class UserAssignmentRepo {
 	constructor(private readonly db: DbClient) {}
 
-	/* --------------------------------- PRIVATE -------------------------------- */
-
-	#buildWhereClause(
-		filter: Partial<Pick<UserAssignmentFilterSchema, 'userId' | 'roleId' | 'locationId'>>,
-	) {
-		const { userId, roleId, locationId } = filter
-		return and(
-			userId ? eq(userAssignmentsTable.userId, userId) : undefined,
-			roleId ? eq(userAssignmentsTable.roleId, roleId) : undefined,
-			locationId ? eq(userAssignmentsTable.locationId, locationId) : undefined,
-		)
-	}
-
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getListPaginated(
-		filter: UserAssignmentFilterSchema,
-	): Promise<WithPaginationResult<UserAssignmentSchema>> {
-		const where = this.#buildWhereClause(filter)
-
-		return paginate<UserAssignmentSchema>({
-			data: ({ limit, offset }) =>
-				this.db
-					.select()
-					.from(userAssignmentsTable)
-					.where(where)
-					.orderBy(sortBy(userAssignmentsTable.addedAt, 'desc'))
-					.limit(limit)
-					.offset(offset),
-			pq: filter,
-			countQuery: () => this.db.select({ count: count() }).from(userAssignmentsTable).where(where),
-		})
-	}
-
-	async getList(
-		filter: OmitPaginationQuery<UserAssignmentFilterSchema>,
-	): Promise<UserAssignmentSchema[]> {
-		return this.db.select().from(userAssignmentsTable).where(this.#buildWhereClause(filter))
+	async getList(): Promise<UserAssignmentSchema[]> {
+		return this.db.select().from(userAssignmentsTable)
 	}
 
 	/** Get assignments for multiple users in a single query */
@@ -66,6 +26,11 @@ export class UserAssignmentRepo {
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */
+
+	async replaceByUserId(
+		userId: number,
+		assignments: ({ id?: number } & Pick<UserAssignmentSchema, 'roleId' | 'locationId'>)[],
+	) {}
 
 	async replaceBulkByUserId(
 		userId: number,
