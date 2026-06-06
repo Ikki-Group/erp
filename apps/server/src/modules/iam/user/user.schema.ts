@@ -18,6 +18,12 @@ export const UserSchema = z.object({
 })
 export type UserSchema = z.infer<typeof UserSchema>
 
+export const UserWithPasswordSchema = z.object({
+	...UserSchema.shape,
+	passwordHash: zp.str.nullable(),
+})
+export type UserWithPasswordSchema = z.infer<typeof UserWithPasswordSchema>
+
 /* -------------------------------- MUTATION -------------------------------- */
 
 const UserMutationSchema = z.object({

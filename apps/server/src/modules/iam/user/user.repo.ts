@@ -2,13 +2,7 @@ import { and, count, eq, exists, or } from 'drizzle-orm'
 
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	takeFirst,
-	type DbClient,
-} from '@/infra/database'
+import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import type { WithPaginationResult } from '@/types/pagination'
@@ -19,6 +13,7 @@ import type {
 	UserSchema,
 	UserCreateSchema,
 	UserUpdateSchema,
+	UserWithPasswordSchema,
 } from './user.schema'
 
 export class UserRepo {
@@ -71,13 +66,11 @@ export class UserRepo {
 		return this.db.select().from(usersTable).orderBy(usersTable.id)
 	}
 
-	async getById(id: number): Promise<UserSchema | undefined> {
+	async getById(id: number): Promise<UserWithPasswordSchema | undefined> {
 		return this.db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
 	}
 
-	async getByIdentifier(
-		identifier: string,
-	): Promise<(UserSchema & { passwordHash: string }) | null> {
+	async getByIdentifier(identifier: string): Promise<UserWithPasswordSchema | null> {
 		const user = await this.db
 			.select()
 			.from(usersTable)
@@ -90,16 +83,6 @@ export class UserRepo {
 			...user,
 			passwordHash: user.passwordHash,
 		}
-	}
-
-	async getPasswordHash(id: number): Promise<string | null> {
-		const res = await this.db
-			.select({ passwordHash: usersTable.passwordHash })
-			.from(usersTable)
-			.where(eq(usersTable.id, id))
-			.limit(1)
-			.then(takeFirst)
-		return res?.passwordHash ?? null
 	}
 
 	async count(): Promise<number> {

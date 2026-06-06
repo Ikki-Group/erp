@@ -14,7 +14,7 @@ import type { LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
-import { UserRepo } from '../user.repo'
+import { UserRepo } from './user.repo'
 import type {
 	UserSchema,
 	UserFilterSchema,
@@ -22,6 +22,7 @@ import type {
 	UserUpdateSchema,
 	UserChangePasswordSchema,
 	UserAdminUpdatePasswordSchema,
+	UserWithPasswordSchema,
 } from './user.schema'
 
 const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
@@ -51,7 +52,7 @@ const err = {
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
-	location: LocationServiceModule
+	location: LocationServiceModule['location']
 }
 
 export class UserService {
@@ -108,10 +109,8 @@ export class UserService {
 		)
 	}
 
-	async getByIdentifier(
-		identifier: string,
-	): Promise<(UserSchema & { passwordHash: string }) | null> {
-		return this.r.getByIdentifier(identifier)
+	async getByIdentifier(identifier: string): Promise<UserWithPasswordSchema | null> {
+		return record('UserService.getByIdentifier', () => this.r.getByIdentifier(identifier))
 	}
 
 	async create(
@@ -132,7 +131,7 @@ export class UserService {
 			if (!result) throw err.createFailed()
 
 			if (assignments && assignments.length > 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
+				await this.s.assignment.replaceByUserId(
 					result.id,
 					assignments.map((a) => ({
 						userId: result.id,
@@ -160,13 +159,14 @@ export class UserService {
 			const existing = await this.r.getById(id)
 			if (!existing) throw err.notFound(id)
 
-			console.debug({ existing })
-
 			await checkConflict({
 				table: usersTable,
 				pkColumn: usersTable.id,
 				fields: userConflictFields,
-				input: data,
+				input: {
+					email: data.email,
+					username: data.username,
+				},
 				existing,
 			})
 
@@ -174,7 +174,7 @@ export class UserService {
 			if (!result) throw err.notFound(id)
 
 			if (assignments && assignments.length >= 0 && !isRoot) {
-				await this.s.assignment.handleReplaceBulkByUserId(
+				await this.s.assignment.replaceByUserId(
 					id,
 					assignments.map((a) => ({ userId: id, roleId: a.roleId, locationId: a.locationId })),
 					actorId,
@@ -240,7 +240,7 @@ export class UserService {
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.handleChangePassword', async () => {
-			const passwordHash = await this.r.getPasswordHash(id)
+			const passwordHash = await this.r.getById(id).then((u) => u?.passwordHash)
 			if (!passwordHash) throw err.notFound(id)
 
 			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
