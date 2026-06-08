@@ -33,10 +33,10 @@ export class IamServiceModule {
 		const assignmentRepo = new UserAssignmentRepo(db)
 
 		this.role = new RoleService(roleRepo, cacheClient)
-		this.assignment = new UserAssignmentService(assignmentRepo)
+		this.assignment = new UserAssignmentService(assignmentRepo, cacheClient)
 		this.user = new UserService(
 			{
-				location: deps,
+				location: deps.location,
 				assignment: this.assignment,
 				role: this.role,
 			},

@@ -39,6 +39,12 @@ export class UserAssignmentService {
 		)
 	}
 
+	async getRecordByUserId(userIds: number[]): Promise<Record<number, UserAssignmentSchema[]>> {
+		const result: Record<number, UserAssignmentSchema[]> = {}
+		await Promise.all(userIds.map((id) => this.getByUserId(id).then((r) => (result[id] = r))))
+		return result
+	}
+
 	/* ========================================================================== */
 	/*                              COMMAND OPERATIONS                           */
 	/* ========================================================================== */

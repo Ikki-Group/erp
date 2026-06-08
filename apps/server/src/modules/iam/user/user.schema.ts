@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { zc, zp, zq } from '@/shared/schema'
+import { zc, zp } from '@/shared/schema'
 
 /* ---------------------------------- BASE ---------------------------------- */
 
@@ -54,17 +54,6 @@ export const UserUpdateSchema = z.object({
 	password: zc.password.optional(),
 })
 export type UserUpdateSchema = z.infer<typeof UserUpdateSchema>
-
-/* --------------------------------- FILTER --------------------------------- */
-
-export const UserFilterSchema = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	isActive: zq.boolean.optional(),
-	isRoot: zq.boolean.optional(),
-	locationId: zq.id.optional(),
-})
-export type UserFilterSchema = z.infer<typeof UserFilterSchema>
 
 /* -------------------------------- PASSWORD -------------------------------- */
 

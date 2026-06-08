@@ -7,7 +7,6 @@ import { checkConflict, type ConflictField } from '@/infra/database'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 
-import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type { LocationServiceModule } from '@/modules/location'
@@ -17,7 +16,6 @@ import type { RoleService } from '../role/role.service'
 import { UserRepo } from './user.repo'
 import type {
 	UserSchema,
-	UserFilterSchema,
 	UserCreateSchema,
 	UserUpdateSchema,
 	UserChangePasswordSchema,
@@ -67,10 +65,6 @@ export class UserService {
 	}
 
 	/* --------------------------------- PUBLIC -------------------------------- */
-
-	async getListPaginated(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
-		return record('UserService.getListPaginated', async () => this.r.getListPaginated(filter))
-	}
 
 	async getListAll(): Promise<UserSchema[]> {
 		return record('UserService.getListAll', async () =>

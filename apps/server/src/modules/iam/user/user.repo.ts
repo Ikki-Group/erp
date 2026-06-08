@@ -1,15 +1,13 @@
-import { and, count, eq, exists, or } from 'drizzle-orm'
+import { count, eq, or } from 'drizzle-orm'
 
-import { userAssignmentsTable, usersTable } from '@/db/schema'
+import { usersTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
+import { takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
 import type {
-	UserFilterSchema,
 	UserSchema,
 	UserCreateSchema,
 	UserUpdateSchema,
@@ -20,47 +18,6 @@ export class UserRepo {
 	constructor(private readonly db: DbClient) {}
 
 	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getListPaginated(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
-		const { q, isActive, isRoot, locationId } = filter
-		const where = and(
-			q === undefined
-				? undefined
-				: or(
-						searchFilter(usersTable.fullname, q),
-						searchFilter(usersTable.username, q),
-						searchFilter(usersTable.email, q),
-					),
-			isActive === undefined ? undefined : eq(usersTable.isActive, isActive),
-			isRoot === undefined ? undefined : eq(usersTable.isRoot, isRoot),
-			locationId === undefined
-				? undefined
-				: exists(
-						this.db
-							.select()
-							.from(userAssignmentsTable)
-							.where(
-								and(
-									eq(userAssignmentsTable.userId, usersTable.id),
-									eq(userAssignmentsTable.locationId, locationId),
-								),
-							),
-					),
-		)
-
-		return paginate<UserSchema>({
-			data: ({ limit, offset }) =>
-				this.db
-					.select()
-					.from(usersTable)
-					.where(where)
-					.orderBy(sortBy(usersTable.updatedAt, 'desc'))
-					.limit(limit)
-					.offset(offset),
-			pq: filter,
-			countQuery: () => this.db.select({ count: count() }).from(usersTable).where(where),
-		})
-	}
 
 	async getList(): Promise<UserSchema[]> {
 		return this.db.select().from(usersTable).orderBy(usersTable.id)
