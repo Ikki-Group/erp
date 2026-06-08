@@ -67,9 +67,9 @@ import * as schema from './index'
 // import { uomsTable } from './uom'
 
 // oxlint-disable-next-line no-unused-vars
-export const relations = defineRelations(schema, (r) => ({
+export const relations = defineRelations(schema, () => ({
 	// // ─── IAM ──────────────────────────────────────────────────────────
-	usersTable: { assignments: r.many.userAssignmentsTable(), sessions: r.many.sessionsTable() },
+	// usersTable: { assignments: r.many.userAssignmentsTable(), sessions: r.many.sessionsTable() },
 	// rolesTable: { userAssignments: r.many.userAssignmentsTable() },
 	// userAssignmentsTable: {
 	// 	user: r.one.usersTable({ from: r.userAssignmentsTable.userId, to: r.usersTable.id }),

@@ -79,16 +79,30 @@ function roleRoute(svc: IamService) {
 function userRoute(svc: IamService) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
-		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
-			query: composedSchema.UserFilterSchema,
-			response: createPaginatedResponseSchema(composedSchema.UserDetailSchema),
-			auth: true,
-		})
-		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
-			query: zq.recordId,
-			response: createSuccessResponseSchema(composedSchema.UserDetailSchema),
-			auth: true,
-		})
+		.get(
+			'/list',
+			async ({ query }) => {
+				const result = await svc.composed.getListPaginated(query)
+				return res.paginated(result)
+			},
+			{
+				query: composedSchema.UserFilterSchema,
+				response: createPaginatedResponseSchema(composedSchema.UserDetailSchema),
+				auth: true,
+			},
+		)
+		.get(
+			'/detail',
+			async ({ query }) => {
+				const result = await svc.composed.getDetailById(query.id)
+				return res.ok(result)
+			},
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(composedSchema.UserDetailSchema),
+				auth: true,
+			},
+		)
 		.post(
 			'/create',
 			async ({ body, auth }) => {

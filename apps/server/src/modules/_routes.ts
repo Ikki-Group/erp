@@ -1,4 +1,5 @@
 import type { Modules } from './_registry'
+import { createIamRoute } from './iam/iam.route'
 import { initInventoryRouteModule } from './inventory'
 import { createLocationRouteModule } from './location'
 import { initMaterialRoutes } from './material'
@@ -8,7 +9,7 @@ import type Elysia from 'elysia'
 export function createRoutes(m: Modules) {
 	const routes = [
 		createLocationRouteModule(m.location),
-		// createIamRouteModule(m.iam),
+		createIamRoute(m.iam),
 		// createAuthRouteModule(m.auth),
 		// initDashboardRouteModule(m.dashboard),
 		initInventoryRouteModule(m.inventory),

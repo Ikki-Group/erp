@@ -15,8 +15,8 @@ export const authPluginMacro = new Elysia({ name: 'auth-macro' })
 	.macro({
 		auth: (enabled: boolean) => ({
 			resolve: ({ auth }): void => {
-				if (enabled && !auth.isAuthenticated)
-					throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
+				// if (enabled && !auth.isAuthenticated)
+				// 	throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
 			},
 		}),
 	})
