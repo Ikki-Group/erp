@@ -8,22 +8,39 @@ import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } fr
 import type { LocationModule } from './location.module'
 import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './location.schema'
 
-export function createLocationRoute(svc: LocationModule) {
+export function createLocationRoute(m: LocationModule) {
 	return new Elysia({ prefix: '/location' })
 		.use(authPluginMacro)
-		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
-			query: LocationFilterSchema,
-			response: createPaginatedResponseSchema(LocationSchema),
-			auth: true,
-		})
-		.get('/detail', async ({ query }) => res.ok(await svc.handleDetail(query.id)), {
-			query: zq.recordId,
-			response: createSuccessResponseSchema(LocationSchema),
-			auth: true,
-		})
+		.get(
+			'/list',
+			async ({ query }) => {
+				const result = await m.location.handleList(query)
+				return res.paginated(result)
+			},
+			{
+				query: LocationFilterSchema,
+				response: createPaginatedResponseSchema(LocationSchema),
+				auth: true,
+			},
+		)
+		.get(
+			'/detail',
+			async ({ query }) => {
+				const result = await m.location.handleDetail(query.id)
+				return res.ok(result)
+			},
+			{
+				query: zq.recordId,
+				response: createSuccessResponseSchema(LocationSchema),
+				auth: true,
+			},
+		)
 		.post(
 			'/create',
-			async ({ body, auth }) => res.created(await svc.handleCreate(body, auth.userId)),
+			async ({ body, auth }) => {
+				const result = await m.location.handleCreate(body, auth.userId)
+				return res.created(result)
+			},
 			{
 				body: LocationMutationSchema,
 				response: createSuccessResponseSchema(zc.RecordId),
@@ -32,16 +49,26 @@ export function createLocationRoute(svc: LocationModule) {
 		)
 		.put(
 			'/update',
-			async ({ body, auth }) => res.ok(await svc.handleUpdate(body.id, body, auth.userId)),
+			async ({ body, auth }) => {
+				const result = await m.location.handleUpdate(body.id, body, auth.userId)
+				return res.ok(result)
+			},
 			{
 				body: z.object({ ...zc.RecordId.shape, ...LocationMutationSchema.shape }),
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
 		)
-		.delete('/remove', async ({ body }) => res.ok(await svc.handleRemove(body.id)), {
-			body: zc.RecordId,
-			response: createSuccessResponseSchema(zc.RecordId),
-			auth: true,
-		})
+		.delete(
+			'/remove',
+			async ({ body }) => {
+				const result = await m.location.handleRemove(body.id)
+				return res.ok(result)
+			},
+			{
+				body: zc.RecordId,
+				response: createSuccessResponseSchema(zc.RecordId),
+				auth: true,
+			},
+		)
 }
