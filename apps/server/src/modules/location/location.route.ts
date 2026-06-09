@@ -5,11 +5,11 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
+import type { LocationModule } from './location.module'
 import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './location.schema'
-import type { LocationService } from './location.service'
 
-export function createLocationRoute(svc: LocationService) {
-	return new Elysia()
+export function createLocationRoute(svc: LocationModule) {
+	return new Elysia({ prefix: '/location' })
 		.use(authPluginMacro)
 		.get('/list', async ({ query }) => res.paginated(await svc.handleList(query)), {
 			query: LocationFilterSchema,

@@ -3,6 +3,7 @@ import { and, eq, ne, type SQL } from 'drizzle-orm'
 
 import { db } from '@/db'
 
+import type { DbContext } from '@/infra/database'
 import { logger } from '@/infra/logger'
 import { ConflictError } from '@/shared/errors/http-error'
 
@@ -24,6 +25,7 @@ export interface ConflictField<T extends Record<string, unknown> = Record<string
 }
 
 interface CheckConflictOptions<T extends Record<string, unknown> = Record<string, unknown>> {
+	db?: DbContext
 	/** The Drizzle table to query against. */
 	table: PgTable
 	/** The primary key column of the table (default serial `id`). */
@@ -70,7 +72,7 @@ export async function checkConflict<T extends Record<string, unknown>>(
 	opts: CheckConflictOptions<T>,
 ): Promise<void> {
 	return record('db.checkConflict', async () => {
-		const { table, pkColumn, fields, input, existing } = opts
+		const { db: dbOverride, table, pkColumn, fields, input, existing } = opts
 
 		// Determine which fields actually changed
 		const changedFields = fields.filter((f) => {
@@ -88,7 +90,11 @@ export async function checkConflict<T extends Record<string, unknown>>(
 			const fieldMatch = eq(f.column, input[f.field] as never)
 			const where: SQL = existing ? and(ne(pkColumn, existing.id), fieldMatch)! : fieldMatch
 
-			const [conflict] = await db.select({ id: pkColumn }).from(table).where(where).limit(1)
+			const [conflict] = await (dbOverride ?? db)
+				.select({ id: pkColumn })
+				.from(table)
+				.where(where)
+				.limit(1)
 
 			if (conflict) {
 				logger.warn('Conflict detected on field {field}', {
