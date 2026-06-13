@@ -1,15 +1,6 @@
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import { AuthServiceModule } from './auth'
-import { IamService } from './iam'
-import { InventoryServiceModule } from './inventory'
-import { LocationServiceModule } from './location'
-import { MaterialModule } from './material'
-import { SalesTypeServiceModule } from './sales-type'
-import { SessionServiceModule } from './session'
-import { ToolServiceModule } from './tool'
-
 export interface Modules {
 	location: LocationServiceModule
 	iam: IamService

@@ -1,31 +1,45 @@
-import { count, eq } from 'drizzle-orm'
+import { count, eq, SQL } from 'drizzle-orm'
 
 import { rolesTable } from '@/db/schema'
 
-import {
-	paginate,
-	searchFilter,
-	sortBy,
-	takeFirst,
-	type DbClient,
-} from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
+import type { EntityRef } from '@/types/utils'
 
-import type { RoleFilterSchema, RoleMutationSchema, RoleSchema } from './role.schema'
+import type { RoleDto } from '@/modules/iam/role/role.contract'
+
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
+
+interface RoleFilter {
+	q?: string | undefined
+}
+
+type RoleInsert = typeof rolesTable.$inferInsert
+type RoleUpdate = PgUpdateSetSource<typeof rolesTable>
 
 export class RoleRepo {
 	constructor(private readonly db: DbClient) {}
 
-	/* ---------------------------------- QUERY --------------------------------- */
+	#buildQuery(filter: RoleFilter): SQL | undefined {
+		const { q } = filter
 
-	async getListPaginated(filter: RoleFilterSchema): Promise<WithPaginationResult<RoleSchema>> {
+		return q === undefined ? undefined : searchFilter(rolesTable.name, q)
+	}
+
+	async findMany(filter: RoleFilter = {}): Promise<RoleDto[]> {
+		return this.db
+			.select()
+			.from(rolesTable)
+			.orderBy(sortBy(rolesTable.updatedAt, 'desc'))
+			.where(this.#buildQuery(filter))
+	}
+
+	async findPage(filter: RoleFilter & PaginationQuery): Promise<WithPaginationResult<RoleDto>> {
 		const { q } = filter
 		const where = q === undefined ? undefined : searchFilter(rolesTable.name, q)
 
-		return paginate<RoleSchema>({
+		return paginate<RoleDto>({
 			data: ({ limit, offset }) =>
 				this.db
 					.select()
@@ -39,11 +53,7 @@ export class RoleRepo {
 		})
 	}
 
-	async getList(): Promise<RoleSchema[]> {
-		return this.db.select().from(rolesTable)
-	}
-
-	async getById(id: number): Promise<RoleSchema | undefined> {
+	async findById(id: number): Promise<RoleDto | undefined> {
 		return this.db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
 	}
 
@@ -54,27 +64,15 @@ export class RoleRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: RoleMutationSchema, actorId: ActorId): Promise<EntityRef | undefined> {
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
-			.insert(rolesTable)
-			.values({ ...data, ...metadata })
-			.returning({ id: rolesTable.id })
-
+	async create(data: RoleInsert): Promise<EntityRef | undefined> {
+		const [res] = await this.db.insert(rolesTable).values(data).returning({ id: rolesTable.id })
 		return res
 	}
 
-	async update(
-		id: number,
-		data: RoleMutationSchema,
-		actorId: ActorId,
-	): Promise<EntityRef | undefined> {
-		const metadata = stampUpdate(actorId)
+	async update(id: number, data: RoleUpdate): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.update(rolesTable)
-			.set({ ...data, ...metadata })
+			.set(data)
 			.where(eq(rolesTable.id, id))
 			.returning({ id: rolesTable.id })
 
