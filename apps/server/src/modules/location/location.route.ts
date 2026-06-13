@@ -1,12 +1,22 @@
 import { Elysia } from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
-import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
+import {
+	createPaginatedResponseSchema,
+	createSuccessResponseSchema,
+	successRecordIdSchema,
+	zc,
+	zq,
+} from '@/shared/schema'
 
+import {
+	LocationCreateDto,
+	LocationDto,
+	LocationFilterDto,
+	LocationUpdateDto,
+} from './location.contract'
 import type { LocationModule } from './location.module'
-import { LocationFilterSchema, LocationMutationSchema, LocationSchema } from './location.schema'
 
 export function createLocationRoute(m: LocationModule) {
 	return new Elysia({ prefix: '/location' })
@@ -18,8 +28,8 @@ export function createLocationRoute(m: LocationModule) {
 				return res.paginated(result)
 			},
 			{
-				query: LocationFilterSchema,
-				response: createPaginatedResponseSchema(LocationSchema),
+				query: LocationFilterDto,
+				response: createPaginatedResponseSchema(LocationDto),
 				auth: true,
 			},
 		)
@@ -27,11 +37,11 @@ export function createLocationRoute(m: LocationModule) {
 			'/detail',
 			async ({ query }) => {
 				const result = await m.location.handleDetail(query.id)
-				return res.ok(result)
+				return res.ok({ id: result?.id })
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(LocationSchema),
+				response: successRecordIdSchema,
 				auth: true,
 			},
 		)
@@ -42,7 +52,7 @@ export function createLocationRoute(m: LocationModule) {
 				return res.created(result)
 			},
 			{
-				body: LocationMutationSchema,
+				body: LocationCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -50,11 +60,11 @@ export function createLocationRoute(m: LocationModule) {
 		.put(
 			'/update',
 			async ({ body, auth }) => {
-				const result = await m.location.handleUpdate(body.id, body, auth.userId)
+				const result = await m.location.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
-				body: z.object({ ...zc.RecordId.shape, ...LocationMutationSchema.shape }),
+				body: LocationUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

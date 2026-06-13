@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { locationsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
+import { checkConflict, type ConflictField } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
@@ -16,8 +16,8 @@ import type {
 	LocationDto,
 	LocationFilterDto,
 	LocationUpdateDto,
-} from '@/modules/location/location.contract'
-import type { LocationRepo } from '@/modules/location/location.repo'
+} from './location.contract'
+import type { LocationRepo } from './location.repo'
 
 const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
 	{
@@ -45,7 +45,6 @@ export class LocationService {
 	private readonly cache: CacheService
 
 	constructor(
-		private readonly db: DbContext,
 		private readonly repo: LocationRepo,
 		cacheClient: CacheClient,
 	) {
@@ -65,10 +64,6 @@ export class LocationService {
 		return record('LocationService.getRelationMap', async () =>
 			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
 		)
-	}
-
-	async getPage(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
-		return record('LocationService.getPage', async () => this.repo.findPage(filter))
 	}
 
 	async getById(id: number): Promise<LocationDto | undefined> {
@@ -143,5 +138,31 @@ export class LocationService {
 
 			return result
 		})
+	}
+
+	/* --------------------------------- HANDLE --------------------------------- */
+
+	async handleList(filter: LocationFilterDto): Promise<WithPaginationResult<LocationDto>> {
+		return record('LocationService.handleList', async () => this.repo.findPage(filter))
+	}
+
+	async handleDetail(id: number): Promise<LocationDto> {
+		return record('LocationService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
+
+	async handleCreate(data: LocationCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('LocationService.handleCreate', async () => this.create(data, actorId))
+	}
+
+	async handleUpdate(data: LocationUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('LocationService.handleUpdate', async () => this.update(data, actorId))
+	}
+
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('LocationService.handleRemove', async () => this.remove(id))
 	}
 }
