@@ -44,18 +44,16 @@ export class LocationService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
 	}
 
+	static toMap(items: LocationDto[]): RelationMap<number, LocationDto> {
+		return RelationMap.fromArray(items, (v) => v.id)
+	}
+
 	async getListAll(): Promise<LocationDto[]> {
 		return record('LocationService.getListAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
 				factory: () => this.repo.findMany({}),
 			}),
-		)
-	}
-
-	async getRelationMap(): Promise<RelationMap<number, LocationDto>> {
-		return record('LocationService.getRelationMap', async () =>
-			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
 		)
 	}
 

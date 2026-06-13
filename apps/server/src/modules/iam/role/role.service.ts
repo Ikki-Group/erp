@@ -4,15 +4,21 @@ import { rolesTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
-import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
 
+import type {
+	RoleCreateDto,
+	RoleDto,
+	RoleFilterSchema,
+	RoleUpdateDto,
+} from '@/modules/iam/role/role.contract'
+
 import { SYSTEM_ROLES } from '../constants'
 import { RoleRepo } from './role.repo'
-import type { RoleSchema, RoleMutationSchema, RoleFilterSchema } from './role.schema'
 
 const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
 	{
@@ -54,38 +60,25 @@ export class RoleService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.role')
 	}
 
-	async getListAll(): Promise<RoleSchema[]> {
+	async getAll(): Promise<RoleDto[]> {
 		return record('RoleService.getListAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
-				factory: () => this.repo.getList(),
+				factory: () => this.repo.findMany(),
 			}),
 		)
 	}
 
-	async getRelationMap(): Promise<RelationMap<number, RoleSchema>> {
-		return record('RoleService.getRelationMap', async () =>
-			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
-		)
-	}
-
-	async getByIdentifier(code: string): Promise<RoleSchema | undefined> {
-		return record('RoleService.getByIdentifier', async () => {
-			const list = await this.getListAll()
-			return list.find((r) => r.code === code)
-		})
-	}
-
-	async getById(id: number): Promise<RoleSchema | undefined> {
+	async getById(id: number): Promise<RoleDto | undefined> {
 		return record('RoleService.getById', async () =>
 			this.cache.getOrSetWithSkip({
 				key: this.cache.keys.byId(id),
-				factory: () => this.repo.getById(id),
+				factory: () => this.repo.findById(id),
 			}),
 		)
 	}
 
-	async getSuperadmin(): Promise<RoleSchema> {
+	async getSuperadmin(): Promise<RoleDto> {
 		return record('RoleService.getSuperadmin', async () => {
 			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
 			if (!result) throw err.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
@@ -93,8 +86,36 @@ export class RoleService {
 		})
 	}
 
-	async create(data: RoleMutationSchema, actorId: ActorId): Promise<EntityRef> {
-		return record('RoleService.create', async () => {
+	// async seed(data: (RoleMutationSchema & { createdBy: ActorId })[]): Promise<void> {
+	// 	return record('RoleService.seed', async () => {
+	// 		for (const d of data) {
+	// 			const existing = await this.getByIdentifier(d.code)
+	// 			if (existing) continue
+
+	// 			await this.create(d, d.createdBy)
+	// 		}
+	// 	})
+	// }
+
+	/* --------------------------------- HANDLE --------------------------------- */
+
+	async handleList(filter: RoleFilterSchema): Promise<WithPaginationResult<RoleDto>> {
+		return record('RoleService.handleList', async () => {
+			const result = await this.repo.findPage(filter)
+			return result
+		})
+	}
+
+	async handleDetail(id: number): Promise<RoleDto> {
+		return record('RoleService.handleDetail', async () => {
+			const result = await this.getById(id)
+			if (!result) throw err.notFound(id)
+			return result
+		})
+	}
+
+	async handleCreate(data: RoleCreateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('RoleService.handleCreate', async () => {
 			await checkConflict({
 				table: rolesTable,
 				pkColumn: rolesTable.id,
@@ -102,7 +123,10 @@ export class RoleService {
 				input: data,
 			})
 
-			const result = await this.repo.create(data, actorId)
+			const result = await this.repo.create({
+				...data,
+				...stampCreate(actorId),
+			})
 			if (!result) throw err.createFailed()
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
@@ -110,9 +134,11 @@ export class RoleService {
 		})
 	}
 
-	async update(id: number, data: RoleMutationSchema, actorId: ActorId): Promise<{ id: number }> {
-		return record('RoleService.update', async () => {
-			const existing = await this.repo.getById(id)
+	async handleUpdate(data: RoleUpdateDto, actorId: ActorId): Promise<EntityRef> {
+		return record('RoleService.handleUpdate', async () => {
+			const { id } = data
+
+			const existing = await this.repo.findById(id)
 			if (!existing) throw err.notFound(id)
 			if (existing.isSystem) throw err.updateSystemRole()
 
@@ -124,7 +150,7 @@ export class RoleService {
 				existing,
 			})
 
-			const result = await this.repo.update(id, data, actorId)
+			const result = await this.repo.update(id, { ...data, ...stampUpdate(actorId) })
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.byId(id)])
@@ -132,12 +158,8 @@ export class RoleService {
 		})
 	}
 
-	async remove(id: number): Promise<EntityRef> {
-		return record('RoleService.remove', async () => {
-			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
-			if (existing.isSystem) throw err.deleteSystemRole()
-
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('RoleService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw err.notFound(id)
 
@@ -148,52 +170,6 @@ export class RoleService {
 			])
 
 			return result
-		})
-	}
-
-	async seed(data: (RoleMutationSchema & { createdBy: ActorId })[]): Promise<void> {
-		return record('RoleService.seed', async () => {
-			for (const d of data) {
-				const existing = await this.getByIdentifier(d.code)
-				if (existing) continue
-
-				await this.create(d, d.createdBy)
-			}
-		})
-	}
-
-	/* --------------------------------- HANDLER -------------------------------- */
-
-	async handleList(filter: RoleFilterSchema): Promise<WithPaginationResult<RoleSchema>> {
-		return record('RoleService.handleList', async () => {
-			const result = await this.repo.getListPaginated(filter)
-			return result
-		})
-	}
-
-	async handleDetail(id: number): Promise<RoleSchema> {
-		return record('RoleService.handleDetail', async () => {
-			const result = await this.getById(id)
-			if (!result) throw err.notFound(id)
-			return result
-		})
-	}
-
-	async handleCreate(data: RoleMutationSchema, actorId: ActorId): Promise<EntityRef> {
-		return record('RoleService.handleCreate', async () => {
-			return this.create(data, actorId)
-		})
-	}
-
-	async handleUpdate(id: number, data: RoleMutationSchema, actorId: ActorId): Promise<EntityRef> {
-		return record('RoleService.handleUpdate', async () => {
-			return this.update(id, data, actorId)
-		})
-	}
-
-	async handleRemove(id: number): Promise<EntityRef> {
-		return record('RoleService.handleRemove', async () => {
-			return this.remove(id)
 		})
 	}
 }

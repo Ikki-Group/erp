@@ -1,8 +1,8 @@
-import { count, eq, SQL } from 'drizzle-orm'
+import { and, count, eq, SQL } from 'drizzle-orm'
 
 import { rolesTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
+import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 
 import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
 import type { EntityRef } from '@/types/utils'
@@ -19,7 +19,7 @@ type RoleInsert = typeof rolesTable.$inferInsert
 type RoleUpdate = PgUpdateSetSource<typeof rolesTable>
 
 export class RoleRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
 	#buildQuery(filter: RoleFilter): SQL | undefined {
 		const { q } = filter
@@ -53,8 +53,8 @@ export class RoleRepo {
 		})
 	}
 
-	async findById(id: number): Promise<RoleDto | undefined> {
-		return this.db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
+	async findById(id: number, db = this.db): Promise<RoleDto | undefined> {
+		return db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1).then(takeFirst)
 	}
 
 	async count(): Promise<number> {
@@ -64,13 +64,13 @@ export class RoleRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: RoleInsert): Promise<EntityRef | undefined> {
-		const [res] = await this.db.insert(rolesTable).values(data).returning({ id: rolesTable.id })
+	async create(data: RoleInsert, db = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db.insert(rolesTable).values(data).returning({ id: rolesTable.id })
 		return res
 	}
 
-	async update(id: number, data: RoleUpdate): Promise<EntityRef | undefined> {
-		const [res] = await this.db
+	async update(id: number, data: RoleUpdate, db = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.update(rolesTable)
 			.set(data)
 			.where(eq(rolesTable.id, id))
@@ -79,11 +79,9 @@ export class RoleRepo {
 		return res
 	}
 
-	async remove(id: number): Promise<EntityRef | undefined> {
-		const [res] = await this.db
-			.delete(rolesTable)
-			.where(eq(rolesTable.id, id))
-			.returning({ id: rolesTable.id })
+	async remove(id: number, force = false, db = this.db): Promise<EntityRef | undefined> {
+		const where = and(eq(rolesTable.id, id), !force ? eq(rolesTable.isSystem, false) : undefined)
+		const [res] = await db.delete(rolesTable).where(where).returning({ id: rolesTable.id })
 
 		return res
 	}
