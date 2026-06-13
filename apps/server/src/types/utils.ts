@@ -11,3 +11,7 @@ export type EntityRef<V extends PrimitiveId = number> = {
 export type WithId<T, V extends PrimitiveId = number> = T & EntityRef<V>
 
 export type ActorId = number
+
+export interface ActorContext {
+	id: ActorId
+}

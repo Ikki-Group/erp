@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
-		"lib": ["ESNext"],
+		"lib": [
+			"ESNext"
+		],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleDetection": "force",
@@ -20,7 +22,7 @@
 		"isolatedModules": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noPropertyAccessFromIndexSignature": false,
+		"noPropertyAccessFromIndexSignature": true,
 		"resolveJsonModule": true,
 		"strictNullChecks": true,
 		"noImplicitAny": true,
@@ -29,13 +31,23 @@
 		"outDir": "./dist",
 		"rootDir": "./",
 		"composite": false,
-		"types": ["bun"],
+		"types": [
+			"bun"
+		],
 		"paths": {
-			"@/*": ["./src/*"],
-			"@ikki/api-contract": ["../../packages/api-contract/dist"],
-			"@ikki/api-contract/*": ["../../packages/api-contract/dist/*"]
+			"@/*": [
+				"./src/*"
+			],
 		}
 	},
-	"include": ["src/**/*.ts", "scripts/**/*.ts", "*.config.*", "drizzle.config.ts"],
-	"exclude": ["node_modules", "dist"]
+	"include": [
+		"src/**/*.ts",
+		"scripts/**/*.ts",
+		"*.config.*",
+		"drizzle.config.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
 }

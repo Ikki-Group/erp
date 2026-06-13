@@ -1,42 +1,54 @@
-import { and, count, eq, or } from 'drizzle-orm'
+import { and, count, eq, or, SQL } from 'drizzle-orm'
 
 import { locationsTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
+import type { EntityRef } from '@/types/utils'
 
-import type {
-	LocationFilterSchema,
-	LocationMutationSchema,
-	LocationSchema,
-} from './location.schema'
+import type { LocationDto, LocationTypeEnum } from './location.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
+
+interface LocationFilter {
+	q?: string | undefined
+	type?: LocationTypeEnum | undefined
+}
+
+type LocationInsert = typeof locationsTable.$inferInsert
+type LocationUpdate = PgUpdateSetSource<typeof locationsTable>
 
 export class LocationRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getList(): Promise<LocationSchema[]> {
-		return this.db.select().from(locationsTable)
+	static use(db: DbContext) {
+		return new LocationRepo(db)
 	}
 
-	async getListPaginated(
-		filter: LocationFilterSchema,
-	): Promise<WithPaginationResult<LocationSchema>> {
+	#buildWhere(filter: LocationFilter): SQL | undefined {
 		const { q, type } = filter
-		const where = and(
+		return and(
 			q === undefined
 				? undefined
 				: or(searchFilter(locationsTable.name, q), searchFilter(locationsTable.code, q)),
 			type === undefined ? undefined : eq(locationsTable.type, type),
 		)
+	}
 
-		return paginate<LocationSchema>({
+	async findMany(filter: LocationFilter, db: DbContext = this.db): Promise<LocationDto[]> {
+		const where = this.#buildWhere(filter)
+		return db.select().from(locationsTable).where(where)
+	}
+
+	async findPage(
+		filter: LocationFilter & PaginationQuery,
+		db: DbContext = this.db,
+	): Promise<WithPaginationResult<LocationDto>> {
+		const where = this.#buildWhere(filter)
+
+		return paginate<LocationDto>({
 			data: ({ limit, offset }) =>
-				this.db
+				db
 					.select()
 					.from(locationsTable)
 					.where(where)
@@ -44,12 +56,12 @@ export class LocationRepo {
 					.limit(limit)
 					.offset(offset),
 			pq: filter,
-			countQuery: () => this.db.select({ count: count() }).from(locationsTable).where(where),
+			countQuery: () => db.select({ count: count() }).from(locationsTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<LocationSchema | undefined> {
-		return this.db
+	async findById(id: number, db: DbContext = this.db): Promise<LocationDto | undefined> {
+		return db
 			.select()
 			.from(locationsTable)
 			.where(eq(locationsTable.id, id))
@@ -57,20 +69,17 @@ export class LocationRepo {
 			.then(takeFirst)
 	}
 
-	async count(): Promise<number> {
-		return this.db
+	async count(db: DbContext = this.db): Promise<number> {
+		return db
 			.select({ count: count() })
 			.from(locationsTable)
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: LocationMutationSchema, actorId: ActorId): Promise<EntityRef | undefined> {
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
+	async insert(data: LocationInsert, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.insert(locationsTable)
-			.values({ ...data, ...metadata })
+			.values({ ...data })
 			.returning({ id: locationsTable.id })
 
 		return res
@@ -78,25 +87,22 @@ export class LocationRepo {
 
 	async update(
 		id: number,
-		data: LocationMutationSchema,
-		actorId: ActorId,
+		data: LocationUpdate,
+		db: DbContext = this.db,
 	): Promise<EntityRef | undefined> {
-		const metadata = stampUpdate(actorId)
-		const [res] = await this.db
+		const [res] = await db
 			.update(locationsTable)
-			.set({ ...data, ...metadata })
+			.set({ ...data })
 			.where(eq(locationsTable.id, id))
 			.returning({ id: locationsTable.id })
-
 		return res
 	}
 
-	async remove(id: number): Promise<EntityRef | undefined> {
-		const [res] = await this.db
+	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
+		const [res] = await db
 			.delete(locationsTable)
 			.where(eq(locationsTable.id, id))
 			.returning({ id: locationsTable.id })
-
 		return res
 	}
 }

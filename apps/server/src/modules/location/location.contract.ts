@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-/* ---------------------------------- BASE ---------------------------------- */
+/* --------------------------------- ENTITY --------------------------------- */
 
 /** Types of operational locations. */
 export const LocationTypeEnum = z.enum([
@@ -13,7 +13,7 @@ export const LocationTypeEnum = z.enum([
 ])
 export type LocationTypeEnum = z.infer<typeof LocationTypeEnum>
 
-export const LocationSchema = z.object({
+export const LocationDto = z.object({
 	id: zp.id,
 	code: zp.str,
 	name: zp.str,
@@ -24,11 +24,18 @@ export const LocationSchema = z.object({
 	isActive: zp.bool,
 	...zc.AuditBasic.shape,
 })
-export type LocationSchema = z.infer<typeof LocationSchema>
+export type LocationDto = z.infer<typeof LocationDto>
 
-/* -------------------------------- MUTATION -------------------------------- */
+/* ---------------------------------- HTTP ---------------------------------- */
 
-export const LocationMutationSchema = z.object({
+export const LocationFilterDto = z.object({
+	...zq.pagination.shape,
+	q: zq.search,
+	type: LocationTypeEnum.optional(),
+})
+export type LocationFilterDto = z.infer<typeof LocationFilterDto>
+
+export const LocationCreateDto = z.object({
 	code: zc.strTrim,
 	name: zc.strTrim.min(3).max(100),
 	type: LocationTypeEnum,
@@ -37,13 +44,10 @@ export const LocationMutationSchema = z.object({
 	phone: zc.strTrimNullable,
 	isActive: zp.bool.default(true),
 })
-export type LocationMutationSchema = z.infer<typeof LocationMutationSchema>
+export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
-/* --------------------------------- FILTER --------------------------------- */
-
-export const LocationFilterSchema = z.object({
-	...zq.pagination.shape,
-	q: zq.search,
-	type: LocationTypeEnum.optional(),
+export const LocationUpdateDto = z.object({
+	id: zp.id,
+	...LocationCreateDto.shape,
 })
-export type LocationFilterSchema = z.infer<typeof LocationFilterSchema>
+export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
