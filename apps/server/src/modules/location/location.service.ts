@@ -5,7 +5,6 @@ import { locationsTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/types/pagination'
@@ -17,6 +16,7 @@ import type {
 	LocationFilterDto,
 	LocationUpdateDto,
 } from './location.contract'
+import { LocationError } from './location.internal'
 import type { LocationRepo } from './location.repo'
 
 const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
@@ -33,13 +33,6 @@ const uniqueFields: ConflictField<{ name: string; code: string }>[] = [
 		code: 'LOCATION_CODE_ALREADY_EXISTS',
 	},
 ]
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError('Location not found', { code: 'LOCATION_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('Location creation failed', { code: 'LOCATION_CREATE_FAILED' }),
-}
 
 export class LocationService {
 	private readonly cache: CacheService
@@ -88,7 +81,7 @@ export class LocationService {
 				...data,
 				...stampCreate(actorId),
 			})
-			if (!result) throw err.createFailed()
+			if (!result) throw LocationError.createFailed()
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 			return result
@@ -99,7 +92,7 @@ export class LocationService {
 		return record('LocationService.update', async () => {
 			const { id } = data
 			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+			if (!existing) throw LocationError.notFound(id)
 
 			await checkConflict({
 				table: locationsTable,
@@ -113,7 +106,7 @@ export class LocationService {
 				...data,
 				...stampUpdate(actorId),
 			})
-			if (!result) throw err.notFound(id)
+			if (!result) throw LocationError.notFound(id)
 
 			await this.cache.deleteFromKeys([
 				this.cache.keys.list,
@@ -128,7 +121,7 @@ export class LocationService {
 	async remove(id: number): Promise<EntityRef> {
 		return record('LocationService.remove', async () => {
 			const result = await this.repo.remove(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw LocationError.notFound(id)
 
 			await this.cache.deleteFromKeys([
 				this.cache.keys.list,
@@ -149,7 +142,7 @@ export class LocationService {
 	async handleDetail(id: number): Promise<LocationDto> {
 		return record('LocationService.handleDetail', async () => {
 			const result = await this.getById(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw LocationError.notFound(id)
 			return result
 		})
 	}
