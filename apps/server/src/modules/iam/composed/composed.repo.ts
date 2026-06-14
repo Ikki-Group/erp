@@ -1,18 +1,18 @@
-import { and, count, eq, exists, or } from 'drizzle-orm'
+import { and, count, eq, exists, getColumns, or } from 'drizzle-orm'
 
 import { userAssignmentsTable, usersTable } from '@/db/schema'
 
-import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
+import { paginate, searchFilter, sortBy, type DbContext } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
-import type { UserSchema } from '../user/user.contract'
-import type { UserFilterSchema } from './composed.schema'
+import type { UserDto } from '../user/user.contract'
+import type { UserFilterDto } from './composed.contract'
 
 export class IamComposedRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
-	async getListPaginated(filter: UserFilterSchema): Promise<WithPaginationResult<UserSchema>> {
+	async getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDto>> {
 		const { q, isActive, isRoot, locationId } = filter
 		const where = and(
 			q === undefined
@@ -39,10 +39,12 @@ export class IamComposedRepo {
 					),
 		)
 
-		return paginate<UserSchema>({
+		const { passwordHash: _, ...columns } = getColumns(usersTable)
+
+		return paginate<UserDto>({
 			data: ({ limit, offset }) =>
 				this.db
-					.select()
+					.select(columns)
 					.from(usersTable)
 					.where(where)
 					.orderBy(sortBy(usersTable.updatedAt, 'desc'))

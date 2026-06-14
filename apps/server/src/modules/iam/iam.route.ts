@@ -5,7 +5,7 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
-import * as composedSchema from './composed/composed.schema'
+import * as composedSchema from './composed/composed.contract'
 import type { IamService } from './iam.service'
 import * as roleSchema from './role/role.schema'
 import * as userSchema from './user/user.contract'
