@@ -5,8 +5,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import type { ActorId } from '@/types/utils'
 
 import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
+import type { UserAssignmentDto } from './assignment.contract'
 import { UserAssignmentRepo } from './assignment.repo'
-import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
 
 export class UserAssignmentService {
 	private readonly cache: CacheService
@@ -18,7 +18,7 @@ export class UserAssignmentService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.user.assignment')
 	}
 
-	getDefaultAssignmentForSuperadmin(): UserAssignmentSchema {
+	getDefaultAssignmentForSuperadmin(): UserAssignmentDto {
 		const now = new Date()
 		return {
 			id: IAM_CONFIG.SUPERADMIN_PLACEHOLDER_ID,
@@ -30,32 +30,40 @@ export class UserAssignmentService {
 		}
 	}
 
-	async getByUserId(userId: number): Promise<UserAssignmentSchema[]> {
+	async getByUserId(userId: number): Promise<UserAssignmentDto[]> {
 		return record('UserAssignmentService.getByUserId', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.byId(userId),
-				factory: () => this.repo.getList({ userIds: userId }),
+				factory: () => this.repo.findMany({ userIds: userId }),
 			}),
 		)
 	}
 
-	async getRecordByUserId(userIds: number[]): Promise<Record<number, UserAssignmentSchema[]>> {
-		const result: Record<number, UserAssignmentSchema[]> = {}
+	async getRecordByUserId(userIds: number[]): Promise<Record<number, UserAssignmentDto[]>> {
+		const result: Record<number, UserAssignmentDto[]> = {}
 		await Promise.all(userIds.map((id) => this.getByUserId(id).then((r) => (result[id] = r))))
 		return result
 	}
 
-	/* ========================================================================== */
-	/*                              COMMAND OPERATIONS                           */
-	/* ========================================================================== */
-
 	async replaceByUserId(
 		userId: number,
-		assignments: UserAssignmentUpsertSchema[],
+		assignments: {
+			roleId: number
+			locationId: number
+		}[],
 		actorId: ActorId,
 	): Promise<void> {
-		return record('UserAssignmentService.replaceByUserId', async () =>
-			this.repo.replaceByUserId(userId, assignments, actorId),
-		)
+		return record('UserAssignmentService.replaceByUserId', async () => {
+			const now = new Date()
+			await this.repo.replaceByUserId(
+				userId,
+				assignments.map((a) => ({
+					...a,
+					userId,
+					addedAt: now,
+					addedBy: actorId,
+				})),
+			)
+		})
 	}
 }

@@ -5,9 +5,7 @@ import { userAssignmentsTable } from '@/db/schema'
 import { type DbContext } from '@/infra/database'
 import { toArray } from '@/shared/utils'
 
-import type { ActorId } from '@/types/utils'
-
-import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
+import type { UserAssignmentDto } from './assignment.contract'
 
 interface FindManyOpts {
 	userIds?: number | number[]
@@ -18,18 +16,18 @@ interface FindManyOpts {
 export class UserAssignmentRepo {
 	constructor(private readonly db: DbContext) {}
 
-	async findMany(opts: FindManyOpts = {}, db = this.db): Promise<UserAssignmentSchema[]> {
+	async findMany(opts: FindManyOpts = {}, db = this.db): Promise<UserAssignmentDto[]> {
 		const { userIds, roleIds, locationIds } = opts
-		const conditions: SQL[] = []
+		const where: SQL[] = []
 
-		if (userIds) conditions.push(inArray(userAssignmentsTable.userId, toArray(userIds)))
-		if (roleIds) conditions.push(inArray(userAssignmentsTable.roleId, toArray(roleIds)))
-		if (locationIds) conditions.push(inArray(userAssignmentsTable.locationId, toArray(locationIds)))
+		if (userIds) where.push(inArray(userAssignmentsTable.userId, toArray(userIds)))
+		if (roleIds) where.push(inArray(userAssignmentsTable.roleId, toArray(roleIds)))
+		if (locationIds) where.push(inArray(userAssignmentsTable.locationId, toArray(locationIds)))
 
 		return db
 			.select()
 			.from(userAssignmentsTable)
-			.where(conditions.length > 0 ? and(...conditions) : undefined)
+			.where(where.length > 0 ? and(...where) : undefined)
 	}
 
 	/**
@@ -37,29 +35,15 @@ export class UserAssignmentRepo {
 	 */
 	async replaceByUserId(
 		userId: number,
-		assignments: UserAssignmentUpsertSchema[],
-		actorId: ActorId,
+		assignments: Omit<UserAssignmentDto, 'id'>[],
+		db = this.db,
 	): Promise<void> {
-		const now = new Date()
+		await db.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
 
-		await this.db.transaction(async (tx) => {
-			await tx.delete(userAssignmentsTable).where(eq(userAssignmentsTable.userId, userId))
+		if (assignments.length === 0) {
+			return
+		}
 
-			if (assignments.length === 0) {
-				return
-			}
-
-			await tx.insert(userAssignmentsTable).values(
-				assignments.map((assignment) => ({
-					userId,
-					roleId: assignment.roleId,
-					locationId: assignment.locationId,
-					createdAt: now,
-					updatedAt: now,
-					createdBy: actorId,
-					updatedBy: actorId,
-				})),
-			)
-		})
+		await db.insert(userAssignmentsTable).values(assignments)
 	}
 }
