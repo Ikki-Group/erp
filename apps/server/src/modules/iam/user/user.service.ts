@@ -4,22 +4,23 @@ import { usersTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
+import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
-import type { LocationServiceModule } from '@/modules/location'
+import type { LocationModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
 import type {
-	UserSchema,
-	UserCreateSchema,
-	UserUpdateSchema,
-	UserChangePasswordSchema,
-	UserAdminUpdatePasswordSchema,
-	UserWithPasswordSchema,
+	UserDto,
+	UserCreateDto,
+	UserUpdateDto,
+	UserChangePasswordDto,
+	UserAdminUpdatePasswordDto,
+	UserWithPasswordDto,
 } from './user.contract'
 import { UserRepo } from './user.repo'
 
@@ -50,7 +51,7 @@ const err = {
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
-	location: LocationServiceModule['location']
+	location: LocationModule['location']
 }
 
 export class UserService {
@@ -66,7 +67,7 @@ export class UserService {
 
 	/* --------------------------------- PUBLIC -------------------------------- */
 
-	async getListAll(): Promise<UserSchema[]> {
+	async getListAll(): Promise<UserDto[]> {
 		return record('UserService.getListAll', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
@@ -75,14 +76,14 @@ export class UserService {
 		)
 	}
 
-	async getRelationMap(): Promise<RelationMap<number, UserSchema>> {
+	async getRelationMap(): Promise<RelationMap<number, UserDto>> {
 		return record('UserService.getRelationMap', async () =>
 			RelationMap.fromArray(await this.getListAll(), (v) => v.id),
 		)
 	}
 
 	async seed(
-		data: (UserCreateSchema & { passwordHash: string; createdBy: ActorId; isRoot?: boolean })[],
+		data: (UserCreateDto & { passwordHash: string; createdBy: ActorId; isRoot?: boolean })[],
 	): Promise<void> {
 		return record('UserService.seed', async () => {
 			for (const d of data) {
@@ -94,7 +95,7 @@ export class UserService {
 		})
 	}
 
-	async getById(id: number): Promise<UserSchema | undefined> {
+	async getById(id: number): Promise<UserDto | undefined> {
 		return record('UserService.getById', async () =>
 			this.cache.getOrSetWithSkip({
 				key: this.cache.keys.byId(id),
@@ -103,12 +104,12 @@ export class UserService {
 		)
 	}
 
-	async getByIdentifier(identifier: string): Promise<UserWithPasswordSchema | null> {
+	async getByIdentifier(identifier: string): Promise<UserWithPasswordDto | null> {
 		return record('UserService.getByIdentifier', () => this.r.getByIdentifier(identifier))
 	}
 
 	async create(
-		data: UserCreateSchema & { passwordHash: string },
+		data: UserCreateDto & { passwordHash: string },
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.create', async () => {
@@ -121,7 +122,10 @@ export class UserService {
 				input: data,
 			})
 
-			const result = await this.r.create(data, actorId)
+			const result = await this.r.insert({
+				...data,
+				...stampCreate(actorId),
+			})
 			if (!result) throw err.createFailed()
 
 			if (assignments && assignments.length > 0 && !isRoot) {
@@ -144,7 +148,7 @@ export class UserService {
 
 	async update(
 		id: number,
-		data: UserUpdateSchema & { passwordHash?: string },
+		data: UserUpdateDto & { passwordHash?: string },
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.update', async () => {
@@ -164,7 +168,10 @@ export class UserService {
 				existing,
 			})
 
-			const result = await this.r.update(id, data, actorId)
+			const result = await this.r.update(id, {
+				...data,
+				...stampUpdate(actorId),
+			})
 			if (!result) throw err.notFound(id)
 
 			if (assignments && assignments.length >= 0 && !isRoot) {
@@ -187,7 +194,7 @@ export class UserService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleCreate(data: UserCreateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleCreate(data: UserCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleCreate', async () => {
 			const { password } = data
 			const passwordHash = await Bun.password.hash(password)
@@ -196,7 +203,7 @@ export class UserService {
 		})
 	}
 
-	async handleUpdate(data: UserUpdateSchema, actorId: ActorId): Promise<EntityRef> {
+	async handleUpdate(data: UserUpdateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleUpdate', async () => {
 			const { password, id } = data
 
@@ -230,7 +237,7 @@ export class UserService {
 
 	async handleChangePassword(
 		id: number,
-		data: UserChangePasswordSchema,
+		data: UserChangePasswordDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.handleChangePassword', async () => {
@@ -241,7 +248,10 @@ export class UserService {
 			if (!isMatch) throw err.passwordMismatch()
 
 			const newPasswordHash = await Bun.password.hash(data.newPassword)
-			const result = await this.r.updatePassword(id, newPasswordHash, actorId)
+			const result = await this.r.update(id, {
+				passwordHash: newPasswordHash,
+				...stampUpdate(actorId),
+			})
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
@@ -251,13 +261,16 @@ export class UserService {
 	}
 
 	async handleAdminUpdatePassword(
-		data: UserAdminUpdatePasswordSchema,
+		data: UserAdminUpdatePasswordDto,
 		actorId: ActorId,
 	): Promise<EntityRef> {
 		return record('UserService.handleAdminUpdatePassword', async () => {
 			const { id, password } = data
 			const passwordHash = await Bun.password.hash(password)
-			const result = await this.r.updatePassword(id, passwordHash, actorId)
+			const result = await this.r.update(id, {
+				passwordHash,
+				...stampUpdate(actorId),
+			})
 			if (!result) throw err.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
