@@ -2,66 +2,35 @@ import { eq, inArray, and, type SQL } from 'drizzle-orm'
 
 import { userAssignmentsTable } from '@/db/schema'
 
-import { type DbClient } from '@/infra/database'
+import { type DbContext } from '@/infra/database'
+import { toArray } from '@/shared/utils'
 
 import type { ActorId } from '@/types/utils'
 
 import type { UserAssignmentSchema, UserAssignmentUpsertSchema } from './assignment.schema'
 
-type GetUserAssignmentListOptions = {
+interface FindManyOpts {
 	userIds?: number | number[]
 	roleIds?: number | number[]
 	locationIds?: number | number[]
 }
 
 export class UserAssignmentRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	/**
-	 * List all
-	 * should filter by
-	 * userIds?: Array<number> | number
-	 * roleIds?: Array<number> | number
-	 */
-	async getList(options: GetUserAssignmentListOptions = {}): Promise<UserAssignmentSchema[]> {
+	async findMany(opts: FindManyOpts = {}, db = this.db): Promise<UserAssignmentSchema[]> {
+		const { userIds, roleIds, locationIds } = opts
 		const conditions: SQL[] = []
 
-		if (options.userIds) {
-			conditions.push(
-				inArray(
-					userAssignmentsTable.userId,
-					Array.isArray(options.userIds) ? options.userIds : [options.userIds],
-				),
-			)
-		}
+		if (userIds) conditions.push(inArray(userAssignmentsTable.userId, toArray(userIds)))
+		if (roleIds) conditions.push(inArray(userAssignmentsTable.roleId, toArray(roleIds)))
+		if (locationIds) conditions.push(inArray(userAssignmentsTable.locationId, toArray(locationIds)))
 
-		if (options.roleIds) {
-			conditions.push(
-				inArray(
-					userAssignmentsTable.roleId,
-					Array.isArray(options.roleIds) ? options.roleIds : [options.roleIds],
-				),
-			)
-		}
-
-		if (options.locationIds) {
-			conditions.push(
-				inArray(
-					userAssignmentsTable.locationId,
-					Array.isArray(options.locationIds) ? options.locationIds : [options.locationIds],
-				),
-			)
-		}
-
-		return this.db
+		return db
 			.select()
 			.from(userAssignmentsTable)
 			.where(conditions.length > 0 ? and(...conditions) : undefined)
 	}
-
-	/* -------------------------------- MUTATION -------------------------------- */
 
 	/**
 	 * Replaces all assignments for the specified user.
