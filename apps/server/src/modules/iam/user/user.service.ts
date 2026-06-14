@@ -13,7 +13,6 @@ import type { LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
-import { UserRepo } from './user.repo'
 import type {
 	UserSchema,
 	UserCreateSchema,
@@ -21,7 +20,8 @@ import type {
 	UserChangePasswordSchema,
 	UserAdminUpdatePasswordSchema,
 	UserWithPasswordSchema,
-} from './user.schema'
+} from './user.contract'
+import { UserRepo } from './user.repo'
 
 const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
 	{

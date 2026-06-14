@@ -6,7 +6,7 @@ import { LocationSchema } from '@/modules/location'
 
 import { UserAssignmentSchema } from '../assignment/assignment.contract'
 import { RoleSchema } from '../role/role.schema'
-import { UserSchema } from '../user/user.schema'
+import { UserSchema } from '../user/user.contract'
 
 export const UserDetailSchema = z.object({
 	...UserSchema.shape,

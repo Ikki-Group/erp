@@ -1,33 +1,30 @@
-import { count, eq, or } from 'drizzle-orm'
+import { count, eq, getColumns, or } from 'drizzle-orm'
 
 import { usersTable } from '@/db/schema'
 
-import { takeFirst, type DbClient } from '@/infra/database'
-import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
+import { takeFirst, type DbContext } from '@/infra/database'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { EntityRef } from '@/types/utils'
 
-import type {
-	UserSchema,
-	UserCreateSchema,
-	UserUpdateSchema,
-	UserWithPasswordSchema,
-} from './user.schema'
+import type { UserDto, UserWithPasswordDto } from './user.contract'
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
+
+type UserInsert = typeof usersTable.$inferInsert
+type UserUpdate = PgUpdateSetSource<typeof usersTable>
 
 export class UserRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getList(): Promise<UserSchema[]> {
-		return this.db.select().from(usersTable).orderBy(usersTable.id)
+	async getList(): Promise<UserDto[]> {
+		const { passwordHash: _, ...columns } = getColumns(usersTable)
+		return this.db.select(columns).from(usersTable).orderBy(usersTable.id)
 	}
 
-	async getById(id: number): Promise<UserWithPasswordSchema | undefined> {
+	async getById(id: number): Promise<UserWithPasswordDto | undefined> {
 		return this.db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1).then(takeFirst)
 	}
 
-	async getByIdentifier(identifier: string): Promise<UserWithPasswordSchema | null> {
+	async getByIdentifier(identifier: string): Promise<UserWithPasswordDto | null> {
 		const user = await this.db
 			.select()
 			.from(usersTable)
@@ -49,47 +46,15 @@ export class UserRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(
-		data: UserCreateSchema & { passwordHash: string },
-		actorId: ActorId,
-	): Promise<EntityRef | undefined> {
-		const userData = { ...data }
-		const metadata = stampCreate(actorId)
-		const [res] = await this.db
-			.insert(usersTable)
-			.values({ ...userData, ...metadata })
-			.returning({ id: usersTable.id })
-
+	async insert(data: UserInsert): Promise<EntityRef | undefined> {
+		const [res] = await this.db.insert(usersTable).values(data).returning({ id: usersTable.id })
 		return res
 	}
 
-	async update(
-		id: number,
-		data: UserUpdateSchema & { passwordHash?: string },
-		actorId: ActorId,
-	): Promise<EntityRef | undefined> {
-		const userData = { ...data }
-		const metadata = stampUpdate(actorId)
+	async update(id: number, data: UserUpdate): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.update(usersTable)
-			.set({ ...userData, ...metadata })
-			.where(eq(usersTable.id, id))
-			.returning({ id: usersTable.id })
-
-		return res
-	}
-
-	async updatePassword(
-		id: number,
-		passwordHash: string,
-		actorId: ActorId,
-	): Promise<EntityRef | undefined> {
-		const metadata = stampUpdate(actorId)
-		const [res] = await this.db
-			.update(usersTable)
-			.set({ passwordHash, ...metadata })
+			.set(data)
 			.where(eq(usersTable.id, id))
 			.returning({ id: usersTable.id })
 

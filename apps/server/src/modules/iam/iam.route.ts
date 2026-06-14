@@ -8,7 +8,7 @@ import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } fr
 import * as composedSchema from './composed/composed.schema'
 import type { IamService } from './iam.service'
 import * as roleSchema from './role/role.schema'
-import * as userSchema from './user/user.schema'
+import * as userSchema from './user/user.contract'
 
 function roleRoute(svc: IamService) {
 	return new Elysia({ prefix: '/role' })

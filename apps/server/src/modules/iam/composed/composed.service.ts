@@ -8,7 +8,7 @@ import type { LocationServiceModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
-import type { UserSchema } from '../user/user.schema'
+import type { UserSchema } from '../user/user.contract'
 import type { UserService } from '../user/user.service'
 import type { IamComposedRepo } from './composed.repo'
 import type { UserDetailSchema, UserFilterSchema } from './composed.schema'

@@ -6,7 +6,7 @@ import { paginate, searchFilter, sortBy, type DbClient } from '@/infra/database'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
-import type { UserSchema } from '../user/user.schema'
+import type { UserSchema } from '../user/user.contract'
 import type { UserFilterSchema } from './composed.schema'
 
 export class IamComposedRepo {
