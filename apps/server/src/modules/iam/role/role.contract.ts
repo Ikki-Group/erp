@@ -17,11 +17,11 @@ export type RoleDto = z.infer<typeof RoleDto>
 
 /* ---------------------------------- HTTP ---------------------------------- */
 
-export const RoleFilterSchema = z.object({
+export const RoleFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 })
-export type RoleFilterSchema = z.infer<typeof RoleFilterSchema>
+export type RoleFilterDto = z.infer<typeof RoleFilterDto>
 
 export const RoleCreateDto = z.object({
 	code: zc.strTrim.min(2).max(32).toUpperCase(),

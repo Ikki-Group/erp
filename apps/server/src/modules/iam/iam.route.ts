@@ -1,14 +1,18 @@
 import { Elysia } from 'elysia'
-import { z } from 'zod'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
-import * as composedSchema from './composed/composed.contract'
+import { UserDetailDto, UserFilterDto } from './composed/composed.contract'
 import type { IamService } from './iam.service'
-import * as roleSchema from './role/role.schema'
-import * as userSchema from './user/user.contract'
+import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role/role.contract'
+import {
+	UserAdminUpdatePasswordDto,
+	UserChangePasswordDto,
+	UserCreateDto,
+	UserUpdateDto,
+} from './user/user.contract'
 
 function roleRoute(svc: IamService) {
 	return new Elysia({ prefix: '/role' })
@@ -20,8 +24,8 @@ function roleRoute(svc: IamService) {
 				return res.paginated(result)
 			},
 			{
-				query: roleSchema.RoleFilterSchema,
-				response: createPaginatedResponseSchema(roleSchema.RoleSchema),
+				query: RoleFilterDto,
+				response: createPaginatedResponseSchema(RoleDto),
 				auth: true,
 			},
 		)
@@ -33,7 +37,7 @@ function roleRoute(svc: IamService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(roleSchema.RoleSchema),
+				response: createSuccessResponseSchema(RoleDto),
 				auth: true,
 			},
 		)
@@ -44,7 +48,7 @@ function roleRoute(svc: IamService) {
 				return res.created(result)
 			},
 			{
-				body: roleSchema.RoleMutationSchema,
+				body: RoleCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -52,12 +56,11 @@ function roleRoute(svc: IamService) {
 		.put(
 			'/update',
 			async ({ body, auth }) => {
-				const { id, ...data } = body
-				const result = await svc.role.handleUpdate(id, data, auth.userId)
+				const result = await svc.role.handleUpdate(body, auth.userId)
 				return res.ok(result)
 			},
 			{
-				body: z.object({ ...zc.RecordId.shape, ...roleSchema.RoleMutationSchema.shape }),
+				body: RoleUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -86,8 +89,8 @@ function userRoute(svc: IamService) {
 				return res.paginated(result)
 			},
 			{
-				query: composedSchema.UserFilterSchema,
-				response: createPaginatedResponseSchema(composedSchema.UserDetailSchema),
+				query: UserFilterDto,
+				response: createPaginatedResponseSchema(UserDetailDto),
 				auth: true,
 			},
 		)
@@ -99,7 +102,7 @@ function userRoute(svc: IamService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(composedSchema.UserDetailSchema),
+				response: createSuccessResponseSchema(UserDetailDto),
 				auth: true,
 			},
 		)
@@ -110,7 +113,7 @@ function userRoute(svc: IamService) {
 				return res.created(result)
 			},
 			{
-				body: userSchema.UserCreateSchema,
+				body: UserCreateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -122,7 +125,7 @@ function userRoute(svc: IamService) {
 				return res.ok(result)
 			},
 			{
-				body: z.object({ ...zc.RecordId.shape, ...userSchema.UserUpdateSchema.shape }),
+				body: UserUpdateDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -134,7 +137,7 @@ function userRoute(svc: IamService) {
 				return res.ok(result)
 			},
 			{
-				body: userSchema.UserChangePasswordSchema,
+				body: UserChangePasswordDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},
@@ -146,7 +149,7 @@ function userRoute(svc: IamService) {
 				return res.ok(result)
 			},
 			{
-				body: userSchema.UserAdminUpdatePasswordSchema,
+				body: UserAdminUpdatePasswordDto,
 				response: createSuccessResponseSchema(zc.RecordId),
 				auth: true,
 			},

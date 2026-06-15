@@ -44,7 +44,7 @@ export class LocationService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'location')
 	}
 
-	static toMap(items: LocationDto[]): RelationMap<number, LocationDto> {
+	toRelationMap(items: LocationDto[]): RelationMap<number, LocationDto> {
 		return RelationMap.fromArray(items, (v) => v.id)
 	}
 

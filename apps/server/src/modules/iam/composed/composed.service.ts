@@ -4,28 +4,27 @@ import { NotFoundError } from '@/shared/errors/http-error'
 
 import type { WithPaginationResult } from '@/types/pagination'
 
-import type { LocationServiceModule } from '@/modules/location'
+import type { LocationModule } from '@/modules/location'
 
 import type { UserAssignmentService } from '../assignment/assignment.service'
 import type { RoleService } from '../role/role.service'
-import type { UserSchema } from '../user/user.contract'
+import type { UserDto } from '../user/user.contract'
 import type { UserService } from '../user/user.service'
-import type { UserDetailSchema, UserFilterSchema } from './composed.contract'
+import type { UserDetailDto, UserFilterDto } from './composed.contract'
 import type { IamComposedRepo } from './composed.repo'
 
 interface UserRelations {
 	assignments: Awaited<ReturnType<UserAssignmentService['getRecordByUserId']>>
 	superadmin: Awaited<ReturnType<RoleService['getSuperadmin']>>
-	rolesMap: Awaited<ReturnType<RoleService['getRelationMap']>>
-	locations: Awaited<ReturnType<LocationServiceModule['location']['getListAll']>>
-	locationsMap: Awaited<ReturnType<LocationServiceModule['location']['getRelationMap']>>
+	rolesMap: Awaited<ReturnType<RoleService['toRelationMap']>>
+	locationsMap: Awaited<ReturnType<LocationModule['location']['toRelationMap']>>
 }
 
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
 	user: UserService
-	location: LocationServiceModule['location']
+	location: LocationModule['location']
 }
 
 export class IamComposedService {
@@ -35,35 +34,35 @@ export class IamComposedService {
 	) {}
 
 	async #loadRelations(userIds: number[]): Promise<UserRelations> {
-		const [assignments, superadmin, rolesMap, locations, locationsMap] = await Promise.all([
+		const [assignments, superadmin, rolesMap, locationsMap] = await Promise.all([
 			this.deps.assignment.getRecordByUserId(userIds),
 			this.deps.role.getSuperadmin(),
-			this.deps.role.getRelationMap(),
-			this.deps.location.getListAll(),
-			this.deps.location.getRelationMap(),
+			this.deps.role.getAll().then((x) => this.deps.role.toRelationMap(x)),
+			this.deps.location.getListAll().then((x) => this.deps.location.toRelationMap(x)),
 		])
 
 		return {
 			superadmin,
 			assignments,
 			rolesMap,
-			locations,
 			locationsMap,
 		}
 	}
 
-	#mapUserDetail(rawUser: UserSchema, relations: UserRelations): UserDetailSchema {
-		const user: UserDetailSchema = {
+	#mapUserDetail(rawUser: UserDto, relations: UserRelations): UserDetailDto {
+		const user: UserDetailDto = {
 			...rawUser,
 			assignments: [],
 		}
 
 		if (user.isRoot) {
-			user.assignments = relations.locations.map((location) => ({
-				...this.deps.assignment.getDefaultAssignmentForSuperadmin(),
-				location,
-				role: relations.superadmin,
-			}))
+			user.assignments = relations.locationsMap
+				.mapToArray((v) => v)
+				.map((location) => ({
+					...this.deps.assignment.getDefaultAssignmentForSuperadmin(),
+					location,
+					role: relations.superadmin,
+				}))
 		} else {
 			const uas = relations.assignments[user.id]
 			if (uas && uas.length > 0) {
@@ -78,15 +77,13 @@ export class IamComposedService {
 		return user
 	}
 
-	async getListPaginated(
-		filter: UserFilterSchema,
-	): Promise<WithPaginationResult<UserDetailSchema>> {
+	async getListPaginated(filter: UserFilterDto): Promise<WithPaginationResult<UserDetailDto>> {
 		return record('IamComposedService.getListPaginated', async () => {
 			const { data: raw, meta } = await this.repo.getListPaginated(filter)
 			const userIds = raw.map((x) => x.id)
 
 			const relations = await this.#loadRelations(userIds)
-			const data: UserDetailSchema[] = []
+			const data: UserDetailDto[] = []
 
 			for (const user of raw) {
 				data.push(this.#mapUserDetail(user, relations))
@@ -99,7 +96,7 @@ export class IamComposedService {
 		})
 	}
 
-	async getDetailById(id: number): Promise<UserDetailSchema> {
+	async getDetailById(id: number): Promise<UserDetailDto> {
 		return record('IamComposedService.getDetailById', async () => {
 			const user = await this.deps.user.getById(id)
 			if (!user) throw NotFoundError.fromEntity('User', id)

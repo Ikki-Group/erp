@@ -6,6 +6,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
+import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/types/pagination'
 import type { ActorId, EntityRef } from '@/types/utils'
@@ -13,7 +14,7 @@ import type { ActorId, EntityRef } from '@/types/utils'
 import type {
 	RoleCreateDto,
 	RoleDto,
-	RoleFilterSchema,
+	RoleFilterDto,
 	RoleUpdateDto,
 } from '@/modules/iam/role/role.contract'
 
@@ -60,6 +61,10 @@ export class RoleService {
 		this.cache = CacheService.createWithDefaultKeys(cacheClient, 'iam.role')
 	}
 
+	toRelationMap(roles: RoleDto[]): RelationMap<number, RoleDto> {
+		return RelationMap.fromArray(roles, (x) => x.id)
+	}
+
 	async getAll(): Promise<RoleDto[]> {
 		return record('RoleService.getListAll', async () =>
 			this.cache.getOrSet({
@@ -99,7 +104,7 @@ export class RoleService {
 
 	/* --------------------------------- HANDLE --------------------------------- */
 
-	async handleList(filter: RoleFilterSchema): Promise<WithPaginationResult<RoleDto>> {
+	async handleList(filter: RoleFilterDto): Promise<WithPaginationResult<RoleDto>> {
 		return record('RoleService.handleList', async () => {
 			const result = await this.repo.findPage(filter)
 			return result
