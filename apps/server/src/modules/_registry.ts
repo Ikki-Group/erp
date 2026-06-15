@@ -1,8 +1,8 @@
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
-import { IamModule } from '@/modules/iam/iam.module'
-import { LocationModule, createLocationModule } from '@/modules/location/location.module'
+import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
+import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
 
 export interface Modules {
 	location: LocationModule
@@ -61,5 +61,11 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	// 	inventory,
 	// }
 
-	const location = new LocationModule()
+	const location = createLocationModule(db, cacheClient)
+	const iam = createIamModule(db, cacheClient, { location: location.location })
+
+	return {
+		location,
+		iam,
+	}
 }
