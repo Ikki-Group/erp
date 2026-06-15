@@ -1,13 +1,13 @@
-import { createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import { Elysia } from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { UnauthorizedError } from '@/shared/errors/http-error'
 import { res } from '@/shared/http/response'
+import { createSuccessResponseSchema } from '@/shared/schema'
 
-import { UserSchema } from '@/modules/iam'
+import { UserDto } from '@/modules/iam'
 
-import { AuthLoginSchema, AuthOutputSchema } from './auth.schema'
+import { AuthLoginSchema, AuthOutputSchema } from './auth.contract'
 import type { AuthService } from './auth.service'
 
 export function initAuthRoute(svc: AuthService) {
@@ -30,6 +30,6 @@ export function initAuthRoute(svc: AuthService) {
 				}
 				return res.ok(userWithDetails, 'AUTH_ME_SUCCESS')
 			},
-			{ response: createSuccessResponseSchema(UserSchema), auth: true },
+			{ response: createSuccessResponseSchema(UserDto), auth: true },
 		)
 }

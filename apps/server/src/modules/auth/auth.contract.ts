@@ -1,6 +1,8 @@
-import { z, zc, zp } from '@ikki/api-contract/validation'
+import z from 'zod'
 
-import { UserSchema } from '@/modules/iam'
+import { zc, zp } from '@/shared/schema'
+
+import { UserDto } from '@/modules/iam'
 
 export const AuthLoginSchema = z.object({
 	identifier: zc.strTrim.min(1),
@@ -9,7 +11,7 @@ export const AuthLoginSchema = z.object({
 export type AuthLoginSchema = z.infer<typeof AuthLoginSchema>
 
 export const AuthOutputSchema = z.object({
-	user: UserSchema,
+	user: UserDto,
 	token: zp.str,
 })
 export type AuthOutputSchema = z.infer<typeof AuthOutputSchema>

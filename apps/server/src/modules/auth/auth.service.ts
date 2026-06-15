@@ -3,10 +3,10 @@ import { record } from '@elysiajs/opentelemetry'
 import { UnauthorizedError } from '@/shared/errors/http-error'
 import { verifyPassword } from '@/shared/utils/password'
 
-import type { IamServiceModule, UserSchema } from '@/modules/iam'
+import type { IamModule, UserDto } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
-import type { AuthOutputSchema, AuthLoginSchema } from './auth.schema'
+import type { AuthOutputSchema, AuthLoginSchema } from './auth.contract'
 
 const err = {
 	userNotFound: () => new UnauthorizedError('User not found', { code: 'AUTH_USER_NOT_FOUND' }),
@@ -16,7 +16,7 @@ const err = {
 
 export class AuthService {
 	constructor(
-		private readonly iam: IamServiceModule,
+		private readonly iam: IamModule,
 		private readonly sessionSvc: SessionService,
 	) {}
 
@@ -29,32 +29,32 @@ export class AuthService {
 				throw err.userNotFound()
 			}
 
-			const isPasswordValid = await verifyPassword(password, targetUser.passwordHash)
+			const isPasswordValid = await verifyPassword(password, targetUser.passwordHash!)
 			if (!isPasswordValid) {
 				throw err.invalidCredentials()
 			}
 
 			const session = await this.sessionSvc.createSession(targetUser)
-			const userDetail = await this.iam.userRead.getDetailById(targetUser.id)
+			const userDetail = await this.iam.composed.getDetailById(targetUser.id)
 
 			return { user: userDetail, token: session.token }
 		})
 	}
 
-	async verifyToken(token: string): Promise<UserSchema> {
+	async verifyToken(token: string): Promise<UserDto> {
 		return record('AuthService.verifyToken', async () => {
 			const session = await this.sessionSvc.verifySession(token)
 			if (!session) {
 				throw err.invalidCredentials()
 			}
 
-			return this.iam.userRead.getDetailById(session.userId)
+			return this.iam.composed.getDetailById(session.userId)
 		})
 	}
 
-	async getById(userId: number): Promise<UserSchema | undefined> {
+	async getById(userId: number): Promise<UserDto | undefined> {
 		return record('AuthService.getById', async () => {
-			return this.iam.userRead.getDetailById(userId)
+			return this.iam.composed.getDetailById(userId)
 		})
 	}
 }

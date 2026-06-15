@@ -3,8 +3,8 @@ import Elysia from 'elysia'
 import type { SessionServiceModule } from '@/modules/session'
 
 import type { IamServiceModule } from '../iam'
+import type { AuthLoginSchema, AuthOutputSchema } from './auth.contract'
 import { initAuthRoute } from './auth.route'
-import type { AuthLoginSchema, AuthOutputSchema } from './auth.schema'
 import { AuthService } from './auth.service'
 
 export type { AuthLoginSchema, AuthOutputSchema }
