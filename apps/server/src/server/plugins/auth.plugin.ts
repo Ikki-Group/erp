@@ -5,7 +5,7 @@ import { Elysia } from 'elysia'
 import { UnauthorizedError } from '@/shared/errors/http-error'
 import { AuthContext } from '@/shared/http/auth'
 
-import type { AuthServiceModule } from '@/modules/auth'
+import type { AuthModule } from '@/modules/auth'
 
 export { AuthContext } from '@/shared/http/auth'
 export type { AuthenticatedUser } from '@/shared/http/auth'
@@ -15,14 +15,14 @@ export const authPluginMacro = new Elysia({ name: 'auth-macro' })
 	.macro({
 		auth: (enabled: boolean) => ({
 			resolve: ({ auth }): void => {
-				// if (enabled && !auth.isAuthenticated)
-				// 	throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
+				if (enabled && !auth.isAuthenticated)
+					throw new UnauthorizedError('Unauthorized', { code: 'AUTH_UNAUTHORIZED' })
 			},
 		}),
 	})
 	.as('global')
 
-export function createAuthPlugin(authService: AuthServiceModule) {
+export function createAuthPlugin(authService: AuthModule) {
 	return new Elysia({ name: 'auth-plugin' })
 		.derive(async ({ request, set }): Promise<{ auth: AuthContext }> => {
 			// oxlint-disable-next-line typescript/require-await
@@ -35,7 +35,7 @@ export function createAuthPlugin(authService: AuthServiceModule) {
 					const token = rawToken.replace(/^Bearer\s+/i, '')
 					if (!token) return { auth }
 
-					const user = await authService.auth.verifyToken(token).catch(() => null)
+					const user = await authService.verifyToken(token).catch(() => null)
 					if (user) {
 						auth = new AuthContext(user)
 						const userId = user.id.toString()
