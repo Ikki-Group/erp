@@ -1,15 +1,13 @@
 import jwt from 'jsonwebtoken'
 
+import { env } from '@/config/env'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { logger } from '@/infra/logger'
 
-import { env } from '@/config/env'
+import type { UserDto } from '@/modules/iam'
 
-import type { UserSchema } from '@/modules/iam'
-
+import { SessionDto, SessionPayloadDto } from './session.contract'
 import { SessionRepo } from './session.repo'
-import type { SessionSchema } from './session.schema'
-import { SessionPayloadSchema } from './session.schema'
 
 export class SessionService {
 	private readonly cache: CacheService
@@ -24,7 +22,7 @@ export class SessionService {
 	/**
 	 * Finds a single session by its ID. Cached.
 	 */
-	async getById(id: number): Promise<SessionSchema | undefined> {
+	async getById(id: number): Promise<SessionDto | undefined> {
 		return this.cache.getOrSetWithSkip({
 			key: this.cache.keys.byId(id),
 			factory: () => this.repo.getById(id),
@@ -34,7 +32,7 @@ export class SessionService {
 	/**
 	 * Creates a new session and returns the signed JWT token.
 	 */
-	async createSession(user: UserSchema): Promise<{ session: SessionSchema; token: string }> {
+	async createSession(user: UserDto): Promise<{ session: SessionDto; token: string }> {
 		const createdAt = new Date()
 		const expiredAt = new Date(createdAt.getTime() + env.JWT_EXPIRES_IN)
 
@@ -44,7 +42,7 @@ export class SessionService {
 			expiredAt,
 		})
 
-		const data: SessionPayloadSchema = {
+		const data: SessionPayloadDto = {
 			id: session.id,
 			userId: user.id,
 			email: user.email,
@@ -59,10 +57,10 @@ export class SessionService {
 	/**
 	 * Verifies a session's token and integrity.
 	 */
-	async verifySession(token: string): Promise<SessionSchema | null> {
+	async verifySession(token: string): Promise<SessionDto | null> {
 		try {
 			const decoded = jwt.verify(token, env.JWT_SECRET)
-			const valid = SessionPayloadSchema.parse(decoded)
+			const valid = SessionPayloadDto.parse(decoded)
 			const session = await this.getById(valid.id)
 
 			if (!session) return null

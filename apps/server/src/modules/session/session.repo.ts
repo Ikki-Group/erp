@@ -2,21 +2,19 @@ import { eq, lte } from 'drizzle-orm'
 
 import { sessionsTable } from '@/db/schema'
 
-import { takeFirst, type DbClient } from '@/infra/database'
+import { takeFirst, type DbContext } from '@/infra/database'
 
-import type { SessionSchema } from './session.schema'
+import type { SessionDto } from './session.contract'
 
 export class SessionRepo {
-	constructor(private readonly db: DbClient) {}
+	constructor(private readonly db: DbContext) {}
 
-	/* ---------------------------------- QUERY --------------------------------- */
-
-	async getById(id: number): Promise<SessionSchema | undefined> {
+	async getById(id: number): Promise<SessionDto | undefined> {
 		const result = await this.db.select().from(sessionsTable).where(eq(sessionsTable.id, id))
 		return takeFirst(result) ?? undefined
 	}
 
-	async getByUserId(userId: number): Promise<SessionSchema[]> {
+	async getByUserId(userId: number): Promise<SessionDto[]> {
 		const result = await this.db
 			.select()
 			.from(sessionsTable)
@@ -25,13 +23,11 @@ export class SessionRepo {
 		return result
 	}
 
-	/* -------------------------------- MUTATION -------------------------------- */
-
-	async create(data: typeof sessionsTable.$inferInsert): Promise<SessionSchema> {
+	async create(data: typeof sessionsTable.$inferInsert): Promise<SessionDto> {
 		const [session] = await this.db.insert(sessionsTable).values(data).returning()
 
 		if (!session) throw new Error('Failed to create session')
-		return session as SessionSchema
+		return session as SessionDto
 	}
 
 	async invalidate(id: number): Promise<void> {
