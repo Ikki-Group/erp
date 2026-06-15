@@ -10,8 +10,8 @@ import { UserDto } from '@/modules/iam'
 import { AuthLoginSchema, AuthOutputSchema } from './auth.contract'
 import type { AuthService } from './auth.service'
 
-export function initAuthRoute(svc: AuthService) {
-	return new Elysia()
+export function createAuthRoute(svc: AuthService) {
+	return new Elysia({ prefix: '/auth' })
 		.use(authPluginMacro)
 		.post(
 			'/login',

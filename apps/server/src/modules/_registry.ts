@@ -1,12 +1,16 @@
 import type { CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 
+import { createAuthModule, type AuthModule } from '@/modules/auth'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
 import { type LocationModule, createLocationModule } from '@/modules/location/location.module'
+import { createSessionModule, type SessionModule } from '@/modules/session'
 
 export interface Modules {
 	location: LocationModule
 	iam: IamModule
+	session: SessionModule
+	auth: AuthModule
 	// salesType: SalesTypeServiceModule
 	// session: SessionServiceModule
 	// auth: AuthServiceModule
@@ -63,9 +67,16 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 
 	const location = createLocationModule(db, cacheClient)
 	const iam = createIamModule(db, cacheClient, { location: location.location })
+	const session = createSessionModule(db, cacheClient)
+	const auth = createAuthModule(db, cacheClient, {
+		iam,
+		session,
+	})
 
 	return {
 		location,
 		iam,
+		session,
+		auth,
 	}
 }

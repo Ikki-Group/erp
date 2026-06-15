@@ -1,3 +1,4 @@
+import { createAuthRoute } from '@/modules/auth/auth.route'
 import { createIamRoute } from '@/modules/iam/iam.route'
 import { createLocationRoute } from '@/modules/location/location.route'
 
@@ -29,7 +30,7 @@ export function createRoutes(m: Modules) {
 	// 	// initReportingRouteModule(m.reporting),
 	// ]
 
-	const routes = [createLocationRoute(m.location), createIamRoute(m.iam)]
+	const routes = [createLocationRoute(m.location), createIamRoute(m.iam), createAuthRoute(m.auth)]
 
 	return {
 		register: (app: Elysia): Elysia => {
