@@ -5,7 +5,7 @@ import { res } from '@/shared/http/response'
 import { createPaginatedResponseSchema, createSuccessResponseSchema, zc, zq } from '@/shared/schema'
 
 import { UserDetailDto, UserFilterDto } from './composed/composed.contract'
-import type { IamService } from './iam.service'
+import type { IamModule } from './iam.module'
 import { RoleCreateDto, RoleDto, RoleFilterDto, RoleUpdateDto } from './role/role.contract'
 import {
 	UserAdminUpdatePasswordDto,
@@ -14,7 +14,7 @@ import {
 	UserUpdateDto,
 } from './user/user.contract'
 
-function roleRoute(svc: IamService) {
+function roleRoute(svc: IamModule) {
 	return new Elysia({ prefix: '/role' })
 		.use(authPluginMacro)
 		.get(
@@ -79,7 +79,7 @@ function roleRoute(svc: IamService) {
 		)
 }
 
-function userRoute(svc: IamService) {
+function userRoute(svc: IamModule) {
 	return new Elysia({ prefix: '/user' })
 		.use(authPluginMacro)
 		.get(
@@ -168,6 +168,6 @@ function userRoute(svc: IamService) {
 		)
 }
 
-export function createIamRoute(svc: IamService) {
+export function createIamRoute(svc: IamModule) {
 	return new Elysia({ prefix: '/iam' }).use(authPluginMacro).use(roleRoute(svc)).use(userRoute(svc))
 }

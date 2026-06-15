@@ -1,6 +1,6 @@
 import { defineConfig } from 'drizzle-kit'
 
-const url = Bun.env.DATABASE_URL
+const url = Bun.env['DATABASE_URL']
 if (!url) {
 	throw new Error('Bun.env.DATABASE_URL')
 }

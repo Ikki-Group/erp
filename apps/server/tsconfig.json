@@ -22,7 +22,7 @@
 		"isolatedModules": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noPropertyAccessFromIndexSignature": true,
+		"noPropertyAccessFromIndexSignature": false,
 		"resolveJsonModule": true,
 		"strictNullChecks": true,
 		"noImplicitAny": true,
