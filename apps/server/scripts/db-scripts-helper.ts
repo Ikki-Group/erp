@@ -29,10 +29,10 @@ CREATE SCHEMA public;
 }
 
 async function seed(db: DbClient) {
-	// const m = createModules(db, cacheClient)
+	const m = createModules(db, cacheClient)
 
 	console.log('🌱 Starting core database seed...')
-	// await m.tool.seed.seed()
+	await m.tool.seed.seed()
 	console.log('✅ Core seed completed.')
 }
 

@@ -64,9 +64,13 @@ export class RoleRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: RoleInsert, db = this.db): Promise<EntityRef | undefined> {
+	async insert(data: RoleInsert, db = this.db): Promise<EntityRef | undefined> {
 		const [res] = await db.insert(rolesTable).values(data).returning({ id: rolesTable.id })
 		return res
+	}
+
+	async insertMany(data: RoleInsert[], db = this.db) {
+		await db.insert(rolesTable).values(data).returning({ id: rolesTable.id })
 	}
 
 	async update(id: number, data: RoleUpdate, db = this.db): Promise<EntityRef | undefined> {

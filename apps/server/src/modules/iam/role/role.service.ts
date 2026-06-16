@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { rolesTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField } from '@/infra/database'
+import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
@@ -91,16 +91,17 @@ export class RoleService {
 		})
 	}
 
-	// async seed(data: (RoleMutationSchema & { createdBy: ActorId })[]): Promise<void> {
-	// 	return record('RoleService.seed', async () => {
-	// 		for (const d of data) {
-	// 			const existing = await this.getByIdentifier(d.code)
-	// 			if (existing) continue
-
-	// 			await this.create(d, d.createdBy)
-	// 		}
-	// 	})
-	// }
+	async seed(data: (RoleCreateDto & { createdBy: ActorId })[], db: DbContext): Promise<void> {
+		return record('RoleService.seed', async () => {
+			return this.repo.insertMany(
+				data.map((i) => ({
+					...i,
+					...stampCreate(i.createdBy),
+				})),
+				db,
+			)
+		})
+	}
 
 	/* --------------------------------- HANDLE --------------------------------- */
 
@@ -128,7 +129,7 @@ export class RoleService {
 				input: data,
 			})
 
-			const result = await this.repo.create({
+			const result = await this.repo.insert({
 				...data,
 				...stampCreate(actorId),
 			})

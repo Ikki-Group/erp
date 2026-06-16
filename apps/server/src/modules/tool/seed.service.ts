@@ -3,47 +3,52 @@ import { record } from '@elysiajs/opentelemetry'
 import { SEED_CONFIG } from '@/config/seed-config'
 import type { DbClient } from '@/infra/database'
 
-import type { RoleService } from '@/modules/iam'
-import type { UserService } from '@/modules/iam'
-import type { SalesTypeService } from '@/modules/sales-type'
+import type { IamModule } from '@/modules/iam'
+import type { LocationModule } from '@/modules/location'
+
+interface Deps {
+	iam: IamModule
+	location: LocationModule
+}
 
 export class SeedService {
 	constructor(
 		private readonly db: DbClient,
-		private readonly iamRoleSvc: RoleService,
-		private readonly iamUserSvc: UserService,
-		private readonly salesTypeSvc: SalesTypeService,
+		private readonly deps: Deps,
 	) {}
 
 	async seed(): Promise<void> {
 		return record('SeedService.seed', async () => {
 			// Use Drizzle transaction for the entire seed process
-			await this.db.transaction(async (_db) => {
+			await this.db.transaction(async (db) => {
 				const SYSTEM_ACTOR_ID = 1
 
 				// 1. Seed Roles
-				await this.iamRoleSvc.seed([
-					{
-						code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
-						name: 'Administrator',
-						description: 'Super administrator',
-						permissions: ['*'],
-						isSystem: true,
-						createdBy: SYSTEM_ACTOR_ID,
-					},
-					{
-						code: 'MANAGER',
-						name: 'Manager',
-						description: null,
-						permissions: [],
-						isSystem: false,
-						createdBy: SYSTEM_ACTOR_ID,
-					},
-				])
+				await this.deps.iam.role.seed(
+					[
+						{
+							code: SEED_CONFIG.ROLE_SUPERADMIN_CODE,
+							name: 'Administrator',
+							description: 'Super administrator',
+							permissions: ['*'],
+							isSystem: true,
+							createdBy: SYSTEM_ACTOR_ID,
+						},
+						{
+							code: 'MANAGER',
+							name: 'Manager',
+							description: null,
+							permissions: [],
+							isSystem: false,
+							createdBy: SYSTEM_ACTOR_ID,
+						},
+					],
+					db,
+				)
 
 				// 2. Seed Users
 				const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
-				await this.iamUserSvc.seed([
+				await this.deps.iam.user.seed([
 					{
 						email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
 						username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
@@ -60,28 +65,28 @@ export class SeedService {
 				])
 
 				// 3. Seed Locations
-				// await this.locationMasterSvc.seed(
-				// 	SEED_CONFIG.LOCATIONS.map((l) => ({
-				// 		code: l.code,
-				// 		name: l.name,
-				// 		type: l.type,
-				// 		address: null,
-				// 		phone: null,
-				// 		isActive: true,
-				// 		description: null,
-				// 		createdBy: SYSTEM_ACTOR_ID,
-				// 	})),
-				// )
-
-				// 4. Seed Sales Types
-				await this.salesTypeSvc.seed(
-					SEED_CONFIG.SALES_TYPES.map((st) => ({
-						code: st.code,
-						name: st.name,
-						isSystem: st.isSystem,
+				await this.deps.location.seed(
+					SEED_CONFIG.LOCATIONS.map((l) => ({
+						code: l.code,
+						name: l.name,
+						type: l.type,
+						address: null,
+						phone: null,
+						isActive: true,
+						description: null,
 						createdBy: SYSTEM_ACTOR_ID,
 					})),
 				)
+
+				// 4. Seed Sales Types
+				// await this.salesTypeSvc.seed(
+				// 	SEED_CONFIG.SALES_TYPES.map((st) => ({
+				// 		code: st.code,
+				// 		name: st.name,
+				// 		isSystem: st.isSystem,
+				// 		createdBy: SYSTEM_ACTOR_ID,
+				// 	})),
+				// )
 
 				// 5. Seed UOMs
 				// await this.materialUomSvc.seed(
