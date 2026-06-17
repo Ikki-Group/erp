@@ -1,5 +1,5 @@
 import type { CacheClient } from '@/infra/cache'
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import { createAuthModule, type AuthModule } from '@/modules/auth'
 import { type IamModule, createIamModule } from '@/modules/iam/iam.module'
@@ -48,7 +48,7 @@ export interface Modules {
 	// reporting: ReportingServiceModule
 }
 
-export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
+export function createModules(db: DbContext, cacheClient: CacheClient): Modules {
 	// const location = new LocationServiceModule(db, cacheClient)
 	// const iam = new IamService(db, cacheClient, { location: location.location })
 	// const salesType = new SalesTypeServiceModule(db, cacheClient)
