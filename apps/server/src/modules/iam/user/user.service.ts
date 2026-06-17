@@ -3,10 +3,11 @@ import { record } from '@elysiajs/opentelemetry'
 import { usersTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField } from '@/infra/database'
+import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
+import { hashPassword } from '@/shared/utils/password'
 
 import type { ActorId, EntityRef } from '@/types/utils'
 
@@ -83,15 +84,23 @@ export class UserService {
 	}
 
 	async seed(
-		data: (UserCreateDto & { passwordHash: string; createdBy: ActorId; isRoot?: boolean })[],
+		items: (Pick<UserDto, 'id' | 'email' | 'username' | 'fullname' | 'isRoot' | 'createdBy'> & {
+			password: string
+		})[],
+		db: DbContext,
 	): Promise<void> {
 		return record('UserService.seed', async () => {
-			for (const d of data) {
-				const existing = await this.getByIdentifier(d.email)
-				if (existing) continue
+			const parsed: (typeof usersTable.$inferInsert)[] = []
 
-				await this.create(d, d.createdBy)
+			for (const item of items) {
+				parsed.push({
+					...item,
+					passwordHash: await hashPassword(item.password),
+					...stampCreate(item.createdBy),
+				})
 			}
+
+			await this.r.insertMany(parsed, db)
 		})
 	}
 

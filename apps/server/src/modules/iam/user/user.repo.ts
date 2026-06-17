@@ -51,6 +51,10 @@ export class UserRepo {
 		return res
 	}
 
+	async insertMany(items: (typeof usersTable.$inferInsert)[], db: DbContext) {
+		return db.insert(usersTable).values(items).onConflictDoNothing()
+	}
+
 	async update(id: number, data: UserUpdate): Promise<EntityRef | undefined> {
 		const [res] = await this.db
 			.update(usersTable)

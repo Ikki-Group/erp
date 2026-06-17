@@ -1,7 +1,7 @@
 import { record } from '@elysiajs/opentelemetry'
 
 import { SEED_CONFIG } from '@/config/seed-config'
-import type { DbClient } from '@/infra/database'
+import type { DbContext } from '@/infra/database'
 
 import type { IamModule } from '@/modules/iam'
 import type { LocationModule } from '@/modules/location'
@@ -13,7 +13,7 @@ interface Deps {
 
 export class SeedService {
 	constructor(
-		private readonly db: DbClient,
+		private readonly db: DbContext,
 		private readonly deps: Deps,
 	) {}
 
@@ -47,22 +47,20 @@ export class SeedService {
 				)
 
 				// 2. Seed Users
-				const superAdminPasswordHash = await Bun.password.hash(SEED_CONFIG.USER_SUPERADMIN_PASSWORD)
-				await this.deps.iam.user.seed([
-					{
-						email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
-						username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
-						fullname: 'Administrator',
-						password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
-						passwordHash: superAdminPasswordHash,
-						isRoot: true,
-						pinCode: null,
-						isActive: true,
-						defaultLocationId: null,
-						createdBy: SYSTEM_ACTOR_ID,
-						assignments: [],
-					},
-				])
+				await this.deps.iam.user.seed(
+					[
+						{
+							id: 1,
+							email: SEED_CONFIG.USER_SUPERADMIN_EMAIL,
+							username: SEED_CONFIG.USER_SUPERADMIN_USERNAME,
+							fullname: 'Administrator',
+							password: SEED_CONFIG.USER_SUPERADMIN_PASSWORD,
+							isRoot: true,
+							createdBy: SYSTEM_ACTOR_ID,
+						},
+					],
+					db,
+				)
 
 				// 3. Seed Locations
 				await this.deps.location.seed(

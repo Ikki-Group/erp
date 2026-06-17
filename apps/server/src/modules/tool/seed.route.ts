@@ -1,7 +1,7 @@
-import { zp, createSuccessResponseSchema } from '@ikki/api-contract/validation'
 import Elysia from 'elysia'
 
 import { res } from '@/shared/http/response'
+import { createSuccessResponseSchema, zp } from '@/shared/schema'
 
 import type { SeedService } from './seed.service'
 
