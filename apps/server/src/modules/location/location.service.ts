@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 import { locationsTable } from '@/db/schema'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
-import { checkConflict, type ConflictField } from '@/infra/database'
+import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { RelationMap } from '@/shared/utils'
 
@@ -63,6 +63,19 @@ export class LocationService {
 				key: this.cache.keys.byId(id),
 				factory: () => this.repo.findById(id),
 			}),
+		)
+	}
+
+	async seed(
+		items: Pick<LocationDto, 'id' | 'code' | 'name' | 'isActive' | 'type' | 'createdBy'>[],
+		db: DbContext,
+	): Promise<void> {
+		return this.repo.insertMany(
+			items.map((x) => ({
+				...x,
+				...stampCreate(x.createdBy),
+			})),
+			db,
 		)
 	}
 

@@ -98,6 +98,10 @@ export class LocationRepo {
 		return res
 	}
 
+	async insertMany(items: (typeof locationsTable.$inferInsert)[], db: DbContext) {
+		await db.insert(locationsTable).values(items).onConflictDoNothing()
+	}
+
 	async remove(id: number, db: DbContext = this.db): Promise<EntityRef | undefined> {
 		const [res] = await db
 			.delete(locationsTable)

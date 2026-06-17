@@ -66,16 +66,15 @@ export class SeedService {
 
 				// 3. Seed Locations
 				await this.deps.location.seed(
-					SEED_CONFIG.LOCATIONS.map((l) => ({
+					SEED_CONFIG.LOCATIONS.map((l, i) => ({
+						id: i,
 						code: l.code,
 						name: l.name,
 						type: l.type,
-						address: null,
-						phone: null,
 						isActive: true,
-						description: null,
 						createdBy: SYSTEM_ACTOR_ID,
 					})),
+					db,
 				)
 
 				// 4. Seed Sales Types
