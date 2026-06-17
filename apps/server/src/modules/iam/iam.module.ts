@@ -13,7 +13,7 @@ import { UserRepo } from './user/user.repo'
 import { UserService } from './user/user.service'
 
 interface Deps {
-	location: LocationModule['location']
+	location: LocationModule
 }
 
 export interface IamModule {

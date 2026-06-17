@@ -4,13 +4,11 @@ import type { DbClient } from '@/infra/database'
 import { LocationRepo } from './location.repo'
 import { LocationService } from './location.service'
 
-export interface LocationModule {
-	location: LocationService
-}
+export type LocationModule = LocationService
 
 export function createLocationModule(db: DbClient, cacheClient: CacheClient): LocationModule {
 	const repo = new LocationRepo(db)
 	const location = new LocationService(repo, cacheClient)
 
-	return { location }
+	return location
 }

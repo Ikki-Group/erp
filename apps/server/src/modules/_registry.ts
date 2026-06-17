@@ -66,7 +66,7 @@ export function createModules(db: DbClient, cacheClient: CacheClient): Modules {
 	// }
 
 	const location = createLocationModule(db, cacheClient)
-	const iam = createIamModule(db, cacheClient, { location: location.location })
+	const iam = createIamModule(db, cacheClient, { location: location })
 	const session = createSessionModule(db, cacheClient)
 	const auth = createAuthModule(db, cacheClient, {
 		iam,

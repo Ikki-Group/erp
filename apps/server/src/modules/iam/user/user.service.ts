@@ -51,7 +51,7 @@ const err = {
 interface ServiceDeps {
 	role: RoleService
 	assignment: UserAssignmentService
-	location: LocationModule['location']
+	location: LocationModule
 }
 
 export class UserService {
