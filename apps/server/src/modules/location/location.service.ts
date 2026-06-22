@@ -150,8 +150,8 @@ export class LocationService {
 		return record('LocationService.handleList', async () => this.repo.findPage(filter))
 	}
 
-	async handleDetail(id: number): Promise<LocationDto> {
-		return record('LocationService.handleDetail', async () => {
+	async handleGetById(id: number): Promise<LocationDto> {
+		return record('LocationService.handleGetById', async () => {
 			const result = await this.getById(id)
 			if (!result) throw LocationError.notFound(id)
 			return result
@@ -166,7 +166,7 @@ export class LocationService {
 		return record('LocationService.handleUpdate', async () => this.update(data, actorId))
 	}
 
-	async handleRemove(id: number): Promise<EntityRef> {
-		return record('LocationService.handleRemove', async () => this.remove(id))
+	async handleDelete(id: number): Promise<EntityRef> {
+		return record('LocationService.handleDelete', async () => this.remove(id))
 	}
 }

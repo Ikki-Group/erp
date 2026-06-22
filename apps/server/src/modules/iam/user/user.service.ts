@@ -220,8 +220,8 @@ export class UserService {
 		})
 	}
 
-	async handleRemove(id: number): Promise<EntityRef> {
-		return record('UserService.handleRemove', async () => {
+	async handleDelete(id: number): Promise<EntityRef> {
+		return record('UserService.handleDelete', async () => {
 			const result = await this.r.remove(id)
 			if (!result) throw UserError.notFound(id)
 

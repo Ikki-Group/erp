@@ -36,7 +36,7 @@ export function createLocationRoute(m: LocationModule) {
 		.get(
 			'/detail',
 			async ({ query }) => {
-				const result = await m.location.handleDetail(query.id)
+				const result = await m.location.handleGetById(query.id)
 				return res.ok({ id: result?.id })
 			},
 			{
@@ -72,7 +72,7 @@ export function createLocationRoute(m: LocationModule) {
 		.delete(
 			'/remove',
 			async ({ body }) => {
-				const result = await m.location.handleRemove(body.id)
+				const result = await m.location.handleDelete(body.id)
 				return res.ok(result)
 			},
 			{

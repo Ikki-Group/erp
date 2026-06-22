@@ -32,7 +32,7 @@ function roleRoute(svc: IamModule) {
 		.get(
 			'/detail',
 			async ({ query }) => {
-				const result = await svc.role.handleDetail(query.id)
+				const result = await svc.role.handleGetById(query.id)
 				return res.ok(result)
 			},
 			{
@@ -68,7 +68,7 @@ function roleRoute(svc: IamModule) {
 		.delete(
 			'/remove',
 			async ({ query }) => {
-				const result = await svc.role.handleRemove(query.id)
+				const result = await svc.role.handleDelete(query.id)
 				return res.ok(result)
 			},
 			{
@@ -157,7 +157,7 @@ function userRoute(svc: IamModule) {
 		.delete(
 			'/remove',
 			async ({ query }) => {
-				const result = await svc.user.handleRemove(query.id)
+				const result = await svc.user.handleDelete(query.id)
 				return res.ok(result)
 			},
 			{

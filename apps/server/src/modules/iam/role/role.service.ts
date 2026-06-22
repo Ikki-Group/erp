@@ -97,8 +97,8 @@ export class RoleService {
 		})
 	}
 
-	async handleDetail(id: number): Promise<RoleDto> {
-		return record('RoleService.handleDetail', async () => {
+	async handleGetById(id: number): Promise<RoleDto> {
+		return record('RoleService.handleGetById', async () => {
 			const result = await this.getById(id)
 			if (!result) throw RoleError.notFound(id)
 			return result
@@ -149,8 +149,8 @@ export class RoleService {
 		})
 	}
 
-	async handleRemove(id: number): Promise<EntityRef> {
-		return record('RoleService.handleRemove', async () => {
+	async handleDelete(id: number): Promise<EntityRef> {
+		return record('RoleService.handleDelete', async () => {
 			const result = await this.repo.remove(id)
 			if (!result) throw RoleError.notFound(id)
 
