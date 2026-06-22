@@ -143,79 +143,61 @@ uniqueIndex('locations_name_active_idx').on(t.name),
 
 ---
 
-**Drizzle Limitation:**
+**Drizzle Support (v1.0.0-rc.4+):**
 
-Drizzle ORM currently **does not support** partial indexes with WHERE clause:
+Drizzle ORM **DOES support** partial indexes with `.where()` clause:
 
 ```typescript
-// ❌ NOT SUPPORTED IN DRIZZLE
+// ✅ SUPPORTED IN DRIZZLE v1.0.0-rc.4+
+import { sql } from 'drizzle-orm'
+
 uniqueIndex('locations_code_active_idx')
   .on(t.code)
-  .where(sql`is_active = TRUE`)  // No .where() method exists
+  .where(sql`${t.isActive} = true`)
 ```
 
 ---
 
-**Solutions:**
-
-#### **Option 1: Raw SQL via Migration** ⭐⭐⭐⭐⭐ (Recommended)
-
-**Pros:**
-- ✅ Correct behavior (matches documentation)
-- ✅ Allows code/name reuse
-- ✅ Standard PostgreSQL feature
-- ✅ Clean schema design
-
-**Cons:**
-- ⚠️ Index not visible in Drizzle schema (type safety issue)
-- ⚠️ Must be maintained manually in migrations
+**Solution: Use Drizzle `.where()` Method** ⭐⭐⭐⭐⭐ (Implemented)
 
 **Implementation:**
-```sql
--- migration: XXXX_add_partial_unique_indexes.sql
-DROP INDEX IF EXISTS locations_code_active_idx;
-DROP INDEX IF EXISTS locations_name_active_idx;
-
-CREATE UNIQUE INDEX locations_code_active_idx 
-  ON locations(code) 
-  WHERE is_active = TRUE;
-
-CREATE UNIQUE INDEX locations_name_active_idx 
-  ON locations(name) 
-  WHERE is_active = TRUE;
-```
-
-**Schema File:**
 ```typescript
-// locations.ts
+import { sql } from 'drizzle-orm'
+import { uniqueIndex } from 'drizzle-orm/pg-core'
+
 export const locationsTable = pgTable(
   'locations',
   {
     ...pk,
     code: text('code').notNull(),
     name: text('name').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
     // ...
   },
-  // ❌ Remove these - replaced by manual migration
-  // (t) => [
-  //   uniqueIndex('locations_code_active_idx').on(t.code),
-  //   uniqueIndex('locations_name_active_idx').on(t.name),
-  // ],
+  (t) => [
+    uniqueIndex('locations_code_active_idx')
+      .on(t.code)
+      .where(sql`${t.isActive} = true`),
+    uniqueIndex('locations_name_active_idx')
+      .on(t.name)
+      .where(sql`${t.isActive} = true`),
+  ],
 )
-
-/**
- * IMPORTANT: Partial unique indexes are enforced via migration
- * (Drizzle does not support WHERE clause on indexes)
- * 
- * See migration: XXXX_add_partial_unique_indexes.sql
- * - locations_code_active_idx (unique on code WHERE is_active = TRUE)
- * - locations_name_active_idx (unique on name WHERE is_active = TRUE)
- */
 ```
+
+**Pros:**
+- ✅ Correct behavior (matches documentation)
+- ✅ Allows code/name reuse after deactivation
+- ✅ Type-safe (visible in Drizzle schema)
+- ✅ Maintained by Drizzle Kit migrations
+- ✅ No manual SQL needed
+
+**Cons:**
+- None! This is the ideal solution.
 
 ---
 
-#### **Option 2: Composite Unique** ⭐⭐⭐ (Alternative)
+#### **Alternative: Composite Unique** ⭐⭐⭐ (Not Recommended)
 
 **Pros:**
 - ✅ Supported in Drizzle
@@ -239,7 +221,7 @@ export const locationsTable = pgTable(
 
 ---
 
-#### **Option 3: Accept Current Behavior** ⭐ (Not Recommended)
+#### **Alternative: Accept Non-Partial Behavior** ⭐ (Not Recommended)
 
 **Pros:**
 - ✅ No changes needed
@@ -261,11 +243,11 @@ export const locationsTable = pgTable(
 
 ---
 
-**Recommendation:** **Option 1** (Raw SQL Migration)
-- Matches intended design
-- Standard PostgreSQL feature
-- Document limitation in schema comments
-- Solo developer can manage manual migration
+**✅ FIXED:** Drizzle `.where()` method implemented
+- Partial unique indexes working correctly
+- Type-safe in schema
+- Managed by Drizzle Kit
+- No manual migrations needed
 
 ---
 
