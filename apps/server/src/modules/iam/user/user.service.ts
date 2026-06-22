@@ -5,7 +5,6 @@ import { usersTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 import { hashPassword } from '@/shared/utils/password'
 
@@ -23,6 +22,7 @@ import type {
 	UserAdminUpdatePasswordDto,
 	UserWithPasswordDto,
 } from './user.contract'
+import { UserError } from './user.internal'
 import { UserRepo } from './user.repo'
 
 const userConflictFields: ConflictField<{ email: string; username: string }>[] = [
@@ -39,15 +39,6 @@ const userConflictFields: ConflictField<{ email: string; username: string }>[] =
 		code: 'USER_USERNAME_ALREADY_EXISTS',
 	},
 ]
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError('User not found', { code: 'USER_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('User creation failed', { code: 'USER_CREATE_FAILED' }),
-	passwordMismatch: () =>
-		new BadRequestError('Old password does not match', { code: 'USER_PASSWORD_MISMATCH' }),
-}
 
 interface ServiceDeps {
 	role: RoleService
@@ -135,7 +126,7 @@ export class UserService {
 				...data,
 				...stampCreate(actorId),
 			})
-			if (!result) throw err.createFailed()
+			if (!result) throw UserError.createFailed()
 
 			if (assignments && assignments.length > 0 && !isRoot) {
 				await this.s.assignment.replaceByUserId(
@@ -164,7 +155,7 @@ export class UserService {
 			const { assignments, isRoot } = data
 
 			const existing = await this.r.getById(id)
-			if (!existing) throw err.notFound(id)
+			if (!existing) throw UserError.notFound(id)
 
 			await checkConflict({
 				table: usersTable,
@@ -181,7 +172,7 @@ export class UserService {
 				...data,
 				...stampUpdate(actorId),
 			})
-			if (!result) throw err.notFound(id)
+			if (!result) throw UserError.notFound(id)
 
 			if (assignments && assignments.length >= 0 && !isRoot) {
 				await this.s.assignment.replaceByUserId(
@@ -217,7 +208,7 @@ export class UserService {
 			const { password, id } = data
 
 			const existing = await this.getById(id)
-			if (!existing) throw err.notFound(id)
+			if (!existing) throw UserError.notFound(id)
 
 			const passwordHash = password ? await Bun.password.hash(password) : undefined
 			const result = await this.update(
@@ -232,7 +223,7 @@ export class UserService {
 	async handleRemove(id: number): Promise<EntityRef> {
 		return record('UserService.handleRemove', async () => {
 			const result = await this.r.remove(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw UserError.notFound(id)
 
 			await this.cache.deleteFromKeys([
 				this.cache.keys.list,
@@ -251,17 +242,17 @@ export class UserService {
 	): Promise<EntityRef> {
 		return record('UserService.handleChangePassword', async () => {
 			const passwordHash = await this.r.getById(id).then((u) => u?.passwordHash)
-			if (!passwordHash) throw err.notFound(id)
+			if (!passwordHash) throw UserError.notFound(id)
 
 			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
-			if (!isMatch) throw err.passwordMismatch()
+			if (!isMatch) throw UserError.passwordMismatch()
 
 			const newPasswordHash = await Bun.password.hash(data.newPassword)
 			const result = await this.r.update(id, {
 				passwordHash: newPasswordHash,
 				...stampUpdate(actorId),
 			})
-			if (!result) throw err.notFound(id)
+			if (!result) throw UserError.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
 
@@ -280,7 +271,7 @@ export class UserService {
 				passwordHash,
 				...stampUpdate(actorId),
 			})
-			if (!result) throw err.notFound(id)
+			if (!result) throw UserError.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.byId(id)])
 

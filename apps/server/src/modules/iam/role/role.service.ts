@@ -5,7 +5,6 @@ import { rolesTable } from '@/db/schema'
 import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
@@ -19,6 +18,7 @@ import type {
 } from '@/modules/iam/role/role.contract'
 
 import { SYSTEM_ROLES } from '../constants'
+import { RoleError } from './role.internal'
 import { RoleRepo } from './role.repo'
 
 const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
@@ -35,21 +35,6 @@ const roleConflictFields: ConflictField<{ code: string; name: string }>[] = [
 		code: 'ROLE_NAME_ALREADY_EXISTS',
 	},
 ]
-
-const err = {
-	notFound: (id: number) =>
-		new NotFoundError('Role not found', { code: 'ROLE_NOT_FOUND', context: { id } }),
-	createFailed: () =>
-		new InternalServerError('Role creation failed', { code: 'ROLE_CREATE_FAILED' }),
-	updateSystemRole: () =>
-		new BadRequestError('Cannot update system role', {
-			code: 'ROLE_UPDATE_SYSTEM_ROLE_FORBIDDEN',
-		}),
-	deleteSystemRole: () =>
-		new BadRequestError('Cannot delete system role', {
-			code: 'ROLE_DELETE_SYSTEM_ROLE_FORBIDDEN',
-		}),
-}
 
 export class RoleService {
 	private readonly cache: CacheService
@@ -86,7 +71,7 @@ export class RoleService {
 	async getSuperadmin(): Promise<RoleDto> {
 		return record('RoleService.getSuperadmin', async () => {
 			const result = await this.getById(SYSTEM_ROLES.SUPERADMIN_ID)
-			if (!result) throw err.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
+			if (!result) throw RoleError.notFound(SYSTEM_ROLES.SUPERADMIN_ID)
 			return result
 		})
 	}
@@ -115,7 +100,7 @@ export class RoleService {
 	async handleDetail(id: number): Promise<RoleDto> {
 		return record('RoleService.handleDetail', async () => {
 			const result = await this.getById(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw RoleError.notFound(id)
 			return result
 		})
 	}
@@ -133,7 +118,7 @@ export class RoleService {
 				...data,
 				...stampCreate(actorId),
 			})
-			if (!result) throw err.createFailed()
+			if (!result) throw RoleError.createFailed()
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 			return result
@@ -145,8 +130,8 @@ export class RoleService {
 			const { id } = data
 
 			const existing = await this.repo.findById(id)
-			if (!existing) throw err.notFound(id)
-			if (existing.isSystem) throw err.updateSystemRole()
+			if (!existing) throw RoleError.notFound(id)
+			if (existing.isSystem) throw RoleError.updateSystemRole()
 
 			await checkConflict({
 				table: rolesTable,
@@ -157,7 +142,7 @@ export class RoleService {
 			})
 
 			const result = await this.repo.update(id, { ...data, ...stampUpdate(actorId) })
-			if (!result) throw err.notFound(id)
+			if (!result) throw RoleError.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.byId(id)])
 			return result
@@ -167,7 +152,7 @@ export class RoleService {
 	async handleRemove(id: number): Promise<EntityRef> {
 		return record('RoleService.handleRemove', async () => {
 			const result = await this.repo.remove(id)
-			if (!result) throw err.notFound(id)
+			if (!result) throw RoleError.notFound(id)
 
 			await this.cache.deleteFromKeys([
 				this.cache.keys.list,
