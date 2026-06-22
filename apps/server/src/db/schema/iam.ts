@@ -9,12 +9,15 @@ import { locationsTable } from './location.ts'
  *
  * Defines a named permission set assignable to users per location.
  *
- * `code`      — stable, normalized (slug-like) machine identifier derived from
- *               `name`. Used in application logic and seeding. Never changes
- *               after creation.
+ * `code`       — stable, normalized (slug-like) machine identifier derived from
+ *                `name`. Used in application logic and seeding. Never changes
+ *                after creation. Globally unique.
  *
- * `isBuiltIn` — true for roles created by the system seeder. Built-in roles
- *               are protected from mutation and deletion by the service layer.
+ * `isSystem`   — true for roles created by the system seeder. Built-in roles
+ *                are protected from mutation and deletion by the service layer.
+ *
+ * `permissions` — array of permission strings (e.g., "iam.user.read").
+ *                 Validation enforced at application layer (Zod schema).
  */
 export const rolesTable = pgTable(
 	'roles',
@@ -27,7 +30,7 @@ export const rolesTable = pgTable(
 			.array()
 			.notNull()
 			.default(sql`'{}'::text[]`),
-		isSystem: boolean('is_built_in').notNull().default(false),
+		isSystem: boolean('is_system').notNull().default(false),
 		...auditBasicColumns,
 	},
 	(t) => [uniqueIndex('roles_code_idx').on(t.code)],
@@ -42,7 +45,7 @@ export const rolesTable = pgTable(
  * `isRoot`     — grants implicit superadmin access to all locations.
  *                Root users bypass assignment checks entirely.
  *
- * `isBuiltIn`  — true for accounts created by the system seeder (e.g. the
+ * `isSystem`   — true for accounts created by the system seeder (e.g. the
  *                default superadmin). Not operator-created. Protected from
  *                deletion by the service layer.
  *
@@ -63,9 +66,11 @@ export const rolesTable = pgTable(
  *   onDelete: 'set null' — location hard-delete must not be blocked by user
  *   preference. Caller must handle null defaultLocationId at login.
  *
- * Constraint: `is_root` and `is_built_in` are not mutually exclusive —
- * a seeded root account is both. But a root user is never a regular operator,
- * so no check constraint is needed between those two flags.
+ * `lastLoginAt` — timestamp of last successful login. Updated on each login.
+ *                 Used for "last seen" display and inactive user cleanup.
+ *
+ * Note: `isRoot` and `isSystem` are not mutually exclusive —
+ * a seeded root account has both flags set to true.
  */
 export const usersTable = pgTable(
 	'users',
@@ -77,13 +82,13 @@ export const usersTable = pgTable(
 		pinCode: text('pin_code'),
 
 		/**
-		 * Null for isBuiltIn service accounts that authenticate via other means
+		 * Null for isSystem service accounts that authenticate via other means
 		 * (e.g. API tokens). Always set for human operator accounts.
 		 */
 		passwordHash: text('password_hash'),
 
 		isRoot: boolean('is_root').notNull().default(false),
-		isSystem: boolean('is_built_in').notNull().default(false),
+		isSystem: boolean('is_system').notNull().default(false),
 		isActive: boolean('is_active').notNull().default(true),
 
 		defaultLocationId: integer('default_location_id').references(() => locationsTable.id, {
@@ -98,14 +103,7 @@ export const usersTable = pgTable(
 		uniqueIndex('users_email_idx').on(t.email),
 		uniqueIndex('users_username_idx').on(t.username),
 		index('users_default_location_idx').on(t.defaultLocationId),
-
-		// // Root users are never built-in service accounts (and vice versa).
-		// // A seeded root admin is isRoot=true, isBuiltIn=true — that's valid.
-		// // What's invalid: a non-human service account having root privileges.
-		// check(
-		// 	'users_root_not_service_chk',
-		// 	sql`NOT (is_root AND NOT is_built_in AND password_hash IS NULL)`,
-		// ),
+		index('users_active_idx').on(t.isActive),
 	],
 )
 
