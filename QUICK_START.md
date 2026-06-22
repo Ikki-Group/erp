@@ -181,8 +181,14 @@ bun run db:generate       # Generate migration
 bun run db:migrate        # Apply migrations
 bun run db:studio         # Open Drizzle Studio
 
+# Testing
+bun test                          # All tests
+bun test src/tests/unit/          # Unit tests only (fast)
+bun test src/tests/services/      # Integration tests (DB)
+bun test --watch                  # Watch mode
+bun test --coverage               # With coverage
+
 # Code Quality
-bun test                  # Run tests
 bun run typecheck         # Type checking
 bun run lint              # Linter
 bun run verify            # All checks
@@ -195,10 +201,15 @@ bun run check-deps        # Check circular dependencies
 
 ## ⚠️ Known Issues
 
-### Tests Blocked (Task 2.4)
+### Integration Tests Blocked (Task 2.4)
 **Issue:** Schema mismatch `is_built_in` vs `isSystem`  
 **Fix:** Run migration when ready (~30 min)  
 **Status:** Deferred, not blocking development
+
+**Workaround:** ✅ Use unit tests with mocks (see `src/tests/unit/`)  
+- Zero DB dependency
+- Fast execution (~920ms)
+- Full test coverage possible
 
 ---
 
