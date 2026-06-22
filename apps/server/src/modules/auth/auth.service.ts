@@ -1,18 +1,12 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import { UnauthorizedError } from '@/shared/errors/http-error'
 import { verifyPassword } from '@/shared/utils/password'
 
 import type { IamModule, UserDto } from '@/modules/iam'
 import type { SessionService } from '@/modules/session/session.service'
 
 import type { AuthOutputSchema, AuthLoginSchema } from './auth.contract'
-
-const err = {
-	userNotFound: () => new UnauthorizedError('User not found', { code: 'AUTH_USER_NOT_FOUND' }),
-	invalidCredentials: () =>
-		new UnauthorizedError('Invalid credentials', { code: 'AUTH_INVALID_CREDENTIALS' }),
-}
+import { AuthError } from './auth.internal'
 
 export class AuthService {
 	constructor(
@@ -26,12 +20,12 @@ export class AuthService {
 			const targetUser = await this.iam.user.getByIdentifier(identifier)
 
 			if (!targetUser || !targetUser.isActive) {
-				throw err.userNotFound()
+				throw AuthError.userNotFound()
 			}
 
 			const isPasswordValid = await verifyPassword(password, targetUser.passwordHash!)
 			if (!isPasswordValid) {
-				throw err.invalidCredentials()
+				throw AuthError.invalidCredentials()
 			}
 
 			const session = await this.sessionSvc.createSession(targetUser)
@@ -45,7 +39,7 @@ export class AuthService {
 		return record('AuthService.verifyToken', async () => {
 			const session = await this.sessionSvc.verifySession(token)
 			if (!session) {
-				throw err.invalidCredentials()
+				throw AuthError.invalidToken()
 			}
 
 			return this.iam.composed.getDetailById(session.userId)

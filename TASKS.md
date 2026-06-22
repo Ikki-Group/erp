@@ -44,17 +44,49 @@
 
 **Result:** Clean directory structure aligned with documentation
 
-#### 2.2 Module Audit & Standardization
-- [ ] Audit existing modules against new standards:
-  - [ ] `iam/` module
-  - [ ] `location/` module
-  - [ ] `auth/` module
-  - [ ] `session/` module
-  - [ ] `tool/` module
-- [ ] Identify inconsistencies with documented patterns
-- [ ] Create refactor plan for non-compliant modules
+#### 2.2 Module Audit & Standardization ✅ (COMPLETED - 2026-06-22)
+- [x] Audit existing modules against new standards:
+  - [x] `iam/` module (85% compliant - good, needs error files)
+  - [x] `location/` module (95% compliant - **GOLD STANDARD**)
+  - [x] `auth/` module (70% compliant - missing repo layer)
+  - [x] `session/` module (75% compliant - missing error file)
+  - [x] `tool/` module (60% compliant - needs restructure)
+- [x] Identify inconsistencies with documented patterns
+- [x] Create refactor plan for non-compliant modules
+
+**Result:** Comprehensive audit report created at `apps/server/docs/MODULE_AUDIT_REPORT.md`
+
+**Key Findings:**
+- Overall health: 75% (good foundation, needs standardization)
+- 4/5 modules missing `.internal.ts` for error helpers
+- 2/5 modules have inconsistent method naming
+- 2/5 modules missing repository layer
+- Priority fixes: tool/ (restructure), auth/ (add repo), all (add error files)
+
+**Recommendation:** Proceed with 3-phase refactor plan (7-10h estimated)
 
 #### 2.3 Code Pattern Implementation
+
+##### Phase A: Critical Fixes (P0) ✅ (COMPLETED - 2026-06-22)
+- [x] Analyze tool/ module purpose (utility module - keep as-is)
+- [x] Verify auth/ needs repo layer (NO - orchestration only)
+- [x] Create auth.internal.ts for error helpers
+- [x] Update auth.service.ts to use AuthError
+- [x] Document orchestration module pattern
+
+**Result:** See `apps/server/docs/PHASE_A_SUMMARY.md`
+- tool/ clarified as utility module (80% compliant)
+- auth/ standardized with error helpers (70% → 95% compliant)
+- Overall project: 75% → 78% compliance (+3%)
+
+##### Phase B: Standardization (P1) - IN PROGRESS
+- [ ] Create iam/user/user.internal.ts
+- [ ] Create iam/role/role.internal.ts  
+- [ ] Create session/session.internal.ts
+- [ ] Standardize public method naming across modules
+- [ ] Extract inline error definitions
+
+##### Phase C: Polish (P2) - PENDING
 - [ ] Ensure all services use `handleX` naming
 - [ ] Ensure all repos return `null` (not throw)
 - [ ] Verify all mutations have audit stamps
@@ -96,7 +128,6 @@
 
 ### 4.1 Tooling & Scripts
 - [ ] Create module generator script (from templates)
-- [ ] Add pre-commit hooks (lint, typecheck, test)
 - [ ] Improve test helpers & factories
 - [ ] Add database seeding utilities
 
