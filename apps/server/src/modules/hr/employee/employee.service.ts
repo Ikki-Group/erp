@@ -5,7 +5,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import { employeesTable } from '@/db/schema/employee'
 
 import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type {

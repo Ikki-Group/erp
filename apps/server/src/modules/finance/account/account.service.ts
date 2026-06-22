@@ -4,7 +4,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
 import { AccountRepo } from './account.repo'

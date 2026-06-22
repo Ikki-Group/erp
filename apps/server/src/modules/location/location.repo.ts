@@ -4,8 +4,8 @@ import { locationsTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 
-import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
-import type { EntityRef } from '@/types/utils'
+import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { LocationDto, LocationTypeEnum } from './location.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'

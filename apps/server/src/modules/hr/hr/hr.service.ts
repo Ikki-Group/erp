@@ -5,7 +5,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
 	AttendanceDto,

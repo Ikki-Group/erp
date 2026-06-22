@@ -5,10 +5,10 @@ import { workOrdersTable } from '@/db/schema/production'
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await */
 import {
 	paginate, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
 	WorkOrderCreateSchema,

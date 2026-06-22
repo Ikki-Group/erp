@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { ActorId } from '@/types/utils'
+import type { ActorId } from '@/shared/types/utils'
 
 import { IAM_CONFIG, SYSTEM_ROLES } from '../constants'
 import type { UserAssignmentDto } from './assignment.contract'

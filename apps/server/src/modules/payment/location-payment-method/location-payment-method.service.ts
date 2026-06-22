@@ -5,7 +5,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type {
 	LocationPaymentMethodCreateDto,

@@ -7,7 +7,7 @@ import { uomsTable } from '@/db/schema'
 
 import { checkConflict, type ConflictField } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { IUomRepo, UomFilter } from '../domain/ports'
 import type { Uom } from '../domain/uom.entity'

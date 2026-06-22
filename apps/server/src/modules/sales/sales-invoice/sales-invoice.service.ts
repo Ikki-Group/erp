@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './sales-invoice.dto'

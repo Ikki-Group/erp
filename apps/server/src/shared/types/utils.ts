@@ -1,4 +1,4 @@
-import type { PaginationQuery } from '@/types/pagination'
+import type { PaginationQuery } from '@/shared/types/pagination'
 
 export type OmitPaginationQuery<T> = Omit<T, keyof PaginationQuery>
 

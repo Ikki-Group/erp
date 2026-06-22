@@ -5,8 +5,8 @@ import { salesTypesTable } from '@/db/schema'
 import { paginate, searchFilter, sortBy, takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
 	SalesTypeCreateSchema,

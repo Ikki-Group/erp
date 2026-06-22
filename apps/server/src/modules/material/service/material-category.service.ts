@@ -7,7 +7,7 @@ import { materialCategoriesTable } from '@/db/schema'
 
 import { checkConflict, type ConflictField } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialCategory } from '../domain/material-category.entity'
 import type { CategoryFilter, IMaterialCategoryRepo } from '../domain/ports'

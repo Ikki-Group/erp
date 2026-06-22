@@ -4,7 +4,7 @@ import { userAssignmentsTable, usersTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, type DbContext } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { UserDto } from '../user/user.contract'
 import type { UserFilterDto } from './composed.contract'

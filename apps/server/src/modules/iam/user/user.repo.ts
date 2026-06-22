@@ -4,7 +4,7 @@ import { usersTable } from '@/db/schema'
 
 import { takeFirst, type DbContext } from '@/infra/database'
 
-import type { EntityRef } from '@/types/utils'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { UserDto, UserWithPasswordDto } from './user.contract'
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'

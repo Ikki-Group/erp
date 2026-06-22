@@ -2,7 +2,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { CompanySettingsRepo } from './company-settings.repo'
 import type {

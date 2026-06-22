@@ -4,8 +4,8 @@ import { rolesTable } from '@/db/schema'
 
 import { paginate, searchFilter, sortBy, takeFirst, type DbContext } from '@/infra/database'
 
-import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
-import type { EntityRef } from '@/types/utils'
+import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
+import type { EntityRef } from '@/shared/types/utils'
 
 import type { RoleDto } from '@/modules/iam/role/role.contract'
 

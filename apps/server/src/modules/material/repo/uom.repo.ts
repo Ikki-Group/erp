@@ -11,7 +11,7 @@ import {
 } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { IUomRepo, UomFilter } from '../domain/ports'
 import type { Uom } from '../domain/uom.entity'

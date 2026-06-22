@@ -7,7 +7,7 @@ import { RelationMap } from '@/core/utils/relation-map'
 import { paymentsTable } from '@/db/schema'
 
 import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './payment.dto'

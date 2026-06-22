@@ -1,4 +1,4 @@
-import type { PrimitiveId } from '@/types/utils'
+import type { PrimitiveId } from '@/shared/types/utils'
 
 import { AppError, type AppErrorOptions } from './app-error'
 

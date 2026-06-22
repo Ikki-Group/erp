@@ -7,8 +7,8 @@ import { checkConflict, type ConflictField, type DbContext } from '@/infra/datab
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { RelationMap } from '@/shared/utils'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
 	LocationCreateDto,

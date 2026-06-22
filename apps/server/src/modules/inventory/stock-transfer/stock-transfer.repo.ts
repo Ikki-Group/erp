@@ -5,7 +5,7 @@ import { and, count, eq, gte, isNull, lte, or } from 'drizzle-orm'
 import { stockTransferItemsTable, stockTransfersTable } from '@/db/schema'
 
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import {
 	paginate,
 	searchFilter,

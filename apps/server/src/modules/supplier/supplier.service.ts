@@ -3,10 +3,10 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import { suppliersTable } from '@/db/schema/supplier'
 
 import { checkConflict, type ConflictField} from '@/infra/database'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { SupplierRepo } from './supplier.repo'
 import type {

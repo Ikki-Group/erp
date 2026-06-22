@@ -1,4 +1,4 @@
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 /**
  * Standard HTTP response shape helpers.

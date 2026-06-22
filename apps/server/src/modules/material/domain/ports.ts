@@ -8,7 +8,7 @@
 
 import type { DbClient, DbTx } from '@/infra/database'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialCategory } from './material-category.entity'
 import type { MaterialConversion } from './material-conversion.entity'

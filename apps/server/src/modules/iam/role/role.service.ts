@@ -8,8 +8,8 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/errors/http-error'
 import { RelationMap } from '@/shared/utils'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
 	RoleCreateDto,

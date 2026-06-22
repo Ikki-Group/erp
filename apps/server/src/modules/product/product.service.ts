@@ -2,8 +2,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { ProductCategorySchema } from './category.schema'
 import type { ProductCategoryService } from './category.service'

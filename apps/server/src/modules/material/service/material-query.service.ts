@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationService } from '@/modules/location'
 

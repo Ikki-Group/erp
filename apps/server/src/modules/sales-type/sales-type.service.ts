@@ -6,8 +6,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField } from '@/infra/database'
 import { BadRequestError, InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { SalesTypeRepo } from './sales-type.repo'
 import type {

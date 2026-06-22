@@ -1,9 +1,9 @@
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { AuditLogRepo } from './audit-log.repo'
 import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from './audit-log.schema'

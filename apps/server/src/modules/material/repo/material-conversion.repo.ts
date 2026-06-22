@@ -10,7 +10,7 @@ import {
 } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { MaterialConversion } from '../domain/material-conversion.entity'
 import type {

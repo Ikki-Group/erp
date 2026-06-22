@@ -5,8 +5,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import type { DbClient } from '@/infra/database'
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { WithPaginationResult } from '@/shared/types/pagination'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { StockTransactionService } from '@/modules/inventory'
 import type { RecipeService } from '@/modules/recipe'

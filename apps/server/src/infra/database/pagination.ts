@@ -1,6 +1,6 @@
 import { record } from '@elysiajs/opentelemetry'
 
-import type { PaginationQuery, WithPaginationResult } from '@/types/pagination'
+import type { PaginationQuery, WithPaginationResult } from '@/shared/types/pagination'
 /* -------------------------------------------------------------------------- */
 /*                              PAGINATED QUERY                               */
 /* -------------------------------------------------------------------------- */

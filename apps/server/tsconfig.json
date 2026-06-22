@@ -38,6 +38,18 @@
 			"@/*": [
 				"./src/*"
 			],
+			"@/db": [
+				"./src/db"
+			],
+			"@/infra/*": [
+				"./src/infra/*"
+			],
+			"@/shared/*": [
+				"./src/shared/*"
+			],
+			"@/modules/*": [
+				"./src/modules/*"
+			]
 		}
 	},
 	"include": [

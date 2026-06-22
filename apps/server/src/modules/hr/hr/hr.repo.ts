@@ -7,7 +7,7 @@ import { attendancesTable, employeesTable, locationsTable, shiftsTable } from '@
 
 import {
 	paginate, type DbClient} from '@/infra/database'
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
 import { 

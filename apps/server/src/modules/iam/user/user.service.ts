@@ -9,7 +9,7 @@ import { InternalServerError, NotFoundError, BadRequestError } from '@/shared/er
 import { RelationMap } from '@/shared/utils'
 import { hashPassword } from '@/shared/utils/password'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type { LocationModule } from '@/modules/location'
 

@@ -21,7 +21,7 @@ import { toWibDateKey } from '@/shared/utils/date'
 
 import { materialsTable, stockSummariesTable, uomsTable } from '@/db/schema'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 import { paginate, type DbClient } from '@/infra/database'
 
 import { 

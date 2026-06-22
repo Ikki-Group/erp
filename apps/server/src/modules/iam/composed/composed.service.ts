@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { NotFoundError } from '@/shared/errors/http-error'
 
-import type { WithPaginationResult } from '@/types/pagination'
+import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { LocationModule } from '@/modules/location'
 

@@ -6,7 +6,7 @@ import { companySettingsTable } from '@/db/schema'
 import { takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import type { ActorId, EntityRef } from '@/types/utils'
+import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
 	CompanySettingsSchema,
