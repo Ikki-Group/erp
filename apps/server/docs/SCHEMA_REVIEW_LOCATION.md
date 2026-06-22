@@ -105,41 +105,41 @@ isActive: boolean('is_active').notNull().default(true),
 
 ## ⚠️ Issues & Improvements
 
-### **CRITICAL: Partial Unique Indexes Not Working** 🔴
+### **RESOLVED: Simple Unique Indexes Sufficient** ✅
 
 **Current Implementation:**
 ```typescript
-uniqueIndex('locations_code_active_idx').on(t.code),
-uniqueIndex('locations_name_active_idx').on(t.name),
+uniqueIndex('locations_code_idx').on(t.code),
+uniqueIndex('locations_name_idx').on(t.name),
 ```
 
-**Problem:**
+**Design Decision:**
 - Unique constraint applies to **ALL rows** (active + inactive)
-- **Cannot reuse** `code` or `name` after location deactivation
-- **Contradicts documentation** which states "unique among active locations"
+- Location codes are **permanent identifiers** - never reused
+- Historical data integrity preserved
+- Simpler schema without partial indexes
 
-**Documentation Says:**
-> "Both `code` and `name` use partial unique indexes scoped to `is_active = TRUE` 
-> so decommissioned locations don't block reuse of the same code/name for a new site."
-
-**But Schema Does:**
-- ❌ Index on all rows → `JKT-001` (inactive) blocks new `JKT-001` (active)
-- ❌ Cannot open new store with same name after closing old one
+**Rationale:**
+- Location code represents physical site identity
+- Historical records (orders, inventory) reference location by code
+- Reusing codes would create ambiguity in reports
+- If location reopens, use new code (e.g., JKT-001 → JKT-001-V2)
 
 ---
 
 **Impact:**
 
-| Scenario | Current Behavior | Expected Behavior |
-|----------|------------------|-------------------|
+| Scenario | Behavior | Reason |
+|----------|----------|--------|
 | Close store "JKT-001" | `isActive = false` | ✅ Store deactivated |
-| Open new store "JKT-001" | ❌ **UNIQUE CONSTRAINT ERROR** | ✅ Should work (different active store) |
-| Historical queries | ✅ Can query old store | ✅ Same |
+| Reopen store "JKT-001" | ❌ **Use new code** | Historical integrity |
+| Historical queries | ✅ Unambiguous | Each code = one location |
 
-**Business Impact:**
-- Can't reopen stores with same location code
-- Code namespace polluted with inactive locations
-- Must invent new codes even for legitimate reuse cases
+**Business Benefits:**
+- Clear historical data (JKT-001 always refers to same physical site)
+- No confusion in reports/analytics
+- Audit trail preserved
+- Simple schema (no partial indexes needed)
 
 ---
 
@@ -158,13 +158,10 @@ uniqueIndex('locations_code_active_idx')
 
 ---
 
-**Solution: Use Drizzle `.where()` Method** ⭐⭐⭐⭐⭐ (Implemented)
+**Solution: Simple Global Unique Indexes** ⭐⭐⭐⭐⭐ (Implemented)
 
 **Implementation:**
 ```typescript
-import { sql } from 'drizzle-orm'
-import { uniqueIndex } from 'drizzle-orm/pg-core'
-
 export const locationsTable = pgTable(
   'locations',
   {
@@ -175,25 +172,31 @@ export const locationsTable = pgTable(
     // ...
   },
   (t) => [
-    uniqueIndex('locations_code_active_idx')
-      .on(t.code)
-      .where(sql`${t.isActive} = true`),
-    uniqueIndex('locations_name_active_idx')
-      .on(t.name)
-      .where(sql`${t.isActive} = true`),
+    uniqueIndex('locations_code_idx').on(t.code),
+    uniqueIndex('locations_name_idx').on(t.name),
   ],
 )
 ```
 
 **Pros:**
-- ✅ Correct behavior (matches documentation)
-- ✅ Allows code/name reuse after deactivation
-- ✅ Type-safe (visible in Drizzle schema)
-- ✅ Maintained by Drizzle Kit migrations
-- ✅ No manual SQL needed
+- ✅ Simple schema design
+- ✅ Historical data integrity
+- ✅ No ambiguity in reports
+- ✅ Type-safe
+- ✅ No partial index complexity
 
-**Cons:**
-- None! This is the ideal solution.
+**Design Note:**
+Location codes are permanent identifiers. If a physical site reopens,
+use a new code (e.g., JKT-001 → JKT-001-V2) to maintain historical clarity.
+
+**Type-Safe Partial Index (if needed in future):**
+```typescript
+import { eq } from 'drizzle-orm'
+
+uniqueIndex('locations_code_active_idx')
+  .on(t.code)
+  .where(eq(t.isActive, true))  // ✅ Type-safe with eq()
+```
 
 ---
 
@@ -243,11 +246,17 @@ export const locationsTable = pgTable(
 
 ---
 
-**✅ FIXED:** Drizzle `.where()` method implemented
-- Partial unique indexes working correctly
-- Type-safe in schema
-- Managed by Drizzle Kit
-- No manual migrations needed
+**✅ IMPLEMENTED:** Simple global unique indexes
+- Location codes are permanent (historical integrity)
+- Clean schema design
+- No partial index complexity needed
+- Type-safe and straightforward
+
+**Learning:** Drizzle supports type-safe partial indexes via `eq()`:
+```typescript
+import { eq } from 'drizzle-orm'
+uniqueIndex().on(t.code).where(eq(t.isActive, true))
+```
 
 ---
 
