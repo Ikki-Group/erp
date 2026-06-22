@@ -12,7 +12,7 @@ describe('services/auth', () => {
 	let authSvc: AuthService
 
 	beforeAll(async () => {
-		authSvc = testCtx.m.auth.auth
+		authSvc = testCtx.m.auth
 	})
 
 	test('login success with valid credentials', async () => {

@@ -46,12 +46,12 @@ describe('services/iam', () => {
 		const created = await roleSvc.handleCreate(mockRole, 1)
 		expect(created.id).toBeDefined()
 
-		const detail = await roleSvc.handleDetail(created.id)
+		const detail = await roleSvc.handleGetById(created.id)
 		expect(detail.id).toBe(created.id)
 
 		const updated = await roleSvc.handleUpdate(
-			created.id,
 			{
+				id: created.id,
 				...mockRole,
 				name: `${mockRole.name} updated`,
 			},
@@ -69,7 +69,7 @@ describe('services/iam', () => {
 			`Role ${detail.code} not found`,
 		).toBe(true)
 
-		const removed = await roleSvc.handleRemove(updated.id)
+		const removed = await roleSvc.handleDelete(updated.id)
 		expect(removed.id).toBe(updated.id)
 	})
 
@@ -97,7 +97,7 @@ describe('services/iam', () => {
 		// 	page: 1,
 		// })
 		// expect(list.data.some((u) => u.email === detail.email)).toBe(true)
-		const removed = await userSvc.handleRemove(created.id)
+		const removed = await userSvc.handleDelete(created.id)
 		expect(removed.id).toBe(created.id)
 	})
 })

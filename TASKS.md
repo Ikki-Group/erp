@@ -119,11 +119,24 @@
 - ✅ Cache invalidation on all writes (verified)
 - ✅ Batch operations used (RelationMap pattern)
 
-#### 2.4 Testing Coverage
+#### 2.4 Testing Coverage ⚠️ (PARTIALLY COMPLETE - Blocked)
+- [x] Audit existing test coverage (2 broken tests found)
+- [x] Create comprehensive TESTING_STRATEGY.md
+- [x] Fix test code (method renames, service structure)
+- [x] Document testing patterns (unit + integration)
+- [ ] **BLOCKED:** Resolve database schema mismatch (`is_built_in` → `isSystem`)
 - [ ] Add missing unit tests for services
 - [ ] Add missing integration tests for routes
 - [ ] Set up test coverage reporting
 - [ ] Target: >80% coverage for services
+
+**Result:** See `apps/server/docs/TASK_2.4_SUMMARY.md` and `TESTING_STRATEGY.md`
+- Testing strategy documented (patterns, templates, best practices)
+- Test code fixes applied (method renames, auth service)
+- **Blocker:** Database schema out of sync with code
+- Need migration: `is_built_in` column → `isSystem` field
+
+**Status:** Deferred until schema migration resolved (~30m fix)
 
 ---
 
