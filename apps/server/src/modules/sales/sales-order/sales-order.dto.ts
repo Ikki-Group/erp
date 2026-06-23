@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -72,7 +73,8 @@ export type SalesOrderDto = z.infer<typeof SalesOrderDto>
 
 /* ---------------------------------- OUTPUT ---------------------------------- */
 
-export const SalesOrderOutputDto = SalesOrderDto.extend({
+export const SalesOrderOutputDto = z.object({
+	...SalesOrderDto.shape,
 	batches: z.array(SalesOrderBatchDto).optional(),
 	items: z.array(SalesOrderItemDto).optional(),
 	voids: z.array(SalesVoidDto).optional(),
@@ -125,8 +127,9 @@ export type SalesOrderMutationDto = z.infer<typeof SalesOrderMutationDto>
 export const SalesOrderCreateDto = SalesOrderMutationDto
 export type SalesOrderCreateDto = z.infer<typeof SalesOrderCreateDto>
 
-export const SalesOrderUpdateDto = SalesOrderMutationDto.extend({
+export const SalesOrderUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...SalesOrderMutationDto.shape,
 })
 export type SalesOrderUpdateDto = z.infer<typeof SalesOrderUpdateDto>
 

@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /** Sales invoice status */
 export const SalesInvoiceStatusDto = z.enum(['draft', 'open', 'paid', 'void'])
