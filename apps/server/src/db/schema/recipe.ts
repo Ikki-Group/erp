@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { isNotNull, sql } from 'drizzle-orm'
 import {
 	boolean,
 	check,
@@ -85,17 +85,17 @@ export const recipesTable = pgTable(
 		// One recipe per material
 		uniqueIndex('recipes_material_idx')
 			.on(t.materialId)
-			.where(sql`material_id IS NOT NULL`),
+			.where(isNotNull(t.materialId)),
 
 		// One recipe per product
 		uniqueIndex('recipes_product_idx')
 			.on(t.productId)
-			.where(sql`product_id IS NOT NULL`),
+			.where(isNotNull(t.productId)),
 
 		// One recipe per variant
 		uniqueIndex('recipes_variant_idx')
 			.on(t.productVariantId)
-			.where(sql`product_variant_id IS NOT NULL`),
+			.where(isNotNull(t.productVariantId)),
 
 		// XOR: exactly one target FK must be set — never zero, never more than one
 		check(
