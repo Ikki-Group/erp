@@ -19,8 +19,8 @@
 
 ### Module Layer
 - **Status:** 🔄 IN PROGRESS
-- **Modules:** 22 total, 1 complete, 1 in progress
-- **Progress:** Location ✅, IAM 🔄 (22.2%)
+- **Modules:** 22 total, 2 complete, 0 in progress
+- **Progress:** Location ✅, IAM ✅
 
 ---
 
@@ -108,29 +108,33 @@
 
 ---
 
-#### IAM Module 🔄 IN PROGRESS
-**Status:** 22.2% complete (4/18 files)  
-**Commit:** 49780b7f  
-**Structure:** Complex module (4 submodules)
+#### IAM Module ✅ COMPLETE
+**Status:** Production ready  
+**Commits:** 49780b7f, 841ecf3b, f2fcd228  
+**Files:** 18/18 (100%)  
+**Structure:** Complex module (4 submodules + aggregate)
 
 **Submodules:**
-1. ✅ **user/** - Complete (4/4 files)
-2. ⏳ **role/** - Pending (4 files)
-3. ⏳ **assignment/** - Pending (3 files)
-4. ⏳ **composed/** - Pending (3 files)
-5. ⏳ **Aggregate** - Pending (4 files)
+1. ✅ **user/** - Complete (4 files)
+2. ✅ **role/** - Complete (4 files)
+3. ✅ **assignment/** - Complete (3 files)
+4. ✅ **composed/** - Complete (3 files)
+5. ✅ **Aggregate** - Complete (4 files)
 
-**User Submodule Review:**
-- ✅ Contract: Spread-shape, proper validation
-- ✅ Repo: Undefined returns, password projection
-- ✅ Service: All patterns correct
-- ✅ Internal: Standard error pattern
+**Review Findings:**
+- ✅ All patterns correct (spread-shape, handleX, conflict checks)
+- ✅ System role protection (update/delete forbidden)
+- ✅ Cache invalidation comprehensive
+- ✅ RelationMap for composed queries (no N+1)
+- ✅ Root user special handling (all locations)
+- ✅ Password utilities standardized
+- ✅ OpenTelemetry tracing everywhere
 
-**Issues Fixed (1):**
-1. Service: Standardized password hashing
-   - Replaced `Bun.password.hash()` → `hashPassword()`
-   - Replaced `Bun.password.verify()` → `verifyPassword()`
-   - Benefits: Testability, consistency, abstraction
+**Issues Fixed (4):**
+1. User service: Standardized password hashing utilities
+2. Role contract: Extracted RoleMutationDto for spread-shape
+3. Assignment service: Added cache invalidation
+4. Composed contract: Fixed UserDetailDto spread-shape
 
 **Checklist:** IAM_MODULE.md
 
@@ -141,33 +145,29 @@
 ### Commits Made
 - **Schema Layer:** 42 commits
 - **Foundation:** 2 commits
-- **Modules:** 3 commits
-- **Total:** 47 commits
+- **Modules:** 6 commits (location: 1, iam: 5)
+- **Total:** 50 commits
 
 ### Files Modified
 - **Schema files:** 29 files
-- **Module files:** 3 files (location: 2, iam: 1)
+- **Module files:** 21 files (location: 2, iam: 19)
 - **Docs created:** 5 files
 
 ### Issues Found & Fixed
 - **Schema issues:** 50+ improvements
 - **Foundation issues:** 1 (removed unused file)
-- **Module issues:** 3 (location: 2, iam: 1)
-- **Total:** 54+ improvements
+- **Module issues:** 6 (location: 2, iam: 4)
+- **Total:** 57+ improvements
 
 ---
 
 ## 🎯 Next Steps
 
 ### Immediate (Current Session)
-1. ⏳ Complete IAM module review
-   - Review role submodule (4 files)
-   - Review assignment submodule (3 files)
-   - Review composed layer (3 files)
-   - Review aggregate layer (4 files)
+1. ✅ Complete IAM module review (DONE)
 
 ### Short Term (This Week)
-2. ⏳ Complete Phase 1 modules
+2. ⏳ Complete Phase 1 modules (auth, session)
    - auth module
    - session module
    - company module
@@ -229,10 +229,13 @@
    - All patterns verified
    - 2 minor issues fixed
 
-3. ✅ **IAM User Submodule Complete**
+3. ✅ **IAM Module Production Ready**
+   - 18/18 files reviewed
+   - 4 submodules + aggregate layer
    - Password utilities standardized
-   - All patterns verified
-   - Security best practices followed
+   - System role protection
+   - RelationMap for composed queries (no N+1)
+   - 4 issues fixed
 
 4. ✅ **Documentation System**
    - Module dependency map

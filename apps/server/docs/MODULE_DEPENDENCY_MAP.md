@@ -59,7 +59,7 @@
 
 ### Phase 1: Core Foundation (Week 1)
 1. ✅ `location` - Simplest, no dependencies (COMPLETE - b6d4b530)
-2. 🔄 `iam` - User/Role management (depends on location)
+2. ✅ `iam` - User/Role management (COMPLETE - TBD)
 3. ⏳ `auth` - Authentication (depends on iam)
 4. ⏳ `session` - Session management (depends on iam, location)
 
