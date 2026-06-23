@@ -15,10 +15,10 @@ export const paymentMethodsTable = pgTable(
 	'payment_methods',
 	{
 		...pk,
-		type: paymentMethodEnum().notNull(),
+		type: paymentMethodEnum('type').notNull(),
 
 		/** Cash vs cashless flag */
-		category: paymentMethodCategoryEnum().notNull(),
+		category: paymentMethodCategoryEnum('category').notNull(),
 
 		/** Display name for the payment method */
 		name: text('name').notNull(),
