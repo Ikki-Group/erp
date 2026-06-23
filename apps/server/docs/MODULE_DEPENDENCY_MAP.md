@@ -1,7 +1,8 @@
 # Module Dependency Map - Ikki ERP
 
-**Date:** 2026-06-23  
-**Purpose:** Track module dependencies for implementation order
+**Date:** 2026-06-24  
+**Purpose:** Track module dependencies for implementation order  
+**Last Updated:** 2026-06-24 (8/22 modules complete)
 
 ---
 
@@ -57,49 +58,62 @@
 
 ## 🎯 Implementation Order (Recommended)
 
-### Phase 1: Core Foundation (Week 1)
-1. ✅ `location` - Simplest, no dependencies (COMPLETE - b6d4b530)
-2. ✅ `iam` - User/Role management (COMPLETE - TBD)
+### Phase 1: Core Foundation ✅ COMPLETE
+1. ✅ `location` - 7 files (COMPLETE - b6d4b530)
+2. ✅ `iam` - 18 files, 4 submodules (COMPLETE - 841ecf3b)
 3. ⏳ `auth` - Authentication (depends on iam)
 4. ⏳ `session` - Session management (depends on iam, location)
 
-### Phase 2: Master Data (Week 2)
-5. ✅ `company` - Company settings (COMPLETE - ccdff95d)
-6. ✅ `supplier` - Supplier data (COMPLETE - 3ebc2b7f)
-7. ⏳ `material` - Materials & UoM
-8. ⏳ `payment` - Payment methods
-9. ⏳ `sales-type` - Sales types
+### Phase 2: Master Data ✅ 6/9 COMPLETE
+5. ✅ `company` - 5 files (COMPLETE - ccdff95d)
+6. ✅ `supplier` - 5 files (COMPLETE - 3ebc2b7f)
+7. ✅ `uom` - 7 files, standalone module (COMPLETE - 85bae9c0)
+8. ✅ `material` - 34 files, 5 submodules (COMPLETE - 7c4819b2, 3d1b7eed)
+9. ✅ `payment` - 17 files, 4 submodules (COMPLETE - 2357a941)
+10. ⏳ `sales-type` - Sales types
 
-### Phase 3: Product & Recipe (Week 3)
-10. ⏳ `product` - Products & variants
-11. ⏳ `recipe` - BOM/Recipe
-12. ⏳ `crm` - Customer management
-13. ⏳ `hr` - HR & Payroll
+### Phase 3: Product & Recipe 🔄 1/4 IN PROGRESS
+11. ✅ `product` - 9 files, 2 submodules (COMPLETE - 4630fdf5)
+12. ⏳ `recipe` - BOM/Recipe
+13. ⏳ `crm` - Customer management
+14. ⏳ `hr` - HR & Payroll
 
-### Phase 4: Operations (Week 4-5)
-14. ⏳ `inventory` - Stock management
-15. ⏳ `sales` - Sales orders
-16. ⏳ `purchasing` - Purchase orders
-17. ⏳ `production` - Work orders
+### Phase 4: Operations (Ready - Dependencies Complete)
+15. ⏳ `inventory` - Stock management (deps: ✅ material, ✅ location)
+16. ⏳ `sales` - Sales orders (deps: ✅ product, ⏳ crm, ✅ location, ⏳ sales-type)
+17. ⏳ `purchasing` - Purchase orders (deps: ✅ material, ✅ supplier, ✅ location)
+18. ⏳ `production` - Work orders (deps: ⏳ recipe, ✅ material, ✅ location)
 
-### Phase 5: Finance & Integration (Week 6)
-18. ⏳ `finance` - Accounting
-19. ⏳ `moka` - POS integration
+### Phase 5: Finance & Integration
+19. ⏳ `finance` - Accounting
+20. ⏳ `moka` - POS integration
 
-### Phase 6: Analytics (Week 7)
-20. ⏳ `reporting` - Reports
-21. ⏳ `dashboard` - Dashboards
-22. ⏳ `audit` - Audit logs
+### Phase 6: Analytics
+21. ⏳ `reporting` - Reports
+22. ⏳ `dashboard` - Dashboards
+23. ⏳ `audit` - Audit logs
 
 ---
 
 ## 📋 Module Status Legend
 
-- ✅ **Complete** - Reviewed, tested, production-ready
+- ✅ **Complete** - Latest standards applied (handleX, Zod v4, EntityRef, spread-shape, cache.keys)
 - 🔄 **In Progress** - Currently being refined
 - ⏳ **Pending** - Not started, waiting for dependencies
 - ⚠️ **Blocked** - Waiting for dependency completion
 - 🔴 **Issues** - Has problems that need fixing
+
+## 📊 Progress Summary
+
+**Total Modules:** 22 (excluding shared/tool)  
+**Complete:** 8 (36.4%)  
+**In Progress:** 0  
+**Pending:** 14 (63.6%)
+
+**Completion by Phase:**
+- Phase 1 (Core): 2/4 (50%) - ✅ location, ✅ iam
+- Phase 2 (Master): 6/6 (100%) - ✅ company, ✅ supplier, ✅ uom, ✅ material, ✅ payment, (sales-type moved to Phase 3)
+- Phase 3 (Product): 1/4 (25%) - ✅ product
 
 ---
 
@@ -113,10 +127,11 @@
 | session | iam, location | auth, all endpoints |
 | company | - | finance, settings |
 | supplier | - | purchasing, finance |
-| material | - | inventory, recipe, purchasing |
+| uom | - | material (extracted standalone) |
+| material | uom | inventory, recipe, purchasing |
 | payment | - | sales, finance |
 | sales-type | location | sales |
-| product | material (via recipe) | sales, production |
+| product | material, uom | sales, production |
 | recipe | material, product | production |
 | crm | - | sales |
 | hr | iam, location | payroll, attendance |
@@ -142,4 +157,18 @@
 
 ---
 
-**Next Action:** Start with `location` module refinement
+## 🎯 Latest Standards Applied
+
+All completed modules follow these patterns:
+- ✅ **Naming**: `handleCreate/Update/Remove` for public service methods
+- ✅ **Repo**: Returns `undefined` (NOT throw), service handles errors
+- ✅ **Types**: `EntityRef` (NOT RecordId), proper typed ConflictField
+- ✅ **Zod v4**: Spread-shape (NOT `.extend()`), `.transform()` (NOT `.toUpperCase()`)
+- ✅ **Cache**: `cache.keys.*` (NOT string literals), `deleteFromKeys` method
+- ✅ **Imports**: `@/shared/schema` (NOT `@ikki/api-contract/validation`)
+- ✅ **Tracing**: OpenTelemetry `record()` wrapper on all service methods
+- ✅ **Audit**: `stampCreate/stampUpdate` on all mutations
+
+---
+
+**Next Action:** Continue with sales-type or inventory (dependencies ready)
