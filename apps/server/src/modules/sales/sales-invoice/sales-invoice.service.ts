@@ -7,7 +7,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import * as dto from './sales-invoice.dto'
 import { SalesInvoiceRepo } from './sales-invoice.repo'
-import type { RecordId } from '@ikki/api-contract'
+import type { EntityRef } from '@/shared/types/utils'
 
 const err = {
 	notFound: (id: number) =>
