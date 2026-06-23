@@ -6,7 +6,7 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 import { checkConflict, type ConflictField, type DbContext } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import { RelationMap } from '@/shared/utils'
-import { hashPassword } from '@/shared/utils/password'
+import { hashPassword, verifyPassword } from '@/shared/utils/password'
 
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
@@ -197,7 +197,7 @@ export class UserService {
 	async handleCreate(data: UserCreateDto, actorId: ActorId): Promise<EntityRef> {
 		return record('UserService.handleCreate', async () => {
 			const { password } = data
-			const passwordHash = await Bun.password.hash(password)
+			const passwordHash = await hashPassword(password)
 
 			return this.create({ ...data, passwordHash }, actorId)
 		})
@@ -210,7 +210,7 @@ export class UserService {
 			const existing = await this.getById(id)
 			if (!existing) throw UserError.notFound(id)
 
-			const passwordHash = password ? await Bun.password.hash(password) : undefined
+			const passwordHash = password ? await hashPassword(password) : undefined
 			const result = await this.update(
 				id,
 				{ ...data, ...(passwordHash ? { passwordHash } : {}) },
@@ -244,10 +244,10 @@ export class UserService {
 			const passwordHash = await this.r.getById(id).then((u) => u?.passwordHash)
 			if (!passwordHash) throw UserError.notFound(id)
 
-			const isMatch = await Bun.password.verify(data.oldPassword, passwordHash)
+			const isMatch = await verifyPassword(data.oldPassword, passwordHash)
 			if (!isMatch) throw UserError.passwordMismatch()
 
-			const newPasswordHash = await Bun.password.hash(data.newPassword)
+			const newPasswordHash = await hashPassword(data.newPassword)
 			const result = await this.r.update(id, {
 				passwordHash: newPasswordHash,
 				...stampUpdate(actorId),
@@ -266,7 +266,7 @@ export class UserService {
 	): Promise<EntityRef> {
 		return record('UserService.handleAdminUpdatePassword', async () => {
 			const { id, password } = data
-			const passwordHash = await Bun.password.hash(password)
+			const passwordHash = await hashPassword(password)
 			const result = await this.r.update(id, {
 				passwordHash,
 				...stampUpdate(actorId),
