@@ -58,7 +58,7 @@ export const locationPaymentMethodsTable = pgTable(
 		}>(),
 
 		/** When this payment method was enabled for this location */
-		enabledAt: timestamp('enabled_at'),
+		enabledAt: timestamp('enabled_at', { mode: 'date', withTimezone: true }),
 
 		...auditBasicColumns,
 	},
