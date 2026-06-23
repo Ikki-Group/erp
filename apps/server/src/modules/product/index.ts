@@ -11,7 +11,7 @@ import type {
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
 	ProductCategoryFilterSchema,
-} from './category.schema'
+} from './category.contract'
 import { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
 import { initProductRoute } from './product.route'
@@ -25,7 +25,7 @@ import type {
 	ProductPriceSchema,
 	VariantPriceSchema,
 	ProductExternalMappingSchema,
-} from './product.schema'
+} from './product.contract'
 import { ProductService } from './product.service'
 
 export class ProductServiceModule {

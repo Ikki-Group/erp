@@ -10,7 +10,7 @@ import {
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
 	ProductCategoryDto,
-} from './category.schema'
+} from './category.contract'
 import type { ProductCategoryService } from './category.service'
 
 export function initProductCategoryRoute(s: ProductCategoryService) {

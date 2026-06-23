@@ -16,7 +16,7 @@ import {
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
- } from './employee.dto'
+ } from './employee.contract'
 
 export class EmployeeRepo {
 	constructor(private readonly db: DbClient) {}

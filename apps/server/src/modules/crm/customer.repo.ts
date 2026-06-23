@@ -20,7 +20,7 @@ import {
 	type CustomerAddPointsSchema,
 	type CustomerRedeemPointsSchema,
 	type CustomerLoyaltyTransactionSchema,
-} from './customer.schema'
+} from './customer.contract'
 
 export class CustomerRepo {
 	constructor(private readonly db: DbClient) {}

@@ -5,7 +5,7 @@ import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import type { MokaScrapHistoryService } from './scrap-history.service'
-import { MokaTriggerInputDto } from './scrap.dto'
+import { MokaTriggerInputDto } from './scrap.contract'
 import type { MokaScrapService } from './scrap.service'
 
 export function initMokaScrapRoute(

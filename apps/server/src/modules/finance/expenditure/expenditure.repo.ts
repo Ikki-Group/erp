@@ -12,7 +12,7 @@ import {
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import {  ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto  } from './expenditure.dto'
+import {  ExpenditureCreateDto, ExpenditureDto, ExpenditureFilterDto  } from './expenditure.contract'
 
 export class ExpenditureRepo {
 	constructor(private readonly db: DbClient) {}

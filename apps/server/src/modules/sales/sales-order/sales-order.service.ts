@@ -13,7 +13,7 @@ import type {
 	SalesOrderFilterDto,
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
-} from './sales-order.dto'
+} from './sales-order.contract'
 import { SalesOrderRepo } from './sales-order.repo'
 
 interface SalesOrderServiceDeps {

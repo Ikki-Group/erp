@@ -12,7 +12,7 @@ import {
 	CompanySettingsDto,
 	type CompanySettingsCreateDto,
 	type CompanySettingsUpdateDto,
-} from './company-settings.schema'
+} from './company-settings.contract'
 
 export class CompanySettingsRepo {
 	constructor(private readonly db: DbClient) {}

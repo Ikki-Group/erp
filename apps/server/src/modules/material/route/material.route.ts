@@ -6,7 +6,7 @@ import { createSuccessResponseSchema } from '@/shared/schema/response'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { MaterialCreateDto } from '../dto/material.dto'
+import { MaterialCreateDto } from '../dto/material.contract'
 import type { MaterialService } from '../service/material.service'
 
 export function initMaterialMasterRoute(s: MaterialService) {

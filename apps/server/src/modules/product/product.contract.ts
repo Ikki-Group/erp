@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { zc, zp, zq } from '@/shared/schema'
 
-import { ProductCategoryDto } from './category.schema'
+import { ProductCategoryDto } from './category.contract'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 

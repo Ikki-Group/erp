@@ -10,7 +10,7 @@ import {
 	ProductCreateSchema,
 	ProductUpdateSchema,
 	ProductSelectSchema,
-} from './product.schema'
+} from './product.contract'
 import type { ProductService } from './product.service'
 
 export function initProductRoute(s: ProductService) {

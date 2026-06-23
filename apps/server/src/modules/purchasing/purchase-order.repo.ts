@@ -17,7 +17,7 @@ import {
 	PurchaseOrderFilterSchema,
 	PurchaseOrderSelectSchema, type PurchaseOrderStatus,
 	PurchaseOrderUpdateSchema,
-} from './purchase-order.schema'
+} from './purchase-order.contract'
 
 export class PurchaseOrderRepo {
 	constructor(private readonly db: DbClient) {}

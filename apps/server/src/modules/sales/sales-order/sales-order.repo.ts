@@ -29,7 +29,7 @@ import {
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
 	SalesVoidDto,
- } from './sales-order.dto'
+ } from './sales-order.contract'
 
 const err = {
 	notFound: (id: number) =>

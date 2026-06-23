@@ -14,7 +14,7 @@ import type {
 	RecipeUpdateSchema,
 	RecipeItemSchema,
 	RecipeCostSchema,
-} from './recipe.schema'
+} from './recipe.contract'
 import { RecipeService } from './recipe.service'
 
 export class RecipeServiceModule {

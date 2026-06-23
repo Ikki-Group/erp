@@ -4,7 +4,7 @@ import { accountsTable, expendituresTable } from '@/db/schema'
 
 import type { DbClient } from '@/infra/database'
 
-import {  FinanceReportRequestDto  } from './finance-reporting.dto'
+import {  FinanceReportRequestDto  } from './finance-reporting.contract'
 
 export class FinanceReportingRepo {
 	constructor(private readonly db: DbClient) {}

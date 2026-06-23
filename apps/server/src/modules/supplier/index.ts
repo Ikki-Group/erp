@@ -11,7 +11,7 @@ import type {
 	SupplierFilterDto,
 	SupplierCreateDto,
 	SupplierUpdateDto,
-} from './supplier.schema'
+} from './supplier.contract'
 import { SupplierService } from './supplier.service'
 
 export class SupplierServiceModule {

@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { DashboardKpiFilterDto } from './stock-dashboard.dto'
+import type { DashboardKpiFilterDto } from './stock-dashboard.contract'
 import { StockDashboardRepo } from './stock-dashboard.repo'
 
 export class StockDashboardService {

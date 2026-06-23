@@ -4,8 +4,8 @@ import { CacheService, type CacheClient } from '@/infra/cache'
 
 import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 
-import type { MokaProvider, MokaScrapType } from '../shared.dto'
-import * as dto from './configuration.dto'
+import type { MokaProvider, MokaScrapType } from '../shared.contract'
+import * as dto from './configuration.contract'
 import { MokaConfigurationRepo } from './configuration.repo'
 
 const err = {

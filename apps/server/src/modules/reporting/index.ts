@@ -48,4 +48,4 @@ export function initReportingRouteModule(s: ReportingServiceModule) {
 		.use(initPaymentReportingRoute(s.payment))
 }
 
-export * from './reporting.dto'
+export * from './reporting.contract'

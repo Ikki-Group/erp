@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './analytics.dto'
+import * as dto from './analytics.contract'
 import type { AnalyticsService } from './analytics.service'
 
 export function initAnalyticsRoute(service: AnalyticsService) {

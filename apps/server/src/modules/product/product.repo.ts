@@ -25,7 +25,7 @@ import {
 	ProductPriceSchema,
 	ProductVariantSchema,
 	VariantPriceSchema,
-} from './product.schema'
+} from './product.contract'
 
 const DEFAULT_VARIANT_NAME = 'Default'
 

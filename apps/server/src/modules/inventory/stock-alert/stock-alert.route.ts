@@ -6,7 +6,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert.dto'
+import { StockAlertFilterDto, StockAlertSelectDto } from './stock-alert.contract'
 import type { StockAlertService } from './stock-alert.service'
 
 export function initStockAlertRoute(s: StockAlertService) {

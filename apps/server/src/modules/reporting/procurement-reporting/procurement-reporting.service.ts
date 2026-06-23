@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/infra/database'
 
-import * as dto from './procurement-reporting.dto'
+import * as dto from './procurement-reporting.contract'
 import { ProcurementReportingRepo } from './procurement-reporting.repo'
 
 export class ProcurementReportingService {

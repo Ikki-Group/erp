@@ -6,7 +6,7 @@ import { accountsTable } from '@/db/schema/finance'
 import { paginate, sortBy, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import {  AccountCreateDto, AccountFilterDto, AccountUpdateDto  } from './account.dto'
+import {  AccountCreateDto, AccountFilterDto, AccountUpdateDto  } from './account.contract'
 
 export class AccountRepo {
 	constructor(private readonly db: DbClient) {}

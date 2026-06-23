@@ -11,7 +11,7 @@ import {
 	MaterialCategoryDto,
 	MaterialCategoryFilterDto,
 	MaterialCategoryMutationDto,
-} from '../dto/material-category.dto'
+} from '../dto/material-category.contract'
 import type { MaterialCategoryService } from '../service/material-category.service'
 
 export function initMaterialCategoryRoute(s: MaterialCategoryService) {

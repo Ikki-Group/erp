@@ -6,7 +6,7 @@ import { NotFoundError } from '@/shared/errors/http-error'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
+import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.contract'
 import { AccountRepo } from './account.repo'
 
 export class AccountService {

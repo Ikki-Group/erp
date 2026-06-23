@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/infra/database'
 
-import * as dto from './inventory-reporting.dto'
+import * as dto from './inventory-reporting.contract'
 import { InventoryReportingRepo } from './inventory-reporting.repo'
 
 export class InventoryReportingService {

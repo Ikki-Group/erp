@@ -14,7 +14,7 @@ import {
 	CustomerRedeemPointsSchema,
 	CustomerLoyaltyTransactionSchema,
 	CustomerGetByPhoneSchema,
-} from './customer.schema'
+} from './customer.contract'
 import type { CustomerService } from './customer.service'
 
 export function initCustomerRoute(service: CustomerService) {

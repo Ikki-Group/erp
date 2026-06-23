@@ -52,7 +52,7 @@ export function initPaymentRouteModule(s: PaymentServiceModule) {
 		.use(initLocationPaymentMethodRoute(s.locationPaymentMethod))
 }
 
-export { PaymentDto, PaymentInvoiceDto, PaymentTypeDto } from './payment/payment.dto'
+export { PaymentDto, PaymentInvoiceDto, PaymentTypeDto } from './payment/payment.contract'
 export type { PaymentService } from './payment/payment.service'
 export {
 	PaymentMethodDto,
@@ -61,14 +61,14 @@ export {
 	PaymentMethodFilterDto,
 	PaymentMethodCategoryDto,
 	PaymentMethodTypeDto,
-} from './payment-method/payment-method.dto'
+} from './payment-method/payment-method.contract'
 export type { PaymentMethodService } from './payment-method/payment-method.service'
 export {
 	PaymentProviderDto,
 	PaymentProviderCreateDto,
 	PaymentProviderUpdateDto,
 	PaymentProviderFilterDto,
-} from './payment-provider/payment-provider.dto'
+} from './payment-provider/payment-provider.contract'
 export type { PaymentProviderService } from './payment-provider/payment-provider.service'
 export {
 	LocationPaymentMethodDto,
@@ -77,5 +77,5 @@ export {
 	LocationPaymentMethodFilterDto,
 	LocationPaymentMethodCredentialsDto,
 	LocationPaymentMethodConfigDto,
-} from './location-payment-method/location-payment-method.dto'
+} from './location-payment-method/location-payment-method.contract'
 export type { LocationPaymentMethodService } from './location-payment-method/location-payment-method.service'

@@ -20,7 +20,7 @@ import type {
 	CustomerAddPointsSchema,
 	CustomerRedeemPointsSchema,
 	CustomerLoyaltyTransactionSchema,
-} from './customer.schema'
+} from './customer.contract'
 
 const uniqueFields: ConflictField<'code' | 'name' | 'phone'>[] = [
 	{

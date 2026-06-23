@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.dto'
+import { AccountDto, AccountCreateDto, AccountUpdateDto, AccountFilterDto } from './account.contract'
 import type { AccountService } from './account.service'
 
 export function initAccountRoute(s: AccountService) {

@@ -17,7 +17,7 @@ import {
 	LeaveRequestFilterDto,
 	LeaveRequestSelectDto,
 	LeaveRequestUpdateDto,
-} from './leave-request.dto'
+} from './leave-request.contract'
 
 export class LeaveRequestRepo {
 	constructor(private readonly db: DbClient) {}

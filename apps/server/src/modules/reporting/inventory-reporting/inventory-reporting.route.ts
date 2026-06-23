@@ -4,7 +4,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './inventory-reporting.dto'
+import * as dto from './inventory-reporting.contract'
 import type { InventoryReportingService } from './inventory-reporting.service'
 
 export function initInventoryReportingRoute(service: InventoryReportingService) {

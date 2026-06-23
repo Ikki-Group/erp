@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { StockAlertFilterDto } from './stock-alert.dto'
+import type { StockAlertFilterDto } from './stock-alert.contract'
 import { StockAlertRepo } from './stock-alert.repo'
 
 export class StockAlertService {

@@ -9,7 +9,7 @@ import {
 	SupplierFilterDto,
 	SupplierCreateDto,
 	SupplierUpdateDto,
-} from './supplier.schema'
+} from './supplier.contract'
 import type { SupplierService } from './supplier.service'
 
 export function initSupplierRoute(service: SupplierService) {

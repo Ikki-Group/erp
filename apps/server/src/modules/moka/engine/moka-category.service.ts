@@ -1,5 +1,5 @@
 import type { MokaCategoryRaw } from '../scrap/scrap-raw.types'
-import { MokaCategoryListDto } from '../scrap/scrap.dto'
+import { MokaCategoryListDto } from '../scrap/scrap.contract'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 
 export class MokaCategoryEngine extends MokaBaseEngine implements IMokaEngine<MokaCategoryRaw> {

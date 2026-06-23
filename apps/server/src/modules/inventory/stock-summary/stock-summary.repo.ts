@@ -29,7 +29,7 @@ import {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
- } from './stock-summary.dto'
+ } from './stock-summary.contract'
 
 export class StockSummaryRepo {
 	constructor(private readonly db: DbClient) {}

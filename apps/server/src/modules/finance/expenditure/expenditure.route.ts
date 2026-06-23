@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { ExpenditureCreateDto, ExpenditureFilterDto, ExpenditureDto } from './expenditure.dto'
+import { ExpenditureCreateDto, ExpenditureFilterDto, ExpenditureDto } from './expenditure.contract'
 import type { ExpenditureService } from './expenditure.service'
 
 export function initExpenditureRoute(s: ExpenditureService) {

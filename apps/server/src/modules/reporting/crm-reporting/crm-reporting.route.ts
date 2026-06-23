@@ -4,7 +4,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './crm-reporting.dto'
+import * as dto from './crm-reporting.contract'
 import type { CrmReportingService } from './crm-reporting.service'
 
 export function initCrmReportingRoute(service: CrmReportingService) {

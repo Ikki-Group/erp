@@ -18,7 +18,7 @@ import type {
 	GoodsReceiptNoteFilterSchema,
 	GoodsReceiptNoteSelectSchema,
 	GoodsReceiptNoteCreateSchema,
-} from './goods-receipt.schema'
+} from './goods-receipt.contract'
 
 export class GoodsReceiptService {
 	private readonly cache: CacheService

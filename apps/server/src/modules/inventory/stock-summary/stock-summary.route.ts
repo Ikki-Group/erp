@@ -12,7 +12,7 @@ import {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from './stock-summary.dto'
+} from './stock-summary.contract'
 import type { StockSummaryService } from './stock-summary.service'
 
 export function initStockSummaryRoute(s: StockSummaryService) {

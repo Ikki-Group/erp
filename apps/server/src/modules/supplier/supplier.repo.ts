@@ -17,7 +17,7 @@ import type {
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierUpdateDto,
-} from './supplier.schema'
+} from './supplier.contract'
 
 export class SupplierRepo {
 	constructor(private readonly db: DbClient) {}

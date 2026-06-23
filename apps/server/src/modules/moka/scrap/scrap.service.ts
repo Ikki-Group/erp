@@ -1,4 +1,4 @@
-import type { MokaConfigurationDto } from '../configuration/configuration.dto'
+import type { MokaConfigurationDto } from '../configuration/configuration.contract'
 import type { MokaConfigurationService } from '../configuration/configuration.service'
 import { MokaAuthEngine } from '../engine/moka-auth.service'
 import { MokaCategoryEngine } from '../engine/moka-category.service'
@@ -7,7 +7,7 @@ import { MokaSalesEngine } from '../engine/moka-sales.service'
 import type { MokaScrapHistoryService } from './scrap-history.service'
 import type { MokaSyncCursorService } from './scrap-sync-cursor.service'
 import type { MokaTransformationService } from './scrap-transformation.service'
-import type { MokaTriggerInputDto } from './scrap.dto'
+import type { MokaTriggerInputDto } from './scrap.contract'
 import type { Logger } from '@logtape/logtape'
 
 export class MokaScrapService {

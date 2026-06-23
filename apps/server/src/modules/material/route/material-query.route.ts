@@ -7,7 +7,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { MaterialQueryFilterDto } from '../dto/material-query.dto'
+import { MaterialQueryFilterDto } from '../dto/material-query.contract'
 import type { MaterialQueryService } from '../service/material-query.service'
 
 export function initMaterialQueryRoute(s: MaterialQueryService) {

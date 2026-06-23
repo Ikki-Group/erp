@@ -6,8 +6,8 @@ import { mokaConfigurationsTable } from '@/db/schema'
 import { takeFirst, type DbClient } from '@/infra/database'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import { type MokaProvider, type MokaScrapType } from '../shared.dto'
-import * as dto from './configuration.dto'
+import { type MokaProvider, type MokaScrapType } from '../shared.contract'
+import * as dto from './configuration.contract'
 
 export class MokaConfigurationRepo {
 	constructor(private readonly db: DbClient) {}

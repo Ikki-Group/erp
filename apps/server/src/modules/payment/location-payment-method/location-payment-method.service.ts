@@ -12,7 +12,7 @@ import type {
 	LocationPaymentMethodDto,
 	LocationPaymentMethodFilterDto,
 	LocationPaymentMethodUpdateDto,
-} from './location-payment-method.dto'
+} from './location-payment-method.contract'
 import { LocationPaymentMethodRepo } from './location-payment-method.repo'
 
 export class LocationPaymentMethodService {

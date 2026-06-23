@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type * as dto from './stock-transfer.dto'
+import type * as dto from './stock-transfer.contract'
 import { StockTransferRepo } from './stock-transfer.repo'
 
 const err = {

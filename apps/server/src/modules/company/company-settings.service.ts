@@ -10,7 +10,7 @@ import type {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
-} from './company-settings.schema'
+} from './company-settings.contract'
 
 const err = {
 	notFound: (id: number) =>

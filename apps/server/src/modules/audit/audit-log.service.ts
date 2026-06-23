@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { AuditLogRepo } from './audit-log.repo'
-import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from './audit-log.schema'
+import type { AuditLogSchema, AuditLogCreateSchema, AuditLogFilterSchema } from './audit-log.contract'
 
 const err = {
 	notFound: (id: number) =>

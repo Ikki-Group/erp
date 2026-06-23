@@ -10,7 +10,7 @@ import type {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
-} from './company-settings.schema'
+} from './company-settings.contract'
 import { CompanySettingsService } from './company-settings.service'
 
 export class CompanyServiceModule {

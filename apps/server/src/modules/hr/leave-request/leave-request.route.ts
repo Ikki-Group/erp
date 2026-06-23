@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './leave-request.dto'
+import * as dto from './leave-request.contract'
 import type { LeaveRequestService } from './leave-request.service'
 
 export function initLeaveRequestRoute(service: LeaveRequestService) {

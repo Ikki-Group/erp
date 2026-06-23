@@ -10,7 +10,7 @@ import {
 	SalesTypeFilterSchema,
 	SalesTypeCreateSchema,
 	SalesTypeUpdateSchema,
-} from './sales-type.schema'
+} from './sales-type.contract'
 import type { SalesTypeService } from './sales-type.service'
 
 export function initSalesTypeRoute(service: SalesTypeService) {

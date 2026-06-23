@@ -20,7 +20,7 @@ import {
 	PaymentProviderDto,
 	PaymentProviderFilterDto,
 	PaymentProviderUpdateDto,
- } from './payment-provider.dto'
+ } from './payment-provider.contract'
 
 const uniqueFields: ConflictField<any>[] = [
 	{

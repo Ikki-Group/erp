@@ -10,7 +10,7 @@ import { checkConflict, type ConflictField} from '@/infra/database'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
-import * as dto from './payment.dto'
+import * as dto from './payment.contract'
 import { PaymentRepo } from './payment.repo'
 import type { EntityRef } from '@/shared/types/utils'
 

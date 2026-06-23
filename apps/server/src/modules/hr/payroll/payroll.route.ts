@@ -11,7 +11,7 @@ import {
 	PayrollBatchCreateDto,
 	PayrollBatchDto,
 	PayrollBatchFilterDto,
-} from './payroll.dto'
+} from './payroll.contract'
 import type { PayrollService } from './payroll.service'
 
 export function initPayrollRoute(s: PayrollService) {

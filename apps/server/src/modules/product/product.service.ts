@@ -5,7 +5,7 @@ import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
-import type { ProductCategorySchema } from './category.schema'
+import type { ProductCategorySchema } from './category.contract'
 import type { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
 import type {
@@ -13,7 +13,7 @@ import type {
 	ProductFilterSchema,
 	ProductMutationSchema,
 	ProductSelectSchema,
-} from './product.schema'
+} from './product.contract'
 
 export class ProductService {
 	private readonly cache: CacheService

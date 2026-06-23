@@ -66,15 +66,15 @@ export function initMokaRouteModule(s: MokaServiceModule) {
 export type {
 	MokaConfigurationDto,
 	MokaConfigurationOutputDto,
-} from './configuration/configuration.dto'
-export type { MokaScrapHistoryDto } from './scrap/scrap-history.dto'
-export type { MokaTriggerInputDto } from './scrap/scrap.dto'
+} from './configuration/configuration.contract'
+export type { MokaScrapHistoryDto } from './scrap/scrap-history.contract'
+export type { MokaTriggerInputDto } from './scrap/scrap.contract'
 export type {
 	MokaProvider,
 	MokaScrapType,
 	MokaSyncTriggerMode,
 	MokaScrapStatus,
-} from './shared.dto'
+} from './shared.contract'
 
 export type { MokaConfigurationService } from './configuration/configuration.service'
 export type { MokaScrapHistoryService } from './scrap/scrap-history.service'

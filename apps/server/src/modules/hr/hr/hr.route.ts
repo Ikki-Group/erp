@@ -13,7 +13,7 @@ import {
 	ClockOutDto,
 	ShiftCreateDto,
 	ShiftDto,
-} from './hr.dto'
+} from './hr.contract'
 import type { HRService } from './hr.service'
 
 export function initHRRoute(s: HRService) {

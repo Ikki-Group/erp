@@ -8,7 +8,7 @@ import {
 	MokaConfigurationCreateDto,
 	MokaConfigurationOutputDto,
 	MokaConfigurationUpdateDto,
-} from './configuration.dto'
+} from './configuration.contract'
 import type { MokaConfigurationService } from './configuration.service'
 
 export function initMokaConfigurationRoute(service: MokaConfigurationService) {

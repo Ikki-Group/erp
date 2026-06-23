@@ -8,7 +8,7 @@ import {
 	GeneralLedgerService,
 	type JournalItemInput,
 } from '../general-ledger/general-ledger.service'
-import type { ExpenditureCreateDto, ExpenditureFilterDto } from './expenditure.dto'
+import type { ExpenditureCreateDto, ExpenditureFilterDto } from './expenditure.contract'
 import { ExpenditureRepo } from './expenditure.repo'
 
 export class ExpenditureService {

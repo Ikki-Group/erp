@@ -47,5 +47,5 @@ export {
 	WorkOrderCompleteSchema,
 	WorkOrderStatusEnum,
 	type WorkOrderStatus,
-} from './work-order.schema'
+} from './work-order.contract'
 export type { WorkOrderService } from './work-order.service'

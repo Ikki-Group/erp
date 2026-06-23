@@ -15,7 +15,7 @@ import type {
 	SupplierDto,
 	SupplierFilterDto,
 	SupplierUpdateDto,
-} from './supplier.schema'
+} from './supplier.contract'
 
 const supplierConflictFields: ConflictField<{ code: string }>[] = [
 	{

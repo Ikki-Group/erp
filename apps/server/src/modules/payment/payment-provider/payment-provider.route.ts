@@ -10,7 +10,7 @@ import {
 	PaymentProviderFilterDto,
 	PaymentProviderCreateDto,
 	PaymentProviderUpdateDto,
-} from './payment-provider.dto'
+} from './payment-provider.contract'
 import type { PaymentProviderService } from './payment-provider.service'
 
 export function initPaymentProviderRoute(service: PaymentProviderService) {

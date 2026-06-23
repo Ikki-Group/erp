@@ -15,7 +15,7 @@ import type {
 	PurchaseOrderSubmitForApprovalSchema,
 	PurchaseOrderApproveSchema,
 	PurchaseOrderRejectSchema,
-} from './purchase-order.schema'
+} from './purchase-order.contract'
 
 const err = {
 	notFound: (id: number) =>

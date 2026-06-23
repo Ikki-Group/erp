@@ -9,7 +9,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import { paymentMethodsTable } from '@/db/schema'
 
-import * as dto from './payment-method.dto'
+import * as dto from './payment-method.contract'
 import { PaymentMethodRepo } from './payment-method.repo'
 
 const uniqueFields: ConflictField<{ name: string }>[] = [

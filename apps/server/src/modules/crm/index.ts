@@ -6,7 +6,7 @@ import type { DbClient } from '@/infra/database'
 
 import { CustomerRepo } from './customer.repo'
 import { initCustomerRoute } from './customer.route'
-import type { CustomerSchema, CustomerLoyaltyTransactionSchema } from './customer.schema'
+import type { CustomerSchema, CustomerLoyaltyTransactionSchema } from './customer.contract'
 import { CustomerService } from './customer.service'
 
 export class CrmServiceModule {

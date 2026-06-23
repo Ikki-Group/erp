@@ -12,7 +12,7 @@ import {
 	LocationPaymentMethodFilterDto,
 	LocationPaymentMethodCreateDto,
 	LocationPaymentMethodUpdateDto,
-} from './location-payment-method.dto'
+} from './location-payment-method.contract'
 import type { LocationPaymentMethodService } from './location-payment-method.service'
 
 export function initLocationPaymentMethodRoute(service: LocationPaymentMethodService) {

@@ -13,7 +13,7 @@ import type {
 	EmployeeDto,
 	EmployeeFilterDto,
 	EmployeeUpdateDto,
-} from './employee.dto'
+} from './employee.contract'
 import { EmployeeRepo } from './employee.repo'
 
 const employeeConflictFields: ConflictField<any>[] = [

@@ -11,7 +11,7 @@ import {
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
 	RecipeCostDto,
-} from './recipe.schema'
+} from './recipe.contract'
 import type { RecipeService } from './recipe.service'
 
 export function initRecipeRoute(service: RecipeService) {

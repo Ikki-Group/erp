@@ -19,7 +19,7 @@ import {
 	type ProductCategoryFilterSchema,
 	type ProductCategoryCreateSchema,
 	type ProductCategoryUpdateSchema,
-} from './category.schema'
+} from './category.contract'
 
 export class ProductCategoryRepo {
 	constructor(private readonly db: DbClient) {}

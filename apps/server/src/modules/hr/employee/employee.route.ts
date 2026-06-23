@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './employee.dto'
+import * as dto from './employee.contract'
 import type { EmployeeService } from './employee.service'
 
 export function initEmployeeRoute(service: EmployeeService) {

@@ -11,7 +11,7 @@ import {
 	SalesOrderFilterDto,
 	SalesOrderOutputDto,
 	SalesOrderVoidDto,
-} from './sales-order.dto'
+} from './sales-order.contract'
 import type { SalesOrderService } from './sales-order.service'
 
 export function initSalesOrderRoute(service: SalesOrderService) {

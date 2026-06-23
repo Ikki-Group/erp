@@ -3,7 +3,7 @@ import Elysia from 'elysia'
 
 import { res } from '@/shared/http/response'
 
-import { SettingsSummaryDto } from './settings.dto'
+import { SettingsSummaryDto } from './settings.contract'
 import type { SettingsService } from './settings.service'
 
 export function initSettingsRoute(service: SettingsService) {

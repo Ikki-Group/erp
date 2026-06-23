@@ -5,7 +5,7 @@ import { Elysia } from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './payment.dto'
+import * as dto from './payment.contract'
 import type { PaymentService } from './payment.service'
 
 export function initPaymentRoute(service: PaymentService) {

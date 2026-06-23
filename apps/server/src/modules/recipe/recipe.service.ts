@@ -15,7 +15,7 @@ import type {
 	RecipeFilterSchema,
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
-} from './recipe.schema'
+} from './recipe.contract'
 
 const err = {
 	notFound: (id: number) => new NotFoundError(`Recipe with ID ${id} not found`, { code: 'RECIPE_NOT_FOUND' }),

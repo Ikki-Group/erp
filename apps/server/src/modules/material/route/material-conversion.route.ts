@@ -10,7 +10,7 @@ import {
 	MaterialConversionDto,
 	MaterialConversionFilterDto,
 	MaterialConversionUpdateDto,
-} from '../dto/material-conversion.dto'
+} from '../dto/material-conversion.contract'
 import type { MaterialConversionService } from '../service/material-conversion.service'
 
 export function initMaterialConversionRoute(s: MaterialConversionService) {

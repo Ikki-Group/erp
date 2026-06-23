@@ -19,7 +19,7 @@ import {
 	StockTransferFilterDto,
 	StockTransferSelectDto,
 	StockTransferUpdateDto,
-} from './stock-transfer.dto'
+} from './stock-transfer.contract'
 
 export class StockTransferRepo {
 	constructor(private readonly db: DbClient) {}

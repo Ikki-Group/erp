@@ -12,7 +12,7 @@ import type {
 	PaymentProviderDto,
 	PaymentProviderFilterDto,
 	PaymentProviderUpdateDto,
-} from './payment-provider.dto'
+} from './payment-provider.contract'
 import { PaymentProviderRepo } from './payment-provider.repo'
 
 export class PaymentProviderService {

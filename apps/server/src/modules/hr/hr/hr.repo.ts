@@ -17,7 +17,7 @@ import {
 	ClockInDto,
 	ShiftCreateDto,
 	ShiftDto,
- } from './hr.dto'
+ } from './hr.contract'
 
 export class HRRepo {
 	constructor(private readonly db: DbClient) {}

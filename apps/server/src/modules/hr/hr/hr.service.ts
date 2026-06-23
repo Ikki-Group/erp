@@ -15,7 +15,7 @@ import type {
 	ClockOutDto,
 	ShiftCreateDto,
 	ShiftDto,
-} from './hr.dto'
+} from './hr.contract'
 import { HRRepo } from './hr.repo'
 
 export class HRService {

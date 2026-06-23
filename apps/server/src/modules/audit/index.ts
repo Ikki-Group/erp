@@ -11,7 +11,7 @@ import type {
 	AuditActionSchema,
 	AuditLogCreateSchema,
 	AuditLogFilterSchema,
-} from './audit-log.schema'
+} from './audit-log.contract'
 import { AuditLogService } from './audit-log.service'
 
 export class AuditServiceModule {

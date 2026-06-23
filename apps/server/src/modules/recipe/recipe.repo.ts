@@ -24,7 +24,7 @@ import type {
 	RecipeFilterSchema,
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
-} from './recipe.schema'
+} from './recipe.contract'
 
 export class RecipeRepo {
 	constructor(private readonly db: DbClient) {}

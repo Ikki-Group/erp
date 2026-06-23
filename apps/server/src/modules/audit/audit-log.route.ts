@@ -9,7 +9,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { AuditLogSchema, AuditLogFilterSchema, AuditLogCreateSchema } from './audit-log.schema'
+import { AuditLogSchema, AuditLogFilterSchema, AuditLogCreateSchema } from './audit-log.contract'
 import type { AuditLogService } from './audit-log.service'
 
 export function initAuditLogRoute(service: AuditLogService) {

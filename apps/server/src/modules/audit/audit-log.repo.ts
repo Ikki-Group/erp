@@ -18,7 +18,7 @@ import {
 	AuditLogSchema,
 	type AuditLogFilterSchema,
 	type AuditLogCreateSchema,
-} from './audit-log.schema'
+} from './audit-log.contract'
 
 export class AuditLogRepo {
 	constructor(private readonly db: DbClient) {}

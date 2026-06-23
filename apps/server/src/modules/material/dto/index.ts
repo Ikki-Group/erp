@@ -8,7 +8,7 @@ export {
 	MaterialCreateDto,
 	MaterialUpdateDto,
 	MaterialFilterDto,
-} from './material.dto'
+} from './material.contract'
 
 export { MaterialTypeSchema } from '../domain/material.entity'
 export type { MaterialType } from '../domain/material.entity'
@@ -19,7 +19,7 @@ export {
 	MaterialCategoryMutationDto,
 	MaterialCategoryCreateDto,
 	MaterialCategoryUpdateDto,
-} from './material-category.dto'
+} from './material-category.contract'
 
 export {
 	MaterialConversionDto,
@@ -27,7 +27,7 @@ export {
 	MaterialConversionCreateDto,
 	MaterialConversionUpdateDto,
 	MaterialConversionFilterDto,
-} from './material-conversion.dto'
+} from './material-conversion.contract'
 
 export {
 	MaterialLocationDto,
@@ -37,6 +37,6 @@ export {
 	MaterialLocationAssignDto,
 	MaterialLocationUnassignDto,
 	MaterialLocationConfigDto,
-} from './material-location.dto'
+} from './material-location.contract'
 
-export { MaterialQueryDetailDto, MaterialQueryFilterDto } from './material-query.dto'
+export { MaterialQueryDetailDto, MaterialQueryFilterDto } from './material-query.contract'

@@ -11,7 +11,7 @@ import type {
 	ProductCategoryFilterSchema,
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
-} from './category.schema'
+} from './category.contract'
 
 export class ProductCategoryService {
 	private readonly cache: CacheService

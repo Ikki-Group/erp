@@ -62,7 +62,7 @@ export function initHRRouteModule(s: HRServiceModule) {
 		.use(initLeaveRequestRoute(s.leaveRequest))
 }
 
-export * from './employee/employee.dto'
+export * from './employee/employee.contract'
 export type { EmployeeService } from './employee/employee.service'
 export {
 	ShiftDto,
@@ -75,13 +75,13 @@ export {
 	ClockOutDto,
 	AttendanceStatusEnum,
 	type AttendanceStatus,
-} from './hr/hr.dto'
+} from './hr/hr.contract'
 export {
 	LeaveRequestDto,
 	LeaveRequestCreateDto,
 	LeaveRequestUpdateDto,
 	LeaveRequestFilterDto,
-} from './leave-request/leave-request.dto'
+} from './leave-request/leave-request.contract'
 export {
 	PayrollBatchDto,
 	PayrollBatchCreateDto,
@@ -92,4 +92,4 @@ export {
 	PayrollAdjustmentTypeEnum,
 	type PayrollStatus,
 	type PayrollAdjustmentType,
-} from './payroll/payroll.dto'
+} from './payroll/payroll.contract'

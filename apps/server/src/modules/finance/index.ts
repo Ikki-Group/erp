@@ -56,7 +56,7 @@ export {
 	AccountFilterDto,
 	AccountTypeEnum,
 	type AccountTypeEnum as AccountType,
-} from './account/account.dto'
+} from './account/account.contract'
 export {
 	ExpenditureDto,
 	ExpenditureCreateDto,
@@ -66,4 +66,4 @@ export {
 	ExpenditureStatusEnum,
 	type ExpenditureTypeEnum as ExpenditureType,
 	type ExpenditureStatusEnum as ExpenditureStatus,
-} from './expenditure/expenditure.dto'
+} from './expenditure/expenditure.contract'

@@ -14,7 +14,7 @@ import type {
 	WorkOrderCreateSchema,
 	WorkOrderSchema,
 	WorkOrderFilterSchema,
-} from './work-order.schema'
+} from './work-order.contract'
 
 export class WorkOrderRepo {
 	constructor(private readonly db: DbClient) {}

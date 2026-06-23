@@ -14,7 +14,7 @@ import {
 	PurchaseOrderSubmitForApprovalSchema,
 	PurchaseOrderApproveSchema,
 	PurchaseOrderRejectSchema,
-} from './purchase-order.schema'
+} from './purchase-order.contract'
 import type { PurchaseOrderService } from './purchase-order.service'
 
 export function initPurchaseOrderRoute(service: PurchaseOrderService) {

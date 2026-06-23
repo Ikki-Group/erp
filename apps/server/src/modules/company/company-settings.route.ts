@@ -8,7 +8,7 @@ import {
 	CompanySettingsDto,
 	CompanySettingsCreateDto,
 	CompanySettingsUpdateDto,
-} from './company-settings.schema'
+} from './company-settings.contract'
 import type { CompanySettingsService } from './company-settings.service'
 
 export function initCompanySettingsRoute(service: CompanySettingsService) {

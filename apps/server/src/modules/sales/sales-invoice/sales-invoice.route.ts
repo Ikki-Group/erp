@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './sales-invoice.dto'
+import * as dto from './sales-invoice.contract'
 import type { SalesInvoiceService } from './sales-invoice.service'
 
 export function initSalesInvoiceRoute(service: SalesInvoiceService) {

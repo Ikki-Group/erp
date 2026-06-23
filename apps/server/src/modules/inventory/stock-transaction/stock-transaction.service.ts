@@ -21,7 +21,7 @@ import type {
 	UsageTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-} from './stock-transaction.dto'
+} from './stock-transaction.contract'
 import { StockTransactionRepo } from './stock-transaction.repo'
 import { StockExternalMovementService } from './sub-services/stock-external-movement.service'
 import { StockHistoryService } from './sub-services/stock-history.service'

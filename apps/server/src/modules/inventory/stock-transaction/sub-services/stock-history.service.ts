@@ -9,7 +9,7 @@ import type {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
-} from '../stock-transaction.dto'
+} from '../stock-transaction.contract'
 import { StockTransactionRepo } from '../stock-transaction.repo'
 
 export class StockHistoryService {

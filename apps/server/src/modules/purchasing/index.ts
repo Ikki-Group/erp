@@ -48,7 +48,7 @@ export {
 	PurchaseOrderFilterSchema,
 	PurchaseOrderStatusEnum,
 	type PurchaseOrderStatus,
-} from './purchase-order.schema'
+} from './purchase-order.contract'
 export {
 	GoodsReceiptNoteSchema,
 	GoodsReceiptNoteCreateSchema,
@@ -56,6 +56,6 @@ export {
 	GoodsReceiptNoteFilterSchema,
 	GoodsReceiptStatusEnum,
 	type GoodsReceiptStatus,
-} from './goods-receipt.schema'
+} from './goods-receipt.contract'
 export type { PurchaseOrderService } from './purchase-order.service'
 export type { GoodsReceiptService } from './goods-receipt.service'

@@ -13,7 +13,7 @@ import {
 	MaterialLocationFilterDto,
 	MaterialLocationStockDto,
 	MaterialLocationUnassignDto,
-} from '../dto/material-location.dto'
+} from '../dto/material-location.contract'
 import type { MaterialLocationService } from '../service/material-location.service'
 
 export function initMaterialLocationRoute(s: MaterialLocationService) {

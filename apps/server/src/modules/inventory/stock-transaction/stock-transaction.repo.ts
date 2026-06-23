@@ -13,7 +13,7 @@ import {
 	StockTransactionFilterDto,
 	StockTransactionSelectDto,
 	StockTransactionDto,
- } from './stock-transaction.dto'
+ } from './stock-transaction.contract'
 
 export class StockTransactionRepo {
 	constructor(private readonly db: DbClient) {}

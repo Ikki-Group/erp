@@ -6,7 +6,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 
 import type { WithPaginationResult } from '@/shared/types/pagination'
 
-import type * as dto from './leave-request.dto'
+import type * as dto from './leave-request.contract'
 import { LeaveRequestRepo } from './leave-request.repo'
 
 const err = {

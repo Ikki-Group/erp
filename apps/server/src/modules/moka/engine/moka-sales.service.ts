@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type { MokaSalesDetailRaw, MokaSalesListResponse } from '../scrap/scrap-raw.types'
-import { MokaSalesDetailRawDto } from '../scrap/scrap.dto'
+import { MokaSalesDetailRawDto } from '../scrap/scrap.contract'
 import type { MokaAuthEngine } from './moka-auth.service'
 import { MokaBaseEngine, type IMokaEngine } from './moka-engine'
 import { expandDates } from './moka-utils'

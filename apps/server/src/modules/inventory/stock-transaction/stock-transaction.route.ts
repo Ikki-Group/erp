@@ -18,7 +18,7 @@ import {
 	SellTransactionDto,
 	ProductionInTransactionDto,
 	ProductionOutTransactionDto,
-} from './stock-transaction.dto'
+} from './stock-transaction.contract'
 import type { StockTransactionService } from './stock-transaction.service'
 
 export function initStockTransactionRoute(s: StockTransactionService) {

@@ -12,8 +12,8 @@ import type {
 	MokaScrapStatus,
 	MokaScrapType,
 	MokaSyncTriggerMode,
-} from '../shared.dto'
-import * as dto from './scrap-history.dto'
+} from '../shared.contract'
+import * as dto from './scrap-history.contract'
 
 export class MokaScrapHistoryRepo {
 	constructor(private readonly db: DbClient) {}

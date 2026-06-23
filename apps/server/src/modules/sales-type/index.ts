@@ -11,7 +11,7 @@ import type {
 	SalesTypeFilterSchema,
 	SalesTypeCreateSchema,
 	SalesTypeUpdateSchema,
-} from './sales-type.schema'
+} from './sales-type.contract'
 import { SalesTypeService } from './sales-type.service'
 
 export class SalesTypeServiceModule {

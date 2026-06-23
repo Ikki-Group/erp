@@ -4,7 +4,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard.dto'
+import { DashboardKpiFilterDto, DashboardKpiSelectDto } from './stock-dashboard.contract'
 import type { StockDashboardService } from './stock-dashboard.service'
 
 export function initStockDashboardRoute(s: StockDashboardService) {

@@ -17,7 +17,7 @@ import {
 	LocationPaymentMethodDto,
 	LocationPaymentMethodFilterDto,
 	LocationPaymentMethodUpdateDto,
- } from './location-payment-method.dto'
+ } from './location-payment-method.contract'
 
 export class LocationPaymentMethodRepo {
 	constructor(private readonly db: DbClient) {}

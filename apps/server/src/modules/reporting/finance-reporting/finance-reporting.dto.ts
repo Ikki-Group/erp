@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { zp } from '@/shared/schema'
 
-import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.dto'
+import { ReportRequestDto, ReportSummaryDto, ChartTypeDto } from '../reporting.contract'
 
 /** Cash flow data point */
 export const CashFlowDataPointDto = z.object({

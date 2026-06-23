@@ -20,7 +20,7 @@ import type {
 	StockLedgerSelectDto,
 	StockSummaryFilterDto,
 	StockSummarySelectDto,
-} from './stock-summary.dto'
+} from './stock-summary.contract'
 import { StockSummaryRepo } from './stock-summary.repo'
 
 export class StockSummaryService {

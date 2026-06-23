@@ -10,7 +10,7 @@ import {
 	GoodsReceiptNoteSelectSchema,
 	GoodsReceiptNoteSchema,
 	GoodsReceiptNoteCreateSchema,
-} from './goods-receipt.schema'
+} from './goods-receipt.contract'
 import type { GoodsReceiptService } from './goods-receipt.service'
 
 export function initGoodsReceiptRoute(service: GoodsReceiptService) {

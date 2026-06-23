@@ -2,7 +2,7 @@
 import type { IamServiceModule } from '@/modules/iam'
 import type { LocationServiceModule } from '@/modules/location'
 
-import type { SettingsSummaryDto } from './settings.dto'
+import type { SettingsSummaryDto } from './settings.contract'
 
 export class SettingsService {
 	constructor(

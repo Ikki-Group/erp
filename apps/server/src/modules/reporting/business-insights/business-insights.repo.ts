@@ -13,7 +13,7 @@ import { stockTransactionsTable } from '@/db/schema/inventory'
 
 import type { DbClient } from '@/infra/database'
 
-import {  BusinessInsightsRequestDto  } from './business-insights.dto'
+import {  BusinessInsightsRequestDto  } from './business-insights.contract'
 
 export class BusinessInsightsRepo {
 	constructor(private readonly db: DbClient) {}

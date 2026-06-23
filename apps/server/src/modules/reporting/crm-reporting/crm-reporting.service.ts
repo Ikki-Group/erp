@@ -3,7 +3,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import type { DbClient } from '@/infra/database'
 
-import * as dto from './crm-reporting.dto'
+import * as dto from './crm-reporting.contract'
 import { CrmReportingRepo } from './crm-reporting.repo'
 
 export class CrmReportingService {

@@ -14,7 +14,7 @@ import type {
 	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
-} from './payroll.dto'
+} from './payroll.contract'
 import { PayrollRepo } from './payroll.repo'
 
 export class PayrollService {

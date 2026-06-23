@@ -2,7 +2,7 @@ import { record } from '@elysiajs/opentelemetry'
 
 import { CacheService, type CacheClient } from '@/infra/cache'
 
-import type { MokaProvider, MokaScrapType } from '../shared.dto'
+import type { MokaProvider, MokaScrapType } from '../shared.contract'
 import { MokaSyncCursorRepo } from './scrap-sync-cursor.repo'
 
 export class MokaSyncCursorService {

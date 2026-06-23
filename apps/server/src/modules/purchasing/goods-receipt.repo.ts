@@ -16,7 +16,7 @@ import {
 	GoodsReceiptNoteSchema,
 	GoodsReceiptNoteFilterSchema,
 	GoodsReceiptNoteSelectSchema, type GoodsReceiptStatus,
-} from './goods-receipt.schema'
+} from './goods-receipt.contract'
 
 export class GoodsReceiptRepo {
 	constructor(private readonly db: DbClient) {}

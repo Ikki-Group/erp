@@ -11,7 +11,7 @@ import type { WithPaginationResult } from '@/shared/types/pagination'
 
 import type { Material, MaterialType } from '../domain/material.entity'
 import type { IMaterialRepo, MaterialListFilter } from '../domain/ports'
-import type { MaterialDetailDto } from '../dto/material.dto'
+import type { MaterialDetailDto } from '../dto/material.contract'
 import { MATERIAL_CACHE_NS } from '../material.constants'
 import { MasterErrors } from '../material.errors'
 import type { MaterialCategoryService } from './material-category.service'

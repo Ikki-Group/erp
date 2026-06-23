@@ -15,7 +15,7 @@ import type {
 	SalesTypeDto,
 	SalesTypeFilterSchema,
 	SalesTypeUpdateSchema,
-} from './sales-type.schema'
+} from './sales-type.contract'
 
 const uniqueFields: ConflictField<{ code: string }>[] = [
 	{

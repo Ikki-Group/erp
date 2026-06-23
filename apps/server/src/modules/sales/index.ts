@@ -47,7 +47,7 @@ export function initSalesRouteModule(s: SalesServiceModule) {
 		.use(initSalesTypeRouteModule(s.deps.salesType))
 }
 
-export * from './sales-order/sales-order.dto'
-export * from './sales-invoice/sales-invoice.dto'
+export * from './sales-order/sales-order.contract'
+export * from './sales-invoice/sales-invoice.contract'
 export type { SalesOrderService } from './sales-order/sales-order.service'
 export type { SalesInvoiceService } from './sales-invoice/sales-invoice.service'

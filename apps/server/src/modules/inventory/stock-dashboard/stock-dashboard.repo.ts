@@ -5,7 +5,7 @@ import { materialLocationsTable, materialsTable, materialStockSnapshotsTable } f
 
 import type { DbClient } from '@/infra/database'
 
-import {  DashboardKpiFilterDto  } from './stock-dashboard.dto'
+import {  DashboardKpiFilterDto  } from './stock-dashboard.contract'
 
 export class StockDashboardRepo {
 	constructor(private readonly db: DbClient) {}

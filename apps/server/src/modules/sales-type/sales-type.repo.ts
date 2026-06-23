@@ -13,7 +13,7 @@ import type {
 	SalesTypeFilterSchema,
 	SalesTypeDto,
 	SalesTypeUpdateSchema,
-} from './sales-type.schema'
+} from './sales-type.contract'
 
 export class SalesTypeRepo {
 	constructor(private readonly db: DbClient) {}

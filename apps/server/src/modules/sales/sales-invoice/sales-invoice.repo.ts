@@ -11,7 +11,7 @@ import {
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import * as dto from './sales-invoice.dto'
+import * as dto from './sales-invoice.contract'
 
 export class SalesInvoiceRepo {
 	constructor(private readonly db: DbClient) {}

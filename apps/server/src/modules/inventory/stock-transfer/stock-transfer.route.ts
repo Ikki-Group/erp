@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
-import * as dto from './stock-transfer.dto'
+import * as dto from './stock-transfer.contract'
 import type { StockTransferService } from './stock-transfer.service'
 
 export function initStockTransferRoute(service: StockTransferService) {

@@ -11,7 +11,7 @@ import {
 	WorkOrderFilterSchema,
 	WorkOrderSchema,
 	WorkOrderSelectSchema,
-} from './work-order.schema'
+} from './work-order.contract'
 import type { WorkOrderService } from './work-order.service'
 
 export function initWorkOrderRoute(service: WorkOrderService) {

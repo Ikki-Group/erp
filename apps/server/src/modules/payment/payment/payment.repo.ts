@@ -11,7 +11,7 @@ import {
 import type { WithPaginationResult } from '@/shared/types/pagination'
 import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 
-import * as dto from './payment.dto'
+import * as dto from './payment.contract'
 
 export class PaymentRepo {
 	constructor(private readonly db: DbClient) {}

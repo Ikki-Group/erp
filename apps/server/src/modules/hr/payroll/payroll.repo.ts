@@ -18,7 +18,7 @@ import {
 	PayrollBatchFilterDto,
 	PayrollAdjustmentCreateDto,
 	PayrollAdjustmentDto,
- } from './payroll.dto'
+ } from './payroll.contract'
 
 export class PayrollRepo {
 	constructor(private readonly db: DbClient) {}
