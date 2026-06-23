@@ -13,7 +13,7 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { CustomerRepo } from './customer.repo'
 import type {
-	CustomerSchema,
+	CustomerDto,
 	CustomerCreateSchema,
 	CustomerUpdateSchema,
 	CustomerFilterSchema,
@@ -65,14 +65,14 @@ export class CustomerService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<CustomerSchema | undefined> {
+	async getById(id: number): Promise<CustomerDto | undefined> {
 		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
 	}
 
-	async getByPhone(phone: string): Promise<CustomerSchema | undefined> {
+	async getByPhone(phone: string): Promise<CustomerDto | undefined> {
 		return this.repo.getByPhone(phone)
 	}
 
@@ -82,18 +82,18 @@ export class CustomerService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: CustomerFilterSchema): Promise<WithPaginationResult<CustomerSchema>> {
+	async handleList(filter: CustomerFilterSchema): Promise<WithPaginationResult<CustomerDto>> {
 		const result = await this.repo.getListPaginated(filter)
 		return result
 	}
 
-	async handleDetail(id: number): Promise<CustomerSchema> {
+	async handleDetail(id: number): Promise<CustomerDto> {
 		const result = await this.repo.getById(id)
 		if (!result) throw err.notFound(id)
 		return result
 	}
 
-	async handleGetByPhone(phone: string): Promise<CustomerSchema> {
+	async handleGetByPhone(phone: string): Promise<CustomerDto> {
 		const result = await this.repo.getByPhone(phone)
 		if (!result) throw err.notFoundByPhone(phone)
 		return result

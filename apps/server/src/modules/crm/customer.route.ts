@@ -1,16 +1,12 @@
-import {
-	createPaginatedResponseSchema,
-	createSuccessResponseSchema,
-	zc,
-	zq,
-} from '@ikki/api-contract/validation'
+import { zc, zq } from '@/shared/schema'
+import { createPaginatedResponseSchema, createSuccessResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	CustomerSchema,
+	CustomerDto,
 	CustomerFilterSchema,
 	CustomerCreateSchema,
 	CustomerUpdateSchema,
@@ -32,7 +28,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				query: CustomerFilterSchema,
-				response: createPaginatedResponseSchema(CustomerSchema),
+				response: createPaginatedResponseSchema(CustomerDto),
 				auth: true,
 			},
 		)
@@ -44,7 +40,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(CustomerSchema),
+				response: createSuccessResponseSchema(CustomerDto),
 				auth: true,
 			},
 		)
@@ -56,7 +52,7 @@ export function initCustomerRoute(service: CustomerService) {
 			},
 			{
 				body: CustomerGetByPhoneSchema,
-				response: createSuccessResponseSchema(CustomerSchema),
+				response: createSuccessResponseSchema(CustomerDto),
 				auth: true,
 			},
 		)

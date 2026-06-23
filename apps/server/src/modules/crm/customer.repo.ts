@@ -13,7 +13,7 @@ import { stampCreate, stampUpdate } from '@/shared/audit/stamp'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	CustomerSchema,
+	CustomerDto,
 	type CustomerFilterSchema,
 	type CustomerCreateSchema,
 	type CustomerUpdateSchema,
@@ -29,7 +29,7 @@ export class CustomerRepo {
 
 	async getListPaginated(
 		filter: CustomerFilterSchema,
-	): Promise<WithPaginationResult<CustomerSchema>> {
+	): Promise<WithPaginationResult<CustomerDto>> {
 		const { q, page, limit, tier, phone } = filter
 		const where = and(
 			q === undefined
@@ -48,13 +48,13 @@ export class CustomerRepo {
 					.orderBy(customersTable.name)
 					.limit(limit)
 					.offset(offset)
-					.then((rows) => rows.map((r) => CustomerSchema.parse(r))),
+					.then((rows) => rows.map((r) => CustomerDto.parse(r))),
 			pq: { page, limit },
 			countQuery: () => this.db.select({ count: count() }).from(customersTable).where(where),
 		})
 	}
 
-	async getById(id: number): Promise<CustomerSchema | undefined> {
+	async getById(id: number): Promise<CustomerDto | undefined> {
 		const res = await this.db
 			.select()
 			.from(customersTable)
@@ -62,10 +62,10 @@ export class CustomerRepo {
 			.limit(1)
 			.then(takeFirst)
 
-		return res ? CustomerSchema.parse(res) : undefined
+		return res ? CustomerDto.parse(res) : undefined
 	}
 
-	async getByPhone(phone: string): Promise<CustomerSchema | undefined> {
+	async getByPhone(phone: string): Promise<CustomerDto | undefined> {
 		const res = await this.db
 			.select()
 			.from(customersTable)
@@ -73,7 +73,7 @@ export class CustomerRepo {
 			.limit(1)
 			.then(takeFirst)
 
-		return res ? CustomerSchema.parse(res) : undefined
+		return res ? CustomerDto.parse(res) : undefined
 	}
 
 	async getLoyaltyHistory(customerId: number): Promise<CustomerLoyaltyTransactionSchema[]> {
