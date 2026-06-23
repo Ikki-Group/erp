@@ -1,11 +1,12 @@
 import z from 'zod'
 
-import { zc, zq } from '@/shared/schema'
+import { zq } from '@/shared/schema'
 
 import { LocationDto } from '@/modules/location'
 
 import { UserAssignmentDto } from '../assignment/assignment.contract'
 import { RoleDto } from '../role/role.contract'
+import { UserDto } from '../user/user.contract'
 
 const UserAssignmentWithRelationsDto = z.object({
 	...UserAssignmentDto.shape,
@@ -14,14 +15,7 @@ const UserAssignmentWithRelationsDto = z.object({
 })
 
 export const UserDetailDto = z.object({
-	...zc.RecordId.shape,
-	email: z.string().email(),
-	username: z.string(),
-	fullname: z.string(),
-	isActive: z.boolean(),
-	isRoot: z.boolean(),
-	defaultLocationId: z.number().nullable(),
-	...zc.AuditBasic.shape,
+	...UserDto.shape,
 	assignments: z.array(UserAssignmentWithRelationsDto),
 })
 export type UserDetailDto = z.infer<typeof UserDetailDto>
