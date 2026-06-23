@@ -93,26 +93,33 @@ IAM is a **complex module** with 3 submodules:
 
 ---
 
-### 2. Role Submodule
+### 2. Role Submodule ✅
 
-#### Contract (`role/role.contract.ts`)
-- [ ] DTO schemas proper
-- [ ] Permissions array validation
-- [ ] isSystem flag (built-in roles)
+#### Contract (`role/role.contract.ts`) ✅
+- [x] DTO schemas proper
+- [x] Permissions array validation
+- [x] isSystem flag (built-in roles)
+- [x] Reusable mutation shape (RoleMutationDto)
 
-#### Repository (`role/role.repo.ts`)
-- [ ] Returns undefined for not found
-- [ ] Batch operations
+#### Repository (`role/role.repo.ts`) ✅
+- [x] Returns undefined for not found
+- [x] Batch operations (insertMany)
+- [x] Soft delete protection (force flag)
+- [x] System role protection in remove method
 
-#### Service (`role/role.service.ts`)
-- [ ] handleX naming
-- [ ] Conflict checks (code, name)
-- [ ] Prevent deletion of system roles
-- [ ] Cache invalidation
-- [ ] Custom errors
+#### Service (`role/role.service.ts`) ✅
+- [x] handleX naming
+- [x] Conflict checks (code, name)
+- [x] Prevent deletion of system roles
+- [x] Prevent update of system roles
+- [x] Cache invalidation
+- [x] Custom errors
+- [x] OpenTelemetry tracing
 
-#### Internal (`role/role.internal.ts`)
-- [ ] Custom error classes
+#### Internal (`role/role.internal.ts`) ✅
+- [x] Custom error classes
+- [x] Clear error codes (6 error types)
+- [x] JSDoc documentation
 
 ---
 
@@ -222,14 +229,20 @@ IAM is a **complex module** with 3 submodules:
    - Applied to: handleCreate, handleUpdate, handleChangePassword, handleAdminUpdatePassword
    - Benefits: Testability, consistency, future-proofing, abstraction
 
+### Role Submodule (Commit: TBD)
+1. **Contract spread-shape pattern**
+   - Extracted RoleMutationDto for reusable shape
+   - Fixed RoleUpdateDto to use spread-shape (NOT direct .shape access)
+   - Consistent with location/user pattern
+
 ---
 
 ## 📊 Progress
 
-**Files Reviewed:** 4/18 (22.2%)  
-**Submodules:** 1/4 (user ✅)  
-**Issues Found:** 1  
-**Issues Fixed:** 1
+**Files Reviewed:** 8/18 (44.4%)  
+**Submodules:** 2/4 (user ✅, role ✅)  
+**Issues Found:** 2  
+**Issues Fixed:** 2
 
 ---
 

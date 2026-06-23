@@ -64,6 +64,9 @@ export class UserAssignmentService {
 					addedBy: actorId,
 				})),
 			)
+
+			// Invalidate cache for this user's assignments
+			await this.cache.deleteFromKeys([this.cache.keys.byId(userId)])
 		})
 	}
 }
