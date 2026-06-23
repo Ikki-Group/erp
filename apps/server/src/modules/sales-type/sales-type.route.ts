@@ -1,16 +1,12 @@
-import {
-	zc,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-	zq,
-} from '@ikki/api-contract/validation'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
 import { res } from '@/shared/http/response'
 
 import {
-	SalesTypeSchema,
+	SalesTypeDto,
 	SalesTypeFilterSchema,
 	SalesTypeCreateSchema,
 	SalesTypeUpdateSchema,
@@ -28,7 +24,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 			},
 			{
 				query: SalesTypeFilterSchema,
-				response: createPaginatedResponseSchema(SalesTypeSchema),
+				response: createPaginatedResponseSchema(SalesTypeDto),
 				auth: true,
 			},
 		)
@@ -38,7 +34,7 @@ export function initSalesTypeRoute(service: SalesTypeService) {
 				const salesType = await service.handleDetail(query.id)
 				return res.ok(salesType)
 			},
-			{ query: zq.recordId, response: createSuccessResponseSchema(SalesTypeSchema), auth: true },
+			{ query: zq.recordId, response: createSuccessResponseSchema(SalesTypeDto), auth: true },
 		)
 		.post(
 			'/create',

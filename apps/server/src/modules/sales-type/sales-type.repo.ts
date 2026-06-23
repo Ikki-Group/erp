@@ -11,7 +11,7 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 import type {
 	SalesTypeCreateSchema,
 	SalesTypeFilterSchema,
-	SalesTypeSchema,
+	SalesTypeDto,
 	SalesTypeUpdateSchema,
 } from './sales-type.schema'
 
@@ -20,7 +20,7 @@ export class SalesTypeRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<SalesTypeSchema | undefined> {
+	async getById(id: number): Promise<SalesTypeDto | undefined> {
 		const row = await this.db
 			.select()
 			.from(salesTypesTable)
@@ -44,11 +44,11 @@ export class SalesTypeRepo {
 
 	async getListPaginated(
 		filter: SalesTypeFilterSchema,
-	): Promise<WithPaginationResult<SalesTypeSchema>> {
+	): Promise<WithPaginationResult<SalesTypeDto>> {
 		const { q } = filter
 		const where = searchFilter(salesTypesTable.name, q)
 
-		return paginate<SalesTypeSchema>({
+		return paginate<SalesTypeDto>({
 			data: async ({ limit, offset }) => {
 				const rows = await this.db
 					.select()
@@ -74,7 +74,7 @@ export class SalesTypeRepo {
 		})
 	}
 
-	async getAll(): Promise<SalesTypeSchema[]> {
+	async getAll(): Promise<SalesTypeDto[]> {
 		const rows = await this.db.select().from(salesTypesTable).orderBy(salesTypesTable.name)
 		return rows.map((row) => ({
 			id: row.id,

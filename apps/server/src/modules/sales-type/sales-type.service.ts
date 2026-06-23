@@ -12,7 +12,7 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 import type { SalesTypeRepo } from './sales-type.repo'
 import type {
 	SalesTypeCreateSchema,
-	SalesTypeSchema,
+	SalesTypeDto,
 	SalesTypeFilterSchema,
 	SalesTypeUpdateSchema,
 } from './sales-type.schema'
@@ -45,7 +45,7 @@ export class SalesTypeService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<SalesTypeSchema | undefined> {
+	async getById(id: number): Promise<SalesTypeDto | undefined> {
 		return record('SalesTypeService.getById', async () =>
 			this.cache.getOrSetWithSkip({
 				key: this.cache.keys.byId(id),
@@ -54,7 +54,7 @@ export class SalesTypeService {
 		)
 	}
 
-	async find(): Promise<SalesTypeSchema[]> {
+	async find(): Promise<SalesTypeDto[]> {
 		return record('SalesTypeService.find', async () =>
 			this.cache.getOrSet({
 				key: this.cache.keys.list,
@@ -65,13 +65,13 @@ export class SalesTypeService {
 
 	/* --------------------------------- HANDLER -------------------------------- */
 
-	async handleList(filter: SalesTypeFilterSchema): Promise<WithPaginationResult<SalesTypeSchema>> {
+	async handleList(filter: SalesTypeFilterSchema): Promise<WithPaginationResult<SalesTypeDto>> {
 		return record('SalesTypeService.handleList', async () =>
 			this.repo.getListPaginated(filter),
 		)
 	}
 
-	async handleDetail(id: number): Promise<SalesTypeSchema> {
+	async handleDetail(id: number): Promise<SalesTypeDto> {
 		return record('SalesTypeService.handleDetail', async () => {
 			const result = await this.getById(id)
 			if (!result) throw err.notFound(id)
