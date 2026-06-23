@@ -5,7 +5,6 @@ import { res } from '@/shared/http/response'
 import {
 	createPaginatedResponseSchema,
 	createSuccessResponseSchema,
-	successRecordIdSchema,
 	zc,
 	zq,
 } from '@/shared/schema'
@@ -37,11 +36,11 @@ export function createLocationRoute(m: LocationModule) {
 			'/detail',
 			async ({ query }) => {
 				const result = await m.location.handleGetById(query.id)
-				return res.ok({ id: result?.id })
+				return res.ok(result)
 			},
 			{
 				query: zq.recordId,
-				response: successRecordIdSchema,
+				response: createSuccessResponseSchema(LocationDto),
 				auth: true,
 			},
 		)

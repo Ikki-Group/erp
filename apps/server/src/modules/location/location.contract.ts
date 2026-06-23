@@ -35,7 +35,8 @@ export const LocationFilterDto = z.object({
 })
 export type LocationFilterDto = z.infer<typeof LocationFilterDto>
 
-export const LocationCreateDto = z.object({
+// Reusable mutation shape
+const LocationMutationDto = z.object({
 	code: zc.strTrim,
 	name: zc.strTrim.min(3).max(100),
 	type: LocationTypeEnum,
@@ -44,10 +45,12 @@ export const LocationCreateDto = z.object({
 	phone: zc.strTrimNullable,
 	isActive: zp.bool.default(true),
 })
+
+export const LocationCreateDto = LocationMutationDto
 export type LocationCreateDto = z.infer<typeof LocationCreateDto>
 
 export const LocationUpdateDto = z.object({
 	id: zp.id,
-	...LocationCreateDto.shape,
+	...LocationMutationDto.shape,
 })
 export type LocationUpdateDto = z.infer<typeof LocationUpdateDto>
