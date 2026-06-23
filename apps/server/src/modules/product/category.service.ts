@@ -7,7 +7,7 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { ProductCategoryRepo } from './category.repo'
 import type {
-	ProductCategorySchema,
+	ProductCategoryDto,
 	ProductCategoryFilterSchema,
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
@@ -25,14 +25,14 @@ export class ProductCategoryService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductCategorySchema | undefined> {
+	async getById(id: number): Promise<ProductCategoryDto | undefined> {
 		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),
 		})
 	}
 
-	async getAll(locationId?: number): Promise<ProductCategorySchema[]> {
+	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
 		const cacheKey = locationId ? `list:location:${locationId}` : 'list'
 		return this.cache.getOrSet({
 			key: cacheKey,
@@ -44,11 +44,11 @@ export class ProductCategoryService {
 
 	async handleList(
 		filter: ProductCategoryFilterSchema,
-	): Promise<WithPaginationResult<ProductCategorySchema>> {
+	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		return this.repo.getListPaginated(filter)
 	}
 
-	async handleDetail(id: number): Promise<ProductCategorySchema> {
+	async handleDetail(id: number): Promise<ProductCategoryDto> {
 		const result = await this.getById(id)
 		if (!result)
 			throw new NotFoundError(

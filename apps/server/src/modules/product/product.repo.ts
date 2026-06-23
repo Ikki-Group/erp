@@ -19,7 +19,7 @@ import { ConflictError, NotFoundError } from '@/shared/errors/http-error'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	ProductSchema,
+	ProductDto,
 	type ProductFilterSchema,
 	type ProductMutationSchema,
 	ProductPriceSchema,
@@ -85,7 +85,7 @@ export class ProductRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<ProductSchema | undefined> {
+	async getById(id: number): Promise<ProductDto | undefined> {
 		const [product] = await this.db
 			.select()
 			.from(productsTable)
@@ -110,7 +110,7 @@ export class ProductRepo {
 
 	async getListPaginated(
 		filter: ProductFilterSchema,
-	): Promise<WithPaginationResult<ProductSchema>> {
+	): Promise<WithPaginationResult<ProductDto>> {
 		const { search, status, categoryId, locationId, page, limit } = filter
 
 		const conditions = [
@@ -134,7 +134,7 @@ export class ProductRepo {
 					.limit(l)
 					.offset(offset)
 				return rows.map((r) =>
-					ProductSchema.parse({
+					ProductDto.parse({
 						...r,
 						basePrice: r.basePrice,
 						variants: [],

@@ -15,7 +15,7 @@ import { InternalServerError, NotFoundError } from '@/shared/errors/http-error'
 import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import {
-	ProductCategorySchema,
+	ProductCategoryDto,
 	type ProductCategoryFilterSchema,
 	type ProductCategoryCreateSchema,
 	type ProductCategoryUpdateSchema,
@@ -26,18 +26,18 @@ export class ProductCategoryRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<ProductCategorySchema | undefined> {
+	async getById(id: number): Promise<ProductCategoryDto | undefined> {
 		const [result] = await this.db
 			.select()
 			.from(productCategoriesTable)
 			.where(eq(productCategoriesTable.id, id))
 			.limit(1)
-		return result ? ProductCategorySchema.parse(result) : undefined
+		return result ? ProductCategoryDto.parse(result) : undefined
 	}
 
 	async getListPaginated(
 		filter: ProductCategoryFilterSchema,
-	): Promise<WithPaginationResult<ProductCategorySchema>> {
+	): Promise<WithPaginationResult<ProductCategoryDto>> {
 		const { q, locationId, page, limit } = filter
 
 		const conditions = [
@@ -56,14 +56,14 @@ export class ProductCategoryRepo {
 					.orderBy(sortBy(productCategoriesTable.updatedAt, 'desc'))
 					.limit(l)
 					.offset(offset)
-				return rows.map((r) => ProductCategorySchema.parse(r))
+				return rows.map((r) => ProductCategoryDto.parse(r))
 			},
 			pq: { page, limit },
 			countQuery: () => this.db.select({ count: count() }).from(productCategoriesTable).where(where),
 		})
 	}
 
-	async getAll(locationId?: number): Promise<ProductCategorySchema[]> {
+	async getAll(locationId?: number): Promise<ProductCategoryDto[]> {
 		const conditions = [
 			locationId ? eq(productCategoriesTable.locationId, locationId) : undefined,
 		].filter((c): c is NonNullable<typeof c> => c !== undefined)
@@ -74,7 +74,7 @@ export class ProductCategoryRepo {
 			.from(productCategoriesTable)
 			.where(where)
 			.orderBy(productCategoriesTable.name)
-		return rows.map((r) => ProductCategorySchema.parse(r))
+		return rows.map((r) => ProductCategoryDto.parse(r))
 	}
 
 	/* -------------------------------- MUTATION -------------------------------- */

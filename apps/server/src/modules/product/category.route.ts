@@ -1,9 +1,5 @@
-import {
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-	zc,
-	zq,
-} from '@ikki/api-contract/validation'
+import { zc, zq } from '@/shared/schema'
+import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -13,7 +9,7 @@ import {
 	ProductCategoryFilterSchema,
 	ProductCategoryCreateSchema,
 	ProductCategoryUpdateSchema,
-	ProductCategorySchema,
+	ProductCategoryDto,
 } from './category.schema'
 import type { ProductCategoryService } from './category.service'
 
@@ -28,7 +24,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				query: ProductCategoryFilterSchema,
-				response: createPaginatedResponseSchema(ProductCategorySchema),
+				response: createPaginatedResponseSchema(ProductCategoryDto),
 				auth: true,
 			},
 		)
@@ -40,7 +36,7 @@ export function initProductCategoryRoute(s: ProductCategoryService) {
 			},
 			{
 				query: zq.recordId,
-				response: createSuccessResponseSchema(ProductCategorySchema),
+				response: createSuccessResponseSchema(ProductCategoryDto),
 				auth: true,
 			},
 		)

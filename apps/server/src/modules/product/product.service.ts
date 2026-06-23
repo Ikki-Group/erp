@@ -9,7 +9,7 @@ import type { ProductCategorySchema } from './category.schema'
 import type { ProductCategoryService } from './category.service'
 import { ProductRepo } from './product.repo'
 import type {
-	ProductSchema,
+	ProductDto,
 	ProductFilterSchema,
 	ProductMutationSchema,
 	ProductSelectSchema,
@@ -37,7 +37,7 @@ export class ProductService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<ProductSchema | undefined> {
+	async getById(id: number): Promise<ProductDto | undefined> {
 		return this.cache.getOrSetWithSkip({
 			key: `byId:${id}`,
 			factory: () => this.repo.getById(id),

@@ -1,8 +1,10 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENTITY ---------------------------------- */
 
-export const ProductCategorySchema = z.object({
+export const ProductCategoryDto = z.object({
 	...zc.RecordId.shape,
 	name: zp.str,
 	description: zp.strNullable,
@@ -10,30 +12,31 @@ export const ProductCategorySchema = z.object({
 	...zc.AuditBasic.shape,
 })
 
-export type ProductCategorySchema = z.infer<typeof ProductCategorySchema>
+export type ProductCategoryDto = z.infer<typeof ProductCategoryDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
-export const ProductCategoryFilterSchema = z.object({
+export const ProductCategoryFilterDto = z.object({
 	...zq.pagination.shape,
 	q: zq.search,
 	locationId: zq.id.optional(),
 })
 
-export type ProductCategoryFilterSchema = z.infer<typeof ProductCategoryFilterSchema>
+export type ProductCategoryFilterDto = z.infer<typeof ProductCategoryFilterDto>
 
 /* -------------------------------- MUTATION -------------------------------- */
 
-const ProductCategoryMutationSchema = z.object({
+const ProductCategoryMutationDto = z.object({
 	name: zc.strTrim.min(1).max(100),
 	description: zc.strTrimNullable,
 	locationId: zp.id,
 })
 
-export const ProductCategoryCreateSchema = ProductCategoryMutationSchema
-export type ProductCategoryCreateSchema = z.infer<typeof ProductCategoryCreateSchema>
+export const ProductCategoryCreateDto = ProductCategoryMutationDto
+export type ProductCategoryCreateDto = z.infer<typeof ProductCategoryCreateDto>
 
-export const ProductCategoryUpdateSchema = ProductCategoryMutationSchema.extend({
+export const ProductCategoryUpdateDto = z.object({
 	...zc.RecordId.shape,
+	...ProductCategoryMutationDto.shape,
 })
-export type ProductCategoryUpdateSchema = z.infer<typeof ProductCategoryUpdateSchema>
+export type ProductCategoryUpdateDto = z.infer<typeof ProductCategoryUpdateDto>
