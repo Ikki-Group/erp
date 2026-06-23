@@ -110,13 +110,28 @@ sessionsTable: {
 ## 🎯 Next Steps
 
 1. **Continue Schema Reviews:**
-   - [ ] material.ts
-   - [ ] product.ts
-   - [ ] inventory.ts
-   - [ ] sales.ts
+   - [x] material.ts ✅ (f4571464)
+   - [x] product.ts ✅ (f4571464)
+   - [x] inventory.ts ✅ (f4571464)
+   - [x] sales.ts ✅ (06bd3b3b)
+   - [ ] inventory_transfer.ts
    - [ ] purchasing.ts
+   - [ ] production.ts
+   - [ ] recipe.ts
+   - [ ] customer.ts
+   - [ ] supplier.ts
+   - [ ] employee.ts
    - [ ] finance.ts
+   - [ ] finance_payment.ts
    - [ ] hr.ts
+   - [ ] tax.ts
+   - [ ] sales-type.ts
+   - [ ] payment_methods.ts
+   - [ ] payment_provider.ts
+   - [ ] location_payment_method.ts
+   - [ ] company.ts
+   - [ ] moka.ts
+   - [ ] audit.ts
    - [ ] Other schemas...
 
 2. **After ALL Reviews Complete:**
