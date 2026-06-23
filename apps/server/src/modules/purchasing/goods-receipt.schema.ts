@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -61,8 +62,9 @@ const GoodsReceiptNoteMutationSchema = z.object({
 export const GoodsReceiptNoteCreateSchema = GoodsReceiptNoteMutationSchema
 export type GoodsReceiptNoteCreateSchema = z.infer<typeof GoodsReceiptNoteCreateSchema>
 
-export const GoodsReceiptNoteUpdateSchema = GoodsReceiptNoteMutationSchema.extend({
+export const GoodsReceiptNoteUpdateSchema = z.object({
 	...zc.RecordId.shape,
+	...GoodsReceiptNoteMutationSchema.shape,
 })
 export type GoodsReceiptNoteUpdateSchema = z.infer<typeof GoodsReceiptNoteUpdateSchema>
 

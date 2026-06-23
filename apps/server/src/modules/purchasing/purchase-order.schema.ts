@@ -1,4 +1,5 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+import { zc, zp, zq } from '@/shared/schema'
 
 /* ---------------------------------- ENUM ---------------------------------- */
 
@@ -70,14 +71,15 @@ const PurchaseOrderMutationSchema = z.object({
 	discountAmount: zp.decimal.default('0'),
 	taxAmount: zp.decimal.default('0'),
 	notes: zc.strTrimNullable,
-	items: z.array(PurchaseOrderItemMutationSchema.extend({ id: zp.id.optional() })).min(1),
+	items: z.array(z.object({ ...PurchaseOrderItemMutationSchema.shape, id: zp.id.optional() })).min(1),
 })
 
 export const PurchaseOrderCreateSchema = PurchaseOrderMutationSchema
 export type PurchaseOrderCreateSchema = z.infer<typeof PurchaseOrderCreateSchema>
 
-export const PurchaseOrderUpdateSchema = PurchaseOrderMutationSchema.extend({
+export const PurchaseOrderUpdateSchema = z.object({
 	...zc.RecordId.shape,
+	...PurchaseOrderMutationSchema.shape,
 })
 export type PurchaseOrderUpdateSchema = z.infer<typeof PurchaseOrderUpdateSchema>
 
