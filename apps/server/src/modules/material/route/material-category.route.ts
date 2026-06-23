@@ -27,17 +27,17 @@ export function initMaterialCategoryRoute(s: MaterialCategoryService) {
 			response: createSuccessResponseSchema(MaterialCategoryDto),
 			auth: true,
 		})
-		.post('/create', async ({ body, auth }) => res.created(await s.create(body, auth.userId)), {
+		.post('/create', async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)), {
 			body: MaterialCategoryMutationDto,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,
 		})
-		.put('/update', async ({ body, auth }) => res.ok(await s.update(body.id, body, auth.userId)), {
+		.put('/update', async ({ body, auth }) => res.ok(await s.handleUpdate(body.id, body, auth.userId)), {
 			body: z.object({ ...zc.RecordId.shape, ...MaterialCategoryMutationDto.shape }),
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,
 		})
-		.delete('/remove', async ({ query }) => res.ok(await s.remove(query.id)), {
+		.delete('/remove', async ({ query }) => res.ok(await s.handleRemove(query.id)), {
 			query: zq.recordId,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,

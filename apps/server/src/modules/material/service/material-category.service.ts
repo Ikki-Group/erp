@@ -89,7 +89,7 @@ export class MaterialCategoryService {
 		})
 	}
 
-	async create(
+	async handleCreate(
 		data: {
 			name: string
 			description?: string | null | undefined
@@ -97,7 +97,7 @@ export class MaterialCategoryService {
 		},
 		actorId: number,
 	): Promise<{ id: number }> {
-		return record('MaterialCategoryService.create', async () => {
+		return record('MaterialCategoryService.handleCreate', async () => {
 			const name = data.name.trim()
 
 			await checkConflict({
@@ -108,13 +108,14 @@ export class MaterialCategoryService {
 			})
 
 			const result = await this.deps.repo.create({ ...data, name, createdBy: actorId })
+			if (!result) throw CategoryErrors.createFailed()
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count])
 			return result
 		})
 	}
 
-	async update(
+	async handleUpdate(
 		id: number,
 		data: Partial<{
 			name: string
@@ -123,7 +124,7 @@ export class MaterialCategoryService {
 		}>,
 		actorId: number,
 	): Promise<{ id: number }> {
-		return record('MaterialCategoryService.update', async () => {
+		return record('MaterialCategoryService.handleUpdate', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw CategoryErrors.notFound(id)
 
@@ -138,14 +139,15 @@ export class MaterialCategoryService {
 			})
 
 			const result = await this.deps.repo.update(id, { ...data, name, updatedBy: actorId })
+			if (!result) throw CategoryErrors.notFound(id)
 
 			await this.cache.deleteFromKeys([this.cache.keys.list, this.cache.keys.count, this.cache.keys.byId(id)])
 			return result
 		})
 	}
 
-	async remove(id: number): Promise<{ id: number }> {
-		return record('MaterialCategoryService.remove', async () => {
+	async handleRemove(id: number): Promise<{ id: number }> {
+		return record('MaterialCategoryService.handleRemove', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw CategoryErrors.notFound(id)
 

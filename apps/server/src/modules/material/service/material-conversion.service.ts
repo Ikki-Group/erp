@@ -88,8 +88,8 @@ export class MaterialConversionService {
 		})
 	}
 
-	async create(data: ConversionInsertData, actorId: number): Promise<EntityRef> {
-		return record('MaterialConversionService.create', async () => {
+	async handleCreate(data: ConversionInsertData, actorId: number): Promise<EntityRef> {
+		return record('MaterialConversionService.handleCreate', async () => {
 			const existing = await this.deps.repo.getByMaterialAndUom(data.materialId, data.uomId)
 			if (existing) throw ConversionErrors.uomAlreadyExists()
 
@@ -101,8 +101,8 @@ export class MaterialConversionService {
 		})
 	}
 
-	async update(data: ConversionUpdateData, actorId: number): Promise<EntityRef> {
-		return record('MaterialConversionService.update', async () => {
+	async handleUpdate(data: ConversionUpdateData, actorId: number): Promise<EntityRef> {
+		return record('MaterialConversionService.handleUpdate', async () => {
 			const current = await this.findById(data.id)
 			if (!current) throw ConversionErrors.notFound(data.id)
 
@@ -119,8 +119,8 @@ export class MaterialConversionService {
 		})
 	}
 
-	async remove(id: number): Promise<EntityRef> {
-		return record('MaterialConversionService.remove', async () => {
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('MaterialConversionService.handleRemove', async () => {
 			const current = await this.findById(id)
 			if (!current) throw ConversionErrors.notFound(id)
 

@@ -26,17 +26,17 @@ export function initMaterialConversionRoute(s: MaterialConversionService) {
 			response: createSuccessResponseSchema(MaterialConversionDto),
 			auth: true,
 		})
-		.post('/create', async ({ body, auth }) => res.created(await s.create(body, auth.userId)), {
+		.post('/create', async ({ body, auth }) => res.created(await s.handleCreate(body, auth.userId)), {
 			body: MaterialConversionCreateDto,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,
 		})
-		.put('/update', async ({ body, auth }) => res.ok(await s.update(body, auth.userId)), {
+		.put('/update', async ({ body, auth }) => res.ok(await s.handleUpdate(body, auth.userId)), {
 			body: MaterialConversionUpdateDto,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,
 		})
-		.delete('/remove', async ({ query }) => res.ok(await s.remove(query.id)), {
+		.delete('/remove', async ({ query }) => res.ok(await s.handleRemove(query.id)), {
 			query: zq.recordId,
 			response: createSuccessResponseSchema(zc.RecordId),
 			auth: true,

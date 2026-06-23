@@ -133,8 +133,8 @@ export class MaterialService {
 		})
 	}
 
-	async create(input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
-		return record('MaterialService.create', async () => {
+	async handleCreate(input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
+		return record('MaterialService.handleCreate', async () => {
 			const { sku, name, conversions } = input
 
 			await checkConflict({
@@ -175,8 +175,8 @@ export class MaterialService {
 		})
 	}
 
-	async update(id: number, input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
-		return record('MaterialService.update', async () => {
+	async handleUpdate(id: number, input: MaterialCreateInput, actorId: number): Promise<EntityRef> {
+		return record('MaterialService.handleUpdate', async () => {
 			const { sku, name, conversions } = input
 
 			const existing = await this.findById(id)
@@ -219,8 +219,8 @@ export class MaterialService {
 		})
 	}
 
-	async remove(id: number): Promise<EntityRef> {
-		return record('MaterialService.remove', async () => {
+	async handleRemove(id: number): Promise<EntityRef> {
+		return record('MaterialService.handleRemove', async () => {
 			const existing = await this.findById(id)
 			if (!existing) throw MasterErrors.notFound(id)
 

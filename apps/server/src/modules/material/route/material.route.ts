@@ -15,7 +15,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 		.post(
 			'/create',
 			async function create({ body, auth }) {
-				const { id } = await s.create(body, auth.userId)
+				const { id } = await s.handleCreate(body, auth.userId)
 				return res.created({ id })
 			},
 			{
@@ -27,7 +27,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 		.put(
 			'/update',
 			async function update({ body, auth }) {
-				const { id } = await s.update(body.id, body, auth.userId)
+				const { id } = await s.handleUpdate(body.id, body, auth.userId)
 				return res.ok({ id })
 			},
 			{
@@ -39,7 +39,7 @@ export function initMaterialMasterRoute(s: MaterialService) {
 		.delete(
 			'/remove',
 			async function remove({ query }) {
-				const { id } = await s.remove(query.id)
+				const { id } = await s.handleRemove(query.id)
 				return res.ok({ id })
 			},
 			{

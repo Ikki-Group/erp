@@ -88,7 +88,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: ConversionInsertData, actorId: number): Promise<number | undefined> {
+	async create(data: ConversionInsertData, actorId: number): Promise<{ id: number } | undefined> {
 		const metadata = stampCreate(actorId)
 		const [res] = await this.db
 			.insert(materialConversionsTable)
@@ -103,7 +103,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 		return res?.id
 	}
 
-	async update(data: ConversionUpdateData, actorId: number): Promise<number | undefined> {
+	async update(data: ConversionUpdateData, actorId: number): Promise<{ id: number } | undefined> {
 		const metadata = stampUpdate(actorId)
 		const [res] = await this.db
 			.update(materialConversionsTable)
@@ -119,7 +119,7 @@ export class MaterialConversionRepo implements IMaterialConversionRepo {
 		return res?.id
 	}
 
-	async remove(id: number): Promise<number | undefined> {
+	async remove(id: number): Promise<{ id: number } | undefined> {
 		const [res] = await this.db
 			.delete(materialConversionsTable)
 			.where(eq(materialConversionsTable.id, id))

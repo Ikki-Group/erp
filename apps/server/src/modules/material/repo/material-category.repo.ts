@@ -61,7 +61,7 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 			.then((rows) => rows[0]?.count ?? 0)
 	}
 
-	async create(data: CategoryInsertData): Promise<{ id: number }> {
+	async create(data: CategoryInsertData): Promise<{ id: number } | undefined> {
 		const metadata = stampCreate(data.createdBy)
 		const code = data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_')
 		const [result] = await this.db
@@ -74,14 +74,13 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 			})
 			.returning({ id: materialCategoriesTable.id })
 
-		if (!result) throw new Error('Failed to create material category')
 		return result
 	}
 
-	async update(id: number, data: CategoryUpdateData): Promise<{ id: number }> {
+	async update(id: number, data: CategoryUpdateData): Promise<{ id: number } | undefined> {
 		const metadata = stampUpdate(data.updatedBy)
 		const code = data.name ? data.name.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_') : undefined
-		await this.db
+		const [result] = await this.db
 			.update(materialCategoriesTable)
 			.set({
 				...(code ? { code } : {}),
@@ -90,8 +89,9 @@ export class MaterialCategoryRepo implements IMaterialCategoryRepo {
 				...metadata,
 			})
 			.where(eq(materialCategoriesTable.id, id))
+			.returning({ id: materialCategoriesTable.id })
 
-		return { id }
+		return result
 	}
 
 	async remove(id: number): Promise<{ id: number } | undefined> {
