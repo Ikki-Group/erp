@@ -9,9 +9,9 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import { RecipeRepo } from './recipe.repo'
 import type {
-	RecipeCostSchema,
+	RecipeCostDto,
 	RecipeCreateSchema,
-	RecipeSchema,
+	RecipeDto,
 	RecipeFilterSchema,
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
@@ -37,7 +37,7 @@ export class RecipeService {
 
 	/* --------------------------------- PUBLIC --------------------------------- */
 
-	async getById(id: number): Promise<RecipeSchema> {
+	async getById(id: number): Promise<RecipeDto> {
 		const key = `byId:${id}`
 		const recipe = await this.cache.getOrSetWithSkip({
 			key,
@@ -123,7 +123,7 @@ export class RecipeService {
 
 	/* ──────────────────── HANDLER: COSTING SIMULATION ──────────────────── */
 
-	async handleCalculateCost(recipeId: number): Promise<RecipeCostSchema> {
+	async handleCalculateCost(recipeId: number): Promise<RecipeCostDto> {
 		const recipe = await this.getById(recipeId)
 		const items = recipe.items ?? []
 

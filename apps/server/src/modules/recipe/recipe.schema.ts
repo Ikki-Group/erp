@@ -1,4 +1,6 @@
-import { z, zc, zp, zq } from '@ikki/api-contract/validation'
+import { z } from 'zod'
+
+import { zc, zp, zq } from '@/shared/schema'
 
 /* --------------------------------- NESTED --------------------------------- */
 
@@ -21,7 +23,7 @@ export type RecipeItemSchema = z.infer<typeof RecipeItemSchema>
 
 /* --------------------------------- ENTITY --------------------------------- */
 
-export const RecipeSchema = z.object({
+export const RecipeDto = z.object({
 	...zc.RecordId.shape,
 	materialId: zp.id.nullable(),
 	productId: zp.id.nullable(),
@@ -34,7 +36,7 @@ export const RecipeSchema = z.object({
 	items: z.array(RecipeItemSchema).optional(),
 	...zc.AuditBasic.shape,
 })
-export type RecipeSchema = z.infer<typeof RecipeSchema>
+export type RecipeDto = z.infer<typeof RecipeDto>
 
 /* --------------------------------- FILTER --------------------------------- */
 
@@ -50,7 +52,7 @@ export type RecipeFilterSchema = z.infer<typeof RecipeFilterSchema>
 
 /* --------------------------------- RESULT --------------------------------- */
 
-export const RecipeSelectSchema = RecipeSchema
+export const RecipeSelectSchema = RecipeDto
 export type RecipeSelectSchema = z.infer<typeof RecipeSelectSchema>
 
 /* -------------------------------- MUTATION -------------------------------- */

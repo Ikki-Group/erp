@@ -20,7 +20,7 @@ import type { ActorId, EntityRef } from '@/shared/types/utils'
 
 import type {
 	RecipeCreateSchema,
-	RecipeSchema,
+	RecipeDto,
 	RecipeFilterSchema,
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
@@ -57,7 +57,7 @@ export class RecipeRepo {
 
 	/* ---------------------------------- QUERY --------------------------------- */
 
-	async getById(id: number): Promise<RecipeSchema | undefined> {
+	async getById(id: number): Promise<RecipeDto | undefined> {
 		const [recipe] = await this.db
 			.select()
 			.from(recipesTable)

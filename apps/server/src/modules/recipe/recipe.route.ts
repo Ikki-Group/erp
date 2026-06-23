@@ -1,8 +1,5 @@
-import {
-	zc,
-	createSuccessResponseSchema,
-	createPaginatedResponseSchema,
-} from '@ikki/api-contract/validation'
+import { zc } from '@/shared/schema'
+import { createSuccessResponseSchema, createPaginatedResponseSchema } from '@/shared/schema/response'
 import Elysia from 'elysia'
 
 import { authPluginMacro } from '@/server/plugins/auth.plugin'
@@ -13,7 +10,7 @@ import {
 	RecipeFilterSchema,
 	RecipeSelectSchema,
 	RecipeUpdateSchema,
-	RecipeCostSchema,
+	RecipeCostDto,
 } from './recipe.schema'
 import type { RecipeService } from './recipe.service'
 
@@ -82,6 +79,6 @@ export function initRecipeRoute(service: RecipeService) {
 				const result = await service.handleCalculateCost(query.id)
 				return res.ok(result)
 			},
-			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeCostSchema), auth: true },
+			{ query: zc.RecordId, response: createSuccessResponseSchema(RecipeCostDto), auth: true },
 		)
 }
